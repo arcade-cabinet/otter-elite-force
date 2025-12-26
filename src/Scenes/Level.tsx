@@ -3,7 +3,7 @@
  * Main gameplay scene with 3D world
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Sky, Environment } from "@react-three/drei";
 import * as THREE from "three";
@@ -16,11 +16,10 @@ import { LEVELS } from "../utils/constants";
 import { randomRange } from "../utils/math";
 
 export function Level() {
-	const { currentLevel, kills, addKill } = useGameStore();
+	const { currentLevel, addKill } = useGameStore();
 	const level = LEVELS[currentLevel];
 
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
-	const [playerRot, setPlayerRot] = useState(0);
 	const [enemies, setEnemies] = useState<EnemyData[]>([]);
 	const [particles, setParticles] = useState<ParticleData[]>([]);
 
@@ -34,11 +33,7 @@ export function Level() {
 
 			newEnemies.push({
 				id: `enemy-${i}`,
-				position: new THREE.Vector3(
-					Math.cos(angle) * dist,
-					0,
-					Math.sin(angle) * dist,
-				),
+				position: new THREE.Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist),
 				hp: isHeavy ? 8 : 3,
 				maxHp: isHeavy ? 8 : 3,
 				isHeavy,
@@ -46,6 +41,11 @@ export function Level() {
 		}
 		setEnemies(newEnemies);
 	}, [level.enemies]);
+
+	// Spawn enemies on mount
+	useEffect(() => {
+		spawnEnemies();
+	}, [spawnEnemies]);
 
 	// Handle enemy death
 	const handleEnemyDeath = useCallback(
@@ -62,19 +62,12 @@ export function Level() {
 	}, []);
 
 	// Game update loop
-	const handleUpdate = useCallback(
-		(delta: number, elapsed: number) => {
-			// Update game logic here
-		},
-		[],
-	);
+	const handleUpdate = useCallback((_delta: number, _elapsed: number) => {
+		// Update game logic here
+	}, []);
 
 	return (
-		<Canvas
-			shadows
-			camera={{ position: [0, 12, 20], fov: 60 }}
-			gl={{ antialias: true }}
-		>
+		<Canvas shadows camera={{ position: [0, 12, 20], fov: 60 }} gl={{ antialias: true }}>
 			{/* Lighting */}
 			<ambientLight intensity={0.4} />
 			<directionalLight
@@ -106,11 +99,7 @@ export function Level() {
 			<Environment preset="sunset" />
 
 			{/* Ground */}
-			<mesh
-				rotation={[-Math.PI / 2, 0, 0]}
-				position={[0, 0, 0]}
-				receiveShadow
-			>
+			<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
 				<planeGeometry args={[200, 200, 50, 50]} />
 				<meshStandardMaterial color="#2d5016" roughness={0.8} />
 			</mesh>
@@ -128,16 +117,11 @@ export function Level() {
 			</mesh>
 
 			{/* Player */}
-			<PlayerRig position={[playerPos.x, playerPos.y, playerPos.z]} rotation={playerRot} />
+			<PlayerRig position={[playerPos.x, playerPos.y, playerPos.z]} rotation={0} />
 
 			{/* Enemies */}
 			{enemies.map((enemy) => (
-				<Enemy
-					key={enemy.id}
-					data={enemy}
-					targetPosition={playerPos}
-					onDeath={handleEnemyDeath}
-				/>
+				<Enemy key={enemy.id} data={enemy} targetPosition={playerPos} onDeath={handleEnemyDeath} />
 			))}
 
 			{/* Particles */}

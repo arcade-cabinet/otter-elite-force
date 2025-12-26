@@ -17,10 +17,7 @@ export function HUD() {
 				<div className="hud-health">
 					<span className="hud-label">INTEGRITY</span>
 					<div className="hud-hp-bar">
-						<div
-							className="hud-hp-fill"
-							style={{ width: `${(health / maxHealth) * 100}%` }}
-						/>
+						<div className="hud-hp-fill" style={{ width: `${(health / maxHealth) * 100}%` }} />
 					</div>
 				</div>
 
@@ -34,12 +31,7 @@ export function HUD() {
 			</div>
 
 			{/* Scope Button */}
-			<button
-				type="button"
-				className="scope-btn"
-				onClick={toggleZoom}
-				aria-label="Toggle Scope"
-			>
+			<button type="button" className="scope-btn" onClick={toggleZoom} aria-label="Toggle Scope">
 				SCOPE
 			</button>
 

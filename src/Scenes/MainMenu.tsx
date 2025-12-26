@@ -69,19 +69,13 @@ export function MainMenu() {
 									<div className="level-title">{level.title}</div>
 									<div className="level-desc">{level.desc}</div>
 								</div>
-								<div className="level-goal">
-									ELIMINATE {level.goal} TARGETS
-								</div>
+								<div className="level-goal">ELIMINATE {level.goal} TARGETS</div>
 							</div>
 						);
 					})}
 				</div>
 
-				<button
-					type="button"
-					onClick={resetData}
-					className="secondary"
-				>
+				<button type="button" onClick={resetData} className="secondary">
 					RESET DATA
 				</button>
 			</div>
