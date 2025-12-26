@@ -48,7 +48,7 @@ export class InputSystem {
 				size: 120,
 			});
 
-			this.moveJoystick.on("move", (evt, data) => {
+			this.moveJoystick.on("move", (_evt, data) => {
 				const force = Math.min(data.force, 2) / 2;
 				const angle = data.angle.radian;
 				this.state.move = {
@@ -74,7 +74,7 @@ export class InputSystem {
 				size: 120,
 			});
 
-			this.lookJoystick.on("move", (evt, data) => {
+			this.lookJoystick.on("move", (_evt, data) => {
 				const force = Math.min(data.force, 2) / 2;
 				const angle = data.angle.radian;
 				this.state.look = {
@@ -167,9 +167,7 @@ export class InputSystem {
 			typeof (DeviceOrientationEvent as any).requestPermission === "function"
 		) {
 			try {
-				const permission = await (
-					DeviceOrientationEvent as any
-				).requestPermission();
+				const permission = await (DeviceOrientationEvent as any).requestPermission();
 				this.gyroEnabled = permission === "granted";
 				return this.gyroEnabled;
 			} catch (error) {

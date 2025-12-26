@@ -25,21 +25,17 @@ interface EnemyProps {
 
 export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 	const meshRef = useRef<Mesh>(null);
-	const vehicleRef = useRef<YUKA.Vehicle>();
-	const targetRef = useRef<YUKA.Vector3>();
+	const vehicleRef = useRef<YUKA.Vehicle | null>(null);
+	const targetRef = useRef<YUKA.Vector3 | null>(null);
 
 	// Setup Yuka AI
 	useEffect(() => {
 		const vehicle = new YUKA.Vehicle();
-		vehicle.position.copy(data.position as any);
+		vehicle.position.set(data.position.x, data.position.y, data.position.z);
 		vehicle.maxSpeed = data.isHeavy ? 4 : 7;
 
 		const seekBehavior = new YUKA.SeekBehavior();
-		targetRef.current = new YUKA.Vector3(
-			targetPosition.x,
-			targetPosition.y,
-			targetPosition.z,
-		);
+		targetRef.current = new YUKA.Vector3(targetPosition.x, targetPosition.y, targetPosition.z);
 		seekBehavior.target = targetRef.current;
 
 		vehicle.steering.add(seekBehavior);
@@ -48,10 +44,18 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		return () => {
 			vehicle.steering.clear();
 		};
-	}, [data.position, data.isHeavy, targetPosition]);
+	}, [
+		data.position.x,
+		data.position.y,
+		data.position.z,
+		data.isHeavy,
+		targetPosition.x,
+		targetPosition.y,
+		targetPosition.z,
+	]);
 
 	// Update AI and sync with Three.js mesh
-	useFrame((state, delta) => {
+	useFrame((_state, delta) => {
 		if (!vehicleRef.current || !meshRef.current) return;
 
 		// Update target position
@@ -63,18 +67,11 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		vehicleRef.current.update(delta);
 
 		// Sync Three.js mesh with Yuka vehicle
-		meshRef.current.position.set(
-			vehicleRef.current.position.x,
-			0.4,
-			vehicleRef.current.position.z,
-		);
+		meshRef.current.position.set(vehicleRef.current.position.x, 0.4, vehicleRef.current.position.z);
 
 		// Face direction of movement
 		if (vehicleRef.current.velocity.length() > 0.1) {
-			const angle = Math.atan2(
-				vehicleRef.current.velocity.x,
-				vehicleRef.current.velocity.z,
-			);
+			const angle = Math.atan2(vehicleRef.current.velocity.x, vehicleRef.current.velocity.z);
 			meshRef.current.rotation.y = angle;
 		}
 	});
@@ -100,10 +97,7 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 					<planeGeometry args={[1, 0.1]} />
 					<meshBasicMaterial color="#ff0000" side={THREE.DoubleSide} />
 				</mesh>
-				<mesh
-					position={[-(1 - data.hp / data.maxHp) / 2, 0, 0.01]}
-					scale-x={data.hp / data.maxHp}
-				>
+				<mesh position={[-(1 - data.hp / data.maxHp) / 2, 0, 0.01]} scale-x={data.hp / data.maxHp}>
 					<planeGeometry args={[1, 0.1]} />
 					<meshBasicMaterial color="#00ff00" side={THREE.DoubleSide} />
 				</mesh>
