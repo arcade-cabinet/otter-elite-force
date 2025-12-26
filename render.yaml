@@ -6,7 +6,7 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: NODE_VERSION
-        value: 20.15.1
+        value: 20.19.6
       - key: PNPM_VERSION
         value: 10.26.2
     headers:
@@ -16,7 +16,3 @@ services:
       - path: /assets/*
         name: Cache-Control
         value: public, max-age=31536000, immutable
-      - path: /*
-        name: Content-Security-Policy
-        # Note: 'unsafe-eval' required for Three.js shader compilation
-        value: "default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self';"

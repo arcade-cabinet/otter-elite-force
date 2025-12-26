@@ -2,64 +2,144 @@
 
 ## 1. Project Identity & Directive
 
-**Project Name**: OTTER: ELITE FORCE (The Copper-Silt Reach)
-**Core Aesthetic**: "Full Metal Jacket" meets "Wind in the Willows." 
-**Primary Goal**: A persistent, procedurally generated 3rd-person tactical shooter with open-world exploration, territory occupation, and base building.
+**Project Name**: OTTER: ELITE FORCE (formerly River Doom, Operation: Clam Thunder)  
+**Core Aesthetic**: "Full Metal Jacket" meets "Wind in the Willows."  
+**Technical Constraint**: Single-File HTML5 (No external assets, bundlers, or local servers required).  
+**Primary Goal**: Create a mobile-first, procedurally generated 3rd-person tactical shooter with persistent progression.
 
 ## 2. Architecture Overview
 
-### Modular World System (Chunk-Based)
-The game world is an infinite, persistent grid of **100x100 unit chunks**.
-- **Deterministic Generation**: Chunks are generated on-the-fly using coordinate-based seeds.
-- **Persistence**: Discovered chunk data (enemies, siphons, village status) is fixed in the `gameStore` and persisted to `localStorage`.
-- **Verticality**: Integrated 3D physics with gravity, jumping, and AABB collision against platforms.
+### The "Single-File" Mandate
 
-### State Management (Zustand)
-The `gameStore` is the "Mission Control" for all persistent data:
-- **Save Schema**: `{ rank, xp, coins, discoveredChunks, strategicObjectives, spoilsOfWar, upgrades, isLZSecured, baseComponents, difficultyMode }`.
-- **Mode FSM**: `MENU`, `CUTSCENE`, `GAME`, `GAMEOVER`, `CANTEEN`.
+To maintain portability and zero-setup execution, the entire game engine was originally contained within index.html.
 
-### Input System (OTS Control)
-- **Fluid Camera**: Tight "Over-the-Shoulder" (OTS) view with lateral offset and spring-arm physics.
-- **Tactical Cluster**: Left joystick for movement, right-side cluster for `JUMP`, `GRIP` (climbing), `SCOPE`, and `SUPPORT`.
-- **Gyroscopic Aiming**: Supported for mobile fine-tuning.
+- **Libraries**: Three.js is imported via ES Modules from unpkg.
+- **Assets**: No .obj, .gltf, or .mp3 files are used. All 3D models are constructed procedurally using THREE.Group composition of primitives. All audio is synthesized in real-time using the Web Audio API.
 
-## 3. Core Systems
+### Modern Modular Architecture
 
-### Modular Otter System (MOS)
-The `PlayerRig` is a modular assembly of:
-- **High-Detail Base**: Detailed snouts, twitching whiskers, brow ridges, and expressive eyes.
-- **Traits**: `baseSpeed`, `baseHealth`, `climbSpeed` mapped to character-specific physics.
-- **Swappable Gear**: Procedural mounting for `headgear`, `vest`, `backgear`, and `weapons`.
+The project is now being refactored into a modular TypeScript structure:
 
-### Tactical AI (Yuka FSM)
-Enemies use a Finite State Machine for pack-hunting:
-- **Gator States**: `IDLE`, `STALK`, `AMBUSH` (Periscope mode + Machine Gun), `RETREAT`.
-- **Suppression**: Firepower physically affects enemy movement speed and behavior (ducking/hiding).
-- **Ambush Predators**: Tree-hanging snakes and stationary Snapper bunkers complement the mobile gator squads.
+```
+src/
+├── Core/           # Core engine systems (GameLoop, InputSystem, AudioEngine)
+├── Entities/       # Game objects (PlayerRig, Enemies, Particles)
+├── Scenes/         # Level management (MainMenu, Level)
+└── UI/             # User interface (HUD)
+```
 
-### Base Building & Objectives
-- **Occupation Mechanic**: Destroying industrial siphons "secures" territory, hoisting URA flags.
-- **LZ/FOB**: Players secure an initial Landing Zone (0,0) and expand it using algorithmic modular components (stilts, floors, walls, roofs).
-- **Strategic Verticals**:
-  1. **Platoon**: Rescuing allies from prison camps at specific coordinates.
-  2. **Arsenal**: Economic weapon/stat upgrades at the Canteen.
-  3. **Intel**: Peacekeeping scores unlocking map data.
+### State Management
 
-## 4. Development Guidelines
+The game loop uses a strict finite state machine (FSM) controlled by the global mode variable:
+
+- **MENU**: 
+  - Input: Native DOM clicks enabled. Joystick logic disabled.
+  - Render: Cinematic camera drift, "Golden Hour" lighting.
+  
+- **CUTSCENE**: 
+  - Input: Limited to "Next Dialogue" button.
+  - Render: Fixed camera angles, scripted actor animations.
+  
+- **GAME**: 
+  - Input: Virtual Joysticks enabled via Touch Events. Native clicks disabled on canvas area (prevent default).
+  - Render: Chase camera, physics updates, collision detection.
+
+### Input System (The "Tactical Router")
+
+A major challenge during development was the conflict between Touch Events (for joysticks) and Mouse Events (for UI buttons).
+
+**Solution**: The ui-layer listens for touchstart.
+
+**Logic**:
+- Check mode. If not GAME, return immediately (allows native button clicks).
+- Check event target. If target is a `<button>`, return (allows click).
+- Else, call `e.preventDefault()` and map touch coordinates to virtual stick logic.
+
+## 3. Procedural Systems
+
+### The "Rig" (Sgt. Bubbles)
+
+The player character is not a mesh, but a hierarchy of primitives:
+
+- **Torso**: Cylinder (Vest/Body).
+- **Limbs**: CapsuleGeometry (requires Three.js r137+).
+- **Accessories**: Torus (Bandana), Boxes (Radio Pack).
+- **Animation**: Sine-wave rotation applied to limb groups (joints) based on movement velocity.
+
+### The Audio Engine
+
+A custom MusicEngine class uses AudioContext to sequence 16th notes.
+
+- **Instruments**: Oscillators (Sawtooth for Bass/Leads, Noise Buffer for Snare/HiHats).
+- **Filters**: BiquadFilters used for "wah" effects on bass and low-pass muffling.
+- **Safety**: The engine waits for the first user interaction (click or touchstart) before resuming the context to bypass browser autoplay policies.
+
+### Save Data
+
+Uses localStorage key `otter_v8`.
+
+- **Schema**: `{ rank: int, xp: int, medals: int, unlocked: int }`
+- **Versioning**: Keys are versioned (e.g., `_v8`) to prevent conflicts between iterations.
+
+## 4. Known Constraints & Hacks
+
+- **Shadow Mapping**: Shadow map size is set to 2048 for sharp shadows, but bias tweaking is minimal. Artifacts may appear at extreme angles.
+- **Fog/Skybox**: The sky is a simple THREE.Color background synced with a THREE.FogExp2 or linear Fog. The "Sun" is a DirectionalLight.
+- **Water**: A Vertex Shader displaces a high-segment plane. It does not have real reflections/refractions (too expensive for this context), relying on specular highlights for the "wet" look.
+
+## 5. Future Expansion Paths
+
+To scale this project further:
+
+- **Boss Battles**: Implement a Boss class inheriting from Enemy with multi-stage logic.
+- **Terrain**: Replace PlaneGeometry with a Heightmap-based terrain chunk system for uneven ground.
+- **Weapons**: Abstract the shooting logic to support different projectile types (Spread, Explosive, Beam).
+
+## 6. Development Guidelines
 
 ### Code Style
-- **Modular Everything**: Keep entities (Enemies, Environment, Objectives) in their own subdirectories.
-- **Performance First**: Use `InstancedMesh` for dense jungle elements (Mangroves, Reeds, Debris).
-- **Procedural Nature**: Preserve the zero-external-asset rule. Models must be composed of primitives and synthesized audio.
 
-### AI Agent Instructions
-1. **Maintain the Grit**: Avoid sci-fi tropes. Stick to the "Vietnam with Otters" analog aesthetic.
-2. **Respect Persistence**: When modifying chunks or entities, ensure the change is captured in the store if it needs to persist.
-3. **OTS Perspective**: Design environments and UI for the "Down and In" over-the-shoulder camera.
-4. **Suppression is Key**: Gameplay should reward fire-discipline and tactical positioning over arcade spraying.
+- Use TypeScript with strict mode enabled
+- Follow Biome linting and formatting rules (tabs for indentation, double quotes)
+- Prefer functional composition over deep inheritance
+- Document complex procedural generation logic
+
+### Testing
+
+- Run `pnpm dev` to test in development mode
+- Build with `pnpm build` to verify production builds
+- Test on mobile devices for touch input validation
+
+### Architecture Principles
+
+1. **Separation of Concerns**: Keep rendering, logic, and input separate
+2. **Minimal Dependencies**: Prefer native APIs over external libraries
+3. **Performance First**: Target 60fps on mobile devices
+4. **Procedural Everything**: Generate assets at runtime when possible
+
+## 7. AI Agent Instructions
+
+When working on this codebase:
+
+1. **Preserve the Procedural Nature**: Never add external asset files. Everything must be generated via code.
+2. **Maintain Single-File Compatibility**: While we're refactoring to modules, keep the spirit of minimal external dependencies.
+3. **Mobile-First**: Always consider touch input and mobile performance.
+4. **Test Audio**: Remember that Web Audio requires user interaction to start.
+5. **Respect the FSM**: Mode transitions should be explicit and well-defined.
+
+### Refactoring Strategy
+
+When extracting code from the monolithic POC:
+
+1. Identify logical boundaries (e.g., all input handling, all audio synthesis)
+2. Create TypeScript classes with clear interfaces
+3. Maintain backward compatibility with existing save data
+4. Test each module independently before integration
+5. Document dependencies between modules
 
 ### Common Pitfalls
-- **Memory Leaks**: Dispose of instanced geometries and clear event listeners in `InputSystem`.
-- **Store Bloat**: Only store the delta of discovered chunks; use the deterministic seed for static decoration.
-- **Sync Issues**: Ensure Yuka vehicles and R3F meshes are tightly synced in the `useFrame` loop.
+
+- Don't break the audio context initialization (it MUST wait for user gesture)
+- Don't interfere with touch event propagation for UI buttons
+- Don't change the localStorage key structure without migration logic
+- Don't add Three.js types that conflict with the runtime version (r160)

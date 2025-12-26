@@ -4,15 +4,12 @@
  */
 
 import { useEffect } from "react";
+import { useGameStore } from "./stores/gameStore";
+import { MainMenu } from "./Scenes/MainMenu";
+import { Level } from "./Scenes/Level";
+import { HUD } from "./UI/HUD";
 import { audioEngine } from "./Core/AudioEngine";
 import { inputSystem } from "./Core/InputSystem";
-import { Canteen } from "./Scenes/Canteen";
-import { Cutscene } from "./Scenes/Cutscene";
-import { Level } from "./Scenes/Level";
-import { MainMenu } from "./Scenes/MainMenu";
-import { Victory } from "./Scenes/Victory";
-import { useGameStore } from "./stores/gameStore";
-import { HUD } from "./UI/HUD";
 
 export function App() {
 	const { mode, loadData } = useGameStore();
@@ -26,7 +23,6 @@ export function App() {
 		const initAudio = async () => {
 			await audioEngine.init();
 			console.log("Audio initialized");
-			audioEngine.playMusic("menu");
 		};
 
 		// Initialize input system
@@ -49,14 +45,6 @@ export function App() {
 		};
 	}, [loadData]);
 
-	useEffect(() => {
-		if (mode === "GAME") {
-			audioEngine.playMusic("combat");
-		} else if (mode === "MENU") {
-			audioEngine.playMusic("menu");
-		}
-	}, [mode]);
-
 	return (
 		<div className="app">
 			{/* Scanlines overlay */}
@@ -64,9 +52,6 @@ export function App() {
 
 			{/* Main content based on mode */}
 			{mode === "MENU" && <MainMenu />}
-			{mode === "CUTSCENE" && <Cutscene />}
-			{mode === "CANTEEN" && <Canteen />}
-			{mode === "VICTORY" && <Victory />}
 
 			{mode === "GAME" && (
 				<>

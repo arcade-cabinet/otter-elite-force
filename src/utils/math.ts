@@ -2,7 +2,7 @@
  * Utility functions for game logic
  */
 
-import type * as THREE from "three";
+import * as THREE from "three";
 
 /**
  * Clamp a value between min and max

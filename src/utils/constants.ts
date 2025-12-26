@@ -1,64 +1,62 @@
 /**
  * Game Constants
- * Grounded 1960s Riverine Warfare aesthetic
+ * Central location for all game configuration values
  */
 
 export const GAME_CONFIG = {
+	// Player settings
 	PLAYER_HEALTH: 100,
 	PLAYER_SPEED: 14,
 	PLAYER_STRAFE_SPEED: 8,
+
+	// Camera settings
 	CAMERA_DISTANCE: 20,
 	CAMERA_DISTANCE_ZOOM: 10,
 	CAMERA_HEIGHT: 12,
-	// 0.12s between shots (~8.3 shots/sec) for a balanced rapid fire feel
-	FIRE_RATE: 0.12,
-	BULLET_SPEED: 90,
+
+	// Combat settings
+	FIRE_RATE: 0.1, // seconds between shots
+	BULLET_SPEED: 80,
 	BULLET_DAMAGE: 1,
-	// Enemies spawn outside of view distance (60 units)
-	ENEMY_SPAWN_DISTANCE: 60,
+
+	// Enemy settings
+	ENEMY_SPAWN_DISTANCE: 50,
 	ENEMY_LIGHT_HP: 3,
-	ENEMY_HEAVY_HP: 10,
-	ENEMY_LIGHT_SPEED: 6,
-	ENEMY_HEAVY_SPEED: 3.5,
-	MAX_PROJECTILES: 100,
+	ENEMY_HEAVY_HP: 8,
+	ENEMY_LIGHT_SPEED: 7,
+	ENEMY_HEAVY_SPEED: 4,
 } as const;
 
 export const LEVELS = [
 	{
 		id: 0,
-		title: "SILT-SHADOW CROSSING",
-		desc: "The entrance to the Reach. Clear the Scale-Guard spotters from the reeds.",
-		goal: 8,
-		enemies: 12,
-		sky: "#f0e6d2", // Bleached sky
-		fog: "#d4c4a8", // Dust/Heat haze
-		waterColor: "#4d4233", // Murky silt
-		difficulty: "EASY",
+		title: "SUNRISE PATROL",
+		desc: "The gators are scouting the perimeter.",
+		goal: 5,
+		enemies: 8,
+		sky: 0xffaa55,
+		fog: 0xffcc88,
 	},
 	{
 		id: 1,
-		title: "MANGROVE MAW",
-		desc: "The Meat-Grinder begins. Navigate through the burnt roots and oily sludge.",
-		goal: 15,
-		enemies: 20,
-		sky: "#ffccaa", // Fire-tinted sky
-		fog: "#8a7a6a", // Smoke haze
-		waterColor: "#2a251a", // Oily sludge
-		difficulty: "MEDIUM",
+		title: "MUDDY DEPTHS",
+		desc: "Heavy Gator presence detected.",
+		goal: 10,
+		enemies: 15,
+		sky: 0x87ceeb,
+		fog: 0x88ccee,
 	},
 	{
 		id: 2,
-		title: "THE SACRED CHOKE",
-		desc: "The heart of the Militia's siphon operation. Destroy the industrial rigs.",
-		goal: 25,
-		enemies: 30,
-		sky: "#ffffff", // Overexposed daylight
-		fog: "#e0e0e0", // Heat shimmer
-		waterColor: "#3d3d29", // Algae-choked
-		difficulty: "HARD",
+		title: "THE HIVE",
+		desc: "Eliminate the Elite Guard.",
+		goal: 15,
+		enemies: 20,
+		sky: 0x220033,
+		fog: 0x331122,
 	},
 ] as const;
 
 export const RANKS = ["PUP", "ENSIGN", "LIEUTENANT", "COMMANDER", "ADMIRAL"] as const;
-export const STORAGE_KEY = "otter_v8";
 
+export const STORAGE_KEY = "otter_v8";

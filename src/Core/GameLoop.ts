@@ -4,9 +4,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect } from "react";
 import { useGameStore } from "../stores/gameStore";
-import { inputSystem } from "./InputSystem";
 
 interface GameLoopProps {
 	onUpdate?: (delta: number, elapsed: number) => void;
@@ -18,13 +16,6 @@ interface GameLoopProps {
  */
 export function GameLoop({ onUpdate }: GameLoopProps) {
 	const mode = useGameStore((state) => state.mode);
-
-	// Cleanup input state when switching away from GAME mode
-	useEffect(() => {
-		if (mode !== "GAME") {
-			inputSystem.reset();
-		}
-	}, [mode]);
 
 	useFrame((state, delta) => {
 		// Only run game updates when in GAME mode

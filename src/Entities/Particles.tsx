@@ -3,129 +3,123 @@
  * Visual effects: shell casings, blood splatters, explosions
  */
 
+import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 import * as THREE from "three";
+import type { Points } from "three";
 
 export interface ParticleData {
 	id: string;
 	position: THREE.Vector3;
 	velocity: THREE.Vector3;
 	lifetime: number;
-	maxLifetime: number;
-	type: "shell" | "blood" | "explosion" | "oil";
+	type: "shell" | "blood" | "explosion";
 }
 
-export interface ParticlesHandle {
-	spawn: (config: Omit<ParticleData, "id" | "lifetime">) => void;
+interface ParticlesProps {
+	particles: ParticleData[];
+	onExpire?: (id: string) => void;
 }
 
-const MAX_PARTICLES = 1000;
+export function Particles({ particles, onExpire }: ParticlesProps) {
+	const particlesRef = useRef<ParticleData[]>(particles);
+	const pointsRef = useRef<Points>(null);
+	const geometryRef = useRef<THREE.BufferGeometry>();
 
-export const Particles = forwardRef<ParticlesHandle, { onExpire?: (id: string) => void }>(
-	({ onExpire }, ref) => {
-		const pointsRef = useRef<THREE.Points>(null);
-		const internalParticles = useRef<ParticleData[]>([]);
+	// Update particle reference
+	useEffect(() => {
+		particlesRef.current = particles;
+	}, [particles]);
 
-		const [positions, colors, sizes] = useMemo(() => {
-			return [
-				new Float32Array(MAX_PARTICLES * 3),
-				new Float32Array(MAX_PARTICLES * 3),
-				new Float32Array(MAX_PARTICLES),
-			];
-		}, []);
+	// Setup geometry
+	useEffect(() => {
+		const geometry = new THREE.BufferGeometry();
+		geometryRef.current = geometry;
 
-		useImperativeHandle(ref, () => ({
-			spawn: (config) => {
-				if (internalParticles.current.length >= MAX_PARTICLES) return;
-				internalParticles.current.push({
-					...config,
-					id: crypto.randomUUID(),
-					lifetime: config.maxLifetime,
-					position: config.position.clone(),
-					velocity: config.velocity.clone(),
-				});
-			},
-		}));
+		return () => {
+			geometry.dispose();
+		};
+	}, []);
 
-		useFrame((_state, delta) => {
-			if (!pointsRef.current) return;
+	// Update particles
+	useFrame((state, delta) => {
+		if (!geometryRef.current || particlesRef.current.length === 0) return;
 
-			const particles = internalParticles.current;
-			let activeCount = 0;
+		const positions: number[] = [];
+		const colors: number[] = [];
+		const sizes: number[] = [];
 
-			for (let i = particles.length - 1; i >= 0; i--) {
-				const p = particles[i];
-				p.lifetime -= delta;
+		const toRemove: string[] = [];
 
-				if (p.lifetime <= 0) {
-					onExpire?.(p.id);
-					particles.splice(i, 1);
-					continue;
-				}
+		particlesRef.current.forEach((particle) => {
+			// Update lifetime
+			particle.lifetime -= delta;
 
-				p.position.add(p.velocity.clone().multiplyScalar(delta));
-				if (p.type !== "oil") {
-					p.velocity.y -= 9.8 * delta; // Gravity
-				}
-
-				const idx3 = activeCount * 3;
-				positions[idx3] = p.position.x;
-				positions[idx3 + 1] = p.position.y;
-				positions[idx3 + 2] = p.position.z;
-
-				let r = 1,
-					g = 1,
-					b = 1;
-				switch (p.type) {
-					case "shell":
-						[r, g, b] = [1, 0.84, 0]; // #FFD700
-						break;
-					case "blood":
-						[r, g, b] = [0.55, 0, 0]; // #8B0000
-						break;
-					case "explosion":
-						[r, g, b] = [1, 0.27, 0]; // #FF4500
-						break;
-					case "oil":
-						[r, g, b] = [0.1, 0.1, 0.1]; // #1a1a1a
-						break;
-				}
-				colors[idx3] = r;
-				colors[idx3 + 1] = g;
-				colors[idx3 + 2] = b;
-
-				sizes[activeCount] = (p.lifetime / p.maxLifetime) * 0.3;
-				activeCount++;
+			if (particle.lifetime <= 0) {
+				toRemove.push(particle.id);
+				return;
 			}
 
-			const geometry = pointsRef.current.geometry;
-			geometry.setAttribute(
-				"position",
-				new THREE.BufferAttribute(positions.subarray(0, activeCount * 3), 3),
-			);
-			geometry.setAttribute(
-				"color",
-				new THREE.BufferAttribute(colors.subarray(0, activeCount * 3), 3),
-			);
-			geometry.setAttribute("size", new THREE.BufferAttribute(sizes.subarray(0, activeCount), 1));
+			// Update position
+			particle.position.add(particle.velocity.clone().multiplyScalar(delta));
 
-			// Use setDrawRange to only render active particles
-			geometry.setDrawRange(0, activeCount);
+			// Apply gravity
+			particle.velocity.y -= 9.8 * delta;
+
+			// Add to buffers
+			positions.push(particle.position.x, particle.position.y, particle.position.z);
+
+			// Color based on type
+			let color: THREE.Color;
+			switch (particle.type) {
+				case "shell":
+					color = new THREE.Color("#FFD700");
+					break;
+				case "blood":
+					color = new THREE.Color("#8B0000");
+					break;
+				case "explosion":
+					color = new THREE.Color("#FF4500");
+					break;
+			}
+			colors.push(color.r, color.g, color.b);
+
+			// Size fades with lifetime
+			const size = particle.lifetime * 0.5;
+			sizes.push(size);
 		});
 
-		return (
-			<points ref={pointsRef}>
-				<bufferGeometry />
-				<pointsMaterial
-					size={1}
-					vertexColors
-					sizeAttenuation
-					transparent
-					opacity={0.8}
-					depthWrite={false}
-				/>
-			</points>
+		// Remove expired particles
+		toRemove.forEach((id) => onExpire?.(id));
+
+		// Update geometry
+		geometryRef.current.setAttribute(
+			"position",
+			new THREE.Float32BufferAttribute(positions, 3),
 		);
-	},
-);
+		geometryRef.current.setAttribute(
+			"color",
+			new THREE.Float32BufferAttribute(colors, 3),
+		);
+		geometryRef.current.setAttribute(
+			"size",
+			new THREE.Float32BufferAttribute(sizes, 1),
+		);
+	});
+
+	if (particles.length === 0) return null;
+
+	return (
+		<points ref={pointsRef}>
+			<bufferGeometry ref={geometryRef as any} />
+			<pointsMaterial
+				size={0.2}
+				vertexColors
+				sizeAttenuation
+				transparent
+				opacity={0.8}
+				depthWrite={false}
+			/>
+		</points>
+	);
+}
