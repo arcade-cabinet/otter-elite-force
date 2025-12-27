@@ -177,7 +177,8 @@ export interface ChunkData {
 			| "HUT"
 			| "GAS_STOCKPILE"
 			| "CLAM_BASKET"
-			| "EXTRACTION_POINT";
+			| "EXTRACTION_POINT"
+			| "RAFT";
 		position: [number, number, number];
 		isHeavy?: boolean;
 		objectiveId?: string;
