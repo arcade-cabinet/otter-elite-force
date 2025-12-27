@@ -568,3 +568,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 }));
 
 export * from "./gameData";
+export * from "./types";
+export { CHUNK_SIZE } from "./worldGenerator";
+
+// Re-export commonly needed types
+export type { ChunkData, DifficultyMode, GameMode, CharacterGear, CharacterTraits, WeaponData } from "./types";

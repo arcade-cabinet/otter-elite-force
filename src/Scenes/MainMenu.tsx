@@ -3,7 +3,7 @@
  * Initial screen with campaign selection
  */
 
-import { CHARACTERS, useGameStore } from "../stores/gameStore";
+import { CHARACTERS, type DifficultyMode, useGameStore } from "../stores/gameStore";
 import { LEVELS, RANKS } from "../utils/constants";
 
 export function MainMenu() {

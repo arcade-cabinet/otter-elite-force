@@ -12,7 +12,7 @@ export class AudioEngine {
 	private synths: Map<string, Tone.Synth> = new Map();
 	private noiseSynth: Tone.NoiseSynth | null = null;
 	private activePatterns: (
-		| Tone.Pattern<string | string[]>
+		| Tone.Pattern<string>
 		| Tone.PolySynth<Tone.Synth>
 		| Tone.MonoSynth
 	)[] = [];
@@ -181,7 +181,7 @@ export class AudioEngine {
 
 	private _disposeOldMusic(
 		oldVolume: Tone.Volume,
-		oldPatterns: (Tone.Pattern<string | string[]> | Tone.PolySynth<Tone.Synth> | Tone.MonoSynth)[],
+		oldPatterns: (Tone.Pattern<string> | Tone.PolySynth<Tone.Synth> | Tone.MonoSynth)[],
 	): void {
 		for (const item of oldPatterns) {
 			item.dispose();

@@ -19,7 +19,7 @@ import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
 import { inputSystem } from "../Core/InputSystem";
 import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
-import { Enemy } from "../Entities/Enemies/Gator";
+import { Gator } from "../Entities/Enemies/Gator";
 import { Snake } from "../Entities/Enemies/Snake";
 import { Snapper } from "../Entities/Enemies/Snapper";
 import {
@@ -33,7 +33,7 @@ import {
 import { ModularHut } from "../Entities/ModularHut";
 import { Clam, ExtractionPoint } from "../Entities/Objectives/Clam";
 import { Siphon } from "../Entities/Objectives/Siphon";
-import { type ParticleData, Particles } from "../Entities/Particles";
+import { Particles, type ParticlesHandle } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
 import { Raft } from "../Entities/Raft";
@@ -42,9 +42,9 @@ import {
 	CHARACTERS,
 	CHUNK_SIZE,
 	type ChunkData,
-	GAME_CONFIG,
 	useGameStore,
 } from "../stores/gameStore";
+import { GAME_CONFIG } from "../utils/constants";
 import { WATER_FRAG, WATER_VERT } from "../utils/shaders";
 
 // Placeholder for missing components to ensure build
@@ -163,7 +163,7 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 				);
 				if (entity.type === "GATOR")
 					return (
-						<Enemy
+						<Gator
 							key={entity.id}
 							data={{
 								...entity,
@@ -255,6 +255,7 @@ function World() {
 		getNearbyChunks,
 		setPlayerPos,
 		setMud,
+		mudAmount,
 		secureChunk,
 		isCarryingClam,
 		setCarryingClam,
@@ -282,10 +283,10 @@ function World() {
 	const [isPlayerMoving, setIsPlayerMoving] = useState(false);
 	const [isFiring, setIsFiring] = useState(false);
 	const [activeChunks, setActiveChunks] = useState<ChunkData[]>([]);
-	const [particles, setParticles] = useState<ParticleData[]>([]);
 	const [interactedIds] = useState(new Set<string>());
 	const playerRef = useRef<THREE.Group>(null);
 	const projectilesRef = useRef<ProjectilesHandle>(null);
+	const particlesRef = useRef<ParticlesHandle>(null);
 	const lastFireTime = useRef(0);
 
 	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell" | "explosion") => {
@@ -294,18 +295,19 @@ function World() {
 		} else {
 			audioEngine.playSFX("hit");
 		}
-		const newParticles = [...Array(type === "explosion" ? 20 : 5)].map(() => ({
-			id: `${type}-${Math.random()}`,
-			position: pos.clone(),
-			velocity: new THREE.Vector3(
-				(Math.random() - 0.5) * (type === "explosion" ? 10 : 5),
-				Math.random() * (type === "explosion" ? 10 : 5),
-				(Math.random() - 0.5) * (type === "explosion" ? 10 : 5),
-			),
-			lifetime: 0.5 + Math.random() * 0.5,
-			type: type === "explosion" ? "explosion" : type,
-		}));
-		setParticles((prev) => [...prev, ...newParticles]);
+		const particleCount = type === "explosion" ? 20 : 5;
+		for (let i = 0; i < particleCount; i++) {
+			particlesRef.current?.spawn({
+				position: pos.clone(),
+				velocity: new THREE.Vector3(
+					(Math.random() - 0.5) * (type === "explosion" ? 10 : 5),
+					Math.random() * (type === "explosion" ? 10 : 5),
+					(Math.random() - 0.5) * (type === "explosion" ? 10 : 5),
+				),
+				maxLifetime: 0.5 + Math.random() * 0.5,
+				type: type === "explosion" ? "explosion" : type,
+			});
+		}
 	}, []);
 
 	useFrame((state, delta) => {
@@ -499,7 +501,9 @@ function World() {
 
 						if (p.position.distanceTo(worldPos) < hitDist) {
 							const damage = character.gear.weaponId.includes("sniper") ? 5 : 2;
-							entity.hp = (entity.hp || 10) - damage;
+							// Cast to access hp on damageable entities
+							const damageable = entity as { hp?: number };
+							damageable.hp = (damageable.hp || 10) - damage;
 							handleImpact(p.position, entity.type === "SIPHON" ? "shell" : "blood");
 							projectilesRef.current?.remove(p.id);
 							hit = true;
@@ -515,7 +519,8 @@ function World() {
 											c.z * CHUNK_SIZE + e.position[2],
 										);
 										if (ePos.distanceTo(worldPos) < 6) {
-											e.hp = (e.hp || 10) - 20;
+											const eDamageable = e as { hp?: number };
+											eDamageable.hp = (eDamageable.hp || 10) - 20;
 										}
 									});
 								});
@@ -525,7 +530,7 @@ function World() {
 								interactedIds.add(entity.id);
 							}
 
-							if (entity.hp <= 0) {
+							if ((damageable.hp ?? 0) <= 0) {
 								if (
 									entity.type === "GATOR" ||
 									entity.type === "SNAPPER" ||
@@ -594,13 +599,7 @@ function World() {
 				return null;
 			})}
 			<Projectiles ref={projectilesRef} />
-			<Particles
-				particles={particles}
-				onExpire={useCallback(
-					(id: string) => setParticles((prev) => prev.filter((p) => p.id !== id)),
-					[],
-				)}
-			/>
+			<Particles ref={particlesRef} />
 			<GameLoop />
 		</>
 	);

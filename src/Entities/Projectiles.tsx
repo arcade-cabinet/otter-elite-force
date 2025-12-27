@@ -21,7 +21,7 @@ export interface ProjectilesHandle {
 	remove: (id: string) => void;
 }
 
-export const Projectiles = forwardRef<ProjectilesHandle, Record<string, never>>((_, ref) => {
+export const Projectiles = forwardRef<ProjectilesHandle, object>((_, ref) => {
 	const projectiles = useRef<Projectile[]>([]);
 	const meshRef = useRef<THREE.InstancedMesh>(null);
 	const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -47,7 +47,7 @@ export const Projectiles = forwardRef<ProjectilesHandle, Record<string, never>>(
 		// Update positions
 		for (let i = projectiles.current.length - 1; i >= 0; i--) {
 			const p = projectiles.current[i];
-			const prevPosition = p.position.clone();
+			const _prevPosition = p.position.clone(); // Reserved for raycasting collision detection
 			p.position.add(p.velocity.clone().multiplyScalar(delta));
 			p.lifetime -= delta;
 

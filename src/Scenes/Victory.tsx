@@ -27,7 +27,7 @@ function Firework({ position, color }: { position: [number, number, number]; col
 		}
 	}
 
-	useFrame((state, delta) => {
+	useFrame((_state, delta) => {
 		if (!ref.current) return;
 		const positions = ref.current.geometry.attributes.position.array as Float32Array;
 		for (let i = 0; i < particles.current.length; i++) {
@@ -47,9 +47,7 @@ function Firework({ position, color }: { position: [number, number, number]; col
 			<bufferGeometry>
 				<bufferAttribute
 					attach="attributes-position"
-					count={50}
-					array={new Float32Array(150)}
-					itemSize={3}
+					args={[new Float32Array(150), 3]}
 				/>
 			</bufferGeometry>
 			<pointsMaterial color={color} size={0.2} transparent opacity={0.8} />

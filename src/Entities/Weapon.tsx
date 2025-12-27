@@ -4,7 +4,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import type * as THREE from "three";
 import { WEAPONS } from "../stores/gameStore";
 
