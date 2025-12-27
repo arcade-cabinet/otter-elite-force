@@ -10,9 +10,11 @@ export const GAME_CONFIG = {
 	CAMERA_DISTANCE: 20,
 	CAMERA_DISTANCE_ZOOM: 10,
 	CAMERA_HEIGHT: 12,
+	// 0.12s between shots (~8.3 shots/sec) for a balanced rapid fire feel
 	FIRE_RATE: 0.12,
 	BULLET_SPEED: 90,
 	BULLET_DAMAGE: 1,
+	// Enemies spawn outside of view distance (60 units)
 	ENEMY_SPAWN_DISTANCE: 60,
 	ENEMY_LIGHT_HP: 3,
 	ENEMY_HEAVY_HP: 10,

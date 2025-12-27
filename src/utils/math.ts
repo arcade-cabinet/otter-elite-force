@@ -33,25 +33,37 @@ export function randomInt(min: number, max: number): number {
 }
 
 /**
- * Calculate distance between two Vector3 positions
+ * Calculate distance between two Vector3 positions or objects with x,y,z
  */
-export function distance(a: THREE.Vector3, b: THREE.Vector3): number {
-	return a.distanceTo(b);
+export function distance(
+	a: THREE.Vector3 | { x: number; y: number; z: number },
+	b: THREE.Vector3 | { x: number; y: number; z: number },
+): number {
+	const dx = a.x - b.x;
+	const dy = a.y - b.y;
+	const dz = a.z - b.z;
+	return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
 /**
- * Normalize angle to -PI to PI range
+ * Normalize angle to -PI to PI range using modulo for performance
  */
 export function normalizeAngle(angle: number): number {
-	while (angle > Math.PI) angle -= Math.PI * 2;
-	while (angle < -Math.PI) angle += Math.PI * 2;
-	return angle;
+	const twoPi = Math.PI * 2;
+	return ((((angle + Math.PI) % twoPi) + twoPi) % twoPi) - Math.PI;
 }
 
 /**
  * Get shortest angular difference between two angles
  */
 export function angleDifference(from: number, to: number): number {
-	const diff = to - from;
-	return normalizeAngle(diff);
+	return normalizeAngle(to - from);
+}
+
+/**
+ * Smoothly interpolate between two angles
+ */
+export function lerpAngle(start: number, end: number, t: number): number {
+	const diff = angleDifference(start, end);
+	return start + diff * t;
 }
