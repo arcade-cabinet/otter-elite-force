@@ -24,13 +24,13 @@ export interface CharacterGear {
 export interface WeaponData {
 	id: string;
 	name: string;
-	type: "PISTOL" | "RIFLE" | "MACHINE_GUN" | "SHOTGUN";
+	type: "PISTOL" | "RIFLE" | "MACHINE_GUN" | "SHOTGUN" | "LAUNCHER";
 	damage: number;
 	fireRate: number;
 	bulletSpeed: number;
 	recoil: number;
 	range: number;
-	visualType: "FISH_CANNON" | "BUBBLE_GUN" | "PISTOL_GRIP";
+	visualType: "FISH_CANNON" | "BUBBLE_GUN" | "PISTOL_GRIP" | "SHOTGUN" | "MORTAR" | "NEEDLE_GUN";
 }
 
 export type BaseEntity = {

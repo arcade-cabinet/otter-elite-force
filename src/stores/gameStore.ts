@@ -32,13 +32,13 @@ export interface CharacterGear {
 export interface WeaponData {
 	id: string;
 	name: string;
-	type: "PISTOL" | "RIFLE" | "MACHINE_GUN" | "SHOTGUN";
+	type: "PISTOL" | "RIFLE" | "MACHINE_GUN" | "SHOTGUN" | "LAUNCHER";
 	damage: number;
 	fireRate: number;
 	bulletSpeed: number;
 	recoil: number;
 	range: number;
-	visualType: "FISH_CANNON" | "BUBBLE_GUN" | "PISTOL_GRIP";
+	visualType: "FISH_CANNON" | "BUBBLE_GUN" | "PISTOL_GRIP" | "SHOTGUN" | "MORTAR" | "NEEDLE_GUN";
 }
 
 export const WEAPONS: Record<string, WeaponData> = {
@@ -74,6 +74,39 @@ export const WEAPONS: Record<string, WeaponData> = {
 		recoil: 0.08,
 		range: 80,
 		visualType: "BUBBLE_GUN",
+	},
+	"scatter-shell": {
+		id: "scatter-shell",
+		name: "SCATTER SHELL",
+		type: "SHOTGUN",
+		damage: 8,
+		fireRate: 1.2,
+		bulletSpeed: 45,
+		recoil: 0.15,
+		range: 15,
+		visualType: "SHOTGUN",
+	},
+	"clam-mortar": {
+		id: "clam-mortar",
+		name: "CLAM MORTAR",
+		type: "LAUNCHER",
+		damage: 25,
+		fireRate: 2.5,
+		bulletSpeed: 30,
+		recoil: 0.2,
+		range: 40,
+		visualType: "MORTAR",
+	},
+	"silt-needle": {
+		id: "silt-needle",
+		name: "SILT NEEDLE",
+		type: "PISTOL",
+		damage: 3,
+		fireRate: 0.25,
+		bulletSpeed: 80,
+		recoil: 0.01,
+		range: 50,
+		visualType: "NEEDLE_GUN",
 	},
 };
 
@@ -148,13 +181,53 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			baseSpeed: 12,
 			baseHealth: 150,
 			climbSpeed: 8,
-			unlockRequirement: "Recover the Ancestral Clam",
+			unlockRequirement: "Rescue from Scale-Guard Stronghold (Coordinate 12, -5)",
 		},
 		gear: {
 			headgear: "none",
 			vest: "heavy",
 			backgear: "none",
 			weaponId: "fish-cannon",
+		},
+	},
+	marina: {
+		traits: {
+			id: "marina",
+			name: "MEDIC MARINA",
+			furColor: "#6D4C41",
+			eyeColor: "#66bb6a",
+			whiskerLength: 0.25,
+			grizzled: false,
+			baseSpeed: 16,
+			baseHealth: 80,
+			climbSpeed: 12,
+			unlockRequirement: "Rescue from Healer's Grove (Coordinate -15, 20)",
+		},
+		gear: {
+			headgear: "helmet",
+			vest: "tactical",
+			backgear: "radio",
+			weaponId: "silt-needle",
+		},
+	},
+	muskrat: {
+		traits: {
+			id: "muskrat",
+			name: "PVT. MUSKRAT",
+			furColor: "#3E2723",
+			eyeColor: "#8d6e63",
+			whiskerLength: 0.5,
+			grizzled: false,
+			baseSpeed: 11,
+			baseHealth: 120,
+			climbSpeed: 14,
+			unlockRequirement: "Rescue from Gas Depot (Coordinate 8, 8)",
+		},
+		gear: {
+			headgear: "bandana",
+			vest: "tactical",
+			backgear: "scuba",
+			weaponId: "scatter-shell",
 		},
 	},
 };
@@ -325,6 +398,8 @@ export const CHAR_PRICES: Record<string, number> = {
 	whiskers: 1000,
 	splash: 500,
 	fang: 750,
+	marina: 600,
+	muskrat: 400,
 };
 
 const DEFAULT_SAVE_DATA: SaveData = {
@@ -360,6 +435,9 @@ const DEFAULT_SAVE_DATA: SaveData = {
 			"service-pistol": 1,
 			"fish-cannon": 1,
 			"bubble-gun": 1,
+			"scatter-shell": 1,
+			"clam-mortar": 1,
+			"silt-needle": 1,
 		},
 	},
 	isLZSecured: false,
