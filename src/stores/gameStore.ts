@@ -232,6 +232,8 @@ interface GameState {
 	kills: number;
 	mudAmount: number;
 	isCarryingClam: boolean;
+	isPilotingRaft: boolean;
+	raftId: string | null;
 	playerPos: [number, number, number];
 	
 	takeDamage: (amount: number) => void;
@@ -241,6 +243,7 @@ interface GameState {
 	setMud: (amount: number) => void;
 	setPlayerPos: (pos: [number, number, number]) => void;
 	setCarryingClam: (isCarrying: boolean) => void;
+	setPilotingRaft: (isPiloting: boolean, raftId?: string | null) => void;
 
 	// World management
 	currentChunkId: string;
@@ -327,6 +330,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 	kills: 0,
 	mudAmount: 0,
 	isCarryingClam: false,
+	isPilotingRaft: false,
+	raftId: null,
 	selectedCharacterId: "bubbles",
 	playerPos: [0, 0, 0],
 	saveData: { ...DEFAULT_SAVE_DATA },
@@ -356,6 +361,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 	setPlayerPos: (pos) => set({ playerPos: pos }),
 
 	setCarryingClam: (isCarrying) => set({ isCarryingClam: isCarrying }),
+
+	setPilotingRaft: (isPiloting, raftId = null) => set({ isPilotingRaft: isPiloting, raftId }),
 
 	// World management
 	discoverChunk: (x, z) => {
@@ -467,6 +474,15 @@ export const useGameStore = create<GameState>((set, get) => ({
 		// Extraction Point at 0,0 or rare
 		if (id === "0,0" || rand() > 0.98) {
 			entities.push({ id: `extract-${id}`, type: "EXTRACTION_POINT", position: [0, 0, 0] });
+		}
+
+		// Add Rafts
+		if (terrainType === "RIVER" && rand() > 0.8) {
+			entities.push({
+				id: `raft-${id}`,
+				type: "RAFT",
+				position: [(rand() - 0.5) * 40, 0.2, (rand() - 0.5) * 40],
+			});
 		}
 
 		const newChunk: ChunkData = {
