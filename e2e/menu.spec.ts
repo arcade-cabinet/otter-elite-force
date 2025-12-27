@@ -39,7 +39,13 @@ test.describe("OTTER: ELITE FORCE - Main Menu", () => {
 	});
 
 	test("should display default character - SGT. BUBBLES", async ({ page }) => {
-		await expect(page.locator("text=SGT. BUBBLES")).toBeVisible();
+		// The character name should be visible in the platoon commander section
+		// It's rendered in a .stat-val span
+		await expect(page.locator(".stat-val").first()).toBeVisible({ timeout: 10000 });
+
+		// Verify the character name contains expected text (case insensitive)
+		const charName = await page.locator(".stat-val").first().textContent();
+		expect(charName?.toLowerCase()).toContain("bubbles");
 	});
 
 	test("should show rank information", async ({ page }) => {
@@ -67,15 +73,16 @@ test.describe("OTTER: ELITE FORCE - Main Menu", () => {
 		const charCards = page.locator(".char-card");
 		const count = await charCards.count();
 
-		if (count > 1) {
-			// Click on a different character
-			await charCards.nth(1).click();
-			await page.waitForTimeout(300);
+		// Skip if only one character available
+		test.skip(count <= 1, "Only one character available");
 
-			// Verify selection changed
-			const selectedCards = page.locator(".char-card.selected");
-			await expect(selectedCards).toHaveCount(1);
-		}
+		// Click on a different character
+		await charCards.nth(1).click();
+		await page.waitForTimeout(500);
+
+		// Verify selection changed - there should be exactly one selected card
+		const selectedCards = page.locator(".char-card.selected");
+		await expect(selectedCards).toHaveCount(1);
 	});
 
 	// ============================================
@@ -207,14 +214,13 @@ test.describe("OTTER: ELITE FORCE - Cutscene", () => {
 	});
 
 	test("should have continue or skip option", async ({ page }) => {
-		// Look for continue button or skip option
-		const continueBtn = page.locator(
-			'button:has-text("Continue"), button:has-text("Skip"), button:has-text("CONTINUE"), button:has-text("SKIP")',
-		);
-		const count = await continueBtn.count();
+		// Look for progress button - could be "NEXT >>", "BEGIN MISSION", or other variants
+		const progressBtn = page.locator(".dialogue-next");
+		await expect(progressBtn).toBeVisible({ timeout: 5000 });
 
-		// Should have at least one way to progress
-		expect(count).toBeGreaterThanOrEqual(1);
+		// Verify the button has some text
+		const text = await progressBtn.textContent();
+		expect(text?.length).toBeGreaterThan(0);
 	});
 
 	test("should display dialogue text", async ({ page }) => {

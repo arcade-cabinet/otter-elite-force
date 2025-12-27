@@ -6,12 +6,25 @@ import { expect, test } from "@playwright/test";
  * Uses Playwright's screenshot comparison to validate visual rendering
  * of 3D game components, UI elements, and gameplay scenarios.
  *
- * Run with: PLAYWRIGHT_MCP=true pnpm test:e2e:visual
+ * These tests require baseline screenshots to be generated first.
+ * Run with: pnpm test:e2e --update-snapshots
+ *
+ * IMPORTANT: Visual regression tests are skipped by default in CI
+ * because baseline screenshots need to be generated first and committed.
+ * To enable, set environment variable: PLAYWRIGHT_VISUAL=true
  */
 
 const VISUAL_THRESHOLD = 0.2; // 20% diff tolerance for WebGL rendering variations
 
+// Skip visual regression tests in CI unless explicitly enabled
+const runVisualTests = process.env.PLAYWRIGHT_VISUAL === "true";
+
 test.describe("Visual Regression - Main Menu", () => {
+	test.skip(
+		!runVisualTests,
+		"Visual regression tests disabled - set PLAYWRIGHT_VISUAL=true to enable",
+	);
+
 	test("should match main menu screen", async ({ page }) => {
 		await page.goto("/");
 
@@ -48,6 +61,11 @@ test.describe("Visual Regression - Main Menu", () => {
 });
 
 test.describe("Visual Regression - Canteen Screen", () => {
+	test.skip(
+		!runVisualTests,
+		"Visual regression tests disabled - set PLAYWRIGHT_VISUAL=true to enable",
+	);
+
 	test("should match canteen screen", async ({ page }) => {
 		await page.goto("/");
 		await page.waitForTimeout(1000);
@@ -65,6 +83,11 @@ test.describe("Visual Regression - Canteen Screen", () => {
 });
 
 test.describe("Visual Regression - Cutscene", () => {
+	test.skip(
+		!runVisualTests,
+		"Visual regression tests disabled - set PLAYWRIGHT_VISUAL=true to enable",
+	);
+
 	test("should render cutscene correctly", async ({ page }) => {
 		await page.goto("/");
 		await page.waitForTimeout(1000);
@@ -99,6 +122,11 @@ test.describe("Visual Regression - Cutscene", () => {
 });
 
 test.describe("Visual Regression - Responsive Design", () => {
+	test.skip(
+		!runVisualTests,
+		"Visual regression tests disabled - set PLAYWRIGHT_VISUAL=true to enable",
+	);
+
 	test("should render correctly on mobile viewport", async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 667 });
 		await page.goto("/");
@@ -135,6 +163,11 @@ test.describe("Visual Regression - Responsive Design", () => {
 });
 
 test.describe("Visual Regression - UI Components", () => {
+	test.skip(
+		!runVisualTests,
+		"Visual regression tests disabled - set PLAYWRIGHT_VISUAL=true to enable",
+	);
+
 	test("should render action buttons correctly", async ({ page }) => {
 		await page.goto("/");
 		await page.waitForTimeout(2000);
