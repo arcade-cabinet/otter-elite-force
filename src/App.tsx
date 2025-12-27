@@ -9,6 +9,7 @@ import { inputSystem } from "./Core/InputSystem";
 import { Cutscene } from "./Scenes/Cutscene";
 import { Level } from "./Scenes/Level";
 import { MainMenu } from "./Scenes/MainMenu";
+import { Canteen } from "./Scenes/Canteen";
 import { useGameStore } from "./stores/gameStore";
 import { HUD } from "./UI/HUD";
 
@@ -63,6 +64,7 @@ export function App() {
 			{/* Main content based on mode */}
 			{mode === "MENU" && <MainMenu />}
 			{mode === "CUTSCENE" && <Cutscene />}
+			{mode === "CANTEEN" && <Canteen />}
 
 			{mode === "GAME" && (
 				<>

@@ -447,6 +447,91 @@ button.secondary {
 	color: var(--accent);
 }
 
+/* Canteen */
+.canteen-screen {
+	background: #1a1510;
+}
+
+.canteen-3d {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 60%;
+	z-index: 5;
+}
+
+.canteen-ui {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 40%;
+	background: var(--ui-bg);
+	border-top: 4px solid var(--primary);
+	padding: 20px;
+	z-index: 10;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+}
+
+.canteen-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+.coin-display {
+	color: var(--primary);
+	font-family: "Carter One", cursive;
+	font-size: 1.2rem;
+}
+
+.platoon-list {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 15px;
+	overflow-x: auto;
+	padding-bottom: 5px;
+}
+
+.platoon-item {
+	padding: 8px 15px !important;
+	margin-top: 0 !important;
+	font-size: 0.8rem !important;
+	white-space: nowrap;
+	background: rgba(255, 255, 255, 0.05) !important;
+	border: 1px solid #444 !important;
+	width: auto !important;
+	box-shadow: none !important;
+}
+
+.platoon-item.active {
+	border-color: var(--primary) !important;
+	background: rgba(255, 170, 0, 0.1) !important;
+}
+
+.purchase-panel {
+	background: rgba(0, 0, 0, 0.3);
+	padding: 15px;
+	border-radius: 4px;
+	margin-bottom: 15px;
+}
+
+.purchase-btn {
+	background: var(--primary) !important;
+	color: #000 !important;
+	margin-top: 10px !important;
+}
+
+.status-unlocked {
+	color: var(--accent);
+	font-weight: bold;
+	margin-top: 10px;
+}
+
 /* Mobile optimizations */
 @media (max-width: 768px) {
 	h1 {

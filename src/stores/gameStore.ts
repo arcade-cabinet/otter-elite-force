@@ -81,12 +81,13 @@ interface SaveData {
 	medals: number;
 	unlocked: number;
 	unlockedCharacters: string[];
+	coins: number;
 }
 
 interface GameState {
 	// Game mode
-	mode: GameMode;
-	setMode: (mode: GameMode) => void;
+	mode: GameMode | "CANTEEN";
+	setMode: (mode: GameMode | "CANTEEN") => void;
 
 	// Player stats
 	health: number;
@@ -105,6 +106,10 @@ interface GameState {
 	selectedCharacterId: string;
 	selectCharacter: (id: string) => void;
 
+	// Economy
+	addCoins: (amount: number) => void;
+	spendCoins: (amount: number) => boolean;
+
 	// Save data
 	saveData: SaveData;
 	loadData: () => void;
@@ -119,12 +124,19 @@ interface GameState {
 	toggleZoom: () => void;
 }
 
+export const CHAR_PRICES: Record<string, number> = {
+	bubbles: 0,
+	whiskers: 1000,
+	splash: 500,
+};
+
 const DEFAULT_SAVE_DATA: SaveData = {
 	rank: 0,
 	xp: 0,
 	medals: 0,
 	unlocked: 1,
 	unlockedCharacters: ["bubbles"],
+	coins: 0,
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -172,6 +184,32 @@ export const useGameStore = create<GameState>((set, get) => ({
 			},
 		}));
 		get().saveGame();
+	},
+
+	// Economy
+	addCoins: (amount) => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				coins: state.saveData.coins + amount,
+			},
+		}));
+		get().saveGame();
+	},
+
+	spendCoins: (amount) => {
+		const { saveData } = get();
+		if (saveData.coins >= amount) {
+			set((state) => ({
+				saveData: {
+					...state.saveData,
+					coins: state.saveData.coins - amount,
+				},
+			}));
+			get().saveGame();
+			return true;
+		}
+		return false;
 	},
 
 	// Save/Load
@@ -238,6 +276,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 					...state.saveData,
 					unlocked: newUnlocked,
 					medals: state.saveData.medals + 1,
+					coins: state.saveData.coins + 100, // Reward for winning
 				},
 			};
 		});
