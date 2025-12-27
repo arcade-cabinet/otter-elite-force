@@ -33,6 +33,7 @@ export interface Entity {
 	health?: Components.Health;
 	damage?: Components.Damage;
 	weapon?: Components.Weapon;
+	weaponMeta?: Components.WeaponMeta;
 	suppression?: Components.Suppression;
 
 	// AI
@@ -80,6 +81,9 @@ export interface Entity {
 	structure?: Components.Structure;
 	path?: Components.Path;
 	healer?: Components.Healer;
+
+	// Equipment (ECS-integrated)
+	equipmentMeta?: Components.EquipmentMeta;
 
 	// Tags (marker components)
 	isPlayer?: Components.IsPlayer;
@@ -207,6 +211,15 @@ export const temporaryEntities = world.with("lifetime");
 
 /** All poolable entities */
 export const poolableEntities = world.with("poolable");
+
+/** All weapon entities */
+export const weaponEntities = world.with("weapon", "weaponMeta");
+
+/** All equipment entities */
+export const equipmentEntities = world.with("equipmentMeta");
+
+/** All dropped items (weapons/equipment not owned) */
+export const droppedItems = world.with("transform", "renderable").without("isPlayer", "isEnemy");
 
 // =============================================================================
 // UTILITY FUNCTIONS

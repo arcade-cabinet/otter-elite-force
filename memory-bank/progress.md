@@ -179,7 +179,8 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 - **Intelligent World Layout Algorithm** - Poisson Disc Sampling + MST paths + coherent terrain
 - **Difficulty-based Content Scaling** - Enemy counts/types scale with distance from LZ
 - **POI-specific Content Generation** - Boss arenas, prison camps, siphon clusters
-- **316 Tests Passing** - Including new structureAssembler and settlementAssembler tests
+- **388 Tests Passing** - Including ECS systems, data templates, structure/settlement assemblers
+- **51% Statement Coverage** - Key systems (stores, ECS data) at 75-95%
 - Unified domain-specific PRs into hardened `main`
 - Resolved "shaky" assembly bugs in state management
 - Verified all unit tests passing after modular re-integration

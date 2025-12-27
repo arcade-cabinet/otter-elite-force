@@ -25,6 +25,8 @@ export {
 } from "./archetypes";
 // Components
 export * from "./components";
+// Entity Data Templates (replaces old constants)
+export * from "./data";
 // React Hooks
 export {
 	useChunkEntitySpawner,
@@ -79,8 +81,10 @@ export {
 	damageables,
 	deadEntities,
 	destroyEntity,
+	droppedItems,
 	enemies,
 	enemyStructures,
+	equipmentEntities,
 	gators,
 	generateId,
 	getEntitiesInRadius,
@@ -107,5 +111,6 @@ export {
 	temporaryEntities,
 	vehicles,
 	villagers,
+	weaponEntities,
 	world,
 } from "./world";

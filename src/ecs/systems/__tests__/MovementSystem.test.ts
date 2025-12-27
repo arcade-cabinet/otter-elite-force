@@ -191,7 +191,7 @@ describe("MovementSystem", () => {
 		});
 
 		it("should use default friction coefficient", () => {
-			const entity = world.add({
+			world.add({
 				id: "test-entity",
 				transform: {
 					position: new THREE.Vector3(0, 0, 0),

@@ -393,6 +393,39 @@ export interface ChunkReference {
 }
 
 // =============================================================================
+// WEAPON META COMPONENT (ECS-integrated weapons)
+// =============================================================================
+
+export interface WeaponMeta {
+	weaponId: string;
+	ownerId: string | null;
+	accuracy: number;
+	recoil: number;
+	attachments: {
+		optic: string | null;
+		barrel: string | null;
+		grip: string | null;
+		magazine: string | null;
+	};
+}
+
+// =============================================================================
+// EQUIPMENT META COMPONENT (ECS-integrated equipment)
+// =============================================================================
+
+export interface EquipmentMeta {
+	equipmentId: string;
+	slot: "HEADGEAR" | "VEST" | "BACKPACK";
+	ownerId: string | null;
+	stats: {
+		armor?: number;
+		speed?: number;
+		capacity?: number;
+		health?: number;
+	};
+}
+
+// =============================================================================
 // STRUCTURE COMPONENTS (Assembly System Integration)
 // =============================================================================
 
