@@ -126,7 +126,7 @@ export interface ChunkData {
 			| "MUD_PIT"
 			| "VILLAGER"
 			| "HUT"
-			| "CLAM"
+			| "GAS_STOCKPILE"
 			| "EXTRACTION_POINT";
 		position: [number, number, number];
 		isHeavy?: boolean;
