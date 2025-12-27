@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @import url("https://fonts.googleapis.com/css2?family=Carter+One&family=Varela+Round&display=swap");
 
 :root {
@@ -7,6 +8,8 @@
 	--military-green: #3d4d29;
 }
 
+=======
+>>>>>>> origin/main
 * {
 	margin: 0;
 	padding: 0;
@@ -14,6 +17,7 @@
 }
 
 body {
+<<<<<<< HEAD
 	margin: 0;
 	overflow: hidden;
 	background-color: #000;
@@ -22,11 +26,17 @@ body {
 	user-select: none;
 	-webkit-user-select: none;
 	color: #eee;
+=======
+	font-family: monospace;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+>>>>>>> origin/main
 }
 
 #root {
 	width: 100vw;
 	height: 100vh;
+<<<<<<< HEAD
 	position: relative;
 }
 
@@ -726,4 +736,7 @@ button.secondary {
 	.hud-top {
 		font-size: 1.2rem;
 	}
+=======
+	overflow: hidden;
+>>>>>>> origin/main
 }
