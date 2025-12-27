@@ -228,6 +228,15 @@ interface SaveData {
 		damageBoost: number;
 		weaponLvl: Record<string, number>;
 	};
+	isLZSecured: boolean;
+	baseComponents: PlacedComponent[];
+}
+
+export interface PlacedComponent {
+	id: string;
+	type: "FLOOR" | "WALL" | "ROOF" | "STILT";
+	position: [number, number, number];
+	rotation: [number, number, number];
 }
 
 interface GameState {
@@ -279,6 +288,11 @@ interface GameState {
 	rescueCharacter: (id: string) => void;
 	unlockWeapon: (id: string) => void;
 	upgradeWeapon: (id: string, cost: number) => void;
+	
+	// Base Building
+	secureLZ: () => void;
+	placeComponent: (component: Omit<PlacedComponent, "id">) => void;
+	removeComponent: (id: string) => void;
 
 	// UI state
 	isZoomed: boolean;
