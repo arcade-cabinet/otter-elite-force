@@ -3,7 +3,7 @@
  */
 
 import * as THREE from "three";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the world module
 vi.mock("../../world", () => {
@@ -16,13 +16,13 @@ vi.mock("../../world", () => {
 	};
 });
 
-import {
-	createVillager,
-	createRaft,
-	type CreateVillagerOptions,
-	type CreateRaftOptions,
-} from "../interactions";
 import { world } from "../../world";
+import {
+	type CreateRaftOptions,
+	type CreateVillagerOptions,
+	createRaft,
+	createVillager,
+} from "../interactions";
 
 describe("createVillager", () => {
 	beforeEach(() => {

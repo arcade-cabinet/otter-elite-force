@@ -1,5 +1,18 @@
 import { STORAGE_KEY } from "../utils/constants";
+import { WEAPONS } from "./gameData";
 import type { PlacedComponent, SaveData } from "./types";
+
+/**
+ * Generate default weapon levels from WEAPONS registry
+ * Ensures all weapons start at level 1
+ */
+const generateDefaultWeaponLevels = (): Record<string, number> => {
+	const levels: Record<string, number> = {};
+	for (const weaponId of Object.keys(WEAPONS)) {
+		levels[weaponId] = 1;
+	}
+	return levels;
+};
 
 export const DEFAULT_SAVE_DATA: SaveData = {
 	version: 8,
@@ -31,11 +44,7 @@ export const DEFAULT_SAVE_DATA: SaveData = {
 		speedBoost: 0,
 		healthBoost: 0,
 		damageBoost: 0,
-		weaponLvl: {
-			"service-pistol": 1,
-			"fish-cannon": 1,
-			"bubble-gun": 1,
-		},
+		weaponLvl: generateDefaultWeaponLevels(),
 	},
 	isLZSecured: false,
 	baseComponents: [],

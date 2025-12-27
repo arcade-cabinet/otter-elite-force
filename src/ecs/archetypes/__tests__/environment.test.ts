@@ -3,7 +3,7 @@
  */
 
 import * as THREE from "three";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the world module
 vi.mock("../../world", () => {
@@ -16,17 +16,17 @@ vi.mock("../../world", () => {
 	};
 });
 
-import {
-	createOilSlick,
-	createMudPit,
-	createToxicSludge,
-	createPlatform,
-	type CreateOilSlickOptions,
-	type CreateMudPitOptions,
-	type CreateToxicSludgeOptions,
-	type CreatePlatformOptions,
-} from "../environment";
 import { world } from "../../world";
+import {
+	type CreateMudPitOptions,
+	type CreateOilSlickOptions,
+	type CreatePlatformOptions,
+	type CreateToxicSludgeOptions,
+	createMudPit,
+	createOilSlick,
+	createPlatform,
+	createToxicSludge,
+} from "../environment";
 
 describe("createOilSlick", () => {
 	beforeEach(() => {

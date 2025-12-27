@@ -5,50 +5,46 @@
  * Each archetype file contains focused factory functions for a specific category.
  */
 
-// Player
-export { createPlayer, type CreatePlayerOptions } from "./player";
-
 // Enemies
 export {
-	createGator,
-	createScout,
-	createSnake,
-	createSnapper,
 	type CreateGatorOptions,
 	type CreateScoutOptions,
 	type CreateSnakeOptions,
 	type CreateSnapperOptions,
+	createGator,
+	createScout,
+	createSnake,
+	createSnapper,
 } from "./enemies";
-
-// Projectiles
-export { createProjectile, type CreateProjectileOptions } from "./projectiles";
-
-// Objectives
-export {
-	createExtractionPoint,
-	createPrisonCage,
-	createSiphon,
-	type CreateExtractionPointOptions,
-	type CreatePrisonCageOptions,
-	type CreateSiphonOptions,
-} from "./objectives";
-
 // Environment
 export {
-	createMudPit,
-	createOilSlick,
-	createPlatform,
-	createToxicSludge,
 	type CreateMudPitOptions,
 	type CreateOilSlickOptions,
 	type CreatePlatformOptions,
 	type CreateToxicSludgeOptions,
+	createMudPit,
+	createOilSlick,
+	createPlatform,
+	createToxicSludge,
 } from "./environment";
-
 // Interactions
 export {
-	createRaft,
-	createVillager,
 	type CreateRaftOptions,
 	type CreateVillagerOptions,
+	createRaft,
+	createVillager,
 } from "./interactions";
+
+// Objectives
+export {
+	type CreateExtractionPointOptions,
+	type CreatePrisonCageOptions,
+	type CreateSiphonOptions,
+	createExtractionPoint,
+	createPrisonCage,
+	createSiphon,
+} from "./objectives";
+// Player
+export { type CreatePlayerOptions, createPlayer } from "./player";
+// Projectiles
+export { type CreateProjectileOptions, createProjectile } from "./projectiles";

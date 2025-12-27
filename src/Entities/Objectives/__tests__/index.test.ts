@@ -4,8 +4,8 @@
  * Smoke tests verifying components export correctly and types are valid.
  */
 
-import { describe, expect, it } from "vitest";
 import * as THREE from "three";
+import { describe, expect, it } from "vitest";
 
 // We're testing the module exports, not the rendering
 describe("Objectives Entity Module", () => {

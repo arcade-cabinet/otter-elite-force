@@ -8,7 +8,9 @@ import { useGameStore } from "../../stores/gameStore";
 
 // Mock React Three Fiber
 vi.mock("@react-three/fiber", () => ({
-	Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="canvas">{children}</div>,
+	Canvas: ({ children }: { children: React.ReactNode }) => (
+		<div data-testid="canvas">{children}</div>
+	),
 	useFrame: vi.fn((callback) => {
 		// Simulate a frame
 		const mockState = {
@@ -87,7 +89,9 @@ describe("Cutscene", () => {
 
 		// Should now show SGT. BUBBLES dialogue
 		expect(
-			screen.getByText("They're pushing deeper into the Reach, General. The soup is getting thick."),
+			screen.getByText(
+				"They're pushing deeper into the Reach, General. The soup is getting thick.",
+			),
 		).toBeInTheDocument();
 	});
 

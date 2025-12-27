@@ -3,7 +3,7 @@
  */
 
 import * as THREE from "three";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the world module
 vi.mock("../../world", () => {
@@ -16,8 +16,8 @@ vi.mock("../../world", () => {
 	};
 });
 
-import { createProjectile, type CreateProjectileOptions } from "../projectiles";
 import { world } from "../../world";
+import { type CreateProjectileOptions, createProjectile } from "../projectiles";
 
 describe("createProjectile", () => {
 	beforeEach(() => {

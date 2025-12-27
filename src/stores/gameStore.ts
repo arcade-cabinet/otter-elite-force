@@ -4,13 +4,14 @@
  */
 
 import { create } from "zustand";
-import { RANKS, STORAGE_KEY } from "../utils/constants";
-import { CHARACTERS, WEAPONS } from "./gameData";
+import { GAME_CONFIG, RANKS, STORAGE_KEY } from "../utils/constants";
+import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS } from "./gameData";
+import { DEFAULT_SAVE_DATA } from "./persistence";
 import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData } from "./types";
 
 // Re-export types and data for backward compatibility
 export type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData };
-export { CHARACTERS, WEAPONS };
+export { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS };
 
 // Re-export types from ./types.ts for backward compatibility
 export type { CharacterGear, CharacterTraits, WeaponData } from "./types";
@@ -85,66 +86,8 @@ interface GameState {
 	toggleZoom: () => void;
 }
 
-export const CHUNK_SIZE = 100;
-
-export const UPGRADE_COSTS = {
-	speed: 200,
-	health: 200,
-	damage: 300,
-};
-
-export const CHAR_PRICES: Record<string, number> = {
-	bubbles: 0,
-	whiskers: 1000,
-	splash: 500,
-	fang: 750,
-	marina: 600,
-	muskrat: 400,
-};
-
-const DEFAULT_SAVE_DATA: SaveData = {
-	version: 8,
-	rank: 0,
-	xp: 0,
-	medals: 0,
-	unlocked: 1,
-	unlockedCharacters: ["bubbles"],
-	unlockedWeapons: ["service-pistol"],
-	coins: 0,
-	discoveredChunks: {},
-	territoryScore: 0,
-	peacekeepingScore: 0,
-	difficultyMode: "SUPPORT",
-	isFallTriggered: false,
-	strategicObjectives: {
-		siphonsDismantled: 0,
-		villagesLiberated: 0,
-		gasStockpilesCaptured: 0,
-		healersProtected: 0,
-		alliesRescued: 0,
-	},
-	spoilsOfWar: {
-		creditsEarned: 0,
-		clamsHarvested: 0,
-		upgradesUnlocked: 0,
-	},
-	upgrades: {
-		speedBoost: 0,
-		healthBoost: 0,
-		damageBoost: 0,
-		weaponLvl: {
-			"service-pistol": 1,
-			"fish-cannon": 1,
-			"bubble-gun": 1,
-			"scatter-shell": 1,
-			"clam-mortar": 1,
-			"silt-needle": 1,
-		},
-	},
-	isLZSecured: false,
-	baseComponents: [],
-	lastPlayerPosition: [0, 0, 0],
-};
+// Use CHUNK_SIZE from GAME_CONFIG for consistency
+export const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
 
 export const useGameStore = create<GameState>((set, get) => ({
 	// Initial state

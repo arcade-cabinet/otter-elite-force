@@ -3,7 +3,7 @@
  */
 
 import * as THREE from "three";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock yuka before importing
 vi.mock("yuka", () => {
@@ -27,17 +27,17 @@ vi.mock("../../world", () => {
 	};
 });
 
+import { world } from "../../world";
 import {
-	createGator,
-	createSnake,
-	createSnapper,
-	createScout,
 	type CreateGatorOptions,
+	type CreateScoutOptions,
 	type CreateSnakeOptions,
 	type CreateSnapperOptions,
-	type CreateScoutOptions,
+	createGator,
+	createScout,
+	createSnake,
+	createSnapper,
 } from "../enemies";
-import { world } from "../../world";
 
 describe("createGator", () => {
 	beforeEach(() => {

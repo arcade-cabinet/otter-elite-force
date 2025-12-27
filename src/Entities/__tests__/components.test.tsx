@@ -6,12 +6,14 @@
  */
 
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
+import { describe, expect, it, vi } from "vitest";
 
 // Mock React Three Fiber completely
 vi.mock("@react-three/fiber", () => ({
-	Canvas: ({ children }: { children: React.ReactNode }) => <div data-testid="canvas">{children}</div>,
+	Canvas: ({ children }: { children: React.ReactNode }) => (
+		<div data-testid="canvas">{children}</div>
+	),
 	useFrame: vi.fn(),
 	useThree: vi.fn(() => ({
 		camera: new THREE.PerspectiveCamera(),

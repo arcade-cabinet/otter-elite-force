@@ -3,7 +3,7 @@
  */
 
 import * as THREE from "three";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the world module
 vi.mock("../../world", () => {
@@ -16,15 +16,15 @@ vi.mock("../../world", () => {
 	};
 });
 
-import {
-	createSiphon,
-	createPrisonCage,
-	createExtractionPoint,
-	type CreateSiphonOptions,
-	type CreatePrisonCageOptions,
-	type CreateExtractionPointOptions,
-} from "../objectives";
 import { world } from "../../world";
+import {
+	type CreateExtractionPointOptions,
+	type CreatePrisonCageOptions,
+	type CreateSiphonOptions,
+	createExtractionPoint,
+	createPrisonCage,
+	createSiphon,
+} from "../objectives";
 
 describe("createSiphon", () => {
 	beforeEach(() => {

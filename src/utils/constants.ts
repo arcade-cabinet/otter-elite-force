@@ -168,12 +168,5 @@ export const RANKS = ["PUP", "ENSIGN", "LIEUTENANT", "COMMANDER", "ADMIRAL"] as 
  */
 export const STORAGE_KEY = "otter_v8";
 
-/**
- * Upgrade Costs at Canteen
- */
-export const UPGRADE_COSTS = {
-	speed: 200,
-	health: 200,
-	damage: 300,
-	weaponLevel: 150,
-} as const;
+// Note: UPGRADE_COSTS is defined in stores/gameData.ts as the single source of truth
+// Import from there: import { UPGRADE_COSTS } from "../stores/gameData";

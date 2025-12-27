@@ -7,6 +7,7 @@
 
 import type * as THREE from "three";
 import type { Vehicle as YukaVehicle } from "yuka";
+import type { CharacterGear as StoreCharacterGear } from "../../stores/types";
 
 // =============================================================================
 // TRANSFORM COMPONENTS
@@ -140,12 +141,8 @@ export interface CharacterAppearance {
 	grizzled: boolean;
 }
 
-export interface CharacterGear {
-	headgear: "bandana" | "beret" | "helmet" | "none";
-	vest: "tactical" | "heavy" | "none";
-	backgear: "radio" | "scuba" | "none";
-	weaponId: string;
-}
+// Re-export CharacterGear from stores/types.ts as the single source of truth
+export type CharacterGear = Required<StoreCharacterGear>;
 
 // =============================================================================
 // ENEMY COMPONENTS

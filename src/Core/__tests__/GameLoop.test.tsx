@@ -3,7 +3,7 @@
  */
 
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameStore } from "../../stores/gameStore";
 
 // Mock React Three Fiber

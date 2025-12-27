@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { spawnSettlement } from "../ecs/integration/assemblyBridge";
 import type { Faction } from "../systems/assembly/componentLibrary";
 import type { SettlementType } from "../systems/assembly/types";
+import { GAME_CONFIG } from "../utils/constants";
 import type {
 	ChunkData,
 	Entity,
@@ -19,7 +20,8 @@ import {
 	type WorldPoint,
 } from "./worldLayout";
 
-export const CHUNK_SIZE = 100;
+// Use centralized CHUNK_SIZE from constants
+export const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
 
 // Global world layout - generated once per game session
 let _worldLayout: WorldLayout | null = null;
