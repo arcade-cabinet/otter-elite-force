@@ -92,8 +92,19 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 	const armorColor = "#444444";
 	const eyeColor = "#ff0000";
 
+	// Chronal glitch effect (Future-tech visual)
+	const glitchRef = useRef<THREE.PointLight>(null);
+	useFrame(({ clock }) => {
+		if (glitchRef.current) {
+			glitchRef.current.intensity = Math.random() > 0.95 ? 2 : 0.5;
+		}
+	});
+
 	return (
 		<group ref={groupRef}>
+			{/* Chronal Distortion Light */}
+			<pointLight ref={glitchRef} position={[0, 1, 0]} color="#00ffff" distance={3} />
+			
 			{/* --- CYBORG GATOR BODY --- */}
 			
 			{/* Head (Mechanical) */}
