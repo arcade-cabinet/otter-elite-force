@@ -520,6 +520,20 @@ describe("Integration - Difficulty Modes", () => {
 });
 
 describe("Integration - State Persistence", () => {
+	beforeEach(() => {
+		localStorage.clear();
+		useGameStore.setState({
+			mode: "MENU",
+			saveData: {
+				...useGameStore.getState().saveData,
+				coins: 0,
+				xp: 0,
+				unlockedCharacters: ["bubbles"],
+				discoveredChunks: {},
+			},
+		});
+	});
+
 	it("should persist game state across saves", () => {
 		const store = useGameStore.getState();
 
