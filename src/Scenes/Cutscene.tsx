@@ -17,19 +17,19 @@ interface DialogueLine {
 const INTRO_DIALOGUE: DialogueLine[] = [
 	{
 		name: "GEN. WHISKERS",
-		text: "Listen up! The Mekong is crawling with Iron Scale 'Mud-Runners'.",
+		text: "Bubbles! The Iron Scale just hit our observation post at Clam Point.",
 	},
 	{
 		name: "SGT. BUBBLES",
-		text: "The usual suspects, General? Or are they packing heat this time?",
+		text: "Dammit, General. I told you we needed more patrols in the soup.",
 	},
 	{
 		name: "GEN. WHISKERS",
-		text: "They've set up industrial siphons at the Clam Vault. They're draining the river dry.",
+		text: "They're moving their heavy siphons into position. If they drain that sector, we lose the river.",
 	},
 	{
 		name: "SGT. BUBBLES",
-		text: "Not on our watch. Lock and load. We're going into the soup.",
+		text: "Understood. My platoon is locked and loaded. We're going in hot.",
 	},
 ];
 

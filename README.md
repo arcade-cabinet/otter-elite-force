@@ -46,9 +46,11 @@ OTTER: ELITE FORCE is a single-file, procedurally generated tactical shooter tha
 
 ## 📜 Lore
 
-The year is 2142. The world is a rust-belt swamp ruled by the Iron Scale Dominion. To fuel their dying empire, they've sent time-traveling cyborg squads back to the present day to harvest the **Primal Clams**—the source of all river-life energy.
+The Mekong Delta is a powder keg. The **Iron Scale Militia**—a brutal faction of saltwater crocodiles—has moved inland, clear-cutting the mangroves and siphoning the river's lifeblood. 
 
-Sgt. Bubbles, a veteran of the Creek Wars, is the only otter capable of operating the Heavy 50-Caliber Fish-Cannon. He and his elite platoon must hold the line, protect the clams, and save the future of the United River Alliance.
+**Sgt. Bubbles**, a battle-hardened veteran of the Great Creek Wars, has been recalled from retirement. Along with a ragtag platoon of specialists, he must navigate the murky, booby-trapped waters to take down the Iron Scale's industrial siphons and protect the Delta's ancestral clam beds. 
+
+It’s a war of attrition. It’s hot, it’s muddy, and the only thing thicker than the humidity is the smell of gunpowder.
 
 ## 🚀 Installation & Development
 
