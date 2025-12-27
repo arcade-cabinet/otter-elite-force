@@ -5,9 +5,10 @@
 
 import { create } from "zustand";
 import { RANKS, STORAGE_KEY } from "../utils/constants";
+import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData } from "./types";
 
-export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN" | "VICTORY";
-export type DifficultyMode = "ELITE" | "TACTICAL" | "SUPPORT";
+// Re-export types for backward compatibility
+export type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData };
 
 export interface CharacterTraits {
 	id: string;
@@ -232,97 +233,8 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 	},
 };
 
-export interface ChunkData {
-	id: string; // "x,z"
-	x: number;
-	z: number;
-	seed: number;
-	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
-	secured: boolean;
-	entities: {
-		id: string;
-		type:
-			| "GATOR"
-			| "SNAKE"
-			| "SNAPPER"
-			| "PLATFORM"
-			| "CLIMBABLE"
-			| "SIPHON"
-			| "OIL_SLICK"
-			| "MUD_PIT"
-			| "VILLAGER"
-			| "HEALER"
-			| "HUT"
-			| "GAS_STOCKPILE"
-			| "CLAM_BASKET"
-			| "EXTRACTION_POINT"
-			| "RAFT"
-			| "PRISON_CAGE";
-		position: [number, number, number];
-		isHeavy?: boolean;
-		objectiveId?: string;
-		hp?: number;
-		suppression?: number;
-		captured?: boolean;
-		interacted?: boolean; // Type safe field
-		rescued?: boolean; // Type safe field
-	}[];
-	decorations: {
-		id: string;
-		type: "REED" | "LILYPAD" | "DEBRIS" | "BURNT_TREE" | "MANGROVE" | "DRUM";
-		count: number;
-	}[];
-}
-
-interface SaveData {
-	version: number;
-	rank: number;
-	xp: number;
-	medals: number;
-	unlocked: number;
-	unlockedCharacters: string[];
-	unlockedWeapons: string[];
-	coins: number;
-	discoveredChunks: Record<string, ChunkData>;
-	territoryScore: number;
-	difficultyMode: DifficultyMode;
-	isFallTriggered: boolean;
-	strategicObjectives: {
-		siphonsDismantled: number;
-		villagesLiberated: number;
-		gasStockpilesCaptured: number;
-		healersProtected: number;
-		alliesRescued: number;
-	};
-	spoilsOfWar: {
-		creditsEarned: number;
-		clamsHarvested: number;
-		upgradesUnlocked: number;
-	};
-	peacekeepingScore: number;
-	upgrades: {
-		speedBoost: number;
-		healthBoost: number;
-		damageBoost: number;
-		weaponLvl: Record<string, number>;
-	};
-	isLZSecured: boolean;
-	baseComponents: PlacedComponent[];
-	/**
-	 * Player's last 3D position in world space.
-	 * - x: horizontal (east-west)
-	 * - y: vertical (height - for climbing, jumping, platforms)
-	 * - z: horizontal (north-south)
-	 */
-	lastPlayerPosition: [number, number, number];
-}
-
-export interface PlacedComponent {
-	id: string;
-	type: "FLOOR" | "WALL" | "ROOF" | "STILT";
-	position: [number, number, number];
-	rotation: [number, number, number];
-}
+// Types are now imported from ./types.ts - see import at top of file
+// ChunkData, SaveData, PlacedComponent, DifficultyMode, GameMode are all centralized there
 
 interface GameState {
 	// Mode management
