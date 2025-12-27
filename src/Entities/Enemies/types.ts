@@ -15,9 +15,10 @@ export interface EnemyBaseData {
 }
 
 export interface GatorData extends EnemyBaseData {
-	state: "IDLE" | "STALK" | "AMBUSH" | "RETREAT";
+	state: "IDLE" | "STALK" | "AMBUSH" | "RETREAT" | "SUPPRESSED";
 	suppression: number;
 	isHeavy: boolean;
+	healthBarOffset?: number;
 }
 
 export interface SnakeData extends EnemyBaseData {}

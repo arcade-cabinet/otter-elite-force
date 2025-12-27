@@ -4,7 +4,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 import * as THREE from "three";
 
 export interface ParticleData {
@@ -12,117 +12,112 @@ export interface ParticleData {
 	position: THREE.Vector3;
 	velocity: THREE.Vector3;
 	lifetime: number;
+	maxLifetime: number;
 	type: "shell" | "blood" | "explosion" | "oil";
 }
 
-interface ParticlesProps {
-	particles: ParticleData[];
-	onExpire?: (id: string) => void;
+export interface ParticlesHandle {
+	spawn: (config: Omit<ParticleData, "id" | "lifetime">) => void;
 }
 
-export function Particles({ particles, onExpire }: ParticlesProps) {
-	const pointsRef = useRef<THREE.Points>(null);
-	// Use a ref to store internal state of particles to avoid prop mutation
-	const internalParticles = useRef<ParticleData[]>([]);
+const MAX_PARTICLES = 1000;
 
-	// Sync internal particles with props when they are added
-	useEffect(() => {
-		// Only add new particles that aren't already in internal state
-		const currentIds = new Set(internalParticles.current.map((p) => p.id));
-		const newParticles = particles.filter((p) => !currentIds.has(p.id));
+export const Particles = forwardRef<ParticlesHandle, { onExpire?: (id: string) => void }>(
+	({ onExpire }, ref) => {
+		const pointsRef = useRef<THREE.Points>(null);
+		const internalParticles = useRef<ParticleData[]>([]);
 
-		if (newParticles.length > 0) {
-			// Clone new particles to avoid mutation of external state
-			const cloned = newParticles.map((p) => ({
-				...p,
-				position: p.position.clone(),
-				velocity: p.velocity.clone(),
-			}));
-			internalParticles.current = [...internalParticles.current, ...cloned];
-		}
+		const [positions, colors, sizes] = useMemo(() => {
+			return [
+				new Float32Array(MAX_PARTICLES * 3),
+				new Float32Array(MAX_PARTICLES * 3),
+				new Float32Array(MAX_PARTICLES),
+			];
+		}, []);
 
-		// Remove particles that are no longer in props
-		const propIds = new Set(particles.map((p) => p.id));
-		internalParticles.current = internalParticles.current.filter((p) => propIds.has(p.id));
-	}, [particles]);
+		useImperativeHandle(ref, () => ({
+			spawn: (config) => {
+				if (internalParticles.current.length >= MAX_PARTICLES) return;
+				internalParticles.current.push({
+					...config,
+					id: crypto.randomUUID(),
+					lifetime: config.maxLifetime,
+					position: config.position.clone(),
+					velocity: config.velocity.clone(),
+				});
+			},
+		}));
 
-	useFrame((_state, delta) => {
-		if (!pointsRef.current) return;
-		if (internalParticles.current.length === 0) {
-			// Clear attributes if no particles
-			pointsRef.current.geometry.deleteAttribute("position");
-			pointsRef.current.geometry.deleteAttribute("color");
-			pointsRef.current.geometry.deleteAttribute("size");
-			return;
-		}
+		useFrame((_state, delta) => {
+			if (!pointsRef.current) return;
 
-		const geometry = pointsRef.current.geometry;
-		const positions: number[] = [];
-		const colors: number[] = [];
-		const sizes: number[] = [];
+			const particles = internalParticles.current;
+			let activeCount = 0;
 
-		const toRemove: string[] = [];
+			for (let i = particles.length - 1; i >= 0; i--) {
+				const p = particles[i];
+				p.lifetime -= delta;
 
-		for (const particle of internalParticles.current) {
-			particle.lifetime -= delta;
-			if (particle.lifetime <= 0) {
-				toRemove.push(particle.id);
-				continue;
+				if (p.lifetime <= 0) {
+					onExpire?.(p.id);
+					particles.splice(i, 1);
+					continue;
+				}
+
+				p.position.add(p.velocity.clone().multiplyScalar(delta));
+				if (p.type !== "oil") {
+					p.velocity.y -= 9.8 * delta; // Gravity
+				}
+
+				const idx3 = activeCount * 3;
+				positions[idx3] = p.position.x;
+				positions[idx3 + 1] = p.position.y;
+				positions[idx3 + 2] = p.position.z;
+
+				let r = 1, g = 1, b = 1;
+				switch (p.type) {
+					case "shell":
+						[r, g, b] = [1, 0.84, 0]; // #FFD700
+						break;
+					case "blood":
+						[r, g, b] = [0.55, 0, 0]; // #8B0000
+						break;
+					case "explosion":
+						[r, g, b] = [1, 0.27, 0]; // #FF4500
+						break;
+					case "oil":
+						[r, g, b] = [0.1, 0.1, 0.1]; // #1a1a1a
+						break;
+				}
+				colors[idx3] = r;
+				colors[idx3 + 1] = g;
+				colors[idx3 + 2] = b;
+
+				sizes[activeCount] = (p.lifetime / p.maxLifetime) * 0.3;
+				activeCount++;
 			}
 
-			particle.position.add(particle.velocity.clone().multiplyScalar(delta));
-			if (particle.type !== "oil") {
-				particle.velocity.y -= 9.8 * delta; // Gravity
-			}
+			const geometry = pointsRef.current.geometry;
+			geometry.setAttribute("position", new THREE.BufferAttribute(positions.subarray(0, activeCount * 3), 3));
+			geometry.setAttribute("color", new THREE.BufferAttribute(colors.subarray(0, activeCount * 3), 3));
+			geometry.setAttribute("size", new THREE.BufferAttribute(sizes.subarray(0, activeCount), 1));
+			
+			// Use setDrawRange to only render active particles
+			geometry.setDrawRange(0, activeCount);
+		});
 
-			positions.push(particle.position.x, particle.position.y, particle.position.z);
-
-			let color: THREE.Color;
-			switch (particle.type) {
-				case "shell":
-					color = new THREE.Color("#FFD700");
-					break;
-				case "blood":
-					color = new THREE.Color("#8B0000");
-					break;
-				case "explosion":
-					color = new THREE.Color("#FF4500");
-					break;
-				case "oil":
-					color = new THREE.Color("#1a1a1a");
-					break;
-				default:
-					color = new THREE.Color("#fff");
-			}
-			colors.push(color.r, color.g, color.b);
-			sizes.push(particle.lifetime * 0.5);
-		}
-
-		if (toRemove.length > 0) {
-			// Notify parent about expired particles
-			for (const id of toRemove) {
-				onExpire?.(id);
-			}
-			// Update internal state
-			internalParticles.current = internalParticles.current.filter((p) => !toRemove.includes(p.id));
-		}
-
-		geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-		geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-		geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
-	});
-
-	return (
-		<points ref={pointsRef}>
-			<bufferGeometry />
-			<pointsMaterial
-				size={0.2}
-				vertexColors
-				sizeAttenuation
-				transparent
-				opacity={0.8}
-				depthWrite={false}
-			/>
-		</points>
-	);
-}
+		return (
+			<points ref={pointsRef}>
+				<bufferGeometry />
+				<pointsMaterial
+					size={1}
+					vertexColors
+					sizeAttenuation
+					transparent
+					opacity={0.8}
+					depthWrite={false}
+				/>
+			</points>
+		);
+	},
+);

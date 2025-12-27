@@ -4,7 +4,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import * as YUKA from "yuka";
@@ -15,9 +15,18 @@ import type { EnemyProps, GatorData } from "./types";
 export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) {
 	const groupRef = useRef<Group>(null);
 	const bodyRef = useRef<Group>(null);
+	const segmentsRef = useRef<THREE.Object3D[]>([]);
 	const vehicleRef = useRef<YUKA.Vehicle | null>(null);
 	const aiRef = useRef<GatorAI | null>(null);
-	const ambushTimer = useRef(0);
+	const [isAmbushing, setIsAmbushing] = useState(false);
+
+	// Memoize materials
+	const scale = data.isHeavy ? 1.6 : 1.1;
+	const bodyColor = data.isHeavy ? "#1a241a" : "#2d3d2d";
+	const matBody = useMemo(() => new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.9 }), [bodyColor]);
+	const matHead = useMemo(() => new THREE.MeshStandardMaterial({ color: "#444", metalness: 0.6, roughness: 0.4 }), []);
+	const matMud = useMemo(() => new THREE.MeshStandardMaterial({ color: "#3d3329" }), []);
+	const matStrap = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1a1a1a", roughness: 1 }), []);
 
 	// Setup Yuka AI
 	useEffect(() => {
@@ -34,35 +43,41 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 		};
 	}, [data.position.x, data.position.y, data.position.z]);
 
+	// Cache segments for performance
+	useEffect(() => {
+		if (bodyRef.current) {
+			const segments: THREE.Object3D[] = [];
+			bodyRef.current.traverse((child) => {
+				if (child.name.startsWith("segment")) {
+					segments.push(child);
+				}
+			});
+			segmentsRef.current = segments.sort((a, b) => {
+				const numA = parseInt(a.name.split("-")[1]);
+				const numB = parseInt(b.name.split("-")[1]);
+				return numA - numB;
+			});
+		}
+	}, []);
+
 	// Update AI and sync with Three.js mesh
 	useFrame((_state, delta) => {
 		if (!vehicleRef.current || !groupRef.current || !bodyRef.current || !aiRef.current) return;
 
 		aiRef.current.update(delta, targetPosition, data.hp, data.suppression);
 		const currentState = aiRef.current.getState();
-
-		// Manage Ambush timer within frame loop
-		if (currentState === "AMBUSH" && ambushTimer.current <= 0) {
-			ambushTimer.current = 3; // 3 seconds
-		} else if (currentState !== "AMBUSH") {
-			ambushTimer.current = 0;
+		const currentlyAmbushing = currentState === "AMBUSH";
+		
+		if (isAmbushing !== currentlyAmbushing) {
+			setIsAmbushing(currentlyAmbushing);
 		}
-
-		if (ambushTimer.current > 0) {
-			ambushTimer.current -= delta;
-			if (ambushTimer.current <= 0) {
-				// Transition logic handled by GatorAI.ts based on distance/suppression
-			}
-		}
-
-		const isAmbushing = currentState === "AMBUSH";
 
 		// Animate rising/submerging based on state
-		const targetY = isAmbushing ? 0.8 : currentState === "SUPPRESSED" ? -0.2 : 0.15;
+		const targetY = currentlyAmbushing ? 0.8 : currentState === "SUPPRESSED" ? -0.2 : 0.15;
 		bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, targetY, 0.1);
 
 		// Tilt body up when ambushing
-		const targetRotationX = isAmbushing ? -0.4 : 0;
+		const targetRotationX = currentlyAmbushing ? -0.4 : 0;
 		bodyRef.current.rotation.x = THREE.MathUtils.lerp(
 			bodyRef.current.rotation.x,
 			targetRotationX,
@@ -73,7 +88,7 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 		groupRef.current.position.set(vehicleRef.current.position.x, 0, vehicleRef.current.position.z);
 
 		// Face direction of movement (or player if ambushing)
-		if (isAmbushing) {
+		if (currentlyAmbushing) {
 			const lookDir = targetPosition.clone().sub(groupRef.current.position);
 			const targetAngle = Math.atan2(lookDir.x, lookDir.z);
 			groupRef.current.rotation.y = THREE.MathUtils.lerp(
@@ -88,13 +103,11 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 
 		// Procedural swimming animation
 		const time = _state.clock.elapsedTime;
-		const swimSpeed = currentState === "RETREAT" ? 10 : isAmbushing ? 2 : data.isHeavy ? 4 : 6;
-		const swimAmount = isAmbushing ? 0.05 : data.isHeavy ? 0.15 : 0.25;
+		const swimSpeed = currentState === "RETREAT" ? 10 : currentlyAmbushing ? 2 : data.isHeavy ? 4 : 6;
+		const swimAmount = currentlyAmbushing ? 0.05 : data.isHeavy ? 0.15 : 0.25;
 
-		bodyRef.current.children.forEach((child, i) => {
-			if (child.name.startsWith("segment")) {
-				child.rotation.y = Math.sin(time * swimSpeed - i * 0.4) * swimAmount;
-			}
+		segmentsRef.current.forEach((seg, i) => {
+			seg.rotation.y = Math.sin(time * swimSpeed - i * 0.4) * swimAmount;
 		});
 	});
 
@@ -105,27 +118,21 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 		}
 	}, [data.hp, data.id, onDeath]);
 
-	const scale = data.isHeavy ? 1.6 : 1.1;
-	const bodyColor = data.isHeavy ? "#1a241a" : "#2d3d2d";
-	const mudColor = "#3d3329";
-	const strapColor = "#1a1a1a";
+	const healthBarY = data.healthBarOffset ?? 2 * scale;
 
 	return (
 		<group ref={groupRef}>
 			<group ref={bodyRef}>
 				{/* Head / Chest */}
 				<group position={[0, 0.1, 1.2 * scale]} name="segment-0">
-					<mesh castShadow receiveShadow>
+					<mesh castShadow receiveShadow material={matBody}>
 						<boxGeometry args={[0.6 * scale, 0.3 * scale, 1.1 * scale]} />
-						<meshStandardMaterial color={bodyColor} roughness={0.9} />
 					</mesh>
-					<mesh position={[0, 0.2 * scale, 0]}>
+					<mesh position={[0, 0.2 * scale, 0]} material={matHead}>
 						<boxGeometry args={[0.7 * scale, 0.15 * scale, 0.8 * scale]} />
-						<meshStandardMaterial color="#444" metalness={0.6} roughness={0.4} />
 					</mesh>
-					<mesh position={[0, 0.3 * scale, 0.2 * scale]}>
+					<mesh position={[0, 0.3 * scale, 0.2 * scale]} material={matMud}>
 						<boxGeometry args={[0.4 * scale, 0.02, 0.6 * scale]} />
-						<meshStandardMaterial color={mudColor} />
 					</mesh>
 					{[-1, 1].map((side) => (
 						<mesh
@@ -148,30 +155,26 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 						position={[0, 0.1, (0.4 - i * 0.75) * scale]}
 						name={`segment-${i + 1}`}
 					>
-						<mesh castShadow receiveShadow>
+						<mesh castShadow receiveShadow material={matBody}>
 							<boxGeometry args={[(0.85 - i * 0.1) * scale, 0.5 * scale, 0.85 * scale]} />
-							<meshStandardMaterial color={bodyColor} roughness={0.9} />
 						</mesh>
-						<mesh position={[0, 0.3 * scale, 0]}>
+						<mesh position={[0, 0.3 * scale, 0]} material={matHead}>
 							<boxGeometry args={[(0.75 - i * 0.1) * scale, 0.1 * scale, 0.6 * scale]} />
-							<meshStandardMaterial color="#333" metalness={0.5} />
 						</mesh>
-						<mesh position={[0, 0.2 * scale, 0]}>
+						<mesh position={[0, 0.2 * scale, 0]} material={matStrap}>
 							<boxGeometry args={[(0.9 - i * 0.1) * scale, 0.12 * scale, 0.15 * scale]} />
-							<meshStandardMaterial color={strapColor} roughness={1} />
 						</mesh>
 					</group>
 				))}
 
 				<group position={[0, 0.1, -3.2 * scale]} name="segment-6">
-					<mesh castShadow>
+					<mesh castShadow material={matBody}>
 						<boxGeometry args={[0.2 * scale, 0.2 * scale, 1.5 * scale]} />
-						<meshStandardMaterial color={bodyColor} />
 					</mesh>
 				</group>
 			</group>
 
-			<group position={[0, 2 * scale, 0]}>
+			<group position={[0, healthBarY, 0]}>
 				<mesh position={[0, 0, 0]}>
 					<planeGeometry args={[1.4, 0.08]} />
 					<meshBasicMaterial color="#000" transparent opacity={0.5} side={THREE.DoubleSide} />

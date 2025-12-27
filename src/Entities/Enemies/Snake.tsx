@@ -4,7 +4,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import { randomRange } from "../../utils/math";
@@ -16,7 +16,7 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 
 	const [isStriking, setIsStriking] = useState(false);
 	const strikeTimer = useRef(0);
-	const initialY = data.position.y + randomRange(4, 7);
+	const initialY = useMemo(() => data.position.y + randomRange(4, 7), [data.position.y]);
 
 	useEffect(() => {
 		for (let i = 0; i < 12; i++) {

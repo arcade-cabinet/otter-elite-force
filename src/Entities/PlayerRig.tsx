@@ -4,7 +4,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { forwardRef, useRef } from "react";
+import { forwardRef, useMemo, useRef } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import type { CharacterGear, CharacterTraits } from "../stores/gameStore";
@@ -59,9 +59,15 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 		const armRRef = useRef<THREE.Group>(null);
 		const headRef = useRef<THREE.Group>(null);
 
-		const matFur = new THREE.MeshStandardMaterial({ color: traits.furColor, roughness: 1.0 });
-		const matSnout = new THREE.MeshStandardMaterial({ color: "#8D6E63", roughness: 0.9 });
-		const matEye = new THREE.MeshStandardMaterial({ color: traits.eyeColor, roughness: 0.1 });
+		const matFur = useMemo(() => new THREE.MeshStandardMaterial({ color: traits.furColor, roughness: 1.0 }), [traits.furColor]);
+		const matSnout = useMemo(() => new THREE.MeshStandardMaterial({ color: "#8D6E63", roughness: 0.9 }), []);
+		const matEye = useMemo(() => new THREE.MeshStandardMaterial({ color: traits.eyeColor, roughness: 0.1 }), [traits.eyeColor]);
+
+		// Memoize whisker rotations to avoid jitter
+		const whiskerRotations = useMemo(() => 
+			[...Array(6)].map((_, i) => (i % 2 === 0 ? 1 : -1) * (0.2 + Math.random() * 0.2)),
+			[]
+		);
 
 		useFrame((state) => {
 			const time = state.clock.elapsedTime;
@@ -147,7 +153,7 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 							<mesh
 								key={`whisker-${traits.id}-${i}`}
 								position={[(i % 2 === 0 ? 1 : -1) * 0.2, -0.05 + Math.floor(i / 2) * 0.05, 0.1]}
-								rotation-z={(i % 2 === 0 ? 1 : -1) * (0.2 + Math.random() * 0.2)}
+								rotation-z={whiskerRotations[i]}
 								rotation-y={(i % 2 === 0 ? 1 : -1) * 0.5}
 							>
 								<cylinderGeometry args={[0.005, 0.005, traits.whiskerLength]} />

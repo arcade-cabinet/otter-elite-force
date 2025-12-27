@@ -46,9 +46,9 @@ export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 							<mesh scale={flashOpacity}>
 								<sphereGeometry args={[0.2, 8, 8]} />
 								<meshBasicMaterial color="#ffffaa" transparent opacity={flashOpacity} />
-								<pointLight intensity={2} distance={3} color="#ffffaa" />
 							</mesh>
 						)}
+						<pointLight intensity={flashOpacity * 2} distance={3} color="#ffffaa" />
 					</group>
 				</group>
 			)}
@@ -70,9 +70,9 @@ export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 							<mesh scale={flashOpacity}>
 								<sphereGeometry args={[0.3, 8, 8]} />
 								<meshBasicMaterial color="#ffffaa" transparent opacity={flashOpacity} />
-								<pointLight intensity={3} distance={5} color="#ffffaa" />
 							</mesh>
 						)}
+						<pointLight intensity={flashOpacity * 3} distance={5} color="#ffffaa" />
 					</group>
 				</group>
 			)}
@@ -92,9 +92,9 @@ export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 							<mesh scale={flashOpacity}>
 								<sphereGeometry args={[0.25, 8, 8]} />
 								<meshBasicMaterial color="#aaffff" transparent opacity={flashOpacity} />
-								<pointLight intensity={2} distance={4} color="#aaffff" />
 							</mesh>
 						)}
+						<pointLight intensity={flashOpacity * 2} distance={4} color="#aaffff" />
 					</group>
 				</group>
 			)}
