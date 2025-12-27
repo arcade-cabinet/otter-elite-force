@@ -35,6 +35,17 @@ export function HUD() {
 				SCOPE
 			</button>
 
+			{/* Jump Button */}
+			<button 
+				type="button" 
+				className="jump-btn" 
+				onPointerDown={() => inputSystem.setJump(true)}
+				onPointerUp={() => inputSystem.setJump(false)}
+				aria-label="Jump"
+			>
+				JUMP
+			</button>
+
 			{/* Joystick zones */}
 			<div id="joystick-move" className="joystick-zone left" />
 			<div id="joystick-look" className="joystick-zone right" />

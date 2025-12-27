@@ -288,6 +288,12 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 						targetPosition={playerPos} 
 					/>
 				);
+				if (entity.type === "PLATFORM") return (
+					<mesh key={entity.id} position={worldPos} castShadow receiveShadow name="platform">
+						<boxGeometry args={[5, 1, 5]} />
+						<meshStandardMaterial color="#3d2b1f" roughness={1} />
+					</mesh>
+				);
 				return null;
 			})}
 		</group>
@@ -299,6 +305,8 @@ export function Level() {
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
+	const [playerVelY, setPlayerVelY] = useState(0);
+	const [isGrounded, setIsGrounded] = useState(true);
 	const [playerRot, setPlayerRot] = useState(0);
 	const [isPlayerMoving, setIsPlayerMoving] = useState(false);
 	const [playerVelocity, setPlayerVelocity] = useState(0);
@@ -346,6 +354,58 @@ export function Level() {
 
 		const isAiming = input.look.active;
 		const moveSpeed = isAiming ? GAME_CONFIG.PLAYER_STRAFE_SPEED : GAME_CONFIG.PLAYER_SPEED;
+
+		// --- 3D PHYSICS: JUMP & GRAVITY ---
+		let newVelY = playerVelY;
+		
+		// Gravity
+		if (!isGrounded) {
+			newVelY -= 30 * delta; // Gravity constant
+		}
+
+		// Jump
+		if (input.jump && isGrounded) {
+			newVelY = 12; // Jump impulse
+			setIsGrounded(false);
+			audioEngine.playSFX("pickup"); // Use pickup sound as temp jump sound
+		}
+
+		// Apply vertical movement
+		playerRef.current.position.y += newVelY * delta;
+
+		// Floor Collision (Simplified)
+		if (playerRef.current.position.y <= 0) {
+			playerRef.current.position.y = 0;
+			newVelY = 0;
+			setIsGrounded(true);
+		}
+
+		// Platform Collision (AABB check against nearby chunks)
+		activeChunks.forEach(chunk => {
+			chunk.entities.forEach(entity => {
+				if (entity.type === "PLATFORM") {
+					const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
+					const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
+					const platformTop = entity.position[1] + 0.5;
+					
+					// Simple AABB for a 5x5 platform
+					const dx = Math.abs(playerRef.current!.position.x - worldX);
+					const dz = Math.abs(playerRef.current!.position.z - worldZ);
+					
+					if (dx < 2.5 && dz < 2.5) {
+						// Within platform bounds horizontally
+						const footLevel = playerRef.current!.position.y;
+						if (footLevel >= platformTop - 0.2 && footLevel <= platformTop + 0.5 && newVelY <= 0) {
+							playerRef.current!.position.y = platformTop;
+							newVelY = 0;
+							setIsGrounded(true);
+						}
+					}
+				}
+			});
+		});
+
+		setPlayerVelY(newVelY);
 
 		if (isAiming) {
 			playerRef.current.rotation.y -= input.look.x * 3 * delta;

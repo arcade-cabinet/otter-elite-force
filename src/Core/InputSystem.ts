@@ -10,6 +10,7 @@ export interface InputState {
 	look: { x: number; y: number; active: boolean };
 	gyro: { x: number; y: number };
 	zoom: boolean;
+	jump: boolean;
 }
 
 export class InputSystem {
@@ -18,6 +19,7 @@ export class InputSystem {
 		look: { x: 0, y: 0, active: false },
 		gyro: { x: 0, y: 0 },
 		zoom: false,
+		jump: false,
 	};
 
 	private moveJoystick: JoystickManager | null = null;
@@ -125,8 +127,11 @@ export class InputSystem {
 			keys[e.key.toLowerCase()] = true;
 			this.updateKeyboardState(keys);
 
-			// Zoom toggle
+			// Toggles
 			if (e.key === " ") {
+				this.state.jump = true;
+			}
+			if (e.key === "f") {
 				this.state.zoom = !this.state.zoom;
 			}
 		};
@@ -134,6 +139,9 @@ export class InputSystem {
 		this.handleKeyUp = (e: KeyboardEvent) => {
 			keys[e.key.toLowerCase()] = false;
 			this.updateKeyboardState(keys);
+			if (e.key === " ") {
+				this.state.jump = false;
+			}
 		};
 
 		window.addEventListener("keydown", this.handleKeyDown);
@@ -202,6 +210,13 @@ export class InputSystem {
 	 */
 	toggleZoom(): void {
 		this.state.zoom = !this.state.zoom;
+	}
+
+	/**
+	 * Set jump state
+	 */
+	setJump(active: boolean): void {
+		this.state.jump = active;
 	}
 
 	/**
