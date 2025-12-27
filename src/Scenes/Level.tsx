@@ -313,6 +313,7 @@ export function Level() {
 		(id: string) => {
 			setEnemies((prev) => prev.filter((e) => e.id !== id));
 			addKill();
+			useGameStore.getState().addCoins(10); // 10 coins per gator
 		},
 		[addKill],
 	);

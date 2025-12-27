@@ -69,6 +69,10 @@ export function MainMenu() {
 					START CAMPAIGN
 				</button>
 
+				<button type="button" className="secondary" onClick={() => setMode("CANTEEN")}>
+					VISIT CANTEEN
+				</button>
+
 				<h3 style={{ marginTop: "20px", color: "var(--primary)", fontSize: "0.9rem" }}>MISSIONS</h3>
 				<div className="level-grid">
 					{LEVELS.map((level) => {
