@@ -1,6 +1,6 @@
 /**
- * Enemy entities (Iron Scale Cyborg Gators)
- * Procedurally generated with Yuka AI and mechanical armor plating
+ * Enemy entities (Tactical River Predators)
+ * Gritty biological crocodilians with mud camo and stolen tactical gear
  */
 
 import { useFrame } from "@react-three/fiber";
@@ -59,7 +59,7 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		vehicleRef.current.update(delta);
 
 		// Sync Three.js mesh with Yuka vehicle
-		groupRef.current.position.set(vehicleRef.current.position.x, 0.2, vehicleRef.current.position.z);
+		groupRef.current.position.set(vehicleRef.current.position.x, 0.15, vehicleRef.current.position.z);
 
 		// Face direction of movement
 		if (vehicleRef.current.velocity.length() > 0.1) {
@@ -67,15 +67,14 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 			groupRef.current.rotation.y = angle;
 		}
 
-		// Procedural animation (swimming snake-like)
+		// Procedural swimming animation
 		const time = _state.clock.elapsedTime;
-		const swimSpeed = data.isHeavy ? 5 : 8;
-		const swimAmount = data.isHeavy ? 0.1 : 0.2;
+		const swimSpeed = data.isHeavy ? 4 : 6;
+		const swimAmount = data.isHeavy ? 0.15 : 0.25;
 		
-		// Body segments waddle
 		groupRef.current.children.forEach((child, i) => {
 			if (child.name.startsWith("segment")) {
-				child.rotation.y = Math.sin(time * swimSpeed - i * 0.5) * swimAmount;
+				child.rotation.y = Math.sin(time * swimSpeed - i * 0.4) * swimAmount;
 			}
 		});
 	});
@@ -87,73 +86,76 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		}
 	}, [data.hp, data.id, onDeath]);
 
-	const scale = data.isHeavy ? 1.5 : 1;
-	const bodyColor = data.isHeavy ? "#1a2a1a" : "#2d4d2d";
-	const tacticalColor = "#333322"; // OD Green / Black webbing
-	const eyeColor = "#ffaa00"; // Primal beast glow, not cyber red
+	const scale = data.isHeavy ? 1.6 : 1.1;
+	const bodyColor = data.isHeavy ? "#1a241a" : "#2d3d2d";
+	const mudColor = "#3d3329";
+	const strapColor = "#1a1a1a"; // Stolen black nylon straps
 
 	return (
 		<group ref={groupRef}>
-			{/* --- TACTICAL GATOR BODY --- */}
-			
-			{/* Head (Armored) */}
-			<group position={[0, 0.2, 1.2 * scale]} name="segment-0">
-				{/* Snout */}
+			{/* Head */}
+			<group position={[0, 0.1, 1.2 * scale]} name="segment-0">
+				{/* Main Head / Snout */}
 				<mesh castShadow receiveShadow>
-					<boxGeometry args={[0.6 * scale, 0.3 * scale, 1 * scale]} />
-					<meshStandardMaterial color={bodyColor} roughness={0.8} />
+					<boxGeometry args={[0.6 * scale, 0.3 * scale, 1.1 * scale]} />
+					<meshStandardMaterial color={bodyColor} roughness={0.9} />
 				</mesh>
-				{/* Tactical Webbing/Muzzle */}
-				<mesh position={[0, -0.05 * scale, 0.2 * scale]} castShadow>
-					<boxGeometry args={[0.65 * scale, 0.2 * scale, 0.4 * scale]} />
-					<meshStandardMaterial color={tacticalColor} roughness={0.9} />
+				{/* Mud Camo Markings */}
+				<mesh position={[0, 0.16 * scale, 0.2 * scale]}>
+					<boxGeometry args={[0.4 * scale, 0.02, 0.6 * scale]} />
+					<meshStandardMaterial color={mudColor} />
 				</mesh>
-				{/* Beast Eyes */}
-				{[-1, 1].map((side) => ( side === 1 && (
-					<mesh key={`eye-${side}`} position={[side * 0.25 * scale, 0.15 * scale, 0.3 * scale]}>
-						<sphereGeometry args={[0.06 * scale, 8, 8]} />
-						<meshBasicMaterial color={eyeColor} />
+				{/* Cold, calculating eyes */}
+				{[-1, 1].map((side) => (
+					<mesh key={`eye-${side}`} position={[side * 0.22 * scale, 0.12 * scale, 0.35 * scale]}>
+						<sphereGeometry args={[0.05 * scale, 8, 8]} />
+						<meshBasicMaterial color="#ffaa00" />
 					</mesh>
-				)))}
+				))}
+				{/* Stolen muzzle/webbing strap */}
+				<mesh position={[0, -0.05 * scale, 0.4 * scale]}>
+					<boxGeometry args={[0.65 * scale, 0.1 * scale, 0.1 * scale]} />
+					<meshStandardMaterial color={strapColor} roughness={1} />
+				</mesh>
 			</group>
 
-			{/* Main Body Segments with Webbing */}
-			{[...Array(4)].map((_, i) => (
-				<group key={`segment-${i}`} position={[0, 0.2, (0.4 - i * 0.7) * scale]} name={`segment-${i+1}`}>
+			{/* Body Segments with Webbing */}
+			{[...Array(5)].map((_, i) => (
+				<group key={`segment-${i}`} position={[0, 0.1, (0.4 - i * 0.75) * scale]} name={`segment-${i+1}`}>
 					<mesh castShadow receiveShadow>
-						<boxGeometry args={[(0.8 - i * 0.1) * scale, 0.5 * scale, 0.8 * scale]} />
-						<meshStandardMaterial color={bodyColor} roughness={0.8} />
+						<boxGeometry args={[(0.85 - i * 0.1) * scale, 0.5 * scale, 0.85 * scale]} />
+						<meshStandardMaterial color={bodyColor} roughness={0.9} />
 					</mesh>
-					{/* Tactical Straps (Canvas feel) */}
-					<mesh position={[0, 0.1 * scale, 0]}>
-						<boxGeometry args={[(0.85 - i * 0.1) * scale, 0.1 * scale, 0.2 * scale]} />
-						<meshStandardMaterial color={tacticalColor} roughness={1} />
+					{/* Tactical Straps / Webbing Loops */}
+					<mesh position={[0, 0.2 * scale, 0]}>
+						<boxGeometry args={[(0.9 - i * 0.1) * scale, 0.12 * scale, 0.15 * scale]} />
+						<meshStandardMaterial color={strapColor} roughness={1} />
+					</mesh>
+					{/* Irregular mud patches */}
+					<mesh position={[0, 0.26 * scale, (Math.random() - 0.5) * 0.2 * scale]}>
+						<boxGeometry args={[0.4 * scale, 0.02, 0.4 * scale]} />
+						<meshStandardMaterial color={mudColor} />
 					</mesh>
 				</group>
 			))}
 
-			{/* Tail Tip */}
-			<group position={[0, 0.2, -2.4 * scale]} name="segment-5">
+			{/* Tail */}
+			<group position={[0, 0.1, -3.2 * scale]} name="segment-6">
 				<mesh castShadow>
-					<boxGeometry args={[0.2 * scale, 0.2 * scale, 1.2 * scale]} />
+					<boxGeometry args={[0.2 * scale, 0.2 * scale, 1.5 * scale]} />
 					<meshStandardMaterial color={bodyColor} />
-				</mesh>
-				{/* Tail Fin (Mechanical) */}
-				<mesh position={[0, 0, -0.4 * scale]} rotation-x={Math.PI / 2}>
-					<planeGeometry args={[0.6 * scale, 0.8 * scale]} />
-					<meshStandardMaterial color={armorColor} metalness={0.8} side={THREE.DoubleSide} />
 				</mesh>
 			</group>
 
-			{/* Health bar */}
-			<group position={[0, 1.2 * scale, 0]}>
+			{/* Health bar (Modern Military UI style) */}
+			<group position={[0, 1.3 * scale, 0]}>
 				<mesh position={[0, 0, 0]}>
-					<planeGeometry args={[1.2, 0.12]} />
-					<meshBasicMaterial color="#330000" side={THREE.DoubleSide} />
+					<planeGeometry args={[1.4, 0.08]} />
+					<meshBasicMaterial color="#000" transparent opacity={0.5} side={THREE.DoubleSide} />
 				</mesh>
-				<mesh position={[-(1 - data.hp / data.maxHp) * 0.6, 0, 0.01]} scale-x={data.hp / data.maxHp}>
-					<planeGeometry args={[1.2, 0.12]} />
-					<meshBasicMaterial color="#ff3300" side={THREE.DoubleSide} />
+				<mesh position={[-(1 - data.hp / data.maxHp) * 0.7, 0, 0.01]} scale-x={data.hp / data.maxHp}>
+					<planeGeometry args={[1.4, 0.08]} />
+					<meshBasicMaterial color="#ff4400" side={THREE.DoubleSide} />
 				</mesh>
 			</group>
 		</group>

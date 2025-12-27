@@ -125,7 +125,7 @@ function Debris({ count = 10, color = "#444" }) {
 			mesh.setMatrixAt(i, dummy.matrix);
 		}
 		mesh.instanceMatrix.needsUpdate = true;
-	}, [count, color]);
+	}, [count, color, meshRef]);
 
 	return (
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
@@ -158,6 +158,60 @@ function BurntTrees({ count = 15 }) {
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
 			<cylinderGeometry args={[0.3, 0.5, 1, 6]} />
 			<meshStandardMaterial color="#1a1a1a" roughness={1} />
+		</instancedMesh>
+	);
+}
+
+function Mangroves({ count = 30 }) {
+	const meshRef = useRef<THREE.InstancedMesh>(null);
+
+	useEffect(() => {
+		const mesh = meshRef.current;
+		if (!mesh) return;
+		const dummy = new THREE.Object3D();
+		for (let i = 0; i < count; i++) {
+			const angle = Math.random() * Math.PI * 2;
+			const dist = randomRange(25, 80);
+			dummy.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
+			dummy.scale.set(randomRange(0.8, 1.5), randomRange(5, 12), randomRange(0.8, 1.5));
+			dummy.rotation.set(randomRange(-0.1, 0.1), Math.random() * Math.PI, randomRange(-0.1, 0.1));
+			dummy.updateMatrix();
+			mesh.setMatrixAt(i, dummy.matrix);
+		}
+		mesh.instanceMatrix.needsUpdate = true;
+	}, [count, meshRef]);
+
+	return (
+		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
+			<cylinderGeometry args={[0.4, 0.8, 1, 8]} />
+			<meshStandardMaterial color="#2d3d19" roughness={1} />
+		</instancedMesh>
+	);
+}
+
+function FloatingDrums({ count = 10 }) {
+	const meshRef = useRef<THREE.InstancedMesh>(null);
+
+	useEffect(() => {
+		const mesh = meshRef.current;
+		if (!mesh) return;
+		const dummy = new THREE.Object3D();
+		for (let i = 0; i < count; i++) {
+			const angle = Math.random() * Math.PI * 2;
+			const dist = randomRange(15, 60);
+			dummy.position.set(Math.cos(angle) * dist, 0.1, Math.sin(angle) * dist);
+			dummy.scale.set(0.6, 0.9, 0.6);
+			dummy.rotation.set(Math.PI / 2, 0, Math.random() * Math.PI);
+			dummy.updateMatrix();
+			mesh.setMatrixAt(i, dummy.matrix);
+		}
+		mesh.instanceMatrix.needsUpdate = true;
+	}, [count, meshRef]);
+
+	return (
+		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
+			<cylinderGeometry args={[0.5, 0.5, 1, 12]} />
+			<meshStandardMaterial color="#555" metalness={0.7} roughness={0.3} />
 		</instancedMesh>
 	);
 }
@@ -410,7 +464,9 @@ export function Level() {
 			<Flag position={[-10, 0, -15]} />
 			<Reeds count={60} />
 			<Lilypads count={30} />
-			{currentLevel >= 1 && <Debris count={20} color={currentLevel === 1 ? "#444" : "#222"} />}
+			<Mangroves count={40} />
+			<FloatingDrums count={15} />
+			<Debris count={20} color={currentLevel === 1 ? "#444" : "#222"} />
 			<BurntTrees count={currentLevel === 1 ? 30 : 10} />
 
 			{/* Player */}
