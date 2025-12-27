@@ -6,7 +6,7 @@
 import { create } from "zustand";
 import { LEVELS, RANKS, STORAGE_KEY } from "../utils/constants";
 
-export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER";
+export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN";
 
 export interface CharacterTraits {
 	id: string;
@@ -106,17 +106,6 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 	},
 };
 
-interface SaveData {
-	rank: number;
-	xp: number;
-	medals: number;
-	unlocked: number;
-	unlockedCharacters: string[];
-	coins: number;
-	discoveredChunks: Record<string, ChunkData>;
-	territoryScore: number;
-}
-
 export interface ChunkData {
 	id: string; // "x,z"
 	x: number;
@@ -153,27 +142,45 @@ export interface ChunkData {
 	}[];
 }
 
+interface SaveData {
+	rank: number;
+	xp: number;
+	medals: number;
+	unlocked: number;
+	unlockedCharacters: string[];
+	coins: number;
+	discoveredChunks: Record<string, ChunkData>;
+	territoryScore: number;
+	upgrades: {
+		speedBoost: number;
+		healthBoost: number;
+		damageBoost: number;
+	};
+}
+
 interface GameState {
 	// Game mode
-	mode: GameMode | "CANTEEN";
-	setMode: (mode: GameMode | "CANTEEN") => void;
+	mode: GameMode;
+	setMode: (mode: GameMode) => void;
 
 	// Player stats
 	health: number;
 	maxHealth: number;
 	kills: number;
 	mudAmount: number;
+	isCarryingClam: boolean;
+	playerPos: [number, number, number];
+	
 	takeDamage: (amount: number) => void;
 	heal: (amount: number) => void;
 	addKill: () => void;
 	resetStats: () => void;
 	setMud: (amount: number) => void;
-	playerPos: [number, number, number];
 	setPlayerPos: (pos: [number, number, number]) => void;
+	setCarryingClam: (isCarrying: boolean) => void;
 
 	// World management
 	currentChunkId: string;
-	discoveredChunks: Record<string, ChunkData>;
 	discoverChunk: (x: number, z: number) => ChunkData;
 	getNearbyChunks: (x: number, z: number) => ChunkData[];
 	secureChunk: (chunkId: string) => void;
@@ -182,9 +189,10 @@ interface GameState {
 	selectedCharacterId: string;
 	selectCharacter: (id: string) => void;
 
-	// Economy
+	// Economy & Upgrades
 	addCoins: (amount: number) => void;
 	spendCoins: (amount: number) => boolean;
+	buyUpgrade: (type: "speed" | "health" | "damage", cost: number) => void;
 
 	// Save data
 	saveData: SaveData;
@@ -200,6 +208,12 @@ interface GameState {
 }
 
 export const CHUNK_SIZE = 100;
+
+export const UPGRADE_COSTS = {
+	speed: 200,
+	health: 200,
+	damage: 300,
+};
 
 export const CHAR_PRICES: Record<string, number> = {
 	bubbles: 0,
@@ -217,6 +231,11 @@ const DEFAULT_SAVE_DATA: SaveData = {
 	coins: 0,
 	discoveredChunks: {},
 	territoryScore: 0,
+	upgrades: {
+		speedBoost: 0,
+		healthBoost: 0,
+		damageBoost: 0,
+	},
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -226,10 +245,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 	maxHealth: 100,
 	kills: 0,
 	mudAmount: 0,
-	currentLevel: 0,
+	isCarryingClam: false,
 	selectedCharacterId: "bubbles",
+	playerPos: [0, 0, 0],
 	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
+	currentChunkId: "0,0",
 
 	// Mode management
 	setMode: (mode) => set({ mode }),
@@ -247,17 +268,15 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	addKill: () => set((state) => ({ kills: state.kills + 1 })),
 
-	resetStats: () => set({ health: 100, kills: 0, mudAmount: 0 }),
+	resetStats: () => set({ health: 100, kills: 0, mudAmount: 0, isCarryingClam: false }),
 
 	setMud: (amount) => set({ mudAmount: amount }),
 
-	playerPos: [0, 0, 0] as [number, number, number],
 	setPlayerPos: (pos) => set({ playerPos: pos }),
 
-	// World management
-	currentChunkId: "0,0",
-	discoveredChunks: {},
+	setCarryingClam: (isCarrying) => set({ isCarryingClam: isCarrying }),
 
+	// World management
 	discoverChunk: (x, z) => {
 		const id = `${x},${z}`;
 		const { saveData } = get();
@@ -281,18 +300,18 @@ export const useGameStore = create<GameState>((set, get) => ({
 		const terrainType = terrainTypes[Math.floor(rand() * terrainTypes.length)];
 
 		const entities: ChunkData["entities"] = [];
+		
+		// Add Predators
 		const entityCount = Math.floor(rand() * 5) + 2;
 		for (let i = 0; i < entityCount; i++) {
 			const type = rand() > 0.7 ? (rand() > 0.5 ? "SNAPPER" : "SNAKE") : "GATOR";
 			entities.push({
 				id: `e-${id}-${i}`,
 				type,
-				position: [
-					(rand() - 0.5) * CHUNK_SIZE,
-					type === "SNAKE" ? 5 : 0, // Snakes are high
-					(rand() - 0.5) * CHUNK_SIZE,
-				],
+				position: [(rand() - 0.5) * CHUNK_SIZE, type === "SNAKE" ? 5 : 0, (rand() - 0.5) * CHUNK_SIZE],
 				isHeavy: rand() > 0.8,
+				hp: type === "SNAPPER" ? 20 : (type === "GATOR" ? 10 : 2),
+				suppression: 0,
 			});
 		}
 
@@ -306,45 +325,42 @@ export const useGameStore = create<GameState>((set, get) => ({
 			});
 		}
 
-		// Add Climbables (Trees/Walls)
+		// Add Climbables
 		const climbableCount = Math.floor(rand() * 2) + 1;
 		for (let i = 0; i < climbableCount; i++) {
 			entities.push({
 				id: `c-${id}-${i}`,
 				type: "CLIMBABLE",
-				position: [
-					(rand() - 0.5) * (CHUNK_SIZE - 30),
-					5, // Height center
-					(rand() - 0.5) * (CHUNK_SIZE - 30),
-				],
+				position: [(rand() - 0.5) * (CHUNK_SIZE - 30), 5, (rand() - 0.5) * (CHUNK_SIZE - 30)],
 			});
 		}
 
-		// Add Siphons (Objectives)
+		// Add Siphons
 		if (rand() > 0.8) {
 			entities.push({
 				id: `siphon-${id}`,
 				type: "SIPHON",
 				position: [(rand() - 0.5) * 40, 0, (rand() - 0.5) * 40],
+				hp: 50,
 			});
 		}
 
-		// Add Villagers/Huts (If not generating a siphon or just at random)
+		// Add The Clam (The Flag)
+		if (rand() > 0.9) {
+			entities.push({
+				id: `clam-${id}`,
+				type: "CLAM",
+				position: [(rand() - 0.5) * 20, 0.5, (rand() - 0.5) * 20],
+				captured: false,
+			});
+		}
+
+		// Add Villagers/Huts
 		if (rand() > 0.7) {
 			const villageX = (rand() - 0.5) * 30;
 			const villageZ = (rand() - 0.5) * 30;
-			
-			entities.push({
-				id: `hut-${id}`,
-				type: "HUT",
-				position: [villageX, 0, villageZ],
-			});
-			
-			entities.push({
-				id: `vil-${id}`,
-				type: "VILLAGER",
-				position: [villageX + 3, 0, villageZ + 2],
-			});
+			entities.push({ id: `hut-${id}`, type: "HUT", position: [villageX, 0, villageZ] });
+			entities.push({ id: `vil-${id}`, type: "VILLAGER", position: [villageX + 3, 0, villageZ + 2] });
 		}
 
 		// Add Hazards
@@ -357,14 +373,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 			});
 		}
 
+		// Extraction Point at 0,0 or rare
+		if (id === "0,0" || rand() > 0.98) {
+			entities.push({ id: `extract-${id}`, type: "EXTRACTION_POINT", position: [0, 0, 0] });
+		}
+
 		const newChunk: ChunkData = {
-			id,
-			x,
-			z,
-			seed,
-			terrainType,
-			secured: false,
-			entities,
+			id, x, z, seed, terrainType, secured: false, entities,
 			decorations: [
 				{ id: `${id}-dec-0`, type: "REED", count: Math.floor(rand() * 20) + 10 },
 				{ id: `${id}-dec-1`, type: "LILYPAD", count: Math.floor(rand() * 15) + 5 },
@@ -378,10 +393,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 		set((state) => ({
 			saveData: {
 				...state.saveData,
-				discoveredChunks: {
-					...state.saveData.discoveredChunks,
-					[id]: newChunk,
-				},
+				discoveredChunks: { ...state.saveData.discoveredChunks, [id]: newChunk },
 			},
 		}));
 		get().saveGame();
@@ -402,7 +414,6 @@ export const useGameStore = create<GameState>((set, get) => ({
 		set((state) => {
 			const chunk = state.saveData.discoveredChunks[chunkId];
 			if (!chunk || chunk.secured) return state;
-
 			return {
 				saveData: {
 					...state.saveData,
@@ -417,7 +428,6 @@ export const useGameStore = create<GameState>((set, get) => ({
 		get().saveGame();
 	},
 
-	// Character management
 	selectCharacter: (id) => set({ selectedCharacterId: id }),
 
 	unlockCharacter: (id) => {
@@ -432,103 +442,64 @@ export const useGameStore = create<GameState>((set, get) => ({
 		get().saveGame();
 	},
 
-	// Economy
 	addCoins: (amount) => {
-		set((state) => ({
-			saveData: {
-				...state.saveData,
-				coins: state.saveData.coins + amount,
-			},
-		}));
+		set((state) => ({ saveData: { ...state.saveData, coins: state.saveData.coins + amount } }));
 		get().saveGame();
 	},
 
 	spendCoins: (amount) => {
 		const { saveData } = get();
 		if (saveData.coins >= amount) {
-			set((state) => ({
-				saveData: {
-					...state.saveData,
-					coins: state.saveData.coins - amount,
-				},
-			}));
+			set((state) => ({ saveData: { ...state.saveData, coins: state.saveData.coins - amount } }));
 			get().saveGame();
 			return true;
 		}
 		return false;
 	},
 
-	// Save/Load
+	buyUpgrade: (type, cost) => {
+		if (get().spendCoins(cost)) {
+			set((state) => ({
+				saveData: {
+					...state.saveData,
+					upgrades: {
+						...state.saveData.upgrades,
+						[`${type}Boost`]: (state.saveData.upgrades as any)[`${type}Boost`] + 1,
+					},
+				},
+			}));
+			get().saveGame();
+		}
+	},
+
 	loadData: () => {
 		try {
 			const saved = localStorage.getItem(STORAGE_KEY);
-			if (saved) {
-				const data = JSON.parse(saved) as SaveData;
-				set({ saveData: data });
-			}
-		} catch (error) {
-			console.error("Failed to load save data:", error);
-		}
+			if (saved) set({ saveData: JSON.parse(saved) });
+		} catch (e) { console.error("Load failed", e); }
 	},
 
 	saveGame: () => {
 		try {
-			const { saveData } = get();
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
-		} catch (error) {
-			console.error("Failed to save game:", error);
-		}
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(get().saveData));
+		} catch (e) { console.error("Save failed", e); }
 	},
 
 	resetData: () => {
-		try {
-			localStorage.removeItem(STORAGE_KEY);
-			set({ saveData: { ...DEFAULT_SAVE_DATA } });
-			window.location.reload();
-		} catch (error) {
-			console.error("Failed to reset data:", error);
-		}
+		localStorage.removeItem(STORAGE_KEY);
+		set({ saveData: { ...DEFAULT_SAVE_DATA } });
+		window.location.reload();
 	},
 
 	gainXP: (amount) => {
 		set((state) => {
 			const newXP = state.saveData.xp + amount;
 			const requiredXP = (state.saveData.rank + 1) * 200;
-			const newRank =
-				newXP >= requiredXP
-					? Math.min(state.saveData.rank + 1, RANKS.length - 1)
-					: state.saveData.rank;
-
-			return {
-				saveData: {
-					...state.saveData,
-					xp: newXP,
-					rank: newRank,
-				},
-			};
+			const newRank = newXP >= requiredXP ? Math.min(state.saveData.rank + 1, RANKS.length - 1) : state.saveData.rank;
+			return { saveData: { ...state.saveData, xp: newXP, rank: newRank } };
 		});
 		get().saveGame();
 	},
 
-	winLevel: (levelId) => {
-		set((state) => {
-			const newUnlocked =
-				levelId + 1 >= state.saveData.unlocked
-					? Math.min(levelId + 2, LEVELS.length)
-					: state.saveData.unlocked;
-
-			return {
-				saveData: {
-					...state.saveData,
-					unlocked: newUnlocked,
-					medals: state.saveData.medals + 1,
-					coins: state.saveData.coins + 100, // Reward for winning
-				},
-			};
-		});
-		get().saveGame();
-	},
-
-	// UI controls
 	toggleZoom: () => set((state) => ({ isZoomed: !state.isZoomed })),
 }));
