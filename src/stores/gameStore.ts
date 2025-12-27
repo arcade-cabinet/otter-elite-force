@@ -7,6 +7,7 @@ import { create } from "zustand";
 import { LEVELS, RANKS, STORAGE_KEY } from "../utils/constants";
 
 export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN";
+export type DifficultyMode = "ELITE" | "TACTICAL" | "SUPPORT";
 
 export interface CharacterTraits {
 	id: string;
@@ -210,6 +211,7 @@ interface SaveData {
 	coins: number;
 	discoveredChunks: Record<string, ChunkData>;
 	territoryScore: number;
+	difficultyMode: DifficultyMode;
 	strategicObjectives: {
 		siphonsDismantled: number;
 		villagesLiberated: number;
@@ -241,9 +243,10 @@ export interface PlacedComponent {
 }
 
 interface GameState {
-	// Game mode
+	// Mode management
 	mode: GameMode;
 	setMode: (mode: GameMode) => void;
+	setDifficulty: (difficulty: DifficultyMode) => void;
 
 	// Player stats
 	health: number;
@@ -252,6 +255,7 @@ interface GameState {
 	mudAmount: number;
 	isCarryingClam: boolean;
 	isPilotingRaft: boolean;
+	isFallTriggered: boolean;
 	raftId: string | null;
 	playerPos: [number, number, number];
 	
@@ -263,6 +267,7 @@ interface GameState {
 	setPlayerPos: (pos: [number, number, number]) => void;
 	setCarryingClam: (isCarrying: boolean) => void;
 	setPilotingRaft: (isPiloting: boolean, raftId?: string | null) => void;
+	setFallTriggered: (active: boolean) => void;
 
 	// World management
 	currentChunkId: string;
@@ -328,6 +333,7 @@ const DEFAULT_SAVE_DATA: SaveData = {
 	discoveredChunks: {},
 	territoryScore: 0,
 	peacekeepingScore: 0,
+	difficultyMode: "SUPPORT",
 	strategicObjectives: {
 		siphonsDismantled: 0,
 		villagesLiberated: 0,
@@ -363,6 +369,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	mudAmount: 0,
 	isCarryingClam: false,
 	isPilotingRaft: false,
+	isFallTriggered: false,
 	raftId: null,
 	selectedCharacterId: "bubbles",
 	playerPos: [0, 0, 0],
@@ -374,12 +381,33 @@ export const useGameStore = create<GameState>((set, get) => ({
 	// Mode management
 	setMode: (mode) => set({ mode }),
 	setBuildMode: (active) => set({ isBuildMode: active }),
+	setDifficulty: (difficulty) => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				difficultyMode: difficulty,
+			},
+		}));
+		get().saveGame();
+	},
 
 	// Player stats
-	takeDamage: (amount) =>
-		set((state) => ({
-			health: Math.max(0, state.health - amount),
-		})),
+	takeDamage: (amount) => {
+		const { health, saveData, resetData, setFallTriggered, setMode } = get();
+		const newHealth = Math.max(0, health - amount);
+		
+		if (newHealth <= 0) {
+			if (saveData.difficultyMode === "ELITE") {
+				resetData(); // Permadeath
+				return;
+			}
+			setMode("GAMEOVER");
+		} else if (newHealth < 30 && saveData.difficultyMode === "TACTICAL") {
+			setFallTriggered(true);
+		}
+
+		set({ health: newHealth });
+	},
 
 	heal: (amount) =>
 		set((state) => ({
@@ -397,6 +425,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 	setCarryingClam: (isCarrying) => set({ isCarryingClam: isCarrying }),
 
 	setPilotingRaft: (isPiloting, raftId = null) => set({ isPilotingRaft: isPiloting, raftId }),
+
+	setFallTriggered: (active) => set({ isFallTriggered: active }),
 
 	// World management
 	discoverChunk: (x, z) => {
