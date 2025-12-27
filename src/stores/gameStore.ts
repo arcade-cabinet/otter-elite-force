@@ -382,13 +382,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 	setMode: (mode) => set({ mode }),
 	setBuildMode: (active) => set({ isBuildMode: active }),
 	setDifficulty: (difficulty) => {
-		set((state) => ({
-			saveData: {
-				...state.saveData,
-				difficultyMode: difficulty,
-			},
-		}));
-		get().saveGame();
+		const order = ["SUPPORT", "TACTICAL", "ELITE"];
+		const current = get().saveData.difficultyMode;
+		if (order.indexOf(difficulty) > order.indexOf(current)) {
+			set((state) => ({
+				saveData: {
+					...state.saveData,
+					difficultyMode: difficulty,
+				},
+			}));
+			get().saveGame();
+		}
 	},
 
 	// Player stats
