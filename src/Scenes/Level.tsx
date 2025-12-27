@@ -27,6 +27,7 @@ import {
 	Reeds,
 } from "../Entities/Environment";
 import { Siphon } from "../Entities/Objectives/Siphon";
+import { Hut, Villager } from "../Entities/Villager";
 import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
@@ -171,6 +172,8 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 						</mesh>
 					);
 				if (entity.type === "SIPHON") return <Siphon key={entity.id} position={worldPos} secured={data.secured} />;
+				if (entity.type === "VILLAGER") return <Villager key={entity.id} position={worldPos} />;
+				if (entity.type === "HUT") return <Hut key={entity.id} position={worldPos} />;
 				if (entity.type === "OIL_SLICK")
 					return (
 						<mesh

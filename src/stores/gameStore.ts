@@ -134,7 +134,9 @@ export interface ChunkData {
 			| "CLIMBABLE"
 			| "SIPHON"
 			| "OIL_SLICK"
-			| "MUD_PIT";
+			| "MUD_PIT"
+			| "VILLAGER"
+			| "HUT";
 		position: [number, number, number];
 		isHeavy?: boolean;
 		objectiveId?: string;
@@ -321,6 +323,24 @@ export const useGameStore = create<GameState>((set, get) => ({
 				id: `siphon-${id}`,
 				type: "SIPHON",
 				position: [(rand() - 0.5) * 40, 0, (rand() - 0.5) * 40],
+			});
+		}
+
+		// Add Villagers/Huts (If not generating a siphon or just at random)
+		if (rand() > 0.7) {
+			const villageX = (rand() - 0.5) * 30;
+			const villageZ = (rand() - 0.5) * 30;
+			
+			entities.push({
+				id: `hut-${id}`,
+				type: "HUT",
+				position: [villageX, 0, villageZ],
+			});
+			
+			entities.push({
+				id: `vil-${id}`,
+				type: "VILLAGER",
+				position: [villageX + 3, 0, villageZ + 2],
 			});
 		}
 
