@@ -293,74 +293,58 @@ button.secondary {
 	font-size: 1.2rem;
 }
 
-/* Scope Button */
-.scope-btn {
+/* Action Cluster */
+.action-cluster {
 	position: absolute;
-	bottom: 180px;
-	right: 30px;
-	width: 70px;
-	height: 70px;
-	background: rgba(0, 0, 0, 0.5);
-	border: 2px solid var(--primary);
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--primary);
-	font-family: "Carter One", cursive;
-	font-size: 0.8rem;
-	cursor: pointer;
-	pointer-events: auto;
-	backdrop-filter: blur(4px);
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-	padding: 0;
-	margin: 0;
+	bottom: 40px;
+	right: 40px;
+	width: 180px;
+	height: 180px;
+	pointer-events: none;
+	display: grid;
+	grid-template-areas: 
+		". jump ."
+		"grip . scope"
+		". . .";
+	gap: 10px;
+	z-index: 100;
 }
 
-.jump-btn {
-	position: absolute;
-	bottom: 180px;
-	left: 30px;
-	width: 70px;
-	height: 70px;
-	background: rgba(0, 0, 0, 0.5);
-	border: 2px solid var(--primary);
-	border-radius: 50%;
+.action-btn {
+	pointer-events: auto;
+	width: 60px !important;
+	height: 60px !important;
+	border-radius: 50% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+	font-size: 0.7rem !important;
+	background: rgba(0, 0, 0, 0.6) !important;
+	border: 2px solid var(--primary) !important;
+	color: var(--primary) !important;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--primary);
-	font-family: "Carter One", cursive;
-	font-size: 0.8rem;
-	cursor: pointer;
-	pointer-events: auto;
-	backdrop-filter: blur(4px);
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-	padding: 0;
-	margin: 0;
+	box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
 }
 
-.grip-btn {
+.action-btn:active {
+	transform: scale(0.9) !important;
+	background: var(--primary) !important;
+	color: #000 !important;
+}
+
+.action-btn.jump { grid-area: jump; }
+.action-btn.grip { grid-area: grip; }
+.action-btn.scope { grid-area: scope; }
+
+.drag-area {
 	position: absolute;
-	bottom: 100px;
-	left: 30px;
-	width: 70px;
-	height: 70px;
-	background: rgba(0, 0, 0, 0.5);
-	border: 2px solid var(--primary);
-	border-radius: 50%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--primary);
-	font-family: "Carter One", cursive;
-	font-size: 0.8rem;
-	cursor: pointer;
+	top: 0;
+	left: 50%;
+	width: 50%;
+	height: 100%;
 	pointer-events: auto;
-	backdrop-filter: blur(4px);
-	box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-	padding: 0;
-	margin: 0;
+	z-index: 10;
 }
 
 /* Joystick zones */
@@ -375,10 +359,6 @@ button.secondary {
 
 .joystick-zone.left {
 	left: 40px;
-}
-
-.joystick-zone.right {
-	right: 40px;
 }
 
 /* Dialogue Box */
@@ -611,6 +591,47 @@ button.secondary {
 .hud-left {
 	display: flex;
 	flex-direction: column;
+}
+
+.canteen-tabs {
+	display: flex;
+	gap: 5px;
+	margin-bottom: 15px;
+}
+
+.canteen-tabs button {
+	flex: 1;
+	margin-top: 0;
+	padding: 10px;
+	font-size: 0.8rem;
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.canteen-tabs button.active {
+	background: var(--military-green);
+	border-color: var(--primary);
+}
+
+.upgrades-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.upgrade-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: rgba(0, 0, 0, 0.2);
+	padding: 10px;
+	border-radius: 4px;
+}
+
+.upgrade-item button {
+	width: auto;
+	margin-top: 0;
+	padding: 5px 15px;
+	font-size: 0.7rem;
 }
 
 /* Mobile optimizations */
