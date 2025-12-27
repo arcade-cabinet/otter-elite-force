@@ -23,9 +23,10 @@ on:
   issues:
     types: [opened, assigned, labeled]
 
-  # Automatic: PR review
+  # Automatic: PR review (only on open/reopen to reduce noise)
+  # Remove 'synchronize' to avoid reviewing on every push
   pull_request:
-    types: [opened, synchronize, ready_for_review, reopened]
+    types: [opened, ready_for_review, reopened]
 
   # Scheduled: Weekly maintenance
   schedule:
