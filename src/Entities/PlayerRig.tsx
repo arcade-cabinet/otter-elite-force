@@ -103,9 +103,10 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 			}
 		});
 
-		return (
-			<group ref={ref} position={position} rotation-y={rotation}>
-				{/* --- BODY --- */}
+	return (
+		<group ref={ref} position={position} rotation-y={rotation}>
+			{children}
+			{/* --- BODY --- */}
 				{/* Chest */}
 				<mesh position={[0, 1.0, 0]} castShadow receiveShadow material={matFur}>
 					<sphereGeometry args={[0.55, 16, 16]} />

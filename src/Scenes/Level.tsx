@@ -26,6 +26,7 @@ import {
 	Mangroves,
 	Reeds,
 } from "../Entities/Environment";
+import { Clam, ExtractionPoint } from "../Entities/Objectives/Clam";
 import { Siphon } from "../Entities/Objectives/Siphon";
 import { Hut, Villager } from "../Entities/Villager";
 import { type ParticleData, Particles } from "../Entities/Particles";
@@ -172,6 +173,8 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 						</mesh>
 					);
 				if (entity.type === "SIPHON") return <Siphon key={entity.id} position={worldPos} secured={data.secured} />;
+				if (entity.type === "CLAM" && !entity.captured) return <Clam key={entity.id} position={worldPos} />;
+				if (entity.type === "EXTRACTION_POINT") return <ExtractionPoint key={entity.id} position={worldPos} />;
 				if (entity.type === "VILLAGER") return <Villager key={entity.id} position={worldPos} />;
 				if (entity.type === "HUT") return <Hut key={entity.id} position={worldPos} />;
 				if (entity.type === "OIL_SLICK")
@@ -211,7 +214,7 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 }
 
 export function Level() {
-	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud, secureChunk } = useGameStore();
+	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud, secureChunk, isCarryingClam, setCarryingClam, addCoins } = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
@@ -309,6 +312,7 @@ export function Level() {
 
 		if (inMud) moveSpeed *= 0.4;
 		if (onSlick) moveSpeed *= 1.5;
+		if (isCarryingClam) moveSpeed *= 0.7; // Clam is heavy!
 
 		// --- 3D PHYSICS: JUMP & GRAVITY ---
 		let newVelY = playerVelY;
@@ -429,6 +433,41 @@ export function Level() {
 		}
 
 		// --- COLLISION DETECTION ---
+		activeChunks.forEach(chunk => {
+			chunk.entities.forEach(entity => {
+				const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
+				const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
+				const worldPos = new THREE.Vector3(worldX, entity.position[1], worldZ);
+				const dist = playerRef.current!.position.distanceTo(worldPos);
+
+				if (entity.type === "CLAM" && !isCarryingClam && !entity.captured && dist < 2) {
+					setCarryingClam(true);
+					audioEngine.playSFX("pickup");
+				} else if (entity.type === "EXTRACTION_POINT" && isCarryingClam && dist < 3) {
+					setCarryingClam(false);
+					addCoins(500); // Massive reward for capturing clam
+					// Mark clam as captured in its chunk
+					const clamChunkId = Object.keys(useGameStore.getState().saveData.discoveredChunks).find(id => {
+						return useGameStore.getState().saveData.discoveredChunks[id].entities.some(e => e.type === "CLAM" && !e.captured);
+					});
+					if (clamChunkId) {
+						const chunk = useGameStore.getState().saveData.discoveredChunks[clamChunkId];
+						const clam = chunk.entities.find(e => e.type === "CLAM" && !e.captured);
+						if (clam) clam.captured = true;
+					}
+					audioEngine.playSFX("pickup");
+				} else if (entity.type === "VILLAGER" && dist < 2) {
+					// Interaction with villager (e.g. credits or intel)
+					// For now just small coin reward
+					if (!(entity as any).rescued) {
+						(entity as any).rescued = true;
+						addCoins(50);
+						audioEngine.playSFX("pickup");
+					}
+				}
+			});
+		});
+
 		const currentProjectiles = projectilesRef.current?.getProjectiles() || [];
 		for (const projectile of currentProjectiles) {
 			activeChunks.forEach((chunk) => {
@@ -510,7 +549,9 @@ export function Level() {
 				rotation={playerRot}
 				isMoving={isPlayerMoving}
 				isClimbing={isClimbing}
-			/>
+			>
+				{isCarryingClam && <Clam position={[0, 1.5, 0]} isCarried />}
+			</PlayerRig>
 
 			<Projectiles ref={projectilesRef} />
 			<Particles particles={particles} onExpire={handleParticleExpire} />
