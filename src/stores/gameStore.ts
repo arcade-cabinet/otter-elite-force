@@ -155,10 +155,11 @@ interface SaveData {
 	strategicObjectives: {
 		siphonsDismantled: number;
 		villagesLiberated: number;
-		clamsRetrieved: number;
+		gasStockpilesCaptured: number;
 	};
 	spoilsOfWar: {
 		creditsEarned: number;
+		clamsHarvested: number;
 		upgradesUnlocked: number;
 	};
 	upgrades: {
@@ -355,13 +356,23 @@ export const useGameStore = create<GameState>((set, get) => ({
 			});
 		}
 
-		// Add The Clam (The Flag)
-		if (rand() > 0.9) {
+		// Add Gas Stockpiles (Strategic Objectives)
+		if (rand() > 0.85) {
 			entities.push({
-				id: `clam-${id}`,
-				type: "CLAM",
-				position: [(rand() - 0.5) * 20, 0.5, (rand() - 0.5) * 20],
-				captured: false,
+				id: `gas-${id}`,
+				type: "GAS_STOCKPILE",
+				position: [(rand() - 0.5) * 40, 0.5, (rand() - 0.5) * 40],
+				hp: 30,
+			});
+		}
+
+		// Add Clam Baskets (Spoils / Booby Traps)
+		if (rand() > 0.75) {
+			entities.push({
+				id: `basket-${id}`,
+				type: "CLAM_BASKET",
+				position: [(rand() - 0.5) * 35, 0.2, (rand() - 0.5) * 35],
+				isHeavy: rand() > 0.5, // 50% chance to be a booby trap
 			});
 		}
 
