@@ -9,6 +9,7 @@ import { RANKS } from "../utils/constants";
 import { CHARACTERS, CHAR_PRICES, UPGRADE_COSTS, WEAPONS } from "./gameData";
 import {
 	DEFAULT_SAVE_DATA,
+	deepClone,
 	loadFromLocalStorage,
 	saveToLocalStorage,
 } from "./persistence";
@@ -20,6 +21,14 @@ import {
 	SaveData,
 } from "./types";
 import { CHUNK_SIZE, generateChunk } from "./worldGenerator";
+
+/**
+ * Constants for game balance and limits
+ */
+const MAX_CHUNK_CACHE = 50;
+const MAX_UPGRADE_LEVEL = 10;
+const HEALTH_LOW_THRESHOLD = 30;
+const SAVE_DEBOUNCE_MS = 1000;
 
 interface GameState {
 	// Mode management
@@ -71,7 +80,7 @@ interface GameState {
 	// Save data
 	saveData: SaveData;
 	loadData: () => void;
-	saveGame: () => void;
+	saveGame: (immediate?: boolean) => void;
 	resetData: () => void;
 	gainXP: (amount: number) => void;
 	unlockCharacter: (id: string) => void;
@@ -92,7 +101,7 @@ interface GameState {
 	toggleZoom: () => void;
 }
 
-const MAX_CHUNK_CACHE = 50;
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const useGameStore = create<GameState>((set, get) => ({
 	// Initial state
@@ -108,12 +117,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 	raftId: null,
 	selectedCharacterId: "bubbles",
 	playerPos: [0, 0, 0],
-	saveData: { ...DEFAULT_SAVE_DATA },
+	saveData: deepClone(DEFAULT_SAVE_DATA),
 	isZoomed: false,
 	isBuildMode: false,
 	currentChunkId: "0,0",
 
-	// Mode management
+	/**
+	 * Mode Management
+	 */
 	setMode: (mode) => set({ mode }),
 	setBuildMode: (active) => set({ isBuildMode: active }),
 	setDifficulty: (difficulty) => {
@@ -126,11 +137,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 					difficultyMode: difficulty,
 				},
 			}));
-			get().saveGame();
+			get().saveGame(true); // Save immediate for difficulty change
 		}
 	},
 
-	// Player stats
+	/**
+	 * Player Stats
+	 */
 	takeDamage: (amount) => {
 		const { health, saveData, resetData, triggerFall, setMode } = get();
 		const newHealth = Math.max(0, health - amount);
@@ -143,7 +156,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 			set({ health: 0 });
 			setMode("GAMEOVER");
 			return;
-		} else if (newHealth < 30) {
+		} else if (newHealth < HEALTH_LOW_THRESHOLD) {
 			triggerFall();
 		}
 
@@ -195,11 +208,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 				isFallTriggered: true,
 				saveData: { ...state.saveData, isFallTriggered: true },
 			}));
-			get().saveGame();
+			get().saveGame(true);
 		}
 	},
 
-	// World management
+	/**
+	 * World Management
+	 */
 	discoverChunk: (x, z) => {
 		const id = `${x},${z}`;
 		const { saveData } = get();
@@ -216,7 +231,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 			// Chunk unloading: Keep only up to MAX_CHUNK_CACHE chunks
 			const keys = Object.keys(newDiscoveredChunks);
 			if (keys.length > MAX_CHUNK_CACHE) {
-				// Simple heuristic: remove oldest chunks that aren't the current or origin chunk
+				// Prioritize removing oldest chunks that aren't the current or origin chunk
 				// and aren't secured (to preserve progress for now)
 				const currentId = state.currentChunkId;
 				const keysToRemove = keys.filter(
@@ -236,11 +251,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 			};
 		});
 
-		// Removed redundant saveGame() here as it might be called in rapid succession
-		// Instead, we can rely on other actions or a debounced save.
-		// For now, I'll keep it but maybe it should be handled better.
-		// Actually, let's remove it and only save when something significant happens.
-		// get().saveGame();
+		// Debounced save for discovery
+		get().saveGame();
 
 		return newChunk;
 	},
@@ -286,9 +298,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 				},
 			};
 		});
-		get().saveGame();
+		get().saveGame(true);
 	},
 
+	/**
+	 * Character Management
+	 */
 	selectCharacter: (id) => set({ selectedCharacterId: id }),
 
 	unlockCharacter: (id) => {
@@ -300,7 +315,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 					: [...state.saveData.unlockedCharacters, id],
 			},
 		}));
-		get().saveGame();
+		get().saveGame(true);
 	},
 
 	rescueCharacter: (id) => {
@@ -328,7 +343,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 					: [...state.saveData.unlockedWeapons, id],
 			},
 		}));
-		get().saveGame();
+		get().saveGame(true);
 	},
 
 	upgradeWeapon: (id, cost) => {
@@ -345,10 +360,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 					},
 				},
 			}));
-			get().saveGame();
+			get().saveGame(true);
 		}
 	},
 
+	/**
+	 * Economy & Upgrades
+	 */
 	completeStrategic: (type) => {
 		set((state) => {
 			const newObjectives = { ...state.saveData.strategicObjectives };
@@ -364,7 +382,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 				},
 			};
 		});
-		get().saveGame();
+		get().saveGame(true);
 	},
 
 	collectSpoils: (type) => {
@@ -385,7 +403,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 				},
 			};
 		});
-		get().saveGame();
+		get().saveGame(true);
 	},
 
 	setLevel: (levelId) => {
@@ -405,7 +423,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 				isLZSecured: true,
 			},
 		}));
-		get().saveGame();
+		get().saveGame(true);
 	},
 
 	placeComponent: (comp) => {
@@ -425,7 +443,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 				baseComponents: state.saveData.baseComponents.filter((c) => c.id !== id),
 			},
 		}));
-		get().saveGame();
+		get().saveGame(true);
 	},
 
 	addCoins: (amount) => {
@@ -439,7 +457,6 @@ export const useGameStore = create<GameState>((set, get) => ({
 			set((state) => ({
 				saveData: { ...state.saveData, coins: state.saveData.coins - amount },
 			}));
-			// saveGame() called by caller if needed
 			return true;
 		}
 		return false;
@@ -452,7 +469,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 		// Validation before spending coins
 		if (typeof currentBoost !== "number") return;
-		if (currentBoost >= 10) return; // Example max level cap
+		if (currentBoost >= MAX_UPGRADE_LEVEL) return;
 
 		if (get().spendCoins(cost)) {
 			set((state) => ({
@@ -464,23 +481,45 @@ export const useGameStore = create<GameState>((set, get) => ({
 					},
 				},
 			}));
-			get().saveGame();
+			get().saveGame(true);
 		}
 	},
 
+	/**
+	 * Persistence Layer
+	 */
 	loadData: () => {
 		const data = loadFromLocalStorage();
 		if (data) set({ saveData: data });
 	},
 
-	saveGame: () => {
-		saveToLocalStorage(get().saveData);
+	saveGame: (immediate = false) => {
+		if (saveTimeout) {
+			clearTimeout(saveTimeout);
+			saveTimeout = null;
+		}
+
+		const performSave = () => {
+			saveToLocalStorage(get().saveData);
+			saveTimeout = null;
+		};
+
+		if (immediate) {
+			performSave();
+		} else {
+			saveTimeout = setTimeout(performSave, SAVE_DEBOUNCE_MS);
+		}
 	},
 
 	resetData: () => {
-		saveToLocalStorage(DEFAULT_SAVE_DATA);
+		if (saveTimeout) {
+			clearTimeout(saveTimeout);
+			saveTimeout = null;
+		}
+		const freshData = deepClone(DEFAULT_SAVE_DATA);
+		saveToLocalStorage(freshData);
 		set({
-			saveData: { ...DEFAULT_SAVE_DATA },
+			saveData: freshData,
 			health: 100,
 			maxHealth: 100,
 			kills: 0,

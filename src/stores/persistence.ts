@@ -41,6 +41,10 @@ export const DEFAULT_SAVE_DATA: SaveData = {
 	baseComponents: [],
 };
 
+export const deepClone = <T>(obj: T): T => {
+	return JSON.parse(JSON.stringify(obj));
+};
+
 export const deepMerge = (target: any, source: any): any => {
 	const output = { ...target };
 	if (isObject(target) && isObject(source)) {
@@ -68,25 +72,42 @@ export const migrateSchema = (data: any): SaveData => {
 
 	if (version < 8) {
 		data.baseComponents = data.baseComponents || [];
-		data.strategicObjectives = data.strategicObjectives || DEFAULT_SAVE_DATA.strategicObjectives;
-		data.spoilsOfWar = data.spoilsOfWar || DEFAULT_SAVE_DATA.spoilsOfWar;
+		data.strategicObjectives = data.strategicObjectives || deepClone(DEFAULT_SAVE_DATA.strategicObjectives);
+		data.spoilsOfWar = data.spoilsOfWar || deepClone(DEFAULT_SAVE_DATA.spoilsOfWar);
 	}
 
 	// Ensure weaponLvl exists for all base weapons
-	if (!data.upgrades) data.upgrades = { ...DEFAULT_SAVE_DATA.upgrades };
-	if (!data.upgrades.weaponLvl) data.upgrades.weaponLvl = { ...DEFAULT_SAVE_DATA.upgrades.weaponLvl };
+	if (!data.upgrades) data.upgrades = deepClone(DEFAULT_SAVE_DATA.upgrades);
+	if (!data.upgrades.weaponLvl) data.upgrades.weaponLvl = deepClone(DEFAULT_SAVE_DATA.upgrades.weaponLvl);
 
 	data.version = 8;
 	return data as SaveData;
 };
 
 export const isValidSaveData = (data: any): data is SaveData => {
-	return (
-		data &&
-		typeof data.version === "number" &&
-		Array.isArray(data.unlockedCharacters) &&
-		typeof data.coins === "number"
-	);
+	if (!data || typeof data !== "object") return false;
+	
+	const requiredFields = [
+		"version",
+		"unlockedCharacters",
+		"unlockedWeapons",
+		"coins",
+		"discoveredChunks",
+		"upgrades",
+	];
+
+	for (const field of requiredFields) {
+		if (!(field in data)) return false;
+	}
+
+	if (typeof data.version !== "number") return false;
+	if (!Array.isArray(data.unlockedCharacters)) return false;
+	if (typeof data.coins !== "number") return false;
+	
+	// Basic check for upgrades structure
+	if (typeof data.upgrades !== "object" || !data.upgrades.weaponLvl) return false;
+
+	return true;
 };
 
 export const saveToLocalStorage = (data: SaveData) => {
@@ -104,7 +125,9 @@ export const loadFromLocalStorage = (): SaveData | null => {
 
 		const parsed = JSON.parse(saved);
 		if (!isValidSaveData(parsed)) {
-			console.error("Invalid save data format");
+			console.warn("Invalid save data format detected, attempting to recover partially");
+			// If it's mostly valid, we might still want to try migrating/merging
+			// but for now, let's be strict as requested.
 			return null;
 		}
 
