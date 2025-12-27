@@ -22,19 +22,62 @@ src/
 
 ## Key Technical Decisions
 
-### 1. Open World Chunk System (NOT Levels)
+### 1. Intelligent Open World Layout
 
-**Critical Design Pattern**: No discrete levels — one persistent open world.
+**Critical Design Pattern**: Algorithmically generated world with intelligent POI placement.
+
+#### World Layout Generation Pipeline
+
+```
+1. Poisson Disc Sampling → Even POI distribution (minimum distance)
+2. Difficulty Radial Placement → Harder content further from LZ
+3. MST Path Generation → All POIs reachable via connected paths
+4. Coherent Terrain → Rivers flow, jungles cluster naturally
+5. Chunk Generation → POIs have specific content, non-POIs are procedural
+```
+
+#### Key Algorithms
+
+**Poisson Disc Sampling** for POI placement:
+```typescript
+// Ensures minimum distance between POIs, no clustering
+const points = poissonDiscSample(random, worldRadius * 2, minPOIDistance);
+```
+
+**Prim's MST** for path connectivity:
+```typescript
+// All POIs connected, ensures no isolated areas
+const paths = generatePaths(points); // + extra edges for variety
+```
+
+**Coherent Terrain** using pseudo-noise:
+```typescript
+const noiseX = sin(x * 0.1 + seed) * cos(z * 0.15 + seed * 0.7);
+const noiseZ = cos(x * 0.12 + seed * 0.5) * sin(z * 0.08 + seed * 1.2);
+// Rivers, Marshes, and Dense Jungle based on combined noise + distance
+```
+
+#### POI Type Distribution
+
+| Distance | POI Types | Difficulty |
+|----------|-----------|------------|
+| 0% | LZ (origin) | 0.0 |
+| 0-30% | Villages, Healer Hubs | 0.1-0.3 |
+| 30-70% | Waypoints, Siphon Clusters, Gas Depots | 0.3-0.7 |
+| 70-100% | Enemy Outposts, Prison Camps, Boss Arenas | 0.7-1.0 |
+
+### 2. Chunk-Based Content Generation
 
 ```typescript
 // World generation is coordinate-based and deterministic
+// NOTE: x = east-west, z = north-south (y is vertical height)
 interface ChunkData {
   id: string;             // "x,z"
   x: number;
-  z: number;
+  z: number;              // Horizontal (north-south)
   seed: number;           // Deterministic from coordinates
-  terrainType: TerrainType;
-  entities: ChunkEntity[]; // Enemies, objectives, decorations
+  terrainType: TerrainType;  // From layout's terrain zones
+  entities: ChunkEntity[]; // POI-specific or procedural enemies, objectives
   decorations: ChunkDecoration[];
   secured: boolean;       // Is URA flag planted?
 }
@@ -47,11 +90,12 @@ interface ChunkData {
 ```
 
 **Chunk Lifecycle**:
-1. Player approaches undiscovered coordinate
-2. `worldGenerator.ts` creates chunk data using seeded PRNG
-3. Chunk is stored in `discoveredChunks` Map in store
-4. On return visit, stored chunk is loaded — NOT regenerated
-5. Changes (destroyed objectives, collected spoils) persist
+1. World layout generated once per game session (seeded)
+2. `getKeyCoordinateForChunk()` checks if chunk is a POI
+3. POI chunks spawn specific content (rescue cages, bosses)
+4. Non-POI chunks use difficulty-based procedural generation
+5. Once discovered, chunk stored in Zustand — never regenerated
+6. Modifications (destroyed siphon, rescued villager) persist
 
 ### 2. Three-Faction Entity System
 

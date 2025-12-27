@@ -132,14 +132,48 @@ interface SaveData {
 - Ref-based state for thousands of objects
 - Direct buffer attribute manipulation
 
-### Chunk-Based World Generation
-```typescript
-// Deterministic seeding from coordinates
-const seed = hashCoords(x, y);
-const rng = seededRandom(seed);
+### Intelligent World Layout Generation
 
-// Same coordinates = same terrain every time
-generateChunk(5, 3) === generateChunk(5, 3) // Always true
+The world layout is procedurally generated using several algorithms:
+
+#### Poisson Disc Sampling
+Points of Interest (POIs) are distributed evenly using Poisson Disc Sampling:
+```typescript
+// Ensures minimum distance between POIs
+const basePoints = poissonDiscSample(random, width, height, minDistance);
+```
+
+#### Difficulty-Based Radial Placement
+POI types are assigned based on distance from LZ (origin):
+- **Near origin (0-30%)**: Villages, Healer Hubs (safer)
+- **Mid-range (30-70%)**: Siphon Clusters, Gas Depots, Waypoints
+- **Far (70-100%)**: Enemy Outposts, Prison Camps, Boss Arenas (hardest)
+
+#### Minimum Spanning Tree Connectivity
+All POIs are connected using Prim's MST algorithm:
+```typescript
+// Ensures all areas are reachable from LZ
+const paths = generatePaths(points); // MST + some extra edges for variety
+```
+
+#### Coherent Terrain Generation
+Terrain types follow natural-looking patterns:
+```typescript
+// River paths flow through the world
+const rivers = generateRiverPaths(random, worldRadius);
+
+// Terrain determined by noise-like function + river proximity
+const terrain = determineTerrainType(x, z, seed, rivers);
+```
+
+### Chunk Content Generation
+```typescript
+// Get layout and POI for this chunk
+const keyCoord = getKeyCoordinateForChunk(layout, x, z);
+
+// POI chunks have specific content (rescue cages, bosses, etc.)
+// Non-POI chunks use difficulty-based procedural generation
+const difficulty = keyCoord?.difficulty ?? calculateFromDistance(x, z);
 ```
 
 ### FSM-Driven Game States

@@ -28,7 +28,11 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 ### 3. Open World System 🔄
 - [x] Chunk-based procedural generation
 - [x] Deterministic seed-based terrain
-- [ ] **Fixed-on-discovery persistence** (chunks never regenerate)
+- [x] **Intelligent World Layout Algorithm** (Poisson Disc + MST + Coherent Terrain)
+- [x] **Difficulty-based radial POI placement** (harder content further from LZ)
+- [x] **Path connectivity graph** (all POIs reachable via MST)
+- [x] **POI-specific content generation** (rescue cages, boss arenas, siphon clusters)
+- [ ] Fixed-on-discovery persistence (chunks never regenerate)
 - [ ] Territory control state tracking
 - [ ] Coordinate HUD display
 - [ ] Fog-of-war / discovered area visualization
@@ -161,6 +165,10 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 
 ## Recent Integration Victories
 
+- **Intelligent World Layout Algorithm** - Poisson Disc Sampling + MST paths + coherent terrain
+- **Difficulty-based Content Scaling** - Enemy counts/types scale with distance from LZ
+- **POI-specific Content Generation** - Boss arenas, prison camps, siphon clusters
+- **254 Tests Passing** - Including new worldLayout.test.ts coverage
 - Unified domain-specific PRs into hardened `main`
 - Resolved "shaky" assembly bugs in state management
 - Verified all unit tests passing after modular re-integration
@@ -179,3 +187,5 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 | 2025-12-26 | Base building at LZ | First objective, persistent progress |
 | 2025-12-27 | Domain decomposition | 6 PRs for cleaner review |
 | 2025-12-27 | Memory Bank adoption | Agent context preservation |
+| 2025-12-27 | Miniplex ECS architecture | Modular game logic separation |
+| 2025-12-27 | Intelligent world layout | Poisson Disc + MST + difficulty scaling |
