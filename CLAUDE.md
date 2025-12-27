@@ -36,6 +36,24 @@ See `memory-bank/activeContext.md` for detailed current state.
 - **Vertical**: Map characters like `GEN. WHISKERS` to specific high-threat chunks (5, 5).
 - **Progress**: Prison cage system implemented, character unlock flow working.
 
+### 5. Base Building at LZ (Priority: MEDIUM) ✅
+- **Components**: Floor, Wall, Roof, Stilt (procedural wooden structures)
+- **Placement**: Build Mode toggle in HUD, components placed at player position
+- **Persistence**: `baseComponents[]` saved to localStorage, survives sessions
+- **Location**: Only at secured LZ (0, 0) - the Forward Operating Base
+
+### 6. Difficulty Modes (Priority: HIGH) ✅
+Three escalating difficulty tiers with permanent consequences:
+
+| Mode | Description | Mechanics |
+|------|-------------|-----------|
+| **SUPPORT** | Rookie training | DROP button available, respawn on death |
+| **TACTICAL** | Standard ops | Fall trigger at <30 HP (one-time penalty), no DROP |
+| **ELITE** | Permadeath | Full save wipe on death, ultimate challenge |
+
+- **Ratchet System**: Can only increase difficulty, never decrease
+- **UI**: Difficulty selector in Main Menu with visual feedback
+
 ## 🛠️ Tech Stack & Bulwarks
 - **Frontend**: React 19 + R3F + Drei
 - **AI**: Yuka (FSM, Steering)

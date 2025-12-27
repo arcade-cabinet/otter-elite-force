@@ -30,6 +30,8 @@ The project is at **Version 8.0 (Modular Refactor Stage)**. A coordinated multi-
 - [x] Environmental Hazards (Mud Pits, Oil Slick Ignition)
 - [x] Raft Piloting & Villager Escort
 - [x] Prison Cage Rescue System
+- [x] Base Building at LZ (Floor, Wall, Roof, Stilt components)
+- [x] Three Difficulty Modes (SUPPORT, TACTICAL, ELITE with permadeath)
 
 ### 4. Mission Loop ✅
 - [x] Main Menu with Character Selection

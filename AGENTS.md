@@ -4,142 +4,276 @@
 
 **Project Name**: OTTER: ELITE FORCE (formerly River Doom, Operation: Clam Thunder)  
 **Core Aesthetic**: "Full Metal Jacket" meets "Wind in the Willows."  
-**Technical Constraint**: Single-File HTML5 (No external assets, bundlers, or local servers required).  
+**Technical Constraint**: Procedural-only (No external assets - all models, textures, audio generated via code)  
 **Primary Goal**: Create a mobile-first, procedurally generated 3rd-person tactical shooter with persistent progression.
 
 ## 2. Architecture Overview
 
-### The "Single-File" Mandate
-
-To maintain portability and zero-setup execution, the entire game engine was originally contained within index.html.
-
-- **Libraries**: Three.js is imported via ES Modules from unpkg.
-- **Assets**: No .obj, .gltf, or .mp3 files are used. All 3D models are constructed procedurally using THREE.Group composition of primitives. All audio is synthesized in real-time using the Web Audio API.
-
 ### Modern Modular Architecture
-
-The project is now being refactored into a modular TypeScript structure:
 
 ```
 src/
-├── Core/           # Core engine systems (GameLoop, InputSystem, AudioEngine)
-├── Entities/       # Game objects (PlayerRig, Enemies, Particles)
-├── Scenes/         # Level management (MainMenu, Level)
-└── UI/             # User interface (HUD)
+├── Core/           # Engine systems (AudioEngine, InputSystem)
+├── Entities/       # Game objects
+│   ├── Enemies/    # Gator, Snake, Snapper with Yuka AI
+│   ├── Environment/# Reeds, Mangroves, OilSlick, etc.
+│   └── *.tsx       # PlayerRig, Weapon, Particles, Raft, BaseBuilding
+├── Scenes/         # Level management (MainMenu, Level, Cutscene, Victory, Canteen)
+├── stores/         # Zustand state (gameStore, types, persistence)
+├── UI/             # HUD overlay
+├── utils/          # Constants, math helpers, shaders
+└── test/           # Vitest setup and mocks
 ```
 
-### State Management
+### State Management (Zustand)
 
-The game loop uses a strict finite state machine (FSM) controlled by the global mode variable:
+The game uses a centralized Zustand store with five game modes:
 
-- **MENU**: 
-  - Input: Native DOM clicks enabled. Joystick logic disabled.
-  - Render: Cinematic camera drift, "Golden Hour" lighting.
+| Mode | Input | Render | Purpose |
+|------|-------|--------|---------|
+| **MENU** | DOM clicks | Cinematic camera | Character/level selection |
+| **CUTSCENE** | Next button only | Fixed angles | Story/dialogue delivery |
+| **GAME** | Virtual joysticks | Chase camera | Core gameplay |
+| **GAMEOVER** | Restart button | Death screen | Failure state |
+| **CANTEEN** | Shop UI | Meta-progression | Upgrades/unlocks |
+
+### Difficulty Modes
+
+Three escalating difficulty tiers (ratchet - can only increase):
+
+| Mode | Description | Death Consequence |
+|------|-------------|-------------------|
+| **SUPPORT** | Rookie | Respawn, DROP button available |
+| **TACTICAL** | Standard | Fall trigger at <30 HP (one-time) |
+| **ELITE** | Permadeath | Full save wipe |
+
+### Save Data Schema (v8)
+
+```typescript
+interface SaveData {
+  rank: number;
+  xp: number;
+  medals: number;
+  unlocked: number;
+  unlockedCharacters: string[];
+  unlockedWeapons: string[];
+  coins: number;
+  discoveredChunks: Record<string, ChunkData>;
+  territoryScore: number;
+  peacekeepingScore: number;
+  difficultyMode: "SUPPORT" | "TACTICAL" | "ELITE";
+  strategicObjectives: { /* siphons, villages, gas, healers, allies */ };
+  spoilsOfWar: { /* credits, clams, upgrades */ };
+  upgrades: { speedBoost, healthBoost, damageBoost, weaponLvl };
+  isLZSecured: boolean;
+  baseComponents: PlacedComponent[];  // Base building at LZ
+}
+```
+
+## 3. Core Systems
+
+### AudioEngine (Tone.js with Synth Pooling)
+
+```typescript
+// Synth pools prevent per-call allocation
+private shootPool: SynthPool;  // 4 sawtooth synths
+private hitPool: SynthPool;    // 4 square synths
+private pickupPool: SynthPool; // 4 sine synths
+
+playSFX(type: "shoot" | "hit" | "pickup" | "explode"): void {
+  const synth = this.getFromPool(this.shootPool); // Round-robin
+  synth.triggerAttackRelease("A2", "16n", now);
+}
+```
+
+### InputSystem (Touch/Keyboard/Gyro)
+
+- **Virtual Joysticks**: Left stick = movement, Right stick = aim/fire
+- **Keyboard Fallback**: WASD/Arrows + Mouse
+- **Gyro Tilt**: Optional device orientation aiming
+- **Cleanup**: All event listeners properly removed in `destroy()`
+
+### GatorAI (Yuka State Machine)
+
+States: `IDLE → WANDER → STALK → AMBUSH → ATTACK → RETREAT → SUPPRESSED`
+
+```typescript
+// Pack hunting: Gators circle during STALK
+const GATOR_CONFIG = {
+  AMBUSH_TRIGGER_DISTANCE: 15,
+  AMBUSH_DURATION_S: 3,
+  AMBUSH_COOLDOWN_MIN_S: 5,
+  AMBUSH_COOLDOWN_RANDOM_S: 5,
+};
+```
+
+### Base Building (LZ Forward Operating Base)
+
+Components: `FLOOR`, `WALL`, `ROOF`, `STILT`
+- Toggle Build Mode via HUD button
+- Place components at player position
+- Persisted in `saveData.baseComponents[]`
+- Only available when LZ is secured
+
+## 4. Procedural Generation Patterns
+
+### The Otter "Rig" (PlayerRig.tsx)
+
+```
+Hierarchy:
+├── Body (Capsule + Spheres for streamlined torso)
+├── Head (Skull, Snout, Ears, Eyes, Whiskers)
+├── Tail (3-segment rudder with swim animation)
+├── Arms (Upper, Forearm, WebbedPaw)
+├── Legs (Thigh, Lower, WebbedPaw)
+├── Gear (Vest, Headgear, Backgear - conditional)
+└── Weapon (attached to right arm)
+```
+
+**Critical**: Materials are memoized with `useMemo` to prevent memory leaks.
+
+### World Generation (Chunk-Based)
+
+```typescript
+discoverChunk(x, z): ChunkData {
+  const seed = Math.abs(x * 31 + z * 17);
+  const rand = pseudoRandom(seed);  // Deterministic
   
-- **CUTSCENE**: 
-  - Input: Limited to "Next Dialogue" button.
-  - Render: Fixed camera angles, scripted actor animations.
-  
-- **GAME**: 
-  - Input: Virtual Joysticks enabled via Touch Events. Native clicks disabled on canvas area (prevent default).
-  - Render: Chase camera, physics updates, collision detection.
+  // Generate entities, decorations based on seed
+  return { id: `${x},${z}`, terrainType, entities, decorations };
+}
+```
 
-### Input System (The "Tactical Router")
+## 5. Testing Strategy
 
-A major challenge during development was the conflict between Touch Events (for joysticks) and Mouse Events (for UI buttons).
+### Test Pyramid
 
-**Solution**: The ui-layer listens for touchstart.
+```
+         ▲ E2E (5-10%): Playwright smoke/menu/visual
+        / \
+       /   \ Integration (20-30%): Game flow, combat
+      /     \
+     /       \ Unit (60-70%): gameStore, AI, utils
+    ───────────
+```
 
-**Logic**:
-- Check mode. If not GAME, return immediately (allows native button clicks).
-- Check event target. If target is a `<button>`, return (allows click).
-- Else, call `e.preventDefault()` and map touch coordinates to virtual stick logic.
+### Commands
 
-## 3. Procedural Systems
+```bash
+pnpm test:unit      # Vitest unit tests
+pnpm test:coverage  # With coverage report
+pnpm test:e2e       # Playwright E2E
+pnpm test:all       # Full suite
+```
 
-### The "Rig" (Sgt. Bubbles)
+### Mocking Requirements
 
-The player character is not a mesh, but a hierarchy of primitives:
+```typescript
+// src/test/setup.ts provides:
+- localStorage mock
+- matchMedia mock  
+- ResizeObserver/IntersectionObserver
+- WebGL context mock
+- React Three Fiber Canvas mock
+- Tone.js mock
+- Yuka mock
+```
 
-- **Torso**: Cylinder (Vest/Body).
-- **Limbs**: CapsuleGeometry (requires Three.js r137+).
-- **Accessories**: Torus (Bandana), Boxes (Radio Pack).
-- **Animation**: Sine-wave rotation applied to limb groups (joints) based on movement velocity.
+## 6. CI/CD Pipeline
 
-### The Audio Engine
+### GitHub Actions Workflow
 
-A custom MusicEngine class uses AudioContext to sequence 16th notes.
+```
+Lint (Biome) → Type Check (tsc) → Unit Tests → Build → E2E Tests → Deploy
+```
 
-- **Instruments**: Oscillators (Sawtooth for Bass/Leads, Noise Buffer for Snare/HiHats).
-- **Filters**: BiquadFilters used for "wah" effects on bass and low-pass muffling.
-- **Safety**: The engine waits for the first user interaction (click or touchstart) before resuming the context to bypass browser autoplay policies.
+### Claude Automation Jobs
 
-### Save Data
-
-Uses localStorage key `otter_v8`.
-
-- **Schema**: `{ rank: int, xp: int, medals: int, unlocked: int }`
-- **Versioning**: Keys are versioned (e.g., `_v8`) to prevent conflicts between iterations.
-
-## 4. Known Constraints & Hacks
-
-- **Shadow Mapping**: Shadow map size is set to 2048 for sharp shadows, but bias tweaking is minimal. Artifacts may appear at extreme angles.
-- **Fog/Skybox**: The sky is a simple THREE.Color background synced with a THREE.FogExp2 or linear Fog. The "Sun" is a DirectionalLight.
-- **Water**: A Vertex Shader displaces a high-segment plane. It does not have real reflections/refractions (too expensive for this context), relying on specular highlights for the "wet" look.
-
-## 5. Future Expansion Paths
-
-To scale this project further:
-
-- **Boss Battles**: Implement a Boss class inheriting from Enemy with multi-stage logic.
-- **Terrain**: Replace PlaneGeometry with a Heightmap-based terrain chunk system for uneven ground.
-- **Weapons**: Abstract the shooting logic to support different projectile types (Spread, Explosive, Beam).
-
-## 6. Development Guidelines
-
-### Code Style
-
-- Use TypeScript with strict mode enabled
-- Follow Biome linting and formatting rules (tabs for indentation, double quotes)
-- Prefer functional composition over deep inheritance
-- Document complex procedural generation logic
-
-### Testing
-
-- Run `pnpm dev` to test in development mode
-- Build with `pnpm build` to verify production builds
-- Test on mobile devices for touch input validation
-
-### Architecture Principles
-
-1. **Separation of Concerns**: Keep rendering, logic, and input separate
-2. **Minimal Dependencies**: Prefer native APIs over external libraries
-3. **Performance First**: Target 60fps on mobile devices
-4. **Procedural Everything**: Generate assets at runtime when possible
+| Job | Trigger | Purpose |
+|-----|---------|---------|
+| `claude-interactive` | @claude mention | On-demand assistance |
+| `claude-review` | PR opened | Automatic code review |
+| `claude-triage` | Issue opened | Auto-label issues |
+| `claude-maintenance` | Weekly | Health check |
+| `claude-security` | Manual | Security audit |
+| `claude-deps` | Manual | Dependency updates |
 
 ## 7. AI Agent Instructions
 
-When working on this codebase:
+### Before Making Changes
 
-1. **Preserve the Procedural Nature**: Never add external asset files. Everything must be generated via code.
-2. **Maintain Single-File Compatibility**: While we're refactoring to modules, keep the spirit of minimal external dependencies.
-3. **Mobile-First**: Always consider touch input and mobile performance.
-4. **Test Audio**: Remember that Web Audio requires user interaction to start.
-5. **Respect the FSM**: Mode transitions should be explicit and well-defined.
+1. **Read Context**: Check `memory-bank/activeContext.md` for current focus
+2. **Run Validation**: `pnpm lint && pnpm typecheck && pnpm test:unit`
+3. **Understand Dependencies**: Check imports and store usage
 
-### Refactoring Strategy
+### Code Quality Requirements
 
-When extracting code from the monolithic POC:
+1. **No External Assets**: Everything procedural (models, audio, textures)
+2. **Mobile Performance**: Target 60fps, use InstancedMesh for repeated objects
+3. **Memory Management**: Dispose Three.js resources, cleanup event listeners
+4. **Type Safety**: No `any` types in critical paths
+5. **Test Coverage**: Add tests for new logic
 
-1. Identify logical boundaries (e.g., all input handling, all audio synthesis)
-2. Create TypeScript classes with clear interfaces
-3. Maintain backward compatibility with existing save data
-4. Test each module independently before integration
-5. Document dependencies between modules
+### Common Pitfalls to Avoid
 
-### Common Pitfalls
+| Pitfall | Solution |
+|---------|----------|
+| Creating synths per-call | Use synth pooling |
+| Rotation on geometry | Apply to parent mesh |
+| Mutating React props | Clone objects first |
+| Forgetting cleanup | Add useEffect return |
+| Using Math.random in render | Memoize random values |
 
-- Don't break the audio context initialization (it MUST wait for user gesture)
-- Don't interfere with touch event propagation for UI buttons
-- Don't change the localStorage key structure without migration logic
-- Don't add Three.js types that conflict with the runtime version (r160)
+### Multi-Agent Collaboration
+
+When working with other AI agents:
+
+1. **Request Reviews**: Post `@claude review`, `/gemini review`, `@cursor review`
+2. **Resolve Threads**: Use GraphQL mutations to hide completed feedback
+3. **Update Docs**: Keep memory-bank files synchronized
+4. **Log Sessions**: Create dev-logs in `memory-bank/dev-logs/`
+
+### Refactoring Checklist
+
+- [ ] Identify logical boundaries
+- [ ] Create TypeScript interfaces first
+- [ ] Maintain localStorage compatibility (schema v8)
+- [ ] Test module independently
+- [ ] Document dependencies
+- [ ] Add unit tests
+- [ ] Verify mobile performance
+
+## 8. Quick Reference
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/stores/gameStore.ts` | Central state management |
+| `src/Core/AudioEngine.ts` | Synth-pooled audio |
+| `src/Core/InputSystem.ts` | Touch/keyboard handling |
+| `src/Entities/PlayerRig.tsx` | Procedural otter model |
+| `src/Entities/Enemies/Gator.tsx` | AI predator with Yuka |
+| `src/Scenes/Level.tsx` | Main gameplay scene |
+
+### Validation Commands
+
+```bash
+# Quick check
+pnpm lint && pnpm typecheck
+
+# Full validation
+pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build && pnpm test:e2e
+
+# Development
+pnpm dev
+```
+
+### Coordinates of Interest
+
+| Location | Purpose |
+|----------|---------|
+| (0, 0) | LZ / Base Building Site |
+| (5, 5) | Prison Camp (Gen. Whiskers) |
+| (10, -10) | The Great Siphon (Boss) |
+| (-15, 20) | Healer's Grove |
