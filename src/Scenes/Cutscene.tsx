@@ -17,14 +17,20 @@ interface DialogueLine {
 const INTRO_DIALOGUE: DialogueLine[] = [
 	{
 		name: "GEN. WHISKERS",
-		text: "Platoon! The Iron Scale Dominion is closing in on the Mekong Delta.",
+		text: "Platoon! Long-range scanners have detected a Chronal Distortion in the delta.",
 	},
-	{ name: "SGT. BUBBLES", text: "We're ready, General. What's the situation?" },
+	{
+		name: "SGT. BUBBLES",
+		text: "Future-tech? You mean the Iron Scale is finally making their move?",
+	},
 	{
 		name: "GEN. WHISKERS",
-		text: "They're seeking the Primal Clams. If they get them, the river is doomed.",
+		text: "They've sent mechanized squads from 2142. They're here for the Primal Clams.",
 	},
-	{ name: "SGT. BUBBLES", text: "Not on our watch. Moving to intercept." },
+	{
+		name: "SGT. BUBBLES",
+		text: "If they harvest those shells, our timeline is toast. Let's send 'em back to the scrap heap.",
+	},
 ];
 
 function CinematicCamera() {
