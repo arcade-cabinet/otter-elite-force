@@ -15,7 +15,7 @@ OTTER: ELITE FORCE is a mobile-first 3D tactical shooter built with React 19, Th
 Instead:
 - ✅ One continuous world generated chunk-by-chunk
 - ✅ Chunks are FIXED once discovered (stored in Zustand)
-- ✅ Returning to coordinate (5, 3) shows the exact same layout
+- ✅ Returning to chunk (x:5, z:3) shows the exact same layout
 - ✅ Changes persist: destroyed objectives stay destroyed
 
 ### Main Menu = Game Loader
@@ -255,8 +255,9 @@ import { useGameStore } from "./gameStore";
 describe("Game Store", () => {
 	it("should track territory score", () => {
 		const store = useGameStore.getState();
-		store.secureChunk(5, 3);
-		expect(store.territoryScore).toBe(1);
+		// secureChunk takes a string ID in "x,z" format
+		store.secureChunk("5,3");
+		expect(store.saveData.territoryScore).toBe(1);
 	});
 });
 
