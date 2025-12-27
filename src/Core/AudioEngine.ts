@@ -259,8 +259,6 @@ export class AudioEngine {
 	 */
 	dispose(): void {
 		this.stopAll();
-		this.noiseSynth?.dispose();
-		this.noiseSynth = null;
 	}
 }
 
