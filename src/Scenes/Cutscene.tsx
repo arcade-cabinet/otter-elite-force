@@ -17,19 +17,19 @@ interface DialogueLine {
 const INTRO_DIALOGUE: DialogueLine[] = [
 	{
 		name: "GEN. WHISKERS",
-		text: "Platoon! Long-range scanners have detected a Chronal Distortion in the delta.",
+		text: "Listen up! The Mekong is crawling with Iron Scale 'Mud-Runners'.",
 	},
 	{
 		name: "SGT. BUBBLES",
-		text: "Future-tech? You mean the Iron Scale is finally making their move?",
+		text: "The usual suspects, General? Or are they packing heat this time?",
 	},
 	{
 		name: "GEN. WHISKERS",
-		text: "They've sent mechanized squads from 2142. They're here for the Primal Clams.",
+		text: "They've set up industrial siphons at the Clam Vault. They're draining the river dry.",
 	},
 	{
 		name: "SGT. BUBBLES",
-		text: "If they harvest those shells, our timeline is toast. Let's send 'em back to the scrap heap.",
+		text: "Not on our watch. Lock and load. We're going into the soup.",
 	},
 ];
 
