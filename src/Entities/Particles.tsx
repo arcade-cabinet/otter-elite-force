@@ -21,74 +21,102 @@ interface ParticlesProps {
 	onExpire?: (id: string) => void;
 }
 
-export function Particles({ particles, onExpire }: ParticlesProps) {
-	const particlesRef = useRef<ParticleData[]>(particles);
-	const pointsRef = useRef<Points>(null);
+// Pre-computed particle colors to avoid recreation
+const PARTICLE_COLORS = {
+	shell: new THREE.Color("#FFD700"),
+	blood: new THREE.Color("#8B0000"),
+	explosion: new THREE.Color("#FF4500"),
+};
 
-	// Update particle reference
+export function Particles({ particles, onExpire }: ParticlesProps) {
+	const pointsRef = useRef<Points>(null);
+	// Track internal state for particles to avoid mutating props
+	const particleStateRef = useRef<
+		Map<string, { lifetime: number; position: THREE.Vector3; velocity: THREE.Vector3 }>
+	>(new Map());
+
+	// Sync internal state with new particles
 	useEffect(() => {
-		particlesRef.current = particles;
+		const currentIds = new Set(particles.map((p) => p.id));
+		// Remove particles no longer in props
+		for (const id of particleStateRef.current.keys()) {
+			if (!currentIds.has(id)) {
+				particleStateRef.current.delete(id);
+			}
+		}
+		// Add new particles
+		for (const particle of particles) {
+			if (!particleStateRef.current.has(particle.id)) {
+				particleStateRef.current.set(particle.id, {
+					lifetime: particle.lifetime,
+					position: particle.position.clone(),
+					velocity: particle.velocity.clone(),
+				});
+			}
+		}
 	}, [particles]);
 
 	// Update particles
 	useFrame((_state, delta) => {
-		if (!pointsRef.current || particlesRef.current.length === 0) return;
+		if (!pointsRef.current || particleStateRef.current.size === 0) return;
 
 		const geometry = pointsRef.current.geometry as THREE.BufferGeometry;
+		const count = particleStateRef.current.size;
 
-		const positions: number[] = [];
-		const colors: number[] = [];
-		const sizes: number[] = [];
+		const positions = new Float32Array(count * 3);
+		const colors = new Float32Array(count * 3);
+		const sizes = new Float32Array(count);
 
 		const toRemove: string[] = [];
+		let i = 0;
 
-		particlesRef.current.forEach((particle) => {
+		for (const [id, state] of particleStateRef.current) {
 			// Update lifetime
-			particle.lifetime -= delta;
+			state.lifetime -= delta;
 
-			if (particle.lifetime <= 0) {
-				toRemove.push(particle.id);
-				return;
+			if (state.lifetime <= 0) {
+				toRemove.push(id);
+				continue;
 			}
 
-			// Update position
-			particle.position.add(particle.velocity.clone().multiplyScalar(delta));
+			// Update position (using internal cloned state, not props)
+			state.position.x += state.velocity.x * delta;
+			state.position.y += state.velocity.y * delta;
+			state.position.z += state.velocity.z * delta;
 
 			// Apply gravity
-			particle.velocity.y -= 9.8 * delta;
+			state.velocity.y -= 9.8 * delta;
 
 			// Add to buffers
-			positions.push(particle.position.x, particle.position.y, particle.position.z);
+			positions[i * 3] = state.position.x;
+			positions[i * 3 + 1] = state.position.y;
+			positions[i * 3 + 2] = state.position.z;
 
-			// Color based on type
-			let color: THREE.Color;
-			switch (particle.type) {
-				case "shell":
-					color = new THREE.Color("#FFD700");
-					break;
-				case "blood":
-					color = new THREE.Color("#8B0000");
-					break;
-				case "explosion":
-					color = new THREE.Color("#FF4500");
-					break;
-			}
-			colors.push(color.r, color.g, color.b);
+			// Color based on type (find particle type from props)
+			const particle = particles.find((p) => p.id === id);
+			const color = PARTICLE_COLORS[particle?.type ?? "shell"];
+			colors[i * 3] = color.r;
+			colors[i * 3 + 1] = color.g;
+			colors[i * 3 + 2] = color.b;
 
 			// Size fades with lifetime
-			const size = particle.lifetime * 0.5;
-			sizes.push(size);
-		});
+			sizes[i] = state.lifetime * 0.5;
+			i++;
+		}
 
 		// Remove expired particles
-		toRemove.forEach((id) => {
+		for (const id of toRemove) {
+			particleStateRef.current.delete(id);
 			onExpire?.(id);
-		});
+		}
 
-		// Update geometry
-		geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-		geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-		geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+		// Update geometry with pre-allocated typed arrays
+		geometry.setAttribute(
+			"position",
+			new THREE.Float32BufferAttribute(positions.slice(0, i * 3), 3),
+		);
+		geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors.slice(0, i * 3), 3));
+		geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes.slice(0, i), 1));
 	});
 
 	if (particles.length === 0) return null;
