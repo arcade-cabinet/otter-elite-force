@@ -1,5 +1,18 @@
+/**
+ * Type Definitions - Single Source of Truth
+ * All game types are defined here and exported for use across the codebase
+ */
+
+// =============================================================================
+// GAME MODE TYPES
+// =============================================================================
+
 export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN" | "VICTORY";
 export type DifficultyMode = "ELITE" | "TACTICAL" | "SUPPORT";
+
+// =============================================================================
+// CHARACTER TYPES
+// =============================================================================
 
 export interface CharacterTraits {
 	id: string;
@@ -21,17 +34,51 @@ export interface CharacterGear {
 	weaponId: string;
 }
 
+export interface CharacterDefinition {
+	traits: CharacterTraits;
+	gear: CharacterGear;
+}
+
+// =============================================================================
+// WEAPON TYPES
+// =============================================================================
+
+export type WeaponType = "PISTOL" | "RIFLE" | "MACHINE_GUN" | "SHOTGUN" | "LAUNCHER";
+export type WeaponVisualType =
+	| "FISH_CANNON"
+	| "BUBBLE_GUN"
+	| "PISTOL_GRIP"
+	| "SHOTGUN"
+	| "MORTAR"
+	| "NEEDLE_GUN";
+
 export interface WeaponData {
 	id: string;
 	name: string;
-	type: "PISTOL" | "RIFLE" | "MACHINE_GUN" | "SHOTGUN" | "LAUNCHER";
+	type: WeaponType;
 	damage: number;
 	fireRate: number;
 	bulletSpeed: number;
 	recoil: number;
 	range: number;
-	visualType: "FISH_CANNON" | "BUBBLE_GUN" | "PISTOL_GRIP" | "SHOTGUN" | "MORTAR" | "NEEDLE_GUN";
+	visualType: WeaponVisualType;
 }
+
+// =============================================================================
+// ENTITY TYPES
+// =============================================================================
+
+export type PredatorType = "GATOR" | "SNAKE" | "SNAPPER" | "SCOUT";
+export type ObjectiveType = "GAS_STOCKPILE" | "SIPHON" | "PRISON_CAGE";
+export type InteractionType =
+	| "VILLAGER"
+	| "HEALER"
+	| "HUT"
+	| "EXTRACTION_POINT"
+	| "RAFT"
+	| "CLAM_BASKET";
+export type EnvironmentType = "PLATFORM" | "CLIMBABLE" | "OIL_SLICK" | "MUD_PIT" | "TOXIC_SLUDGE";
+export type DecorationType = "REED" | "LILYPAD" | "DEBRIS" | "BURNT_TREE" | "MANGROVE" | "DRUM";
 
 export type BaseEntity = {
 	id: string;
@@ -39,14 +86,14 @@ export type BaseEntity = {
 };
 
 export type PredatorEntity = BaseEntity & {
-	type: "GATOR" | "SNAKE" | "SNAPPER";
+	type: PredatorType;
 	hp: number;
 	suppression: number;
 	isHeavy?: boolean;
 };
 
 export type ObjectiveEntity = BaseEntity & {
-	type: "GAS_STOCKPILE" | "SIPHON" | "PRISON_CAGE";
+	type: ObjectiveType;
 	hp?: number;
 	objectiveId?: string;
 	captured?: boolean;
@@ -54,37 +101,112 @@ export type ObjectiveEntity = BaseEntity & {
 };
 
 export type InteractionEntity = BaseEntity & {
-	type: "VILLAGER" | "HEALER" | "HUT" | "EXTRACTION_POINT" | "RAFT" | "CLAM_BASKET";
+	type: InteractionType;
 	interacted?: boolean;
 	isHeavy?: boolean;
 };
 
 export type EnvironmentEntity = BaseEntity & {
-	type: "PLATFORM" | "CLIMBABLE" | "OIL_SLICK" | "MUD_PIT";
+	type: EnvironmentType;
 };
 
 export type Entity = PredatorEntity | ObjectiveEntity | InteractionEntity | EnvironmentEntity;
+
+// Combined entity type for chunk generation (includes all possible fields)
+export type ChunkEntity = {
+	id: string;
+	type:
+		| PredatorType
+		| ObjectiveType
+		| InteractionType
+		| EnvironmentType
+		| "VILLAGER"
+		| "HEALER"
+		| "HUT"
+		| "EXTRACTION_POINT"
+		| "RAFT"
+		| "CLAM_BASKET"
+		| "SIPHON"
+		| "GAS_STOCKPILE"
+		| "PRISON_CAGE"
+		| "GATOR"
+		| "SNAKE"
+		| "SNAPPER"
+		| "SCOUT"
+		| "PLATFORM"
+		| "CLIMBABLE"
+		| "OIL_SLICK"
+		| "MUD_PIT"
+		| "TOXIC_SLUDGE";
+	position: [number, number, number];
+	isHeavy?: boolean;
+	objectiveId?: string;
+	hp?: number;
+	suppression?: number;
+	captured?: boolean;
+	interacted?: boolean;
+	rescued?: boolean;
+};
+
+// =============================================================================
+// CHUNK / WORLD TYPES
+// =============================================================================
+
+export type TerrainType = "RIVER" | "MARSH" | "DENSE_JUNGLE";
+
+export interface ChunkDecoration {
+	id: string;
+	type: DecorationType;
+	count: number;
+}
 
 export interface ChunkData {
 	id: string; // "x,z"
 	x: number;
 	z: number;
 	seed: number;
-	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
+	terrainType: TerrainType;
 	secured: boolean;
-	entities: Entity[];
-	decorations: {
-		id: string;
-		type: "REED" | "LILYPAD" | "DEBRIS" | "BURNT_TREE" | "MANGROVE" | "DRUM";
-		count: number;
-	}[];
+	entities: ChunkEntity[];
+	decorations: ChunkDecoration[];
 }
+
+// =============================================================================
+// BASE BUILDING TYPES
+// =============================================================================
+
+export type BaseComponentType = "FLOOR" | "WALL" | "ROOF" | "STILT";
 
 export interface PlacedComponent {
 	id: string;
-	type: "FLOOR" | "WALL" | "ROOF" | "STILT";
+	type: BaseComponentType;
 	position: [number, number, number];
 	rotation: [number, number, number];
+}
+
+// =============================================================================
+// SAVE DATA TYPES
+// =============================================================================
+
+export interface StrategicObjectives {
+	siphonsDismantled: number;
+	villagesLiberated: number;
+	gasStockpilesCaptured: number;
+	healersProtected: number;
+	alliesRescued: number;
+}
+
+export interface SpoilsOfWar {
+	creditsEarned: number;
+	clamsHarvested: number;
+	upgradesUnlocked: number;
+}
+
+export interface PlayerUpgrades {
+	speedBoost: number;
+	healthBoost: number;
+	damageBoost: number;
+	weaponLvl: Record<string, number>;
 }
 
 /**
@@ -97,7 +219,7 @@ export interface PlacedComponent {
  * - Characters are unlocked via rescue, not purchase
  */
 export interface SaveData {
-	version: number; // Schema version (currently 8)
+	version: number;
 	rank: number;
 	xp: number;
 	medals: number;
@@ -109,25 +231,51 @@ export interface SaveData {
 	territoryScore: number;
 	difficultyMode: DifficultyMode;
 	isFallTriggered: boolean;
-	strategicObjectives: {
-		siphonsDismantled: number;
-		villagesLiberated: number;
-		gasStockpilesCaptured: number;
-		healersProtected: number;
-		alliesRescued: number;
-	};
-	spoilsOfWar: {
-		creditsEarned: number;
-		clamsHarvested: number;
-		upgradesUnlocked: number;
-	};
+	strategicObjectives: StrategicObjectives;
+	spoilsOfWar: SpoilsOfWar;
 	peacekeepingScore: number;
-	upgrades: {
-		speedBoost: number;
-		healthBoost: number;
-		damageBoost: number;
-		weaponLvl: Record<string, number>;
-	};
+	upgrades: PlayerUpgrades;
 	isLZSecured: boolean;
 	baseComponents: PlacedComponent[];
+}
+
+// =============================================================================
+// DIFFICULTY CONFIG TYPES
+// =============================================================================
+
+export interface DifficultyConfig {
+	mode: DifficultyMode;
+	displayName: string;
+	description: string;
+	supplyDropsAnywhere: boolean;
+	extractionAnywhere: boolean;
+	fallThreshold: number;
+	permadeath: boolean;
+	enemyDamageMultiplier: number;
+	xpMultiplier: number;
+}
+
+// =============================================================================
+// KEY COORDINATE TYPES
+// =============================================================================
+
+export interface KeyCoordinate {
+	x: number;
+	z: number;
+	name: string;
+	description: string;
+	unlocks?: string;
+}
+
+// =============================================================================
+// TERRAIN CONFIG TYPES
+// =============================================================================
+
+export interface TerrainConfig {
+	name: string;
+	waterColor: string;
+	fogColor: string;
+	skyColor: string;
+	enemyDensity: number;
+	hazardDensity: number;
 }
