@@ -17,19 +17,19 @@ interface DialogueLine {
 const INTRO_DIALOGUE: DialogueLine[] = [
 	{
 		name: "GEN. WHISKERS",
-		text: "Bubbles! The Iron Scale just hit our observation post at Clam Point.",
+		text: "Listen up, River-Rats! The Scale-Guard just hit our observation post at the Mouth.",
 	},
 	{
 		name: "SGT. BUBBLES",
-		text: "Dammit, General. I told you we needed more patrols in the soup.",
+		text: "They're pushing deeper into the Reach, General. The soup is getting thick.",
 	},
 	{
 		name: "GEN. WHISKERS",
-		text: "They're moving their heavy siphons into position. If they drain that sector, we lose the river.",
+		text: "They're installing siphons directly into the Ancestral Beds. If they choke the river, we're done.",
 	},
 	{
 		name: "SGT. BUBBLES",
-		text: "Understood. My platoon is locked and loaded. We're going in hot.",
+		text: "My platoon is prepped. We'll dismantle their rigs and send 'em back to the mud.",
 	},
 ];
 

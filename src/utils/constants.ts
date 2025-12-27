@@ -23,8 +23,8 @@ export const GAME_CONFIG = {
 export const LEVELS = [
 	{
 		id: 0,
-		title: "MUDDY CROSSING",
-		desc: "High noon in the delta. Clear the Iron Scale snipers from the reeds.",
+		title: "SILT-SHADOW CROSSING",
+		desc: "The entrance to the Reach. Clear the Scale-Guard spotters from the reeds.",
 		goal: 8,
 		enemies: 12,
 		sky: "#f0e6d2", // Bleached sky
@@ -34,8 +34,8 @@ export const LEVELS = [
 	},
 	{
 		id: 1,
-		title: "THE SMOKE RUN",
-		desc: "The smell of napalm is thick here. Navigate through the burnt mangroves.",
+		title: "MANGROVE MAW",
+		desc: "The Meat-Grinder begins. Navigate through the burnt roots and oily sludge.",
 		goal: 15,
 		enemies: 20,
 		sky: "#ffccaa", // Fire-tinted sky
@@ -45,8 +45,8 @@ export const LEVELS = [
 	},
 	{
 		id: 2,
-		title: "CLAM POINT BASE",
-		desc: "The Iron Scale's forward operating base. Break their supply line.",
+		title: "THE SACRED CHOKE",
+		desc: "The heart of the Militia's siphon operation. Destroy the industrial rigs.",
 		goal: 25,
 		enemies: 30,
 		sky: "#ffffff", // Overexposed daylight

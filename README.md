@@ -46,9 +46,11 @@ OTTER: ELITE FORCE is a single-file, procedurally generated tactical shooter tha
 
 ## 📜 Lore
 
-The air is heavy, the water is brown, and the smell of napalm never quite leaves your whiskers. The **Mekong Delta** has become a meat-grinder. The **Iron Scale Militia**—a brutal faction of saltwater crocodiles—has moved inland, clear-cutting the mangroves and siphoning the river's lifeblood into their industrial siphons. 
+The year is unimportant. The location is **The Copper-Silt Reach**, a bleached, humid hellscape known to the grunts as the **"Emerald Meat-Grinder."** 
 
-**Sgt. Bubbles**, a battle-hardened veteran of the Great Creek Wars, has been recalled to lead a ragtag platoon of specialists into the soup. This isn't a future-tech fantasy—it's a war of attrition. Navigate through burnt mangroves, murky silt, and oily sludge to take down the Iron Scale and protect the ancestral clam beds.
+The **Scale-Guard Militia**—a brutal cult of biological river predators—has seized the ancestral clam beds, clear-cutting the mangroves and siphoning the river's lifeblood into their industrial sludge-pits. 
+
+**Sgt. Bubbles**, a battle-hardened veteran of the early campaigns, has been recalled to lead a ragtag platoon of specialists into the soup. This isn't a fantasy—it's a war of attrition. Navigate through burnt mangroves and murky silt to take down the Scale-Guard siphons and lead your platoon to extraction.
 
 Lock and load. We're going in hot.
 
