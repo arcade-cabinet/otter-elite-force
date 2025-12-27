@@ -1,0 +1,222 @@
+# Claude Auto-Fix CI Failures
+#
+# Automatically analyzes and fixes CI failures on PRs
+
+name: Claude Auto-Fix CI
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+jobs:
+  auto-fix:
+    name: Analyze & Fix CI Failure
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.pull_requests[0] != null &&
+      !startsWith(github.event.workflow_run.head_branch, 'claude/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Get CI failure details
+        id: failure_details
+        uses: actions/github-script@v7
+        env:
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        with:
+          script: |
+            const run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }}
+            });
+
+            const failedJobs = jobs.data.jobs.filter(job => job.conclusion === 'failure');
+
+            let errorLogs = [];
+            for (const job of failedJobs.slice(0, 3)) {
+              try {
+                const logs = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  job_id: job.id
+                });
+                const logLines = logs.data.split('\n');
+                const truncatedLogs = logLines.slice(-300).join('\n');
+                errorLogs.push({
+                  jobName: job.name,
+                  logs: truncatedLogs
+                });
+              } catch (e) {
+                errorLogs.push({
+                  jobName: job.name,
+                  logs: `Failed to fetch logs: ${e.message}`
+                });
+              }
+            }
+
+            const prNumber = context.payload.workflow_run?.pull_requests?.[0]?.number ?? null;
+
+            return {
+              runUrl: run.data.html_url,
+              failedJobs: failedJobs.map(j => j.name),
+              errorLogs: errorLogs,
+              prNumber,
+              branch: process.env.HEAD_BRANCH
+            };
+
+      - name: Run Claude to fix CI
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.CI_GITHUB_TOKEN }}
+          additional_permissions: |
+            actions: read
+
+          prompt: |
+            ## 🔧 CI Failure Auto-Fix
+
+            **Failed CI Run:** ${{ fromJSON(steps.failure_details.outputs.result).runUrl }}
+            **Failed Jobs:** ${{ join(fromJSON(steps.failure_details.outputs.result).failedJobs, ', ') }}
+            **PR:** #${{ fromJSON(steps.failure_details.outputs.result).prNumber }}
+            **Branch:** ${{ fromJSON(steps.failure_details.outputs.result).branch }}
+
+            ## Project: OTTER: ELITE FORCE
+
+            Commands:
+            - Lint: `pnpm run lint` (fix: `pnpm run lint:fix`)
+            - Types: `pnpm run typecheck`
+            - Unit tests: `pnpm run test:unit`
+            - Build: `pnpm run build`
+            - E2E tests: `pnpm run test:e2e`
+
+            ## Error Logs
+
+            ```json
+            ${{ toJSON(fromJSON(steps.failure_details.outputs.result).errorLogs) }}
+            ```
+
+            ## Instructions
+
+            1. **Analyze the error logs** to understand what failed
+            2. **Identify the root cause** - common issues:
+               - Lint errors: Run `pnpm run lint:fix` or fix manually
+               - Type errors: Fix TypeScript issues
+               - Test failures: Fix tests or update expectations
+               - Build errors: Fix imports/syntax
+            3. **Make the fix** - edit the necessary files
+            4. **Verify the fix**:
+               - Run the relevant command to confirm it passes
+               - If lint: `pnpm run lint`
+               - If types: `pnpm run typecheck`
+               - If tests: `pnpm run test:unit`
+               - If build: `pnpm run build`
+            5. **Commit and push** the fix
+            6. **Comment on PR** explaining what you fixed
+
+            Be concise but thorough. Focus on the actual error, not symptoms.
+
+          claude_args: |
+            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(pnpm:*),Bash(npm:*),Bash(npx:*),Bash(git:*),Bash(gh:*),Bash(cat:*),Bash(ls:*),Bash(head:*),Bash(tail:*),Bash(rg:*),Bash(find:*),Bash(mkdir:*),Bash(rm:*),Bash(echo:*),Bash(biome:*),Bash(tsc:*),Bash(vitest:*)"
+
+  detect-flaky:
+    name: Detect Flaky Tests
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.pull_requests[0] != null
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Analyze for flaky tests
+        id: detect
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          additional_permissions: |
+            actions: read
+
+          prompt: |
+            The CI workflow failed: ${{ github.event.workflow_run.html_url }}
+
+            Check the logs: `gh run view ${{ github.event.workflow_run.id }} --log-failed`
+
+            Determine if this looks like a flaky test failure by checking for:
+            - Timeout errors
+            - Race conditions
+            - Network/fetch errors
+            - "Expected X but got Y" with timing-sensitive values
+            - WebGL context errors (common in headless)
+            - Playwright timing issues
+
+            Return your analysis:
+            - is_flaky: true/false
+            - confidence: 0-1
+            - summary: one sentence explanation
+
+          claude_args: |
+            --json-schema '{"type":"object","properties":{"is_flaky":{"type":"boolean","description":"Whether this appears to be a flaky test failure"},"confidence":{"type":"number","minimum":0,"maximum":1,"description":"Confidence level"},"summary":{"type":"string","description":"One-sentence explanation"}},"required":["is_flaky","confidence","summary"]}'
+            --allowedTools "Read,Bash(gh:*)"
+
+      - name: Comment on PR about flaky test
+        if: |
+          steps.detect.outputs.structured_output != '' &&
+          fromJSON(steps.detect.outputs.structured_output).is_flaky == true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STRUCTURED_OUTPUT: ${{ steps.detect.outputs.structured_output }}
+        run: |
+          CONFIDENCE=$(echo "$STRUCTURED_OUTPUT" | jq -r '.confidence')
+          SUMMARY=$(echo "$STRUCTURED_OUTPUT" | jq -r '.summary')
+
+          pr_number=${{ github.event.workflow_run.pull_requests[0].number }}
+
+          gh pr comment "$pr_number" --body "$(cat <<EOF
+          ## 🔄 Possible Flaky Test Detected
+
+          **Analysis**: $SUMMARY
+          **Confidence**: $CONFIDENCE
+
+          This failure may be due to test flakiness rather than a code bug.
+          Consider re-running the workflow or investigating timing-sensitive tests.
+
+          [View workflow run](${{ github.event.workflow_run.html_url }})
+          EOF
+          )"
