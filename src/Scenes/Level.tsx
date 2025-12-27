@@ -12,6 +12,8 @@ import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
 import { inputSystem } from "../Core/InputSystem";
 import { Enemy, type EnemyData } from "../Entities/Enemies";
+import { Snake, type SnakeData } from "../Entities/SnakePredator";
+import { Snapper, type SnapperData } from "../Entities/SnapperBunker";
 import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
@@ -227,6 +229,8 @@ export function Level() {
 	const [playerVelocity, setPlayerVelocity] = useState(0);
 
 	const [enemies, setEnemies] = useState<EnemyData[]>([]);
+	const [snakes, setSnakes] = useState<SnakeData[]>([]);
+	const [snappers, setSnappers] = useState<SnapperData[]>([]);
 	const [particles, setParticles] = useState<ParticleData[]>([]);
 
 	// Refs for imperative updates
@@ -304,43 +308,44 @@ export function Level() {
 			}
 		}
 
-		// Collision Detection
+		// Collision Detection (Gators)
 		const currentProjectiles = projectilesRef.current?.getProjectiles() || [];
 		for (const projectile of currentProjectiles) {
+			// Gators
 			for (let i = 0; i < enemies.length; i++) {
 				const enemy = enemies[i];
-				const dist = projectile.position.distanceTo(enemy.position);
-
-				if (dist < 1.5) {
-					// Hit detected
+				if (projectile.position.distanceTo(enemy.position) < 1.5) {
 					enemy.hp -= GAME_CONFIG.BULLET_DAMAGE;
+					handleImpact(projectile.position, "blood");
 					projectilesRef.current?.remove(projectile.id);
-					audioEngine.playSFX("hit");
+					if (enemy.hp <= 0) handleEnemyDeath(enemy.id);
+					break;
+				}
+			}
+			
+			// Snakes (Smaller hitbox)
+			for (let i = 0; i < snakes.length; i++) {
+				const snake = snakes[i];
+				// Simple box-ish check for snake height range
+				if (Math.abs(projectile.position.x - snake.position.x) < 1 && 
+					Math.abs(projectile.position.z - snake.position.z) < 1 &&
+					projectile.position.y > 2) {
+					snake.hp -= GAME_CONFIG.BULLET_DAMAGE;
+					handleImpact(projectile.position, "blood");
+					projectilesRef.current?.remove(projectile.id);
+					if (snake.hp <= 0) setSnakes(prev => prev.filter(s => s.id !== snake.id));
+					break;
+				}
+			}
 
-					// Impact particles
-					const particleCount = 5;
-					for (let j = 0; j < particleCount; j++) {
-						const particleId = `blood-${Math.random()}`;
-						setParticles((prev) => [
-							...prev,
-							{
-								id: particleId,
-								position: projectile.position.clone(),
-								velocity: new THREE.Vector3(
-									(Math.random() - 0.5) * 5,
-									Math.random() * 5,
-									(Math.random() - 0.5) * 5,
-								),
-								lifetime: 0.5 + Math.random() * 0.5,
-								type: "blood",
-							},
-						]);
-					}
-
-					// Trigger death logic if needed
-					if (enemy.hp <= 0) {
-						handleEnemyDeath(enemy.id);
-					}
+			// Snappers (Heavy armor check)
+			for (let i = 0; i < snappers.length; i++) {
+				const snapper = snappers[i];
+				if (projectile.position.distanceTo(snapper.position) < 2) {
+					snapper.hp -= GAME_CONFIG.BULLET_DAMAGE;
+					handleImpact(projectile.position, "shell");
+					projectilesRef.current?.remove(projectile.id);
+					if (snapper.hp <= 0) setSnappers(prev => prev.filter(s => s.id !== snapper.id));
 					break;
 				}
 			}
@@ -376,12 +381,42 @@ export function Level() {
 			newEnemies.push({
 				id: `enemy-${crypto.randomUUID()}`,
 				position: new THREE.Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist),
-				hp: isHeavy ? 8 : 3,
-				maxHp: isHeavy ? 8 : 3,
+				hp: isHeavy ? 10 : 3,
+				maxHp: isHeavy ? 10 : 3,
 				isHeavy,
 			});
 		}
 		setEnemies(newEnemies);
+
+		// Spawn tree snakes
+		const newSnakes: SnakeData[] = [];
+		const snakeCount = Math.floor(level.enemies / 2);
+		for (let i = 0; i < snakeCount; i++) {
+			const angle = Math.random() * Math.PI * 2;
+			const dist = randomRange(30, 60);
+			newSnakes.push({
+				id: `snake-${crypto.randomUUID()}`,
+				position: new THREE.Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist),
+				hp: 2,
+				maxHp: 2,
+			});
+		}
+		setSnakes(newSnakes);
+
+		// Spawn snapper bunkers
+		const newSnappers: SnapperData[] = [];
+		const snapperCount = Math.floor(level.enemies / 4);
+		for (let i = 0; i < snapperCount; i++) {
+			const angle = Math.random() * Math.PI * 2;
+			const dist = randomRange(40, 70);
+			newSnappers.push({
+				id: `snapper-${crypto.randomUUID()}`,
+				position: new THREE.Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist),
+				hp: 20,
+				maxHp: 20,
+			});
+		}
+		setSnappers(newSnappers);
 	}, [level.enemies]);
 
 	// Spawn enemies on mount
@@ -403,6 +438,27 @@ export function Level() {
 	const handleParticleExpire = useCallback((id: string) => {
 		setParticles((prev) => prev.filter((p) => p.id !== id));
 	}, []);
+
+	// Impact helper
+	const handleImpact = (pos: THREE.Vector3, type: "blood" | "shell") => {
+		audioEngine.playSFX("hit");
+		const particleCount = 5;
+		const newParticles: ParticleData[] = [];
+		for (let j = 0; j < particleCount; j++) {
+			newParticles.push({
+				id: `${type}-${Math.random()}`,
+				position: pos.clone(),
+				velocity: new THREE.Vector3(
+					(Math.random() - 0.5) * 5,
+					Math.random() * 5,
+					(Math.random() - 0.5) * 5,
+				),
+				lifetime: 0.5 + Math.random() * 0.5,
+				type: type,
+			});
+		}
+		setParticles((prev) => [...prev, ...newParticles]);
+	};
 
 	// Game update loop
 	const handleUpdate = useCallback((_delta: number, _elapsed: number) => {
@@ -483,6 +539,16 @@ export function Level() {
 			{/* Enemies */}
 			{enemies.map((enemy) => (
 				<Enemy key={enemy.id} data={enemy} targetPosition={playerPos} onDeath={handleEnemyDeath} />
+			))}
+
+			{/* Tree Snakes */}
+			{snakes.map((snake) => (
+				<Snake key={snake.id} data={snake} targetPosition={playerPos} onDeath={(id) => setSnakes(prev => prev.filter(s => s.id !== id))} />
+			))}
+
+			{/* Snapper Bunkers */}
+			{snappers.map((snapper) => (
+				<Snapper key={snapper.id} data={snapper} targetPosition={playerPos} onDeath={(id) => setSnappers(prev => prev.filter(s => s.id !== id))} />
 			))}
 
 			{/* Projectiles */}

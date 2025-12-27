@@ -73,6 +73,22 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			weapon: "bubble-gun",
 		},
 	},
+	fang: {
+		traits: {
+			id: "fang",
+			name: "SGT. FANG",
+			furColor: "#333",
+			eyeColor: "#ff0000",
+			whiskerLength: 0.4,
+			grizzled: true,
+		},
+		gear: {
+			headgear: "none",
+			vest: "heavy",
+			backgear: "none",
+			weapon: "fish-cannon",
+		},
+	},
 };
 
 interface SaveData {
@@ -128,6 +144,7 @@ export const CHAR_PRICES: Record<string, number> = {
 	bubbles: 0,
 	whiskers: 1000,
 	splash: 500,
+	fang: 750,
 };
 
 const DEFAULT_SAVE_DATA: SaveData = {
