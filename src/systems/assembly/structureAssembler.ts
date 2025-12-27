@@ -11,7 +11,6 @@ import type {
 	InteractionPoint,
 	PlatformSection,
 	SnapPoint,
-	StructureArchetype,
 	StructureComponent,
 	StructureTemplate,
 } from "./types";
@@ -162,7 +161,7 @@ export function assembleHut(
 
 	// 3. Generate walls (3-4 sides)
 	const wallHeight = 1.8;
-	const wallSides = ["NORTH", "SOUTH", "EAST", "WEST"] as const;
+	const wallSides: ("NORTH" | "SOUTH" | "EAST" | "WEST")[] = ["NORTH", "SOUTH", "EAST", "WEST"];
 	const openSide = random.pick(wallSides); // One side open or has door
 
 	for (const side of wallSides) {
@@ -288,7 +287,8 @@ export function assembleHut(
 	const interactionPoints = generateHutInteractionPoints(width, depth, floorHeight, openSide);
 
 	return {
-		archetype: variant === "LONGHOUSE" ? "LONGHOUSE" : variant === "HEALER" ? "MEDICAL_POST" : "BASIC_HUT",
+		archetype:
+			variant === "LONGHOUSE" ? "LONGHOUSE" : variant === "HEALER" ? "MEDICAL_POST" : "BASIC_HUT",
 		components,
 		footprint: { width: width + 1, depth: depth + 1 },
 		height: floorHeight + wallHeight + roofHeight,
@@ -466,8 +466,8 @@ export function assembleWatchtower(seed: number): StructureTemplate {
 			const nextAngle = ((i + 1) / 4) * Math.PI * 2;
 			const radius = 1.2 - (height / towerHeight) * 0.4;
 
-			const midX = (Math.cos(angle) + Math.cos(nextAngle)) / 2 * radius;
-			const midZ = (Math.sin(angle) + Math.sin(nextAngle)) / 2 * radius;
+			const midX = ((Math.cos(angle) + Math.cos(nextAngle)) / 2) * radius;
+			const midZ = ((Math.sin(angle) + Math.sin(nextAngle)) / 2) * radius;
 
 			components.push({
 				id: `brace-${height}-${i}`,
@@ -677,10 +677,12 @@ function generateHutSnapPoints(
 		if (side === openSide) continue; // Open side is entrance, not snap point
 
 		const pos = getWallPosition(side, width, depth, floorHeight, 0);
+		// Convert rotation to direction vector
+		const direction = new THREE.Vector3(0, 0, 1).applyEuler(pos.rotation);
 		snapPoints.push({
 			id: `snap-${side}`,
 			localPosition: pos.position.clone().setY(floorHeight),
-			direction: pos.rotation.toVector3(),
+			direction,
 			acceptsTypes: ["BASIC_HUT", "LONGHOUSE", "STORAGE_SHED", "BRIDGE_SECTION"],
 			occupied: false,
 		});
