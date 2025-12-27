@@ -36,10 +36,7 @@ export const WEAPONS: Record<string, WeaponData> = {
 	},
 };
 
-export const CHARACTERS: Record<
-	string,
-	{ traits: CharacterTraits; gear: CharacterGear }
-> = {
+export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: CharacterGear }> = {
 	bubbles: {
 		traits: {
 			id: "bubbles",

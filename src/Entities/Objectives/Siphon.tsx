@@ -43,14 +43,19 @@ export function Siphon({
 			{/* Main Siphon Structure */}
 			<mesh castShadow receiveShadow>
 				<cylinderGeometry args={[1.5, 2, 4, 8]} />
-				<meshStandardMaterial color={secured ? SIPHON_CONFIG.securedColor : SIPHON_CONFIG.baseColor} metalness={0.8} />
+				<meshStandardMaterial
+					color={secured ? SIPHON_CONFIG.securedColor : SIPHON_CONFIG.baseColor}
+					metalness={0.8}
+				/>
 			</mesh>
 			{/* Pumping Pipes */}
 			{[0, 1, 2].map((i) => (
 				<mesh key={`pipe-${i}`} rotation-y={(i * Math.PI * 2) / 3} position={[0, -1, 0]}>
 					<mesh rotation-z={Math.PI / 2.5}>
 						<cylinderGeometry args={[0.3, 0.3, 5]} />
-						<meshStandardMaterial color={secured ? SIPHON_CONFIG.securedPipeColor : SIPHON_CONFIG.pipeColor} />
+						<meshStandardMaterial
+							color={secured ? SIPHON_CONFIG.securedPipeColor : SIPHON_CONFIG.pipeColor}
+						/>
 					</mesh>
 				</mesh>
 			))}
@@ -58,7 +63,11 @@ export function Siphon({
 			{!secured && (
 				<group ref={smokeRef} position={[0, 2, 0]}>
 					{[...Array(5)].map((_, i) => (
-						<mesh key={`smoke-${i}`} position={[0, i * 1, 0]} scale={SIPHON_CONFIG.smokeInitialScale}>
+						<mesh
+							key={`smoke-${i}`}
+							position={[0, i * 1, 0]}
+							scale={SIPHON_CONFIG.smokeInitialScale}
+						>
 							<sphereGeometry args={[0.5, 8, 8]} />
 							<meshBasicMaterial color="#333" transparent opacity={0.4} />
 						</mesh>

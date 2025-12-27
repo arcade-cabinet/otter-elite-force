@@ -1,6 +1,6 @@
-import { useRef, useState, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import * as THREE from "three";
+import { useEffect, useRef, useState } from "react";
+import type * as THREE from "three";
 
 interface OilSlickProps {
 	position: [number, number, number] | THREE.Vector3;

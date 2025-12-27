@@ -25,12 +25,13 @@ export function BurntTrees({ count = 15, seed = 0 }) {
 
 		for (let i = 0; i < count; i++) {
 			const angle = rand() * Math.PI * 2;
-			const dist = TREE_CONFIG.minDistance + rand() * (TREE_CONFIG.maxDistance - TREE_CONFIG.minDistance);
+			const dist =
+				TREE_CONFIG.minDistance + rand() * (TREE_CONFIG.maxDistance - TREE_CONFIG.minDistance);
 			dummy.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
 			dummy.scale.set(
 				TREE_CONFIG.minScale + rand() * (TREE_CONFIG.maxScale - TREE_CONFIG.minScale),
 				TREE_CONFIG.minHeight + rand() * (TREE_CONFIG.maxHeight - TREE_CONFIG.minHeight),
-				TREE_CONFIG.minScale + rand() * (TREE_CONFIG.maxScale - TREE_CONFIG.minScale)
+				TREE_CONFIG.minScale + rand() * (TREE_CONFIG.maxScale - TREE_CONFIG.minScale),
 			);
 			dummy.rotation.set(rand() * 0.2, rand() * Math.PI, rand() * 0.2);
 			dummy.updateMatrix();

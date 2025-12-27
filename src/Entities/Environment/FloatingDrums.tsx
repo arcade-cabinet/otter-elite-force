@@ -23,7 +23,8 @@ export function FloatingDrums({ count = 10, seed = 0 }) {
 
 		for (let i = 0; i < count; i++) {
 			const angle = rand() * Math.PI * 2;
-			const dist = DRUM_CONFIG.minDistance + rand() * (DRUM_CONFIG.maxDistance - DRUM_CONFIG.minDistance);
+			const dist =
+				DRUM_CONFIG.minDistance + rand() * (DRUM_CONFIG.maxDistance - DRUM_CONFIG.minDistance);
 			dummy.position.set(Math.cos(angle) * dist, DRUM_CONFIG.height, Math.sin(angle) * dist);
 			dummy.scale.set(DRUM_CONFIG.scale[0], DRUM_CONFIG.scale[1], DRUM_CONFIG.scale[2]);
 			dummy.rotation.set(Math.PI / 2, 0, rand() * Math.PI);

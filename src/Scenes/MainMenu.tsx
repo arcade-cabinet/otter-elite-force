@@ -70,7 +70,7 @@ export function MainMenu() {
 								type="button"
 								key={mode}
 								className={`diff-card ${isCurrent ? "selected" : ""} ${!canIncrease && !isCurrent ? "locked" : ""}`}
-								onClick={() => setDifficulty(mode as any)}
+								onClick={() => setDifficulty(mode as DifficultyMode)}
 								disabled={!canIncrease}
 							>
 								{mode}

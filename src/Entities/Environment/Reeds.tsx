@@ -24,9 +24,15 @@ export function Reeds({ count = 40, seed = 0 }) {
 
 		for (let i = 0; i < count; i++) {
 			const angle = rand() * Math.PI * 2;
-			const dist = REED_CONFIG.minDistance + rand() * (REED_CONFIG.maxDistance - REED_CONFIG.minDistance);
+			const dist =
+				REED_CONFIG.minDistance + rand() * (REED_CONFIG.maxDistance - REED_CONFIG.minDistance);
 			dummy.position.set(Math.cos(angle) * dist, REED_CONFIG.height, Math.sin(angle) * dist);
-			dummy.scale.set(REED_CONFIG.baseScale, REED_CONFIG.heightVariation[0] + rand() * (REED_CONFIG.heightVariation[1] - REED_CONFIG.heightVariation[0]), REED_CONFIG.baseScale);
+			dummy.scale.set(
+				REED_CONFIG.baseScale,
+				REED_CONFIG.heightVariation[0] +
+					rand() * (REED_CONFIG.heightVariation[1] - REED_CONFIG.heightVariation[0]),
+				REED_CONFIG.baseScale,
+			);
 			dummy.rotation.y = rand() * Math.PI;
 			dummy.updateMatrix();
 			mesh.setMatrixAt(i, dummy.matrix);

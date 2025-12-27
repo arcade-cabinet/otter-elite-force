@@ -23,10 +23,19 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 	// Memoize materials
 	const scale = data.isHeavy ? 1.6 : 1.1;
 	const bodyColor = data.isHeavy ? "#1a241a" : "#2d3d2d";
-	const matBody = useMemo(() => new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.9 }), [bodyColor]);
-	const matHead = useMemo(() => new THREE.MeshStandardMaterial({ color: "#444", metalness: 0.6, roughness: 0.4 }), []);
+	const matBody = useMemo(
+		() => new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.9 }),
+		[bodyColor],
+	);
+	const matHead = useMemo(
+		() => new THREE.MeshStandardMaterial({ color: "#444", metalness: 0.6, roughness: 0.4 }),
+		[],
+	);
 	const matMud = useMemo(() => new THREE.MeshStandardMaterial({ color: "#3d3329" }), []);
-	const matStrap = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1a1a1a", roughness: 1 }), []);
+	const matStrap = useMemo(
+		() => new THREE.MeshStandardMaterial({ color: "#1a1a1a", roughness: 1 }),
+		[],
+	);
 
 	// Setup Yuka AI
 	useEffect(() => {
@@ -53,8 +62,8 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 				}
 			});
 			segmentsRef.current = segments.sort((a, b) => {
-				const numA = parseInt(a.name.split("-")[1]);
-				const numB = parseInt(b.name.split("-")[1]);
+				const numA = parseInt(a.name.split("-")[1], 10);
+				const numB = parseInt(b.name.split("-")[1], 10);
 				return numA - numB;
 			});
 		}
@@ -67,7 +76,7 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 		aiRef.current.update(delta, targetPosition, data.hp, data.suppression);
 		const currentState = aiRef.current.getState();
 		const currentlyAmbushing = currentState === "AMBUSH";
-		
+
 		if (isAmbushing !== currentlyAmbushing) {
 			setIsAmbushing(currentlyAmbushing);
 		}
@@ -103,7 +112,8 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 
 		// Procedural swimming animation
 		const time = _state.clock.elapsedTime;
-		const swimSpeed = currentState === "RETREAT" ? 10 : currentlyAmbushing ? 2 : data.isHeavy ? 4 : 6;
+		const swimSpeed =
+			currentState === "RETREAT" ? 10 : currentlyAmbushing ? 2 : data.isHeavy ? 4 : 6;
 		const swimAmount = currentlyAmbushing ? 0.05 : data.isHeavy ? 0.15 : 0.25;
 
 		segmentsRef.current.forEach((seg, i) => {

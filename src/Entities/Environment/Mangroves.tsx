@@ -25,12 +25,15 @@ export function Mangroves({ count = 30, seed = 0 }) {
 
 		for (let i = 0; i < count; i++) {
 			const angle = rand() * Math.PI * 2;
-			const dist = MANGROVE_CONFIG.minDistance + rand() * (MANGROVE_CONFIG.maxDistance - MANGROVE_CONFIG.minDistance);
+			const dist =
+				MANGROVE_CONFIG.minDistance +
+				rand() * (MANGROVE_CONFIG.maxDistance - MANGROVE_CONFIG.minDistance);
 			dummy.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
 			dummy.scale.set(
 				MANGROVE_CONFIG.minScale + rand() * (MANGROVE_CONFIG.maxScale - MANGROVE_CONFIG.minScale),
-				MANGROVE_CONFIG.minHeight + rand() * (MANGROVE_CONFIG.maxHeight - MANGROVE_CONFIG.minHeight),
-				MANGROVE_CONFIG.minScale + rand() * (MANGROVE_CONFIG.maxScale - MANGROVE_CONFIG.minScale)
+				MANGROVE_CONFIG.minHeight +
+					rand() * (MANGROVE_CONFIG.maxHeight - MANGROVE_CONFIG.minHeight),
+				MANGROVE_CONFIG.minScale + rand() * (MANGROVE_CONFIG.maxScale - MANGROVE_CONFIG.minScale),
 			);
 			dummy.rotation.set(rand() * 0.2 - 0.1, rand() * Math.PI, rand() * 0.2 - 0.1);
 			dummy.updateMatrix();

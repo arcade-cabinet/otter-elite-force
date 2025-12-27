@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /**
  * Main App Component
  * Root component that manages game state and renders appropriate screens
@@ -79,20 +78,6 @@ export function App() {
 			{/* Flash effects */}
 			<div id="flash" />
 			<div id="damage" />
-=======
-export function App() {
-	return (
-		<div
-			style={{
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-				height: "100vh",
-				fontFamily: "monospace",
-			}}
-		>
-			<h1>OTTER: ELITE FORCE</h1>
->>>>>>> origin/main
 		</div>
 	);
 }

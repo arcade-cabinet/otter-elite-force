@@ -23,12 +23,14 @@ export function Debris({ count = 10, color = "#444", seed = 0 }) {
 
 		for (let i = 0; i < count; i++) {
 			const angle = rand() * Math.PI * 2;
-			const dist = DEBRIS_CONFIG.minDistance + rand() * (DEBRIS_CONFIG.maxDistance - DEBRIS_CONFIG.minDistance);
+			const dist =
+				DEBRIS_CONFIG.minDistance +
+				rand() * (DEBRIS_CONFIG.maxDistance - DEBRIS_CONFIG.minDistance);
 			dummy.position.set(Math.cos(angle) * dist, DEBRIS_CONFIG.height, Math.sin(angle) * dist);
 			dummy.scale.set(
 				DEBRIS_CONFIG.minScale + rand() * 1.5,
 				DEBRIS_CONFIG.minScale + rand() * 0.5,
-				DEBRIS_CONFIG.minScale + rand() * 1.5
+				DEBRIS_CONFIG.minScale + rand() * 1.5,
 			);
 			dummy.rotation.set(rand() * 0.2, rand() * Math.PI, rand() * 0.2);
 			dummy.updateMatrix();

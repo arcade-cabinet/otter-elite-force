@@ -73,9 +73,16 @@ export class GatorAI {
 			this.changeState("STALK");
 		} else if (distance < GATOR_CONFIG.DETECTION_RANGE && this.state === "IDLE") {
 			this.changeState("STALK");
-		} else if (distance < GATOR_CONFIG.AMBUSH_RANGE && (this.state === "STALK" || this.state === "IDLE")) {
+		} else if (
+			distance < GATOR_CONFIG.AMBUSH_RANGE &&
+			(this.state === "STALK" || this.state === "IDLE")
+		) {
 			this.changeState("AMBUSH");
-		} else if (distance > GATOR_CONFIG.DISENGAGE_RANGE && this.state !== "IDLE" && this.state !== "RETREAT") {
+		} else if (
+			distance > GATOR_CONFIG.DISENGAGE_RANGE &&
+			this.state !== "IDLE" &&
+			this.state !== "RETREAT"
+		) {
 			this.changeState("IDLE");
 		}
 
@@ -85,7 +92,7 @@ export class GatorAI {
 			this.stalkOffset.set(
 				Math.cos(this.stalkAngle) * GATOR_CONFIG.STALK_RADIUS,
 				0,
-				Math.sin(this.stalkAngle) * GATOR_CONFIG.STALK_RADIUS
+				Math.sin(this.stalkAngle) * GATOR_CONFIG.STALK_RADIUS,
 			);
 			const targetPos = new YUKA.Vector3().copy(this.target).add(this.stalkOffset);
 			this.seekBehavior.target.copy(targetPos);

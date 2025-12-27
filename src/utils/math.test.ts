@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { clamp, lerp, randomRange, randomInt, normalizeAngle, angleDifference } from "./math";
+import { describe, expect, it } from "vitest";
+import { angleDifference, clamp, lerp, normalizeAngle } from "./math";
 
 describe("math utilities", () => {
 	describe("clamp", () => {

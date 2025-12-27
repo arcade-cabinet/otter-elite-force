@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AudioEngine } from "./AudioEngine";
 import * as Tone from "tone";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AudioEngine } from "./AudioEngine";
 
 vi.mock("tone", () => {
 	const mockSynth = {

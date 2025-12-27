@@ -24,13 +24,11 @@ jest.mock("yuka", () => ({
 }));
 
 describe("GatorAI", () => {
-	let vehicle: any;
-	let entityManager: any;
+	let vehicle: YUKA.Vehicle;
 	let gatorAI: GatorAI;
 
 	beforeEach(() => {
 		vehicle = new YUKA.Vehicle();
-		entityManager = new YUKA.EntityManager();
 		gatorAI = new GatorAI(vehicle);
 	});
 
@@ -41,7 +39,7 @@ describe("GatorAI", () => {
 	it("should transition from IDLE to STALK when player is within range", () => {
 		const playerPos = new THREE.Vector3(10, 0, 0);
 		vehicle.position.set(0, 0, 0);
-		
+
 		gatorAI.update(0.1, playerPos, 10, 0);
 		expect(gatorAI.getState()).toBe("STALK");
 	});
@@ -49,7 +47,7 @@ describe("GatorAI", () => {
 	it("should transition to AMBUSH when player is very close", () => {
 		const playerPos = new THREE.Vector3(5, 0, 0);
 		vehicle.position.set(0, 0, 0);
-		
+
 		gatorAI.update(0.1, playerPos, 10, 0);
 		expect(gatorAI.getState()).toBe("AMBUSH");
 	});

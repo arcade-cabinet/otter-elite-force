@@ -19,6 +19,9 @@ import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
 import { inputSystem } from "../Core/InputSystem";
 import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
+import { Enemy } from "../Entities/Enemies/Gator";
+import { Snake } from "../Entities/Enemies/Snake";
+import { Snapper } from "../Entities/Enemies/Snapper";
 import {
 	BurntTrees,
 	Debris,
@@ -43,9 +46,6 @@ import {
 	useGameStore,
 } from "../stores/gameStore";
 import { WATER_FRAG, WATER_VERT } from "../utils/shaders";
-import { Enemy } from "../Entities/Enemies/Gator";
-import { Snake } from "../Entities/Enemies/Snake";
-import { Snapper } from "../Entities/Enemies/Snapper";
 
 // Placeholder for missing components to ensure build
 function _GasStockpile({
@@ -356,29 +356,30 @@ function World() {
 					entity.position[1],
 					chunk.z * CHUNK_SIZE + entity.position[2],
 				);
-				const dist = playerRef.current!.position.distanceTo(worldPos);
+				const dist = playerRef.current?.position.distanceTo(worldPos);
 
-				if (entity.type === "MUD_PIT" && dist < 5) {
+				if (dist !== undefined && entity.type === "MUD_PIT" && dist < 5) {
 					nearMud = true;
 				}
 
 				if (
+					playerRef.current &&
 					entity.type === "PLATFORM" &&
-					Math.abs(playerRef.current!.position.x - worldPos.x) < 2.5 &&
-					Math.abs(playerRef.current!.position.z - worldPos.z) < 2.5
+					Math.abs(playerRef.current.position.x - worldPos.x) < 2.5 &&
+					Math.abs(playerRef.current.position.z - worldPos.z) < 2.5
 				) {
 					const top = worldPos.y + 0.5;
 					if (
-						playerRef.current!.position.y >= top - 0.2 &&
-						playerRef.current!.position.y <= top + 0.5 &&
+						playerRef.current.position.y >= top - 0.2 &&
+						playerRef.current.position.y <= top + 0.5 &&
 						newVelY <= 0
 					) {
-						playerRef.current!.position.y = top;
+						playerRef.current.position.y = top;
 						newVelY = 0;
 						setIsGrounded(true);
 					}
 				}
-				if (entity.type === "CLAM_BASKET" && dist < 2 && !entity.interacted) {
+				if (dist !== undefined && entity.type === "CLAM_BASKET" && dist < 2 && !entity.interacted) {
 					entity.interacted = true;
 					if (entity.isHeavy) {
 						takeDamage(30);
@@ -390,7 +391,7 @@ function World() {
 						audioEngine.playSFX("pickup");
 					}
 				}
-				if (entity.type === "EXTRACTION_POINT" && dist < 3) {
+				if (dist !== undefined && entity.type === "EXTRACTION_POINT" && dist < 3) {
 					if (!saveData.isLZSecured && chunk.x === 0 && chunk.z === 0) {
 						secureLZ();
 						audioEngine.playSFX("pickup");
@@ -408,19 +409,19 @@ function World() {
 						audioEngine.playSFX("pickup");
 					}
 				}
-				if (entity.type === "VILLAGER" && dist < 2 && !isEscortingVillager) {
+				if (dist !== undefined && entity.type === "VILLAGER" && dist < 2 && !isEscortingVillager) {
 					setEscortingVillager(true);
 					entity.type = "DEBRIS"; // Remove from world, attached to player
 					audioEngine.playSFX("pickup");
 				}
-				if (entity.type === "PRISON_CAGE" && dist < 2 && !entity.rescued) {
+				if (dist !== undefined && entity.type === "PRISON_CAGE" && dist < 2 && !entity.rescued) {
 					entity.rescued = true;
 					if (entity.objectiveId) {
 						rescueCharacter(entity.objectiveId);
 						audioEngine.playSFX("pickup");
 					}
 				}
-				if (entity.type === "RAFT" && dist < 2 && !isPilotingRaft) {
+				if (dist !== undefined && entity.type === "RAFT" && dist < 2 && !isPilotingRaft) {
 					setPilotingRaft(true, entity.id);
 					audioEngine.playSFX("pickup");
 				}
@@ -454,11 +455,12 @@ function World() {
 		} else {
 			setIsFiring(false);
 			if (moveVec.lengthSq() > 0.01) {
-			const targetAngle = Math.atan2(moveVec.x, moveVec.z);
-			let diff = targetAngle - playerRef.current.rotation.y;
-			diff = ((((diff + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) - Math.PI;
-			playerRef.current.rotation.y += diff * 5 * delta;
-			playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
+				const targetAngle = Math.atan2(moveVec.x, moveVec.z);
+				let diff = targetAngle - playerRef.current.rotation.y;
+				diff = ((((diff + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) - Math.PI;
+				playerRef.current.rotation.y += diff * 5 * delta;
+				playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
+			}
 		}
 
 		// Projectile collisions
@@ -513,7 +515,7 @@ function World() {
 										}
 									});
 								});
-								if (playerRef.current!.position.distanceTo(worldPos) < 6) {
+								if (playerRef.current && playerRef.current.position.distanceTo(worldPos) < 6) {
 									takeDamage(40);
 								}
 								entity.type = "DEBRIS"; // Oil is gone, replaced by debris

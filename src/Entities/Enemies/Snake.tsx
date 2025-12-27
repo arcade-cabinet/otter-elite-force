@@ -34,7 +34,8 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 		const dz = groupRef.current.position.z - targetPosition.z;
 		const distanceSq = dx * dx + dz * dz;
 
-		if (distanceSq < 64 && strikeTimer.current <= 0) { // 8^2 = 64
+		if (distanceSq < 64 && strikeTimer.current <= 0) {
+			// 8^2 = 64
 			setIsStriking(true);
 			strikeTimer.current = 4;
 		}
@@ -52,7 +53,7 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 		if (isStriking) {
 			strikeRotation = Math.atan2(
 				targetPosition.x - groupRef.current.position.x,
-				targetPosition.z - groupRef.current.position.z
+				targetPosition.z - groupRef.current.position.z,
 			);
 		}
 

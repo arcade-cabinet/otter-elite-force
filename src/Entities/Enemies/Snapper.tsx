@@ -24,10 +24,19 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 	// Memoize materials
 	const shellColor = "#3d3329";
 	const bodyColor = "#2d3d19";
-	const matShell = useMemo(() => new THREE.MeshStandardMaterial({ color: shellColor, roughness: 1 }), []);
+	const matShell = useMemo(
+		() => new THREE.MeshStandardMaterial({ color: shellColor, roughness: 1 }),
+		[],
+	);
 	const matBody = useMemo(() => new THREE.MeshStandardMaterial({ color: bodyColor }), []);
-	const matMetal = useMemo(() => new THREE.MeshStandardMaterial({ color: "#111", metalness: 0.8 }), []);
-	const matBarrel = useMemo(() => new THREE.MeshStandardMaterial({ color: "#222", metalness: 0.9 }), []);
+	const matMetal = useMemo(
+		() => new THREE.MeshStandardMaterial({ color: "#111", metalness: 0.8 }),
+		[],
+	);
+	const matBarrel = useMemo(
+		() => new THREE.MeshStandardMaterial({ color: "#222", metalness: 0.9 }),
+		[],
+	);
 
 	useFrame((state, _delta) => {
 		if (!groupRef.current || !turretRef.current) return;
@@ -60,9 +69,6 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 			onDeath(data.id);
 		}
 	}, [data.hp, data.id, onDeath]);
-
-	const shellColor = "#3d3329";
-	const bodyColor = "#2d3d19";
 
 	return (
 		<group ref={groupRef} position={[data.position.x, 0.2, data.position.z]}>

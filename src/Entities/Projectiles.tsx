@@ -53,7 +53,7 @@ export const Projectiles = forwardRef<ProjectilesHandle, Record<string, never>>(
 
 			// Basic collision detection could be added here
 			// e.g., raycasting from prevPosition to p.position
-			// For now, we expire them by lifetime. 
+			// For now, we expire them by lifetime.
 			// External systems can use getProjectiles() to check collisions.
 
 			if (p.lifetime <= 0) {

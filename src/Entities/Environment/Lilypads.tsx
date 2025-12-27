@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { createSeededRandom } from "../../utils/random";
 
@@ -24,9 +24,12 @@ export function Lilypads({ count = 20, seed = 0 }) {
 
 		for (let i = 0; i < count; i++) {
 			const angle = rand() * Math.PI * 2;
-			const dist = LILYPAD_CONFIG.minDistance + rand() * (LILYPAD_CONFIG.maxDistance - LILYPAD_CONFIG.minDistance);
+			const dist =
+				LILYPAD_CONFIG.minDistance +
+				rand() * (LILYPAD_CONFIG.maxDistance - LILYPAD_CONFIG.minDistance);
 			dummy.position.set(Math.cos(angle) * dist, LILYPAD_CONFIG.height, Math.sin(angle) * dist);
-			const size = LILYPAD_CONFIG.minScale + rand() * (LILYPAD_CONFIG.maxScale - LILYPAD_CONFIG.minScale);
+			const size =
+				LILYPAD_CONFIG.minScale + rand() * (LILYPAD_CONFIG.maxScale - LILYPAD_CONFIG.minScale);
 			dummy.scale.set(size, 0.05, size);
 			dummy.rotation.y = rand() * Math.PI;
 			dummy.updateMatrix();

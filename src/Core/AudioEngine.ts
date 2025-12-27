@@ -11,7 +11,11 @@ export class AudioEngine {
 	private initialized = false;
 	private synths: Map<string, Tone.Synth> = new Map();
 	private noiseSynth: Tone.NoiseSynth | null = null;
-	private activePatterns: (Tone.Pattern<any> | Tone.PolySynth | Tone.MonoSynth)[] = [];
+	private activePatterns: (
+		| Tone.Pattern<string | string[]>
+		| Tone.PolySynth<Tone.Synth>
+		| Tone.MonoSynth
+	)[] = [];
 	private fadeTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
 
 	// Cross-fade support
@@ -177,7 +181,7 @@ export class AudioEngine {
 
 	private _disposeOldMusic(
 		oldVolume: Tone.Volume,
-		oldPatterns: (Tone.Pattern<any> | Tone.PolySynth | Tone.MonoSynth)[],
+		oldPatterns: (Tone.Pattern<string | string[]> | Tone.PolySynth<Tone.Synth> | Tone.MonoSynth)[],
 	): void {
 		for (const item of oldPatterns) {
 			item.dispose();

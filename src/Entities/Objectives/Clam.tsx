@@ -32,11 +32,13 @@ export function Clam({
 		const t = state.clock.elapsedTime;
 
 		// Levitate and rotate if not carried
-		animationRef.current.position.y = CLAM_CONFIG.levitationHeight + Math.sin(t * 2) * CLAM_CONFIG.levitationAmplitude;
+		animationRef.current.position.y =
+			CLAM_CONFIG.levitationHeight + Math.sin(t * 2) * CLAM_CONFIG.levitationAmplitude;
 		animationRef.current.rotation.y = t * CLAM_CONFIG.rotationSpeed;
 
 		if (lightRef.current) {
-			lightRef.current.intensity = CLAM_CONFIG.lightIntensityBase + Math.sin(t * 4) * CLAM_CONFIG.lightIntensityAmplitude;
+			lightRef.current.intensity =
+				CLAM_CONFIG.lightIntensityBase + Math.sin(t * 4) * CLAM_CONFIG.lightIntensityAmplitude;
 		}
 	});
 
@@ -64,7 +66,11 @@ export function Clam({
 	);
 }
 
-export function ExtractionPoint({ position }: { position: [number, number, number] | THREE.Vector3 }) {
+export function ExtractionPoint({
+	position,
+}: {
+	position: [number, number, number] | THREE.Vector3;
+}) {
 	return (
 		<group position={position}>
 			{/* Signal Flare / Marker */}

@@ -109,9 +109,7 @@ export class InputSystem {
 
 			this.handleTouchMove = (e: TouchEvent) => {
 				if (!this.state.drag.active) return;
-				const touch = Array.from(e.targetTouches).find(
-					(t) => t.identifier === this.activeTouchId,
-				);
+				const touch = Array.from(e.targetTouches).find((t) => t.identifier === this.activeTouchId);
 				if (!touch) return;
 
 				if (e.cancelable) e.preventDefault();
@@ -300,8 +298,10 @@ export class InputSystem {
 		}
 
 		if (this.lookZone) {
-			if (this.handleTouchStart) this.lookZone.removeEventListener("touchstart", this.handleTouchStart);
-			if (this.handleTouchMove) this.lookZone.removeEventListener("touchmove", this.handleTouchMove);
+			if (this.handleTouchStart)
+				this.lookZone.removeEventListener("touchstart", this.handleTouchStart);
+			if (this.handleTouchMove)
+				this.lookZone.removeEventListener("touchmove", this.handleTouchMove);
 			if (this.handleTouchEnd) {
 				this.lookZone.removeEventListener("touchend", this.handleTouchEnd);
 				this.lookZone.removeEventListener("touchcancel", this.handleTouchEnd);

@@ -5,7 +5,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef, useState } from "react";
-import * as THREE from "three";
+import type * as THREE from "three";
 import { WEAPONS } from "../stores/gameStore";
 
 interface WeaponProps {

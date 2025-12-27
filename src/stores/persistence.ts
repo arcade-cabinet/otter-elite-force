@@ -48,18 +48,16 @@ export const deepClone = <T>(obj: T): T => {
 export const deepMerge = (
 	target: Record<string, unknown>,
 	source: Record<string, unknown>,
-): unknown => {
+): Record<string, unknown> => {
 	const output = { ...target };
 	if (isObject(target) && isObject(source)) {
 		for (const key of Object.keys(source)) {
-			if (isObject(source[key])) {
-				if (!(key in target)) {
-					Object.assign(output, { [key]: source[key] });
-				} else {
-					(output as any)[key] = deepMerge(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>);
-				}
+			const targetVal = target[key];
+			const sourceVal = source[key];
+			if (isObject(targetVal) && isObject(sourceVal)) {
+				output[key] = deepMerge(targetVal, sourceVal);
 			} else {
-				Object.assign(output, { [key]: source[key] });
+				output[key] = sourceVal;
 			}
 		}
 	}
@@ -74,18 +72,23 @@ export const migrateSchema = (data: Record<string, unknown>): SaveData => {
 	const version = (data.version as number) || 7;
 
 	if (version < 8) {
-		data.baseComponents = (data.baseComponents as any[]) || [];
+		data.baseComponents = (data.baseComponents as PlacedComponent[]) || [];
 		data.strategicObjectives =
-			data.strategicObjectives ||
+			(data.strategicObjectives as SaveData["strategicObjectives"]) ||
 			deepClone(DEFAULT_SAVE_DATA.strategicObjectives);
 		data.spoilsOfWar =
-			data.spoilsOfWar || deepClone(DEFAULT_SAVE_DATA.spoilsOfWar);
+			(data.spoilsOfWar as SaveData["spoilsOfWar"]) || deepClone(DEFAULT_SAVE_DATA.spoilsOfWar);
 	}
 
 	// Ensure weaponLvl exists for all base weapons
-	if (!data.upgrades) data.upgrades = deepClone(DEFAULT_SAVE_DATA.upgrades);
-	if (!(data.upgrades as any).weaponLvl)
-		(data.upgrades as any).weaponLvl = deepClone(DEFAULT_SAVE_DATA.upgrades.weaponLvl);
+	if (!data.upgrades) {
+		data.upgrades = deepClone(DEFAULT_SAVE_DATA.upgrades);
+	} else {
+		const upgrades = data.upgrades as SaveData["upgrades"];
+		if (!upgrades.weaponLvl) {
+			upgrades.weaponLvl = deepClone(DEFAULT_SAVE_DATA.upgrades.weaponLvl);
+		}
+	}
 
 	data.version = 8;
 	return data as unknown as SaveData;
@@ -114,12 +117,7 @@ export const isValidSaveData = (data: unknown): data is SaveData => {
 
 	// Basic check for upgrades structure
 	const upgrades = record.upgrades as Record<string, unknown>;
-	if (
-		typeof upgrades !== "object" ||
-		upgrades === null ||
-		!("weaponLvl" in upgrades)
-	)
-		return false;
+	if (typeof upgrades !== "object" || upgrades === null || !("weaponLvl" in upgrades)) return false;
 
 	return true;
 };
@@ -144,9 +142,7 @@ export const loadFromLocalStorage = (): SaveData | null => {
 
 		const parsed = JSON.parse(saved);
 		if (!isValidSaveData(parsed)) {
-			console.warn(
-				"Invalid save data format detected, attempting to recover partially",
-			);
+			console.warn("Invalid save data format detected, attempting to recover partially");
 			return null;
 		}
 
@@ -154,7 +150,10 @@ export const loadFromLocalStorage = (): SaveData | null => {
 		// by strictly using the fields we expect from the migrated and merged data.
 
 		const migrated = migrateSchema(parsed as Record<string, unknown>);
-		return deepMerge(DEFAULT_SAVE_DATA as unknown as Record<string, unknown>, migrated as unknown as Record<string, unknown>);
+		return deepMerge(
+			DEFAULT_SAVE_DATA as unknown as Record<string, unknown>,
+			migrated as unknown as Record<string, unknown>,
+		);
 	} catch (e) {
 		console.error("Load failed", e);
 		return null;

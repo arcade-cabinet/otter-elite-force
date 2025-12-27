@@ -125,9 +125,7 @@ describe("gameStore", () => {
 		store.secureChunk("1,1");
 		expect(useGameStore.getState().saveData.territoryScore).toBe(1);
 		if (hasHut) {
-			expect(
-				useGameStore.getState().saveData.peacekeepingScore,
-			).toBeGreaterThanOrEqual(10);
+			expect(useGameStore.getState().saveData.peacekeepingScore).toBeGreaterThanOrEqual(10);
 		}
 	});
 });

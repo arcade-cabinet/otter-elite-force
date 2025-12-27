@@ -74,7 +74,9 @@ export const Particles = forwardRef<ParticlesHandle, { onExpire?: (id: string) =
 				positions[idx3 + 1] = p.position.y;
 				positions[idx3 + 2] = p.position.z;
 
-				let r = 1, g = 1, b = 1;
+				let r = 1,
+					g = 1,
+					b = 1;
 				switch (p.type) {
 					case "shell":
 						[r, g, b] = [1, 0.84, 0]; // #FFD700
@@ -98,10 +100,16 @@ export const Particles = forwardRef<ParticlesHandle, { onExpire?: (id: string) =
 			}
 
 			const geometry = pointsRef.current.geometry;
-			geometry.setAttribute("position", new THREE.BufferAttribute(positions.subarray(0, activeCount * 3), 3));
-			geometry.setAttribute("color", new THREE.BufferAttribute(colors.subarray(0, activeCount * 3), 3));
+			geometry.setAttribute(
+				"position",
+				new THREE.BufferAttribute(positions.subarray(0, activeCount * 3), 3),
+			);
+			geometry.setAttribute(
+				"color",
+				new THREE.BufferAttribute(colors.subarray(0, activeCount * 3), 3),
+			);
 			geometry.setAttribute("size", new THREE.BufferAttribute(sizes.subarray(0, activeCount), 1));
-			
+
 			// Use setDrawRange to only render active particles
 			geometry.setDrawRange(0, activeCount);
 		});
