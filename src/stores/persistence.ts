@@ -68,7 +68,7 @@ function isObject(item: unknown): item is Record<string, unknown> {
 	return typeof item === "object" && item !== null && !Array.isArray(item);
 }
 
-export const migrateSchema = (data: Record<string, unknown>): SaveData => {
+export const migrateSchema = (data: Record<string, unknown>): Record<string, unknown> => {
 	const version = (data.version as number) || 7;
 
 	if (version < 8) {
@@ -91,7 +91,7 @@ export const migrateSchema = (data: Record<string, unknown>): SaveData => {
 	}
 
 	data.version = 8;
-	return data as unknown as SaveData;
+	return data;
 };
 
 export const isValidSaveData = (data: unknown): data is SaveData => {
@@ -150,11 +150,11 @@ export const loadFromLocalStorage = (): SaveData | null => {
 		// by strictly using the fields we expect from the migrated and merged data.
 
 		const migrated = migrateSchema(parsed as Record<string, unknown>);
-		// Deep clone DEFAULT_SAVE_DATA as base and merge with migrated data
-		const baseData: Record<string, unknown> = JSON.parse(JSON.stringify(DEFAULT_SAVE_DATA));
-		const migratedRecord: Record<string, unknown> = JSON.parse(JSON.stringify(migrated));
-		const merged = deepMerge(baseData, migratedRecord);
-		return merged as unknown as SaveData;
+		// Deep clone and merge - using JSON serialization to get plain objects
+		const baseData = JSON.parse(JSON.stringify(DEFAULT_SAVE_DATA));
+		const migratedData = JSON.parse(JSON.stringify(migrated));
+		const merged = deepMerge(baseData, migratedData);
+		return merged as SaveData;
 	} catch (e) {
 		console.error("Load failed", e);
 		return null;
