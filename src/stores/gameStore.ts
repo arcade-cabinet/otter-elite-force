@@ -136,12 +136,15 @@ export interface ChunkData {
 			| "OIL_SLICK"
 			| "MUD_PIT"
 			| "VILLAGER"
-			| "HUT";
+			| "HUT"
+			| "CLAM"
+			| "EXTRACTION_POINT";
 		position: [number, number, number];
 		isHeavy?: boolean;
 		objectiveId?: string;
 		hp?: number;
 		suppression?: number;
+		captured?: boolean;
 	}[];
 	decorations: {
 		id: string;
