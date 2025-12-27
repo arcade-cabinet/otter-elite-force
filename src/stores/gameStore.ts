@@ -114,6 +114,7 @@ interface SaveData {
 	unlockedCharacters: string[];
 	coins: number;
 	discoveredChunks: Record<string, ChunkData>;
+	territoryScore: number;
 }
 
 export interface ChunkData {
@@ -122,6 +123,7 @@ export interface ChunkData {
 	z: number;
 	seed: number;
 	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
+	secured: boolean;
 	entities: {
 		id: string;
 		type:
@@ -169,6 +171,7 @@ interface GameState {
 	discoveredChunks: Record<string, ChunkData>;
 	discoverChunk: (x: number, z: number) => ChunkData;
 	getNearbyChunks: (x: number, z: number) => ChunkData[];
+	secureChunk: (chunkId: string) => void;
 
 	// Character management
 	selectedCharacterId: string;
@@ -208,6 +211,7 @@ const DEFAULT_SAVE_DATA: SaveData = {
 	unlockedCharacters: ["bubbles"],
 	coins: 0,
 	discoveredChunks: {},
+	territoryScore: 0,
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -336,6 +340,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 			z,
 			seed,
 			terrainType,
+			secured: false,
 			entities,
 			decorations: [
 				{ id: `${id}-dec-0`, type: "REED", count: Math.floor(rand() * 20) + 10 },
@@ -368,6 +373,25 @@ export const useGameStore = create<GameState>((set, get) => ({
 			}
 		}
 		return nearby;
+	},
+
+	secureChunk: (chunkId) => {
+		set((state) => {
+			const chunk = state.saveData.discoveredChunks[chunkId];
+			if (!chunk || chunk.secured) return state;
+
+			return {
+				saveData: {
+					...state.saveData,
+					territoryScore: state.saveData.territoryScore + 1,
+					discoveredChunks: {
+						...state.saveData.discoveredChunks,
+						[chunkId]: { ...chunk, secured: true },
+					},
+				},
+			};
+		});
+		get().saveGame();
 	},
 
 	// Character management

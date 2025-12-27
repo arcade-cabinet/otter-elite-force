@@ -18,8 +18,11 @@ A biological cult of apex crocodilians and reptilian predators.
 *   **Tech**: Stolen URA webbing, heavy industrial siphons, and biological "Periscope" mimicry.
 *   **Goal**: The "Sacred Sludge"—turning the river into a stagnant, oxygen-free bog where only scales can breathe.
 
-## 🐚 The Objective: Ancestral Clam Beds
-Not just fuel—these are the Reach's soul. The Scale-Guard is siphoning the beds to fund their expansion. The URA is here to dismantle the siphons, coordinate-by-coordinate.
+## 🐚 The Objective: Liberation through Occupation
+The URA isn't just here to raid; we are here to **CLAIM** the Reach. Every industrial siphon dismantled is a flag planted for the Alliance. 
+*   **Secure & Hold**: Destroying a siphon "Secures" the local coordinate (chunk). 
+*   **The Map**: Once secured, the terrain is fixed in Alliance records, and the "Sacred Sludge" smoke is replaced by the URA colors.
+*   **Territory Score**: The Alliance high command tracks "Territory Secured." Reach high scores to unlock advanced platoon members and heavier ballistics.
 
 ## 🪖 Grunt Slang
 *   **"The Soup"**: The water of the Reach.

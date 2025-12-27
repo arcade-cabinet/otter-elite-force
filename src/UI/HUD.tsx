@@ -27,6 +27,9 @@ export function HUD() {
 					<div className="hud-coords">
 						COORD: {Math.floor(playerPos[0])}, {Math.floor(playerPos[2])}
 					</div>
+					<div className="hud-territory">
+						TERRITORY SECURED: {useGameStore.getState().saveData.territoryScore}
+					</div>
 				</div>
 
 				<div className="hud-objective">

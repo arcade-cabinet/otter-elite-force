@@ -600,6 +600,14 @@ button.secondary {
 	letter-spacing: 1px;
 }
 
+.hud-territory {
+	font-size: 0.7rem;
+	color: var(--accent);
+	margin-top: 2px;
+	font-family: monospace;
+	letter-spacing: 1px;
+}
+
 .hud-left {
 	display: flex;
 	flex-direction: column;
