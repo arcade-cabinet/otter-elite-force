@@ -10,8 +10,8 @@
  * - Kill streak system
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CHARACTERS, useGameStore, WEAPONS } from "../../stores/gameStore";
+import { beforeEach, describe, expect, it } from "vitest";
+import { useGameStore } from "../../stores/gameStore";
 
 describe("Integration - Complete Game Loop", () => {
 	beforeEach(() => {

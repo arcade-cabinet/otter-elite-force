@@ -10,7 +10,7 @@
  * - Save/Load persistence
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
 	CHAR_PRICES,
 	CHARACTERS,
@@ -507,7 +507,7 @@ describe("gameStore - Game Constants", () => {
 
 	it("should have valid character prices", () => {
 		expect(CHAR_PRICES.bubbles).toBe(0); // Starter character is free
-		for (const [id, price] of Object.entries(CHAR_PRICES)) {
+		for (const [_id, price] of Object.entries(CHAR_PRICES)) {
 			expect(price).toBeGreaterThanOrEqual(0);
 		}
 	});

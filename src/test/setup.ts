@@ -648,9 +648,6 @@ class MockTouchEvent extends Event {
 	touches: Touch[] = [];
 	targetTouches: Touch[] = [];
 	changedTouches: Touch[] = [];
-	constructor(type: string, init?: TouchEventInit) {
-		super(type, init);
-	}
 }
 global.TouchEvent = MockTouchEvent as unknown as typeof TouchEvent;
 

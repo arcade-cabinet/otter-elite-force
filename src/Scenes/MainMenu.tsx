@@ -3,7 +3,7 @@
  * Initial screen with campaign selection
  */
 
-import { CHARACTERS, useGameStore } from "../stores/gameStore";
+import { CHARACTERS, type DifficultyMode, useGameStore } from "../stores/gameStore";
 import { LEVELS, RANKS } from "../utils/constants";
 
 export function MainMenu() {
@@ -70,7 +70,7 @@ export function MainMenu() {
 								type="button"
 								key={mode}
 								className={`diff-card ${isCurrent ? "selected" : ""} ${!canIncrease && !isCurrent ? "locked" : ""}`}
-								onClick={() => setDifficulty(mode as any)}
+								onClick={() => setDifficulty(mode as DifficultyMode)}
 								disabled={!canIncrease}
 							>
 								{mode}
