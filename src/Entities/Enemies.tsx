@@ -4,7 +4,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Mesh, Group } from "three";
 import * as THREE from "three";
 import * as YUKA from "yuka";
@@ -25,8 +25,13 @@ interface EnemyProps {
 
 export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 	const groupRef = useRef<Group>(null);
+	const bodyRef = useRef<Group>(null);
 	const vehicleRef = useRef<YUKA.Vehicle | null>(null);
 	const targetRef = useRef<YUKA.Vector3 | null>(null);
+	
+	// Ambush state
+	const [isAmbushing, setIsAmbushing] = useState(false);
+	const ambushCooldown = useRef(0);
 
 	// Setup Yuka AI
 	useEffect(() => {
@@ -48,7 +53,35 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 
 	// Update AI and sync with Three.js mesh
 	useFrame((_state, delta) => {
-		if (!vehicleRef.current || !groupRef.current) return;
+		if (!vehicleRef.current || !groupRef.current || !bodyRef.current) return;
+
+		const distanceToPlayer = groupRef.current.position.distanceTo(targetPosition);
+		
+		// Ambush logic: Pop up when close, or at random
+		ambushCooldown.current -= delta;
+		if (distanceToPlayer < 15 && ambushCooldown.current <= 0) {
+			setIsAmbushing(true);
+			ambushCooldown.current = 5 + Math.random() * 5; // 5-10s between ambushes
+			
+			// Stop moving while ambushing
+			vehicleRef.current.maxSpeed = 0;
+			
+			// Stay up for 3 seconds then submerge
+			setTimeout(() => {
+				setIsAmbushing(false);
+				if (vehicleRef.current) {
+					vehicleRef.current.maxSpeed = data.isHeavy ? 4 : 7;
+				}
+			}, 3000);
+		}
+
+		// Animate rising/submerging
+		const targetY = isAmbushing ? 0.8 : 0.15;
+		bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, targetY, 0.1);
+		
+		// Tilt body up when ambushing
+		const targetRotationX = isAmbushing ? -0.4 : 0;
+		bodyRef.current.rotation.x = THREE.MathUtils.lerp(bodyRef.current.rotation.x, targetRotationX, 0.1);
 
 		// Update target position
 		if (targetRef.current) {
@@ -59,20 +92,24 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		vehicleRef.current.update(delta);
 
 		// Sync Three.js mesh with Yuka vehicle
-		groupRef.current.position.set(vehicleRef.current.position.x, 0.15, vehicleRef.current.position.z);
+		groupRef.current.position.set(vehicleRef.current.position.x, 0, vehicleRef.current.position.z);
 
-		// Face direction of movement
-		if (vehicleRef.current.velocity.length() > 0.1) {
+		// Face direction of movement (or player if ambushing)
+		if (isAmbushing) {
+			const lookDir = targetPosition.clone().sub(groupRef.current.position);
+			const targetAngle = Math.atan2(lookDir.x, lookDir.z);
+			groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetAngle, 0.1);
+		} else if (vehicleRef.current.velocity.length() > 0.1) {
 			const angle = Math.atan2(vehicleRef.current.velocity.x, vehicleRef.current.velocity.z);
 			groupRef.current.rotation.y = angle;
 		}
 
 		// Procedural swimming animation
 		const time = _state.clock.elapsedTime;
-		const swimSpeed = data.isHeavy ? 4 : 6;
-		const swimAmount = data.isHeavy ? 0.15 : 0.25;
+		const swimSpeed = isAmbushing ? 2 : (data.isHeavy ? 4 : 6);
+		const swimAmount = isAmbushing ? 0.05 : (data.isHeavy ? 0.15 : 0.25);
 		
-		groupRef.current.children.forEach((child, i) => {
+		bodyRef.current.children.forEach((child, i) => {
 			if (child.name.startsWith("segment")) {
 				child.rotation.y = Math.sin(time * swimSpeed - i * 0.4) * swimAmount;
 			}
@@ -93,62 +130,85 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 
 	return (
 		<group ref={groupRef}>
-			{/* Head */}
-			<group position={[0, 0.1, 1.2 * scale]} name="segment-0">
-				{/* Main Head / Snout */}
-				<mesh castShadow receiveShadow>
-					<boxGeometry args={[0.6 * scale, 0.3 * scale, 1.1 * scale]} />
-					<meshStandardMaterial color={bodyColor} roughness={0.9} />
-				</mesh>
-				{/* Mud Camo Markings */}
-				<mesh position={[0, 0.16 * scale, 0.2 * scale]}>
-					<boxGeometry args={[0.4 * scale, 0.02, 0.6 * scale]} />
-					<meshStandardMaterial color={mudColor} />
-				</mesh>
-				{/* Cold, calculating eyes */}
-				{[-1, 1].map((side) => (
-					<mesh key={`eye-${side}`} position={[side * 0.22 * scale, 0.12 * scale, 0.35 * scale]}>
-						<sphereGeometry args={[0.05 * scale, 8, 8]} />
-						<meshBasicMaterial color="#ffaa00" />
-					</mesh>
-				))}
-				{/* Stolen muzzle/webbing strap */}
-				<mesh position={[0, -0.05 * scale, 0.4 * scale]}>
-					<boxGeometry args={[0.65 * scale, 0.1 * scale, 0.1 * scale]} />
-					<meshStandardMaterial color={strapColor} roughness={1} />
-				</mesh>
-			</group>
-
-			{/* Body Segments with Webbing */}
-			{[...Array(5)].map((_, i) => (
-				<group key={`segment-${i}`} position={[0, 0.1, (0.4 - i * 0.75) * scale]} name={`segment-${i+1}`}>
+			<group ref={bodyRef}>
+				{/* --- TACTICAL GATOR BODY --- */}
+				
+				{/* Head / Chest (Armored) */}
+				<group position={[0, 0.1, 1.2 * scale]} name="segment-0">
+					{/* Main Head / Snout */}
 					<mesh castShadow receiveShadow>
-						<boxGeometry args={[(0.85 - i * 0.1) * scale, 0.5 * scale, 0.85 * scale]} />
+						<boxGeometry args={[0.6 * scale, 0.3 * scale, 1.1 * scale]} />
 						<meshStandardMaterial color={bodyColor} roughness={0.9} />
 					</mesh>
-					{/* Tactical Straps / Webbing Loops */}
+					{/* Heavy Armor Plating (Tank feel) */}
 					<mesh position={[0, 0.2 * scale, 0]}>
-						<boxGeometry args={[(0.9 - i * 0.1) * scale, 0.12 * scale, 0.15 * scale]} />
-						<meshStandardMaterial color={strapColor} roughness={1} />
+						<boxGeometry args={[0.7 * scale, 0.15 * scale, 0.8 * scale]} />
+						<meshStandardMaterial color="#444" metalness={0.6} roughness={0.4} />
 					</mesh>
-					{/* Irregular mud patches */}
-					<mesh position={[0, 0.26 * scale, (Math.random() - 0.5) * 0.2 * scale]}>
-						<boxGeometry args={[0.4 * scale, 0.02, 0.4 * scale]} />
+					{/* Mud Camo Markings */}
+					<mesh position={[0, 0.3 * scale, 0.2 * scale]}>
+						<boxGeometry args={[0.4 * scale, 0.02, 0.6 * scale]} />
 						<meshStandardMaterial color={mudColor} />
 					</mesh>
+					{/* Cold, calculating eyes */}
+					{[-1, 1].map((side) => (
+						<mesh key={`eye-${side}`} position={[side * 0.22 * scale, 0.12 * scale, 0.35 * scale]}>
+							<sphereGeometry args={[0.05 * scale, 8, 8]} />
+							<meshBasicMaterial color="#ffaa00" />
+						</mesh>
+					))}
+					
+					{/* MASSIVE HONKING GUN (Appears when ambushing) */}
+					<group position={[0, 0.4 * scale, 0.2 * scale]} scale={isAmbushing ? 1 : 0}>
+						{/* Gun Body */}
+						<mesh castShadow>
+							<boxGeometry args={[0.3 * scale, 0.3 * scale, 1.2 * scale]} />
+							<meshStandardMaterial color="#111" metalness={0.8} />
+						</mesh>
+						{/* Large Barrel */}
+						<mesh position={[0, 0, 0.8 * scale]}>
+							<cylinderGeometry args={[0.1 * scale, 0.1 * scale, 1.5 * scale, 8]} rotation-x={Math.PI / 2} />
+							<meshStandardMaterial color="#222" metalness={0.9} />
+						</mesh>
+						{/* Ammo Belt */}
+						<mesh position={[0.2 * scale, -0.1 * scale, -0.3 * scale]} rotation-z={0.5}>
+							<boxGeometry args={[0.1 * scale, 0.4 * scale, 0.2 * scale]} />
+							<meshStandardMaterial color="#aa8800" />
+						</mesh>
+					</group>
 				</group>
-			))}
 
-			{/* Tail */}
-			<group position={[0, 0.1, -3.2 * scale]} name="segment-6">
-				<mesh castShadow>
-					<boxGeometry args={[0.2 * scale, 0.2 * scale, 1.5 * scale]} />
-					<meshStandardMaterial color={bodyColor} />
-				</mesh>
+				{/* Body Segments with Webbing */}
+				{[...Array(5)].map((_, i) => (
+					<group key={`segment-${i}`} position={[0, 0.1, (0.4 - i * 0.75) * scale]} name={`segment-${i+1}`}>
+						<mesh castShadow receiveShadow>
+							<boxGeometry args={[(0.85 - i * 0.1) * scale, 0.5 * scale, 0.85 * scale]} />
+							<meshStandardMaterial color={bodyColor} roughness={0.9} />
+						</mesh>
+						{/* Heavy Back Plates */}
+						<mesh position={[0, 0.3 * scale, 0]}>
+							<boxGeometry args={[(0.75 - i * 0.1) * scale, 0.1 * scale, 0.6 * scale]} />
+							<meshStandardMaterial color="#333" metalness={0.5} />
+						</mesh>
+						{/* Tactical Straps */}
+						<mesh position={[0, 0.2 * scale, 0]}>
+							<boxGeometry args={[(0.9 - i * 0.1) * scale, 0.12 * scale, 0.15 * scale]} />
+							<meshStandardMaterial color={strapColor} roughness={1} />
+						</mesh>
+					</group>
+				))}
+
+				{/* Tail */}
+				<group position={[0, 0.1, -3.2 * scale]} name="segment-6">
+					<mesh castShadow>
+						<boxGeometry args={[0.2 * scale, 0.2 * scale, 1.5 * scale]} />
+						<meshStandardMaterial color={bodyColor} />
+					</mesh>
+				</group>
 			</group>
 
-			{/* Health bar (Modern Military UI style) */}
-			<group position={[0, 1.3 * scale, 0]}>
+			{/* Health bar (Floating above the ambushing gator) */}
+			<group position={[0, 2 * scale, 0]}>
 				<mesh position={[0, 0, 0]}>
 					<planeGeometry args={[1.4, 0.08]} />
 					<meshBasicMaterial color="#000" transparent opacity={0.5} side={THREE.DoubleSide} />
@@ -160,4 +220,5 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 			</group>
 		</group>
 	);
+}
 }
