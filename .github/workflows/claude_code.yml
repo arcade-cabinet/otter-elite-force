@@ -148,6 +148,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           track_progress: true
+          allowed_bots: "*"
           additional_permissions: |
             actions: read
 
