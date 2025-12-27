@@ -490,10 +490,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	buyUpgrade: (type, cost) => {
 		const { saveData } = get();
-		const boostKey = `${type}Boost` as
-			| "speedBoost"
-			| "healthBoost"
-			| "damageBoost";
+		const boostMap = {
+			speed: "speedBoost",
+			health: "healthBoost",
+			damage: "damageBoost",
+		} as const;
+
+		const boostKey = boostMap[type];
 		const currentBoost = saveData.upgrades[boostKey];
 
 		// Validation before spending coins

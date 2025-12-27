@@ -128,7 +128,12 @@ export const saveToLocalStorage = (data: SaveData) => {
 	try {
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 	} catch (e) {
-		console.error("Save failed", e);
+		if (e instanceof DOMException && e.name === "QuotaExceededError") {
+			console.error("Storage quota exceeded. Save failed.");
+			// Provide some visual feedback if possible, or just log
+		} else {
+			console.error("Save failed", e);
+		}
 	}
 };
 
