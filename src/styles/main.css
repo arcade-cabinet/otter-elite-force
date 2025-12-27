@@ -588,6 +588,14 @@ button.secondary {
 	letter-spacing: 1px;
 }
 
+.hud-peacekeeping {
+	font-size: 0.7rem;
+	color: #00ff00;
+	margin-top: 2px;
+	font-family: monospace;
+	letter-spacing: 1px;
+}
+
 .hud-left {
 	display: flex;
 	flex-direction: column;

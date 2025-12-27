@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import * as YUKA from "yuka";
+import { Weapon } from "../Weapon";
 import type { EnemyProps, GatorData } from "./types";
 
 export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) {
@@ -158,21 +159,7 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 					))}
 
 					<group position={[0, 0.4 * scale, 0.2 * scale]} scale={isAmbushing ? 1 : 0}>
-						<mesh castShadow>
-							<boxGeometry args={[0.3 * scale, 0.3 * scale, 1.2 * scale]} />
-							<meshStandardMaterial color="#111" metalness={0.8} />
-						</mesh>
-						<mesh position={[0, 0, 0.8 * scale]}>
-							<cylinderGeometry
-								args={[0.1 * scale, 0.1 * scale, 1.5 * scale, 8]}
-								rotation-x={Math.PI / 2}
-							/>
-							<meshStandardMaterial color="#222" metalness={0.9} />
-						</mesh>
-						<mesh position={[0.2 * scale, -0.1 * scale, -0.3 * scale]} rotation-z={0.5}>
-							<boxGeometry args={[0.1 * scale, 0.4 * scale, 0.2 * scale]} />
-							<meshStandardMaterial color="#aa8800" />
-						</mesh>
+						<Weapon weaponId="fish-cannon" />
 					</group>
 				</group>
 
