@@ -13,9 +13,12 @@
  * 3. Universal skeleton shared by all characters
  * 4. Weapons detached from characters
  * 5. Same components for player AND enemies
+ *
+ * NOTE: Data definitions (weapons, buildables, etc.) are now in src/ecs/data/
+ * These modules provide mesh assembly and UI utility functions.
  */
 
-// Build Mode
+// Build Mode (placement, validation, ghost preview)
 export {
 	BUILDABLE_ITEMS,
 	canAfford,
@@ -29,7 +32,8 @@ export {
 	updateGhostColor,
 	validatePlacement,
 } from "./buildMode";
-// Canteen / Loadout
+
+// Canteen / Loadout (mesh assembly, shop)
 export {
 	ATTACHMENTS,
 	assembleWeaponMesh,
@@ -43,6 +47,7 @@ export {
 	type WeaponDefinition,
 	type WeaponReceiverType,
 } from "./canteenLoadout";
+
 // Component Library (DRY meshes, materials, skeleton)
 export {
 	// Factories
@@ -63,6 +68,7 @@ export {
 	// Universal skeleton
 	UNIVERSAL_SKELETON,
 } from "./componentLibrary";
+
 // Settlement Assembler
 export {
 	assembleElevatedNetwork,
@@ -72,6 +78,7 @@ export {
 	type SettlementInhabitant,
 	type SettlementStructure,
 } from "./settlementAssembler";
+
 // Structure Assembler
 export {
 	assembleHut,
@@ -104,3 +111,23 @@ export type {
 	StructureComponentType,
 	StructureTemplate,
 } from "./types";
+
+// Re-export ECS data templates for convenience
+export {
+	ATTACHMENT_TEMPLATES,
+	type AttachmentTemplate,
+	BUILDABLE_TEMPLATES,
+	type BuildableTemplate,
+	calculateFinalStats,
+	EQUIPMENT_TEMPLATES,
+	type EquipmentTemplate,
+	getAttachmentTemplate,
+	getBuildableTemplate,
+	getCompatibleAttachments,
+	getEquipmentTemplate,
+	getUnlockedWeapons,
+	getWeaponTemplate,
+	WEAPON_TEMPLATES,
+	type WeaponStats,
+	type WeaponTemplate,
+} from "../../ecs/data";
