@@ -26,6 +26,8 @@ import {
 	Mangroves,
 	Reeds,
 } from "../Entities/Environment";
+import { ModularHut } from "../Entities/ModularHut";
+import { Raft } from "../Entities/Raft";
 import { Clam, ExtractionPoint } from "../Entities/Objectives/Clam";
 import { Siphon } from "../Entities/Objectives/Siphon";
 import { Hut, Villager } from "../Entities/Villager";
@@ -239,7 +241,16 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 				if (entity.type === "CLAM_BASKET") return <ClamBasket key={entity.id} position={worldPos} isTrap={entity.isHeavy} />;
 				if (entity.type === "EXTRACTION_POINT") return <ExtractionPoint key={entity.id} position={worldPos} />;
 				if (entity.type === "VILLAGER") return <Villager key={entity.id} position={worldPos} />;
-				if (entity.type === "HUT") return <Hut key={entity.id} position={worldPos} />;
+				if (entity.type === "HUT") return <ModularHut key={entity.id} position={worldPos} seed={data.seed} />;
+				if (entity.type === "HEALER") return <ModularHut key={entity.id} position={worldPos} seed={data.seed} isHealerHut />;
+				if (entity.type === "RAFT") {
+					const isThisRaft = isPilotingRaft && raftId === entity.id;
+					return <Raft 
+						key={entity.id} 
+						position={isThisRaft ? [0, 0, 0] : [worldPos.x, worldPos.y, worldPos.z]} 
+						isPiloted={isThisRaft}
+					/>;
+				}
 				if (entity.type === "OIL_SLICK")
 					return (
 						<mesh
@@ -277,7 +288,7 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 }
 
 export function Level() {
-	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud, secureChunk, isCarryingClam, setCarryingClam, addCoins } = useGameStore();
+	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud, secureChunk, isCarryingClam, setCarryingClam, addCoins, isPilotingRaft, setPilotingRaft } = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
@@ -375,15 +386,22 @@ export function Level() {
 
 		if (inMud) moveSpeed *= 0.4;
 		if (onSlick) moveSpeed *= 1.5;
-		if (isCarryingClam) moveSpeed *= 0.7; // Clam is heavy!
+		if (isCarryingClam) moveSpeed *= 0.7;
+		if (isPilotingRaft) moveSpeed *= 2.0; // Raft is fast!
 
 		// --- 3D PHYSICS: JUMP & GRAVITY ---
 		let newVelY = playerVelY;
 		if (!isGrounded) {
 			newVelY -= 30 * delta;
 		}
+		// Jump (Or Eject from Raft)
 		if (input.jump && isGrounded) {
-			newVelY = 12;
+			if (isPilotingRaft) {
+				setPilotingRaft(false);
+				newVelY = 8;
+			} else {
+				newVelY = 12;
+			}
 			setIsGrounded(false);
 			audioEngine.playSFX("pickup");
 		}
@@ -515,6 +533,9 @@ export function Level() {
 						addCoins(100);
 						audioEngine.playSFX("pickup");
 					}
+				} else if (entity.type === "RAFT" && dist < 2 && !isPilotingRaft) {
+					setPilotingRaft(true, entity.id);
+					audioEngine.playSFX("pickup");
 				} else if (entity.type === "EXTRACTION_POINT" && isCarryingClam && dist < 3) {
 					setCarryingClam(false);
 					addCoins(500); // Massive reward for capturing clam
@@ -638,6 +659,7 @@ export function Level() {
 				isClimbing={isClimbing}
 			>
 				{isCarryingClam && <Clam position={[0, 1.5, 0]} isCarried />}
+				{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
 			</PlayerRig>
 
 			<Projectiles ref={projectilesRef} />
