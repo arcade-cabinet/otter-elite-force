@@ -8,11 +8,79 @@ import { LEVELS, RANKS, STORAGE_KEY } from "../utils/constants";
 
 export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER";
 
+export interface CharacterTraits {
+	id: string;
+	name: string;
+	furColor: string;
+	eyeColor: string;
+	whiskerLength: number;
+	grizzled: boolean;
+}
+
+export interface CharacterGear {
+	headgear?: "bandana" | "beret" | "helmet" | "none";
+	vest?: "tactical" | "heavy" | "none";
+	backgear?: "radio" | "scuba" | "none";
+	weapon?: "fish-cannon" | "bubble-gun";
+}
+
+export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: CharacterGear }> = {
+	bubbles: {
+		traits: {
+			id: "bubbles",
+			name: "SGT. BUBBLES",
+			furColor: "#5D4037",
+			eyeColor: "#111",
+			whiskerLength: 0.3,
+			grizzled: false,
+		},
+		gear: {
+			headgear: "bandana",
+			vest: "tactical",
+			backgear: "radio",
+			weapon: "fish-cannon",
+		},
+	},
+	whiskers: {
+		traits: {
+			id: "whiskers",
+			name: "GEN. WHISKERS",
+			furColor: "#8D6E63",
+			eyeColor: "#222",
+			whiskerLength: 0.8,
+			grizzled: true,
+		},
+		gear: {
+			headgear: "beret",
+			vest: "heavy",
+			backgear: "none",
+			weapon: "fish-cannon",
+		},
+	},
+	splash: {
+		traits: {
+			id: "splash",
+			name: "CPL. SPLASH",
+			furColor: "#4E342E",
+			eyeColor: "#00ccff",
+			whiskerLength: 0.2,
+			grizzled: false,
+		},
+		gear: {
+			headgear: "none",
+			vest: "tactical",
+			backgear: "scuba",
+			weapon: "bubble-gun",
+		},
+	},
+};
+
 interface SaveData {
 	rank: number;
 	xp: number;
 	medals: number;
 	unlocked: number;
+	unlockedCharacters: string[];
 }
 
 interface GameState {
@@ -33,6 +101,10 @@ interface GameState {
 	currentLevel: number;
 	setLevel: (level: number) => void;
 
+	// Character management
+	selectedCharacterId: string;
+	selectCharacter: (id: string) => void;
+
 	// Save data
 	saveData: SaveData;
 	loadData: () => void;
@@ -40,6 +112,7 @@ interface GameState {
 	resetData: () => void;
 	gainXP: (amount: number) => void;
 	winLevel: (levelId: number) => void;
+	unlockCharacter: (id: string) => void;
 
 	// UI state
 	isZoomed: boolean;
@@ -51,6 +124,7 @@ const DEFAULT_SAVE_DATA: SaveData = {
 	xp: 0,
 	medals: 0,
 	unlocked: 1,
+	unlockedCharacters: ["bubbles"],
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -60,6 +134,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	maxHealth: 100,
 	kills: 0,
 	currentLevel: 0,
+	selectedCharacterId: "bubbles",
 	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
 
@@ -83,6 +158,21 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	// Level management
 	setLevel: (level) => set({ currentLevel: level }),
+
+	// Character management
+	selectCharacter: (id) => set({ selectedCharacterId: id }),
+
+	unlockCharacter: (id) => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				unlockedCharacters: state.saveData.unlockedCharacters.includes(id)
+					? state.saveData.unlockedCharacters
+					: [...state.saveData.unlockedCharacters, id],
+			},
+		}));
+		get().saveGame();
+	},
 
 	// Save/Load
 	loadData: () => {
