@@ -30,6 +30,9 @@ export function HUD() {
 					<div className="hud-territory">
 						TERRITORY SECURED: {useGameStore.getState().saveData.territoryScore}
 					</div>
+					<div className="hud-peacekeeping">
+						PEACEKEEPING: {useGameStore.getState().saveData.peacekeepingScore}
+					</div>
 				</div>
 
 				<div className="hud-objective">

@@ -207,12 +207,14 @@ interface SaveData {
 		siphonsDismantled: number;
 		villagesLiberated: number;
 		gasStockpilesCaptured: number;
+		healersProtected: number;
 	};
 	spoilsOfWar: {
 		creditsEarned: number;
 		clamsHarvested: number;
 		upgradesUnlocked: number;
 	};
+	peacekeepingScore: number;
 	upgrades: {
 		speedBoost: number;
 		healthBoost: number;
@@ -300,10 +302,12 @@ const DEFAULT_SAVE_DATA: SaveData = {
 	coins: 0,
 	discoveredChunks: {},
 	territoryScore: 0,
+	peacekeepingScore: 0,
 	strategicObjectives: {
 		siphonsDismantled: 0,
 		villagesLiberated: 0,
 		gasStockpilesCaptured: 0,
+		healersProtected: 0,
 	},
 	spoilsOfWar: {
 		creditsEarned: 0,
@@ -455,10 +459,11 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 		// Add Villagers/Huts
 		if (rand() > 0.7) {
+			const isHealerVillage = rand() > 0.8;
 			const villageX = (rand() - 0.5) * 30;
 			const villageZ = (rand() - 0.5) * 30;
 			entities.push({ id: `hut-${id}`, type: "HUT", position: [villageX, 0, villageZ] });
-			entities.push({ id: `vil-${id}`, type: "VILLAGER", position: [villageX + 3, 0, villageZ + 2] });
+			entities.push({ id: `vil-${id}`, type: isHealerVillage ? "HEALER" : "VILLAGER", position: [villageX + 3, 0, villageZ + 2] });
 		}
 
 		// Add Hazards
@@ -521,10 +526,26 @@ export const useGameStore = create<GameState>((set, get) => ({
 		set((state) => {
 			const chunk = state.saveData.discoveredChunks[chunkId];
 			if (!chunk || chunk.secured) return state;
+
+			const newStrategic = { ...state.saveData.strategicObjectives };
+			let peacekeepingGain = 0;
+
+			if (chunk.entities.some(e => e.type === "SIPHON")) newStrategic.siphonsDismantled++;
+			if (chunk.entities.some(e => e.type === "HUT")) {
+				newStrategic.villagesLiberated++;
+				peacekeepingGain += 10;
+			}
+			if (chunk.entities.some(e => e.type === "HEALER")) {
+				newStrategic.healersProtected++;
+				peacekeepingGain += 20;
+			}
+
 			return {
 				saveData: {
 					...state.saveData,
 					territoryScore: state.saveData.territoryScore + 1,
+					peacekeepingScore: state.saveData.peacekeepingScore + peacekeepingGain,
+					strategicObjectives: newStrategic,
 					discoveredChunks: {
 						...state.saveData.discoveredChunks,
 						[chunkId]: { ...chunk, secured: true },
