@@ -171,9 +171,11 @@ export class InputSystem {
 	async requestGyroPermission(): Promise<boolean> {
 		if (
 			typeof DeviceOrientationEvent !== "undefined" &&
+			// biome-ignore lint/suspicious/noExplicitAny: Standard API doesn't include requestPermission yet
 			typeof (DeviceOrientationEvent as any).requestPermission === "function"
 		) {
 			try {
+				// biome-ignore lint/suspicious/noExplicitAny: Standard API doesn't include requestPermission yet
 				const permission = await (DeviceOrientationEvent as any).requestPermission();
 				this.gyroEnabled = permission === "granted";
 				return this.gyroEnabled;

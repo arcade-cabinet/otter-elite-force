@@ -3,10 +3,10 @@
  * Procedurally generated player character (Sgt. Bubbles)
  */
 
-import { useRef, forwardRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import * as THREE from "three";
+import { forwardRef, useRef } from "react";
 import type { Group } from "three";
+import * as THREE from "three";
 
 interface PlayerRigProps {
 	playerRole?: "player" | "commander";
@@ -17,7 +17,7 @@ interface PlayerRigProps {
 }
 
 export const PlayerRig = forwardRef<Group, PlayerRigProps>(
-	({ playerRole = "player", position = [0, 0, 0], rotation = 0, isMoving = false, velocity = 0 }, ref) => {
+	({ playerRole = "player", position = [0, 0, 0], rotation = 0, isMoving = false }, ref) => {
 		const legLRef = useRef<THREE.Mesh>(null);
 		const legRRef = useRef<THREE.Mesh>(null);
 		const headRef = useRef<THREE.Mesh>(null);
@@ -25,7 +25,6 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 		// Materials
 		const matFur = new THREE.MeshStandardMaterial({ color: "#5D4037", roughness: 0.9 });
 		const matSnout = new THREE.MeshStandardMaterial({ color: "#8D6E63", roughness: 0.8 });
-		const matEye = new THREE.MeshStandardMaterial({ color: "#111", roughness: 0.2 });
 		const matVest = new THREE.MeshStandardMaterial({
 			color: playerRole === "player" ? "#223344" : "#334422",
 			roughness: 0.6,
@@ -43,8 +42,6 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 			if (!legLRef.current || !legRRef.current) return;
 
 			if (isMoving) {
-				const speed = velocity * 1.5; // Adjusted from 15 to match velocity scale
-
 				legLRef.current.rotation.x = Math.sin(time * 15) * 0.8;
 				legRRef.current.rotation.x = Math.sin(time * 15 + Math.PI) * 0.8;
 			} else {
@@ -136,16 +133,17 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 					)}
 				</group>
 
-			{/* Legs */}
-			<mesh ref={legLRef} position={[-0.3, 0.3, 0]} castShadow>
-				<capsuleGeometry args={[0.13, 0.6, 4, 8]} />
-				<meshStandardMaterial color="#5D4037" roughness={0.9} />
-			</mesh>
+				{/* Legs */}
+				<mesh ref={legLRef} position={[-0.3, 0.3, 0]} castShadow>
+					<capsuleGeometry args={[0.13, 0.6, 4, 8]} />
+					<meshStandardMaterial color="#5D4037" roughness={0.9} />
+				</mesh>
 
-			<mesh ref={legRRef} position={[0.3, 0.3, 0]} castShadow>
-				<capsuleGeometry args={[0.13, 0.6, 4, 8]} />
-				<meshStandardMaterial color="#5D4037" roughness={0.9} />
-			</mesh>
-		</group>
-	);
-});
+				<mesh ref={legRRef} position={[0.3, 0.3, 0]} castShadow>
+					<capsuleGeometry args={[0.13, 0.6, 4, 8]} />
+					<meshStandardMaterial color="#5D4037" roughness={0.9} />
+				</mesh>
+			</group>
+		);
+	},
+);

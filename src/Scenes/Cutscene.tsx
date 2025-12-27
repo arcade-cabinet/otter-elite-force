@@ -3,12 +3,11 @@
  * Handles introductory dialogue and story beats
  */
 
-import { useState, useEffect, useRef } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Sky } from "@react-three/drei";
-import * as THREE from "three";
-import { useGameStore } from "../stores/gameStore";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useState } from "react";
 import { PlayerRig } from "../Entities/PlayerRig";
+import { useGameStore } from "../stores/gameStore";
 
 interface DialogueLine {
 	name: string;
@@ -62,8 +61,8 @@ export function Cutscene() {
 					<Sky sunPosition={[100, 10, 100]} />
 					<Environment preset="sunset" />
 
-					<PlayerRig role="commander" position={[-2, 0, 0]} rotation={0.5} />
-					<PlayerRig role="player" position={[2, 0, 0]} rotation={-0.5} />
+					<PlayerRig playerRole="commander" position={[-2, 0, 0]} rotation={0.5} />
+					<PlayerRig playerRole="player" position={[2, 0, 0]} rotation={-0.5} />
 
 					<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
 						<planeGeometry args={[100, 100]} />

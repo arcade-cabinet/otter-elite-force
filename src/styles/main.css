@@ -113,7 +113,7 @@ body {
 }
 
 h1 {
-	font-family: "Carter One";
+	font-family: "Carter One", cursive;
 	font-size: 3.5rem;
 	color: var(--primary);
 	text-shadow: 0 0 20px rgba(255, 170, 0, 0.6);
@@ -159,7 +159,7 @@ button {
 	border: none;
 	border-radius: 4px;
 	color: #4a3000;
-	font-family: "Carter One";
+	font-family: "Carter One", cursive;
 	font-size: 1.3rem;
 	padding: 15px;
 	width: 100%;
@@ -221,7 +221,7 @@ button.secondary {
 }
 
 .level-title {
-	font-family: "Carter One";
+	font-family: "Carter One", cursive;
 	color: var(--primary);
 	font-size: 1.1rem;
 	margin-bottom: 5px;
@@ -257,7 +257,7 @@ button.secondary {
 	padding: 20px;
 	display: flex;
 	justify-content: space-between;
-	font-family: "Carter One";
+	font-family: "Carter One", cursive;
 	font-size: 1.5rem;
 	text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
 }
@@ -306,7 +306,7 @@ button.secondary {
 	align-items: center;
 	justify-content: center;
 	color: var(--primary);
-	font-family: "Carter One";
+	font-family: "Carter One", cursive;
 	font-size: 0.8rem;
 	cursor: pointer;
 	pointer-events: auto;
@@ -358,7 +358,7 @@ button.secondary {
 	background: var(--primary);
 	color: #000;
 	padding: 2px 10px;
-	font-family: "Carter One";
+	font-family: "Carter One", cursive;
 	border-radius: 4px;
 }
 
@@ -369,22 +369,22 @@ button.secondary {
 }
 
 .dialogue-next {
-	width: auto !important;
-	padding: 5px 20px !important;
-	font-size: 0.8rem !important;
-	margin: 0 !important;
+	width: auto;
+	padding: 5px 20px;
+	font-size: 0.8rem;
+	margin: 0;
 	position: absolute;
 	bottom: -15px;
 	right: 20px;
-	background: #fff !important;
-	color: #000 !important;
-	border: none !important;
-	box-shadow: 0 3px 0 #ccc !important;
+	background: #fff;
+	color: #000;
+	border: none;
+	box-shadow: 0 3px 0 #ccc;
 }
 
 .dialogue-next:active {
-	transform: translateY(3px) !important;
-	box-shadow: none !important;
+	transform: translateY(3px);
+	box-shadow: none;
 }
 
 .cutscene-background {

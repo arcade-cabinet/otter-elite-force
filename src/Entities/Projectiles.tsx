@@ -29,7 +29,7 @@ export const Projectiles = forwardRef<ProjectilesHandle, Record<string, never>>(
 	useImperativeHandle(ref, () => ({
 		spawn: (position, direction) => {
 			projectiles.current.push({
-				id: crypto.randomUUID(),
+				id: Math.random().toString(36).substr(2, 9),
 				position: position.clone(),
 				velocity: direction.clone().multiplyScalar(GAME_CONFIG.BULLET_SPEED),
 				lifetime: 2, // 2 seconds
@@ -47,14 +47,8 @@ export const Projectiles = forwardRef<ProjectilesHandle, Record<string, never>>(
 		// Update positions
 		for (let i = projectiles.current.length - 1; i >= 0; i--) {
 			const p = projectiles.current[i];
-			const prevPosition = p.position.clone();
 			p.position.add(p.velocity.clone().multiplyScalar(delta));
 			p.lifetime -= delta;
-
-			// Basic collision detection could be added here
-			// e.g., raycasting from prevPosition to p.position
-			// For now, we expire them by lifetime.
-			// External systems can use getProjectiles() to check collisions.
 
 			if (p.lifetime <= 0) {
 				projectiles.current.splice(i, 1);
@@ -76,7 +70,7 @@ export const Projectiles = forwardRef<ProjectilesHandle, Record<string, never>>(
 	});
 
 	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, GAME_CONFIG.MAX_PROJECTILES]}>
+		<instancedMesh ref={meshRef} args={[undefined, undefined, 100]}>
 			<boxGeometry args={[0.1, 0.1, 0.5]} />
 			<meshBasicMaterial color="#ffff00" />
 		</instancedMesh>
