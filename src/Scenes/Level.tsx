@@ -315,7 +315,23 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 }
 
 export function Level() {
-	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud, secureChunk, isCarryingClam, setCarryingClam, addCoins, isPilotingRaft, setPilotingRaft, rescueCharacter } = useGameStore();
+	const {
+		isZoomed,
+		selectedCharacterId,
+		getNearbyChunks,
+		setPlayerPos,
+		setMud,
+		secureChunk,
+		isCarryingClam,
+		setCarryingClam,
+		addCoins,
+		isPilotingRaft,
+		setPilotingRaft,
+		rescueCharacter,
+		collectSpoils,
+		completeStrategic,
+		takeDamage,
+	} = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
@@ -606,21 +622,36 @@ export function Level() {
 					let hit = false;
 					let hitType: "blood" | "shell" = "blood";
 
-					if (entity.type === "GATOR" && dist < 1.5) { hit = true; hitType = "blood"; }
-					else if (entity.type === "SNAKE" && dist < 1.0) { hit = true; hitType = "blood"; }
-					else if (entity.type === "SNAPPER" && dist < 2.0) { hit = true; hitType = "shell"; }
-					else if (entity.type === "SIPHON" && dist < 2.0 && !chunk.secured) { hit = true; hitType = "shell"; }
+				if (entity.type === "GATOR" && dist < 1.5) {
+					hit = true;
+					hitType = "blood";
+				} else if (entity.type === "SNAKE" && dist < 1.0) {
+					hit = true;
+					hitType = "blood";
+				} else if (entity.type === "SNAPPER" && dist < 2.0) {
+					hit = true;
+					hitType = "shell";
+				} else if (entity.type === "SIPHON" && dist < 2.0 && !chunk.secured) {
+					hit = true;
+					hitType = "shell";
+				} else if (entity.type === "GAS_STOCKPILE" && dist < 2.0 && !chunk.secured) {
+					hit = true;
+					hitType = "shell";
+				}
 
 					if (hit) {
 						entity.hp = (entity.hp || 10) - GAME_CONFIG.BULLET_DAMAGE;
 						handleImpact(projectile.position, hitType);
 						projectilesRef.current?.remove(projectile.id);
 						if (entity.hp <= 0) {
-							if (entity.type === "SIPHON") {
+							if (entity.type === "SIPHON" || entity.type === "GAS_STOCKPILE") {
 								secureChunk(chunk.id);
+								if (entity.type === "GAS_STOCKPILE") {
+									completeStrategic("gas");
+								}
 							} else {
 								chunk.entities = chunk.entities.filter((e) => e.id !== entity.id);
-								useGameStore.getState().addCoins(10);
+								addCoins(10);
 							}
 						}
 					}

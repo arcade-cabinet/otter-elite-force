@@ -190,6 +190,8 @@ export interface ChunkData {
 		hp?: number;
 		suppression?: number;
 		captured?: boolean;
+		interacted?: boolean; // Type safe field
+		rescued?: boolean; // Type safe field
 	}[];
 	decorations: {
 		id: string;
