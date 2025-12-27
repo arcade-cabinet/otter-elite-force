@@ -228,12 +228,21 @@ sonar.javascript.lcov.reportPaths=coverage/lcov.info
 ### Both Are Now Configured:
 
 1. **CodeQL** - Enabled via GitHub's default security settings (no custom workflow needed)
-2. **SonarCloud** - Installed and configured with automatic PR comments (no token management required)
+2. **SonarCloud** - Fully integrated into CI workflow
+   - Uses LCOV coverage reports from Vitest (`coverage/lcov.info`)
+   - Configuration in `sonar-project.properties`
+   - `SONAR_TOKEN` secret required in repo settings
+   - Automatic PR comments for quality feedback
+
+### Files Added/Modified:
+
+- `sonar-project.properties` - SonarCloud configuration
+- `.github/workflows/ci.yml` - Added SonarCloud scan step with `fetch-depth: 0`
 
 This gives us:
 - ✅ Security scanning (CodeQL - GitHub default)
-- ✅ Quality/complexity tracking (SonarCloud - auto PR comments)
-- ✅ Coverage (Coveralls)
+- ✅ Quality/complexity tracking (SonarCloud - integrated with coverage)
+- ✅ Coverage (Coveralls + SonarCloud)
 - ✅ Dependencies (Dependabot)
 - ✅ Linting (Biome)
 

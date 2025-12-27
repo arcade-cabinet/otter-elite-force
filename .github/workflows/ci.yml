@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for SonarCloud analysis
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -52,6 +54,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           format: lcov
           file: ./coverage/lcov.info
+        continue-on-error: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         continue-on-error: true
 
       - name: Build
