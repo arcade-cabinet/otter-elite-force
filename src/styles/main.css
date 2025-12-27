@@ -676,6 +676,8 @@ button.secondary {
 	color: #000 !important;
 }
 
+.action-btn.support { grid-area: support; background: rgba(0, 0, 100, 0.6) !important; border-color: var(--accent) !important; color: var(--accent) !important; }
+
 .build-ui {
 	position: absolute;
 	bottom: 20px;
