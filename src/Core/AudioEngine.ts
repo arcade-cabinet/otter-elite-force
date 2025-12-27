@@ -12,6 +12,7 @@ export class AudioEngine {
 	private synths: Map<string, Tone.Synth> = new Map();
 	private noiseSynth: Tone.NoiseSynth | null = null;
 	private activePatterns: (Tone.Pattern<any> | Tone.PolySynth | Tone.MonoSynth)[] = [];
+	private fadeTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
 
 	// Cross-fade support
 	private activeVolume: Tone.Volume | null = null;
@@ -118,9 +119,11 @@ export class AudioEngine {
 		// Fade out old music
 		if (oldVolume) {
 			oldVolume.volume.rampTo(-60, fadeTime);
-			setTimeout(() => {
+			const timeoutId = setTimeout(() => {
 				this._disposeOldMusic(oldVolume, oldPatterns);
+				this.fadeTimeouts.delete(timeoutId);
 			}, fadeTime * 1000);
+			this.fadeTimeouts.add(timeoutId);
 		} else {
 			Tone.getTransport().stop();
 			Tone.getTransport().cancel();
@@ -193,11 +196,13 @@ export class AudioEngine {
 			this.activePatterns = [];
 
 			oldVolume.volume.rampTo(-60, this.crossfadeDuration);
-			setTimeout(() => {
+			const timeoutId = setTimeout(() => {
 				Tone.getTransport().stop();
 				Tone.getTransport().cancel();
 				this._disposeOldMusic(oldVolume, oldPatterns);
+				this.fadeTimeouts.delete(timeoutId);
 			}, this.crossfadeDuration * 1000);
+			this.fadeTimeouts.add(timeoutId);
 		} else {
 			Tone.getTransport().stop();
 			Tone.getTransport().cancel();
@@ -231,10 +236,14 @@ export class AudioEngine {
 	 */
 	stopAll(): void {
 		this.stopMusic(false);
+		this.fadeTimeouts.forEach(clearTimeout);
+		this.fadeTimeouts.clear();
 		this.synths.forEach((synth) => {
 			synth.dispose();
 		});
 		this.synths.clear();
+		this.noiseSynth?.dispose();
+		this.noiseSynth = null;
 		this.initialized = false; // Reset initialized so it can be re-init
 	}
 

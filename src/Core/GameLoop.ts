@@ -22,9 +22,7 @@ export function GameLoop({ onUpdate }: GameLoopProps) {
 	// Cleanup input state when switching away from GAME mode
 	useEffect(() => {
 		if (mode !== "GAME") {
-			// This is a simple way to clear active inputs when pausing/menuing
-			inputSystem.destroy();
-			inputSystem.init();
+			inputSystem.reset();
 		}
 	}, [mode]);
 

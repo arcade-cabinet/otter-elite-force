@@ -41,7 +41,8 @@ export class InputSystem {
 	private handleKeyUp: ((e: KeyboardEvent) => void) | null = null;
 	private handleTouchStart: ((e: TouchEvent) => void) | null = null;
 	private handleTouchMove: ((e: TouchEvent) => void) | null = null;
-	private handleTouchEnd: (() => void) | null = null;
+	private handleTouchEnd: ((e: TouchEvent) => void) | null = null;
+	private activeTouchId: number | null = null;
 
 	/**
 	 * Initialize input handlers
@@ -93,17 +94,27 @@ export class InputSystem {
 			let lastY = 0;
 
 			this.handleTouchStart = (e: TouchEvent) => {
-				if ((e.target as HTMLElement).tagName === "BUTTON") return;
+				const target = e.target as HTMLElement;
+				if (target.closest('button, a, input, select, [role="button"], [onclick]')) {
+					return;
+				}
+
 				if (e.cancelable) e.preventDefault();
-				const touch = e.touches[0];
+				const touch = e.targetTouches[0];
+				this.activeTouchId = touch.identifier;
 				lastX = touch.clientX;
 				lastY = touch.clientY;
 				this.state.drag.active = true;
 			};
 
 			this.handleTouchMove = (e: TouchEvent) => {
-				if (this.state.drag.active && e.cancelable) e.preventDefault();
-				const touch = e.touches[0];
+				if (!this.state.drag.active) return;
+				const touch = Array.from(e.targetTouches).find(
+					(t) => t.identifier === this.activeTouchId,
+				);
+				if (!touch) return;
+
+				if (e.cancelable) e.preventDefault();
 				const dx = touch.clientX - lastX;
 				const dy = touch.clientY - lastY;
 				this.state.drag.x = dx * 0.01;
@@ -112,15 +123,28 @@ export class InputSystem {
 				lastY = touch.clientY;
 			};
 
-			this.handleTouchEnd = () => {
-				this.state.drag.active = false;
-				this.state.drag.x = 0;
-				this.state.drag.y = 0;
+			this.handleTouchEnd = (e: TouchEvent) => {
+				if (this.activeTouchId !== null) {
+					const stillActive = Array.from(e.targetTouches).some(
+						(t) => t.identifier === this.activeTouchId,
+					);
+					if (!stillActive) {
+						this.state.drag.active = false;
+						this.state.drag.x = 0;
+						this.state.drag.y = 0;
+						this.activeTouchId = null;
+					}
+				}
 			};
 
-			this.lookZone.addEventListener("touchstart", this.handleTouchStart, { passive: false });
-			this.lookZone.addEventListener("touchmove", this.handleTouchMove, { passive: false });
+			this.lookZone.addEventListener("touchstart", this.handleTouchStart, {
+				passive: false,
+			});
+			this.lookZone.addEventListener("touchmove", this.handleTouchMove, {
+				passive: false,
+			});
 			this.lookZone.addEventListener("touchend", this.handleTouchEnd);
+			this.lookZone.addEventListener("touchcancel", this.handleTouchEnd);
 		} else {
 			console.warn("InputSystem: #joystick-look not found in DOM");
 		}
@@ -230,6 +254,22 @@ export class InputSystem {
 		return { ...this.state };
 	}
 
+	/**
+	 * Reset input state non-destructively
+	 */
+	reset(): void {
+		this.state = {
+			move: { x: 0, y: 0, active: false },
+			look: { x: 0, y: 0, active: false },
+			drag: { x: 0, y: 0, active: false },
+			gyro: { x: 0, y: 0 },
+			zoom: false,
+			jump: false,
+			grip: false,
+		};
+		this.keys = {};
+	}
+
 	toggleZoom(): void {
 		this.state.zoom = !this.state.zoom;
 	}
@@ -262,9 +302,13 @@ export class InputSystem {
 		if (this.lookZone) {
 			if (this.handleTouchStart) this.lookZone.removeEventListener("touchstart", this.handleTouchStart);
 			if (this.handleTouchMove) this.lookZone.removeEventListener("touchmove", this.handleTouchMove);
-			if (this.handleTouchEnd) this.lookZone.removeEventListener("touchend", this.handleTouchEnd);
+			if (this.handleTouchEnd) {
+				this.lookZone.removeEventListener("touchend", this.handleTouchEnd);
+				this.lookZone.removeEventListener("touchcancel", this.handleTouchEnd);
+			}
 		}
 
+		this.reset();
 		this.initialized = false;
 	}
 }
