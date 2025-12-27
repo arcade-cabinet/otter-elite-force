@@ -240,6 +240,15 @@ export interface SaveData {
 	upgrades: PlayerUpgrades;
 	isLZSecured: boolean;
 	baseComponents: PlacedComponent[];
+	/**
+	 * Player's last 3D position in world space.
+	 * - x: horizontal (east-west)
+	 * - y: vertical (height - for climbing, jumping, platforms)
+	 * - z: horizontal (north-south)
+	 *
+	 * This allows players to save while on platforms, trees, etc.
+	 */
+	lastPlayerPosition: [number, number, number];
 }
 
 // =============================================================================

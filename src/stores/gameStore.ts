@@ -275,6 +275,7 @@ export interface ChunkData {
 }
 
 interface SaveData {
+	version: number;
 	rank: number;
 	xp: number;
 	medals: number;
@@ -307,6 +308,13 @@ interface SaveData {
 	};
 	isLZSecured: boolean;
 	baseComponents: PlacedComponent[];
+	/**
+	 * Player's last 3D position in world space.
+	 * - x: horizontal (east-west)
+	 * - y: vertical (height - for climbing, jumping, platforms)
+	 * - z: horizontal (north-south)
+	 */
+	lastPlayerPosition: [number, number, number];
 }
 
 export interface PlacedComponent {
@@ -404,6 +412,7 @@ export const CHAR_PRICES: Record<string, number> = {
 };
 
 const DEFAULT_SAVE_DATA: SaveData = {
+	version: 8,
 	rank: 0,
 	xp: 0,
 	medals: 0,
@@ -443,6 +452,7 @@ const DEFAULT_SAVE_DATA: SaveData = {
 	},
 	isLZSecured: false,
 	baseComponents: [],
+	lastPlayerPosition: [0, 0, 0],
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -880,7 +890,18 @@ export const useGameStore = create<GameState>((set, get) => ({
 	loadData: () => {
 		try {
 			const saved = localStorage.getItem(STORAGE_KEY);
-			if (saved) set({ saveData: JSON.parse(saved) });
+			if (saved) {
+				const parsedData = JSON.parse(saved);
+				// Migrate old saves that don't have lastPlayerPosition
+				if (!parsedData.lastPlayerPosition) {
+					parsedData.lastPlayerPosition = [0, 0, 0];
+				}
+				set({
+					saveData: parsedData,
+					// Restore player's 3D position (including height for climbing/platforms/trees)
+					playerPos: parsedData.lastPlayerPosition,
+				});
+			}
 		} catch (e) {
 			console.error("Load failed", e);
 		}
@@ -888,7 +909,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	saveGame: () => {
 		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(get().saveData));
+			// Save current player 3D position (including height for climbing/platforms)
+			const currentPos = get().playerPos;
+			const updatedSaveData = {
+				...get().saveData,
+				lastPlayerPosition: currentPos as [number, number, number],
+			};
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSaveData));
+			set({ saveData: updatedSaveData });
 		} catch (e) {
 			console.error("Save failed", e);
 		}

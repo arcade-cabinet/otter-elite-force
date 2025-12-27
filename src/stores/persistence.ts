@@ -39,6 +39,7 @@ export const DEFAULT_SAVE_DATA: SaveData = {
 	},
 	isLZSecured: false,
 	baseComponents: [],
+	lastPlayerPosition: [0, 0, 0],
 };
 
 export const deepClone = <T>(obj: T): T => {

@@ -11,6 +11,21 @@ import * as THREE from "three";
 import * as YUKA from "yuka";
 import type { EnemyProps, ScoutData } from "./types";
 
+/**
+ * Behavior tuning constants for Scout predators.
+ *
+ * All distances are in world units (matching Three.js scene scale).
+ * Time values are in seconds of simulation time.
+ *
+ * - DETECTION_RANGE: How far ahead the Scout can "see" the player to trigger
+ *   an alert. Tuned so Scouts pick up players just beyond typical engagement
+ *   range, giving heavies time to respond without feeling omniscient.
+ * - SIGNAL_COOLDOWN: Minimum time between radio calls / alert signals.
+ *   Prevents constant spam; 8s keeps tension without overwhelming the player.
+ * - FLEE_DISTANCE: Panic radius used by Yuka's FleeBehavior. When the player
+ *   gets inside this radius, the Scout prioritizes evasive movement to keep
+ *   its "eyes on" role instead of trading damage.
+ */
 const DETECTION_RANGE = 30;
 const SIGNAL_COOLDOWN = 8;
 const FLEE_DISTANCE = 12;
@@ -115,12 +130,14 @@ export function Scout({ data, targetPosition, onDeath, onSignal }: EnemyProps<Sc
 				antennaRef.current.scale.y = 1;
 			}
 		}
+	});
 
-		// Check death
+	// Handle death callback - use useEffect to fire only once when hp changes
+	useEffect(() => {
 		if (data.hp <= 0 && onDeath) {
 			onDeath(data.id);
 		}
-	});
+	}, [data.hp, data.id, onDeath]);
 
 	const bodyColor = "#4a5a3a"; // Camouflage green
 	const underbellyColor = "#6a7a5a";
