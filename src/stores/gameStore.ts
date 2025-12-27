@@ -5,42 +5,15 @@
 
 import { create } from "zustand";
 import { RANKS, STORAGE_KEY } from "../utils/constants";
+import { CHARACTERS, WEAPONS } from "./gameData";
 import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData } from "./types";
 
-// Re-export types for backward compatibility
+// Re-export types and data for backward compatibility
 export type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData };
+export { CHARACTERS, WEAPONS };
 
-export interface CharacterTraits {
-	id: string;
-	name: string;
-	furColor: string;
-	eyeColor: string;
-	whiskerLength: number;
-	grizzled: boolean;
-	baseSpeed: number;
-	baseHealth: number;
-	climbSpeed: number;
-	unlockRequirement?: string; // Narrative requirement
-}
-
-export interface CharacterGear {
-	headgear?: "bandana" | "beret" | "helmet" | "none";
-	vest?: "tactical" | "heavy" | "none";
-	backgear?: "radio" | "scuba" | "none";
-	weaponId: string;
-}
-
-export interface WeaponData {
-	id: string;
-	name: string;
-	type: "PISTOL" | "RIFLE" | "MACHINE_GUN" | "SHOTGUN" | "LAUNCHER";
-	damage: number;
-	fireRate: number;
-	bulletSpeed: number;
-	recoil: number;
-	range: number;
-	visualType: "FISH_CANNON" | "BUBBLE_GUN" | "PISTOL_GRIP" | "SHOTGUN" | "MORTAR" | "NEEDLE_GUN";
-}
+// Re-export types from ./types.ts for backward compatibility
+export type { CharacterGear, CharacterTraits, WeaponData } from "./types";
 
 export const WEAPONS: Record<string, WeaponData> = {
 	"service-pistol": {
