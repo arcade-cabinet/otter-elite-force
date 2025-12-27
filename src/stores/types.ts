@@ -115,32 +115,15 @@ export type EnvironmentEntity = BaseEntity & {
 
 export type Entity = PredatorEntity | ObjectiveEntity | InteractionEntity | EnvironmentEntity;
 
-// Combined entity type for chunk generation (includes all possible fields)
+/**
+ * Combined entity type for chunk generation.
+ * Uses the union of all entity type enums to avoid duplication.
+ */
+export type ChunkEntityType = PredatorType | ObjectiveType | InteractionType | EnvironmentType;
+
 export type ChunkEntity = {
 	id: string;
-	type:
-		| PredatorType
-		| ObjectiveType
-		| InteractionType
-		| EnvironmentType
-		| "VILLAGER"
-		| "HEALER"
-		| "HUT"
-		| "EXTRACTION_POINT"
-		| "RAFT"
-		| "CLAM_BASKET"
-		| "SIPHON"
-		| "GAS_STOCKPILE"
-		| "PRISON_CAGE"
-		| "GATOR"
-		| "SNAKE"
-		| "SNAPPER"
-		| "SCOUT"
-		| "PLATFORM"
-		| "CLIMBABLE"
-		| "OIL_SLICK"
-		| "MUD_PIT"
-		| "TOXIC_SLUDGE";
+	type: ChunkEntityType;
 	position: [number, number, number];
 	isHeavy?: boolean;
 	objectiveId?: string;

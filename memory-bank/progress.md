@@ -191,6 +191,9 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 - **World Generator ECS Integration** - POIs automatically spawn ECS settlements via assembly bridge
 - **499 Tests Passing** - Comprehensive coverage including ECS systems, AI, slots, data templates, assembly, UI
 - **55%+ Statement Coverage** - Key systems (stores, ECS data, assembly) at 75-95%
+- **Type Modularization** - `SaveData`, `ChunkData`, `PlacedComponent` centralized in `types.ts`, no duplicates
+- **Shared Test Fixtures** - `src/test/fixtures.ts` provides `createMockSaveData()`, `createMockChunk()` helpers
+- **Biome Config** - Test files exempt from `noExplicitAny` rule for valid edge case testing
 - Unified domain-specific PRs into hardened `main`
 - Resolved "shaky" assembly bugs in state management
 - Verified all unit tests passing after modular re-integration
