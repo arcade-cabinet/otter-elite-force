@@ -11,6 +11,9 @@
  * - Touch events (mobile controls)
  */
 
+// Declare global for Node.js test environment
+declare const global: typeof globalThis;
+
 import { cleanup } from "@testing-library/react";
 import { afterEach, beforeEach, vi } from "vitest";
 import "@testing-library/jest-dom/vitest";
