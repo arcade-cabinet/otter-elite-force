@@ -11,6 +11,8 @@
 | **Coveralls** | Code Coverage | ✅ In CI |
 | **Dependabot** | Dependency Updates | ✅ Configured |
 | **Secret Scanning** | Security | ✅ GitHub native |
+| **CodeQL** | Security Analysis | ✅ GitHub default |
+| **SonarCloud** | Quality/Complexity | ✅ Configured (auto PR comments) |
 | **Playwright** | E2E Testing | ✅ In CI |
 | **Vitest** | Unit Testing | ✅ In CI |
 
@@ -221,62 +223,18 @@ sonar.javascript.lcov.reportPaths=coverage/lcov.info
 
 ---
 
-## My Recommendation
+## Current Status ✅
 
-### Add These Two:
+### Both Are Now Configured:
 
-1. **CodeQL** - Just add the workflow file (5 min)
-2. **SonarCloud** - Install app + add workflow (15 min)
+1. **CodeQL** - Enabled via GitHub's default security settings (no custom workflow needed)
+2. **SonarCloud** - Installed and configured with automatic PR comments (no token management required)
 
-This gives you:
-- ✅ Security scanning (CodeQL)
-- ✅ Quality/complexity tracking (SonarCloud)
-- ✅ Coverage (Coveralls - already have)
-- ✅ Dependencies (Dependabot - already have)
-- ✅ Linting (Biome - already have)
+This gives us:
+- ✅ Security scanning (CodeQL - GitHub default)
+- ✅ Quality/complexity tracking (SonarCloud - auto PR comments)
+- ✅ Coverage (Coveralls)
+- ✅ Dependencies (Dependabot)
+- ✅ Linting (Biome)
 
-**Total time**: ~20 minutes for comprehensive static analysis
-
----
-
-## Quick Setup Commands
-
-### 1. Add CodeQL (No app needed)
-
-```bash
-# Create workflow file
-cat > .github/workflows/codeql.yml << 'EOF'
-name: "CodeQL"
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  schedule:
-    - cron: '0 0 * * 1'
-
-jobs:
-  analyze:
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    steps:
-    - uses: actions/checkout@v4
-    - uses: github/codeql-action/init@v3
-      with:
-        languages: javascript-typescript
-    - uses: github/codeql-action/autobuild@v3
-    - uses: github/codeql-action/analyze@v3
-EOF
-```
-
-### 2. Add SonarCloud (Requires app install)
-
-1. Visit: https://github.com/apps/sonarcloud
-2. Install on `arcade-cabinet/otter-elite-force`
-3. Generate token at sonarcloud.io
-4. Add `SONAR_TOKEN` to repo secrets
-5. Add workflow file
+**Comprehensive static analysis is now fully operational.**

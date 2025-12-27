@@ -21,6 +21,7 @@ The project has successfully transitioned through a complex integration phase. T
 - **ECS Data Templates**: Weapons, equipment, and buildables defined as ECS-centric templates replacing old constants approach
 - **World Generator ECS Integration**: POIs automatically spawn proper ECS settlements via assembly bridge
 - **499 Tests Passing**: Comprehensive coverage including ECS systems, AI, slots, data templates, assembly, and UI
+- **SonarCloud Integration**: Automated PR comments for code quality, complexity, security hotspots, and technical debt tracking
 
 ## Current Work Focus
 

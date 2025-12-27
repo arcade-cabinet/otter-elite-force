@@ -194,6 +194,7 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 - **Type Modularization** - `SaveData`, `ChunkData`, `PlacedComponent` centralized in `types.ts`, no duplicates
 - **Shared Test Fixtures** - `src/test/fixtures.ts` provides `createMockSaveData()`, `createMockChunk()` helpers
 - **Biome Config** - Test files exempt from `noExplicitAny` rule for valid edge case testing
+- **SonarCloud Integration** - Automated PR comments for code quality, complexity, security hotspots, and technical debt
 - Unified domain-specific PRs into hardened `main`
 - Resolved "shaky" assembly bugs in state management
 - Verified all unit tests passing after modular re-integration
