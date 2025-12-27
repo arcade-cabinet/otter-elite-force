@@ -5,7 +5,7 @@
 
 import { Environment, Sky } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { CHARACTERS, useGameStore } from "../stores/gameStore";
@@ -13,6 +13,9 @@ import { CHARACTERS, useGameStore } from "../stores/gameStore";
 function Firework({ position, color }: { position: [number, number, number]; color: string }) {
 	const ref = useRef<THREE.Points>(null);
 	const particles = useRef<{ pos: THREE.Vector3; vel: THREE.Vector3 }[]>([]);
+	
+	// Create buffer attribute once to avoid recreation on every render
+	const positionArray = useMemo(() => new Float32Array(150), []);
 
 	if (particles.current.length === 0) {
 		for (let i = 0; i < 50; i++) {
@@ -27,7 +30,7 @@ function Firework({ position, color }: { position: [number, number, number]; col
 		}
 	}
 
-	useFrame((state, delta) => {
+	useFrame((_state, delta) => {
 		if (!ref.current) return;
 		const positions = ref.current.geometry.attributes.position.array as Float32Array;
 		for (let i = 0; i < particles.current.length; i++) {
@@ -47,9 +50,7 @@ function Firework({ position, color }: { position: [number, number, number]; col
 			<bufferGeometry>
 				<bufferAttribute
 					attach="attributes-position"
-					count={50}
-					array={new Float32Array(150)}
-					itemSize={3}
+					args={[positionArray, 3]}
 				/>
 			</bufferGeometry>
 			<pointsMaterial color={color} size={0.2} transparent opacity={0.8} />

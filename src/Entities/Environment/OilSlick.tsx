@@ -5,17 +5,33 @@ import type * as THREE from "three";
 interface OilSlickProps {
 	position: [number, number, number] | THREE.Vector3;
 	size?: number;
-	initialLit?: boolean;
+	isIgnited?: boolean;
+	onIgnite?: () => void;
 }
 
-export function OilSlick({ position, size = 3, initialLit = false }: OilSlickProps) {
-	const [isLit, setIsLit] = useState(initialLit);
+/**
+ * OilSlick - Environmental hazard that can be ignited
+ * When shot, ignites and deals area damage
+ */
+export function OilSlick({ position, size = 3, isIgnited = false, onIgnite }: OilSlickProps) {
+	const [isLit, setIsLit] = useState(isIgnited);
 	const fireRef = useRef<THREE.Group>(null);
 	const lightRef = useRef<THREE.PointLight>(null);
+	const burnTimeRef = useRef(0);
 
-	// Toggle lit state on click for testing/interaction
+	// Sync with external ignition state
+	useEffect(() => {
+		if (isIgnited && !isLit) {
+			setIsLit(true);
+		}
+	}, [isIgnited, isLit]);
+
+	// Handle player/projectile ignition
 	const handlePointerDown = () => {
-		setIsLit(true);
+		if (!isLit) {
+			setIsLit(true);
+			onIgnite?.();
+		}
 	};
 
 	useFrame((state) => {

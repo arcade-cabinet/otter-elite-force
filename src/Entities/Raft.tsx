@@ -5,7 +5,7 @@
 
 import { useFrame } from "@react-three/fiber";
 import { forwardRef, useRef } from "react";
-import type { Group } from "three";
+import type { Group, Mesh } from "three";
 import * as THREE from "three";
 
 interface RaftProps {
@@ -17,6 +17,7 @@ interface RaftProps {
 
 export const Raft = forwardRef<Group, RaftProps>(({ position, rotation = 0, isPiloted = false }, ref) => {
 	const groupRef = useRef<Group>(null);
+	const propellerRef = useRef<Mesh>(null);
 
 	useFrame((state) => {
 		if (!groupRef.current) return;
@@ -26,14 +27,19 @@ export const Raft = forwardRef<Group, RaftProps>(({ position, rotation = 0, isPi
 		groupRef.current.position.y = Math.sin(t * 2) * 0.05 + 0.1;
 		groupRef.current.rotation.z = Math.sin(t * 1.5) * 0.02;
 		groupRef.current.rotation.x = Math.cos(t * 1.2) * 0.02;
+
+		// Animate propeller when piloted
+		if (isPiloted && propellerRef.current) {
+			propellerRef.current.rotation.x = t * 20;
+		}
 	});
 
 	return (
 		<group ref={ref} position={position} rotation-y={rotation}>
 			<group ref={groupRef}>
 				{/* Main Logs */}
-				{[ -0.8, -0.4, 0, 0.4, 0.8 ].map((x, i) => (
-					<mesh key={i} position={[x, 0, 0]} rotation-x={Math.PI / 2} castShadow receiveShadow>
+				{[-0.8, -0.4, 0, 0.4, 0.8].map((x, i) => (
+					<mesh key={`log-${i}`} position={[x, 0, 0]} rotation-x={Math.PI / 2} castShadow receiveShadow>
 						<cylinderGeometry args={[0.22, 0.22, 3, 8]} />
 						<meshStandardMaterial color="#5d4037" roughness={0.8} />
 					</mesh>
@@ -62,7 +68,7 @@ export const Raft = forwardRef<Group, RaftProps>(({ position, rotation = 0, isPi
 						<meshStandardMaterial color="#222" />
 					</mesh>
 					{isPiloted && (
-						<mesh position={[0, -0.4, 0]} rotation-x={state => state.clock.elapsedTime * 20}>
+						<mesh ref={propellerRef} position={[0, -0.4, 0]}>
 							<boxGeometry args={[0.1, 0.6, 0.02]} />
 							<meshBasicMaterial color="#111" />
 						</mesh>
