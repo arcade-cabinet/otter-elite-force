@@ -91,10 +91,14 @@ src/
 │   └── AudioEngine.ts
 ├── Entities/       # Game objects
 │   ├── PlayerRig.tsx
-│   ├── Enemies.tsx
-│   └── Particles.tsx
+│   ├── Enemies/        # Gator, Snake, Snapper
+│   ├── Projectiles.tsx
+│   ├── Particles.tsx
+│   └── Raft.tsx
 ├── Scenes/         # Level management
 │   ├── MainMenu.tsx
+│   ├── Cutscene.tsx
+│   ├── Canteen.tsx
 │   └── Level.tsx
 └── UI/             # User interface
     └── HUD.tsx

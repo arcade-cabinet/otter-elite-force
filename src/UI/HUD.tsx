@@ -3,45 +3,57 @@
  * In-game UI overlay
  */
 
+import { useCallback } from "react";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
-import { useGameStore, CHAR_PRICES, UPGRADE_COSTS } from "../stores/gameStore";
+import { useGameStore } from "../stores/gameStore";
 
+export function HUD() {
 	const {
 		health,
 		maxHealth,
 		kills,
 		mudAmount,
 		playerPos,
-		toggleZoom,
 		saveData,
-		setMode,
 		isBuildMode,
-		setBuildMode,
-		placeComponent,
-	} = useGameStore();
+	} = useGameStore((state) => ({
+		health: state.health,
+		maxHealth: state.maxHealth,
+		kills: state.kills,
+		mudAmount: state.mudAmount,
+		playerPos: state.playerPos,
+		saveData: state.saveData,
+		isBuildMode: state.isBuildMode,
+	}));
 
-	const handlePlace = (type: "FLOOR" | "WALL" | "ROOF" | "STILT") => {
-		// Place relative to player position
-		const pos: [number, number, number] = [
-			Math.round(playerPos[0] / 4) * 4,
-			Math.round(playerPos[1]),
-			Math.round(playerPos[2] / 4) * 4,
-		];
-		
-		// Adjust height for roof
-		if (type === "ROOF") pos[1] += 2.5;
-		if (type === "WALL") pos[1] += 1;
-		if (type === "STILT") pos[1] += 0;
+	const toggleZoom = useGameStore((state) => state.toggleZoom);
+	const setBuildMode = useGameStore((state) => state.setBuildMode);
+	const placeComponent = useGameStore((state) => state.placeComponent);
 
-		placeComponent({
-			type,
-			position: pos,
-			rotation: [0, 0, 0],
-		});
-		audioEngine.playSFX("pickup");
-	};
-	// HUD logic...
+	const territoryScore = useGameStore((state) => state.saveData.territoryScore);
+	const peacekeepingScore = useGameStore((state) => state.saveData.peacekeepingScore);
+
+	const handlePlace = useCallback(
+		(type: "FLOOR" | "WALL" | "ROOF" | "STILT") => {
+			const pos: [number, number, number] = [
+				Math.round(playerPos[0] / 4) * 4,
+				Math.round(playerPos[1]),
+				Math.round(playerPos[2] / 4) * 4,
+			];
+
+			if (type === "ROOF") pos[1] += 2.5;
+			if (type === "WALL") pos[1] += 1;
+
+			placeComponent({
+				type,
+				position: pos,
+				rotation: [0, 0, 0],
+			});
+			audioEngine.playSFX("pickup");
+		},
+		[playerPos, placeComponent],
+	);
 
 	return (
 		<div className="hud-container">
@@ -61,10 +73,10 @@ import { useGameStore, CHAR_PRICES, UPGRADE_COSTS } from "../stores/gameStore";
 						COORD: {Math.floor(playerPos[0])}, {Math.floor(playerPos[2])}
 					</div>
 					<div className="hud-territory">
-						TERRITORY SECURED: {useGameStore.getState().saveData.territoryScore}
+						TERRITORY SECURED: {territoryScore}
 					</div>
 					<div className="hud-peacekeeping">
-						PEACEKEEPING: {useGameStore.getState().saveData.peacekeepingScore}
+						PEACEKEEPING: {peacekeepingScore}
 					</div>
 				</div>
 
@@ -77,42 +89,42 @@ import { useGameStore, CHAR_PRICES, UPGRADE_COSTS } from "../stores/gameStore";
 
 			{/* Action Cluster (Right Side) */}
 			<div className="action-cluster">
-				<button 
-					type="button" 
-					className="action-btn jump" 
+				<button
+					type="button"
+					className="action-btn jump"
 					onPointerDown={() => inputSystem.setJump(true)}
 					onPointerUp={() => inputSystem.setJump(false)}
 				>
 					JUMP
 				</button>
-				<button 
-					type="button" 
-					className="action-btn grip" 
+				<button
+					type="button"
+					className="action-btn grip"
 					onPointerDown={() => inputSystem.setGrip(true)}
 					onPointerUp={() => inputSystem.setGrip(false)}
 				>
 					GRIP
 				</button>
-				<button 
-					type="button" 
-					className="action-btn scope" 
+				<button
+					type="button"
+					className="action-btn scope"
 					onClick={toggleZoom}
 				>
 					SCOPE
 				</button>
 				{saveData.isLZSecured && (
-					<button 
-						type="button" 
-						className={`action-btn build ${isBuildMode ? "active" : ""}`} 
+					<button
+						type="button"
+						className={`action-btn build ${isBuildMode ? "active" : ""}`}
 						onClick={() => setBuildMode(!isBuildMode)}
 					>
 						BUILD
 					</button>
 				)}
 				{saveData.difficultyMode === "SUPPORT" && (
-					<button 
-						type="button" 
-						className="action-btn support" 
+					<button
+						type="button"
+						className="action-btn support"
 						onClick={() => audioEngine.playSFX("pickup")}
 					>
 						DROP
