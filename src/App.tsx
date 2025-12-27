@@ -24,7 +24,6 @@ export function App() {
 		// Initialize audio on first user interaction
 		const initAudio = async () => {
 			await audioEngine.init();
-			console.log("Audio initialized");
 			audioEngine.playMusic("menu");
 		};
 
