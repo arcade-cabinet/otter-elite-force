@@ -86,8 +86,11 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 		// Handle Suppression
 		if (data.suppression > 0.1) {
 			vehicleRef.current.maxSpeed = (data.isHeavy ? 4 : 7) * (1 - data.suppression * 0.5);
+			// Ducking animation when suppressed
+			bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, -0.2, 0.1);
 		} else if (!isAmbushing) {
 			vehicleRef.current.maxSpeed = data.isHeavy ? 4 : 7;
+			bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, 0.15, 0.1);
 		}
 
 		// Sync Three.js mesh with Yuka vehicle

@@ -66,6 +66,11 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 		if (data.hp <= 0 && onDeath) {
 			onDeath(data.id);
 		}
+
+		// Suppression logic for snakes
+		if (data.suppression > 0.5) {
+			setIsStriking(false); // Can't strike if suppressed
+		}
 	});
 
 	const bodyColor = "#1a331a";

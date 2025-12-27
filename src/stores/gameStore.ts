@@ -215,6 +215,7 @@ interface SaveData {
 		villagesLiberated: number;
 		gasStockpilesCaptured: number;
 		healersProtected: number;
+		alliesRescued: number;
 	};
 	spoilsOfWar: {
 		creditsEarned: number;
@@ -265,6 +266,8 @@ interface GameState {
 
 	// World management
 	currentChunkId: string;
+	isBuildMode: boolean; // New UI state
+	setBuildMode: (active: boolean) => void;
 	discoverChunk: (x: number, z: number) => ChunkData;
 	getNearbyChunks: (x: number, z: number) => ChunkData[];
 	secureChunk: (chunkId: string) => void;
@@ -330,6 +333,7 @@ const DEFAULT_SAVE_DATA: SaveData = {
 		villagesLiberated: 0,
 		gasStockpilesCaptured: 0,
 		healersProtected: 0,
+		alliesRescued: 0,
 	},
 	spoilsOfWar: {
 		creditsEarned: 0,
@@ -346,6 +350,8 @@ const DEFAULT_SAVE_DATA: SaveData = {
 			"bubble-gun": 1,
 		},
 	},
+	isLZSecured: false,
+	baseComponents: [],
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -362,10 +368,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 	playerPos: [0, 0, 0],
 	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
+	isBuildMode: false,
 	currentChunkId: "0,0",
 
 	// Mode management
 	setMode: (mode) => set({ mode }),
+	setBuildMode: (active) => set({ isBuildMode: active }),
 
 	// Player stats
 	takeDamage: (amount) =>
@@ -603,8 +611,16 @@ export const useGameStore = create<GameState>((set, get) => ({
 	rescueCharacter: (id) => {
 		const { saveData } = get();
 		if (!saveData.unlockedCharacters.includes(id)) {
+			set((state) => ({
+				saveData: {
+					...state.saveData,
+					strategicObjectives: {
+						...state.saveData.strategicObjectives,
+						alliesRescued: state.saveData.strategicObjectives.alliesRescued + 1,
+					}
+				}
+			}));
 			get().unlockCharacter(id);
-			// Optional: Trigger a notification or dialogue
 		}
 	},
 
@@ -636,6 +652,39 @@ export const useGameStore = create<GameState>((set, get) => ({
 			}));
 			get().saveGame();
 		}
+	},
+
+	secureLZ: () => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				isLZSecured: true,
+			},
+		}));
+		get().saveGame();
+	},
+
+	placeComponent: (comp) => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				baseComponents: [
+					...state.saveData.baseComponents,
+					{ ...comp, id: `base-${Math.random().toString(36).substr(2, 9)}` },
+				],
+			},
+		}));
+		get().saveGame();
+	},
+
+	removeComponent: (id) => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				baseComponents: state.saveData.baseComponents.filter((c) => c.id !== id),
+			},
+		}));
+		get().saveGame();
 	},
 
 	addCoins: (amount) => {
