@@ -67,7 +67,7 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			grizzled: false,
 		},
 		gear: {
-			headgear: "none",
+			headgear: "helmet",
 			vest: "tactical",
 			backgear: "scuba",
 			weapon: "bubble-gun",

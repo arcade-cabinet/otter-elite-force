@@ -89,67 +89,45 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 
 	const scale = data.isHeavy ? 1.5 : 1;
 	const bodyColor = data.isHeavy ? "#1a2a1a" : "#2d4d2d";
-	const armorColor = "#444444";
-	const eyeColor = "#ff0000";
-
-	// Chronal glitch effect (Future-tech visual)
-	const glitchRef = useRef<THREE.PointLight>(null);
-	useFrame(({ clock }) => {
-		if (glitchRef.current) {
-			glitchRef.current.intensity = Math.random() > 0.95 ? 2 : 0.5;
-		}
-	});
+	const tacticalColor = "#333322"; // OD Green / Black webbing
+	const eyeColor = "#ffaa00"; // Primal beast glow, not cyber red
 
 	return (
 		<group ref={groupRef}>
-			{/* Chronal Distortion Light */}
-			<pointLight ref={glitchRef} position={[0, 1, 0]} color="#00ffff" distance={3} />
+			{/* --- TACTICAL GATOR BODY --- */}
 			
-			{/* --- CYBORG GATOR BODY --- */}
-			
-			{/* Head (Mechanical) */}
+			{/* Head (Armored) */}
 			<group position={[0, 0.2, 1.2 * scale]} name="segment-0">
 				{/* Snout */}
 				<mesh castShadow receiveShadow>
 					<boxGeometry args={[0.6 * scale, 0.3 * scale, 1 * scale]} />
 					<meshStandardMaterial color={bodyColor} roughness={0.8} />
 				</mesh>
-				{/* Jaw (Mechanical) */}
-				<mesh position={[0, -0.15 * scale, 0.1 * scale]} castShadow>
-					<boxGeometry args={[0.55 * scale, 0.15 * scale, 0.8 * scale]} />
-					<meshStandardMaterial color={armorColor} metalness={0.8} roughness={0.2} />
+				{/* Tactical Webbing/Muzzle */}
+				<mesh position={[0, -0.05 * scale, 0.2 * scale]} castShadow>
+					<boxGeometry args={[0.65 * scale, 0.2 * scale, 0.4 * scale]} />
+					<meshStandardMaterial color={tacticalColor} roughness={0.9} />
 				</mesh>
-				{/* Cyber Eyes (Glowing Red) */}
-				{[-1, 1].map((side) => (
+				{/* Beast Eyes */}
+				{[-1, 1].map((side) => ( side === 1 && (
 					<mesh key={`eye-${side}`} position={[side * 0.25 * scale, 0.15 * scale, 0.3 * scale]}>
 						<sphereGeometry args={[0.06 * scale, 8, 8]} />
 						<meshBasicMaterial color={eyeColor} />
-						<pointLight distance={1} intensity={0.5} color={eyeColor} />
 					</mesh>
-				))}
-				{/* Head Armor Plate */}
-				<mesh position={[0, 0.2 * scale, -0.1 * scale]}>
-					<boxGeometry args={[0.7 * scale, 0.1 * scale, 0.6 * scale]} />
-					<meshStandardMaterial color={armorColor} metalness={0.5} />
-				</mesh>
+				)))}
 			</group>
 
-			{/* Main Body Segments */}
+			{/* Main Body Segments with Webbing */}
 			{[...Array(4)].map((_, i) => (
 				<group key={`segment-${i}`} position={[0, 0.2, (0.4 - i * 0.7) * scale]} name={`segment-${i+1}`}>
 					<mesh castShadow receiveShadow>
 						<boxGeometry args={[(0.8 - i * 0.1) * scale, 0.5 * scale, 0.8 * scale]} />
 						<meshStandardMaterial color={bodyColor} roughness={0.8} />
 					</mesh>
-					{/* Back Armor Plating */}
-					<mesh position={[0, 0.3 * scale, 0]}>
-						<boxGeometry args={[(0.6 - i * 0.1) * scale, 0.15 * scale, 0.6 * scale]} />
-						<meshStandardMaterial color={armorColor} metalness={0.7} roughness={0.3} />
-					</mesh>
-					{/* Spikes/Scales */}
-					<mesh position={[0, 0.45 * scale, 0]} rotation-x={Math.PI / 4}>
-						<boxGeometry args={[0.1 * scale, 0.2 * scale, 0.1 * scale]} />
-						<meshStandardMaterial color={armorColor} />
+					{/* Tactical Straps (Canvas feel) */}
+					<mesh position={[0, 0.1 * scale, 0]}>
+						<boxGeometry args={[(0.85 - i * 0.1) * scale, 0.1 * scale, 0.2 * scale]} />
+						<meshStandardMaterial color={tacticalColor} roughness={1} />
 					</mesh>
 				</group>
 			))}
