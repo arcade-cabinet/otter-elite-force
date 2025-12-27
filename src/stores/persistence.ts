@@ -1,5 +1,5 @@
 import { STORAGE_KEY } from "../utils/constants";
-import type { SaveData } from "./types";
+import type { PlacedComponent, SaveData } from "./types";
 
 export const DEFAULT_SAVE_DATA: SaveData = {
 	version: 8,
@@ -146,14 +146,16 @@ export const loadFromLocalStorage = (): SaveData | null => {
 			return null;
 		}
 
-		// Ensure that the parsed data doesn't have any malicious properties
-		// by strictly using the fields we expect from the migrated and merged data.
-
+		// Migrate schema to latest version
 		const migrated = migrateSchema(parsed as Record<string, unknown>);
-		return deepMerge(
+
+		// Deep merge with defaults to fill any missing fields
+		const merged = deepMerge(
 			DEFAULT_SAVE_DATA as unknown as Record<string, unknown>,
 			migrated as unknown as Record<string, unknown>,
 		);
+
+		return merged as unknown as SaveData;
 	} catch (e) {
 		console.error("Load failed", e);
 		return null;

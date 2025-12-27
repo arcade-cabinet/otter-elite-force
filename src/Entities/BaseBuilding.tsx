@@ -3,8 +3,6 @@
  * Reusable pieces for constructing the URA Forward Operating Base
  */
 
-import * as THREE from "three";
-
 export function BaseFloor({ position, rotation = [0, 0, 0] }: { position: [number, number, number], rotation?: [number, number, number] }) {
 	return (
 		<mesh position={position} rotation={rotation} receiveShadow>

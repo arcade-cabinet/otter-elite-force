@@ -95,7 +95,7 @@ export function MainMenu() {
 								disabled={!isUnlocked}
 							>
 								<div className="char-name">{char.traits.name}</div>
-								<div className="char-special">{char.gear.weapon?.replace("-", " ")}</div>
+								<div className="char-special">{char.gear.weaponId?.replace("-", " ")}</div>
 							</button>
 						);
 					})}
