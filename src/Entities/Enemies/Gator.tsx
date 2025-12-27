@@ -11,6 +11,11 @@ import * as YUKA from "yuka";
 import { Weapon } from "../Weapon";
 import type { EnemyProps, GatorData } from "./types";
 
+const AMBUSH_TRIGGER_DISTANCE = 15;
+const AMBUSH_DURATION_S = 3;
+const AMBUSH_COOLDOWN_MIN_S = 5;
+const AMBUSH_COOLDOWN_RANDOM_S = 5;
+
 export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) {
 	const groupRef = useRef<Group>(null);
 	const bodyRef = useRef<Group>(null);
@@ -49,24 +54,37 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 
 		// Ambush logic: Pop up when close, or at random
 		ambushCooldown.current -= delta;
-		if (!isAmbushing && distanceToPlayer < 15 && ambushCooldown.current <= 0) {
+		if (!isAmbushing && distanceToPlayer < AMBUSH_TRIGGER_DISTANCE && ambushCooldown.current <= 0) {
 			setIsAmbushing(true);
-			ambushCooldown.current = 5 + Math.random() * 5; // 5-10s between ambushes
-			ambushTimer.current = 3;
-			vehicleRef.current.maxSpeed = 0;
+			ambushCooldown.current = AMBUSH_COOLDOWN_MIN_S + Math.random() * AMBUSH_COOLDOWN_RANDOM_S;
+			ambushTimer.current = AMBUSH_DURATION_S;
 		}
 
 		if (isAmbushing) {
 			ambushTimer.current -= delta;
 			if (ambushTimer.current <= 0) {
 				setIsAmbushing(false);
-				vehicleRef.current.maxSpeed = baseSpeed;
-				ambushTimer.current = 0;
 			}
 		}
 
-		// Animate rising/submerging
-		const targetY = isAmbushing ? 0.8 : 0.15;
+		// Calculate target speed and Y position based on state
+		let targetY = 0.15;
+		let targetSpeed = baseSpeed;
+
+		if (isAmbushing) {
+			targetY = 0.8;
+			targetSpeed = 0;
+		}
+
+		// Handle Suppression (overrides normal behavior, but speed 0 if ambushing)
+		if (data.suppression > 0.1) {
+			targetY = -0.2;
+			targetSpeed = baseSpeed * (1 - data.suppression * 0.5);
+			if (isAmbushing) targetSpeed = 0;
+		}
+
+		// Apply movement and animation
+		vehicleRef.current.maxSpeed = targetSpeed;
 		bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, targetY, 0.1);
 
 		// Tilt body up when ambushing
@@ -84,15 +102,6 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 
 		// Update Yuka AI
 		vehicleRef.current.update(delta);
-
-		// Handle Suppression
-		if (data.suppression > 0.1) {
-			vehicleRef.current.maxSpeed = baseSpeed * (1 - data.suppression * 0.5);
-			bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, -0.2, 0.1);
-		} else if (!isAmbushing) {
-			vehicleRef.current.maxSpeed = baseSpeed;
-			bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, 0.15, 0.1);
-		}
 
 		// Sync Three.js mesh with Yuka vehicle
 		groupRef.current.position.set(vehicleRef.current.position.x, 0, vehicleRef.current.position.z);

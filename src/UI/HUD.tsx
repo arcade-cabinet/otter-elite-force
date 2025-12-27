@@ -9,30 +9,21 @@ import { inputSystem } from "../Core/InputSystem";
 import { useGameStore } from "../stores/gameStore";
 
 export function HUD() {
-	const {
-		health,
-		maxHealth,
-		kills,
-		mudAmount,
-		playerPos,
-		saveData,
-		isBuildMode,
-	} = useGameStore((state) => ({
-		health: state.health,
-		maxHealth: state.maxHealth,
-		kills: state.kills,
-		mudAmount: state.mudAmount,
-		playerPos: state.playerPos,
-		saveData: state.saveData,
-		isBuildMode: state.isBuildMode,
-	}));
+	const { health, maxHealth, kills, mudAmount, playerPos, saveData, isBuildMode } = useGameStore(
+		(state) => ({
+			health: state.health,
+			maxHealth: state.maxHealth,
+			kills: state.kills,
+			mudAmount: state.mudAmount,
+			playerPos: state.playerPos,
+			saveData: state.saveData,
+			isBuildMode: state.isBuildMode,
+		}),
+	);
 
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
 	const placeComponent = useGameStore((state) => state.placeComponent);
-
-	const territoryScore = useGameStore((state) => state.saveData.territoryScore);
-	const peacekeepingScore = useGameStore((state) => state.saveData.peacekeepingScore);
 
 	const handlePlace = useCallback(
 		(type: "FLOOR" | "WALL" | "ROOF" | "STILT") => {
@@ -72,12 +63,8 @@ export function HUD() {
 					<div className="hud-coords">
 						COORD: {Math.floor(playerPos[0])}, {Math.floor(playerPos[2])}
 					</div>
-					<div className="hud-territory">
-						TERRITORY SECURED: {territoryScore}
-					</div>
-					<div className="hud-peacekeeping">
-						PEACEKEEPING: {peacekeepingScore}
-					</div>
+					<div className="hud-territory">TERRITORY SECURED: {saveData.territoryScore}</div>
+					<div className="hud-peacekeeping">PEACEKEEPING: {saveData.peacekeepingScore}</div>
 				</div>
 
 				<div className="hud-objective">
@@ -105,11 +92,7 @@ export function HUD() {
 				>
 					GRIP
 				</button>
-				<button
-					type="button"
-					className="action-btn scope"
-					onClick={toggleZoom}
-				>
+				<button type="button" className="action-btn scope" onClick={toggleZoom}>
 					SCOPE
 				</button>
 				{saveData.isLZSecured && (
@@ -135,10 +118,18 @@ export function HUD() {
 			{/* BUILD UI (Bottom Center) */}
 			{isBuildMode && (
 				<div className="build-ui">
-					<button type="button" onClick={() => handlePlace("FLOOR")}>+FLOOR</button>
-					<button type="button" onClick={() => handlePlace("WALL")}>+WALL</button>
-					<button type="button" onClick={() => handlePlace("ROOF")}>+ROOF</button>
-					<button type="button" onClick={() => handlePlace("STILT")}>+STILT</button>
+					<button type="button" onClick={() => handlePlace("FLOOR")}>
+						+FLOOR
+					</button>
+					<button type="button" onClick={() => handlePlace("WALL")}>
+						+WALL
+					</button>
+					<button type="button" onClick={() => handlePlace("ROOF")}>
+						+ROOF
+					</button>
+					<button type="button" onClick={() => handlePlace("STILT")}>
+						+STILT
+					</button>
 				</div>
 			)}
 
