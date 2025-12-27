@@ -1,18 +1,33 @@
 /**
  * Audio Engine
  * Handles all game audio synthesis using Tone.js
+ *
+ * Uses synth pooling for better performance - synths are created once
+ * and reused rather than being created/destroyed per sound effect.
  */
 
 import * as Tone from "tone";
 
+// Pool size for each synth type
+const POOL_SIZE = 4;
+
+interface SynthPool {
+	synths: Tone.Synth[];
+	index: number;
+}
+
 export class AudioEngine {
 	private initialized = false;
-	private synths: Map<string, Tone.Synth> = new Map();
 	private noiseSynth: Tone.NoiseSynth | null = null;
+	private bassSynth: Tone.Synth | null = null;
 	private loop: Tone.Loop | null = null;
-	private activeSynths: Set<Tone.Synth | Tone.MonoSynth> = new Set();
 	private musicSynth: Tone.PolySynth | Tone.MonoSynth | null = null;
 	private musicPattern: Tone.Pattern<string> | null = null;
+
+	// Synth pools for different sound effects
+	private shootPool: SynthPool = { synths: [], index: 0 };
+	private hitPool: SynthPool = { synths: [], index: 0 };
+	private pickupPool: SynthPool = { synths: [], index: 0 };
 
 	/**
 	 * Initialize Tone.js
@@ -24,13 +39,72 @@ export class AudioEngine {
 		await Tone.start();
 		console.log("Audio engine initialized");
 
-		// Create reusable synths
+		// Create reusable noise synth for explosions
 		this.noiseSynth = new Tone.NoiseSynth({
 			noise: { type: "white" },
 			envelope: { attack: 0.005, decay: 0.1, sustain: 0 },
 		}).toDestination();
 
+		// Create reusable bass synth for explosions
+		this.bassSynth = new Tone.Synth({
+			oscillator: { type: "sine" },
+			envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.2 },
+		}).toDestination();
+
+		// Initialize synth pools
+		this.initShootPool();
+		this.initHitPool();
+		this.initPickupPool();
+
 		this.initialized = true;
+	}
+
+	/**
+	 * Initialize pool of synths for shooting sounds
+	 */
+	private initShootPool(): void {
+		for (let i = 0; i < POOL_SIZE; i++) {
+			const synth = new Tone.Synth({
+				oscillator: { type: "sawtooth" },
+				envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
+			}).toDestination();
+			this.shootPool.synths.push(synth);
+		}
+	}
+
+	/**
+	 * Initialize pool of synths for hit sounds
+	 */
+	private initHitPool(): void {
+		for (let i = 0; i < POOL_SIZE; i++) {
+			const synth = new Tone.Synth({
+				oscillator: { type: "square" },
+				envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.05 },
+			}).toDestination();
+			this.hitPool.synths.push(synth);
+		}
+	}
+
+	/**
+	 * Initialize pool of synths for pickup sounds
+	 */
+	private initPickupPool(): void {
+		for (let i = 0; i < POOL_SIZE; i++) {
+			const synth = new Tone.Synth({
+				oscillator: { type: "sine" },
+				envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 },
+			}).toDestination();
+			this.pickupPool.synths.push(synth);
+		}
+	}
+
+	/**
+	 * Get next synth from pool (round-robin)
+	 */
+	private getFromPool(pool: SynthPool): Tone.Synth {
+		const synth = pool.synths[pool.index];
+		pool.index = (pool.index + 1) % pool.synths.length;
+		return synth;
 	}
 
 	/**
@@ -46,72 +120,37 @@ export class AudioEngine {
 
 		switch (type) {
 			case "shoot": {
-				// Gunshot: quick sawtooth sweep
-				const synth = new Tone.Synth({
-					oscillator: { type: "sawtooth" },
-					envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
-				}).toDestination();
-
-				this.activeSynths.add(synth);
+				// Gunshot: quick sawtooth sweep (using pooled synth)
+				const synth = this.getFromPool(this.shootPool);
 				synth.triggerAttackRelease("A2", "16n", now);
-				setTimeout(() => {
-					synth.dispose();
-					this.activeSynths.delete(synth);
-				}, 200);
 				break;
 			}
 
 			case "hit": {
-				// Impact: square wave thump
-				const synth = new Tone.Synth({
-					oscillator: { type: "square" },
-					envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.05 },
-				}).toDestination();
-
-				this.activeSynths.add(synth);
+				// Impact: square wave thump (using pooled synth)
+				const synth = this.getFromPool(this.hitPool);
 				synth.triggerAttackRelease("G2", "32n", now);
-				setTimeout(() => {
-					synth.dispose();
-					this.activeSynths.delete(synth);
-				}, 200);
 				break;
 			}
 
 			case "pickup": {
-				// Pickup: ascending sine
-				const synth = new Tone.Synth({
-					oscillator: { type: "sine" },
-					envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 },
-				}).toDestination();
-
-				this.activeSynths.add(synth);
+				// Pickup: ascending sine (using pooled synth)
+				const synth = this.getFromPool(this.pickupPool);
 				synth.triggerAttackRelease("C5", "8n", now);
-				synth.triggerAttackRelease("E5", "8n", now + 0.1);
-				setTimeout(() => {
-					synth.dispose();
-					this.activeSynths.delete(synth);
-				}, 400);
+				// Get another synth for the second note
+				const synth2 = this.getFromPool(this.pickupPool);
+				synth2.triggerAttackRelease("E5", "8n", now + 0.1);
 				break;
 			}
 
 			case "explode": {
-				// Explosion: filtered noise burst
+				// Explosion: filtered noise burst + low rumble
 				if (this.noiseSynth) {
 					this.noiseSynth.triggerAttackRelease("8n", now);
 				}
-
-				// Low rumble
-				const bass = new Tone.Synth({
-					oscillator: { type: "sine" },
-					envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.2 },
-				}).toDestination();
-
-				this.activeSynths.add(bass);
-				bass.triggerAttackRelease("C1", "4n", now);
-				setTimeout(() => {
-					bass.dispose();
-					this.activeSynths.delete(bass);
-				}, 800);
+				if (this.bassSynth) {
+					this.bassSynth.triggerAttackRelease("C1", "4n", now);
+				}
 				break;
 			}
 		}
@@ -193,16 +232,19 @@ export class AudioEngine {
 	 */
 	stopAll(): void {
 		this.stopMusic();
-		// Dispose all synths
-		this.synths.forEach((synth) => {
-			synth.dispose();
-		});
-		this.synths.clear();
-		// Dispose active SFX synths
-		this.activeSynths.forEach((synth) => {
-			synth.dispose();
-		});
-		this.activeSynths.clear();
+		// Dispose all pooled synths
+		this.shootPool.synths.forEach((synth) => synth.dispose());
+		this.shootPool.synths = [];
+		this.shootPool.index = 0;
+
+		this.hitPool.synths.forEach((synth) => synth.dispose());
+		this.hitPool.synths = [];
+		this.hitPool.index = 0;
+
+		this.pickupPool.synths.forEach((synth) => synth.dispose());
+		this.pickupPool.synths = [];
+		this.pickupPool.index = 0;
+
 		this.initialized = false;
 	}
 
@@ -220,6 +262,8 @@ export class AudioEngine {
 		this.stopAll();
 		this.noiseSynth?.dispose();
 		this.noiseSynth = null;
+		this.bassSynth?.dispose();
+		this.bassSynth = null;
 		this.initialized = false;
 	}
 }
