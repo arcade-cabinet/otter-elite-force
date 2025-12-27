@@ -109,9 +109,10 @@ export interface ChunkData {
 	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
 	entities: {
 		id: string;
-		type: "GATOR" | "SNAKE" | "SNAPPER" | "PLATFORM" | "CLIMBABLE";
+		type: "GATOR" | "SNAKE" | "SNAPPER" | "PLATFORM" | "CLIMBABLE" | "SIPHON";
 		position: [number, number, number];
 		isHeavy?: boolean;
+		objectiveId?: string;
 	}[];
 	decorations: {
 		type: "REED" | "LILYPAD" | "DEBRIS" | "BURNT_TREE" | "MANGROVE" | "DRUM";
@@ -284,7 +285,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 			});
 		}
 
-		const newChunk: ChunkData = {
+		// Add Siphons (Objectives)
+		if (rand() > 0.8) {
+			entities.push({
+				id: `siphon-${id}`,
+				type: "SIPHON",
+				position: [(rand() - 0.5) * 40, 0, (rand() - 0.5) * 40],
+			});
+		}
 			id,
 			x,
 			z,
