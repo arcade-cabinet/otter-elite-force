@@ -109,7 +109,7 @@ export interface ChunkData {
 	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
 	entities: {
 		id: string;
-		type: "GATOR" | "SNAKE" | "SNAPPER" | "PLATFORM";
+		type: "GATOR" | "SNAKE" | "SNAPPER" | "PLATFORM" | "CLIMBABLE";
 		position: [number, number, number];
 		isHeavy?: boolean;
 	}[];
@@ -255,13 +255,27 @@ export const useGameStore = create<GameState>((set, get) => ({
 		for (let i = 0; i < platformCount; i++) {
 			entities.push({
 				id: `p-${id}-${i}`,
-				type: "PLATFORM", // New type
+				type: "PLATFORM",
 				position: [
 					(rand() - 0.5) * (CHUNK_SIZE - 20),
 					0.5,
 					(rand() - 0.5) * (CHUNK_SIZE - 20),
 				],
-			} as any);
+			});
+		}
+
+		// Add Climbables (Trees/Walls)
+		const climbableCount = Math.floor(rand() * 2) + 1;
+		for (let i = 0; i < climbableCount; i++) {
+			entities.push({
+				id: `c-${id}-${i}`,
+				type: "CLIMBABLE",
+				position: [
+					(rand() - 0.5) * (CHUNK_SIZE - 30),
+					5, // Height center
+					(rand() - 0.5) * (CHUNK_SIZE - 30),
+				],
+			});
 		}
 
 		const newChunk: ChunkData = {

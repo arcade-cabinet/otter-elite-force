@@ -15,6 +15,7 @@ interface PlayerRigProps {
 	position?: [number, number, number];
 	rotation?: number;
 	isMoving?: boolean;
+	isClimbing?: boolean; // New prop
 	velocity?: number;
 }
 
@@ -38,6 +39,7 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 			position = [0, 0, 0],
 			rotation = 0,
 			isMoving = false,
+			isClimbing = false, // Default value
 		},
 		ref,
 	) => {
@@ -55,6 +57,21 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 		// Animate limbs
 		useFrame((state) => {
 			const time = state.clock.elapsedTime;
+
+			if (isClimbing) {
+				// Climbing pose
+				if (legLRef.current && legRRef.current) {
+					legLRef.current.rotation.x = -Math.PI / 4 + Math.sin(time * 10) * 0.2;
+					legRRef.current.rotation.x = -Math.PI / 4 + Math.sin(time * 10 + Math.PI) * 0.2;
+				}
+				if (armLRef.current) {
+					armLRef.current.rotation.x = Math.PI / 4 + Math.sin(time * 10 + Math.PI) * 0.2;
+				}
+				if (armRRef.current) {
+					armRRef.current.rotation.x = Math.PI / 4 + Math.sin(time * 10) * 0.2;
+				}
+				return;
+			}
 
 			if (headRef.current) {
 				// Base bob
