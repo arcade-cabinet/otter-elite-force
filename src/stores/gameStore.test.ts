@@ -156,11 +156,18 @@ describe("gameStore - Open World Chunk Persistence", () => {
 			},
 		});
 
-		// Generate chunk at specific coords
-		const chunk = store.discoverChunk(7, 7);
+		// Generate chunk at specific coords multiple times
+		const chunkA1 = store.discoverChunk(7, 7);
+		const chunkA2 = store.discoverChunk(7, 7);
 
-		// Seed should be deterministic based on coordinates
-		expect(chunk.seed).toBe(Math.abs(7 * 31 + 7 * 17));
+		// Same coordinates should always produce the same seed (deterministic)
+		expect(chunkA1.seed).toBe(chunkA2.seed);
+		expect(typeof chunkA1.seed).toBe("number");
+		expect(chunkA1.seed).toBeGreaterThanOrEqual(0);
+
+		// Different coordinates should generally produce a different seed
+		const chunkB = store.discoverChunk(8, 7);
+		expect(chunkB.seed).not.toBe(chunkA1.seed);
 	});
 
 	it("should get nearby chunks (3x3 grid)", () => {

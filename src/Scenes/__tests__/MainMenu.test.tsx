@@ -113,11 +113,14 @@ describe("MainMenu - Game Loader Interface", () => {
 		expect(screen.queryByText(/STAGE/i)).not.toBeInTheDocument();
 	});
 
-	it("should NOT have multiple mission buttons", () => {
+	it("should NOT have legacy level-card UI components", () => {
 		const { container } = render(<MainMenu />);
-		// Ensure no level-card elements exist
+		// Defense against accidental reintroduction of level-based UI
+		// This catches CSS-based level cards even if they don't contain "LEVEL" text
 		const levelCards = container.querySelectorAll(".level-card");
+		const missionCards = container.querySelectorAll(".mission-card");
 		expect(levelCards.length).toBe(0);
+		expect(missionCards.length).toBe(0);
 	});
 
 	// ============================================

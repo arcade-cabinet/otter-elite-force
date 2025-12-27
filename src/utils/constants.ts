@@ -23,6 +23,13 @@ export const GAME_CONFIG = {
 } as const;
 
 /**
+ * Difficulty Mode Order (for escalation logic)
+ * Single source of truth for difficulty hierarchy.
+ * Difficulty can go UP but NEVER DOWN (escalation only).
+ */
+export const DIFFICULTY_ORDER = ["SUPPORT", "TACTICAL", "ELITE"] as const;
+
+/**
  * Difficulty Mode Configurations
  * Difficulty can go UP but NEVER DOWN (escalation only)
  */

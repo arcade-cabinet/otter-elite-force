@@ -4,7 +4,7 @@
  */
 
 import { create } from "zustand";
-import { GAME_CONFIG, RANKS, STORAGE_KEY } from "../utils/constants";
+import { DIFFICULTY_ORDER, GAME_CONFIG, RANKS, STORAGE_KEY } from "../utils/constants";
 import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS } from "./gameData";
 import { DEFAULT_SAVE_DATA } from "./persistence";
 import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData } from "./types";
@@ -112,9 +112,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 	setMode: (mode) => set({ mode }),
 	setBuildMode: (active) => set({ isBuildMode: active }),
 	setDifficulty: (difficulty) => {
-		const order = ["SUPPORT", "TACTICAL", "ELITE"];
+		// Use centralized DIFFICULTY_ORDER constant for escalation logic
 		const current = get().saveData.difficultyMode;
-		if (order.indexOf(difficulty) > order.indexOf(current)) {
+		if (DIFFICULTY_ORDER.indexOf(difficulty) > DIFFICULTY_ORDER.indexOf(current)) {
 			set((state) => ({
 				saveData: {
 					...state.saveData,

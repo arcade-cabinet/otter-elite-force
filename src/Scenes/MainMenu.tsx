@@ -11,7 +11,7 @@
  */
 
 import { CHARACTERS, type DifficultyMode, useGameStore } from "../stores/gameStore";
-import { DIFFICULTY_CONFIGS, RANKS } from "../utils/constants";
+import { DIFFICULTY_CONFIGS, DIFFICULTY_ORDER, RANKS } from "../utils/constants";
 
 export function MainMenu() {
 	const { saveData, setMode, resetData, selectedCharacterId, selectCharacter, setDifficulty } =
@@ -31,8 +31,8 @@ export function MainMenu() {
 	};
 
 	const canUpgradeDifficulty = (targetMode: DifficultyMode): boolean => {
-		const order: DifficultyMode[] = ["SUPPORT", "TACTICAL", "ELITE"];
-		return order.indexOf(targetMode) > order.indexOf(saveData.difficultyMode);
+		// Use centralized DIFFICULTY_ORDER constant
+		return DIFFICULTY_ORDER.indexOf(targetMode) > DIFFICULTY_ORDER.indexOf(saveData.difficultyMode);
 	};
 
 	const getDifficultyWarning = (targetMode: DifficultyMode): string | null => {
