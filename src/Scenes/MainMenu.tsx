@@ -7,8 +7,15 @@ import { CHARACTERS, useGameStore } from "../stores/gameStore";
 import { LEVELS, RANKS } from "../utils/constants";
 
 export function MainMenu() {
-	const { saveData, setMode, setLevel, resetData, selectedCharacterId, selectCharacter } =
-		useGameStore();
+	const {
+		saveData,
+		setMode,
+		setLevel,
+		resetData,
+		selectedCharacterId,
+		selectCharacter,
+		setDifficulty,
+	} = useGameStore();
 
 	const handleCampaign = () => {
 		setMode("CUTSCENE");
