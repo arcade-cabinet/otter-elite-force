@@ -1,11 +1,11 @@
 /**
- * Enemy entities (Gators)
- * Procedurally generated with Yuka AI
+ * Enemy entities (Iron Scale Cyborg Gators)
+ * Procedurally generated with Yuka AI and mechanical armor plating
  */
 
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
-import type { Mesh } from "three";
+import type { Mesh, Group } from "three";
 import * as THREE from "three";
 import * as YUKA from "yuka";
 
@@ -24,7 +24,7 @@ interface EnemyProps {
 }
 
 export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
-	const meshRef = useRef<Mesh>(null);
+	const groupRef = useRef<Group>(null);
 	const vehicleRef = useRef<YUKA.Vehicle | null>(null);
 	const targetRef = useRef<YUKA.Vector3 | null>(null);
 
@@ -48,7 +48,7 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 
 	// Update AI and sync with Three.js mesh
 	useFrame((_state, delta) => {
-		if (!vehicleRef.current || !meshRef.current) return;
+		if (!vehicleRef.current || !groupRef.current) return;
 
 		// Update target position
 		if (targetRef.current) {
@@ -59,13 +59,25 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		vehicleRef.current.update(delta);
 
 		// Sync Three.js mesh with Yuka vehicle
-		meshRef.current.position.set(vehicleRef.current.position.x, 0.4, vehicleRef.current.position.z);
+		groupRef.current.position.set(vehicleRef.current.position.x, 0.2, vehicleRef.current.position.z);
 
 		// Face direction of movement
 		if (vehicleRef.current.velocity.length() > 0.1) {
 			const angle = Math.atan2(vehicleRef.current.velocity.x, vehicleRef.current.velocity.z);
-			meshRef.current.rotation.y = angle;
+			groupRef.current.rotation.y = angle;
 		}
+
+		// Procedural animation (swimming snake-like)
+		const time = _state.clock.elapsedTime;
+		const swimSpeed = data.isHeavy ? 5 : 8;
+		const swimAmount = data.isHeavy ? 0.1 : 0.2;
+		
+		// Body segments waddle
+		groupRef.current.children.forEach((child, i) => {
+			if (child.name.startsWith("segment")) {
+				child.rotation.y = Math.sin(time * swimSpeed - i * 0.5) * swimAmount;
+			}
+		});
 	});
 
 	// Check if dead
@@ -75,40 +87,86 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		}
 	}, [data.hp, data.id, onDeath]);
 
-	const size = data.isHeavy ? [1.5, 0.8, 3] : [1, 0.8, 2];
-	const color = data.isHeavy ? "#112211" : "#335533";
+	const scale = data.isHeavy ? 1.5 : 1;
+	const bodyColor = data.isHeavy ? "#1a2a1a" : "#2d4d2d";
+	const armorColor = "#444444";
+	const eyeColor = "#ff0000";
 
 	return (
-		<mesh ref={meshRef} castShadow receiveShadow>
-			<boxGeometry args={size as [number, number, number]} />
-			<meshStandardMaterial color={color} roughness={0.7} />
-
-			{/* Gator Head (Improvement) */}
-			<mesh position={[0, 0.2, 0.8 * (data.isHeavy ? 1.5 : 1)]}>
-				<boxGeometry args={[data.isHeavy ? 1.2 : 0.8, 0.4, 1]} />
-				<meshStandardMaterial color={color} roughness={0.7} />
-				{/* Gator Eyes */}
-				<mesh position={[-0.3, 0.2, 0.2]}>
-					<sphereGeometry args={[0.05, 8, 8]} />
-					<meshBasicMaterial color="#ffff00" />
+		<group ref={groupRef}>
+			{/* --- CYBORG GATOR BODY --- */}
+			
+			{/* Head (Mechanical) */}
+			<group position={[0, 0.2, 1.2 * scale]} name="segment-0">
+				{/* Snout */}
+				<mesh castShadow receiveShadow>
+					<boxGeometry args={[0.6 * scale, 0.3 * scale, 1 * scale]} />
+					<meshStandardMaterial color={bodyColor} roughness={0.8} />
 				</mesh>
-				<mesh position={[0.3, 0.2, 0.2]}>
-					<sphereGeometry args={[0.05, 8, 8]} />
-					<meshBasicMaterial color="#ffff00" />
+				{/* Jaw (Mechanical) */}
+				<mesh position={[0, -0.15 * scale, 0.1 * scale]} castShadow>
+					<boxGeometry args={[0.55 * scale, 0.15 * scale, 0.8 * scale]} />
+					<meshStandardMaterial color={armorColor} metalness={0.8} roughness={0.2} />
 				</mesh>
-			</mesh>
-
-			{/* Health bar */}
-			<group position={[0, 1, 0]}>
-				<mesh position={[0, 0, 0]}>
-					<planeGeometry args={[1, 0.1]} />
-					<meshBasicMaterial color="#ff0000" side={THREE.DoubleSide} />
-				</mesh>
-				<mesh position={[-(1 - data.hp / data.maxHp) / 2, 0, 0.01]} scale-x={data.hp / data.maxHp}>
-					<planeGeometry args={[1, 0.1]} />
-					<meshBasicMaterial color="#00ff00" side={THREE.DoubleSide} />
+				{/* Cyber Eyes (Glowing Red) */}
+				{[-1, 1].map((side) => (
+					<mesh key={`eye-${side}`} position={[side * 0.25 * scale, 0.15 * scale, 0.3 * scale]}>
+						<sphereGeometry args={[0.06 * scale, 8, 8]} />
+						<meshBasicMaterial color={eyeColor} />
+						<pointLight distance={1} intensity={0.5} color={eyeColor} />
+					</mesh>
+				))}
+				{/* Head Armor Plate */}
+				<mesh position={[0, 0.2 * scale, -0.1 * scale]}>
+					<boxGeometry args={[0.7 * scale, 0.1 * scale, 0.6 * scale]} />
+					<meshStandardMaterial color={armorColor} metalness={0.5} />
 				</mesh>
 			</group>
-		</mesh>
+
+			{/* Main Body Segments */}
+			{[...Array(4)].map((_, i) => (
+				<group key={`segment-${i}`} position={[0, 0.2, (0.4 - i * 0.7) * scale]} name={`segment-${i+1}`}>
+					<mesh castShadow receiveShadow>
+						<boxGeometry args={[(0.8 - i * 0.1) * scale, 0.5 * scale, 0.8 * scale]} />
+						<meshStandardMaterial color={bodyColor} roughness={0.8} />
+					</mesh>
+					{/* Back Armor Plating */}
+					<mesh position={[0, 0.3 * scale, 0]}>
+						<boxGeometry args={[(0.6 - i * 0.1) * scale, 0.15 * scale, 0.6 * scale]} />
+						<meshStandardMaterial color={armorColor} metalness={0.7} roughness={0.3} />
+					</mesh>
+					{/* Spikes/Scales */}
+					<mesh position={[0, 0.45 * scale, 0]} rotation-x={Math.PI / 4}>
+						<boxGeometry args={[0.1 * scale, 0.2 * scale, 0.1 * scale]} />
+						<meshStandardMaterial color={armorColor} />
+					</mesh>
+				</group>
+			))}
+
+			{/* Tail Tip */}
+			<group position={[0, 0.2, -2.4 * scale]} name="segment-5">
+				<mesh castShadow>
+					<boxGeometry args={[0.2 * scale, 0.2 * scale, 1.2 * scale]} />
+					<meshStandardMaterial color={bodyColor} />
+				</mesh>
+				{/* Tail Fin (Mechanical) */}
+				<mesh position={[0, 0, -0.4 * scale]} rotation-x={Math.PI / 2}>
+					<planeGeometry args={[0.6 * scale, 0.8 * scale]} />
+					<meshStandardMaterial color={armorColor} metalness={0.8} side={THREE.DoubleSide} />
+				</mesh>
+			</group>
+
+			{/* Health bar */}
+			<group position={[0, 1.2 * scale, 0]}>
+				<mesh position={[0, 0, 0]}>
+					<planeGeometry args={[1.2, 0.12]} />
+					<meshBasicMaterial color="#330000" side={THREE.DoubleSide} />
+				</mesh>
+				<mesh position={[-(1 - data.hp / data.maxHp) * 0.6, 0, 0.01]} scale-x={data.hp / data.maxHp}>
+					<planeGeometry args={[1.2, 0.12]} />
+					<meshBasicMaterial color="#ff3300" side={THREE.DoubleSide} />
+				</mesh>
+			</group>
+		</group>
 	);
 }

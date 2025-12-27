@@ -406,6 +406,47 @@ button.secondary {
 	z-index: 5;
 }
 
+/* Character Selection */
+.character-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.char-card {
+	padding: 10px !important;
+	margin-top: 0 !important;
+	font-size: 0.7rem !important;
+	height: auto;
+	background: rgba(255, 255, 255, 0.05) !important;
+	border: 1px solid #444 !important;
+	box-shadow: none !important;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.char-card.selected {
+	border-color: var(--primary) !important;
+	background: rgba(255, 170, 0, 0.1) !important;
+}
+
+.char-card.locked {
+	opacity: 0.3;
+}
+
+.char-name {
+	font-weight: bold;
+	margin-bottom: 4px;
+}
+
+.char-special {
+	font-size: 0.6rem;
+	color: var(--accent);
+}
+
 /* Mobile optimizations */
 @media (max-width: 768px) {
 	h1 {

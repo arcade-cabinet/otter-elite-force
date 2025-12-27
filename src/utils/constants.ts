@@ -30,30 +30,36 @@ export const GAME_CONFIG = {
 export const LEVELS = [
 	{
 		id: 0,
-		title: "SUNRISE PATROL",
-		desc: "The gators are scouting the perimeter.",
+		title: "PERIMETER BREACH",
+		desc: "Iron Scale scouts have been spotted near the Mekong entrance. Clear the way for the platoon.",
 		goal: 5,
 		enemies: 8,
-		sky: 0xffaa55,
-		fog: 0xffcc88,
+		sky: "#ffaa55", // Golden Hour
+		fog: "#ffcc88",
+		waterColor: "#1e3a5f",
+		difficulty: "EASY",
 	},
 	{
 		id: 1,
-		title: "MUDDY DEPTHS",
-		desc: "Heavy Gator presence detected.",
+		title: "INDUSTRIAL SLUDGE",
+		desc: "The Dominion is pumping toxic waste into the delta. Destroy the mechanized cleanup crews.",
 		goal: 10,
 		enemies: 15,
-		sky: 0x87ceeb,
-		fog: 0x88ccee,
+		sky: "#4a5a4a", // Sickly green/grey
+		fog: "#2a3a2a",
+		waterColor: "#1a2a1a", // Oily water
+		difficulty: "MEDIUM",
 	},
 	{
 		id: 2,
-		title: "THE HIVE",
-		desc: "Eliminate the Elite Guard.",
+		title: "THE CLAM VAULT",
+		desc: "Final stand. The Iron Scale Elite are guarding the Primal Clams. Do not fail, Bubbles.",
 		goal: 15,
-		enemies: 20,
-		sky: 0x220033,
-		fog: 0x331122,
+		enemies: 25,
+		sky: "#1a002a", // Deep purple/night
+		fog: "#0a001a",
+		waterColor: "#050010",
+		difficulty: "HARD",
 	},
 ] as const;
 

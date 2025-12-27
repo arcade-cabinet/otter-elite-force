@@ -3,11 +3,11 @@
  * Initial screen with campaign selection
  */
 
-import { useGameStore } from "../stores/gameStore";
+import { CHARACTERS, useGameStore } from "../stores/gameStore";
 import { LEVELS, RANKS } from "../utils/constants";
 
 export function MainMenu() {
-	const { saveData, setMode, setLevel, resetData } = useGameStore();
+	const { saveData, setMode, setLevel, resetData, selectedCharacterId, selectCharacter } = useGameStore();
 
 	const handleCampaign = () => {
 		setMode("CUTSCENE");
@@ -33,8 +33,8 @@ export function MainMenu() {
 
 			<div className="panel">
 				<div className="stat-row">
-					<span>OPERATIVE</span>
-					<span className="stat-val">SGT. BUBBLES</span>
+					<span>PLATOON COMMANDER</span>
+					<span className="stat-val">{CHARACTERS[selectedCharacterId].traits.name}</span>
 				</div>
 				<div className="stat-row">
 					<span>RANK</span>
@@ -44,15 +44,32 @@ export function MainMenu() {
 					<span>MEDALS</span>
 					<span className="stat-val">{saveData.medals}</span>
 				</div>
-				<div className="stat-row">
-					<span>XP</span>
-					<span className="stat-val">{saveData.xp}</span>
+
+				<h3 style={{ marginTop: "20px", color: "var(--primary)", fontSize: "0.9rem" }}>SELECT WARRIOR</h3>
+				<div className="character-grid">
+					{Object.values(CHARACTERS).map((char) => {
+						const isUnlocked = saveData.unlockedCharacters.includes(char.traits.id);
+						const isSelected = selectedCharacterId === char.traits.id;
+						return (
+							<button
+								type="button"
+								key={char.traits.id}
+								className={`char-card ${isSelected ? "selected" : ""} ${isUnlocked ? "unlocked" : "locked"}`}
+								onClick={() => isUnlocked && selectCharacter(char.traits.id)}
+								disabled={!isUnlocked}
+							>
+								<div className="char-name">{char.traits.name}</div>
+								<div className="char-special">{char.gear.weapon?.replace("-", " ")}</div>
+							</button>
+						);
+					})}
 				</div>
 
-				<button type="button" onClick={handleCampaign}>
-					CAMPAIGN
+				<button type="button" onClick={handleCampaign} style={{ marginTop: "30px" }}>
+					START CAMPAIGN
 				</button>
 
+				<h3 style={{ marginTop: "20px", color: "var(--primary)", fontSize: "0.9rem" }}>MISSIONS</h3>
 				<div className="level-grid">
 					{LEVELS.map((level) => {
 						const isUnlocked = level.id < saveData.unlocked;
@@ -68,14 +85,14 @@ export function MainMenu() {
 									<div className="level-title">{level.title}</div>
 									<div className="level-desc">{level.desc}</div>
 								</div>
-								<div className="level-goal">ELIMINATE {level.goal} TARGETS</div>
+								<div className="level-goal">{level.goal} TARGETS</div>
 							</button>
 						);
 					})}
 				</div>
 
 				<button type="button" onClick={resetData} className="secondary">
-					RESET DATA
+					RESET PLATOON DATA
 				</button>
 			</div>
 		</div>

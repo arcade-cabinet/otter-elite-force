@@ -7,7 +7,7 @@ import { Environment, Sky } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useState } from "react";
 import { PlayerRig } from "../Entities/PlayerRig";
-import { useGameStore } from "../stores/gameStore";
+import { CHARACTERS, useGameStore } from "../stores/gameStore";
 
 interface DialogueLine {
 	name: string;
@@ -17,14 +17,14 @@ interface DialogueLine {
 const INTRO_DIALOGUE: DialogueLine[] = [
 	{
 		name: "GEN. WHISKERS",
-		text: "Sgt. Bubbles! The Iron Scale Dominion is closing in on the Mekong Delta.",
+		text: "Platoon! The Iron Scale Dominion is closing in on the Mekong Delta.",
 	},
-	{ name: "SGT. BUBBLES", text: "I'm ready, General. What's the situation?" },
+	{ name: "SGT. BUBBLES", text: "We're ready, General. What's the situation?" },
 	{
 		name: "GEN. WHISKERS",
 		text: "They're seeking the Primal Clams. If they get them, the river is doomed.",
 	},
-	{ name: "SGT. BUBBLES", text: "Not on my watch. Deployed and ready for extraction." },
+	{ name: "SGT. BUBBLES", text: "Not on our watch. Moving to intercept." },
 ];
 
 function CinematicCamera() {
@@ -38,8 +38,9 @@ function CinematicCamera() {
 }
 
 export function Cutscene() {
-	const { setMode } = useGameStore();
+	const { setMode, selectedCharacterId } = useGameStore();
 	const [index, setIndex] = useState(0);
+	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 
 	const handleNext = () => {
 		if (index < INTRO_DIALOGUE.length - 1) {
@@ -50,6 +51,7 @@ export function Cutscene() {
 	};
 
 	const currentLine = INTRO_DIALOGUE[index];
+	const isSgtBubbles = currentLine.name === "SGT. BUBBLES";
 
 	return (
 		<div className="screen active cutscene-screen">
@@ -61,8 +63,18 @@ export function Cutscene() {
 					<Sky sunPosition={[100, 10, 100]} />
 					<Environment preset="sunset" />
 
-					<PlayerRig playerRole="commander" position={[-2, 0, 0]} rotation={0.5} />
-					<PlayerRig playerRole="player" position={[2, 0, 0]} rotation={-0.5} />
+					<PlayerRig
+						traits={CHARACTERS.whiskers.traits}
+						gear={CHARACTERS.whiskers.gear}
+						position={[-2, 0, 0]}
+						rotation={0.5}
+					/>
+					<PlayerRig
+						traits={character.traits}
+						gear={character.gear}
+						position={[2, 0, 0]}
+						rotation={-0.5}
+					/>
 
 					<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
 						<planeGeometry args={[100, 100]} />
@@ -74,7 +86,7 @@ export function Cutscene() {
 			</div>
 
 			<div className="dialogue-box">
-				<div className="dialogue-name">{currentLine.name}</div>
+				<div className="dialogue-name">{isSgtBubbles ? character.traits.name : currentLine.name}</div>
 				<div className="dialogue-text">{currentLine.text}</div>
 				<button type="button" className="dialogue-next" onClick={handleNext}>
 					{index < INTRO_DIALOGUE.length - 1 ? "NEXT >>" : "BEGIN MISSION"}
