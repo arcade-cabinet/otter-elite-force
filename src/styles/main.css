@@ -312,25 +312,25 @@ button.secondary {
 
 .action-btn {
 	pointer-events: auto;
-	width: 60px !important;
-	height: 60px !important;
-	border-radius: 50% !important;
-	padding: 0 !important;
-	margin: 0 !important;
-	font-size: 0.7rem !important;
-	background: rgba(0, 0, 0, 0.6) !important;
-	border: 2px solid var(--primary) !important;
-	color: var(--primary) !important;
+	width: 60px;
+	height: 60px;
+	border-radius: 50%;
+	padding: 0;
+	margin: 0;
+	font-size: 0.7rem;
+	background: rgba(0, 0, 0, 0.6);
+	border: 2px solid var(--primary);
+	color: var(--primary);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .action-btn:active {
-	transform: scale(0.9) !important;
-	background: var(--primary) !important;
-	color: #000 !important;
+	transform: scale(0.9);
+	background: var(--primary);
+	color: #000;
 }
 
 .action-btn.jump {

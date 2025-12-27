@@ -778,7 +778,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	buyUpgrade: (type, cost) => {
 		if (get().spendCoins(cost)) {
-			const upgradeKey = `${type}Boost` as keyof typeof get().saveData.upgrades;
+			const upgradeKey = `${type}Boost` as keyof SaveData["upgrades"];
 			set((state) => ({
 				saveData: {
 					...state.saveData,
