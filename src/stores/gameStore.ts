@@ -109,7 +109,7 @@ export interface ChunkData {
 	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
 	entities: {
 		id: string;
-		type: "GATOR" | "SNAKE" | "SNAPPER";
+		type: "GATOR" | "SNAKE" | "SNAPPER" | "PLATFORM";
 		position: [number, number, number];
 		isHeavy?: boolean;
 	}[];
@@ -237,16 +237,31 @@ export const useGameStore = create<GameState>((set, get) => ({
 		const entities: ChunkData["entities"] = [];
 		const entityCount = Math.floor(rand() * 5) + 2;
 		for (let i = 0; i < entityCount; i++) {
+			const type = rand() > 0.7 ? (rand() > 0.5 ? "SNAPPER" : "SNAKE") : "GATOR";
 			entities.push({
 				id: `e-${id}-${i}`,
-				type: rand() > 0.7 ? (rand() > 0.5 ? "SNAPPER" : "SNAKE") : "GATOR",
+				type,
 				position: [
 					(rand() - 0.5) * CHUNK_SIZE,
-					0,
+					type === "SNAKE" ? 5 : 0, // Snakes are high
 					(rand() - 0.5) * CHUNK_SIZE,
 				],
 				isHeavy: rand() > 0.8,
 			});
+		}
+
+		// Add Platforms
+		const platformCount = Math.floor(rand() * 3) + 1;
+		for (let i = 0; i < platformCount; i++) {
+			entities.push({
+				id: `p-${id}-${i}`,
+				type: "PLATFORM", // New type
+				position: [
+					(rand() - 0.5) * (CHUNK_SIZE - 20),
+					0.5,
+					(rand() - 0.5) * (CHUNK_SIZE - 20),
+				],
+			} as any);
 		}
 
 		const newChunk: ChunkData = {
