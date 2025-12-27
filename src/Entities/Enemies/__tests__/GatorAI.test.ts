@@ -1,27 +1,38 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
-import * as YUKA from "yuka";
+import type * as YUKA from "yuka";
 import { GatorAI } from "../GatorAI";
 
 // Mock YUKA
 vi.mock("yuka", () => {
 	class Vector3 {
-		x = 0; y = 0; z = 0;
+		x = 0;
+		y = 0;
+		z = 0;
 		constructor(x = 0, y = 0, z = 0) {
-			this.x = x; this.y = y; this.z = z;
+			this.x = x;
+			this.y = y;
+			this.z = z;
 		}
-		set(x, y, z) {
-			this.x = x; this.y = y; this.z = z;
+		set(x: number, y: number, z: number) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
 			return this;
 		}
-		copy(v) {
-			this.x = v.x; this.y = v.y; this.z = v.z;
+		copy(v: { x: number; y: number; z: number }) {
+			this.x = v.x;
+			this.y = v.y;
+			this.z = v.z;
 			return this;
 		}
-		add(v) {
-			this.x += v.x; this.y += v.y; this.z += v.z;
+		add(v: { x: number; y: number; z: number }) {
+			this.x += v.x;
+			this.y += v.y;
+			this.z += v.z;
 			return this;
 		}
-		distanceTo(v) {
+		distanceTo(v: { x: number; y: number; z: number }) {
 			const dx = this.x - v.x;
 			const dy = this.y - v.y;
 			const dz = this.z - v.z;

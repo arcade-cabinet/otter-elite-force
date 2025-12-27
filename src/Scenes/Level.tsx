@@ -13,7 +13,7 @@ import {
 	Noise,
 	Vignette,
 } from "@react-three/postprocessing";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import * as THREE from "three";
 import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
@@ -29,11 +29,9 @@ import {
 import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
 import { Clam, ExtractionPoint } from "../Entities/Objectives/Clam";
 import { Siphon } from "../Entities/Objectives/Siphon";
-import { GasStockpile } from "../Entities/Objectives/GasStockpile"; // Assuming this exists or using generic
-import { Hut, Villager } from "../Entities/Villager";
+import { Villager } from "../Entities/Villager";
 import { ModularHut } from "../Entities/ModularHut";
 import { Raft } from "../Entities/Raft";
-import { PrisonCage } from "../Entities/PrisonCage"; // To be created or generic
 import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
@@ -41,13 +39,15 @@ import {
 	CHARACTERS,
 	CHUNK_SIZE,
 	type ChunkData,
-	GAME_CONFIG,
+	type CharacterGear,
+	type CharacterTraits,
 	useGameStore,
 } from "../stores/gameStore";
+import { GAME_CONFIG } from "../utils/constants";
 import { WATER_FRAG, WATER_VERT } from "../utils/shaders";
-import { Enemy } from "./Enemies/Gator";
-import { Snake } from "./Enemies/Snake";
-import { Snapper } from "./Enemies/Snapper";
+import { Gator } from "../Entities/Enemies/Gator";
+import { Snake } from "../Entities/Enemies/Snake";
+import { Snapper } from "../Entities/Enemies/Snapper";
 
 // Placeholder for missing components to ensure build
 function GasStockpile({ position, secured = false }: { position: THREE.Vector3; secured?: boolean }) {
@@ -82,7 +82,8 @@ function PrisonCage({ position, rescued = false }: { position: THREE.Vector3; re
 	);
 }
 
-function Flag({ position }: { position: [number, number, number] }) {
+// Flag component reserved for future extraction points
+function _Flag({ position }: { position: [number, number, number] }) {
 	const flagUniforms = useRef({ time: { value: 0 } });
 	useFrame((state) => { flagUniforms.current.time.value = state.clock.elapsedTime; });
 	return (
@@ -116,7 +117,7 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 			})}
 			{data.entities.map((entity) => {
 				const worldPos = new THREE.Vector3(chunkX + entity.position[0], entity.position[1], chunkZ + entity.position[2]);
-				if (entity.type === "GATOR") return <Enemy key={entity.id} data={{ ...entity, position: worldPos, hp: 10, maxHp: 10, state: "IDLE", suppression: 0 }} targetPosition={playerPos} />;
+				if (entity.type === "GATOR") return <Gator key={entity.id} data={{ ...entity, position: worldPos, hp: entity.hp || 10, maxHp: 10, state: "IDLE", suppression: entity.suppression || 0, isHeavy: entity.isHeavy ?? false }} targetPosition={playerPos} />;
 				if (entity.type === "SNAKE") return <Snake key={entity.id} data={{ ...entity, position: worldPos, hp: 2, maxHp: 2 }} targetPosition={playerPos} />;
 				if (entity.type === "SNAPPER") return <Snapper key={entity.id} data={{ ...entity, position: worldPos, hp: 20, maxHp: 20 }} targetPosition={playerPos} />;
 				if (entity.type === "PLATFORM") return <mesh key={entity.id} position={worldPos} castShadow receiveShadow><boxGeometry args={[5, 1, 5]} /><meshStandardMaterial color="#3d2b1f" /></mesh>;
