@@ -74,6 +74,61 @@ function Flag({ position }: { position: [number, number, number] }) {
 	);
 }
 
+function ClamBasket({ position, isTrap = false }: { position: THREE.Vector3; isTrap?: boolean }) {
+	return (
+		<group position={position}>
+			{/* Basket Structure */}
+			<mesh castShadow receiveShadow>
+				<cylinderGeometry args={[0.6, 0.5, 0.5, 8]} />
+				<meshStandardMaterial color="#5d4037" roughness={1} />
+			</mesh>
+			{/* Baskets are filled with clams */}
+			{[...Array(5)].map((_, i) => (
+				<mesh 
+					key={i} 
+					position={[
+						(Math.random() - 0.5) * 0.4,
+						0.3,
+						(Math.random() - 0.5) * 0.4
+					]}
+					rotation={[Math.random(), Math.random(), Math.random()]}
+				>
+					<sphereGeometry args={[0.15, 8, 8]} scale={[1, 0.6, 1]} />
+					<meshStandardMaterial color="#fff" />
+				</mesh>
+			))}
+			{/* Warning light if trap (faint) */}
+			{isTrap && <pointLight color="#ff0000" intensity={0.2} distance={2} />}
+		</group>
+	);
+}
+
+function GasStockpile({ position, secured = false }: { position: THREE.Vector3; secured?: boolean }) {
+	return (
+		<group position={position}>
+			{/* Gas Containers */}
+			{[[-0.5, 0, 0], [0.5, 0, 0], [0, 0, 0.5]].map((pos, i) => (
+				<mesh key={i} position={pos as [number, number, number]} castShadow receiveShadow>
+					<cylinderGeometry args={[0.4, 0.4, 1.2, 8]} />
+					<meshStandardMaterial color={secured ? "#2d3d19" : "#d32f2f"} metalness={0.5} />
+				</mesh>
+			))}
+			{/* Pallet */}
+			<mesh position={[0, -0.5, 0]} receiveShadow>
+				<boxGeometry args={[2, 0.2, 2]} />
+				<meshStandardMaterial color="#3d2b1f" />
+			</mesh>
+			{/* Gas Haze */}
+			{!secured && (
+				<mesh position={[0, 0.5, 0]}>
+					<sphereGeometry args={[1.5, 16, 16]} />
+					<meshBasicMaterial color="#ffff00" transparent opacity={0.1} />
+				</mesh>
+			)}
+		</group>
+	);
+}
+
 function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 }) {
 	const waterUniforms = useRef({
 		time: { value: 0 },
@@ -173,7 +228,8 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 						</mesh>
 					);
 				if (entity.type === "SIPHON") return <Siphon key={entity.id} position={worldPos} secured={data.secured} />;
-				if (entity.type === "CLAM" && !entity.captured) return <Clam key={entity.id} position={worldPos} />;
+				if (entity.type === "GAS_STOCKPILE") return <GasStockpile key={entity.id} position={worldPos} secured={data.secured} />;
+				if (entity.type === "CLAM_BASKET") return <ClamBasket key={entity.id} position={worldPos} isTrap={entity.isHeavy} />;
 				if (entity.type === "EXTRACTION_POINT") return <ExtractionPoint key={entity.id} position={worldPos} />;
 				if (entity.type === "VILLAGER") return <Villager key={entity.id} position={worldPos} />;
 				if (entity.type === "HUT") return <Hut key={entity.id} position={worldPos} />;
@@ -440,9 +496,18 @@ export function Level() {
 				const worldPos = new THREE.Vector3(worldX, entity.position[1], worldZ);
 				const dist = playerRef.current!.position.distanceTo(worldPos);
 
-				if (entity.type === "CLAM" && !isCarryingClam && !entity.captured && dist < 2) {
-					setCarryingClam(true);
-					audioEngine.playSFX("pickup");
+				if (entity.type === "CLAM_BASKET" && dist < 2 && !(entity as any).interacted) {
+					(entity as any).interacted = true;
+					if (entity.isHeavy) {
+						// BOOBY TRAP!
+						takeDamage(30);
+						audioEngine.playSFX("explode");
+						handleImpact(worldPos, "shell");
+					} else {
+						// BONUS SPOILS
+						addCoins(100);
+						audioEngine.playSFX("pickup");
+					}
 				} else if (entity.type === "EXTRACTION_POINT" && isCarryingClam && dist < 3) {
 					setCarryingClam(false);
 					addCoins(500); // Massive reward for capturing clam

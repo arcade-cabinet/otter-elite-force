@@ -22,11 +22,20 @@ A biological cult of apex crocodilians and reptilian predators.
 *   **Tech**: Stolen URA webbing, heavy industrial siphons, and biological "Periscope" mimicry.
 *   **Goal**: The "Sacred Sludge"—turning the river into a stagnant, oxygen-free bog where only scales can breathe.
 
-## 🐚 The Objective: Liberation through Occupation
-The URA isn't just here to raid; we are here to **CLAIM** the Reach. Every industrial siphon dismantled is a flag planted for the Alliance. 
-*   **Secure & Hold**: Destroying a siphon "Secures" the local coordinate (chunk). 
-*   **The Map**: Once secured, the terrain is fixed in Alliance records, and the "Sacred Sludge" smoke is replaced by the URA colors.
-*   **Territory Score**: The Alliance high command tracks "Territory Secured." Reach high scores to unlock advanced platoon members and heavier ballistics.
+## 🐚 Strategic Objectives vs. Spoils of War
+
+The URA differentiates between high-priority targets and the resources harvested from the Reach.
+
+### 1. Strategic Objectives (The Mission)
+These are critical to the occupation and peacekeeping effort. Dismantling these secures territory and earns massive XP.
+*   **Industrial Siphons**: Large metal structures draining the ancestral clam beds. Dismantle them to secure the coordinate.
+*   **Marsh Gas Stockpiles**: Hidden caches of volatile marsh gas used by the Militia. Capture them to cripple enemy logistics.
+*   **Village Liberation**: Every hut secured return a coordinate to Alliance law.
+
+### 2. Spoils of War (The Bonus)
+These are resources used to fund the platoon's upgrades and equipment at the FOB.
+*   **Clam Baskets**: Found in river hamlets. They may contain a high concentration of supply credits... or they could be **Booby Traps**.
+*   **Enemy Intel**: Rescuing villagers provides valuable intel and credits.
 
 ## 🪖 Grunt Slang
 *   **"The Soup"**: The water of the Reach.
