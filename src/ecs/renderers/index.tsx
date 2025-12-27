@@ -6,8 +6,13 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import {
+	type Faction,
+	instantiateMesh,
+	type MeshId,
+} from "../../systems/assembly/componentLibrary";
 import type { Entity } from "../world";
 
 // =============================================================================
@@ -377,6 +382,155 @@ export function ExtractionPointRenderer({ entity }: { entity: Entity }) {
 
 			{/* Beacon light */}
 			<pointLight color="#00ff00" intensity={2} distance={15} position={[0, 2, 0]} />
+		</group>
+	);
+}
+
+// =============================================================================
+// COMPONENT LIBRARY MESH RENDERER
+// =============================================================================
+
+/**
+ * Renders a mesh from the Component Library based on MeshId
+ * This bridges the DRY component system with the ECS
+ */
+interface ComponentLibraryMeshProps {
+	meshId: MeshId;
+	faction?: Faction;
+	materialType?: "WOOD" | "METAL" | "FABRIC" | "SKIN" | "PRIMARY" | "SECONDARY";
+	position?: THREE.Vector3;
+	rotation?: THREE.Euler;
+	scale?: THREE.Vector3;
+	castShadow?: boolean;
+	receiveShadow?: boolean;
+}
+
+export function ComponentLibraryMesh({
+	meshId,
+	faction = "URA",
+	materialType = "PRIMARY",
+	position,
+	rotation,
+	scale,
+	castShadow = true,
+	receiveShadow = true,
+}: ComponentLibraryMeshProps) {
+	const meshRef = useRef<THREE.Mesh>(null);
+
+	// Create the mesh from the library
+	const mesh = useMemo(() => {
+		return instantiateMesh(meshId, faction, materialType);
+	}, [meshId, faction, materialType]);
+
+	// Apply shadow settings
+	useEffect(() => {
+		if (mesh) {
+			mesh.castShadow = castShadow;
+			mesh.receiveShadow = receiveShadow;
+		}
+	}, [mesh, castShadow, receiveShadow]);
+
+	return (
+		<primitive ref={meshRef} object={mesh} position={position} rotation={rotation} scale={scale} />
+	);
+}
+
+// =============================================================================
+// STRUCTURE RENDERER (Using Component Library)
+// =============================================================================
+
+interface StructureRendererProps {
+	entity: Entity;
+	faction?: Faction;
+}
+
+/**
+ * Renders a structure entity using the Component Library
+ * Falls back to basic rendering if specific meshes aren't available
+ */
+export function StructureRenderer({ entity, faction = "NATIVE" }: StructureRendererProps) {
+	const groupRef = useRef<THREE.Group>(null);
+
+	if (!entity.transform || !entity.structure) return null;
+
+	const { archetype, footprint, height } = entity.structure;
+
+	// Determine which mesh to use based on archetype
+	const getMeshId = (): MeshId | null => {
+		switch (archetype) {
+			case "BASIC_HUT":
+			case "LONGHOUSE":
+			case "MEDICAL_POST":
+				return "WALL_BAMBOO_SLATS";
+			case "WATCHTOWER":
+				return "STILT_ROUND";
+			default:
+				return null;
+		}
+	};
+
+	const meshId = getMeshId();
+
+	return (
+		<group ref={groupRef} position={entity.transform.position} rotation={entity.transform.rotation}>
+			{meshId ? (
+				// Use component library mesh
+				<ComponentLibraryMesh meshId={meshId} faction={faction} />
+			) : (
+				// Fallback to basic box representation
+				<mesh castShadow receiveShadow position={[0, height / 2, 0]}>
+					<boxGeometry args={[footprint.width, height, footprint.depth]} />
+					<meshStandardMaterial color="#8B4513" roughness={0.9} />
+				</mesh>
+			)}
+
+			{/* Show destructible health bar if applicable */}
+			{entity.destructible && !entity.destructible.isDestroyed && (
+				<HealthBar
+					current={entity.destructible.hp}
+					max={entity.destructible.maxHp}
+					yOffset={height + 0.5}
+					color="#ffaa00"
+				/>
+			)}
+		</group>
+	);
+}
+
+// =============================================================================
+// PATH RENDERER
+// =============================================================================
+
+interface PathRendererProps {
+	entity: Entity;
+}
+
+export function PathRenderer({ entity }: PathRendererProps) {
+	if (!entity.transform || !entity.path) return null;
+
+	const { style, width } = entity.path;
+
+	// Determine color based on path style
+	const getPathColor = () => {
+		switch (style) {
+			case "PLANKS":
+				return "#8B6914";
+			case "STONES":
+				return "#696969";
+			case "ELEVATED":
+			case "BRIDGE":
+				return "#A0522D";
+			default:
+				return "#5C4033";
+		}
+	};
+
+	return (
+		<group position={entity.transform.position} rotation={entity.transform.rotation}>
+			<mesh rotation-x={-Math.PI / 2} receiveShadow>
+				<planeGeometry args={[width, entity.transform.scale.z]} />
+				<meshStandardMaterial color={getPathColor()} roughness={0.95} transparent opacity={0.9} />
+			</mesh>
 		</group>
 	);
 }

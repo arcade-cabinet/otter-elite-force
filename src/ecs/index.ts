@@ -41,6 +41,16 @@ export {
 	useRenderables,
 	useSyncTransform,
 } from "./hooks";
+// Assembly Integration
+export {
+	createMeshForEntity,
+	createSettlementEntities,
+	createStructureEntity,
+	spawnHut,
+	spawnPlatform,
+	spawnSettlement,
+	spawnWatchtower,
+} from "./integration/assemblyBridge";
 // Systems
 export {
 	applyDamage,
@@ -70,17 +80,21 @@ export {
 	deadEntities,
 	destroyEntity,
 	enemies,
+	enemyStructures,
 	gators,
 	generateId,
 	getEntitiesInRadius,
 	getEntityById,
 	hazards,
+	healers,
 	interactables,
 	markDead,
 	movables,
 	objectives,
 	packMembers,
+	paths,
 	platforms,
+	playerStructures,
 	players,
 	poolableEntities,
 	projectiles,
@@ -89,6 +103,7 @@ export {
 	snakes,
 	snappers,
 	steeringEntities,
+	structures,
 	temporaryEntities,
 	vehicles,
 	villagers,

@@ -6,11 +6,13 @@ The project has successfully transitioned through a complex integration phase. T
 
 ## Recent Accomplishments
 
-- **Engine Stabilization**: Fixed memory leaks in `AudioEngine`, hardened `InputSystem` against ghost drags, and optimized the `GameLoop` input resets.
-- **Combat Fidelity**: Implemented procedural muzzle flashes, projectile collisions, and environmental hazard (Oil Ignition) interactions.
-- **Progression Loop**: Finalized the `Victory` extraction sequence and the `Canteen` meta-progression shop foundation.
-- **Assembly Hardening**: Unified the store logic and constants following a domain-specific decomposition pass.
-- **Memory Bank**: Established comprehensive documentation for agent context preservation.
+- **DRY Procedural Assembly System**: Complete component library with 45+ meshes, faction materials, universal character skeleton
+- **ECS-Assembly Integration Bridge**: Seamless connection between Miniplex ECS and procedural generation
+- **Modular Weapon Assembly**: Detachable weapon parts (receiver, barrel, stock, grip, magazine) with attachment system
+- **Settlement Assembler**: Algorithmic village/outpost generation with 5 layout patterns (scattered, circular, linear, grid, defensive)
+- **Build Mode Framework**: Snap points, placement validation, resource costs for player base construction
+- **Canteen Loadout System**: Full weapon/equipment customization with stat calculation
+- **316 Tests Passing**: Comprehensive coverage including new assembly tests
 
 ## Current Work Focus
 
@@ -40,7 +42,8 @@ All tests updated to verify open world design:
 - [x] MainMenu unit tests verify NO level select exists
 - [x] E2E tests use NEW GAME / CONTINUE pattern
 - [x] Integration tests cover chunk persistence
-- [x] All 238 tests passing
+- [x] Structure/Settlement assembler test suites
+- [x] All 316 tests passing
 
 ### Next: Base Building UI & Gameplay Polish
 
@@ -112,6 +115,11 @@ The store has base building primitives, but UI needs implementation:
 | Domain Decomposition | ✅ Complete | 2025-12-27 |
 | Feature Branch Merge | ✅ Complete | 2025-12-27 |
 | Memory Bank Init | ✅ Complete | 2025-12-27 |
+| Miniplex ECS Architecture | ✅ Complete | 2025-12-27 |
+| Intelligent World Layout | ✅ Complete | 2025-12-27 |
+| DRY Component Library | ✅ Complete | 2025-12-27 |
+| ECS-Assembly Integration | ✅ Complete | 2025-12-27 |
+| Modular Weapon Assembly | ✅ Complete | 2025-12-27 |
 | Main Menu Redesign | 🔄 In Progress | - |
 | Open World Persistence | 🔄 In Progress | - |
 | Base Building v1 | ⏳ Pending | - |

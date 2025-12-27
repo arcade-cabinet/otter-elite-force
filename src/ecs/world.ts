@@ -76,6 +76,11 @@ export interface Entity {
 	// Audio
 	audioSource?: Components.AudioSource;
 
+	// Structure (Assembly System)
+	structure?: Components.Structure;
+	path?: Components.Path;
+	healer?: Components.Healer;
+
 	// Tags (marker components)
 	isPlayer?: Components.IsPlayer;
 	isEnemy?: Components.IsEnemy;
@@ -85,6 +90,10 @@ export interface Entity {
 	isInteractable?: Components.IsInteractable;
 	isDead?: Components.IsDead;
 	isInvulnerable?: Components.IsInvulnerable;
+	isStructure?: Components.IsStructure;
+	isPlayerOwned?: Components.IsPlayerOwned;
+	isEnemyOwned?: Components.IsEnemyOwned;
+	isNeutral?: Components.IsNeutral;
 
 	// Utility
 	lifetime?: Components.Lifetime;
@@ -159,6 +168,21 @@ export const climbables = world.with("climbable", "transform");
 
 /** All platforms */
 export const platforms = world.with("platform", "transform");
+
+/** All structures */
+export const structures = world.with("isStructure", "structure", "transform");
+
+/** All player-owned structures */
+export const playerStructures = world.with("isPlayerOwned", "structure", "transform");
+
+/** All enemy-owned structures */
+export const enemyStructures = world.with("isEnemyOwned", "structure", "transform");
+
+/** All healers */
+export const healers = world.with("healer", "transform");
+
+/** All paths */
+export const paths = world.with("path", "transform");
 
 /** All entities with AI */
 export const aiEntities = world.with("aiBrain", "transform");

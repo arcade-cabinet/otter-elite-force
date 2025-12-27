@@ -61,12 +61,16 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
   - [ ] Save purge on death
 - [ ] Escalation lock (no downgrade)
 
-### 6. Base Building at LZ ⏳
-- [ ] Modular component system (Floor, Wall, Roof, Stilt)
-- [ ] Algorithmic snap-together building
+### 6. Base Building at LZ 🔄
+- [x] **DRY Component Library** (45+ reusable mesh definitions)
+- [x] **Modular component system** (Floor, Wall, Roof, Stilt, Ladder, etc.)
+- [x] **Algorithmic snap-together building** (validation + snap point detection)
+- [x] **Structure Assembler** (Huts, Platforms, Watchtowers)
+- [x] **Settlement Assembler** (Villages, Outposts, Camps with layout patterns)
+- [x] **Buildable Items Catalog** (player construction with resource costs)
 - [ ] Base state persistence
 - [ ] "Secure Your LZ" first objective
-- [ ] Defensive structures (Tower, Barricade)
+- [ ] Defensive structures (Tower, Barricade) - *logic exists, needs integration*
 - [ ] Resource storage and processing
 
 ### 7. Territory Control (CTF Mechanics) 🔄
@@ -77,16 +81,18 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 - [ ] Prison Camp rescue missions
 - [ ] Three victory condition tracking
 
-### 8. Three Victory Verticals ⏳
+### 8. Three Victory Verticals 🔄
 - [ ] **Vertical 1: Platoon Rescues**
   - [ ] Character positions at specific coordinates
   - [ ] Prison cage interaction
   - [ ] Character unlock on rescue
-- [ ] **Vertical 2: Arsenal Upgrades**
+- [x] **Vertical 2: Arsenal Upgrades**
   - [x] Canteen shop foundation
   - [x] Credit economy
-  - [ ] Permanent weapon upgrades
-  - [ ] Equipment customization
+  - [x] **Modular Weapon Assembly** (receiver + barrel + stock + grip + magazine)
+  - [x] **Weapon Attachments** (optics, barrels, grips, mags with stat modifiers)
+  - [x] **Equipment Customization** (headgear, vests, backpacks)
+  - [x] **Canteen Loadout System** (full loadout management)
 - [ ] **Vertical 3: Intel System**
   - [ ] Peacekeeping score tracking
   - [ ] Intel rewards at thresholds
@@ -165,10 +171,15 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 
 ## Recent Integration Victories
 
+- **DRY Procedural Assembly System** - Component Library with 45+ meshes, faction materials, universal skeleton
+- **Structure/Settlement Assemblers** - Algorithmic building generation with layout patterns
+- **Build Mode Framework** - Snap points, placement validation, resource costs
+- **Modular Weapon Assembly** - Detachable weapon parts, attachments, stat calculation
+- **ECS-Assembly Bridge** - Seamless integration between ECS and procedural generation
 - **Intelligent World Layout Algorithm** - Poisson Disc Sampling + MST paths + coherent terrain
 - **Difficulty-based Content Scaling** - Enemy counts/types scale with distance from LZ
 - **POI-specific Content Generation** - Boss arenas, prison camps, siphon clusters
-- **254 Tests Passing** - Including new worldLayout.test.ts coverage
+- **316 Tests Passing** - Including new structureAssembler and settlementAssembler tests
 - Unified domain-specific PRs into hardened `main`
 - Resolved "shaky" assembly bugs in state management
 - Verified all unit tests passing after modular re-integration
@@ -189,3 +200,7 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 | 2025-12-27 | Memory Bank adoption | Agent context preservation |
 | 2025-12-27 | Miniplex ECS architecture | Modular game logic separation |
 | 2025-12-27 | Intelligent world layout | Poisson Disc + MST + difficulty scaling |
+| 2025-12-27 | DRY Component Library | Maximum asset reuse, faction-based reskinning |
+| 2025-12-27 | Universal Character Skeleton | Shared rig for all characters (35 joints) |
+| 2025-12-27 | Modular Weapon Assembly | Weapons detached from characters, interchangeable parts |
+| 2025-12-27 | ECS-Assembly Bridge | Procedural generation feeds directly into ECS |

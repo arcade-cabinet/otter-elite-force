@@ -296,7 +296,12 @@ export type RenderType =
 	| "toxic_sludge"
 	| "extraction_point"
 	| "clam_basket"
-	| "projectile";
+	| "projectile"
+	// Assembly system types
+	| "STRUCTURE"
+	| "PLATFORM"
+	| "VILLAGER"
+	| "ENVIRONMENT";
 
 export interface Renderable {
 	type: RenderType;
@@ -385,4 +390,48 @@ export interface Poolable {
 export interface ChunkReference {
 	chunkId: string;
 	localPosition: THREE.Vector3;
+}
+
+// =============================================================================
+// STRUCTURE COMPONENTS (Assembly System Integration)
+// =============================================================================
+
+export interface Structure {
+	archetype: string;
+	componentCount: number;
+	footprint: { width: number; depth: number };
+	height: number;
+}
+
+export interface Path {
+	start: THREE.Vector3;
+	end: THREE.Vector3;
+	width: number;
+	style: "DIRT" | "PLANKS" | "STONES" | "ELEVATED" | "BRIDGE";
+}
+
+export interface Healer {
+	healRate: number;
+	healRadius: number;
+	isHealing: boolean;
+}
+
+// =============================================================================
+// ADDITIONAL TAG COMPONENTS
+// =============================================================================
+
+export interface IsStructure {
+	readonly __tag: "IsStructure";
+}
+
+export interface IsPlayerOwned {
+	readonly __tag: "IsPlayerOwned";
+}
+
+export interface IsEnemyOwned {
+	readonly __tag: "IsEnemyOwned";
+}
+
+export interface IsNeutral {
+	readonly __tag: "IsNeutral";
 }
