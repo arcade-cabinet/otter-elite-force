@@ -87,8 +87,17 @@ export interface PlacedComponent {
 	rotation: [number, number, number];
 }
 
+/**
+ * Save Data Schema (v8)
+ *
+ * This schema defines persistent game state for the open world.
+ * Key design principles:
+ * - Chunks are fixed-on-discovery (never regenerated)
+ * - Difficulty can escalate but never decrease
+ * - Characters are unlocked via rescue, not purchase
+ */
 export interface SaveData {
-	version: number;
+	version: number; // Schema version (currently 8)
 	rank: number;
 	xp: number;
 	medals: number;

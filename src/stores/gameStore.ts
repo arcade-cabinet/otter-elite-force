@@ -6,7 +6,7 @@
 import { create } from "zustand";
 import { RANKS, STORAGE_KEY } from "../utils/constants";
 
-export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN";
+export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN" | "VICTORY";
 export type DifficultyMode = "ELITE" | "TACTICAL" | "SUPPORT";
 
 export interface CharacterTraits {

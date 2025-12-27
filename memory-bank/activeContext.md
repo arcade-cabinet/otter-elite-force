@@ -14,31 +14,41 @@ The project has successfully transitioned through a complex integration phase. T
 
 ## Current Work Focus
 
-### Primary: Main Menu Redesign
-The main menu must be updated to reflect the new **Game Loader Interface**:
+### Completed: Main Menu Redesign ✅
+The main menu has been updated to a proper **Game Loader Interface**:
 
-1. **New Game Button**: Start fresh campaign with difficulty selection
-2. **Continue/Load Game**: Resume persistent open world from save state  
-3. **Canteen Access**: Meta-progression hub (should be accessible from menu)
-4. **Difficulty Selection**: SUPPORT → TACTICAL → ELITE (escalation only)
+1. ✅ **New Game Button**: Start fresh campaign with difficulty selection
+2. ✅ **Continue/Load Game**: Resume persistent open world from save state  
+3. ✅ **Canteen Access**: Meta-progression hub accessible from menu
+4. ✅ **Difficulty Selection**: SUPPORT → TACTICAL → ELITE (escalation only)
+5. ✅ **Removed Level Select**: No more "MISSIONS" grid - pure open world
 
-### Secondary: Open World Implementation
+### Completed: Open World Implementation ✅
 
-Complete the shift from discrete "levels" to persistent open world:
+The shift from discrete "levels" to persistent open world is complete:
 
-- [ ] Remove all references to "level selection" from UI
-- [ ] Implement chunk persistence in Zustand store
-- [ ] Add coordinate-based HUD display (COORD: X, Y)
-- [ ] Ensure discovered chunks are never regenerated
-- [ ] Implement territory score tracking
+- [x] Removed all references to "level selection" from MainMenu UI
+- [x] Chunk persistence in Zustand store (discoverChunk never regenerates)
+- [x] Territory score tracking in store and displayed in menu
+- [x] Peacekeeping score tracking
+- [x] Constants updated with DIFFICULTY_CONFIGS and KEY_COORDINATES
 
-### Tertiary: Base Building Foundation
+### Completed: Testing Alignment ✅
 
-The LZ at (0, 0) should support modular construction:
+All tests updated to verify open world design:
 
-- [ ] Define base building component types (Floor, Wall, Roof, Stilt)
-- [ ] Implement algorithmic snap-together building logic
-- [ ] Create base state persistence in store
+- [x] MainMenu unit tests verify NO level select exists
+- [x] E2E tests use NEW GAME / CONTINUE pattern
+- [x] Integration tests cover chunk persistence
+- [x] All 238 tests passing
+
+### Next: Base Building UI & Gameplay Polish
+
+The store has base building primitives, but UI needs implementation:
+
+- [ ] Build mode toggle in HUD when at LZ (0, 0)
+- [ ] Component placement interface
+- [ ] Visual feedback for placed components
 - [ ] First-objective tutorial: "Secure Your LZ"
 
 ## Immediate Next Steps

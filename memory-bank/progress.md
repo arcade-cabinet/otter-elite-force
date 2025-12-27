@@ -34,14 +34,15 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 - [ ] Fog-of-war / discovered area visualization
 - [ ] Chunk hibernation for distant AI
 
-### 4. Main Menu / Game Loader ⏳
+### 4. Main Menu / Game Loader ✅
 - [x] Basic Main Menu screen
-- [x] Campaign button (legacy level select)
-- [ ] **New Game button with difficulty selection**
-- [ ] **Continue/Load Game from save state**
-- [ ] **Canteen access from main menu**
-- [ ] Remove legacy "level select" entirely
-- [ ] Difficulty escalation UI (can go up, not down)
+- [x] **New Game button with difficulty selection**
+- [x] **Continue/Load Game from save state**
+- [x] **Canteen access from main menu**
+- [x] Remove legacy "level select" entirely
+- [x] Difficulty escalation UI (can go up, not down)
+- [x] Territory and peacekeeping scores displayed
+- [x] Rescue-based character unlock messaging
 
 ### 5. Difficulty System ⏳
 - [ ] SUPPORT mode implementation

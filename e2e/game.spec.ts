@@ -146,9 +146,10 @@ test.describe("OTTER: ELITE FORCE - Core Functionality", () => {
 	test("should start campaign from menu", async ({ page }) => {
 		await page.waitForTimeout(1000);
 
-		const startBtn = page.locator('button:has-text("START CAMPAIGN")');
-		await expect(startBtn).toBeVisible();
-		await startBtn.click();
+		// Use NEW GAME button for fresh start (open world, not level select)
+		const newGameBtn = page.locator('button:has-text("NEW GAME")');
+		await expect(newGameBtn).toBeVisible();
+		await newGameBtn.click();
 
 		// Should show cutscene
 		await expect(page.locator(".cutscene-screen")).toBeVisible();
@@ -183,9 +184,9 @@ test.describe("OTTER: ELITE FORCE - Game Flow", () => {
 	test("should progress through cutscene to gameplay", async ({ page }) => {
 		test.skip(!hasMcpSupport, "Requires WebGL/MCP support");
 
-		// Start campaign
-		const startBtn = page.locator('button:has-text("START CAMPAIGN")');
-		await startBtn.click();
+		// Start campaign with NEW GAME (open world, not level select)
+		const newGameBtn = page.locator('button:has-text("NEW GAME")');
+		await newGameBtn.click();
 
 		// Should show cutscene
 		await expect(page.locator(".cutscene-screen")).toBeVisible();
@@ -201,9 +202,9 @@ test.describe("OTTER: ELITE FORCE - Game Flow", () => {
 	});
 
 	test("should maintain game state in localStorage", async ({ page }) => {
-		// Start a game session
-		const startBtn = page.locator('button:has-text("START CAMPAIGN")');
-		await startBtn.click();
+		// Start a game session with NEW GAME
+		const newGameBtn = page.locator('button:has-text("NEW GAME")');
+		await newGameBtn.click();
 
 		await page.waitForTimeout(2000);
 
