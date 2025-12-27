@@ -12,7 +12,10 @@ The project has successfully transitioned through a complex integration phase. T
 - **Settlement Assembler**: Algorithmic village/outpost generation with 5 layout patterns (scattered, circular, linear, grid, defensive)
 - **Build Mode Framework**: Snap points, placement validation, resource costs for player base construction
 - **Canteen Loadout System**: Full weapon/equipment customization with stat calculation
-- **316 Tests Passing**: Comprehensive coverage including new assembly tests
+- **ECS Slot Definitions**: Single source of truth for all slot types (equipment, attachments, gadgets, build categories) - no more scattered constants
+- **ECS Data Templates**: Weapons, equipment, and buildables defined as ECS-centric templates replacing old constants approach
+- **World Generator ECS Integration**: POIs automatically spawn proper ECS settlements via assembly bridge
+- **497 Tests Passing**: Comprehensive coverage including ECS systems, AI, slots, data templates, and assembly
 
 ## Current Work Focus
 
@@ -43,7 +46,10 @@ All tests updated to verify open world design:
 - [x] E2E tests use NEW GAME / CONTINUE pattern
 - [x] Integration tests cover chunk persistence
 - [x] Structure/Settlement assembler test suites
-- [x] All 316 tests passing
+- [x] ECS systems tests (Movement, Combat, AI)
+- [x] ECS data tests (weapons, buildables, slots)
+- [x] Component library tests
+- [x] All 497 tests passing
 
 ### Next: Base Building UI & Gameplay Polish
 
@@ -120,6 +126,10 @@ The store has base building primitives, but UI needs implementation:
 | DRY Component Library | ✅ Complete | 2025-12-27 |
 | ECS-Assembly Integration | ✅ Complete | 2025-12-27 |
 | Modular Weapon Assembly | ✅ Complete | 2025-12-27 |
+| ECS Slot Definitions | ✅ Complete | 2025-12-27 |
+| ECS Data Templates | ✅ Complete | 2025-12-27 |
+| WorldGen ECS Integration | ✅ Complete | 2025-12-27 |
+| 497 Tests Passing | ✅ Complete | 2025-12-27 |
 | Main Menu Redesign | 🔄 In Progress | - |
 | Open World Persistence | 🔄 In Progress | - |
 | Base Building v1 | ⏳ Pending | - |

@@ -146,11 +146,11 @@ describe("CombatSystem", () => {
 					lastDamageTime: 0,
 					isInvulnerable: false,
 				},
-			suppression: {
-				amount: 0,
-				decayRate: 0.1,
-				threshold: 0.5,
-			},
+				suppression: {
+					amount: 0,
+					decayRate: 0.1,
+					threshold: 0.5,
+				},
 			});
 
 			applyDamage("test-entity", 20);
@@ -228,11 +228,11 @@ describe("CombatSystem", () => {
 					homePosition: new THREE.Vector3(0, 0, 0),
 					patrolRadius: 10,
 				},
-			suppression: {
-				amount: 0.5,
-				decayRate: 0.1,
-				threshold: 0.5,
-			},
+				suppression: {
+					amount: 0.5,
+					decayRate: 0.1,
+					threshold: 0.5,
+				},
 				isEnemy: { __tag: "IsEnemy" },
 			});
 
@@ -265,11 +265,11 @@ describe("CombatSystem", () => {
 					homePosition: new THREE.Vector3(0, 0, 0),
 					patrolRadius: 10,
 				},
-			suppression: {
-				amount: 0.05,
-				decayRate: 1.0, // High decay rate
-				threshold: 0.5,
-			},
+				suppression: {
+					amount: 0.05,
+					decayRate: 1.0, // High decay rate
+					threshold: 0.5,
+				},
 				isEnemy: { __tag: "IsEnemy" },
 			});
 

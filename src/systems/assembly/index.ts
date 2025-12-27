@@ -18,6 +18,25 @@
  * These modules provide mesh assembly and UI utility functions.
  */
 
+// Re-export ECS data templates for convenience
+export {
+	ATTACHMENT_TEMPLATES,
+	type AttachmentTemplate,
+	BUILDABLE_TEMPLATES,
+	type BuildableTemplate,
+	calculateFinalStats,
+	EQUIPMENT_TEMPLATES,
+	type EquipmentTemplate,
+	getAttachmentTemplate,
+	getBuildableTemplate,
+	getCompatibleAttachments,
+	getEquipmentTemplate,
+	getUnlockedWeapons,
+	getWeaponTemplate,
+	WEAPON_TEMPLATES,
+	type WeaponStats,
+	type WeaponTemplate,
+} from "../../ecs/data";
 // Build Mode (placement, validation, ghost preview)
 export {
 	BUILDABLE_ITEMS,
@@ -32,7 +51,6 @@ export {
 	updateGhostColor,
 	validatePlacement,
 } from "./buildMode";
-
 // Canteen / Loadout (mesh assembly, shop)
 export {
 	ATTACHMENTS,
@@ -47,7 +65,6 @@ export {
 	type WeaponDefinition,
 	type WeaponReceiverType,
 } from "./canteenLoadout";
-
 // Component Library (DRY meshes, materials, skeleton)
 export {
 	// Factories
@@ -68,7 +85,6 @@ export {
 	// Universal skeleton
 	UNIVERSAL_SKELETON,
 } from "./componentLibrary";
-
 // Settlement Assembler
 export {
 	assembleElevatedNetwork,
@@ -78,7 +94,6 @@ export {
 	type SettlementInhabitant,
 	type SettlementStructure,
 } from "./settlementAssembler";
-
 // Structure Assembler
 export {
 	assembleHut,
@@ -87,7 +102,6 @@ export {
 	assembleWatchtower,
 	DEFAULT_ASSEMBLY_CONFIG,
 } from "./structureAssembler";
-
 // Types
 export type {
 	AssemblyConfig,
@@ -111,23 +125,3 @@ export type {
 	StructureComponentType,
 	StructureTemplate,
 } from "./types";
-
-// Re-export ECS data templates for convenience
-export {
-	ATTACHMENT_TEMPLATES,
-	type AttachmentTemplate,
-	BUILDABLE_TEMPLATES,
-	type BuildableTemplate,
-	calculateFinalStats,
-	EQUIPMENT_TEMPLATES,
-	type EquipmentTemplate,
-	getAttachmentTemplate,
-	getBuildableTemplate,
-	getCompatibleAttachments,
-	getEquipmentTemplate,
-	getUnlockedWeapons,
-	getWeaponTemplate,
-	WEAPON_TEMPLATES,
-	type WeaponStats,
-	type WeaponTemplate,
-} from "../../ecs/data";

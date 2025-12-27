@@ -14,16 +14,22 @@
 
 import * as THREE from "three";
 import {
+	type BuildableTemplate,
 	canAffordBuildable,
 	deductBuildableCost,
 	getBuildablesByCategory,
 	getBuildableTemplate,
 	getUnlockedBuildables,
-	type BuildableTemplate,
 	type ResourceCost,
 } from "../../ecs/data/buildableTemplates";
 import { type Faction, instantiateMesh, MESH_LIBRARY, type MeshId } from "./componentLibrary";
-import type { BuildableItem, BuildCategory, BuildModeState, SnapPoint, StructureArchetype } from "./types";
+import type {
+	BuildableItem,
+	BuildCategory,
+	BuildModeState,
+	SnapPoint,
+	StructureArchetype,
+} from "./types";
 
 // Re-export from ECS for backwards compatibility
 export { BUILDABLE_TEMPLATES as BUILDABLE_ITEMS } from "../../ecs/data/buildableTemplates";
@@ -101,9 +107,10 @@ export function findNearestSnapPoint(
 ): { snapPoint: SnapPoint; structure: PlacedStructure } | null {
 	let nearest: { snapPoint: SnapPoint; structure: PlacedStructure; distance: number } | null = null;
 
-	const template = "components" in item && Array.isArray(item.components) 
-		? (item as BuildableTemplate) 
-		: getBuildableTemplate((item as BuildableItem).id);
+	const template =
+		"components" in item && Array.isArray(item.components)
+			? (item as BuildableTemplate)
+			: getBuildableTemplate((item as BuildableItem).id);
 
 	if (!template) return null;
 
@@ -142,9 +149,10 @@ export function validatePlacement(
 	placedStructures: PlacedStructure[],
 	groundLevel: number = 0,
 ): { valid: boolean; reason?: string } {
-	const template = "components" in item && Array.isArray(item.components)
-		? (item as BuildableTemplate)
-		: getBuildableTemplate((item as BuildableItem).id);
+	const template =
+		"components" in item && Array.isArray(item.components)
+			? (item as BuildableTemplate)
+			: getBuildableTemplate((item as BuildableItem).id);
 
 	if (!template) {
 		return { valid: false, reason: "Unknown item" };
@@ -189,12 +197,16 @@ export function validatePlacement(
 /**
  * Creates a ghost mesh for placement preview
  */
-export function createGhostMesh(item: BuildableItem | BuildableTemplate, faction: Faction = "URA"): THREE.Group {
+export function createGhostMesh(
+	item: BuildableItem | BuildableTemplate,
+	faction: Faction = "URA",
+): THREE.Group {
 	const group = new THREE.Group();
 
-	const template = "components" in item && Array.isArray(item.components)
-		? (item as BuildableTemplate)
-		: getBuildableTemplate((item as BuildableItem).id);
+	const template =
+		"components" in item && Array.isArray(item.components)
+			? (item as BuildableTemplate)
+			: getBuildableTemplate((item as BuildableItem).id);
 
 	if (!template) return group;
 

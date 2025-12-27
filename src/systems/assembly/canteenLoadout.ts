@@ -14,22 +14,24 @@
 import * as THREE from "three";
 import {
 	ATTACHMENT_TEMPLATES,
+	type AttachmentTemplate,
 	calculateFinalStats,
 	EQUIPMENT_TEMPLATES,
+	type EquipmentTemplate,
 	getAttachmentTemplate,
 	getWeaponTemplate,
 	WEAPON_TEMPLATES,
-	type AttachmentTemplate,
-	type EquipmentTemplate,
 	type WeaponTemplate,
 } from "../../ecs/data/weaponTemplates";
 import { type Faction, instantiateMesh, MESH_LIBRARY, type MeshId } from "./componentLibrary";
 import type { AttachmentSlot, CanteenItem, Loadout } from "./types";
 
 // Re-export from ECS for backwards compatibility
-export { ATTACHMENT_TEMPLATES as ATTACHMENTS } from "../../ecs/data/weaponTemplates";
-export { EQUIPMENT_TEMPLATES as EQUIPMENT_DEFINITIONS } from "../../ecs/data/weaponTemplates";
-export { WEAPON_TEMPLATES as WEAPON_DEFINITIONS } from "../../ecs/data/weaponTemplates";
+export {
+	ATTACHMENT_TEMPLATES as ATTACHMENTS,
+	EQUIPMENT_TEMPLATES as EQUIPMENT_DEFINITIONS,
+	WEAPON_TEMPLATES as WEAPON_DEFINITIONS,
+} from "../../ecs/data/weaponTemplates";
 export type { AttachmentTemplate, EquipmentTemplate, WeaponTemplate };
 export type WeaponReceiverType = WeaponTemplate["category"];
 export type WeaponDefinition = WeaponTemplate;
@@ -63,6 +65,7 @@ export function createDefaultLoadout(characterId: string): Loadout {
 				GRIP: null,
 				MAGAZINE: null,
 				STOCK: null,
+				UNDERBARREL: null,
 			},
 			SECONDARY: {
 				OPTIC: null,
@@ -70,6 +73,7 @@ export function createDefaultLoadout(characterId: string): Loadout {
 				GRIP: null,
 				MAGAZINE: null,
 				STOCK: null,
+				UNDERBARREL: null,
 			},
 		},
 	};
@@ -87,7 +91,15 @@ export function calculateWeaponStats(
 	const stats = calculateFinalStats(weaponId, attachmentIds);
 
 	if (!stats) {
-		return { damage: 0, fireRate: 0, accuracy: 0, recoil: 0, range: 0, magazineSize: 0, bulletSpeed: 0 };
+		return {
+			damage: 0,
+			fireRate: 0,
+			accuracy: 0,
+			recoil: 0,
+			range: 0,
+			magazineSize: 0,
+			bulletSpeed: 0,
+		};
 	}
 
 	return stats;
@@ -118,7 +130,9 @@ export function assembleWeaponMesh(
 	const receiverDef = MESH_LIBRARY[weapon.meshParts.receiver as MeshId];
 	const barrelDef = MESH_LIBRARY[weapon.meshParts.barrel as MeshId];
 	const gripDef = MESH_LIBRARY[weapon.meshParts.grip as MeshId];
-	const magazineDef = weapon.meshParts.magazine ? MESH_LIBRARY[weapon.meshParts.magazine as MeshId] : null;
+	const magazineDef = weapon.meshParts.magazine
+		? MESH_LIBRARY[weapon.meshParts.magazine as MeshId]
+		: null;
 	const stockDef = weapon.meshParts.stock ? MESH_LIBRARY[weapon.meshParts.stock as MeshId] : null;
 
 	// Create receiver (main body)
@@ -222,7 +236,8 @@ export function generateShopInventory(
 
 	// Weapons
 	for (const weapon of WEAPON_TEMPLATES) {
-		const unlocked = !weapon.unlockRequirement || unlockedRequirements.has(weapon.unlockRequirement);
+		const unlocked =
+			!weapon.unlockRequirement || unlockedRequirements.has(weapon.unlockRequirement);
 		items.push({
 			id: weapon.id,
 			name: weapon.name,
@@ -237,7 +252,8 @@ export function generateShopInventory(
 
 	// Attachments
 	for (const attachment of ATTACHMENT_TEMPLATES) {
-		const unlocked = !attachment.unlockRequirement || unlockedRequirements.has(attachment.unlockRequirement);
+		const unlocked =
+			!attachment.unlockRequirement || unlockedRequirements.has(attachment.unlockRequirement);
 		const statDesc = Object.entries(attachment.statModifiers)
 			.map(([k, v]) => `${k}: ${v > 0 ? "+" : ""}${v}`)
 			.join(", ");
@@ -256,7 +272,8 @@ export function generateShopInventory(
 
 	// Equipment
 	for (const equipment of EQUIPMENT_TEMPLATES) {
-		const unlocked = !equipment.unlockRequirement || unlockedRequirements.has(equipment.unlockRequirement);
+		const unlocked =
+			!equipment.unlockRequirement || unlockedRequirements.has(equipment.unlockRequirement);
 		const statDesc = Object.entries(equipment.statModifiers)
 			.filter(([_, v]) => v !== undefined)
 			.map(([k, v]) => `${k}: ${v! > 0 ? "+" : ""}${v}`)

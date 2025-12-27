@@ -3,9 +3,26 @@
  *
  * Defines the rules for procedural generation of structures,
  * settlements, paths, and player-buildable components.
+ *
+ * NOTE: Slot types (EquipmentSlot, AttachmentSlot, BuildCategory, ShopCategory)
+ * are imported from ECS data - the single source of truth.
  */
 
 import type * as THREE from "three";
+
+// Import slot types from ECS - single source of truth
+import type {
+	AttachmentSlot as ECSAttachmentSlot,
+	BuildCategory as ECSBuildCategory,
+	EquipmentSlot as ECSEquipmentSlot,
+	ShopCategory as ECSShopCategory,
+} from "../../ecs/data/slots";
+
+// Re-export for backwards compatibility
+export type AttachmentSlot = ECSAttachmentSlot;
+export type BuildCategory = ECSBuildCategory;
+export type EquipmentSlot = ECSEquipmentSlot;
+export type ShopCategory = ECSShopCategory;
 
 // =============================================================================
 // STRUCTURE COMPONENTS (Atomic Building Blocks)
@@ -196,17 +213,6 @@ export interface PlatformSection {
 // =============================================================================
 
 /**
- * Buildable item categories for player base construction
- */
-export type BuildCategory =
-	| "FOUNDATION" // Floors, stilts
-	| "WALLS" // Wall sections
-	| "ROOF" // Roof pieces
-	| "DEFENSE" // Barricades, traps
-	| "UTILITY" // Storage, crafting
-	| "COMFORT"; // Beds, lights
-
-/**
  * Buildable item definition
  */
 export interface BuildableItem {
@@ -256,23 +262,6 @@ export interface BuildModeState {
 // =============================================================================
 
 /**
- * Equipment slot types
- */
-export type EquipmentSlot =
-	| "PRIMARY_WEAPON"
-	| "SECONDARY_WEAPON"
-	| "HEADGEAR"
-	| "VEST"
-	| "BACKPACK"
-	| "GADGET_1"
-	| "GADGET_2";
-
-/**
- * Weapon attachment slots
- */
-export type AttachmentSlot = "OPTIC" | "BARREL" | "GRIP" | "MAGAZINE" | "STOCK";
-
-/**
  * Loadout configuration
  */
 export interface Loadout {
@@ -309,7 +298,7 @@ export interface CanteenItem {
 	id: string;
 	name: string;
 	description: string;
-	category: "WEAPON" | "ATTACHMENT" | "GEAR" | "UPGRADE" | "CONSUMABLE";
+	category: ShopCategory;
 	price: number;
 	unlocked: boolean;
 	owned: boolean;

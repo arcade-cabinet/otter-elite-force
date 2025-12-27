@@ -179,8 +179,11 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 - **Intelligent World Layout Algorithm** - Poisson Disc Sampling + MST paths + coherent terrain
 - **Difficulty-based Content Scaling** - Enemy counts/types scale with distance from LZ
 - **POI-specific Content Generation** - Boss arenas, prison camps, siphon clusters
-- **388 Tests Passing** - Including ECS systems, data templates, structure/settlement assemblers
-- **51% Statement Coverage** - Key systems (stores, ECS data) at 75-95%
+- **ECS Slot Definitions** - Single source of truth for all slot types (equipment, attachments, gadgets, build categories)
+- **ECS Data Templates** - Weapons, equipment, buildables defined as ECS-centric templates (replacing old constants)
+- **World Generator ECS Integration** - POIs automatically spawn ECS settlements via assembly bridge
+- **497 Tests Passing** - Comprehensive coverage including ECS systems, AI, slots, data templates, assembly
+- **55%+ Statement Coverage** - Key systems (stores, ECS data, assembly) at 75-95%
 - Unified domain-specific PRs into hardened `main`
 - Resolved "shaky" assembly bugs in state management
 - Verified all unit tests passing after modular re-integration
@@ -205,3 +208,6 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 | 2025-12-27 | Universal Character Skeleton | Shared rig for all characters (35 joints) |
 | 2025-12-27 | Modular Weapon Assembly | Weapons detached from characters, interchangeable parts |
 | 2025-12-27 | ECS-Assembly Bridge | Procedural generation feeds directly into ECS |
+| 2025-12-27 | ECS Slot Definitions | Single source of truth for slots replaces scattered constants |
+| 2025-12-27 | ECS Data Templates | Weapons/equipment/buildables as proper ECS entities |
+| 2025-12-27 | WorldGenerator ECS Integration | POIs spawn ECS settlements automatically |
