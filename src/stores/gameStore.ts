@@ -173,6 +173,7 @@ export interface ChunkData {
 			| "OIL_SLICK"
 			| "MUD_PIT"
 			| "VILLAGER"
+			| "HEALER"
 			| "HUT"
 			| "GAS_STOCKPILE"
 			| "CLAM_BASKET"
