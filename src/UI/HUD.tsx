@@ -109,6 +109,15 @@ import { useGameStore, CHAR_PRICES, UPGRADE_COSTS } from "../stores/gameStore";
 						BUILD
 					</button>
 				)}
+				{saveData.difficultyMode === "SUPPORT" && (
+					<button 
+						type="button" 
+						className="action-btn support" 
+						onClick={() => audioEngine.playSFX("pickup")}
+					>
+						DROP
+					</button>
+				)}
 			</div>
 
 			{/* BUILD UI (Bottom Center) */}

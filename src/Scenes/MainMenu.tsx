@@ -52,6 +52,32 @@ export function MainMenu() {
 					<span>MEDALS</span>
 					<span className="stat-val">{saveData.medals}</span>
 				</div>
+				<div className="stat-row">
+					<span>DIFFICULTY</span>
+					<span className="stat-val">{saveData.difficultyMode}</span>
+				</div>
+
+				<h3 style={{ marginTop: "20px", color: "var(--primary)", fontSize: "0.9rem" }}>
+					CAMPAIGN DIFFICULTY
+				</h3>
+				<div className="difficulty-grid">
+					{["SUPPORT", "TACTICAL", "ELITE"].map((mode) => {
+						const order = ["SUPPORT", "TACTICAL", "ELITE"];
+						const isCurrent = saveData.difficultyMode === mode;
+						const canIncrease = order.indexOf(mode) > order.indexOf(saveData.difficultyMode);
+						return (
+							<button
+								type="button"
+								key={mode}
+								className={`diff-card ${isCurrent ? "selected" : ""} ${!canIncrease && !isCurrent ? "locked" : ""}`}
+								onClick={() => setDifficulty(mode as any)}
+								disabled={!canIncrease}
+							>
+								{mode}
+							</button>
+						);
+					})}
+				</div>
 
 				<h3 style={{ marginTop: "20px", color: "var(--primary)", fontSize: "0.9rem" }}>
 					SELECT WARRIOR
