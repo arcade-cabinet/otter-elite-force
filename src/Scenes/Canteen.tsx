@@ -7,7 +7,7 @@ import { Environment, OrbitControls, Sky } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useState } from "react";
 import { PlayerRig } from "../Entities/PlayerRig";
-import { CHAR_PRICES, CHARACTERS, useGameStore, UPGRADE_COSTS } from "../stores/gameStore";
+import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, useGameStore } from "../stores/gameStore";
 
 export function Canteen() {
 	const { saveData, unlockCharacter, spendCoins, setMode, buyUpgrade } = useGameStore();

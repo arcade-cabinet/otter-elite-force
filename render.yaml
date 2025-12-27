@@ -1,18 +1,58 @@
+# Render.com Blueprint Specification
+# https://render.com/docs/blueprint-spec
+#
+# OTTER: ELITE FORCE - WebGL Tactical Shooter
+# Deployed as a static site with optimized caching and security headers
+
 services:
   - type: web
     name: otter-elite-force
     runtime: static
-    buildCommand: pnpm install && pnpm build
+    buildCommand: pnpm install --frozen-lockfile && pnpm build
     staticPublishPath: ./dist
-    envVars:
-      - key: NODE_VERSION
-        value: 20.19.6
-      - key: PNPM_VERSION
-        value: 10.26.2
+    pullRequestPreviewsEnabled: true
     headers:
+      # Security headers
       - path: /*
-        name: Cache-Control
-        value: public, max-age=3600
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: X-XSS-Protection
+        value: 1; mode=block
+      # Cache control - aggressive caching for immutable assets
       - path: /assets/*
         name: Cache-Control
         value: public, max-age=31536000, immutable
+      # Cache control - moderate caching for HTML
+      - path: /
+        name: Cache-Control
+        value: public, max-age=3600
+      - path: /index.html
+        name: Cache-Control
+        value: public, max-age=3600
+      # PWA manifest and icons
+      - path: /manifest.json
+        name: Cache-Control
+        value: public, max-age=86400
+      - path: /icon.svg
+        name: Cache-Control
+        value: public, max-age=86400
+      - path: /favicon.ico
+        name: Cache-Control
+        value: public, max-age=86400
+    routes:
+      # SPA fallback - rewrite all routes to index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PNPM_VERSION
+        value: 10

@@ -1,0 +1,63 @@
+# Claude Issue Deduplication
+#
+# Automatically checks new issues for duplicates
+
+name: Claude Issue Deduplication
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  deduplicate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check for duplicate issues
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          prompt: |
+            Check if issue #${{ github.event.issue.number }} is a duplicate.
+
+            Repository: ${{ github.repository }}
+
+            ## Task
+
+            1. Get issue details: `gh issue view ${{ github.event.issue.number }}`
+
+            2. Search for similar issues:
+               - Extract keywords from title and body
+               - Search: `gh search issues "<keywords>" --repo ${{ github.repository }} --state all`
+
+            3. Compare with existing issues:
+               - Same bug being reported?
+               - Same feature request?
+               - Same root problem?
+
+            ## If Duplicate Found
+
+            1. Add comment linking to original issue(s)
+            2. Add "duplicate" label
+            3. Be polite, suggest following original issue
+
+            ## If NOT Duplicate
+
+            - Don't add any comments
+            - May apply topic labels based on content
+
+            Be thorough but efficient. Only flag true duplicates.
+
+          claude_args: |
+            --allowedTools "Bash(gh issue:*),Bash(gh search:*)"

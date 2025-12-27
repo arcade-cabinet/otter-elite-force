@@ -5,8 +5,8 @@
 
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
+import type * as THREE from "three";
 import type { Group } from "three";
-import * as THREE from "three";
 
 export function Villager({ position }: { position: THREE.Vector3 }) {
 	const groupRef = useRef<Group>(null);

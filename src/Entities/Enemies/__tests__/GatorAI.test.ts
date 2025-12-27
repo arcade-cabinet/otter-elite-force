@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
-import { GatorAI } from "../GatorAI";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Vehicle as VehicleType } from "yuka";
+import { GatorAI } from "../GatorAI";
 
 // Mock YUKA
 vi.mock("yuka", () => {

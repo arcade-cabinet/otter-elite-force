@@ -18,6 +18,10 @@ import * as THREE from "three";
 import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
 import { inputSystem } from "../Core/InputSystem";
+import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
+import { Gator } from "../Entities/Enemies/Gator";
+import { Snake } from "../Entities/Enemies/Snake";
+import { Snapper } from "../Entities/Enemies/Snapper";
 import {
 	BurntTrees,
 	Debris,
@@ -26,28 +30,24 @@ import {
 	Mangroves,
 	Reeds,
 } from "../Entities/Environment";
-import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
+import { ModularHut } from "../Entities/ModularHut";
 import { Clam, ExtractionPoint } from "../Entities/Objectives/Clam";
 import { Siphon } from "../Entities/Objectives/Siphon";
-import { Villager } from "../Entities/Villager";
-import { ModularHut } from "../Entities/ModularHut";
-import { Raft } from "../Entities/Raft";
 import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
+import { Raft } from "../Entities/Raft";
+import { Villager } from "../Entities/Villager";
 import {
 	CHARACTERS,
 	CHUNK_SIZE,
-	type ChunkData,
 	type CharacterGear,
 	type CharacterTraits,
+	type ChunkData,
 	useGameStore,
 } from "../stores/gameStore";
 import { GAME_CONFIG } from "../utils/constants";
 import { WATER_FRAG, WATER_VERT } from "../utils/shaders";
-import { Gator } from "../Entities/Enemies/Gator";
-import { Snake } from "../Entities/Enemies/Snake";
-import { Snapper } from "../Entities/Enemies/Snapper";
 
 // Placeholder for missing components to ensure build
 function GasStockpile({

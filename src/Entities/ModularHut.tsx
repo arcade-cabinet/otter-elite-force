@@ -4,8 +4,8 @@
  * Elevated on stilts to handle flooding and mud
  */
 
-import * as THREE from "three";
 import { useMemo } from "react";
+import type * as THREE from "three";
 
 interface HutProps {
 	position: THREE.Vector3;

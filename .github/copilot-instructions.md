@@ -344,6 +344,56 @@ When making changes, consider:
 6. Does this work with touch input?
 7. Is the audio system respecting user gesture requirements?
 
+## Claude AI Automation
+
+This repository has extensive Claude Code integration for automated development tasks.
+
+### Interactive Mode
+
+Mention `@claude` in any issue or PR comment to trigger Claude assistance. Available to repo collaborators only.
+
+**Examples:**
+- `@claude please review this PR for performance issues`
+- `@claude fix the linting errors`
+- `@claude add unit tests for this component`
+
+### Automatic Workflows
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| PR Review | PR opened/updated | Automatic code review with checklist |
+| Issue Triage | Issue opened | Auto-labeling and categorization |
+| CI Auto-Fix | CI failure on PR | Automatically fix failing tests/lint |
+| Flaky Test Detection | CI failure | Detect and report flaky tests |
+| Weekly Maintenance | Sunday midnight | Dependency audit, issue hygiene |
+
+### Manual Triggers
+
+Go to Actions → Claude Code → Run workflow:
+
+- **maintenance**: Weekly health check
+- **security-audit**: Deep security review
+- **dependency-update**: Safe dependency updates with PR
+
+### Custom Commands
+
+Located in `.claude/commands/`:
+
+- `/label-issue` - Triage and label issues
+- `/review-pr` - Comprehensive PR review
+- `/fix-tests` - Debug and fix failing tests
+- `/add-feature` - Add feature following conventions
+
+### Specialized Review Agents
+
+Located in `.claude/agents/`:
+
+- **performance-reviewer** - Mobile 3D optimization
+- **security-reviewer** - Game security concerns
+- **threejs-reviewer** - Three.js/R3F patterns
+- **testing-reviewer** - Test quality
+- **zustand-reviewer** - State management
+
 ## Resources
 
 - [Three.js Docs](https://threejs.org/docs/)
@@ -352,3 +402,4 @@ When making changes, consider:
 - [Zustand Guide](https://docs.pmnd.rs/zustand)
 - [Biome](https://biomejs.dev/)
 - [Playwright](https://playwright.dev/)
+- [Claude Code Action](https://github.com/anthropics/claude-code-action)
