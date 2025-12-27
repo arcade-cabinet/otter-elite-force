@@ -34,6 +34,9 @@ export function Cutscene() {
 
 	return (
 		<div className="screen active cutscene-screen">
+			{/* Improved level background for cutscene */}
+			<div className="cutscene-background" />
+
 			<div className="dialogue-box">
 				<div className="dialogue-name">{currentLine.name}</div>
 				<div className="dialogue-text">{currentLine.text}</div>

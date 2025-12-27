@@ -15,13 +15,55 @@ import { useGameStore } from "../stores/gameStore";
 import { LEVELS } from "../utils/constants";
 import { randomRange } from "../utils/math";
 
+import { WATER_VERT, WATER_FRAG, FLAG_VERT, FLAG_FRAG } from "../utils/shaders";
+
+function Flag({ position }: { position: [number, number, number] }) {
+	const flagUniforms = useRef({
+		time: { value: 0 },
+	});
+
+	useFrame((state) => {
+		flagUniforms.current.time.value = state.clock.elapsedTime;
+	});
+
+	return (
+		<group position={position}>
+			{/* Flagpole */}
+			<mesh position={[0, 2, 0]}>
+				<cylinderGeometry args={[0.05, 0.05, 4, 8]} />
+				<meshStandardMaterial color="#333" />
+			</mesh>
+			{/* Flag cloth */}
+			<mesh position={[0.75, 3.3, 0]}>
+				<planeGeometry args={[1.5, 1, 20, 20]} />
+				<shaderMaterial
+					vertexShader={FLAG_VERT}
+					fragmentShader={FLAG_FRAG}
+					uniforms={flagUniforms.current}
+					side={THREE.DoubleSide}
+				/>
+			</mesh>
+		</group>
+	);
+}
+
 export function Level() {
-	const { currentLevel, addKill } = useGameStore();
+	const { currentLevel, addKill, isZoomed } = useGameStore();
 	const level = LEVELS[currentLevel];
 
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
 	const [enemies, setEnemies] = useState<EnemyData[]>([]);
 	const [particles, setParticles] = useState<ParticleData[]>([]);
+
+	// Water shader uniforms
+	const waterUniforms = useRef({
+		time: { value: 0 },
+		waterColor: { value: new THREE.Color("#1e3a5f") },
+	});
+
+	useFrame((state) => {
+		waterUniforms.current.time.value = state.clock.elapsedTime;
+	});
 
 	// Spawn initial enemies
 	const spawnEnemies = useCallback(() => {
@@ -104,17 +146,21 @@ export function Level() {
 				<meshStandardMaterial color="#2d5016" roughness={0.8} />
 			</mesh>
 
-			{/* Water plane (slightly above ground) */}
+			{/* Water plane with custom shader */}
 			<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}>
-				<planeGeometry args={[200, 200]} />
-				<meshStandardMaterial
-					color="#1e3a5f"
+				<planeGeometry args={[200, 200, 50, 50]} />
+				<shaderMaterial
+					vertexShader={WATER_VERT}
+					fragmentShader={WATER_FRAG}
+					uniforms={waterUniforms.current}
 					transparent
-					opacity={0.6}
-					roughness={0.1}
-					metalness={0.8}
+					opacity={0.7}
 				/>
 			</mesh>
+
+			{/* Environment decoration */}
+			<Flag position={[5, 0, 5]} />
+			<Flag position={[-10, 0, -15]} />
 
 			{/* Player */}
 			<PlayerRig position={[playerPos.x, playerPos.y, playerPos.z]} rotation={0} />
