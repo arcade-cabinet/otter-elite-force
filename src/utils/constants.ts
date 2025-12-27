@@ -177,21 +177,3 @@ export const UPGRADE_COSTS = {
 	damage: 300,
 	weaponLevel: 150,
 } as const;
-
-/**
- * @deprecated - Kept for backward compatibility but should not be used
- * The game uses open world chunk-based exploration, not discrete levels
- */
-export const LEVELS = [
-	{
-		id: 0,
-		title: "THE COPPER-SILT REACH",
-		desc: "Open world exploration. Secure territory, rescue allies, build your base.",
-		goal: 0,
-		enemies: 0,
-		sky: "#f0e6d2",
-		fog: "#d4c4a8",
-		waterColor: "#4d4233",
-		difficulty: "OPEN_WORLD",
-	},
-] as const;
