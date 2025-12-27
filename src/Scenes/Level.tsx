@@ -46,6 +46,32 @@ import { Enemy } from "./Enemies/Gator";
 import { Snake } from "./Enemies/Snake";
 import { Snapper } from "./Enemies/Snapper";
 
+function PrisonCage({ position, rescued = false }: { position: THREE.Vector3; rescued?: boolean }) {
+	return (
+		<group position={position}>
+			{/* Cage Bars */}
+			{!rescued && (
+				<mesh castShadow>
+					<boxGeometry args={[2, 3, 2]} />
+					<meshStandardMaterial color="#222" metalness={0.9} wireframe />
+				</mesh>
+			)}
+			{/* Trapped Ally */}
+			{!rescued && (
+				<mesh position={[0, 0.5, 0]}>
+					<sphereGeometry args={[0.4, 8, 8]} />
+					<meshStandardMaterial color="#5D4037" />
+				</mesh>
+			)}
+			{/* Base */}
+			<mesh position={[0, -0.1, 0]} receiveShadow>
+				<boxGeometry args={[2.5, 0.2, 2.5]} />
+				<meshStandardMaterial color="#111" />
+			</mesh>
+		</group>
+	);
+}
+
 function Flag({ position }: { position: [number, number, number] }) {
 	const flagUniforms = useRef({
 		time: { value: 0 },
@@ -251,6 +277,7 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 						isPiloted={isThisRaft}
 					/>;
 				}
+				if (entity.type === "PRISON_CAGE") return <PrisonCage key={entity.id} position={worldPos} rescued={(entity as any).rescued} />;
 				if (entity.type === "OIL_SLICK")
 					return (
 						<mesh
@@ -288,7 +315,7 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 }
 
 export function Level() {
-	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud, secureChunk, isCarryingClam, setCarryingClam, addCoins, isPilotingRaft, setPilotingRaft } = useGameStore();
+	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud, secureChunk, isCarryingClam, setCarryingClam, addCoins, isPilotingRaft, setPilotingRaft, rescueCharacter } = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
@@ -536,6 +563,12 @@ export function Level() {
 				} else if (entity.type === "RAFT" && dist < 2 && !isPilotingRaft) {
 					setPilotingRaft(true, entity.id);
 					audioEngine.playSFX("pickup");
+				} else if (entity.type === "PRISON_CAGE" && dist < 2 && !(entity as any).rescued) {
+					(entity as any).rescued = true;
+					if (entity.objectiveId) {
+						rescueCharacter(entity.objectiveId);
+						audioEngine.playSFX("pickup");
+					}
 				} else if (entity.type === "EXTRACTION_POINT" && isCarryingClam && dist < 3) {
 					setCarryingClam(false);
 					addCoins(500); // Massive reward for capturing clam

@@ -18,6 +18,7 @@ export interface CharacterTraits {
 	baseSpeed: number;
 	baseHealth: number;
 	climbSpeed: number;
+	unlockRequirement?: string; // Narrative requirement
 }
 
 export interface CharacterGear {
@@ -106,6 +107,7 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			baseSpeed: 10,
 			baseHealth: 200,
 			climbSpeed: 6,
+			unlockRequirement: "Rescue from Prison Camp (Coordinate 5, 5)",
 		},
 		gear: {
 			headgear: "beret",
@@ -125,6 +127,7 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			baseSpeed: 18,
 			baseHealth: 80,
 			climbSpeed: 15,
+			unlockRequirement: "Secure the Silt-shadow Crossing",
 		},
 		gear: {
 			headgear: "helmet",
@@ -144,6 +147,7 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			baseSpeed: 12,
 			baseHealth: 150,
 			climbSpeed: 8,
+			unlockRequirement: "Recover the Ancestral Clam",
 		},
 		gear: {
 			headgear: "none",
@@ -178,7 +182,8 @@ export interface ChunkData {
 			| "GAS_STOCKPILE"
 			| "CLAM_BASKET"
 			| "EXTRACTION_POINT"
-			| "RAFT";
+			| "RAFT"
+			| "PRISON_CAGE";
 		position: [number, number, number];
 		isHeavy?: boolean;
 		objectiveId?: string;
@@ -269,6 +274,7 @@ interface GameState {
 	resetData: () => void;
 	gainXP: (amount: number) => void;
 	unlockCharacter: (id: string) => void;
+	rescueCharacter: (id: string) => void;
 	unlockWeapon: (id: string) => void;
 	upgradeWeapon: (id: string, cost: number) => void;
 
@@ -481,7 +487,15 @@ export const useGameStore = create<GameState>((set, get) => ({
 			entities.push({ id: `extract-${id}`, type: "EXTRACTION_POINT", position: [0, 0, 0] });
 		}
 
-		// Add Rafts
+		// Add Prison Cages (Character Unlocks)
+		if (x === 5 && z === 5) {
+			entities.push({
+				id: "cage-whiskers",
+				type: "PRISON_CAGE",
+				position: [0, 0, 0],
+				objectiveId: "whiskers",
+			});
+		}
 		if (terrainType === "RIVER" && rand() > 0.8) {
 			entities.push({
 				id: `raft-${id}`,
@@ -568,6 +582,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 			},
 		}));
 		get().saveGame();
+	},
+
+	rescueCharacter: (id) => {
+		const { saveData } = get();
+		if (!saveData.unlockedCharacters.includes(id)) {
+			get().unlockCharacter(id);
+			// Optional: Trigger a notification or dialogue
+		}
 	},
 
 	unlockWeapon: (id) => {
