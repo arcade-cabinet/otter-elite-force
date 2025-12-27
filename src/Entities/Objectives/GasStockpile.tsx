@@ -4,7 +4,7 @@ export function GasStockpile({
 	position,
 	secured = false,
 }: {
-	position: THREE.Vector3;
+	position: [number, number, number] | THREE.Vector3;
 	secured?: boolean;
 }) {
 	return (

@@ -5,23 +5,17 @@
 
 import { useMemo } from "react";
 import type * as THREE from "three";
+import { createSeededRandom } from "../utils/random";
 
 interface HutProps {
-	position: THREE.Vector3;
+	position: [number, number, number] | THREE.Vector3;
 	seed: number;
 	isHealerHut?: boolean;
 }
 
 export function ModularHut({ position, seed, isHealerHut = false }: HutProps) {
 	const components = useMemo(() => {
-		const pseudoRandom = () => {
-			let s = seed;
-			return () => {
-				s = (s * 9301 + 49297) % 233280;
-				return s / 233280;
-			};
-		};
-		const rand = pseudoRandom();
+		const rand = createSeededRandom(seed);
 
 		const width = 3 + Math.floor(rand() * 2);
 		const depth = 3 + Math.floor(rand() * 2);
@@ -89,8 +83,8 @@ export function ModularHut({ position, seed, isHealerHut = false }: HutProps) {
 			</group>
 
 			{/* Roof (A-Frame) */}
-			<mesh position={[0, 3.5, 0]} rotation-y={Math.PI / 2}>
-				<cylinderGeometry args={[0, (width + 1) / 1.4, 2, 4]} scale={[1, 1, depth / width]} />
+			<mesh position={[0, 3.5, 0]} rotation-y={Math.PI / 2} scale={[1, 1, depth / width]}>
+				<cylinderGeometry args={[0, (width + 1) / 1.4, 2, 4]} />
 				<meshStandardMaterial color={roofColor} roughness={1} />
 			</mesh>
 

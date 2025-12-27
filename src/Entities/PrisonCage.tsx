@@ -4,7 +4,7 @@ export function PrisonCage({
 	position,
 	rescued = false,
 }: {
-	position: THREE.Vector3;
+	position: [number, number, number] | THREE.Vector3;
 	rescued?: boolean;
 }) {
 	return (

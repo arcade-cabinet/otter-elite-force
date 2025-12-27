@@ -4,7 +4,7 @@ export function ClamBasket({
 	position,
 	isTrap = false,
 }: {
-	position: THREE.Vector3;
+	position: [number, number, number] | THREE.Vector3;
 	isTrap?: boolean;
 }) {
 	return (

@@ -9,9 +9,8 @@ import type * as THREE from "three";
 import type { Group } from "three";
 
 interface RaftProps {
-	position: [number, number, number];
+	position: [number, number, number] | THREE.Vector3;
 	rotation?: number;
-	velocity?: THREE.Vector3;
 	isPiloted?: boolean;
 }
 
@@ -86,3 +85,5 @@ export const Raft = forwardRef<Group, RaftProps>(
 		);
 	},
 );
+
+Raft.displayName = "Raft";
