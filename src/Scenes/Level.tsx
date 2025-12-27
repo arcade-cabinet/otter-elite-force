@@ -139,30 +139,34 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 	);
 }
 
-export function Level() {
-	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud, secureChunk, isCarryingClam, setCarryingClam, addCoins, isPilotingRaft, setPilotingRaft, rescueCharacter, collectSpoils, completeStrategic, takeDamage, saveData, secureLZ } = useGameStore();
-	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
-	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
-	const [playerVelY, setPlayerVelY] = useState(0);
+// Game loop component that must be inside Canvas
+function GameLogic({
+	playerRef,
+	projectilesRef,
+	playerPos,
+	setPlayerVelY,
+	setIsPlayerMoving,
+	setActiveChunks,
+	setParticles,
+	activeChunks,
+	character,
+	handleImpact,
+}: {
+	playerRef: React.RefObject<THREE.Group>;
+	projectilesRef: React.RefObject<ProjectilesHandle>;
+	playerPos: THREE.Vector3;
+	setPlayerVelY: (val: number) => void;
+	setIsPlayerMoving: (val: boolean) => void;
+	setActiveChunks: (chunks: ChunkData[]) => void;
+	setParticles: React.Dispatch<React.SetStateAction<ParticleData[]>>;
+	activeChunks: ChunkData[];
+	character: { traits: CharacterTraits; gear: CharacterGear };
+	handleImpact: (pos: THREE.Vector3, type: "blood" | "shell") => void;
+}) {
+	const { isZoomed, getNearbyChunks, setPlayerPos, isCarryingClam, setCarryingClam, addCoins, isPilotingRaft, setPilotingRaft, rescueCharacter, collectSpoils, takeDamage, saveData, secureLZ } = useGameStore();
+	const [playerVelY, setPlayerVelYLocal] = useState(0);
 	const [isGrounded, setIsGrounded] = useState(true);
-	const [isClimbing, setIsClimbing] = useState(false);
-	const [playerRot, setPlayerRot] = useState(0);
-	const [isPlayerMoving, setIsPlayerMoving] = useState(false);
-	const [activeChunks, setActiveChunks] = useState<ChunkData[]>([]);
-	const [particles, setParticles] = useState<ParticleData[]>([]);
-	const playerRef = useRef<THREE.Group>(null);
-	const projectilesRef = useRef<ProjectilesHandle>(null);
 	const lastFireTime = useRef(0);
-
-	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell") => {
-		audioEngine.playSFX("hit");
-		const newParticles = [...Array(5)].map(() => ({
-			id: `${type}-${Math.random()}`, position: pos.clone(),
-			velocity: new THREE.Vector3((Math.random() - 0.5) * 5, Math.random() * 5, (Math.random() - 0.5) * 5),
-			lifetime: 0.5 + Math.random() * 0.5, type
-		}));
-		setParticles(prev => [...prev, ...newParticles]);
-	}, []);
 
 	useFrame((state, delta) => {
 		if (!playerRef.current) return;
@@ -238,6 +242,7 @@ export function Level() {
 			playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
 		}
 
+		setPlayerVelYLocal(newVelY);
 		setPlayerVelY(newVelY);
 		setIsPlayerMoving(moveVec.lengthSq() > 0.01);
 		setPlayerPos([playerRef.current.position.x, playerRef.current.position.y, playerRef.current.position.z]);
@@ -248,8 +253,46 @@ export function Level() {
 		state.camera.lookAt(playerRef.current.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
 	});
 
+	return null;
+}
+
+export function Level() {
+	const { isZoomed, selectedCharacterId, saveData, isCarryingClam, isPilotingRaft } = useGameStore();
+	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
+	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
+	const [playerVelY, setPlayerVelY] = useState(0);
+	const [isClimbing, setIsClimbing] = useState(false);
+	const [playerRot, setPlayerRot] = useState(0);
+	const [isPlayerMoving, setIsPlayerMoving] = useState(false);
+	const [activeChunks, setActiveChunks] = useState<ChunkData[]>([]);
+	const [particles, setParticles] = useState<ParticleData[]>([]);
+	const playerRef = useRef<THREE.Group>(null);
+	const projectilesRef = useRef<ProjectilesHandle>(null);
+
+	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell") => {
+		audioEngine.playSFX("hit");
+		const newParticles = [...Array(5)].map(() => ({
+			id: `${type}-${Math.random()}`, position: pos.clone(),
+			velocity: new THREE.Vector3((Math.random() - 0.5) * 5, Math.random() * 5, (Math.random() - 0.5) * 5),
+			lifetime: 0.5 + Math.random() * 0.5, type
+		}));
+		setParticles(prev => [...prev, ...newParticles]);
+	}, []);
+
 	return (
 		<Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
+			<GameLogic
+				playerRef={playerRef}
+				projectilesRef={projectilesRef}
+				playerPos={playerPos}
+				setPlayerVelY={setPlayerVelY}
+				setIsPlayerMoving={setIsPlayerMoving}
+				setActiveChunks={setActiveChunks}
+				setParticles={setParticles}
+				activeChunks={activeChunks}
+				character={character}
+				handleImpact={handleImpact}
+			/>
 			<ambientLight intensity={0.3} /><directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
 			<Sky sunPosition={[100, 20, 100]} /><fogExp2 attach="fog" args={["#d4c4a8", 0.015]} /><Environment preset="sunset" />
 			{activeChunks.map(chunk => <Chunk key={chunk.id} data={chunk} playerPos={playerPos} />)}

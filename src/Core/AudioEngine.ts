@@ -9,6 +9,7 @@ export class AudioEngine {
 	private initialized = false;
 	private synths: Map<string, Tone.Synth> = new Map();
 	private noiseSynth: Tone.NoiseSynth | null = null;
+	private loop: Tone.Loop | null = null;
 
 	/**
 	 * Initialize Tone.js
@@ -154,6 +155,10 @@ export class AudioEngine {
 	stopMusic(): void {
 		Tone.getTransport().stop();
 		Tone.getTransport().cancel();
+		if (this.loop) {
+			this.loop.dispose();
+			this.loop = null;
+		}
 	}
 
 	/**
