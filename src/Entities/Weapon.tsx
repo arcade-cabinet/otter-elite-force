@@ -44,8 +44,8 @@ export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 						<meshStandardMaterial color="#222" metalness={0.8} />
 					</mesh>
 					{/* Barrel */}
-					<mesh position={[0, 0.08, 0.3]}>
-						<cylinderGeometry args={[0.04, 0.04, 0.4, 8]} rotation-x={Math.PI / 2} />
+					<mesh position={[0, 0.08, 0.3]} rotation-x={Math.PI / 2}>
+						<cylinderGeometry args={[0.04, 0.04, 0.4, 8]} />
 						<meshStandardMaterial color="#111" metalness={0.9} />
 					</mesh>
 					<group ref={muzzleRef} position={[0, 0.08, 0.5]} />
@@ -55,8 +55,8 @@ export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 			{weapon.visualType === "FISH_CANNON" && (
 				<group position={[0, -0.2, 0.8]} rotation-x={0.1}>
 					{/* Main Barrel */}
-					<mesh castShadow>
-						<cylinderGeometry args={[0.15, 0.18, 1.2, 12]} rotation-x={Math.PI / 2} />
+					<mesh castShadow rotation-x={Math.PI / 2}>
+						<cylinderGeometry args={[0.15, 0.18, 1.2, 12]} />
 						<meshStandardMaterial color="#222" metalness={0.8} roughness={0.2} />
 					</mesh>
 					{/* Stock/Handle */}
@@ -74,8 +74,8 @@ export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 						<sphereGeometry args={[0.25, 12, 12]} />
 						<meshStandardMaterial color="#00ccff" transparent opacity={0.6} />
 					</mesh>
-					<mesh position={[0, 0, 0.3]}>
-						<cylinderGeometry args={[0.05, 0.1, 0.4]} rotation-x={Math.PI / 2} />
+					<mesh position={[0, 0, 0.3]} rotation-x={Math.PI / 2}>
+						<cylinderGeometry args={[0.05, 0.1, 0.4]} />
 						<meshStandardMaterial color="#eee" />
 					</mesh>
 					<group ref={muzzleRef} position={[0, 0, 0.5]} />
