@@ -294,6 +294,12 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 						<meshStandardMaterial color="#3d2b1f" roughness={1} />
 					</mesh>
 				);
+				if (entity.type === "CLIMBABLE") return (
+					<mesh key={entity.id} position={worldPos} castShadow receiveShadow name="climbable">
+						<cylinderGeometry args={[0.8, 1, 10, 8]} />
+						<meshStandardMaterial color="#2d1f15" roughness={1} />
+					</mesh>
+				);
 				return null;
 			})}
 		</group>
@@ -307,6 +313,7 @@ export function Level() {
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
 	const [playerVelY, setPlayerVelY] = useState(0);
 	const [isGrounded, setIsGrounded] = useState(true);
+	const [isClimbing, setIsClimbing] = useState(false);
 	const [playerRot, setPlayerRot] = useState(0);
 	const [isPlayerMoving, setIsPlayerMoving] = useState(false);
 	const [playerVelocity, setPlayerVelocity] = useState(0);
@@ -381,6 +388,7 @@ export function Level() {
 		}
 
 		// Platform Collision (AABB check against nearby chunks)
+		let onPlatform = false;
 		activeChunks.forEach(chunk => {
 			chunk.entities.forEach(entity => {
 				if (entity.type === "PLATFORM") {
@@ -388,26 +396,63 @@ export function Level() {
 					const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
 					const platformTop = entity.position[1] + 0.5;
 					
-					// Simple AABB for a 5x5 platform
 					const dx = Math.abs(playerRef.current!.position.x - worldX);
 					const dz = Math.abs(playerRef.current!.position.z - worldZ);
 					
 					if (dx < 2.5 && dz < 2.5) {
-						// Within platform bounds horizontally
 						const footLevel = playerRef.current!.position.y;
 						if (footLevel >= platformTop - 0.2 && footLevel <= platformTop + 0.5 && newVelY <= 0) {
 							playerRef.current!.position.y = platformTop;
 							newVelY = 0;
 							setIsGrounded(true);
+							onPlatform = true;
 						}
 					}
 				}
 			});
 		});
 
+		// --- CLIMBING LOGIC ---
+		let nearClimbable = false;
+		activeChunks.forEach(chunk => {
+			chunk.entities.forEach(entity => {
+				if (entity.type === "CLIMBABLE") {
+					const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
+					const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
+					
+					const dist = new THREE.Vector2(playerRef.current!.position.x, playerRef.current!.position.z)
+						.distanceTo(new THREE.Vector2(worldX, worldZ));
+					
+					if (dist < 2.5) {
+						nearClimbable = true;
+					}
+				}
+			});
+		});
+
+		if (input.grip && nearClimbable) {
+			if (!isClimbing) {
+				setIsClimbing(true);
+				setIsGrounded(false);
+				newVelY = 0;
+			}
+			// Vertical movement from right stick (look input)
+			newVelY = -input.look.y * 10; 
+		} else {
+			if (isClimbing) {
+				setIsClimbing(false);
+				// Small jump away if desired, but for now just fall
+			}
+		}
+
 		setPlayerVelY(newVelY);
 
-		if (isAiming) {
+		if (isClimbing) {
+			// Update state for animation
+			setIsPlayerMoving(Math.abs(newVelY) > 0.1);
+			playerPos.copy(playerRef.current.position);
+			// Face the climbable? For now just stay as is.
+		} else if (isAiming) {
 			playerRef.current.rotation.y -= input.look.x * 3 * delta;
 			if (moveVec.lengthSq() > 0.01) {
 				playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
@@ -471,6 +516,7 @@ export function Level() {
 				position={[0, 0, 0]}
 				rotation={playerRot}
 				isMoving={isPlayerMoving}
+				isClimbing={isClimbing}
 			/>
 
 			<Projectiles ref={projectilesRef} />
@@ -485,7 +531,5 @@ export function Level() {
 				<HueSaturation saturation={-0.2} />
 			</EffectComposer>
 		</Canvas>
-	);
-}
 	);
 }

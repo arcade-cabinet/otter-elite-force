@@ -11,6 +11,7 @@ export interface InputState {
 	gyro: { x: number; y: number };
 	zoom: boolean;
 	jump: boolean;
+	grip: boolean;
 }
 
 export class InputSystem {
@@ -20,6 +21,7 @@ export class InputSystem {
 		gyro: { x: 0, y: 0 },
 		zoom: false,
 		jump: false,
+		grip: false,
 	};
 
 	private moveJoystick: JoystickManager | null = null;
@@ -134,6 +136,9 @@ export class InputSystem {
 			if (e.key === "f") {
 				this.state.zoom = !this.state.zoom;
 			}
+			if (e.key === "g") {
+				this.state.grip = true;
+			}
 		};
 
 		this.handleKeyUp = (e: KeyboardEvent) => {
@@ -141,6 +146,9 @@ export class InputSystem {
 			this.updateKeyboardState(keys);
 			if (e.key === " ") {
 				this.state.jump = false;
+			}
+			if (e.key === "g") {
+				this.state.grip = false;
 			}
 		};
 
@@ -217,6 +225,13 @@ export class InputSystem {
 	 */
 	setJump(active: boolean): void {
 		this.state.jump = active;
+	}
+
+	/**
+	 * Set grip state
+	 */
+	setGrip(active: boolean): void {
+		this.state.grip = active;
 	}
 
 	/**

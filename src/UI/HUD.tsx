@@ -46,6 +46,17 @@ export function HUD() {
 				JUMP
 			</button>
 
+			{/* Grip Button */}
+			<button 
+				type="button" 
+				className="grip-btn" 
+				onPointerDown={() => inputSystem.setGrip(true)}
+				onPointerUp={() => inputSystem.setGrip(false)}
+				aria-label="Grip"
+			>
+				GRIP
+			</button>
+
 			{/* Joystick zones */}
 			<div id="joystick-move" className="joystick-zone left" />
 			<div id="joystick-look" className="joystick-zone right" />
