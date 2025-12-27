@@ -72,11 +72,14 @@ test.describe("Smoke Tests", () => {
 
 	test("canvas element exists for 3D scene", async ({ page }) => {
 		await page.goto("/");
+		await page.waitForTimeout(1000);
+
+		// Start the campaign to trigger 3D scene rendering (cutscene has a canvas)
+		await page.locator('button:has-text("START CAMPAIGN")').click();
 		await page.waitForTimeout(2000);
 
-		// Should have at least one canvas for Three.js
+		// Should have at least one canvas for Three.js (cutscene or game scene)
 		const canvasCount = await page.locator("canvas").count();
-		// Canvas might not exist in headless mode without GPU
-		console.log(`Found ${canvasCount} canvas elements`);
+		expect(canvasCount).toBeGreaterThanOrEqual(1);
 	});
 });
