@@ -134,6 +134,7 @@ export const isValidSaveData = (data: unknown): data is SaveData => {
 
 export const saveToLocalStorage = (data: SaveData) => {
 	try {
+		// NOSONAR: localStorage is appropriate for client-side game save data persistence
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 	} catch (e) {
 		if (e instanceof DOMException && e.name === "QuotaExceededError") {
@@ -147,9 +148,11 @@ export const saveToLocalStorage = (data: SaveData) => {
 
 export const loadFromLocalStorage = (): SaveData | null => {
 	try {
+		// NOSONAR: localStorage is appropriate for client-side game save data persistence
 		const saved = localStorage.getItem(STORAGE_KEY);
 		if (!saved) return null;
 
+		// NOSONAR: JSON.parse is safe here - we validate the structure with isValidSaveData
 		const parsed = JSON.parse(saved);
 		if (!isValidSaveData(parsed)) {
 			console.warn("Invalid save data format detected, attempting to recover partially");

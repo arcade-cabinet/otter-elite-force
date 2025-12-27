@@ -29,6 +29,7 @@ export const Projectiles = forwardRef<ProjectilesHandle, object>((_, ref) => {
 	useImperativeHandle(ref, () => ({
 		spawn: (position, direction) => {
 			projectiles.current.push({
+				// NOSONAR: Math.random is appropriate for non-cryptographic projectile IDs
 				id: Math.random().toString(36).substr(2, 9),
 				position: position.clone(),
 				velocity: direction.clone().multiplyScalar(GAME_CONFIG.BULLET_SPEED),

@@ -226,9 +226,12 @@ export const droppedItems = world.with("transform", "renderable").without("isPla
 // =============================================================================
 
 /**
- * Generate a unique entity ID
+ * Generate a unique entity ID.
+ * Uses timestamp + random suffix for uniqueness within a game session.
+ * Not intended for cryptographic or security-sensitive purposes.
  */
 export const generateId = (): string => {
+	// NOSONAR: Math.random is appropriate for non-cryptographic entity IDs
 	return `e_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 

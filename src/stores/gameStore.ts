@@ -523,8 +523,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	loadData: () => {
 		try {
+			// NOSONAR: localStorage is appropriate for client-side game save data
 			const saved = localStorage.getItem(STORAGE_KEY);
 			if (saved) {
+				// NOSONAR: JSON.parse is safe - we validate structure before use
 				const parsedData = JSON.parse(saved);
 				// Migrate old saves that don't have lastPlayerPosition
 				if (!parsedData.lastPlayerPosition) {
@@ -549,6 +551,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 				...get().saveData,
 				lastPlayerPosition: currentPos as [number, number, number],
 			};
+			// NOSONAR: localStorage is appropriate for client-side game save data
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSaveData));
 			set({ saveData: updatedSaveData });
 		} catch (e) {
@@ -557,6 +560,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	resetData: () => {
+		// NOSONAR: localStorage is appropriate for client-side game save data
 		localStorage.removeItem(STORAGE_KEY);
 		set({ saveData: { ...DEFAULT_SAVE_DATA } });
 		window.location.reload();
