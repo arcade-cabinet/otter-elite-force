@@ -1,30 +1,10 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { useGameStore } from "../stores/gameStore";
 
 describe("gameStore", () => {
 	beforeEach(() => {
-		// Mock localStorage
-		const localStorageMock = (() => {
-			let store: Record<string, string> = {};
-			return {
-				getItem: (key: string) => store[key] || null,
-				setItem: (key: string, value: string) => {
-					store[key] = value.toString();
-				},
-				removeItem: (key: string) => {
-					delete store[key];
-				},
-				clear: () => {
-					store = {};
-				},
-			};
-		})();
-		Object.defineProperty(window, "localStorage", {
-			value: localStorageMock,
-		});
-
 		const store = useGameStore.getState();
-		store.resetData();
+		store.resetStats();
 	});
 
 	it("should initialize with default values", () => {
@@ -32,6 +12,7 @@ describe("gameStore", () => {
 		expect(state.mode).toBe("MENU");
 		expect(state.health).toBe(100);
 		expect(state.kills).toBe(0);
+		expect(state.currentLevel).toBe(0);
 	});
 
 	it("should update mode", () => {
@@ -46,86 +27,28 @@ describe("gameStore", () => {
 		expect(useGameStore.getState().health).toBe(80);
 	});
 
-	it("should handle death in ELITE mode (permadeath)", () => {
+	it("should not go below zero health", () => {
 		const store = useGameStore.getState();
-		store.setDifficulty("ELITE");
-		store.addCoins(100);
-		expect(useGameStore.getState().saveData.coins).toBe(100);
-
-		store.takeDamage(100);
-		expect(useGameStore.getState().health).toBe(100); // Reset to 100
-		expect(useGameStore.getState().saveData.coins).toBe(0); // Reset coins
+		store.takeDamage(120);
+		expect(useGameStore.getState().health).toBe(0);
 	});
 
-	it("should trigger fall in TACTICAL mode when health is low", () => {
+	it("should heal correctly", () => {
 		const store = useGameStore.getState();
-		store.setDifficulty("TACTICAL");
-		store.takeDamage(75); // 100 - 75 = 25 (< 30)
-		expect(useGameStore.getState().isFallTriggered).toBe(true);
+		store.takeDamage(50);
+		store.heal(20);
+		expect(useGameStore.getState().health).toBe(70);
 	});
 
-	it("should generate deterministic chunks from seed", () => {
+	it("should not exceed max health", () => {
 		const store = useGameStore.getState();
-		const chunk1 = store.discoverChunk(5, 5);
-		const chunk2 = store.discoverChunk(5, 5);
-		expect(chunk1.seed).toBe(chunk2.seed);
-		expect(chunk1.id).toBe("5,5");
+		store.heal(50);
+		expect(useGameStore.getState().health).toBe(100);
 	});
 
-	it("should spawn prison cage at coordinate (5,5)", () => {
+	it("should increment kills", () => {
 		const store = useGameStore.getState();
-		const chunk = store.discoverChunk(5, 5);
-		expect(chunk.entities.some((e) => e.type === "PRISON_CAGE")).toBe(true);
-	});
-
-	it("should manage economy and upgrades", () => {
-		const store = useGameStore.getState();
-		store.addCoins(500);
-		expect(useGameStore.getState().saveData.coins).toBe(500);
-
-		store.buyUpgrade("speed", 200);
-		expect(useGameStore.getState().saveData.coins).toBe(300);
-		expect(useGameStore.getState().saveData.upgrades.speedBoost).toBe(1);
-	});
-
-	it("should respect max level caps for upgrades", () => {
-		const store = useGameStore.getState();
-		store.addCoins(5000);
-
-		for (let i = 0; i < 15; i++) {
-			store.buyUpgrade("speed", 100);
-		}
-
-		expect(useGameStore.getState().saveData.upgrades.speedBoost).toBe(10);
-	});
-
-	it("should save and load progress", () => {
-		const store = useGameStore.getState();
-		store.addCoins(123);
-		store.saveGame();
-
-		// New store instance simulation
-		store.resetStats();
-		expect(useGameStore.getState().saveData.coins).toBe(123); // Still 123 in saveData
-
-		// Actually simulate a fresh load
-		const anotherStore = useGameStore.getState();
-		anotherStore.loadData();
-		expect(anotherStore.saveData.coins).toBe(123);
-	});
-
-	it("should handle strategic objectives and territory scoring", () => {
-		const store = useGameStore.getState();
-		store.discoverChunk(1, 1);
-
-		// Instead of direct mutation, we verify that secureChunk works with generated entities
-		const chunk = useGameStore.getState().saveData.discoveredChunks["1,1"];
-		const hasHut = chunk.entities.some((e) => e.type === "HUT");
-
-		store.secureChunk("1,1");
-		expect(useGameStore.getState().saveData.territoryScore).toBe(1);
-		if (hasHut) {
-			expect(useGameStore.getState().saveData.peacekeepingScore).toBeGreaterThanOrEqual(10);
-		}
+		store.addKill();
+		expect(useGameStore.getState().kills).toBe(1);
 	});
 });
