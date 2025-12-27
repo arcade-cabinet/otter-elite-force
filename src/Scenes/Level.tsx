@@ -3,20 +3,23 @@
  * Main gameplay scene with 3D world
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { Environment, Sky } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Sky, Environment } from "@react-three/drei";
+import { Bloom, EffectComposer, Noise, Vignette } from "@react-three/postprocessing";
+import { useCallback, useEffect, useState } from "react";
 import * as THREE from "three";
-import { PlayerRig } from "../Entities/PlayerRig";
-import { Enemy, type EnemyData } from "../Entities/Enemies";
-import { Particles, type ParticleData } from "../Entities/Particles";
+import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
-import { useGameStore } from "../stores/gameStore";
 import { inputSystem } from "../Core/InputSystem";
-import { LEVELS, GAME_CONFIG } from "../utils/constants";
+import { Enemy, type EnemyData } from "../Entities/Enemies";
+import { type ParticleData, Particles } from "../Entities/Particles";
+import { PlayerRig } from "../Entities/PlayerRig";
+import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
+import { useGameStore } from "../stores/gameStore";
+import { GAME_CONFIG, LEVELS } from "../utils/constants";
 import { randomRange } from "../utils/math";
 
-import { WATER_VERT, WATER_FRAG, FLAG_VERT, FLAG_FRAG } from "../utils/shaders";
+import { FLAG_FRAG, FLAG_VERT, WATER_FRAG, WATER_VERT } from "../utils/shaders";
 
 function Flag({ position }: { position: [number, number, number] }) {
 	const flagUniforms = useRef({
@@ -50,10 +53,11 @@ function Flag({ position }: { position: [number, number, number] }) {
 
 function Lilypads({ count = 20 }) {
 	const meshRef = useRef<THREE.InstancedMesh>(null);
-	const dummy = new THREE.Object3D();
 
 	useEffect(() => {
-		if (!meshRef.current) return;
+		const mesh = meshRef.current;
+		if (!mesh) return;
+		const dummy = new THREE.Object3D();
 		for (let i = 0; i < count; i++) {
 			const angle = Math.random() * Math.PI * 2;
 			const dist = randomRange(10, 60);
@@ -62,10 +66,10 @@ function Lilypads({ count = 20 }) {
 			dummy.scale.set(size, 0.05, size);
 			dummy.rotation.y = Math.random() * Math.PI;
 			dummy.updateMatrix();
-			meshRef.current.setMatrixAt(i, dummy.matrix);
+			mesh.setMatrixAt(i, dummy.matrix);
 		}
-		meshRef.current.instanceMatrix.needsUpdate = true;
-	}, [count]);
+		mesh.instanceMatrix.needsUpdate = true;
+	}, [count, meshRef]);
 
 	return (
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} receiveShadow>
@@ -77,10 +81,11 @@ function Lilypads({ count = 20 }) {
 
 function Reeds({ count = 40 }) {
 	const meshRef = useRef<THREE.InstancedMesh>(null);
-	const dummy = new THREE.Object3D();
 
 	useEffect(() => {
-		if (!meshRef.current) return;
+		const mesh = meshRef.current;
+		if (!mesh) return;
+		const dummy = new THREE.Object3D();
 		for (let i = 0; i < count; i++) {
 			const angle = Math.random() * Math.PI * 2;
 			const dist = randomRange(20, 80);
@@ -88,10 +93,10 @@ function Reeds({ count = 40 }) {
 			dummy.scale.set(0.2, randomRange(1, 3), 0.2);
 			dummy.rotation.y = Math.random() * Math.PI;
 			dummy.updateMatrix();
-			meshRef.current.setMatrixAt(i, dummy.matrix);
+			mesh.setMatrixAt(i, dummy.matrix);
 		}
-		meshRef.current.instanceMatrix.needsUpdate = true;
-	}, [count]);
+		mesh.instanceMatrix.needsUpdate = true;
+	}, [count, meshRef]);
 
 	return (
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
@@ -115,6 +120,8 @@ export function Level() {
 
 	// Refs for imperative updates
 	const playerRef = useRef<THREE.Group>(null);
+	const projectilesRef = useRef<ProjectilesHandle>(null);
+	const lastFireTime = useRef(0);
 
 	// Water shader uniforms
 	const waterUniforms = useRef({
@@ -123,14 +130,15 @@ export function Level() {
 	});
 
 	useFrame((state, delta) => {
-		waterUniforms.current.time.value = state.clock.elapsedTime;
+		const currentTime = state.clock.elapsedTime;
+		waterUniforms.current.time.value = currentTime;
 
 		if (!playerRef.current) return;
 
 		const input = inputSystem.getState();
 		const cam = state.camera;
 
-		// Movement logic from POC
+		// Movement logic
 		const camDir = new THREE.Vector3();
 		cam.getWorldDirection(camDir);
 		camDir.y = 0;
@@ -155,16 +163,74 @@ export function Level() {
 			if (moveVec.lengthSq() > 0.01) {
 				playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
 			}
+
+			// Shooting logic
+			if (currentTime - lastFireTime.current > GAME_CONFIG.FIRE_RATE) {
+				const shootDir = new THREE.Vector3(0, 0, 1);
+				shootDir.applyQuaternion(playerRef.current.quaternion);
+
+				const muzzlePos = playerRef.current.position.clone().add(new THREE.Vector3(0, 1, 0));
+				muzzlePos.add(shootDir.clone().multiplyScalar(1.5));
+
+				projectilesRef.current?.spawn(muzzlePos, shootDir);
+				audioEngine.playSFX("shoot");
+				lastFireTime.current = currentTime;
+
+				// Recoil/shake effect
+				state.camera.position.add(new THREE.Vector3(Math.random() * 0.1 - 0.05, 0, 0));
+			}
 		} else {
 			// Normal mode: rotate towards movement direction
 			if (moveVec.lengthSq() > 0.01) {
 				const targetAngle = Math.atan2(moveVec.x, moveVec.z);
 				const currentAngle = playerRef.current.rotation.y;
 				let diff = targetAngle - currentAngle;
-				diff = (((diff + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
+				diff = ((((diff + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) - Math.PI;
 
 				playerRef.current.rotation.y += diff * 5 * delta;
 				playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
+			}
+		}
+
+		// Collision Detection
+		const currentProjectiles = projectilesRef.current?.getProjectiles() || [];
+		for (const projectile of currentProjectiles) {
+			for (let i = 0; i < enemies.length; i++) {
+				const enemy = enemies[i];
+				const dist = projectile.position.distanceTo(enemy.position);
+
+				if (dist < 1.5) {
+					// Hit detected
+					enemy.hp -= GAME_CONFIG.BULLET_DAMAGE;
+					projectilesRef.current?.remove(projectile.id);
+					audioEngine.playSFX("hit");
+
+					// Impact particles
+					const particleCount = 5;
+					for (let j = 0; j < particleCount; j++) {
+						const particleId = `blood-${Math.random()}`;
+						setParticles((prev) => [
+							...prev,
+							{
+								id: particleId,
+								position: projectile.position.clone(),
+								velocity: new THREE.Vector3(
+									(Math.random() - 0.5) * 5,
+									Math.random() * 5,
+									(Math.random() - 0.5) * 5,
+								),
+								lifetime: 0.5 + Math.random() * 0.5,
+								type: "blood",
+							},
+						]);
+					}
+
+					// Trigger death logic if needed
+					if (enemy.hp <= 0) {
+						handleEnemyDeath(enemy.id);
+					}
+					break;
+				}
 			}
 		}
 
@@ -175,7 +241,7 @@ export function Level() {
 		setPlayerRot(playerRef.current.rotation.y);
 		playerPos.copy(playerRef.current.position);
 
-		// Camera follow logic from POC
+		// Camera follow logic
 		const targetDist = isZoomed ? GAME_CONFIG.CAMERA_DISTANCE_ZOOM : GAME_CONFIG.CAMERA_DISTANCE;
 		const cameraOffset = new THREE.Vector3(0, GAME_CONFIG.CAMERA_HEIGHT, targetDist).applyAxisAngle(
 			new THREE.Vector3(0, 1, 0),
@@ -300,11 +366,21 @@ export function Level() {
 				<Enemy key={enemy.id} data={enemy} targetPosition={playerPos} onDeath={handleEnemyDeath} />
 			))}
 
+			{/* Projectiles */}
+			<Projectiles ref={projectilesRef} />
+
 			{/* Particles */}
 			<Particles particles={particles} onExpire={handleParticleExpire} />
 
 			{/* Game Loop */}
 			<GameLoop onUpdate={handleUpdate} />
+
+			{/* Post-processing */}
+			<EffectComposer>
+				<Bloom luminanceThreshold={1} luminanceSmoothing={0.9} height={300} />
+				<Noise opacity={0.02} />
+				<Vignette eskil={false} offset={0.1} darkness={1.1} />
+			</EffectComposer>
 		</Canvas>
 	);
 }

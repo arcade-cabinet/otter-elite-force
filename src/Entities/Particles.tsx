@@ -3,10 +3,10 @@
  * Visual effects: shell casings, blood splatters, explosions
  */
 
-import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import * as THREE from "three";
+import { useEffect, useRef } from "react";
 import type { Points } from "three";
+import * as THREE from "three";
 
 export interface ParticleData {
 	id: string;

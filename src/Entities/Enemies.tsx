@@ -3,11 +3,11 @@
  * Procedurally generated with Yuka AI
  */
 
-import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import type { Mesh } from "three";
 import * as THREE from "three";
 import * as YUKA from "yuka";
-import type { Mesh } from "three";
 
 export interface EnemyData {
 	id: string;
@@ -35,7 +35,7 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		vehicle.maxSpeed = data.isHeavy ? 4 : 7;
 
 		const seekBehavior = new YUKA.SeekBehavior();
-		targetRef.current = new YUKA.Vector3(targetPosition.x, targetPosition.y, targetPosition.z);
+		targetRef.current = new YUKA.Vector3();
 		seekBehavior.target = targetRef.current;
 
 		vehicle.steering.add(seekBehavior);
@@ -44,12 +44,7 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		return () => {
 			vehicle.steering.clear();
 		};
-	}, [
-		data.position.x,
-		data.position.y,
-		data.position.z,
-		data.isHeavy,
-	]);
+	}, [data.position.x, data.position.y, data.position.z, data.isHeavy]);
 
 	// Update AI and sync with Three.js mesh
 	useFrame((_state, delta) => {
@@ -87,6 +82,21 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		<mesh ref={meshRef} castShadow receiveShadow>
 			<boxGeometry args={size as [number, number, number]} />
 			<meshStandardMaterial color={color} roughness={0.7} />
+
+			{/* Gator Head (Improvement) */}
+			<mesh position={[0, 0.2, 0.8 * (data.isHeavy ? 1.5 : 1)]}>
+				<boxGeometry args={[data.isHeavy ? 1.2 : 0.8, 0.4, 1]} />
+				<meshStandardMaterial color={color} roughness={0.7} />
+				{/* Gator Eyes */}
+				<mesh position={[-0.3, 0.2, 0.2]}>
+					<sphereGeometry args={[0.05, 8, 8]} />
+					<meshBasicMaterial color="#ffff00" />
+				</mesh>
+				<mesh position={[0.3, 0.2, 0.2]}>
+					<sphereGeometry args={[0.05, 8, 8]} />
+					<meshBasicMaterial color="#ffff00" />
+				</mesh>
+			</mesh>
 
 			{/* Health bar */}
 			<group position={[0, 1, 0]}>

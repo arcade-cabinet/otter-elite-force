@@ -4,7 +4,7 @@
  */
 
 import { useGameStore } from "../stores/gameStore";
-import { RANKS, LEVELS } from "../utils/constants";
+import { LEVELS, RANKS } from "../utils/constants";
 
 export function MainMenu() {
 	const { saveData, setMode, setLevel, resetData } = useGameStore();

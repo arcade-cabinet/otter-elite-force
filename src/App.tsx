@@ -4,13 +4,13 @@
  */
 
 import { useEffect } from "react";
-import { useGameStore } from "./stores/gameStore";
-import { MainMenu } from "./Scenes/MainMenu";
-import { Level } from "./Scenes/Level";
-import { Cutscene } from "./Scenes/Cutscene";
-import { HUD } from "./UI/HUD";
 import { audioEngine } from "./Core/AudioEngine";
 import { inputSystem } from "./Core/InputSystem";
+import { Cutscene } from "./Scenes/Cutscene";
+import { Level } from "./Scenes/Level";
+import { MainMenu } from "./Scenes/MainMenu";
+import { useGameStore } from "./stores/gameStore";
+import { HUD } from "./UI/HUD";
 
 export function App() {
 	const { mode, loadData } = useGameStore();
