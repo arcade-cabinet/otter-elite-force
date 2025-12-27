@@ -26,7 +26,6 @@ export const WATER_FRAG = `
   varying vec3 vPosition;
   uniform float time;
   uniform vec3 waterColor;
-  uniform float alpha;
   
   void main() {
     // Simple animated noise-like effect
@@ -34,7 +33,7 @@ export const WATER_FRAG = `
                   sin(vPosition.z * 0.5 + time) * 0.5;
     
     vec3 color = waterColor + noise * 0.1;
-    gl_FragColor = vec4(color, alpha);
+    gl_FragColor = vec4(color, 0.7);
   }
 `;
 
@@ -57,19 +56,19 @@ export const FLAG_VERT = `
 
 export const FLAG_FRAG = `
   varying vec2 vUv;
-  uniform vec3 colorA;
-  uniform vec3 colorB;
-  uniform vec3 colorC;
-  uniform vec3 stripeColor;
   
   void main() {
-    vec3 col = colorA;
+    vec3 teal = vec3(0.0, 0.7, 0.8);
+    vec3 orange = vec3(1.0, 0.7, 0.0);
+    vec3 white = vec3(1.0);
+    
+    vec3 col = teal;
     float d = distance(vUv, vec2(0.5));
     
-    // Procedural flag design parameterized
-    if(d < 0.35) col = colorC;
-    if(d < 0.30) col = colorB;
-    if(vUv.y < 0.2 || vUv.y > 0.8) col = stripeColor;
+    // Procedural flag design
+    if(d < 0.35) col = white;
+    if(d < 0.30) col = orange;
+    if(vUv.y < 0.2 || vUv.y > 0.8) col = vec3(0.1, 0.3, 0.4);
     
     gl_FragColor = vec4(col, 1.0);
   }

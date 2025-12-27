@@ -4,7 +4,7 @@
  */
 
 import { create } from "zustand";
-import { RANKS, STORAGE_KEY } from "../utils/constants";
+import { LEVELS, RANKS, STORAGE_KEY } from "../utils/constants";
 
 export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER";
 
@@ -140,7 +140,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 		set((state) => {
 			const newUnlocked =
 				levelId + 1 >= state.saveData.unlocked
-					? Math.min(levelId + 2, 3) // Max 3 levels for now
+					? Math.min(levelId + 2, LEVELS.length)
 					: state.saveData.unlocked;
 
 			return {

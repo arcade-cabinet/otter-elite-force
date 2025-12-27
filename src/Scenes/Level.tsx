@@ -32,7 +32,7 @@ export function Level() {
 			const isHeavy = Math.random() > 0.8;
 
 			newEnemies.push({
-				id: `enemy-${i}`,
+				id: `enemy-${crypto.randomUUID()}`,
 				position: new THREE.Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist),
 				hp: isHeavy ? 8 : 3,
 				maxHp: isHeavy ? 8 : 3,

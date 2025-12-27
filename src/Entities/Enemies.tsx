@@ -49,9 +49,6 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 		data.position.y,
 		data.position.z,
 		data.isHeavy,
-		targetPosition.x,
-		targetPosition.y,
-		targetPosition.z,
 	]);
 
 	// Update AI and sync with Three.js mesh

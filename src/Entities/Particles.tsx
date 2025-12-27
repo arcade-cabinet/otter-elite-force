@@ -24,26 +24,17 @@ interface ParticlesProps {
 export function Particles({ particles, onExpire }: ParticlesProps) {
 	const particlesRef = useRef<ParticleData[]>(particles);
 	const pointsRef = useRef<Points>(null);
-	const geometryRef = useRef<THREE.BufferGeometry | null>(null);
 
 	// Update particle reference
 	useEffect(() => {
 		particlesRef.current = particles;
 	}, [particles]);
 
-	// Setup geometry
-	useEffect(() => {
-		const geometry = new THREE.BufferGeometry();
-		geometryRef.current = geometry;
-
-		return () => {
-			geometry.dispose();
-		};
-	}, []);
-
 	// Update particles
 	useFrame((_state, delta) => {
-		if (!geometryRef.current || particlesRef.current.length === 0) return;
+		if (!pointsRef.current || particlesRef.current.length === 0) return;
+
+		const geometry = pointsRef.current.geometry as THREE.BufferGeometry;
 
 		const positions: number[] = [];
 		const colors: number[] = [];
@@ -93,16 +84,16 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 		toRemove.forEach((id) => onExpire?.(id));
 
 		// Update geometry
-		geometryRef.current.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-		geometryRef.current.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-		geometryRef.current.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
+		geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+		geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+		geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes, 1));
 	});
 
 	if (particles.length === 0) return null;
 
 	return (
 		<points ref={pointsRef}>
-			<bufferGeometry ref={geometryRef as any} />
+			<bufferGeometry />
 			<pointsMaterial
 				size={0.2}
 				vertexColors

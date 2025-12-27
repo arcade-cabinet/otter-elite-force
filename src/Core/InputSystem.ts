@@ -23,6 +23,9 @@ export class InputSystem {
 	private moveJoystick: JoystickManager | null = null;
 	private lookJoystick: JoystickManager | null = null;
 	private gyroEnabled = false;
+	private handleDeviceOrientation: ((event: DeviceOrientationEvent) => void) | null = null;
+	private handleKeyDown: ((e: KeyboardEvent) => void) | null = null;
+	private handleKeyUp: ((e: KeyboardEvent) => void) | null = null;
 
 	/**
 	 * Initialize input handlers
@@ -95,7 +98,7 @@ export class InputSystem {
 	 */
 	private setupGyroscope(): void {
 		if (window.DeviceOrientationEvent) {
-			window.addEventListener("deviceorientation", (event) => {
+			this.handleDeviceOrientation = (event: DeviceOrientationEvent) => {
 				if (!this.gyroEnabled) return;
 
 				// Use beta (front-to-back tilt) and gamma (left-to-right tilt)
@@ -107,7 +110,8 @@ export class InputSystem {
 					x: Math.max(-1, Math.min(1, gamma / 45)),
 					y: Math.max(-1, Math.min(1, (beta - 45) / 45)),
 				};
-			});
+			};
+			window.addEventListener("deviceorientation", this.handleDeviceOrientation);
 		}
 	}
 
@@ -117,7 +121,7 @@ export class InputSystem {
 	private setupKeyboard(): void {
 		const keys: Record<string, boolean> = {};
 
-		window.addEventListener("keydown", (e) => {
+		this.handleKeyDown = (e: KeyboardEvent) => {
 			keys[e.key.toLowerCase()] = true;
 			this.updateKeyboardState(keys);
 
@@ -125,12 +129,15 @@ export class InputSystem {
 			if (e.key === " ") {
 				this.state.zoom = !this.state.zoom;
 			}
-		});
+		};
 
-		window.addEventListener("keyup", (e) => {
+		this.handleKeyUp = (e: KeyboardEvent) => {
 			keys[e.key.toLowerCase()] = false;
 			this.updateKeyboardState(keys);
-		});
+		};
+
+		window.addEventListener("keydown", this.handleKeyDown);
+		window.addEventListener("keyup", this.handleKeyUp);
 	}
 
 	/**
@@ -201,6 +208,16 @@ export class InputSystem {
 	destroy(): void {
 		this.moveJoystick?.destroy();
 		this.lookJoystick?.destroy();
+
+		if (this.handleDeviceOrientation) {
+			window.removeEventListener("deviceorientation", this.handleDeviceOrientation);
+		}
+		if (this.handleKeyDown) {
+			window.removeEventListener("keydown", this.handleKeyDown);
+		}
+		if (this.handleKeyUp) {
+			window.removeEventListener("keyup", this.handleKeyUp);
+		}
 	}
 }
 
