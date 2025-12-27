@@ -15,6 +15,7 @@ export interface EnemyData {
 	hp: number;
 	maxHp: number;
 	isHeavy: boolean;
+	state: "IDLE" | "STALK" | "AMBUSH" | "RETREAT";
 }
 
 interface EnemyProps {
