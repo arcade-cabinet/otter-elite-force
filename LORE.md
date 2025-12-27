@@ -7,12 +7,16 @@
 
 ## 🛡️ The Factions
 
-### 1. United River Alliance (URA) - "The River-Rats"
+### 1. United River Alliance (URA) - "The Peacekeepers"
 A multi-specialist elite force of Mustelids (Otters) recalled from the northern territories. 
-*   **Doctrine**: Tactical verticality, high-mobility, and superior fire-volume.
-*   **Gear**: OD Green ballistic canvas, analog long-wave radios, and "Fish-Cannon" heavy ballistics.
+*   **Doctrine**: Liberation through verticality. We occupy to restore peace.
+*   **Goal**: Dismantle Scale-Guard siphons and return territory to the villagers.
 
-### 2. The Scale-Guard Militia
+### 2. The Mustelid Civilians - "The Villagers"
+The original inhabitants of the Reach. They live in simple river hamlets and thatched huts.
+*   **Status**: Under Scale-Guard occupation. They lack the ballistics to fight back but provide the URA with intel and credits once their hamlets are secured.
+
+### 3. The Scale-Guard Militia
 A biological cult of apex crocodilians and reptilian predators.
 *   **Doctrine**: Ambush, area-denial, and attrition.
 *   **Tech**: Stolen URA webbing, heavy industrial siphons, and biological "Periscope" mimicry.
