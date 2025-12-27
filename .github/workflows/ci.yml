@@ -5,7 +5,8 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main, develop]
+    # Run on ALL pull requests to catch issues early
+    # Not just PRs to main/develop
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
