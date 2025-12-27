@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as THREE from "three";
-import type * as YUKA from "yuka";
 import { GatorAI } from "../GatorAI";
+import type { Vehicle as VehicleType } from "yuka";
 
 // Mock YUKA
 vi.mock("yuka", () => {
@@ -68,10 +68,11 @@ vi.mock("yuka", () => {
 });
 
 describe("GatorAI", () => {
-	let vehicle: YUKA.Vehicle;
+	let vehicle: VehicleType;
 	let gatorAI: GatorAI;
 
-	beforeEach(() => {
+	beforeEach(async () => {
+		const YUKA = await import("yuka");
 		vehicle = new YUKA.Vehicle();
 		gatorAI = new GatorAI(vehicle);
 	});
@@ -83,7 +84,7 @@ describe("GatorAI", () => {
 	it("should transition from IDLE to STALK when player is within range", () => {
 		const playerPos = new THREE.Vector3(12, 0, 0);
 		vehicle.position.set(0, 0, 0);
-		
+
 		gatorAI.update(0.1, playerPos, 10, 0);
 		expect(gatorAI.getState()).toBe("STALK");
 	});
@@ -91,7 +92,7 @@ describe("GatorAI", () => {
 	it("should transition to AMBUSH when player is very close", () => {
 		const playerPos = new THREE.Vector3(5, 0, 0);
 		vehicle.position.set(0, 0, 0);
-		
+
 		// First transition to STALK
 		gatorAI.update(0.1, playerPos, 10, 0);
 		// Then transition to AMBUSH

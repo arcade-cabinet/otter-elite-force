@@ -29,7 +29,7 @@ export function Villager({ position }: { position: THREE.Vector3 }) {
 				<cylinderGeometry args={[0.4, 0.35, 1.2, 8]} />
 				<meshStandardMaterial color="#8D6E63" roughness={1} />
 			</mesh>
-			
+
 			{/* Head */}
 			<mesh ref={headRef} position={[0, 1.2, 0]} castShadow>
 				<sphereGeometry args={[0.35, 16, 16]} />

@@ -50,16 +50,29 @@ import { Snake } from "../Entities/Enemies/Snake";
 import { Snapper } from "../Entities/Enemies/Snapper";
 
 // Placeholder for missing components to ensure build
-function GasStockpile({ position, secured = false }: { position: THREE.Vector3; secured?: boolean }) {
+function GasStockpile({
+	position,
+	secured = false,
+}: {
+	position: THREE.Vector3;
+	secured?: boolean;
+}) {
 	return (
 		<group position={position}>
-			{[[-0.5, 0, 0], [0.5, 0, 0], [0, 0, 0.5]].map((pos, i) => (
+			{[
+				[-0.5, 0, 0],
+				[0.5, 0, 0],
+				[0, 0, 0.5],
+			].map((pos, i) => (
 				<mesh key={i} position={pos as [number, number, number]} castShadow receiveShadow>
 					<cylinderGeometry args={[0.4, 0.4, 1.2, 8]} />
 					<meshStandardMaterial color={secured ? "#2d3d19" : "#d32f2f"} metalness={0.5} />
 				</mesh>
 			))}
-			<mesh position={[0, -0.5, 0]} receiveShadow><boxGeometry args={[2, 0.2, 2]} /><meshStandardMaterial color="#3d2b1f" /></mesh>
+			<mesh position={[0, -0.5, 0]} receiveShadow>
+				<boxGeometry args={[2, 0.2, 2]} />
+				<meshStandardMaterial color="#3d2b1f" />
+			</mesh>
 		</group>
 	);
 }
@@ -67,7 +80,10 @@ function GasStockpile({ position, secured = false }: { position: THREE.Vector3; 
 function ClamBasket({ position, isTrap = false }: { position: THREE.Vector3; isTrap?: boolean }) {
 	return (
 		<group position={position}>
-			<mesh castShadow receiveShadow><cylinderGeometry args={[0.6, 0.5, 0.5, 8]} /><meshStandardMaterial color="#5d4037" /></mesh>
+			<mesh castShadow receiveShadow>
+				<cylinderGeometry args={[0.6, 0.5, 0.5, 8]} />
+				<meshStandardMaterial color="#5d4037" />
+			</mesh>
 			{isTrap && <pointLight color="#ff0000" intensity={0.2} distance={2} />}
 		</group>
 	);
@@ -76,63 +92,168 @@ function ClamBasket({ position, isTrap = false }: { position: THREE.Vector3; isT
 function PrisonCage({ position, rescued = false }: { position: THREE.Vector3; rescued?: boolean }) {
 	return (
 		<group position={position}>
-			{!rescued && <mesh castShadow><boxGeometry args={[2, 3, 2]} /><meshStandardMaterial color="#222" wireframe /></mesh>}
-			<mesh position={[0, -0.1, 0]} receiveShadow><boxGeometry args={[2.5, 0.2, 2.5]} /><meshStandardMaterial color="#111" /></mesh>
+			{!rescued && (
+				<mesh castShadow>
+					<boxGeometry args={[2, 3, 2]} />
+					<meshStandardMaterial color="#222" wireframe />
+				</mesh>
+			)}
+			<mesh position={[0, -0.1, 0]} receiveShadow>
+				<boxGeometry args={[2.5, 0.2, 2.5]} />
+				<meshStandardMaterial color="#111" />
+			</mesh>
 		</group>
 	);
 }
 
-// Flag component reserved for future extraction points
-function _Flag({ position }: { position: [number, number, number] }) {
+// Flag component for extraction points - URA banner waving in wind
+function Flag({ position }: { position: [number, number, number] }) {
 	const flagUniforms = useRef({ time: { value: 0 } });
-	useFrame((state) => { flagUniforms.current.time.value = state.clock.elapsedTime; });
+	useFrame((state) => {
+		flagUniforms.current.time.value = state.clock.elapsedTime;
+	});
 	return (
 		<group position={position}>
-			<mesh position={[0, 2, 0]}><cylinderGeometry args={[0.05, 0.05, 4, 8]} /><meshStandardMaterial color="#333" /></mesh>
-			<mesh position={[0.75, 3.3, 0]}><planeGeometry args={[1.5, 1, 20, 20]} /><shaderMaterial vertexShader={WATER_VERT} fragmentShader={WATER_FRAG} uniforms={flagUniforms.current} side={THREE.DoubleSide} /></mesh>
+			<mesh position={[0, 2, 0]}>
+				<cylinderGeometry args={[0.05, 0.05, 4, 8]} />
+				<meshStandardMaterial color="#333" />
+			</mesh>
+			<mesh position={[0.75, 3.3, 0]}>
+				<planeGeometry args={[1.5, 1, 20, 20]} />
+				<shaderMaterial
+					vertexShader={WATER_VERT}
+					fragmentShader={WATER_FRAG}
+					uniforms={flagUniforms.current}
+					side={THREE.DoubleSide}
+				/>
+			</mesh>
 		</group>
 	);
 }
 
+// Export Flag for use in extraction points
+export { Flag };
+
 function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 }) {
-	const waterUniforms = useRef({ time: { value: 0 }, waterColor: { value: new THREE.Color("#4d4233") } });
-	useFrame((state) => { waterUniforms.current.time.value = state.clock.elapsedTime; });
+	const waterUniforms = useRef({
+		time: { value: 0 },
+		waterColor: { value: new THREE.Color("#4d4233") },
+	});
+	useFrame((state) => {
+		waterUniforms.current.time.value = state.clock.elapsedTime;
+	});
 	const chunkX = data.x * CHUNK_SIZE;
 	const chunkZ = data.z * CHUNK_SIZE;
 
 	return (
 		<group position={[chunkX, 0, chunkZ]}>
-			<mesh position={[0, -2.5, 0]} receiveShadow><boxGeometry args={[CHUNK_SIZE, 5, CHUNK_SIZE]} /><meshStandardMaterial color="#1a1208" /></mesh>
-			<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[CHUNK_SIZE, CHUNK_SIZE]} /><meshStandardMaterial color="#2d5016" /></mesh>
-			<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}><planeGeometry args={[CHUNK_SIZE, CHUNK_SIZE]} /><shaderMaterial vertexShader={WATER_VERT} fragmentShader={WATER_FRAG} uniforms={waterUniforms.current} transparent opacity={0.7} /></mesh>
+			<mesh position={[0, -2.5, 0]} receiveShadow>
+				<boxGeometry args={[CHUNK_SIZE, 5, CHUNK_SIZE]} />
+				<meshStandardMaterial color="#1a1208" />
+			</mesh>
+			<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+				<planeGeometry args={[CHUNK_SIZE, CHUNK_SIZE]} />
+				<meshStandardMaterial color="#2d5016" />
+			</mesh>
+			<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}>
+				<planeGeometry args={[CHUNK_SIZE, CHUNK_SIZE]} />
+				<shaderMaterial
+					vertexShader={WATER_VERT}
+					fragmentShader={WATER_FRAG}
+					uniforms={waterUniforms.current}
+					transparent
+					opacity={0.7}
+				/>
+			</mesh>
 			{data.decorations.map((dec) => {
 				const key = dec.id;
 				if (dec.type === "REED") return <Reeds key={key} count={dec.count} seed={data.seed} />;
-				if (dec.type === "LILYPAD") return <Lilypads key={key} count={dec.count} seed={data.seed} />;
-				if (dec.type === "MANGROVE") return <Mangroves key={key} count={dec.count} seed={data.seed} />;
-				if (dec.type === "BURNT_TREE") return <BurntTrees key={key} count={dec.count} seed={data.seed} />;
-				if (dec.type === "DRUM") return <FloatingDrums key={key} count={dec.count} seed={data.seed} />;
+				if (dec.type === "LILYPAD")
+					return <Lilypads key={key} count={dec.count} seed={data.seed} />;
+				if (dec.type === "MANGROVE")
+					return <Mangroves key={key} count={dec.count} seed={data.seed} />;
+				if (dec.type === "BURNT_TREE")
+					return <BurntTrees key={key} count={dec.count} seed={data.seed} />;
+				if (dec.type === "DRUM")
+					return <FloatingDrums key={key} count={dec.count} seed={data.seed} />;
 				if (dec.type === "DEBRIS") return <Debris key={key} count={dec.count} seed={data.seed} />;
 				return null;
 			})}
 			{data.entities.map((entity) => {
-				const worldPos = new THREE.Vector3(chunkX + entity.position[0], entity.position[1], chunkZ + entity.position[2]);
-				if (entity.type === "GATOR") return <Gator key={entity.id} data={{ ...entity, position: worldPos, hp: entity.hp || 10, maxHp: 10, state: "IDLE", suppression: entity.suppression || 0, isHeavy: entity.isHeavy ?? false }} targetPosition={playerPos} />;
-				if (entity.type === "SNAKE") return <Snake key={entity.id} data={{ ...entity, position: worldPos, hp: 2, maxHp: 2 }} targetPosition={playerPos} />;
-				if (entity.type === "SNAPPER") return <Snapper key={entity.id} data={{ ...entity, position: worldPos, hp: 20, maxHp: 20 }} targetPosition={playerPos} />;
-				if (entity.type === "PLATFORM") return <mesh key={entity.id} position={worldPos} castShadow receiveShadow><boxGeometry args={[5, 1, 5]} /><meshStandardMaterial color="#3d2b1f" /></mesh>;
-				if (entity.type === "CLIMBABLE") return <mesh key={entity.id} position={worldPos} castShadow receiveShadow><cylinderGeometry args={[0.8, 1, 10, 8]} /><meshStandardMaterial color="#2d1f15" /></mesh>;
-				if (entity.type === "SIPHON") return <Siphon key={entity.id} position={worldPos} secured={data.secured} />;
-				if (entity.type === "GAS_STOCKPILE") return <GasStockpile key={entity.id} position={worldPos} secured={data.secured} />;
-				if (entity.type === "CLAM_BASKET") return <ClamBasket key={entity.id} position={worldPos} isTrap={entity.isHeavy} />;
-				if (entity.type === "EXTRACTION_POINT") return <ExtractionPoint key={entity.id} position={worldPos} />;
+				const worldPos = new THREE.Vector3(
+					chunkX + entity.position[0],
+					entity.position[1],
+					chunkZ + entity.position[2],
+				);
+				if (entity.type === "GATOR")
+					return (
+						<Gator
+							key={entity.id}
+							data={{
+								id: entity.id,
+								position: worldPos,
+								hp: entity.hp || 10,
+								maxHp: 10,
+								state: "IDLE",
+								suppression: entity.suppression || 0,
+								isHeavy: entity.isHeavy ?? false,
+							}}
+							targetPosition={playerPos}
+						/>
+					);
+				if (entity.type === "SNAKE")
+					return (
+						<Snake
+							key={entity.id}
+							data={{ id: entity.id, position: worldPos, hp: 2, maxHp: 2, suppression: 0 }}
+							targetPosition={playerPos}
+						/>
+					);
+				if (entity.type === "SNAPPER")
+					return (
+						<Snapper
+							key={entity.id}
+							data={{ id: entity.id, position: worldPos, hp: 20, maxHp: 20, suppression: 0 }}
+							targetPosition={playerPos}
+						/>
+					);
+				if (entity.type === "PLATFORM")
+					return (
+						<mesh key={entity.id} position={worldPos} castShadow receiveShadow>
+							<boxGeometry args={[5, 1, 5]} />
+							<meshStandardMaterial color="#3d2b1f" />
+						</mesh>
+					);
+				if (entity.type === "CLIMBABLE")
+					return (
+						<mesh key={entity.id} position={worldPos} castShadow receiveShadow>
+							<cylinderGeometry args={[0.8, 1, 10, 8]} />
+							<meshStandardMaterial color="#2d1f15" />
+						</mesh>
+					);
+				if (entity.type === "SIPHON")
+					return <Siphon key={entity.id} position={worldPos} secured={data.secured} />;
+				if (entity.type === "GAS_STOCKPILE")
+					return <GasStockpile key={entity.id} position={worldPos} secured={data.secured} />;
+				if (entity.type === "CLAM_BASKET")
+					return <ClamBasket key={entity.id} position={worldPos} isTrap={entity.isHeavy} />;
+				if (entity.type === "EXTRACTION_POINT")
+					return <ExtractionPoint key={entity.id} position={worldPos} />;
 				if (entity.type === "VILLAGER") return <Villager key={entity.id} position={worldPos} />;
 				if (entity.type === "HEALER") return <Villager key={entity.id} position={worldPos} />;
-				if (entity.type === "HUT") return <ModularHut key={entity.id} position={worldPos} seed={data.seed} />;
-				if (entity.type === "PRISON_CAGE") return <PrisonCage key={entity.id} position={worldPos} rescued={entity.rescued} />;
+				if (entity.type === "HUT")
+					return <ModularHut key={entity.id} position={worldPos} seed={data.seed} />;
+				if (entity.type === "PRISON_CAGE")
+					return <PrisonCage key={entity.id} position={worldPos} rescued={entity.rescued} />;
 				if (entity.type === "RAFT") {
 					const isThisRaft = useGameStore.getState().raftId === entity.id;
-					return <Raft key={entity.id} position={isThisRaft ? [0, 0, 0] : [worldPos.x, worldPos.y, worldPos.z]} isPiloted={isThisRaft} />;
+					return (
+						<Raft
+							key={entity.id}
+							position={isThisRaft ? [0, 0, 0] : [worldPos.x, worldPos.y, worldPos.z]}
+							isPiloted={isThisRaft}
+						/>
+					);
 				}
 				return null;
 			})}
@@ -144,27 +265,37 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 function GameLogic({
 	playerRef,
 	projectilesRef,
-	playerPos,
 	setPlayerVelY,
 	setIsPlayerMoving,
 	setActiveChunks,
-	setParticles,
 	activeChunks,
 	character,
 	handleImpact,
 }: {
-	playerRef: React.RefObject<THREE.Group>;
-	projectilesRef: React.RefObject<ProjectilesHandle>;
-	playerPos: THREE.Vector3;
+	playerRef: React.RefObject<THREE.Group | null>;
+	projectilesRef: React.RefObject<ProjectilesHandle | null>;
 	setPlayerVelY: (val: number) => void;
 	setIsPlayerMoving: (val: boolean) => void;
 	setActiveChunks: (chunks: ChunkData[]) => void;
-	setParticles: React.Dispatch<React.SetStateAction<ParticleData[]>>;
 	activeChunks: ChunkData[];
 	character: { traits: CharacterTraits; gear: CharacterGear };
 	handleImpact: (pos: THREE.Vector3, type: "blood" | "shell") => void;
 }) {
-	const { isZoomed, getNearbyChunks, setPlayerPos, isCarryingClam, setCarryingClam, addCoins, isPilotingRaft, setPilotingRaft, rescueCharacter, collectSpoils, takeDamage, saveData, secureLZ } = useGameStore();
+	const {
+		isZoomed,
+		getNearbyChunks,
+		setPlayerPos,
+		isCarryingClam,
+		setCarryingClam,
+		addCoins,
+		isPilotingRaft,
+		setPilotingRaft,
+		rescueCharacter,
+		collectSpoils,
+		takeDamage,
+		saveData,
+		secureLZ,
+	} = useGameStore();
 	const [playerVelY, setPlayerVelYLocal] = useState(0);
 	const [isGrounded, setIsGrounded] = useState(true);
 	const lastFireTime = useRef(0);
@@ -174,11 +305,15 @@ function GameLogic({
 		const cx = Math.floor(playerRef.current.position.x / CHUNK_SIZE);
 		const cz = Math.floor(playerRef.current.position.z / CHUNK_SIZE);
 		const nearby = getNearbyChunks(cx, cz);
-		if (nearby.length !== activeChunks.length || nearby[0]?.id !== activeChunks[0]?.id) setActiveChunks(nearby);
+		if (nearby.length !== activeChunks.length || nearby[0]?.id !== activeChunks[0]?.id)
+			setActiveChunks(nearby);
 
 		const input = inputSystem.getState();
 		const cam = state.camera;
-		const camDir = new THREE.Vector3(); cam.getWorldDirection(camDir); camDir.y = 0; camDir.normalize();
+		const camDir = new THREE.Vector3();
+		cam.getWorldDirection(camDir);
+		camDir.y = 0;
+		camDir.normalize();
 		const camSide = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0, 1, 0));
 		const moveVec = new THREE.Vector3();
 		if (Math.abs(input.move.y) > 0.1) moveVec.add(camDir.clone().multiplyScalar(-input.move.y));
@@ -192,47 +327,95 @@ function GameLogic({
 		let newVelY = playerVelY;
 		if (!isGrounded) newVelY -= 30 * delta;
 		if (input.jump && isGrounded) {
-			if (isPilotingRaft) { setPilotingRaft(false); newVelY = 8; }
-			else { newVelY = 12; }
-			setIsGrounded(false); audioEngine.playSFX("pickup");
+			if (isPilotingRaft) {
+				setPilotingRaft(false);
+				newVelY = 8;
+			} else {
+				newVelY = 12;
+			}
+			setIsGrounded(false);
+			audioEngine.playSFX("pickup");
 		}
 		playerRef.current.position.y += newVelY * delta;
-		if (playerRef.current.position.y <= 0) { playerRef.current.position.y = 0; newVelY = 0; setIsGrounded(true); }
+		if (playerRef.current.position.y <= 0) {
+			playerRef.current.position.y = 0;
+			newVelY = 0;
+			setIsGrounded(true);
+		}
 
-		activeChunks.forEach(chunk => {
-			chunk.entities.forEach(entity => {
-				const worldPos = new THREE.Vector3(chunk.x * CHUNK_SIZE + entity.position[0], entity.position[1], chunk.z * CHUNK_SIZE + entity.position[2]);
+		activeChunks.forEach((chunk) => {
+			chunk.entities.forEach((entity) => {
+				const worldPos = new THREE.Vector3(
+					chunk.x * CHUNK_SIZE + entity.position[0],
+					entity.position[1],
+					chunk.z * CHUNK_SIZE + entity.position[2],
+				);
 				const dist = playerRef.current!.position.distanceTo(worldPos);
-				if (entity.type === "PLATFORM" && Math.abs(playerRef.current!.position.x - worldPos.x) < 2.5 && Math.abs(playerRef.current!.position.z - worldPos.z) < 2.5) {
+				if (
+					entity.type === "PLATFORM" &&
+					Math.abs(playerRef.current!.position.x - worldPos.x) < 2.5 &&
+					Math.abs(playerRef.current!.position.z - worldPos.z) < 2.5
+				) {
 					const top = worldPos.y + 0.5;
-					if (playerRef.current!.position.y >= top - 0.2 && playerRef.current!.position.y <= top + 0.5 && newVelY <= 0) {
-						playerRef.current!.position.y = top; newVelY = 0; setIsGrounded(true);
+					if (
+						playerRef.current!.position.y >= top - 0.2 &&
+						playerRef.current!.position.y <= top + 0.5 &&
+						newVelY <= 0
+					) {
+						playerRef.current!.position.y = top;
+						newVelY = 0;
+						setIsGrounded(true);
 					}
 				}
 				if (entity.type === "CLAM_BASKET" && dist < 2 && !entity.interacted) {
 					entity.interacted = true;
-					if (entity.isHeavy) { takeDamage(30); audioEngine.playSFX("explode"); handleImpact(worldPos, "shell"); }
-					else { addCoins(100); collectSpoils("credit"); audioEngine.playSFX("pickup"); }
+					if (entity.isHeavy) {
+						takeDamage(30);
+						audioEngine.playSFX("explode");
+						handleImpact(worldPos, "shell");
+					} else {
+						addCoins(100);
+						collectSpoils("credit");
+						audioEngine.playSFX("pickup");
+					}
 				}
 				if (entity.type === "EXTRACTION_POINT" && dist < 3) {
-					if (!saveData.isLZSecured && chunk.x === 0 && chunk.z === 0) { secureLZ(); audioEngine.playSFX("pickup"); }
-					else if (isCarryingClam) { setCarryingClam(false); addCoins(500); collectSpoils("clam"); }
+					if (!saveData.isLZSecured && chunk.x === 0 && chunk.z === 0) {
+						secureLZ();
+						audioEngine.playSFX("pickup");
+					} else if (isCarryingClam) {
+						setCarryingClam(false);
+						addCoins(500);
+						collectSpoils("clam");
+					}
 				}
 				if (entity.type === "PRISON_CAGE" && dist < 2 && !entity.rescued) {
-					entity.rescued = true; if (entity.objectiveId) { rescueCharacter(entity.objectiveId); audioEngine.playSFX("pickup"); }
+					entity.rescued = true;
+					if (entity.objectiveId) {
+						rescueCharacter(entity.objectiveId);
+						audioEngine.playSFX("pickup");
+					}
 				}
-				if (entity.type === "RAFT" && dist < 2 && !isPilotingRaft) { setPilotingRaft(true, entity.id); audioEngine.playSFX("pickup"); }
+				if (entity.type === "RAFT" && dist < 2 && !isPilotingRaft) {
+					setPilotingRaft(true, entity.id);
+					audioEngine.playSFX("pickup");
+				}
 			});
 		});
 
 		if (isAiming) {
 			playerRef.current.rotation.y -= input.look.x * 3 * delta;
-			if (moveVec.lengthSq() > 0.01) playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
+			if (moveVec.lengthSq() > 0.01)
+				playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
 			if (state.clock.elapsedTime - lastFireTime.current > GAME_CONFIG.FIRE_RATE) {
 				const shootDir = new THREE.Vector3(0, 0, 1).applyQuaternion(playerRef.current.quaternion);
-				const muzzlePos = playerRef.current.position.clone().add(new THREE.Vector3(0, 1, 0)).add(shootDir.clone().multiplyScalar(1.5));
+				const muzzlePos = playerRef.current.position
+					.clone()
+					.add(new THREE.Vector3(0, 1, 0))
+					.add(shootDir.clone().multiplyScalar(1.5));
 				projectilesRef.current?.spawn(muzzlePos, shootDir);
-				audioEngine.playSFX("shoot"); lastFireTime.current = state.clock.elapsedTime;
+				audioEngine.playSFX("shoot");
+				lastFireTime.current = state.clock.elapsedTime;
 				playerRef.current.rotation.y += (Math.random() - 0.5) * 0.05;
 			}
 		} else if (moveVec.lengthSq() > 0.01) {
@@ -246,10 +429,17 @@ function GameLogic({
 		setPlayerVelYLocal(newVelY);
 		setPlayerVelY(newVelY);
 		setIsPlayerMoving(moveVec.lengthSq() > 0.01);
-		setPlayerPos([playerRef.current.position.x, playerRef.current.position.y, playerRef.current.position.z]);
+		setPlayerPos([
+			playerRef.current.position.x,
+			playerRef.current.position.y,
+			playerRef.current.position.z,
+		]);
 
 		const targetDist = isZoomed ? 6 : 12;
-		const cameraOffset = new THREE.Vector3(1.5, 4, targetDist).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRef.current.rotation.y);
+		const cameraOffset = new THREE.Vector3(1.5, 4, targetDist).applyAxisAngle(
+			new THREE.Vector3(0, 1, 0),
+			playerRef.current.rotation.y,
+		);
 		state.camera.position.lerp(playerRef.current.position.clone().add(cameraOffset), 0.08);
 		state.camera.lookAt(playerRef.current.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
 	});
@@ -258,26 +448,32 @@ function GameLogic({
 }
 
 export function Level() {
-	const { isZoomed, selectedCharacterId, saveData, isCarryingClam, isPilotingRaft } = useGameStore();
+	const { selectedCharacterId, saveData, isCarryingClam, isPilotingRaft } = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
-	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
-	const [playerVelY, setPlayerVelY] = useState(0);
-	const [isClimbing, setIsClimbing] = useState(false);
-	const [playerRot, setPlayerRot] = useState(0);
+	const [playerPos] = useState(() => new THREE.Vector3(0, 0, 0));
+	const [, setPlayerVelY] = useState(0);
+	const [isClimbing] = useState(false);
+	const [playerRot] = useState(0);
 	const [isPlayerMoving, setIsPlayerMoving] = useState(false);
 	const [activeChunks, setActiveChunks] = useState<ChunkData[]>([]);
 	const [particles, setParticles] = useState<ParticleData[]>([]);
-	const playerRef = useRef<THREE.Group>(null);
-	const projectilesRef = useRef<ProjectilesHandle>(null);
+	const playerRef = useRef<THREE.Group | null>(null);
+	const projectilesRef = useRef<ProjectilesHandle | null>(null);
 
 	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell") => {
 		audioEngine.playSFX("hit");
 		const newParticles = [...Array(5)].map(() => ({
-			id: `${type}-${Math.random()}`, position: pos.clone(),
-			velocity: new THREE.Vector3((Math.random() - 0.5) * 5, Math.random() * 5, (Math.random() - 0.5) * 5),
-			lifetime: 0.5 + Math.random() * 0.5, type
+			id: `${type}-${Math.random()}`,
+			position: pos.clone(),
+			velocity: new THREE.Vector3(
+				(Math.random() - 0.5) * 5,
+				Math.random() * 5,
+				(Math.random() - 0.5) * 5,
+			),
+			lifetime: 0.5 + Math.random() * 0.5,
+			type,
 		}));
-		setParticles(prev => [...prev, ...newParticles]);
+		setParticles((prev) => [...prev, ...newParticles]);
 	}, []);
 
 	return (
@@ -285,31 +481,56 @@ export function Level() {
 			<GameLogic
 				playerRef={playerRef}
 				projectilesRef={projectilesRef}
-				playerPos={playerPos}
 				setPlayerVelY={setPlayerVelY}
 				setIsPlayerMoving={setIsPlayerMoving}
 				setActiveChunks={setActiveChunks}
-				setParticles={setParticles}
 				activeChunks={activeChunks}
 				character={character}
 				handleImpact={handleImpact}
 			/>
-			<ambientLight intensity={0.3} /><directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
-			<Sky sunPosition={[100, 20, 100]} /><fogExp2 attach="fog" args={["#d4c4a8", 0.015]} /><Environment preset="sunset" />
-			{activeChunks.map(chunk => <Chunk key={chunk.id} data={chunk} playerPos={playerPos} />)}
-			<PlayerRig ref={playerRef} traits={character.traits} gear={character.gear} position={[0, 0, 0]} rotation={playerRot} isMoving={isPlayerMoving} isClimbing={isClimbing}>
-				{isCarryingClam && <Clam position={[0, 1.5, 0]} isCarried />}
+			<ambientLight intensity={0.3} />
+			<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
+			<Sky sunPosition={[100, 20, 100]} />
+			<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
+			<Environment preset="sunset" />
+			{activeChunks.map((chunk) => (
+				<Chunk key={chunk.id} data={chunk} playerPos={playerPos} />
+			))}
+			<PlayerRig
+				ref={playerRef}
+				traits={character.traits}
+				gear={character.gear}
+				position={[0, 0, 0]}
+				rotation={playerRot}
+				isMoving={isPlayerMoving}
+				isClimbing={isClimbing}
+			>
+				{isCarryingClam && <Clam position={new THREE.Vector3(0, 1.5, 0)} isCarried />}
 				{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
 			</PlayerRig>
-			{saveData.baseComponents.map(comp => {
+			{saveData.baseComponents.map((comp) => {
 				if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
 				if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
 				if (comp.type === "ROOF") return <BaseRoof key={comp.id} position={comp.position} />;
 				if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
 				return null;
 			})}
-			<Projectiles ref={projectilesRef} /><Particles particles={particles} onExpire={useCallback((id: string) => setParticles(prev => prev.filter(p => p.id !== id)), [])} /><GameLoop />
-			<EffectComposer><Bloom intensity={0.5} /><Noise opacity={0.05} /><Vignette darkness={1.2} /><BrightnessContrast brightness={0.05} contrast={0.2} /><HueSaturation saturation={-0.2} /></EffectComposer>
+			<Projectiles ref={projectilesRef} />
+			<Particles
+				particles={particles}
+				onExpire={useCallback(
+					(id: string) => setParticles((prev) => prev.filter((p) => p.id !== id)),
+					[],
+				)}
+			/>
+			<GameLoop />
+			<EffectComposer>
+				<Bloom intensity={0.5} />
+				<Noise opacity={0.05} />
+				<Vignette darkness={1.2} />
+				<BrightnessContrast brightness={0.05} contrast={0.2} />
+				<HueSaturation saturation={-0.2} />
+			</EffectComposer>
 		</Canvas>
 	);
 }

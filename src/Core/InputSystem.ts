@@ -89,10 +89,10 @@ export class InputSystem {
 				const touch = e.touches[0];
 				const dx = touch.clientX - lastX;
 				const dy = touch.clientY - lastY;
-				
+
 				this.state.drag.x = dx * 0.01;
 				this.state.drag.y = dy * 0.01;
-				
+
 				lastX = touch.clientX;
 				lastY = touch.clientY;
 			});
@@ -134,28 +134,30 @@ export class InputSystem {
 		const keys: Record<string, boolean> = {};
 
 		this.handleKeyDown = (e: KeyboardEvent) => {
-			keys[e.key.toLowerCase()] = true;
+			const key = e.key.toLowerCase();
+			keys[key] = true;
 			this.updateKeyboardState(keys);
 
-			// Toggles
+			// Toggles - use lowercase for Caps Lock compatibility
 			if (e.key === " ") {
 				this.state.jump = true;
 			}
-			if (e.key === "f") {
+			if (key === "f") {
 				this.state.zoom = !this.state.zoom;
 			}
-			if (e.key === "g") {
+			if (key === "g") {
 				this.state.grip = true;
 			}
 		};
 
 		this.handleKeyUp = (e: KeyboardEvent) => {
-			keys[e.key.toLowerCase()] = false;
+			const key = e.key.toLowerCase();
+			keys[key] = false;
 			this.updateKeyboardState(keys);
 			if (e.key === " ") {
 				this.state.jump = false;
 			}
-			if (e.key === "g") {
+			if (key === "g") {
 				this.state.grip = false;
 			}
 		};
@@ -166,11 +168,19 @@ export class InputSystem {
 
 	/**
 	 * Update input state from keyboard
+	 * Normalizes diagonal movement to prevent faster diagonal speed
 	 */
 	private updateKeyboardState(keys: Record<string, boolean>): void {
 		// WASD movement
-		const x = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-		const y = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+		let x = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+		let y = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+
+		// Normalize diagonal movement to prevent sqrt(2) speed boost
+		if (x !== 0 && y !== 0) {
+			const invLength = 1 / Math.sqrt(x * x + y * y);
+			x *= invLength;
+			y *= invLength;
+		}
 
 		if (x !== 0 || y !== 0) {
 			this.state.move = { x, y, active: true };

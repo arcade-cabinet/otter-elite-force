@@ -4,7 +4,7 @@
  */
 
 import { create } from "zustand";
-import { LEVELS, RANKS, STORAGE_KEY } from "../utils/constants";
+import { RANKS, STORAGE_KEY } from "../utils/constants";
 
 export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN";
 export type DifficultyMode = "ELITE" | "TACTICAL" | "SUPPORT";
@@ -259,7 +259,7 @@ interface GameState {
 	isFallTriggered: boolean;
 	raftId: string | null;
 	playerPos: [number, number, number];
-	
+
 	takeDamage: (amount: number) => void;
 	heal: (amount: number) => void;
 	addKill: () => void;
@@ -301,7 +301,7 @@ interface GameState {
 	rescueCharacter: (id: string) => void;
 	unlockWeapon: (id: string) => void;
 	upgradeWeapon: (id: string, cost: number) => void;
-	
+
 	// Base Building
 	secureLZ: () => void;
 	placeComponent: (component: Omit<PlacedComponent, "id">) => void;
@@ -405,7 +405,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	takeDamage: (amount) => {
 		const { health, saveData, resetData, triggerFall, setMode } = get();
 		const newHealth = Math.max(0, health - amount);
-		
+
 		if (newHealth <= 0) {
 			if (saveData.difficultyMode === "ELITE") {
 				resetData(); // Permadeath
@@ -426,13 +426,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	addKill: () => set((state) => ({ kills: state.kills + 1 })),
 
-	resetStats: () => set((state) => ({
-		health: 100,
-		kills: 0,
-		mudAmount: 0,
-		isCarryingClam: false,
-		saveData: { ...state.saveData, isFallTriggered: false } // Reset fall state on new run
-	})),
+	resetStats: () =>
+		set((state) => ({
+			health: 100,
+			kills: 0,
+			mudAmount: 0,
+			isCarryingClam: false,
+			saveData: { ...state.saveData, isFallTriggered: false }, // Reset fall state on new run
+		})),
 
 	setMud: (amount) => set({ mudAmount: amount }),
 
@@ -442,15 +443,16 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	setPilotingRaft: (isPiloting, raftId = null) => set({ isPilotingRaft: isPiloting, raftId }),
 
-	setFallTriggered: (active) => set((state) => ({
-		saveData: { ...state.saveData, isFallTriggered: active }
-	})),
+	setFallTriggered: (active) =>
+		set((state) => ({
+			saveData: { ...state.saveData, isFallTriggered: active },
+		})),
 
 	triggerFall: () => {
 		const { saveData } = get();
 		if (saveData.difficultyMode === "TACTICAL" && !saveData.isFallTriggered) {
 			set((state) => ({
-				saveData: { ...state.saveData, isFallTriggered: true }
+				saveData: { ...state.saveData, isFallTriggered: true },
 			}));
 			get().saveGame();
 		}
@@ -480,7 +482,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 		const terrainType = terrainTypes[Math.floor(rand() * terrainTypes.length)];
 
 		const entities: ChunkData["entities"] = [];
-		
+
 		// Add Predators
 		const entityCount = Math.floor(rand() * 5) + 2;
 		for (let i = 0; i < entityCount; i++) {
@@ -488,9 +490,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 			entities.push({
 				id: `e-${id}-${i}`,
 				type,
-				position: [(rand() - 0.5) * CHUNK_SIZE, type === "SNAKE" ? 5 : 0, (rand() - 0.5) * CHUNK_SIZE],
+				position: [
+					(rand() - 0.5) * CHUNK_SIZE,
+					type === "SNAKE" ? 5 : 0,
+					(rand() - 0.5) * CHUNK_SIZE,
+				],
 				isHeavy: rand() > 0.8,
-				hp: type === "SNAPPER" ? 20 : (type === "GATOR" ? 10 : 2),
+				hp: type === "SNAPPER" ? 20 : type === "GATOR" ? 10 : 2,
 				suppression: 0,
 			});
 		}
@@ -551,7 +557,11 @@ export const useGameStore = create<GameState>((set, get) => ({
 			const villageX = (rand() - 0.5) * 30;
 			const villageZ = (rand() - 0.5) * 30;
 			entities.push({ id: `hut-${id}`, type: "HUT", position: [villageX, 0, villageZ] });
-			entities.push({ id: `vil-${id}`, type: isHealerVillage ? "HEALER" : "VILLAGER", position: [villageX + 3, 0, villageZ + 2] });
+			entities.push({
+				id: `vil-${id}`,
+				type: isHealerVillage ? "HEALER" : "VILLAGER",
+				position: [villageX + 3, 0, villageZ + 2],
+			});
 		}
 
 		// Add Hazards
@@ -587,7 +597,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 		}
 
 		const newChunk: ChunkData = {
-			id, x, z, seed, terrainType, secured: false, entities,
+			id,
+			x,
+			z,
+			seed,
+			terrainType,
+			secured: false,
+			entities,
 			decorations: [
 				{ id: `${id}-dec-0`, type: "REED", count: Math.floor(rand() * 20) + 10 },
 				{ id: `${id}-dec-1`, type: "LILYPAD", count: Math.floor(rand() * 15) + 5 },
@@ -626,12 +642,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 			const newStrategic = { ...state.saveData.strategicObjectives };
 			let peacekeepingGain = 0;
 
-			if (chunk.entities.some(e => e.type === "SIPHON")) newStrategic.siphonsDismantled++;
-			if (chunk.entities.some(e => e.type === "HUT")) {
+			if (chunk.entities.some((e) => e.type === "SIPHON")) newStrategic.siphonsDismantled++;
+			if (chunk.entities.some((e) => e.type === "HUT")) {
 				newStrategic.villagesLiberated++;
 				peacekeepingGain += 10;
 			}
-			if (chunk.entities.some(e => e.type === "HEALER")) {
+			if (chunk.entities.some((e) => e.type === "HEALER")) {
 				newStrategic.healersProtected++;
 				peacekeepingGain += 20;
 			}
@@ -675,8 +691,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 					strategicObjectives: {
 						...state.saveData.strategicObjectives,
 						alliesRescued: state.saveData.strategicObjectives.alliesRescued + 1,
-					}
-				}
+					},
+				},
 			}));
 			get().unlockCharacter(id);
 		}
@@ -779,13 +795,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 		try {
 			const saved = localStorage.getItem(STORAGE_KEY);
 			if (saved) set({ saveData: JSON.parse(saved) });
-		} catch (e) { console.error("Load failed", e); }
+		} catch (e) {
+			console.error("Load failed", e);
+		}
 	},
 
 	saveGame: () => {
 		try {
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(get().saveData));
-		} catch (e) { console.error("Save failed", e); }
+		} catch (e) {
+			console.error("Save failed", e);
+		}
 	},
 
 	resetData: () => {
@@ -798,7 +818,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 		set((state) => {
 			const newXP = state.saveData.xp + amount;
 			const requiredXP = (state.saveData.rank + 1) * 200;
-			const newRank = newXP >= requiredXP ? Math.min(state.saveData.rank + 1, RANKS.length - 1) : state.saveData.rank;
+			const newRank =
+				newXP >= requiredXP
+					? Math.min(state.saveData.rank + 1, RANKS.length - 1)
+					: state.saveData.rank;
 			return { saveData: { ...state.saveData, xp: newXP, rank: newRank } };
 		});
 		get().saveGame();
@@ -820,7 +843,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 		get().saveGame();
 	},
 
-	completeStrategic: (type: "peacekeeping") => {
+	completeStrategic: (_type: "peacekeeping") => {
 		set((state) => ({
 			saveData: {
 				...state.saveData,

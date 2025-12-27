@@ -60,8 +60,20 @@ export function Canteen() {
 				</div>
 
 				<div className="canteen-tabs">
-					<button type="button" className={view === "PLATOON" ? "active" : ""} onClick={() => setView("PLATOON")}>PLATOON</button>
-					<button type="button" className={view === "UPGRADES" ? "active" : ""} onClick={() => setView("UPGRADES")}>UPGRADES</button>
+					<button
+						type="button"
+						className={view === "PLATOON" ? "active" : ""}
+						onClick={() => setView("PLATOON")}
+					>
+						PLATOON
+					</button>
+					<button
+						type="button"
+						className={view === "UPGRADES" ? "active" : ""}
+						onClick={() => setView("UPGRADES")}
+					>
+						UPGRADES
+					</button>
 				</div>
 
 				{view === "PLATOON" ? (
@@ -109,19 +121,31 @@ export function Canteen() {
 					<div className="upgrades-list">
 						<div className="upgrade-item">
 							<span>SPEED BOOST (Lvl {saveData.upgrades.speedBoost})</span>
-							<button type="button" onClick={() => buyUpgrade("speed", UPGRADE_COSTS.speed)} disabled={saveData.coins < UPGRADE_COSTS.speed}>
+							<button
+								type="button"
+								onClick={() => buyUpgrade("speed", UPGRADE_COSTS.speed)}
+								disabled={saveData.coins < UPGRADE_COSTS.speed}
+							>
 								BUY: {UPGRADE_COSTS.speed}
 							</button>
 						</div>
 						<div className="upgrade-item">
 							<span>HEALTH BOOST (Lvl {saveData.upgrades.healthBoost})</span>
-							<button type="button" onClick={() => buyUpgrade("health", UPGRADE_COSTS.health)} disabled={saveData.coins < UPGRADE_COSTS.health}>
+							<button
+								type="button"
+								onClick={() => buyUpgrade("health", UPGRADE_COSTS.health)}
+								disabled={saveData.coins < UPGRADE_COSTS.health}
+							>
 								BUY: {UPGRADE_COSTS.health}
 							</button>
 						</div>
 						<div className="upgrade-item">
 							<span>DAMAGE BOOST (Lvl {saveData.upgrades.damageBoost})</span>
-							<button type="button" onClick={() => buyUpgrade("damage", UPGRADE_COSTS.damage)} disabled={saveData.coins < UPGRADE_COSTS.damage}>
+							<button
+								type="button"
+								onClick={() => buyUpgrade("damage", UPGRADE_COSTS.damage)}
+								disabled={saveData.coins < UPGRADE_COSTS.damage}
+							>
 								BUY: {UPGRADE_COSTS.damage}
 							</button>
 						</div>

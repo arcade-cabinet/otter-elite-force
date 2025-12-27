@@ -7,18 +7,24 @@ import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
 
-export function Clam({ position, isCarried = false }: { position: THREE.Vector3; isCarried?: boolean }) {
+export function Clam({
+	position,
+	isCarried = false,
+}: {
+	position: THREE.Vector3;
+	isCarried?: boolean;
+}) {
 	const groupRef = useRef<THREE.Group>(null);
 	const lightRef = useRef<THREE.PointLight>(null);
 
 	useFrame((state) => {
 		if (isCarried || !groupRef.current) return;
 		const t = state.clock.elapsedTime;
-		
+
 		// Levitate and rotate if not carried
 		groupRef.current.position.y = 0.5 + Math.sin(t * 2) * 0.1;
 		groupRef.current.rotation.y = t * 0.5;
-		
+
 		if (lightRef.current) {
 			lightRef.current.intensity = 1.5 + Math.sin(t * 4) * 0.5;
 		}
@@ -35,7 +41,7 @@ export function Clam({ position, isCarried = false }: { position: THREE.Vector3;
 				<sphereGeometry args={[0.4, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
 				<meshStandardMaterial color="#fff" metalness={0.8} roughness={0.2} />
 			</mesh>
-			
+
 			{/* Bioluminescent Pearl */}
 			<mesh position={[0, 0, 0]}>
 				<sphereGeometry args={[0.15, 16, 16]} />

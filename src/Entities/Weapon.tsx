@@ -1,20 +1,38 @@
 /**
  * Weapon Component
  * Procedural weapons that can be mounted on characters
+ * Each weapon has distinct silhouette and tactical aesthetic
  */
 
+import { useFrame } from "@react-three/fiber";
+import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import { useMemo } from "react";
-import { WEAPONS, type WeaponData } from "../stores/gameStore";
+import { WEAPONS } from "../stores/gameStore";
 
 interface WeaponProps {
 	weaponId: string;
 	level?: number;
 	muzzleRef?: React.RefObject<THREE.Group>;
+	isFiring?: boolean;
 }
 
-export function Weapon({ weaponId, muzzleRef }: WeaponProps) {
+export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 	const weapon = useMemo(() => WEAPONS[weaponId] || WEAPONS["service-pistol"], [weaponId]);
+	const flashRef = useRef<THREE.Mesh>(null);
+	const flashIntensity = useRef(0);
+
+	// Muzzle flash animation
+	useFrame((_, delta) => {
+		if (isFiring) {
+			flashIntensity.current = 1;
+		} else {
+			flashIntensity.current = Math.max(0, flashIntensity.current - delta * 15);
+		}
+		if (flashRef.current) {
+			flashRef.current.scale.setScalar(flashIntensity.current * 0.3);
+			(flashRef.current.material as THREE.MeshBasicMaterial).opacity = flashIntensity.current;
+		}
+	});
 
 	return (
 		<group>

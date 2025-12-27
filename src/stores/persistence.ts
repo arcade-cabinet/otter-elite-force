@@ -68,7 +68,7 @@ function isObject(item: unknown): item is Record<string, unknown> {
 	return typeof item === "object" && item !== null && !Array.isArray(item);
 }
 
-export const migrateSchema = (data: Record<string, unknown>): SaveData => {
+export const migrateSchema = (data: Record<string, unknown>): Record<string, unknown> => {
 	const version = (data.version as number) || 7;
 
 	if (version < 8) {
@@ -91,7 +91,7 @@ export const migrateSchema = (data: Record<string, unknown>): SaveData => {
 	}
 
 	data.version = 8;
-	return data as unknown as SaveData;
+	return data;
 };
 
 export const isValidSaveData = (data: unknown): data is SaveData => {
@@ -146,14 +146,14 @@ export const loadFromLocalStorage = (): SaveData | null => {
 			return null;
 		}
 
-		// Migrate schema to latest version
-		const migrated = migrateSchema(parsed as Record<string, unknown>);
+		// Migrate schema to latest version - need to cast through unknown due to type guard narrowing
+		const parsedRecord = parsed as unknown as Record<string, unknown>;
+		const migrated = migrateSchema(parsedRecord);
 
 		// Deep merge with defaults to fill any missing fields
-		const merged = deepMerge(
-			DEFAULT_SAVE_DATA as unknown as Record<string, unknown>,
-			migrated as unknown as Record<string, unknown>,
-		);
+		const defaultCopy: Record<string, unknown> = JSON.parse(JSON.stringify(DEFAULT_SAVE_DATA));
+		const migratedCopy: Record<string, unknown> = JSON.parse(JSON.stringify(migrated));
+		const merged = deepMerge(defaultCopy, migratedCopy);
 
 		return merged as unknown as SaveData;
 	} catch (e) {

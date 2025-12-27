@@ -302,7 +302,7 @@ button.secondary {
 	height: 180px;
 	pointer-events: none;
 	display: grid;
-	grid-template-areas: 
+	grid-template-areas:
 		". jump ."
 		"grip . scope"
 		"support build .";
@@ -324,7 +324,7 @@ button.secondary {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5) !important;
 }
 
 .action-btn:active {
@@ -333,10 +333,19 @@ button.secondary {
 	color: #000 !important;
 }
 
-.action-btn.jump { grid-area: jump; }
-.action-btn.grip { grid-area: grip; }
-.action-btn.scope { grid-area: scope; }
-.action-btn.build { grid-area: build; background: rgba(0, 50, 0, 0.6) !important; }
+.action-btn.jump {
+	grid-area: jump;
+}
+.action-btn.grip {
+	grid-area: grip;
+}
+.action-btn.scope {
+	grid-area: scope;
+}
+.action-btn.build {
+	grid-area: build;
+	background: rgba(0, 50, 0, 0.6) !important;
+}
 
 .drag-area {
 	position: absolute;
@@ -676,7 +685,12 @@ button.secondary {
 	color: #000 !important;
 }
 
-.action-btn.support { grid-area: support; background: rgba(0, 0, 100, 0.6) !important; border-color: var(--accent) !important; color: var(--accent) !important; }
+.action-btn.support {
+	grid-area: support;
+	background: rgba(0, 0, 100, 0.6) !important;
+	border-color: var(--accent) !important;
+	color: var(--accent) !important;
+}
 
 .build-ui {
 	position: absolute;

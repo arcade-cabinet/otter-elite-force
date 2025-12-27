@@ -162,7 +162,7 @@ export class AudioEngine {
 	}
 
 	/**
-	 * Stop all sounds
+	 * Stop all sounds and reset state for re-initialization
 	 */
 	stopAll(): void {
 		this.stopMusic();
@@ -171,6 +171,7 @@ export class AudioEngine {
 			synth.dispose();
 		});
 		this.synths.clear();
+		this.initialized = false;
 	}
 
 	/**

@@ -3,7 +3,13 @@
  * Reusable pieces for constructing the URA Forward Operating Base
  */
 
-export function BaseFloor({ position, rotation = [0, 0, 0] }: { position: [number, number, number], rotation?: [number, number, number] }) {
+export function BaseFloor({
+	position,
+	rotation = [0, 0, 0],
+}: {
+	position: [number, number, number];
+	rotation?: [number, number, number];
+}) {
 	return (
 		<mesh position={position} rotation={rotation} receiveShadow>
 			<boxGeometry args={[4, 0.2, 4]} />
@@ -12,7 +18,13 @@ export function BaseFloor({ position, rotation = [0, 0, 0] }: { position: [numbe
 	);
 }
 
-export function BaseWall({ position, rotation = [0, 0, 0] }: { position: [number, number, number], rotation?: [number, number, number] }) {
+export function BaseWall({
+	position,
+	rotation = [0, 0, 0],
+}: {
+	position: [number, number, number];
+	rotation?: [number, number, number];
+}) {
 	return (
 		<mesh position={position} rotation={rotation} castShadow receiveShadow>
 			<boxGeometry args={[4, 2, 0.1]} />
@@ -21,7 +33,13 @@ export function BaseWall({ position, rotation = [0, 0, 0] }: { position: [number
 	);
 }
 
-export function BaseRoof({ position, rotation = [0, 0, 0] }: { position: [number, number, number], rotation?: [number, number, number] }) {
+export function BaseRoof({
+	position,
+	rotation = [0, 0, 0],
+}: {
+	position: [number, number, number];
+	rotation?: [number, number, number];
+}) {
 	return (
 		<mesh position={position} rotation={rotation} castShadow>
 			<cylinderGeometry args={[0, 3, 1.5, 4]} />

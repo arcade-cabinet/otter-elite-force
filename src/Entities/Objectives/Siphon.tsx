@@ -34,12 +34,12 @@ export function Siphon({ position, secured = false }: SiphonProps) {
 			structureRef.current.rotation.z = THREE.MathUtils.lerp(
 				structureRef.current.rotation.z,
 				0.3,
-				delta * 0.5
+				delta * 0.5,
 			);
 			structureRef.current.position.y = THREE.MathUtils.lerp(
 				structureRef.current.position.y,
 				-1,
-				delta * 0.5
+				delta * 0.5,
 			);
 		}
 	});
@@ -49,8 +49,8 @@ export function Siphon({ position, secured = false }: SiphonProps) {
 			{/* Main Siphon Structure */}
 			<mesh ref={structureRef} castShadow receiveShadow>
 				<cylinderGeometry args={[1.5, 2, 4, 8]} />
-				<meshStandardMaterial 
-					color={secured ? "#1a1a1a" : "#111"} 
+				<meshStandardMaterial
+					color={secured ? "#1a1a1a" : "#111"}
 					metalness={0.8}
 					roughness={secured ? 0.9 : 0.3}
 				/>
@@ -80,13 +80,9 @@ export function Siphon({ position, secured = false }: SiphonProps) {
 			{secured && (
 				<group position={[0, 0.5, 0]}>
 					{[...Array(4)].map((_, i) => (
-						<mesh 
-							key={`debris-${i}`} 
-							position={[
-								Math.cos(i * 1.5) * 2,
-								Math.random() * 0.5,
-								Math.sin(i * 1.5) * 2
-							]}
+						<mesh
+							key={`debris-${i}`}
+							position={[Math.cos(i * 1.5) * 2, Math.random() * 0.5, Math.sin(i * 1.5) * 2]}
 							rotation={[Math.random(), Math.random(), Math.random()]}
 						>
 							<boxGeometry args={[0.4, 0.2, 0.3]} />
@@ -97,10 +93,10 @@ export function Siphon({ position, secured = false }: SiphonProps) {
 			)}
 
 			{/* Status Light: Red = active threat, Green = secured */}
-			<pointLight 
-				color={secured ? "#00ff00" : "#ff0000"} 
-				intensity={secured ? 0.5 : 2} 
-				distance={secured ? 5 : 10} 
+			<pointLight
+				color={secured ? "#00ff00" : "#ff0000"}
+				intensity={secured ? 0.5 : 2}
+				distance={secured ? 5 : 10}
 			/>
 		</group>
 	);

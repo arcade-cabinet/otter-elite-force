@@ -21,7 +21,7 @@ export interface ProjectilesHandle {
 	remove: (id: string) => void;
 }
 
-export const Projectiles = forwardRef<ProjectilesHandle, Record<string, never>>((_, ref) => {
+export const Projectiles = forwardRef<ProjectilesHandle, object>((_, ref) => {
 	const projectiles = useRef<Projectile[]>([]);
 	const meshRef = useRef<THREE.InstancedMesh>(null);
 	const dummy = useMemo(() => new THREE.Object3D(), []);
