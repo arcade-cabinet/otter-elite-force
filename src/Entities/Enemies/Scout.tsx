@@ -227,7 +227,10 @@ export function Scout({ data, targetPosition, onDeath, onSignal }: EnemyProps<Sc
 					<planeGeometry args={[0.8, 0.06]} />
 					<meshBasicMaterial color="#000" transparent opacity={0.5} side={THREE.DoubleSide} />
 				</mesh>
-				<mesh position={[-(1 - data.hp / data.maxHp) * 0.4, 0, 0.01]} scale-x={data.hp / data.maxHp}>
+				<mesh
+					position={[-(1 - data.hp / data.maxHp) * 0.4, 0, 0.01]}
+					scale-x={data.hp / data.maxHp}
+				>
 					<planeGeometry args={[0.8, 0.06]} />
 					<meshBasicMaterial color="#88ff88" side={THREE.DoubleSide} />
 				</mesh>

@@ -3,4 +3,8 @@ export * from "./Debris";
 export * from "./FloatingDrums";
 export * from "./Lilypads";
 export * from "./Mangroves";
+export * from "./MudPit";
+export * from "./OilSlick";
+export * from "./Platform";
 export * from "./Reeds";
+export * from "./ToxicSludge";

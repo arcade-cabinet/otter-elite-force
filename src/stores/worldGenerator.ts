@@ -9,6 +9,36 @@ import type {
 
 export const CHUNK_SIZE = 100;
 
+/**
+ * Key Coordinates - Fixed locations for strategic objectives
+ * These are hardcoded locations where specific content always spawns
+ */
+export const KEY_COORDINATES: Record<
+	string,
+	{
+		x: number;
+		z: number;
+		name: string;
+		rescueCharacter?: string;
+		isBossArea?: boolean;
+		specialObjective?: string;
+	}
+> = {
+	LZ: { x: 0, z: 0, name: "Landing Zone / Base" },
+	PRISON_CAMP: { x: 5, z: 5, name: "Prison Camp", rescueCharacter: "whiskers" },
+	GREAT_SIPHON: { x: 10, z: -10, name: "The Great Siphon", isBossArea: true },
+	HEALERS_GROVE: { x: -15, z: 20, name: "Healer's Grove", rescueCharacter: "marina" },
+	UNDERWATER_CACHE: { x: -10, z: 15, name: "Underwater Cache", rescueCharacter: "splash" },
+	GAS_DEPOT: {
+		x: 8,
+		z: 8,
+		name: "Gas Depot",
+		rescueCharacter: "muskrat",
+		specialObjective: "gas_cluster",
+	},
+	FANG_STRONGHOLD: { x: 12, z: -5, name: "Scale-Guard Stronghold", rescueCharacter: "fang" },
+};
+
 // Efficient seeded random function
 export const getSeededRandom = (x: number, z: number, index: number = 0) => {
 	const seed = x * 374761393 + z * 668265263 + index * 1664525;
@@ -184,15 +214,98 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 		entities.push(extract);
 	}
 
-	// Prison Cages
-	if (x === 5 && z === 5) {
-		const cage: ObjectiveEntity = {
-			id: "cage-whiskers",
-			type: "PRISON_CAGE",
-			position: [0, 0, 0],
-			objectiveId: "whiskers",
+	// Key Coordinate special spawns
+	const keyCoord = Object.values(KEY_COORDINATES).find((kc) => kc.x === x && kc.z === z);
+
+	if (keyCoord) {
+		// Add rescue cage if this coordinate has a character to rescue
+		if (keyCoord.rescueCharacter) {
+			const cage: ObjectiveEntity = {
+				id: `cage-${keyCoord.rescueCharacter}`,
+				type: "PRISON_CAGE",
+				position: [0, 0, 0],
+				objectiveId: keyCoord.rescueCharacter,
+			};
+			entities.push(cage);
+
+			// Add extra guards around rescue locations
+			for (let i = 0; i < 3; i++) {
+				const angle = (i / 3) * Math.PI * 2;
+				const snapper: PredatorEntity = {
+					id: `guard-${id}-${i}`,
+					type: "SNAPPER",
+					position: [Math.cos(angle) * 12, 0, Math.sin(angle) * 12],
+					hp: 30,
+					suppression: 0,
+				};
+				entities.push(snapper);
+			}
+		}
+
+		// Add boss-level content for boss areas
+		if (keyCoord.isBossArea) {
+			// Add multiple siphons
+			for (let i = 0; i < 3; i++) {
+				const angle = (i / 3) * Math.PI * 2;
+				const siphon: ObjectiveEntity = {
+					id: `siphon-boss-${id}-${i}`,
+					type: "SIPHON",
+					position: [Math.cos(angle) * 20, 0, Math.sin(angle) * 20],
+					hp: 100,
+				};
+				entities.push(siphon);
+			}
+
+			// Add heavy gators
+			for (let i = 0; i < 4; i++) {
+				const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
+				const gator: PredatorEntity = {
+					id: `boss-gator-${id}-${i}`,
+					type: "GATOR",
+					position: [Math.cos(angle) * 25, 0, Math.sin(angle) * 25],
+					hp: 30,
+					suppression: 0,
+					isHeavy: true,
+				};
+				entities.push(gator);
+			}
+		}
+
+		// Add gas cluster for Gas Depot
+		if (keyCoord.specialObjective === "gas_cluster") {
+			for (let i = 0; i < 4; i++) {
+				const gasPos = [(nextRand() - 0.5) * 20, 0, (nextRand() - 0.5) * 20];
+				const gas: ObjectiveEntity = {
+					id: `gas-cluster-${id}-${i}`,
+					type: "GAS_STOCKPILE",
+					position: gasPos as [number, number, number],
+					hp: 30,
+				};
+				entities.push(gas);
+			}
+		}
+	}
+
+	// Add Scout enemies (new enemy type) - rare spawn
+	if (nextRand() > 0.85) {
+		const scout: PredatorEntity = {
+			id: `scout-${id}`,
+			type: "SCOUT",
+			position: [(nextRand() - 0.5) * CHUNK_SIZE, 0, (nextRand() - 0.5) * CHUNK_SIZE],
+			hp: 3,
+			suppression: 0,
 		};
-		entities.push(cage);
+		entities.push(scout);
+	}
+
+	// Add Toxic Sludge hazards in marsh terrain
+	if (terrainType === "MARSH" && nextRand() > 0.7) {
+		const sludge: EnvironmentEntity = {
+			id: `sludge-${id}`,
+			type: "TOXIC_SLUDGE",
+			position: [(nextRand() - 0.5) * 40, 0.05, (nextRand() - 0.5) * 40],
+		};
+		entities.push(sludge);
 	}
 
 	if (terrainType === "RIVER" && nextRand() > 0.8) {

@@ -69,6 +69,9 @@ export interface WeaponData {
 // =============================================================================
 
 export type PredatorType = "GATOR" | "SNAKE" | "SNAPPER" | "SCOUT";
+
+// Ensure worldGenerator can use these types
+export type WorldPredatorType = PredatorType;
 export type ObjectiveType = "GAS_STOCKPILE" | "SIPHON" | "PRISON_CAGE";
 export type InteractionType =
 	| "VILLAGER"
