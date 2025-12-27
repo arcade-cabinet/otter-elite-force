@@ -16,6 +16,7 @@ export interface EnemyData {
 	maxHp: number;
 	isHeavy: boolean;
 	state: "IDLE" | "STALK" | "AMBUSH" | "RETREAT";
+	suppression: number; // 0 to 1
 }
 
 interface EnemyProps {
@@ -95,6 +96,13 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 
 		// Update Yuka AI
 		vehicleRef.current.update(delta);
+
+		// Handle Suppression
+		if (data.suppression > 0.1) {
+			vehicleRef.current.maxSpeed = (data.isHeavy ? 4 : 7) * (1 - data.suppression * 0.5);
+		} else if (!isAmbushing) {
+			vehicleRef.current.maxSpeed = data.isHeavy ? 4 : 7;
+		}
 
 		// Sync Three.js mesh with Yuka vehicle
 		groupRef.current.position.set(vehicleRef.current.position.x, 0, vehicleRef.current.position.z);

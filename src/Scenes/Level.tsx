@@ -363,6 +363,20 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 					return (
 						<Siphon key={entity.id} position={worldPos} />
 					);
+				if (entity.type === "OIL_SLICK")
+					return (
+						<mesh key={entity.id} position={worldPos} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+							<circleGeometry args={[4, 16]} />
+							<meshStandardMaterial color="#1a1a1a" roughness={0.1} metalness={0.8} transparent opacity={0.8} />
+						</mesh>
+					);
+				if (entity.type === "MUD_PIT")
+					return (
+						<mesh key={entity.id} position={worldPos} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+							<circleGeometry args={[5, 16]} />
+							<meshStandardMaterial color="#3d2b1f" roughness={1} />
+						</mesh>
+					);
 				return null;
 			})}
 		</group>
@@ -423,7 +437,32 @@ export function Level() {
 		if (Math.abs(input.move.x) > 0.1) moveVec.add(camSide.clone().multiplyScalar(input.move.x));
 
 		const isAiming = input.look.active;
-		const moveSpeed = isAiming ? GAME_CONFIG.PLAYER_STRAFE_SPEED : GAME_CONFIG.PLAYER_SPEED;
+		let moveSpeed = isAiming 
+			? character.traits.baseSpeed * 0.6 
+			: character.traits.baseSpeed;
+
+		// --- HAZARD DETECTION ---
+		let onSlick = false;
+		let inMud = false;
+		
+		activeChunks.forEach(chunk => {
+			chunk.entities.forEach(entity => {
+				if (entity.type === "OIL_SLICK" || entity.type === "MUD_PIT") {
+					const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
+					const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
+					const dist = new THREE.Vector2(playerRef.current!.position.x, playerRef.current!.position.z)
+						.distanceTo(new THREE.Vector2(worldX, worldZ));
+					
+					if (dist < (entity.type === "OIL_SLICK" ? 4 : 5)) {
+						if (entity.type === "OIL_SLICK") onSlick = true;
+						if (entity.type === "MUD_PIT") inMud = true;
+					}
+				}
+			});
+		});
+
+		if (inMud) moveSpeed *= 0.4;
+		if (onSlick) moveSpeed *= 1.5;
 
 		// --- 3D PHYSICS: JUMP & GRAVITY ---
 		let newVelY = playerVelY;
@@ -502,7 +541,7 @@ export function Level() {
 				newVelY = 0;
 			}
 			// Vertical movement from right stick (look input)
-			newVelY = -input.look.y * 10;
+			newVelY = -input.look.y * character.traits.climbSpeed; 
 		} else {
 			if (isClimbing) {
 				setIsClimbing(false);

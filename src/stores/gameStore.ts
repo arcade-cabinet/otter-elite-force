@@ -15,6 +15,9 @@ export interface CharacterTraits {
 	eyeColor: string;
 	whiskerLength: number;
 	grizzled: boolean;
+	baseSpeed: number;
+	baseHealth: number;
+	climbSpeed: number;
 }
 
 export interface CharacterGear {
@@ -33,6 +36,9 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			eyeColor: "#111",
 			whiskerLength: 0.3,
 			grizzled: false,
+			baseSpeed: 14,
+			baseHealth: 100,
+			climbSpeed: 10,
 		},
 		gear: {
 			headgear: "bandana",
@@ -49,6 +55,9 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			eyeColor: "#222",
 			whiskerLength: 0.8,
 			grizzled: true,
+			baseSpeed: 10,
+			baseHealth: 200,
+			climbSpeed: 6,
 		},
 		gear: {
 			headgear: "beret",
@@ -65,6 +74,9 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			eyeColor: "#00ccff",
 			whiskerLength: 0.2,
 			grizzled: false,
+			baseSpeed: 18,
+			baseHealth: 80,
+			climbSpeed: 15,
 		},
 		gear: {
 			headgear: "helmet",
@@ -81,6 +93,9 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			eyeColor: "#ff0000",
 			whiskerLength: 0.4,
 			grizzled: true,
+			baseSpeed: 12,
+			baseHealth: 150,
+			climbSpeed: 8,
 		},
 		gear: {
 			headgear: "none",
@@ -109,7 +124,7 @@ export interface ChunkData {
 	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
 	entities: {
 		id: string;
-		type: "GATOR" | "SNAKE" | "SNAPPER" | "PLATFORM" | "CLIMBABLE" | "SIPHON";
+		type: "GATOR" | "SNAKE" | "SNAPPER" | "PLATFORM" | "CLIMBABLE" | "SIPHON" | "OIL_SLICK" | "MUD_PIT";
 		position: [number, number, number];
 		isHeavy?: boolean;
 		objectiveId?: string;
@@ -293,6 +308,18 @@ export const useGameStore = create<GameState>((set, get) => ({
 				position: [(rand() - 0.5) * 40, 0, (rand() - 0.5) * 40],
 			});
 		}
+
+		// Add Hazards
+		const hazardCount = Math.floor(rand() * 2) + 1;
+		for (let i = 0; i < hazardCount; i++) {
+			entities.push({
+				id: `h-${id}-${i}`,
+				type: rand() > 0.5 ? "OIL_SLICK" : "MUD_PIT",
+				position: [(rand() - 0.5) * (CHUNK_SIZE - 20), 0.05, (rand() - 0.5) * (CHUNK_SIZE - 20)],
+			});
+		}
+
+		const newChunk: ChunkData = {
 			id,
 			x,
 			z,
