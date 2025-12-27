@@ -12,7 +12,7 @@ describe("gameStore", () => {
 		expect(state.mode).toBe("MENU");
 		expect(state.health).toBe(100);
 		expect(state.kills).toBe(0);
-		expect(state.currentLevel).toBe(0);
+		expect(state.currentChunkId).toBe("0,0");
 	});
 
 	it("should update mode", () => {

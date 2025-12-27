@@ -287,6 +287,9 @@ interface GameState {
 	addCoins: (amount: number) => void;
 	spendCoins: (amount: number) => boolean;
 	buyUpgrade: (type: "speed" | "health" | "damage", cost: number) => void;
+	collectSpoils: (type: "credit" | "clam") => void;
+	completeStrategic: (type: "peacekeeping") => void;
+	setLevel: (levelId: number) => void;
 
 	// Save data
 	saveData: SaveData;
@@ -802,4 +805,33 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	toggleZoom: () => set((state) => ({ isZoomed: !state.isZoomed })),
+
+	collectSpoils: (type: "credit" | "clam") => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				spoilsOfWar: {
+					...state.saveData.spoilsOfWar,
+					creditsEarned: state.saveData.spoilsOfWar.creditsEarned + (type === "credit" ? 1 : 0),
+					clamsHarvested: state.saveData.spoilsOfWar.clamsHarvested + (type === "clam" ? 1 : 0),
+				},
+			},
+		}));
+		get().saveGame();
+	},
+
+	completeStrategic: (type: "peacekeeping") => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				peacekeepingScore: state.saveData.peacekeepingScore + 10,
+			},
+		}));
+		get().saveGame();
+	},
+
+	setLevel: (levelId: number) => {
+		// Store level selection for cutscene/game transition
+		set({ currentChunkId: `${levelId},0` });
+	},
 }));
