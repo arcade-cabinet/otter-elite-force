@@ -8,6 +8,7 @@ import nipplejs, { type JoystickManager } from "nipplejs";
 export interface InputState {
 	move: { x: number; y: number; active: boolean };
 	look: { x: number; y: number; active: boolean };
+	drag: { x: number; y: number; active: boolean };
 	gyro: { x: number; y: number };
 	zoom: boolean;
 	jump: boolean;
@@ -18,6 +19,7 @@ export class InputSystem {
 	private state: InputState = {
 		move: { x: 0, y: 0, active: false },
 		look: { x: 0, y: 0, active: false },
+		drag: { x: 0, y: 0, active: false },
 		gyro: { x: 0, y: 0 },
 		zoom: false,
 		jump: false,
@@ -70,29 +72,35 @@ export class InputSystem {
 			});
 		}
 
-		// Look/aim joystick (right side)
-		const lookZone = document.getElementById("joystick-look");
+		// Touch drag for looking (right side)
+		const lookZone = document.getElementById("joystick-look"); // Reusing ID for now
 		if (lookZone) {
-			this.lookJoystick = nipplejs.create({
-				zone: lookZone,
-				mode: "static",
-				position: { right: "80px", bottom: "80px" },
-				color: "rgba(255, 50, 50, 0.5)",
-				size: 120,
+			let lastX = 0;
+			let lastY = 0;
+
+			lookZone.addEventListener("touchstart", (e) => {
+				const touch = e.touches[0];
+				lastX = touch.clientX;
+				lastY = touch.clientY;
+				this.state.drag.active = true;
 			});
 
-			this.lookJoystick.on("move", (_evt, data) => {
-				const force = Math.min(data.force, 2) / 2;
-				const angle = data.angle.radian;
-				this.state.look = {
-					x: Math.cos(angle) * force,
-					y: Math.sin(angle) * force,
-					active: true,
-				};
+			lookZone.addEventListener("touchmove", (e) => {
+				const touch = e.touches[0];
+				const dx = touch.clientX - lastX;
+				const dy = touch.clientY - lastY;
+				
+				this.state.drag.x = dx * 0.01;
+				this.state.drag.y = dy * 0.01;
+				
+				lastX = touch.clientX;
+				lastY = touch.clientY;
 			});
 
-			this.lookJoystick.on("end", () => {
-				this.state.look = { x: 0, y: 0, active: false };
+			lookZone.addEventListener("touchend", () => {
+				this.state.drag.active = false;
+				this.state.drag.x = 0;
+				this.state.drag.y = 0;
 			});
 		}
 	}
