@@ -1,44 +1,180 @@
 # Progress: OTTER: ELITE FORCE
 
-## Status: Tactical Skeleton Complete
+## Status: Open World Foundation In Progress
 
-The project is currently at **Version 8.0 (Modular Refactor Stage)**. The technical foundation is solid and the game is fully playable from menu to extraction.
+The project is currently at **Version 8.0 (Modular Refactor Stage)**. The technical foundation is solid and the game is playable from menu to extraction. Focus has shifted to implementing the full open world vision.
 
 ## Milestone Checklist
 
-### 1. Core Foundations
+### 1. Core Foundations ✅
 - [x] pnpm/Vite/TS Infrastructure
 - [x] Biome/Vitest/Playwright Tooling
 - [x] Tone.js Audio Engine
 - [x] Nipplejs/Gyro Input System
-- [x] Zustand Persistence (v8)
+- [x] Zustand Persistence (v8 schema)
+- [x] Memory Bank documentation system
 
-### 2. Gameplay Mechanics
+### 2. Gameplay Mechanics (Partial) 🔄
 - [x] Procedural Otter Rig (Sgt. Bubbles)
 - [x] Swappable Weapon System
 - [x] Predator AI (Gator, Snake, Snapper)
 - [x] Tactical Objectives (Siphons, Gas, Clams)
 - [x] Environmental Hazards (Mud, Oil Ignition)
 - [x] Raft Piloting & Villager Escort
+- [ ] Pack Hunting AI coordination
+- [ ] Climbing mechanics refinement
+- [ ] Weapon suppression effects
 
-### 3. Mission Loop
-- [x] Main Menu & Campaign Selection
-- [x] 3D Cutscene Dialogue System
-- [x] Extraction & Victory Conditions
-- [x] Meta-Progression (Canteen Requisition)
+### 3. Open World System 🔄
+- [x] Chunk-based procedural generation
+- [x] Deterministic seed-based terrain
+- [ ] **Fixed-on-discovery persistence** (chunks never regenerate)
+- [ ] Territory control state tracking
+- [ ] Coordinate HUD display
+- [ ] Fog-of-war / discovered area visualization
+- [ ] Chunk hibernation for distant AI
 
-## Path to 1.0 (Simulation Expansion)
-- [ ] **Phase 1: Squad AI**: Coordinated flanking maneuvers and communication.
-- [ ] **Phase 2: Narrative Depth**: Procedural context in cutscenes.
-- [ ] **Phase 3: Base Building**: Functional defensive and resource structures.
-- [ ] **Phase 4: Boss Encounters**: Multi-stage tactical predator fights.
+### 4. Main Menu / Game Loader ⏳
+- [x] Basic Main Menu screen
+- [x] Campaign button (legacy level select)
+- [ ] **New Game button with difficulty selection**
+- [ ] **Continue/Load Game from save state**
+- [ ] **Canteen access from main menu**
+- [ ] Remove legacy "level select" entirely
+- [ ] Difficulty escalation UI (can go up, not down)
+
+### 5. Difficulty System ⏳
+- [ ] SUPPORT mode implementation
+  - [ ] Supply drops from anywhere
+  - [ ] Extraction from any coordinate
+- [ ] TACTICAL mode implementation
+  - [ ] "The Fall" mechanic at 30% HP
+  - [ ] Must return to LZ for extraction
+  - [ ] Base damage risk during Fall
+- [ ] ELITE mode implementation
+  - [ ] Permadeath enabled
+  - [ ] Save purge on death
+- [ ] Escalation lock (no downgrade)
+
+### 6. Base Building at LZ ⏳
+- [ ] Modular component system (Floor, Wall, Roof, Stilt)
+- [ ] Algorithmic snap-together building
+- [ ] Base state persistence
+- [ ] "Secure Your LZ" first objective
+- [ ] Defensive structures (Tower, Barricade)
+- [ ] Resource storage and processing
+
+### 7. Territory Control (CTF Mechanics) 🔄
+- [x] Industrial Siphon destruction
+- [x] URA Flag visual on secured territory
+- [ ] Territory score tracking in HUD
+- [ ] Gas Stockpile capture objectives
+- [ ] Prison Camp rescue missions
+- [ ] Three victory condition tracking
+
+### 8. Three Victory Verticals ⏳
+- [ ] **Vertical 1: Platoon Rescues**
+  - [ ] Character positions at specific coordinates
+  - [ ] Prison cage interaction
+  - [ ] Character unlock on rescue
+- [ ] **Vertical 2: Arsenal Upgrades**
+  - [x] Canteen shop foundation
+  - [x] Credit economy
+  - [ ] Permanent weapon upgrades
+  - [ ] Equipment customization
+- [ ] **Vertical 3: Intel System**
+  - [ ] Peacekeeping score tracking
+  - [ ] Intel rewards at thresholds
+  - [ ] Map POI reveals
+
+### 9. UI/UX Polish 🔄
+- [x] Over-the-shoulder camera
+- [x] Touch joystick controls
+- [x] Basic HUD (HP, Objectives)
+- [ ] Mobile safe-area compliance
+- [ ] Coordinate display (COORD: X, Y)
+- [ ] Territory/Peacekeeping counters
+- [ ] Difficulty indicator
+- [ ] Base building interface
+
+### 10. Testing & Quality ✅
+- [x] Unit tests for core systems
+- [x] E2E smoke tests
+- [x] Visual regression tests
+- [x] CI/CD pipeline
+- [ ] Performance benchmarks
+- [ ] Mobile device testing matrix
+
+## Path to 1.0 (Tactical Simulation)
+
+### Phase 1: Main Menu & Difficulty (Priority: HIGH)
+- [ ] Transform menu into game loader interface
+- [ ] Implement three difficulty modes
+- [ ] Add difficulty escalation lock
+
+### Phase 2: Open World Persistence (Priority: HIGH)
+- [ ] Complete chunk persistence system
+- [ ] Remove all "level" references
+- [ ] Add territory tracking
+
+### Phase 3: Base Building (Priority: MEDIUM)
+- [ ] Implement modular construction
+- [ ] Create LZ securing objective
+- [ ] Add build mode interface
+
+### Phase 4: Victory Verticals (Priority: MEDIUM)
+- [ ] Character rescue at specific coords
+- [ ] Intel reveal system
+- [ ] Three win condition tracking
+
+### Phase 5: AI & Combat Polish (Priority: MEDIUM)
+- [ ] Pack hunting coordination
+- [ ] Tactical flanking maneuvers
+- [ ] Suppression mechanics
+
+### Phase 6: Environmental Depth (Priority: LOW)
+- [ ] Weather system (Rain/Fog)
+- [ ] Day/night transitions
+- [ ] Advanced hazards
 
 ## Known Issues
-- [ ] Bullet tunneling at high framerates (needs continuous collision detection).
-- [ ] `localStorage` quota handling (needs user-facing fail-state).
-- [ ] Mobile safe-area padding in certain ultrawide aspect ratios.
+
+### Critical
+- [ ] Main menu still shows legacy "level select" (blocks new design)
+- [ ] Chunks may regenerate on revisit (persistence incomplete)
+
+### High Priority
+- [ ] Bullet tunneling at high framerates
+- [ ] `localStorage` quota error handling
+- [ ] Missing difficulty mode implementation
+
+### Medium Priority
+- [ ] Mobile safe-area padding issues
+- [ ] No base building system yet
+- [ ] Pack hunting AI not coordinated
+
+### Low Priority
+- [ ] LOD missing for dense enemy encounters
+- [ ] Chunk hibernation for distant AI
+- [ ] Weather effects not implemented
 
 ## Recent Integration Victories
-- Unified the domain-specific PRs into a hardened `main`.
-- Resolved the "shaky" assembly bugs in state management and constants.
-- Verified all unit tests are passing after the modular re-integration.
+
+- Unified domain-specific PRs into hardened `main`
+- Resolved "shaky" assembly bugs in state management
+- Verified all unit tests passing after modular re-integration
+- Established comprehensive Memory Bank for agent alignment
+- Created testing strategy documentation
+
+## Evolution of Project Decisions
+
+| Date | Decision | Impact |
+|------|----------|--------|
+| 2025-12-26 | "No levels, open world" | Fundamental architecture shift |
+| 2025-12-26 | "Fixed on discovery" terrain | Eliminates regeneration, adds ownership |
+| 2025-12-26 | Three victory verticals | Prevents gameplay monotony |
+| 2025-12-26 | Escalation-only difficulty | Adds commitment weight |
+| 2025-12-26 | Rescue-based unlocks | Characters are goals, not purchases |
+| 2025-12-26 | Base building at LZ | First objective, persistent progress |
+| 2025-12-27 | Domain decomposition | 6 PRs for cleaner review |
+| 2025-12-27 | Memory Bank adoption | Agent context preservation |
