@@ -3,25 +3,58 @@ import * as YUKA from "yuka";
 import { GatorAI } from "../GatorAI";
 
 // Mock YUKA
-jest.mock("yuka", () => ({
-	Vehicle: jest.fn().mockImplementation(() => ({
-		position: new THREE.Vector3(),
-		velocity: new THREE.Vector3(),
-		maxSpeed: 0,
-		steering: {
-			add: jest.fn(),
-			clear: jest.fn(),
-		},
-		update: jest.fn(),
-	})),
-	Vector3: jest.fn().mockImplementation((x, y, z) => new THREE.Vector3(x, y, z)),
-	SeekBehavior: jest.fn().mockImplementation(() => ({ target: new THREE.Vector3() })),
-	FleeBehavior: jest.fn().mockImplementation(() => ({ target: new THREE.Vector3() })),
-	WanderBehavior: jest.fn(),
-	EntityManager: jest.fn().mockImplementation(() => ({
-		clear: jest.fn(),
-	})),
-}));
+vi.mock("yuka", () => {
+	class Vector3 {
+		x = 0; y = 0; z = 0;
+		constructor(x = 0, y = 0, z = 0) {
+			this.x = x; this.y = y; this.z = z;
+		}
+		set(x, y, z) {
+			this.x = x; this.y = y; this.z = z;
+			return this;
+		}
+		copy(v) {
+			this.x = v.x; this.y = v.y; this.z = v.z;
+			return this;
+		}
+		add(v) {
+			this.x += v.x; this.y += v.y; this.z += v.z;
+			return this;
+		}
+		distanceTo(v) {
+			const dx = this.x - v.x;
+			const dy = this.y - v.y;
+			const dz = this.z - v.z;
+			return Math.sqrt(dx * dx + dy * dy + dz * dz);
+		}
+	}
+
+	class Vehicle {
+		position = new Vector3();
+		velocity = new Vector3();
+		maxSpeed = 0;
+		steering = {
+			add: vi.fn(),
+			clear: vi.fn(),
+		};
+		update = vi.fn();
+	}
+
+	class MockBehavior {
+		target = new Vector3();
+	}
+
+	return {
+		Vehicle,
+		Vector3,
+		SeekBehavior: MockBehavior,
+		FleeBehavior: MockBehavior,
+		WanderBehavior: vi.fn(),
+		EntityManager: vi.fn().mockImplementation(() => ({
+			clear: vi.fn(),
+		})),
+	};
+});
 
 describe("GatorAI", () => {
 	let vehicle: YUKA.Vehicle;
@@ -37,9 +70,9 @@ describe("GatorAI", () => {
 	});
 
 	it("should transition from IDLE to STALK when player is within range", () => {
-		const playerPos = new THREE.Vector3(10, 0, 0);
+		const playerPos = new THREE.Vector3(12, 0, 0);
 		vehicle.position.set(0, 0, 0);
-
+		
 		gatorAI.update(0.1, playerPos, 10, 0);
 		expect(gatorAI.getState()).toBe("STALK");
 	});
@@ -47,7 +80,10 @@ describe("GatorAI", () => {
 	it("should transition to AMBUSH when player is very close", () => {
 		const playerPos = new THREE.Vector3(5, 0, 0);
 		vehicle.position.set(0, 0, 0);
-
+		
+		// First transition to STALK
+		gatorAI.update(0.1, playerPos, 10, 0);
+		// Then transition to AMBUSH
 		gatorAI.update(0.1, playerPos, 10, 0);
 		expect(gatorAI.getState()).toBe("AMBUSH");
 	});

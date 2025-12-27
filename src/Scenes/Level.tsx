@@ -269,6 +269,9 @@ function World() {
 		takeDamage,
 		saveData,
 		secureLZ,
+		addKill,
+		gainXP,
+		setMode,
 	} = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
@@ -280,6 +283,7 @@ function World() {
 	const [isFiring, setIsFiring] = useState(false);
 	const [activeChunks, setActiveChunks] = useState<ChunkData[]>([]);
 	const [particles, setParticles] = useState<ParticleData[]>([]);
+	const [interactedIds] = useState(new Set<string>());
 	const playerRef = useRef<THREE.Group>(null);
 	const projectilesRef = useRef<ProjectilesHandle>(null);
 	const lastFireTime = useRef(0);
@@ -379,8 +383,8 @@ function World() {
 						setIsGrounded(true);
 					}
 				}
-				if (dist !== undefined && entity.type === "CLAM_BASKET" && dist < 2 && !entity.interacted) {
-					entity.interacted = true;
+				if (dist !== undefined && entity.type === "CLAM_BASKET" && dist < 2 && !interactedIds.has(entity.id)) {
+					interactedIds.add(entity.id);
 					if (entity.isHeavy) {
 						takeDamage(30);
 						audioEngine.playSFX("explode");
@@ -409,13 +413,13 @@ function World() {
 						audioEngine.playSFX("pickup");
 					}
 				}
-				if (dist !== undefined && entity.type === "VILLAGER" && dist < 2 && !isEscortingVillager) {
+				if (dist !== undefined && entity.type === "VILLAGER" && dist < 2 && !interactedIds.has(entity.id) && !isEscortingVillager) {
+					interactedIds.add(entity.id);
 					setEscortingVillager(true);
-					entity.type = "DEBRIS"; // Remove from world, attached to player
 					audioEngine.playSFX("pickup");
 				}
-				if (dist !== undefined && entity.type === "PRISON_CAGE" && dist < 2 && !entity.rescued) {
-					entity.rescued = true;
+				if (dist !== undefined && entity.type === "PRISON_CAGE" && dist < 2 && !interactedIds.has(entity.id)) {
+					interactedIds.add(entity.id);
 					if (entity.objectiveId) {
 						rescueCharacter(entity.objectiveId);
 						audioEngine.playSFX("pickup");
@@ -518,7 +522,7 @@ function World() {
 								if (playerRef.current && playerRef.current.position.distanceTo(worldPos) < 6) {
 									takeDamage(40);
 								}
-								entity.type = "DEBRIS"; // Oil is gone, replaced by debris
+								interactedIds.add(entity.id);
 							}
 
 							if (entity.hp <= 0) {

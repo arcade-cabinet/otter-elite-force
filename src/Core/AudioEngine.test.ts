@@ -11,13 +11,21 @@ vi.mock("tone", () => {
 		dispose: vi.fn(),
 		set: vi.fn(),
 	};
+	class MockSynth {
+		toDestination = mockSynth.toDestination;
+		connect = mockSynth.connect;
+		triggerAttackRelease = mockSynth.triggerAttackRelease;
+		triggerRelease = mockSynth.triggerRelease;
+		dispose = mockSynth.dispose;
+		set = mockSynth.set;
+	}
 	return {
 		start: vi.fn().mockResolvedValue(undefined),
 		now: vi.fn().mockReturnValue(0),
-		Synth: vi.fn(() => mockSynth),
+		Synth: MockSynth,
 		PolySynth: vi.fn(() => mockSynth),
-		MonoSynth: vi.fn(() => mockSynth),
-		NoiseSynth: vi.fn(() => mockSynth),
+		MonoSynth: MockSynth,
+		NoiseSynth: MockSynth,
 		Volume: vi.fn(() => ({
 			toDestination: vi.fn().mockReturnThis(),
 			volume: { rampTo: vi.fn() },

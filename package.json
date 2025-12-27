@@ -25,6 +25,7 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/three": "^0.182.0",
+		"@types/uuid": "^11.0.0",
 		"@vitejs/plugin-react": "^5.1.2",
 		"jsdom": "^27.4.0",
 		"typescript": "~5.9.3",
@@ -43,6 +44,7 @@
 		"react-dom": "^19.2.3",
 		"three": "^0.182.0",
 		"tone": "^15.1.22",
+		"uuid": "^13.0.0",
 		"yuka": "^0.7.8",
 		"zustand": "^5.0.9"
 	}
