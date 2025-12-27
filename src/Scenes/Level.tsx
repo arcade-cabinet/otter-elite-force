@@ -106,9 +106,39 @@ function Reeds({ count = 40 }) {
 	);
 }
 
+import { CHARACTERS, useGameStore } from "../stores/gameStore";
+
+function Debris({ count = 10, color = "#444" }) {
+	const meshRef = useRef<THREE.InstancedMesh>(null);
+
+	useEffect(() => {
+		const mesh = meshRef.current;
+		if (!mesh) return;
+		const dummy = new THREE.Object3D();
+		for (let i = 0; i < count; i++) {
+			const angle = Math.random() * Math.PI * 2;
+			const dist = randomRange(10, 70);
+			dummy.position.set(Math.cos(angle) * dist, 0.2, Math.sin(angle) * dist);
+			dummy.scale.set(randomRange(0.5, 2), randomRange(0.5, 1), randomRange(0.5, 2));
+			dummy.rotation.set(Math.random() * 0.2, Math.random() * Math.PI, Math.random() * 0.2);
+			dummy.updateMatrix();
+			mesh.setMatrixAt(i, dummy.matrix);
+		}
+		mesh.instanceMatrix.needsUpdate = true;
+	}, [count, color]);
+
+	return (
+		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
+			<boxGeometry args={[1, 1, 1]} />
+			<meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
+		</instancedMesh>
+	);
+}
+
 export function Level() {
-	const { currentLevel, addKill, isZoomed } = useGameStore();
+	const { currentLevel, addKill, isZoomed, selectedCharacterId } = useGameStore();
 	const level = LEVELS[currentLevel];
+	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
 	const [playerRot, setPlayerRot] = useState(0);
@@ -126,12 +156,13 @@ export function Level() {
 	// Water shader uniforms
 	const waterUniforms = useRef({
 		time: { value: 0 },
-		waterColor: { value: new THREE.Color("#1e3a5f") },
+		waterColor: { value: new THREE.Color(level.waterColor) },
 	});
 
 	useFrame((state, delta) => {
 		const currentTime = state.clock.elapsedTime;
 		waterUniforms.current.time.value = currentTime;
+		waterUniforms.current.waterColor.value.set(level.waterColor);
 
 		if (!playerRef.current) return;
 
@@ -351,10 +382,13 @@ export function Level() {
 			<Flag position={[-10, 0, -15]} />
 			<Reeds count={60} />
 			<Lilypads count={30} />
+			{currentLevel >= 1 && <Debris count={20} color={currentLevel === 1 ? "#444" : "#222"} />}
 
 			{/* Player */}
 			<PlayerRig
 				ref={playerRef}
+				traits={character.traits}
+				gear={character.gear}
 				position={[playerPos.x, playerPos.y, playerPos.z]}
 				rotation={playerRot}
 				isMoving={isPlayerMoving}
