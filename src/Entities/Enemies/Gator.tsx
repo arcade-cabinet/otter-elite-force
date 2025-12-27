@@ -1,6 +1,6 @@
 /**
- * Enemy entities (Tactical River Predators)
- * Gritty biological crocodilians with mud camo and stolen tactical gear
+ * Gator Predator
+ * Gritty biological crocodilians with mud camo and ambush mechanics
  */
 
 import { useFrame } from "@react-three/fiber";
@@ -8,24 +8,9 @@ import { useEffect, useRef, useState } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import * as YUKA from "yuka";
+import type { EnemyProps, GatorData } from "./types";
 
-export interface EnemyData {
-	id: string;
-	position: THREE.Vector3;
-	hp: number;
-	maxHp: number;
-	isHeavy: boolean;
-	state: "IDLE" | "STALK" | "AMBUSH" | "RETREAT";
-	suppression: number; // 0 to 1
-}
-
-interface EnemyProps {
-	data: EnemyData;
-	targetPosition: THREE.Vector3;
-	onDeath?: (id: string) => void;
-}
-
-export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
+export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) {
 	const groupRef = useRef<Group>(null);
 	const bodyRef = useRef<Group>(null);
 	const vehicleRef = useRef<YUKA.Vehicle | null>(null);
@@ -143,31 +128,25 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 	const scale = data.isHeavy ? 1.6 : 1.1;
 	const bodyColor = data.isHeavy ? "#1a241a" : "#2d3d2d";
 	const mudColor = "#3d3329";
-	const strapColor = "#1a1a1a"; // Stolen black nylon straps
+	const strapColor = "#1a1a1a";
 
 	return (
 		<group ref={groupRef}>
 			<group ref={bodyRef}>
-				{/* --- TACTICAL GATOR BODY --- */}
-
-				{/* Head / Chest (Armored) */}
+				{/* Head / Chest */}
 				<group position={[0, 0.1, 1.2 * scale]} name="segment-0">
-					{/* Main Head / Snout */}
 					<mesh castShadow receiveShadow>
 						<boxGeometry args={[0.6 * scale, 0.3 * scale, 1.1 * scale]} />
 						<meshStandardMaterial color={bodyColor} roughness={0.9} />
 					</mesh>
-					{/* Heavy Armor Plating (Tank feel) */}
 					<mesh position={[0, 0.2 * scale, 0]}>
 						<boxGeometry args={[0.7 * scale, 0.15 * scale, 0.8 * scale]} />
 						<meshStandardMaterial color="#444" metalness={0.6} roughness={0.4} />
 					</mesh>
-					{/* Mud Camo Markings */}
 					<mesh position={[0, 0.3 * scale, 0.2 * scale]}>
 						<boxGeometry args={[0.4 * scale, 0.02, 0.6 * scale]} />
 						<meshStandardMaterial color={mudColor} />
 					</mesh>
-					{/* Cold, calculating eyes */}
 					{[-1, 1].map((side) => (
 						<mesh
 							key={`${data.id}-eye-${side}`}
@@ -178,14 +157,11 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 						</mesh>
 					))}
 
-					{/* MASSIVE HONKING GUN (Appears when ambushing) */}
 					<group position={[0, 0.4 * scale, 0.2 * scale]} scale={isAmbushing ? 1 : 0}>
-						{/* Gun Body */}
 						<mesh castShadow>
 							<boxGeometry args={[0.3 * scale, 0.3 * scale, 1.2 * scale]} />
 							<meshStandardMaterial color="#111" metalness={0.8} />
 						</mesh>
-						{/* Large Barrel */}
 						<mesh position={[0, 0, 0.8 * scale]}>
 							<cylinderGeometry
 								args={[0.1 * scale, 0.1 * scale, 1.5 * scale, 8]}
@@ -193,7 +169,6 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 							/>
 							<meshStandardMaterial color="#222" metalness={0.9} />
 						</mesh>
-						{/* Ammo Belt */}
 						<mesh position={[0.2 * scale, -0.1 * scale, -0.3 * scale]} rotation-z={0.5}>
 							<boxGeometry args={[0.1 * scale, 0.4 * scale, 0.2 * scale]} />
 							<meshStandardMaterial color="#aa8800" />
@@ -201,7 +176,6 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 					</group>
 				</group>
 
-				{/* Body Segments with Webbing */}
 				{[...Array(5)].map((_, i) => (
 					<group
 						key={`${data.id}-segment-${i}`}
@@ -212,12 +186,10 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 							<boxGeometry args={[(0.85 - i * 0.1) * scale, 0.5 * scale, 0.85 * scale]} />
 							<meshStandardMaterial color={bodyColor} roughness={0.9} />
 						</mesh>
-						{/* Heavy Back Plates */}
 						<mesh position={[0, 0.3 * scale, 0]}>
 							<boxGeometry args={[(0.75 - i * 0.1) * scale, 0.1 * scale, 0.6 * scale]} />
 							<meshStandardMaterial color="#333" metalness={0.5} />
 						</mesh>
-						{/* Tactical Straps */}
 						<mesh position={[0, 0.2 * scale, 0]}>
 							<boxGeometry args={[(0.9 - i * 0.1) * scale, 0.12 * scale, 0.15 * scale]} />
 							<meshStandardMaterial color={strapColor} roughness={1} />
@@ -225,7 +197,6 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 					</group>
 				))}
 
-				{/* Tail */}
 				<group position={[0, 0.1, -3.2 * scale]} name="segment-6">
 					<mesh castShadow>
 						<boxGeometry args={[0.2 * scale, 0.2 * scale, 1.5 * scale]} />
@@ -234,7 +205,6 @@ export function Enemy({ data, targetPosition, onDeath }: EnemyProps) {
 				</group>
 			</group>
 
-			{/* Health bar (Floating above the ambushing gator) */}
 			<group position={[0, 2 * scale, 0]}>
 				<mesh position={[0, 0, 0]}>
 					<planeGeometry args={[1.4, 0.08]} />

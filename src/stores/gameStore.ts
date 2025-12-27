@@ -124,12 +124,23 @@ export interface ChunkData {
 	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
 	entities: {
 		id: string;
-		type: "GATOR" | "SNAKE" | "SNAPPER" | "PLATFORM" | "CLIMBABLE" | "SIPHON" | "OIL_SLICK" | "MUD_PIT";
+		type:
+			| "GATOR"
+			| "SNAKE"
+			| "SNAPPER"
+			| "PLATFORM"
+			| "CLIMBABLE"
+			| "SIPHON"
+			| "OIL_SLICK"
+			| "MUD_PIT";
 		position: [number, number, number];
 		isHeavy?: boolean;
 		objectiveId?: string;
+		hp?: number;
+		suppression?: number;
 	}[];
 	decorations: {
+		id: string;
 		type: "REED" | "LILYPAD" | "DEBRIS" | "BURNT_TREE" | "MANGROVE" | "DRUM";
 		count: number;
 	}[];
@@ -327,12 +338,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 			terrainType,
 			entities,
 			decorations: [
-				{ type: "REED", count: Math.floor(rand() * 20) + 10 },
-				{ type: "LILYPAD", count: Math.floor(rand() * 15) + 5 },
-				{ type: "DEBRIS", count: Math.floor(rand() * 5) },
-				{ type: "BURNT_TREE", count: terrainType === "DENSE_JUNGLE" ? 15 : 5 },
-				{ type: "MANGROVE", count: terrainType === "DENSE_JUNGLE" ? 20 : 10 },
-				{ type: "DRUM", count: Math.floor(rand() * 3) },
+				{ id: `${id}-dec-0`, type: "REED", count: Math.floor(rand() * 20) + 10 },
+				{ id: `${id}-dec-1`, type: "LILYPAD", count: Math.floor(rand() * 15) + 5 },
+				{ id: `${id}-dec-2`, type: "DEBRIS", count: Math.floor(rand() * 5) },
+				{ id: `${id}-dec-3`, type: "BURNT_TREE", count: terrainType === "DENSE_JUNGLE" ? 15 : 5 },
+				{ id: `${id}-dec-4`, type: "MANGROVE", count: terrainType === "DENSE_JUNGLE" ? 20 : 10 },
+				{ id: `${id}-dec-5`, type: "DRUM", count: Math.floor(rand() * 3) },
 			],
 		};
 
