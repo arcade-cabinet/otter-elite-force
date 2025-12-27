@@ -98,6 +98,25 @@ interface SaveData {
 	unlocked: number;
 	unlockedCharacters: string[];
 	coins: number;
+	discoveredChunks: Record<string, ChunkData>;
+}
+
+export interface ChunkData {
+	id: string; // "x,z"
+	x: number;
+	z: number;
+	seed: number;
+	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
+	entities: {
+		id: string;
+		type: "GATOR" | "SNAKE" | "SNAPPER";
+		position: [number, number, number];
+		isHeavy?: boolean;
+	}[];
+	decorations: {
+		type: "REED" | "LILYPAD" | "DEBRIS" | "BURNT_TREE" | "MANGROVE" | "DRUM";
+		count: number;
+	}[];
 }
 
 interface GameState {
@@ -114,9 +133,11 @@ interface GameState {
 	addKill: () => void;
 	resetStats: () => void;
 
-	// Level management
-	currentLevel: number;
-	setLevel: (level: number) => void;
+	// World management
+	currentChunkId: string;
+	discoveredChunks: Record<string, ChunkData>;
+	discoverChunk: (x: number, z: number) => ChunkData;
+	getNearbyChunks: (x: number, z: number) => ChunkData[];
 
 	// Character management
 	selectedCharacterId: string;
@@ -132,13 +153,14 @@ interface GameState {
 	saveGame: () => void;
 	resetData: () => void;
 	gainXP: (amount: number) => void;
-	winLevel: (levelId: number) => void;
 	unlockCharacter: (id: string) => void;
 
 	// UI state
 	isZoomed: boolean;
 	toggleZoom: () => void;
 }
+
+export const CHUNK_SIZE = 100;
 
 export const CHAR_PRICES: Record<string, number> = {
 	bubbles: 0,
@@ -154,6 +176,7 @@ const DEFAULT_SAVE_DATA: SaveData = {
 	unlocked: 1,
 	unlockedCharacters: ["bubbles"],
 	coins: 0,
+	discoveredChunks: {},
 };
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -185,8 +208,86 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	resetStats: () => set({ health: 100, kills: 0 }),
 
-	// Level management
-	setLevel: (level) => set({ currentLevel: level }),
+	// World management
+	currentChunkId: "0,0",
+	discoveredChunks: {},
+
+	discoverChunk: (x, z) => {
+		const id = `${x},${z}`;
+		const { saveData } = get();
+
+		if (saveData.discoveredChunks[id]) {
+			return saveData.discoveredChunks[id];
+		}
+
+		// Generate new chunk
+		const seed = Math.abs(x * 31 + z * 17);
+		const pseudoRandom = () => {
+			let s = seed;
+			return () => {
+				s = (s * 9301 + 49297) % 233280;
+				return s / 233280;
+			};
+		};
+		const rand = pseudoRandom();
+
+		const terrainTypes: ChunkData["terrainType"][] = ["RIVER", "MARSH", "DENSE_JUNGLE"];
+		const terrainType = terrainTypes[Math.floor(rand() * terrainTypes.length)];
+
+		const entities: ChunkData["entities"] = [];
+		const entityCount = Math.floor(rand() * 5) + 2;
+		for (let i = 0; i < entityCount; i++) {
+			entities.push({
+				id: `e-${id}-${i}`,
+				type: rand() > 0.7 ? (rand() > 0.5 ? "SNAPPER" : "SNAKE") : "GATOR",
+				position: [
+					(rand() - 0.5) * CHUNK_SIZE,
+					0,
+					(rand() - 0.5) * CHUNK_SIZE,
+				],
+				isHeavy: rand() > 0.8,
+			});
+		}
+
+		const newChunk: ChunkData = {
+			id,
+			x,
+			z,
+			seed,
+			terrainType,
+			entities,
+			decorations: [
+				{ type: "REED", count: Math.floor(rand() * 20) + 10 },
+				{ type: "LILYPAD", count: Math.floor(rand() * 15) + 5 },
+				{ type: "DEBRIS", count: Math.floor(rand() * 5) },
+				{ type: "BURNT_TREE", count: terrainType === "DENSE_JUNGLE" ? 15 : 5 },
+				{ type: "MANGROVE", count: terrainType === "DENSE_JUNGLE" ? 20 : 10 },
+				{ type: "DRUM", count: Math.floor(rand() * 3) },
+			],
+		};
+
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				discoveredChunks: {
+					...state.saveData.discoveredChunks,
+					[id]: newChunk,
+				},
+			},
+		}));
+		get().saveGame();
+		return newChunk;
+	},
+
+	getNearbyChunks: (x, z) => {
+		const nearby: ChunkData[] = [];
+		for (let dx = -1; dx <= 1; dx++) {
+			for (let dz = -1; dz <= 1; dz++) {
+				nearby.push(get().discoverChunk(x + dx, z + dz));
+			}
+		}
+		return nearby;
+	},
 
 	// Character management
 	selectCharacter: (id) => set({ selectedCharacterId: id }),
