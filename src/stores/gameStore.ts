@@ -24,8 +24,56 @@ export interface CharacterGear {
 	headgear?: "bandana" | "beret" | "helmet" | "none";
 	vest?: "tactical" | "heavy" | "none";
 	backgear?: "radio" | "scuba" | "none";
-	weapon?: "fish-cannon" | "bubble-gun";
+	weaponId: string;
 }
+
+export interface WeaponData {
+	id: string;
+	name: string;
+	type: "PISTOL" | "RIFLE" | "MACHINE_GUN" | "SHOTGUN";
+	damage: number;
+	fireRate: number;
+	bulletSpeed: number;
+	recoil: number;
+	range: number;
+	visualType: "FISH_CANNON" | "BUBBLE_GUN" | "PISTOL_GRIP";
+}
+
+export const WEAPONS: Record<string, WeaponData> = {
+	"service-pistol": {
+		id: "service-pistol",
+		name: "SERVICE PISTOL",
+		type: "PISTOL",
+		damage: 2,
+		fireRate: 0.4,
+		bulletSpeed: 60,
+		recoil: 0.02,
+		range: 30,
+		visualType: "PISTOL_GRIP",
+	},
+	"fish-cannon": {
+		id: "fish-cannon",
+		name: "HEAVY FISH-CANNON",
+		type: "MACHINE_GUN",
+		damage: 1,
+		fireRate: 0.1,
+		bulletSpeed: 90,
+		recoil: 0.05,
+		range: 50,
+		visualType: "FISH_CANNON",
+	},
+	"bubble-gun": {
+		id: "bubble-gun",
+		name: "BUBBLE SNIPER",
+		type: "RIFLE",
+		damage: 5,
+		fireRate: 0.8,
+		bulletSpeed: 120,
+		recoil: 0.08,
+		range: 80,
+		visualType: "BUBBLE_GUN",
+	},
+};
 
 export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: CharacterGear }> = {
 	bubbles: {
@@ -44,7 +92,7 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			headgear: "bandana",
 			vest: "tactical",
 			backgear: "radio",
-			weapon: "fish-cannon",
+			weaponId: "service-pistol", // Starts with a pistol now
 		},
 	},
 	whiskers: {
@@ -63,7 +111,7 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			headgear: "beret",
 			vest: "heavy",
 			backgear: "none",
-			weapon: "fish-cannon",
+			weaponId: "fish-cannon",
 		},
 	},
 	splash: {
@@ -82,7 +130,7 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			headgear: "helmet",
 			vest: "tactical",
 			backgear: "scuba",
-			weapon: "bubble-gun",
+			weaponId: "bubble-gun",
 		},
 	},
 	fang: {
@@ -101,7 +149,7 @@ export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: Charact
 			headgear: "none",
 			vest: "heavy",
 			backgear: "none",
-			weapon: "fish-cannon",
+			weaponId: "fish-cannon",
 		},
 	},
 };
@@ -149,6 +197,7 @@ interface SaveData {
 	medals: number;
 	unlocked: number;
 	unlockedCharacters: string[];
+	unlockedWeapons: string[];
 	coins: number;
 	discoveredChunks: Record<string, ChunkData>;
 	territoryScore: number;
@@ -166,6 +215,7 @@ interface SaveData {
 		speedBoost: number;
 		healthBoost: number;
 		damageBoost: number;
+		weaponLvl: Record<string, number>;
 	};
 }
 
@@ -212,6 +262,8 @@ interface GameState {
 	resetData: () => void;
 	gainXP: (amount: number) => void;
 	unlockCharacter: (id: string) => void;
+	unlockWeapon: (id: string) => void;
+	upgradeWeapon: (id: string, cost: number) => void;
 
 	// UI state
 	isZoomed: boolean;
@@ -239,13 +291,29 @@ const DEFAULT_SAVE_DATA: SaveData = {
 	medals: 0,
 	unlocked: 1,
 	unlockedCharacters: ["bubbles"],
+	unlockedWeapons: ["service-pistol"],
 	coins: 0,
 	discoveredChunks: {},
 	territoryScore: 0,
+	strategicObjectives: {
+		siphonsDismantled: 0,
+		villagesLiberated: 0,
+		gasStockpilesCaptured: 0,
+	},
+	spoilsOfWar: {
+		creditsEarned: 0,
+		clamsHarvested: 0,
+		upgradesUnlocked: 0,
+	},
 	upgrades: {
 		speedBoost: 0,
 		healthBoost: 0,
 		damageBoost: 0,
+		weaponLvl: {
+			"service-pistol": 1,
+			"fish-cannon": 1,
+			"bubble-gun": 1,
+		},
 	},
 };
 
@@ -461,6 +529,36 @@ export const useGameStore = create<GameState>((set, get) => ({
 			},
 		}));
 		get().saveGame();
+	},
+
+	unlockWeapon: (id) => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				unlockedWeapons: state.saveData.unlockedWeapons.includes(id)
+					? state.saveData.unlockedWeapons
+					: [...state.saveData.unlockedWeapons, id],
+			},
+		}));
+		get().saveGame();
+	},
+
+	upgradeWeapon: (id, cost) => {
+		if (get().spendCoins(cost)) {
+			set((state) => ({
+				saveData: {
+					...state.saveData,
+					upgrades: {
+						...state.saveData.upgrades,
+						weaponLvl: {
+							...state.saveData.upgrades.weaponLvl,
+							[id]: (state.saveData.upgrades.weaponLvl[id] || 1) + 1,
+						},
+					},
+				},
+			}));
+			get().saveGame();
+		}
 	},
 
 	addCoins: (amount) => {

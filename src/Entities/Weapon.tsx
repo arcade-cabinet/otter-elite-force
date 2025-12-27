@@ -3,29 +3,18 @@
  * Procedural weapons that can be mounted on characters
  */
 
-import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
-import type * as THREE from "three";
-import { WEAPONS } from "../stores/gameStore";
+import * as THREE from "three";
+import { useMemo } from "react";
+import { WEAPONS, type WeaponData } from "../stores/gameStore";
 
 interface WeaponProps {
 	weaponId: string;
 	level?: number;
 	muzzleRef?: React.RefObject<THREE.Group>;
-	isFiring?: boolean;
 }
 
-export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
+export function Weapon({ weaponId, muzzleRef }: WeaponProps) {
 	const weapon = useMemo(() => WEAPONS[weaponId] || WEAPONS["service-pistol"], [weaponId]);
-	const [flashOpacity, setFlashOpacity] = useState(0);
-
-	useFrame((_state, delta) => {
-		if (isFiring) {
-			setFlashOpacity(1);
-		} else {
-			setFlashOpacity((prev) => Math.max(0, prev - delta * 15));
-		}
-	});
 
 	return (
 		<group>
@@ -41,15 +30,7 @@ export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 						<cylinderGeometry args={[0.04, 0.04, 0.4, 8]} rotation-x={Math.PI / 2} />
 						<meshStandardMaterial color="#111" metalness={0.9} />
 					</mesh>
-					<group ref={muzzleRef} position={[0, 0.08, 0.5]}>
-						{flashOpacity > 0 && (
-							<mesh scale={flashOpacity}>
-								<sphereGeometry args={[0.2, 8, 8]} />
-								<meshBasicMaterial color="#ffffaa" transparent opacity={flashOpacity} />
-							</mesh>
-						)}
-						<pointLight intensity={flashOpacity * 2} distance={3} color="#ffffaa" />
-					</group>
+					<group ref={muzzleRef} position={[0, 0.08, 0.5]} />
 				</group>
 			)}
 
@@ -65,15 +46,7 @@ export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 						<boxGeometry args={[0.1, 0.3, 0.4]} />
 						<meshStandardMaterial color="#332211" />
 					</mesh>
-					<group ref={muzzleRef} position={[0, 0, 0.6]}>
-						{flashOpacity > 0 && (
-							<mesh scale={flashOpacity}>
-								<sphereGeometry args={[0.3, 8, 8]} />
-								<meshBasicMaterial color="#ffffaa" transparent opacity={flashOpacity} />
-							</mesh>
-						)}
-						<pointLight intensity={flashOpacity * 3} distance={5} color="#ffffaa" />
-					</group>
+					<group ref={muzzleRef} position={[0, 0, 0.6]} />
 				</group>
 			)}
 
@@ -87,15 +60,7 @@ export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 						<cylinderGeometry args={[0.05, 0.1, 0.4]} rotation-x={Math.PI / 2} />
 						<meshStandardMaterial color="#eee" />
 					</mesh>
-					<group ref={muzzleRef} position={[0, 0, 0.5]}>
-						{flashOpacity > 0 && (
-							<mesh scale={flashOpacity}>
-								<sphereGeometry args={[0.25, 8, 8]} />
-								<meshBasicMaterial color="#aaffff" transparent opacity={flashOpacity} />
-							</mesh>
-						)}
-						<pointLight intensity={flashOpacity * 2} distance={4} color="#aaffff" />
-					</group>
+					<group ref={muzzleRef} position={[0, 0, 0.5]} />
 				</group>
 			)}
 		</group>
