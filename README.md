@@ -86,14 +86,14 @@ src/
 │   ├── InputSystem.ts
 │   └── AudioEngine.ts
 ├── Entities/       # Game objects
-│   ├── PlayerRig.ts
-│   ├── Enemies.ts
-│   └── Particles.ts
+│   ├── PlayerRig.tsx
+│   ├── Enemies.tsx
+│   └── Particles.tsx
 ├── Scenes/         # Level management
-│   ├── MainMenu.ts
-│   └── Level.ts
+│   ├── MainMenu.tsx
+│   └── Level.tsx
 └── UI/             # User interface
-    └── HUD.ts
+    └── HUD.tsx
 ```
 
 ## 🎯 Roadmap

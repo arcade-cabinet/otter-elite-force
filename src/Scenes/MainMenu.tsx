@@ -57,20 +57,19 @@ export function MainMenu() {
 					{LEVELS.map((level) => {
 						const isUnlocked = level.id < saveData.unlocked;
 						return (
-							<div
+							<button
+								type="button"
 								key={level.id}
 								className={`level-card ${isUnlocked ? "unlocked" : "locked"}`}
 								onClick={() => handleLevelSelect(level.id)}
-								onKeyDown={(e) => {
-									if (e.key === "Enter") handleLevelSelect(level.id);
-								}}
+								disabled={!isUnlocked}
 							>
 								<div>
 									<div className="level-title">{level.title}</div>
 									<div className="level-desc">{level.desc}</div>
 								</div>
 								<div className="level-goal">ELIMINATE {level.goal} TARGETS</div>
-							</div>
+							</button>
 						);
 					})}
 				</div>
