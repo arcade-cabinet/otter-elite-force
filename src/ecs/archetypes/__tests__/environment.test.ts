@@ -41,31 +41,31 @@ describe("createOilSlick", () => {
 		createOilSlick(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.oilSlick.size).toBe(3);
+		expect(calledWith.oilSlick!.size).toBe(3);
 	});
 
 	it("should create oil slick with custom size", () => {
 		createOilSlick({ ...defaultOptions, size: 5 });
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.oilSlick.size).toBe(5);
+		expect(calledWith.oilSlick!.size).toBe(5);
 	});
 
 	it("should set hazard type correctly", () => {
 		createOilSlick(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.hazard.type).toBe("oil_slick");
-		expect(calledWith.hazard.damagePerSecond).toBe(0);
-		expect(calledWith.hazard.slowFactor).toBe(0.7);
+		expect(calledWith.hazard!.type).toBe("oil_slick");
+		expect(calledWith.hazard!.damagePerSecond).toBe(0);
+		expect(calledWith.hazard!.slowFactor).toBe(0.7);
 	});
 
 	it("should set oilSlick ignition properties", () => {
 		createOilSlick(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.oilSlick.isIgnited).toBe(false);
-		expect(calledWith.oilSlick.burnDuration).toBe(15);
+		expect(calledWith.oilSlick!.isIgnited).toBe(false);
+		expect(calledWith.oilSlick!.burnDuration).toBe(15);
 	});
 
 	it("should set isEnvironment tag", () => {
@@ -79,15 +79,15 @@ describe("createOilSlick", () => {
 		createOilSlick({ ...defaultOptions, size: 4 });
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.transform.scale.x).toBe(4);
-		expect(calledWith.transform.scale.z).toBe(4);
+		expect(calledWith.transform!.scale.x).toBe(4);
+		expect(calledWith.transform!.scale.z).toBe(4);
 	});
 
 	it("should set collider layer to trigger", () => {
 		createOilSlick(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.collider.layer).toBe("trigger");
+		expect(calledWith.collider!.layer).toBe("trigger");
 	});
 });
 
@@ -104,23 +104,23 @@ describe("createMudPit", () => {
 		createMudPit(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.transform.scale.x).toBe(4);
+		expect(calledWith.transform!.scale.x).toBe(4);
 	});
 
 	it("should create mud pit with custom size", () => {
 		createMudPit({ ...defaultOptions, size: 6 });
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.transform.scale.x).toBe(6);
+		expect(calledWith.transform!.scale.x).toBe(6);
 	});
 
 	it("should set hazard type correctly", () => {
 		createMudPit(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.hazard.type).toBe("mud_pit");
-		expect(calledWith.hazard.damagePerSecond).toBe(0);
-		expect(calledWith.hazard.slowFactor).toBe(0.4);
+		expect(calledWith.hazard!.type).toBe("mud_pit");
+		expect(calledWith.hazard!.damagePerSecond).toBe(0);
+		expect(calledWith.hazard!.slowFactor).toBe(0.4);
 	});
 
 	it("should set isEnvironment tag", () => {
@@ -134,7 +134,7 @@ describe("createMudPit", () => {
 		createMudPit(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.renderable.type).toBe("mud_pit");
+		expect(calledWith.renderable!.type).toBe("mud_pit");
 	});
 });
 
@@ -151,16 +151,16 @@ describe("createToxicSludge", () => {
 		createToxicSludge(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.transform.scale.x).toBe(3);
+		expect(calledWith.transform!.scale.x).toBe(3);
 	});
 
 	it("should set hazard with damage per second", () => {
 		createToxicSludge(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.hazard.type).toBe("toxic_sludge");
-		expect(calledWith.hazard.damagePerSecond).toBe(5);
-		expect(calledWith.hazard.slowFactor).toBe(0.6);
+		expect(calledWith.hazard!.type).toBe("toxic_sludge");
+		expect(calledWith.hazard!.damagePerSecond).toBe(5);
+		expect(calledWith.hazard!.slowFactor).toBe(0.6);
 	});
 
 	it("should have particle emitter for smoke", () => {
@@ -168,8 +168,8 @@ describe("createToxicSludge", () => {
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.particleEmitter).toBeDefined();
-		expect(calledWith.particleEmitter.type).toBe("smoke");
-		expect(calledWith.particleEmitter.isEmitting).toBe(true);
+		expect(calledWith.particleEmitter!.type).toBe("smoke");
+		expect(calledWith.particleEmitter!.isEmitting).toBe(true);
 	});
 
 	it("should set isEnvironment tag", () => {
@@ -200,32 +200,32 @@ describe("createPlatform", () => {
 		createPlatform(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.platform.width).toBe(5);
-		expect(calledWith.platform.depth).toBe(5);
+		expect(calledWith.platform!.width).toBe(5);
+		expect(calledWith.platform!.depth).toBe(5);
 	});
 
 	it("should create platform with custom dimensions", () => {
 		createPlatform({ ...defaultOptions, width: 8, depth: 4 });
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.platform.width).toBe(8);
-		expect(calledWith.platform.depth).toBe(4);
+		expect(calledWith.platform!.width).toBe(8);
+		expect(calledWith.platform!.depth).toBe(4);
 	});
 
 	it("should set collider radius based on max dimension", () => {
 		createPlatform({ ...defaultOptions, width: 10, depth: 6 });
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.collider.radius).toBe(5); // max(10, 6) / 2
+		expect(calledWith.collider!.radius).toBe(5); // max(10, 6) / 2
 	});
 
 	it("should initialize platform as non-moving", () => {
 		createPlatform(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.platform.isMoving).toBe(false);
-		expect(calledWith.platform.moveSpeed).toBe(0);
-		expect(calledWith.platform.waypoints).toEqual([]);
+		expect(calledWith.platform!.isMoving).toBe(false);
+		expect(calledWith.platform!.moveSpeed).toBe(0);
+		expect(calledWith.platform!.waypoints).toEqual([]);
 	});
 
 	it("should set isEnvironment tag", () => {
@@ -239,14 +239,14 @@ describe("createPlatform", () => {
 		createPlatform(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.renderable.type).toBe("platform");
-		expect(calledWith.renderable.castShadow).toBe(true);
+		expect(calledWith.renderable!.type).toBe("platform");
+		expect(calledWith.renderable!.castShadow).toBe(true);
 	});
 
 	it("should set collider layer to environment", () => {
 		createPlatform(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.collider.layer).toBe("environment");
+		expect(calledWith.collider!.layer).toBe("environment");
 	});
 });

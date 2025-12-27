@@ -53,46 +53,46 @@ describe("createGator", () => {
 		createGator(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.health.current).toBe(10);
-		expect(calledWith.health.max).toBe(10);
+		expect(calledWith.health!.current).toBe(10);
+		expect(calledWith.health!.max).toBe(10);
 	});
 
 	it("should create heavy gator with correct health", () => {
 		createGator({ ...defaultOptions, isHeavy: true });
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.health.current).toBe(20);
-		expect(calledWith.health.max).toBe(20);
+		expect(calledWith.health!.current).toBe(20);
+		expect(calledWith.health!.max).toBe(20);
 	});
 
 	it("should set light gator speed", () => {
 		createGator(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.velocity.maxSpeed).toBe(7);
+		expect(calledWith.velocity!.maxSpeed).toBe(7);
 	});
 
 	it("should set heavy gator speed", () => {
 		createGator({ ...defaultOptions, isHeavy: true });
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.velocity.maxSpeed).toBe(4);
+		expect(calledWith.velocity!.maxSpeed).toBe(4);
 	});
 
 	it("should set correct tier based on isHeavy", () => {
 		createGator(defaultOptions);
-		expect(vi.mocked(world.add).mock.calls[0][0].enemy.tier).toBe("light");
+		expect(vi.mocked(world.add).mock.calls[0][0].enemy!.tier).toBe("light");
 
 		vi.clearAllMocks();
 		createGator({ ...defaultOptions, isHeavy: true });
-		expect(vi.mocked(world.add).mock.calls[0][0].enemy.tier).toBe("heavy");
+		expect(vi.mocked(world.add).mock.calls[0][0].enemy!.tier).toBe("heavy");
 	});
 
 	it("should set enemy type to gator", () => {
 		createGator(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.enemy.type).toBe("gator");
+		expect(calledWith.enemy!.type).toBe("gator");
 	});
 
 	it("should set gator-specific components", () => {
@@ -132,23 +132,23 @@ describe("createGator", () => {
 		createGator({ ...defaultOptions, isHeavy: true });
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.transform.scale.x).toBe(1.6);
-		expect(calledWith.transform.scale.y).toBe(1.6);
-		expect(calledWith.transform.scale.z).toBe(1.6);
+		expect(calledWith.transform!.scale.x).toBe(1.6);
+		expect(calledWith.transform!.scale.y).toBe(1.6);
+		expect(calledWith.transform!.scale.z).toBe(1.6);
 	});
 
 	it("should set heavy gator xp value higher", () => {
 		createGator({ ...defaultOptions, isHeavy: true });
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.enemy.xpValue).toBe(50);
+		expect(calledWith.enemy!.xpValue).toBe(50);
 	});
 
 	it("should set light gator xp value", () => {
 		createGator(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.enemy.xpValue).toBe(20);
+		expect(calledWith.enemy!.xpValue).toBe(20);
 	});
 });
 
@@ -166,25 +166,25 @@ describe("createSnake", () => {
 		createSnake(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.health.current).toBe(5);
-		expect(calledWith.health.max).toBe(5);
+		expect(calledWith.health!.current).toBe(5);
+		expect(calledWith.health!.max).toBe(5);
 	});
 
 	it("should set enemy type to snake", () => {
 		createSnake(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.enemy.type).toBe("snake");
+		expect(calledWith.enemy!.type).toBe("snake");
 	});
 
 	it("should set snake-specific components with anchor position", () => {
 		createSnake(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.snake.segmentCount).toBe(8);
-		expect(calledWith.snake.strikeRange).toBe(3);
-		expect(calledWith.snake.isStriking).toBe(false);
-		expect(calledWith.snake.anchorPosition.y).toBe(3);
+		expect(calledWith.snake!.segmentCount).toBe(8);
+		expect(calledWith.snake!.strikeRange).toBe(3);
+		expect(calledWith.snake!.isStriking).toBe(false);
+		expect(calledWith.snake!.anchorPosition.y).toBe(3);
 	});
 
 	it("should set isEnemy tag", () => {
@@ -198,7 +198,7 @@ describe("createSnake", () => {
 		createSnake(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.animated.currentAnimation).toBe("coiled");
+		expect(calledWith.animated!.currentAnimation).toBe("coiled");
 	});
 });
 
@@ -215,16 +215,16 @@ describe("createSnapper", () => {
 		createSnapper(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.health.current).toBe(30);
-		expect(calledWith.health.max).toBe(30);
+		expect(calledWith.health!.current).toBe(30);
+		expect(calledWith.health!.max).toBe(30);
 	});
 
 	it("should set enemy type to snapper", () => {
 		createSnapper(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.enemy.type).toBe("snapper");
-		expect(calledWith.enemy.tier).toBe("heavy");
+		expect(calledWith.enemy!.type).toBe("snapper");
+		expect(calledWith.enemy!.tier).toBe("heavy");
 	});
 
 	it("should set snapper-specific components", () => {
@@ -243,21 +243,21 @@ describe("createSnapper", () => {
 		createSnapper(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.enemy.xpValue).toBe(75);
+		expect(calledWith.enemy!.xpValue).toBe(75);
 	});
 
 	it("should include upgrade_token in loot table", () => {
 		createSnapper(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.enemy.lootTable).toContain("upgrade_token");
+		expect(calledWith.enemy!.lootTable).toContain("upgrade_token");
 	});
 
 	it("should set higher suppression threshold", () => {
 		createSnapper(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.suppression.threshold).toBe(0.8);
+		expect(calledWith.suppression!.threshold).toBe(0.8);
 	});
 });
 
@@ -274,16 +274,16 @@ describe("createScout", () => {
 		createScout(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.health.current).toBe(3);
-		expect(calledWith.health.max).toBe(3);
+		expect(calledWith.health!.current).toBe(3);
+		expect(calledWith.health!.max).toBe(3);
 	});
 
 	it("should set enemy type to scout", () => {
 		createScout(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.enemy.type).toBe("scout");
-		expect(calledWith.enemy.tier).toBe("light");
+		expect(calledWith.enemy!.type).toBe("scout");
+		expect(calledWith.enemy!.tier).toBe("light");
 	});
 
 	it("should set scout-specific components", () => {
@@ -319,28 +319,28 @@ describe("createScout", () => {
 		createScout(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.velocity.maxSpeed).toBe(10);
+		expect(calledWith.velocity!.maxSpeed).toBe(10);
 	});
 
 	it("should start in patrol state", () => {
 		createScout(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.aiBrain.currentState).toBe("patrol");
+		expect(calledWith.aiBrain!.currentState).toBe("patrol");
 	});
 
 	it("should set low xp value", () => {
 		createScout(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.enemy.xpValue).toBe(10);
+		expect(calledWith.enemy!.xpValue).toBe(10);
 	});
 
 	it("should have scurry animation", () => {
 		createScout(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.animated.currentAnimation).toBe("scurry");
-		expect(calledWith.animated.animationSpeed).toBe(1.5);
+		expect(calledWith.animated!.currentAnimation).toBe("scurry");
+		expect(calledWith.animated!.animationSpeed).toBe(1.5);
 	});
 });

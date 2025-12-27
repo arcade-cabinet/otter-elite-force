@@ -112,7 +112,7 @@ describe("Entity Components Rendering", () => {
 			expect(() => {
 				render(
 					<group>
-						<PrisonCage position={new THREE.Vector3(0, 0, 0)} characterId="test" />
+						<PrisonCage position={new THREE.Vector3(0, 0, 0)} />
 					</group>,
 				);
 			}).not.toThrow();
@@ -253,7 +253,7 @@ describe("Villager Component", () => {
 describe("Weapon Component", () => {
 	it("should render Weapon without error", async () => {
 		const { Weapon } = await import("../Weapon");
-		const muzzleRef = { current: new THREE.Object3D() };
+		const muzzleRef = { current: new THREE.Group() };
 		expect(() => {
 			render(
 				<group>
@@ -265,7 +265,7 @@ describe("Weapon Component", () => {
 
 	it("should render Weapon when firing", async () => {
 		const { Weapon } = await import("../Weapon");
-		const muzzleRef = { current: new THREE.Object3D() };
+		const muzzleRef = { current: new THREE.Group() };
 		expect(() => {
 			render(
 				<group>

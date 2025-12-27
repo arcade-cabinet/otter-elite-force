@@ -40,26 +40,26 @@ describe("createSiphon", () => {
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.destructible).toBeDefined();
-		expect(calledWith.destructible.hp).toBe(50);
-		expect(calledWith.destructible.maxHp).toBe(50);
-		expect(calledWith.destructible.isDestroyed).toBe(false);
+		expect(calledWith.destructible!.hp).toBe(50);
+		expect(calledWith.destructible!.maxHp).toBe(50);
+		expect(calledWith.destructible!.isDestroyed).toBe(false);
 	});
 
 	it("should set objective type to siphon", () => {
 		createSiphon(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.objective.type).toBe("siphon");
-		expect(calledWith.objective.isCompleted).toBe(false);
-		expect(calledWith.objective.isActive).toBe(true);
+		expect(calledWith.objective!.type).toBe("siphon");
+		expect(calledWith.objective!.isCompleted).toBe(false);
+		expect(calledWith.objective!.isActive).toBe(true);
 	});
 
 	it("should set progress required matching destructible hp", () => {
 		createSiphon(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.objective.progressRequired).toBe(50);
-		expect(calledWith.objective.currentProgress).toBe(0);
+		expect(calledWith.objective!.progressRequired).toBe(50);
+		expect(calledWith.objective!.currentProgress).toBe(0);
 	});
 
 	it("should have smoke particle emitter", () => {
@@ -67,8 +67,8 @@ describe("createSiphon", () => {
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.particleEmitter).toBeDefined();
-		expect(calledWith.particleEmitter.type).toBe("smoke");
-		expect(calledWith.particleEmitter.isEmitting).toBe(true);
+		expect(calledWith.particleEmitter!.type).toBe("smoke");
+		expect(calledWith.particleEmitter!.isEmitting).toBe(true);
 	});
 
 	it("should set isObjective tag", () => {
@@ -82,7 +82,7 @@ describe("createSiphon", () => {
 		createSiphon(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.renderable.type).toBe("siphon");
+		expect(calledWith.renderable!.type).toBe("siphon");
 	});
 
 	it("should set chunkReference when provided", () => {
@@ -96,7 +96,7 @@ describe("createSiphon", () => {
 		createSiphon(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.collider.layer).toBe("environment");
+		expect(calledWith.collider!.layer).toBe("environment");
 	});
 });
 
@@ -115,32 +115,32 @@ describe("createPrisonCage", () => {
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.rescuable).toBeDefined();
-		expect(calledWith.rescuable.characterId).toBe("gen-whiskers");
-		expect(calledWith.rescuable.isRescued).toBe(false);
+		expect(calledWith.rescuable!.characterId).toBe("gen-whiskers");
+		expect(calledWith.rescuable!.isRescued).toBe(false);
 	});
 
 	it("should set dialogue id based on character", () => {
 		createPrisonCage(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.rescuable.dialogueId).toBe("rescue_gen-whiskers");
+		expect(calledWith.rescuable!.dialogueId).toBe("rescue_gen-whiskers");
 	});
 
 	it("should set objective type to prison_cage", () => {
 		createPrisonCage(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.objective.type).toBe("prison_cage");
-		expect(calledWith.objective.progressRequired).toBe(1);
+		expect(calledWith.objective!.type).toBe("prison_cage");
+		expect(calledWith.objective!.progressRequired).toBe(1);
 	});
 
 	it("should set interactable for rescue", () => {
 		createPrisonCage(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.interactable.type).toBe("rescue");
-		expect(calledWith.interactable.promptText).toBe("RESCUE");
-		expect(calledWith.interactable.range).toBe(3);
+		expect(calledWith.interactable!.type).toBe("rescue");
+		expect(calledWith.interactable!.promptText).toBe("RESCUE");
+		expect(calledWith.interactable!.range).toBe(3);
 	});
 
 	it("should set isObjective and isInteractable tags", () => {
@@ -155,7 +155,7 @@ describe("createPrisonCage", () => {
 		createPrisonCage(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.renderable.type).toBe("prison_cage");
+		expect(calledWith.renderable!.type).toBe("prison_cage");
 	});
 
 	it("should set chunkReference when provided", () => {
@@ -179,25 +179,25 @@ describe("createExtractionPoint", () => {
 		createExtractionPoint(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.objective.type).toBe("extraction_point");
-		expect(calledWith.objective.isActive).toBe(true);
+		expect(calledWith.objective!.type).toBe("extraction_point");
+		expect(calledWith.objective!.isActive).toBe(true);
 	});
 
 	it("should set interactable for extraction", () => {
 		createExtractionPoint(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.interactable.type).toBe("use");
-		expect(calledWith.interactable.promptText).toBe("EXTRACT");
-		expect(calledWith.interactable.range).toBe(5);
+		expect(calledWith.interactable!.type).toBe("use");
+		expect(calledWith.interactable!.promptText).toBe("EXTRACT");
+		expect(calledWith.interactable!.range).toBe(5);
 	});
 
 	it("should set large collider radius", () => {
 		createExtractionPoint(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.collider.radius).toBe(5);
-		expect(calledWith.collider.layer).toBe("trigger");
+		expect(calledWith.collider!.radius).toBe(5);
+		expect(calledWith.collider!.layer).toBe("trigger");
 	});
 
 	it("should set isObjective and isInteractable tags", () => {
@@ -212,8 +212,8 @@ describe("createExtractionPoint", () => {
 		createExtractionPoint(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.renderable.type).toBe("extraction_point");
-		expect(calledWith.renderable.castShadow).toBe(false);
+		expect(calledWith.renderable!.type).toBe("extraction_point");
+		expect(calledWith.renderable!.castShadow).toBe(false);
 	});
 
 	it("should set chunkReference when provided", () => {
