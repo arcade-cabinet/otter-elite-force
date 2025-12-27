@@ -3,24 +3,30 @@
  * Algorithmic construction of river dwellings using floors, walls, and roofs.
  */
 
+import * as THREE from "three";
 import { useMemo } from "react";
-import type * as THREE from "three";
-import { createSeededRandom } from "../utils/random";
 
 interface HutProps {
-	position: [number, number, number] | THREE.Vector3;
+	position: THREE.Vector3;
 	seed: number;
 	isHealerHut?: boolean;
 }
 
 export function ModularHut({ position, seed, isHealerHut = false }: HutProps) {
 	const components = useMemo(() => {
-		const rand = createSeededRandom(seed);
+		const pseudoRandom = () => {
+			let s = seed;
+			return () => {
+				s = (s * 9301 + 49297) % 233280;
+				return s / 233280;
+			};
+		};
+		const rand = pseudoRandom();
 
 		const width = 3 + Math.floor(rand() * 2);
 		const depth = 3 + Math.floor(rand() * 2);
 		const hasPorch = rand() > 0.5;
-
+		
 		return { width, depth, hasPorch };
 	}, [seed]);
 
@@ -31,12 +37,7 @@ export function ModularHut({ position, seed, isHealerHut = false }: HutProps) {
 	return (
 		<group position={position}>
 			{/* Stilt Foundation (Elevated above mud) */}
-			{[
-				[-width / 2, -depth / 2],
-				[width / 2, -depth / 2],
-				[-width / 2, depth / 2],
-				[width / 2, depth / 2],
-			].map((p, i) => (
+			{[[-width/2, -depth/2], [width/2, -depth/2], [-width/2, depth/2], [width/2, depth/2]].map((p, i) => (
 				<mesh key={i} position={[p[0], 0, p[1]]}>
 					<cylinderGeometry args={[0.1, 0.1, 2]} />
 					<meshStandardMaterial color="#2d1f15" />
@@ -52,27 +53,27 @@ export function ModularHut({ position, seed, isHealerHut = false }: HutProps) {
 			{/* Walls */}
 			<group position={[0, 2, 0]}>
 				{/* Back Wall */}
-				<mesh position={[0, 0, -depth / 2]}>
+				<mesh position={[0, 0, -depth/2]}>
 					<boxGeometry args={[width, 2, 0.1]} />
 					<meshStandardMaterial color={wallColor} />
 				</mesh>
 				{/* Side Walls */}
-				<mesh position={[-width / 2, 0, 0]} rotation-y={Math.PI / 2}>
+				<mesh position={[-width/2, 0, 0]} rotation-y={Math.PI/2}>
 					<boxGeometry args={[depth, 2, 0.1]} />
 					<meshStandardMaterial color={wallColor} />
 				</mesh>
-				<mesh position={[width / 2, 0, 0]} rotation-y={Math.PI / 2}>
+				<mesh position={[width/2, 0, 0]} rotation-y={Math.PI/2}>
 					<boxGeometry args={[depth, 2, 0.1]} />
 					<meshStandardMaterial color={wallColor} />
 				</mesh>
 				{/* Front Wall (with door) */}
-				<group position={[0, 0, depth / 2]}>
-					<mesh position={[-width / 4 - 0.5, 0, 0]}>
-						<boxGeometry args={[width / 2 - 1, 2, 0.1]} />
+				<group position={[0, 0, depth/2]}>
+					<mesh position={[-width/4 - 0.5, 0, 0]}>
+						<boxGeometry args={[width/2 - 1, 2, 0.1]} />
 						<meshStandardMaterial color={wallColor} />
 					</mesh>
-					<mesh position={[width / 4 + 0.5, 0, 0]}>
-						<boxGeometry args={[width / 2 - 1, 2, 0.1]} />
+					<mesh position={[width/4 + 0.5, 0, 0]}>
+						<boxGeometry args={[width/2 - 1, 2, 0.1]} />
 						<meshStandardMaterial color={wallColor} />
 					</mesh>
 					<mesh position={[0, 0.7, 0]}>
@@ -83,8 +84,8 @@ export function ModularHut({ position, seed, isHealerHut = false }: HutProps) {
 			</group>
 
 			{/* Roof (A-Frame) */}
-			<mesh position={[0, 3.5, 0]} rotation-y={Math.PI / 2} scale={[1, 1, depth / width]}>
-				<cylinderGeometry args={[0, (width + 1) / 1.4, 2, 4]} />
+			<mesh position={[0, 3.5, 0]} rotation-y={Math.PI/2}>
+				<cylinderGeometry args={[0, (width + 1) / 1.4, 2, 4]} scale={[1, 1, depth / width]} />
 				<meshStandardMaterial color={roofColor} roughness={1} />
 			</mesh>
 
