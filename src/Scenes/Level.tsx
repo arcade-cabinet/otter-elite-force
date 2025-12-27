@@ -13,263 +13,34 @@ import {
 	Noise,
 	Vignette,
 } from "@react-three/postprocessing";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import * as THREE from "three";
 import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
 import { inputSystem } from "../Core/InputSystem";
-import { Enemy } from "../Entities/Enemies";
+import {
+	BurntTrees,
+	Debris,
+	FloatingDrums,
+	Lilypads,
+	Mangroves,
+	Reeds,
+} from "../Entities/Environment";
+import { Siphon } from "../Entities/Objectives/Siphon";
 import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
-import { Snake } from "../Entities/SnakePredator";
-import { Snapper } from "../Entities/SnapperBunker";
-import { randomRange } from "../utils/math";
-
-import { FLAG_FRAG, FLAG_VERT, WATER_FRAG, WATER_VERT } from "../utils/shaders";
-
-function _Flag({ position }: { position: [number, number, number] }) {
-	const flagUniforms = useRef({
-		time: { value: 0 },
-	});
-
-	useFrame((state) => {
-		flagUniforms.current.time.value = state.clock.elapsedTime;
-	});
-
-	return (
-		<group position={position}>
-			{/* Flagpole */}
-			<mesh position={[0, 2, 0]}>
-				<cylinderGeometry args={[0.05, 0.05, 4, 8]} />
-				<meshStandardMaterial color="#333" />
-			</mesh>
-			{/* Flag cloth */}
-			<mesh position={[0.75, 3.3, 0]}>
-				<planeGeometry args={[1.5, 1, 20, 20]} />
-				<shaderMaterial
-					vertexShader={FLAG_VERT}
-					fragmentShader={FLAG_FRAG}
-					uniforms={flagUniforms.current}
-					side={THREE.DoubleSide}
-				/>
-			</mesh>
-		</group>
-	);
-}
-
-function Lilypads({ count = 20 }) {
-	const meshRef = useRef<THREE.InstancedMesh>(null);
-
-	useEffect(() => {
-		const mesh = meshRef.current;
-		if (!mesh) return;
-		const dummy = new THREE.Object3D();
-		for (let i = 0; i < count; i++) {
-			const angle = Math.random() * Math.PI * 2;
-			const dist = randomRange(10, 60);
-			dummy.position.set(Math.cos(angle) * dist, 0.15, Math.sin(angle) * dist);
-			const size = randomRange(0.5, 1.2);
-			dummy.scale.set(size, 0.05, size);
-			dummy.rotation.y = Math.random() * Math.PI;
-			dummy.updateMatrix();
-			mesh.setMatrixAt(i, dummy.matrix);
-		}
-		mesh.instanceMatrix.needsUpdate = true;
-	}, [count]);
-
-	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} receiveShadow>
-			<cylinderGeometry args={[1, 1, 1, 12]} />
-			<meshStandardMaterial color="#2a4d1a" roughness={0.9} />
-		</instancedMesh>
-	);
-}
-
-function Reeds({ count = 40 }) {
-	const meshRef = useRef<THREE.InstancedMesh>(null);
-
-	useEffect(() => {
-		const mesh = meshRef.current;
-		if (!mesh) return;
-		const dummy = new THREE.Object3D();
-		for (let i = 0; i < count; i++) {
-			const angle = Math.random() * Math.PI * 2;
-			const dist = randomRange(20, 80);
-			dummy.position.set(Math.cos(angle) * dist, 0.5, Math.sin(angle) * dist);
-			dummy.scale.set(0.2, randomRange(1, 3), 0.2);
-			dummy.rotation.y = Math.random() * Math.PI;
-			dummy.updateMatrix();
-			mesh.setMatrixAt(i, dummy.matrix);
-		}
-		mesh.instanceMatrix.needsUpdate = true;
-	}, [count]);
-
-	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<cylinderGeometry args={[0.5, 0.5, 1, 8]} />
-			<meshStandardMaterial color="#4d7a2b" roughness={0.9} />
-		</instancedMesh>
-	);
-}
-
-import { CHARACTERS } from "../stores/gameStore";
-
-function _Debris({ count = 10, color = "#444" }) {
-	const meshRef = useRef<THREE.InstancedMesh>(null);
-
-	useEffect(() => {
-		const mesh = meshRef.current;
-		if (!mesh) return;
-		const dummy = new THREE.Object3D();
-		for (let i = 0; i < count; i++) {
-			const angle = Math.random() * Math.PI * 2;
-			const dist = randomRange(10, 70);
-			dummy.position.set(Math.cos(angle) * dist, 0.2, Math.sin(angle) * dist);
-			dummy.scale.set(randomRange(0.5, 2), randomRange(0.5, 1), randomRange(0.5, 2));
-			dummy.rotation.set(Math.random() * 0.2, Math.random() * Math.PI, Math.random() * 0.2);
-			dummy.updateMatrix();
-			mesh.setMatrixAt(i, dummy.matrix);
-		}
-		mesh.instanceMatrix.needsUpdate = true;
-	}, [count]);
-
-	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<boxGeometry args={[1, 1, 1]} />
-			<meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
-		</instancedMesh>
-	);
-}
-
-function BurntTrees({ count = 15 }) {
-	const meshRef = useRef<THREE.InstancedMesh>(null);
-
-	useEffect(() => {
-		const mesh = meshRef.current;
-		if (!mesh) return;
-		const dummy = new THREE.Object3D();
-		for (let i = 0; i < count; i++) {
-			const angle = Math.random() * Math.PI * 2;
-			const dist = randomRange(30, 90);
-			dummy.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
-			dummy.scale.set(randomRange(0.5, 1), randomRange(4, 10), randomRange(0.5, 1));
-			dummy.rotation.set(Math.random() * 0.2, Math.random() * Math.PI, Math.random() * 0.2);
-			dummy.updateMatrix();
-			mesh.setMatrixAt(i, dummy.matrix);
-		}
-		mesh.instanceMatrix.needsUpdate = true;
-	}, [count]);
-
-	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<cylinderGeometry args={[0.3, 0.5, 1, 6]} />
-			<meshStandardMaterial color="#1a1a1a" roughness={1} />
-		</instancedMesh>
-	);
-}
-
-function Mangroves({ count = 30 }) {
-	const meshRef = useRef<THREE.InstancedMesh>(null);
-
-	useEffect(() => {
-		const mesh = meshRef.current;
-		if (!mesh) return;
-		const dummy = new THREE.Object3D();
-		for (let i = 0; i < count; i++) {
-			const angle = Math.random() * Math.PI * 2;
-			const dist = randomRange(25, 80);
-			dummy.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
-			dummy.scale.set(randomRange(0.8, 1.5), randomRange(5, 12), randomRange(0.8, 1.5));
-			dummy.rotation.set(randomRange(-0.1, 0.1), Math.random() * Math.PI, randomRange(-0.1, 0.1));
-			dummy.updateMatrix();
-			mesh.setMatrixAt(i, dummy.matrix);
-		}
-		mesh.instanceMatrix.needsUpdate = true;
-	}, [count]);
-
-	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<cylinderGeometry args={[0.4, 0.8, 1, 8]} />
-			<meshStandardMaterial color="#2d3d19" roughness={1} />
-		</instancedMesh>
-	);
-}
-
-function FloatingDrums({ count = 10 }) {
-	const meshRef = useRef<THREE.InstancedMesh>(null);
-
-	useEffect(() => {
-		const mesh = meshRef.current;
-		if (!mesh) return;
-		const dummy = new THREE.Object3D();
-		for (let i = 0; i < count; i++) {
-			const angle = Math.random() * Math.PI * 2;
-			const dist = randomRange(15, 60);
-			dummy.position.set(Math.cos(angle) * dist, 0.1, Math.sin(angle) * dist);
-			dummy.scale.set(0.6, 0.9, 0.6);
-			dummy.rotation.set(Math.PI / 2, 0, Math.random() * Math.PI);
-			dummy.updateMatrix();
-			mesh.setMatrixAt(i, dummy.matrix);
-		}
-		mesh.instanceMatrix.needsUpdate = true;
-	}, [count]);
-
-	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<cylinderGeometry args={[0.5, 0.5, 1, 12]} />
-			<meshStandardMaterial color="#555" metalness={0.7} roughness={0.3} />
-		</instancedMesh>
-	);
-}
-
-import { CHUNK_SIZE, GAME_CONFIG, useGameStore } from "../stores/gameStore";
-
-function Siphon({ position }: { position: THREE.Vector3 }) {
-	const smokeRef = useRef<THREE.Group>(null);
-	
-	useFrame((state) => {
-		if (smokeRef.current) {
-			const t = state.clock.elapsedTime;
-			smokeRef.current.children.forEach((child, i) => {
-				child.position.y += 0.05;
-				child.scale.setScalar(child.scale.x + 0.01);
-				if (child.position.y > 5) {
-					child.position.y = 0;
-					child.scale.setScalar(0.2);
-				}
-			});
-		}
-	});
-
-	return (
-		<group position={position}>
-			{/* Main Siphon Structure */}
-			<mesh castShadow receiveShadow>
-				<cylinderGeometry args={[1.5, 2, 4, 8]} />
-				<meshStandardMaterial color="#111" metalness={0.8} />
-			</mesh>
-			{/* Pumping Pipes */}
-			{[0, 1, 2].map(i => (
-				<mesh key={i} rotation-y={(i * Math.PI * 2) / 3} position={[0, -1, 0]}>
-					<cylinderGeometry args={[0.3, 0.3, 5]} rotation-z={Math.PI / 2.5} />
-					<meshStandardMaterial color="#222" />
-				</mesh>
-			))}
-			{/* Dirty Smoke Effect */}
-			<group ref={smokeRef} position={[0, 2, 0]}>
-				{[...Array(5)].map((_, i) => (
-					<mesh key={i} position={[0, i * 1, 0]}>
-						<sphereGeometry args={[0.5, 8, 8]} />
-						<meshBasicMaterial color="#333" transparent opacity={0.4} />
-					</mesh>
-				))}
-			</group>
-			{/* Objective Light */}
-			<pointLight color="#ff0000" intensity={2} distance={10} />
-		</group>
-	);
-}
+import {
+	CHARACTERS,
+	CHUNK_SIZE,
+	type ChunkData,
+	GAME_CONFIG,
+	useGameStore,
+} from "../stores/gameStore";
+import { WATER_FRAG, WATER_VERT } from "../utils/shaders";
+import { Enemy } from "./Enemies/Gator";
+import { Snake } from "./Enemies/Snake";
+import { Snapper } from "./Enemies/Snapper";
 
 function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 }) {
 	const waterUniforms = useRef({
@@ -302,15 +73,18 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 				/>
 			</mesh>
 
-			{data.decorations.map((dec, i) => {
-				if (dec.type === "REED") return <Reeds key={`${data.id}-r-${i}`} count={dec.count} />;
-				if (dec.type === "LILYPAD") return <Lilypads key={`${data.id}-l-${i}`} count={dec.count} />;
+			{data.decorations.map((dec) => {
+				const key = dec.id;
+				if (dec.type === "REED") return <Reeds key={key} count={dec.count} seed={data.seed} />;
+				if (dec.type === "LILYPAD")
+					return <Lilypads key={key} count={dec.count} seed={data.seed} />;
 				if (dec.type === "MANGROVE")
-					return <Mangroves key={`${data.id}-m-${i}`} count={dec.count} />;
+					return <Mangroves key={key} count={dec.count} seed={data.seed} />;
 				if (dec.type === "BURNT_TREE")
-					return <BurntTrees key={`${data.id}-b-${i}`} count={dec.count} />;
+					return <BurntTrees key={key} count={dec.count} seed={data.seed} />;
 				if (dec.type === "DRUM")
-					return <FloatingDrums key={`${data.id}-d-${i}`} count={dec.count} />;
+					return <FloatingDrums key={key} count={dec.count} seed={data.seed} />;
+				if (dec.type === "DEBRIS") return <Debris key={key} count={dec.count} seed={data.seed} />;
 				return null;
 			})}
 
@@ -325,7 +99,14 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 					return (
 						<Enemy
 							key={entity.id}
-							data={{ ...entity, position: worldPos, hp: 10, maxHp: 10 }}
+							data={{
+								...entity,
+								position: worldPos,
+								hp: 10,
+								maxHp: 10,
+								state: "IDLE",
+								suppression: 0,
+							}}
 							targetPosition={playerPos}
 						/>
 					);
@@ -359,15 +140,18 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 							<meshStandardMaterial color="#2d1f15" roughness={1} />
 						</mesh>
 					);
-				if (entity.type === "SIPHON")
-					return (
-						<Siphon key={entity.id} position={worldPos} />
-					);
+				if (entity.type === "SIPHON") return <Siphon key={entity.id} position={worldPos} />;
 				if (entity.type === "OIL_SLICK")
 					return (
 						<mesh key={entity.id} position={worldPos} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
 							<circleGeometry args={[4, 16]} />
-							<meshStandardMaterial color="#1a1a1a" roughness={0.1} metalness={0.8} transparent opacity={0.8} />
+							<meshStandardMaterial
+								color="#1a1a1a"
+								roughness={0.1}
+								metalness={0.8}
+								transparent
+								opacity={0.8}
+							/>
 						</mesh>
 					);
 				if (entity.type === "MUD_PIT")
@@ -396,7 +180,28 @@ export function Level() {
 	const [_playerVelocity, setPlayerVelocity] = useState(0);
 
 	const [activeChunks, setActiveChunks] = useState<ChunkData[]>([]);
-	const [particles, _setParticles] = useState<ParticleData[]>([]);
+	const [particles, setParticles] = useState<ParticleData[]>([]);
+
+	// Impact helper
+	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell") => {
+		audioEngine.playSFX("hit");
+		const particleCount = 5;
+		const newParticles: ParticleData[] = [];
+		for (let j = 0; j < particleCount; j++) {
+			newParticles.push({
+				id: `${type}-${Math.random()}`,
+				position: pos.clone(),
+				velocity: new THREE.Vector3(
+					(Math.random() - 0.5) * 5,
+					Math.random() * 5,
+					(Math.random() - 0.5) * 5,
+				),
+				lifetime: 0.5 + Math.random() * 0.5,
+				type: type,
+			});
+		}
+		setParticles((prev) => [...prev, ...newParticles]);
+	}, []);
 
 	// Refs for imperative updates
 	const playerRef = useRef<THREE.Group>(null);
@@ -437,22 +242,22 @@ export function Level() {
 		if (Math.abs(input.move.x) > 0.1) moveVec.add(camSide.clone().multiplyScalar(input.move.x));
 
 		const isAiming = input.look.active;
-		let moveSpeed = isAiming 
-			? character.traits.baseSpeed * 0.6 
-			: character.traits.baseSpeed;
+		let moveSpeed = isAiming ? character.traits.baseSpeed * 0.6 : character.traits.baseSpeed;
 
 		// --- HAZARD DETECTION ---
 		let onSlick = false;
 		let inMud = false;
-		
-		activeChunks.forEach(chunk => {
-			chunk.entities.forEach(entity => {
+
+		activeChunks.forEach((chunk) => {
+			chunk.entities.forEach((entity) => {
 				if (entity.type === "OIL_SLICK" || entity.type === "MUD_PIT") {
 					const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
 					const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
-					const dist = new THREE.Vector2(playerRef.current!.position.x, playerRef.current!.position.z)
-						.distanceTo(new THREE.Vector2(worldX, worldZ));
-					
+					const dist = new THREE.Vector2(
+						playerRef.current!.position.x,
+						playerRef.current!.position.z,
+					).distanceTo(new THREE.Vector2(worldX, worldZ));
+
 					if (dist < (entity.type === "OIL_SLICK" ? 4 : 5)) {
 						if (entity.type === "OIL_SLICK") onSlick = true;
 						if (entity.type === "MUD_PIT") inMud = true;
@@ -490,7 +295,6 @@ export function Level() {
 		}
 
 		// Platform Collision (AABB check against nearby chunks)
-		let _onPlatform = false;
 		activeChunks.forEach((chunk) => {
 			chunk.entities.forEach((entity) => {
 				if (entity.type === "PLATFORM") {
@@ -507,7 +311,6 @@ export function Level() {
 							playerRef.current!.position.y = platformTop;
 							newVelY = 0;
 							setIsGrounded(true);
-							_onPlatform = true;
 						}
 					}
 				}
@@ -541,7 +344,7 @@ export function Level() {
 				newVelY = 0;
 			}
 			// Vertical movement from right stick (look input)
-			newVelY = -input.look.y * character.traits.climbSpeed; 
+			newVelY = -input.look.y * character.traits.climbSpeed;
 		} else {
 			if (isClimbing) {
 				setIsClimbing(false);
@@ -570,6 +373,27 @@ export function Level() {
 				projectilesRef.current?.spawn(muzzlePos, shootDir);
 				audioEngine.playSFX("shoot");
 				lastFireTime.current = currentTime;
+
+				// Recoil
+				const recoilAmount = character.gear.weapon === "fish-cannon" ? 0.05 : 0.02;
+				playerRef.current.rotation.y += (Math.random() - 0.5) * recoilAmount;
+
+				// Apply suppression to nearby gators
+				activeChunks.forEach((chunk) => {
+					chunk.entities.forEach((entity) => {
+						if (entity.type === "GATOR") {
+							const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
+							const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
+							const dist = new THREE.Vector3(worldX, 0, worldZ).distanceTo(
+								playerRef.current!.position,
+							);
+							if (dist < 15) {
+								entity.suppression = Math.min(1, (entity.suppression || 0) + 0.15);
+							}
+						}
+					});
+				});
+
 				state.camera.position.add(new THREE.Vector3(Math.random() * 0.1 - 0.05, 0, 0));
 			}
 		} else {
@@ -581,6 +405,48 @@ export function Level() {
 				playerRef.current.rotation.y += diff * 5 * delta;
 				playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
 			}
+		}
+
+		// --- COLLISION DETECTION ---
+		const currentProjectiles = projectilesRef.current?.getProjectiles() || [];
+		for (const projectile of currentProjectiles) {
+			activeChunks.forEach((chunk) => {
+				chunk.entities.forEach((entity) => {
+					const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
+					const worldY = entity.position[1];
+					const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
+					const worldPos = new THREE.Vector3(worldX, worldY, worldZ);
+
+					const dist = projectile.position.distanceTo(worldPos);
+					let hit = false;
+					let hitType: "blood" | "shell" = "blood";
+
+					if (entity.type === "GATOR" && dist < 1.5) {
+						hit = true;
+						hitType = "blood";
+					} else if (entity.type === "SNAKE" && dist < 1.0) {
+						hit = true;
+						hitType = "blood";
+					} else if (entity.type === "SNAPPER" && dist < 2.0) {
+						hit = true;
+						hitType = "shell";
+					} else if (entity.type === "SIPHON" && dist < 2.0) {
+						hit = true;
+						hitType = "shell";
+					}
+
+					if (hit) {
+						entity.hp = (entity.hp || 10) - GAME_CONFIG.BULLET_DAMAGE;
+						handleImpact(projectile.position, hitType);
+						projectilesRef.current?.remove(projectile.id);
+						if (entity.hp <= 0) {
+							// Handle death (would ideally update store)
+							chunk.entities = chunk.entities.filter((e) => e.id !== entity.id);
+							useGameStore.getState().addCoins(10);
+						}
+					}
+				});
+			});
 		}
 
 		// Update state
@@ -607,6 +473,11 @@ export function Level() {
 		state.camera.position.lerp(playerRef.current.position.clone().add(cameraOffset), 0.1);
 		state.camera.lookAt(playerRef.current.position.clone().add(new THREE.Vector3(0, 2, 0)));
 	});
+
+	// Handle particle expiration
+	const handleParticleExpire = useCallback((id: string) => {
+		setParticles((prev) => prev.filter((p) => p.id !== id));
+	}, []);
 
 	return (
 		<Canvas shadows camera={{ position: [0, 12, 20], fov: 60 }} gl={{ antialias: true }}>

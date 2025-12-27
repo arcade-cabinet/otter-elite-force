@@ -1,16 +1,5 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
-import { createSeededRandom } from "../../utils/random";
-
-const DEBRIS_CONFIG = {
-	minDistance: 10,
-	maxDistance: 70,
-	minScale: 0.5,
-	maxScale: 2.0,
-	height: 0.2,
-} as const;
-
-const dummy = new THREE.Object3D();
 
 export function Debris({ count = 10, color = "#444", seed = 0 }) {
 	const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -18,20 +7,22 @@ export function Debris({ count = 10, color = "#444", seed = 0 }) {
 	useEffect(() => {
 		const mesh = meshRef.current;
 		if (!mesh) return;
+		const dummy = new THREE.Object3D();
 
-		const rand = createSeededRandom(seed, 5);
+		const pseudoRandom = () => {
+			let s = seed + 5;
+			return () => {
+				s = (s * 9301 + 49297) % 233280;
+				return s / 233280;
+			};
+		};
+		const rand = pseudoRandom();
 
 		for (let i = 0; i < count; i++) {
 			const angle = rand() * Math.PI * 2;
-			const dist =
-				DEBRIS_CONFIG.minDistance +
-				rand() * (DEBRIS_CONFIG.maxDistance - DEBRIS_CONFIG.minDistance);
-			dummy.position.set(Math.cos(angle) * dist, DEBRIS_CONFIG.height, Math.sin(angle) * dist);
-			dummy.scale.set(
-				DEBRIS_CONFIG.minScale + rand() * 1.5,
-				DEBRIS_CONFIG.minScale + rand() * 0.5,
-				DEBRIS_CONFIG.minScale + rand() * 1.5,
-			);
+			const dist = 10 + rand() * 60;
+			dummy.position.set(Math.cos(angle) * dist, 0.2, Math.sin(angle) * dist);
+			dummy.scale.set(0.5 + rand() * 1.5, 0.5 + rand() * 0.5, 0.5 + rand() * 1.5);
 			dummy.rotation.set(rand() * 0.2, rand() * Math.PI, rand() * 0.2);
 			dummy.updateMatrix();
 			mesh.setMatrixAt(i, dummy.matrix);
