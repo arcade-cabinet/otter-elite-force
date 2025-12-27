@@ -744,7 +744,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 				...state.saveData,
 				baseComponents: [
 					...state.saveData.baseComponents,
-					{ ...comp, id: `base-${Math.random().toString(36).substr(2, 9)}` },
+					{ ...comp, id: `base-${crypto.randomUUID()}` },
 				],
 			},
 		}));
@@ -778,12 +778,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	buyUpgrade: (type, cost) => {
 		if (get().spendCoins(cost)) {
+			const upgradeKey = `${type}Boost` as keyof typeof get().saveData.upgrades;
 			set((state) => ({
 				saveData: {
 					...state.saveData,
 					upgrades: {
 						...state.saveData.upgrades,
-						[`${type}Boost`]: (state.saveData.upgrades as any)[`${type}Boost`] + 1,
+						[upgradeKey]: state.saveData.upgrades[upgradeKey] + 1,
 					},
 				},
 			}));

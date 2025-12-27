@@ -13,7 +13,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { forwardRef, useMemo, useRef } from "react";
+import { forwardRef, useEffect, useMemo, useRef } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import type { CharacterGear, CharacterTraits } from "../stores/gameStore";
@@ -89,6 +89,15 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 			}),
 			[traits.furColor, traits.eyeColor],
 		);
+
+		// Cleanup materials on unmount
+		useEffect(() => {
+			return () => {
+				Object.values(materials).forEach((material) => {
+					material.dispose();
+				});
+			};
+		}, [materials]);
 
 		useFrame((state) => {
 			const time = state.clock.elapsedTime;

@@ -10,6 +10,9 @@ export class AudioEngine {
 	private synths: Map<string, Tone.Synth> = new Map();
 	private noiseSynth: Tone.NoiseSynth | null = null;
 	private loop: Tone.Loop | null = null;
+	private activeSynths: Set<Tone.Synth | Tone.MonoSynth> = new Set();
+	private musicSynth: Tone.PolySynth | Tone.MonoSynth | null = null;
+	private musicPattern: Tone.Pattern<string> | null = null;
 
 	/**
 	 * Initialize Tone.js
@@ -49,8 +52,12 @@ export class AudioEngine {
 					envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
 				}).toDestination();
 
+				this.activeSynths.add(synth);
 				synth.triggerAttackRelease("A2", "16n", now);
-				setTimeout(() => synth.dispose(), 200);
+				setTimeout(() => {
+					synth.dispose();
+					this.activeSynths.delete(synth);
+				}, 200);
 				break;
 			}
 
@@ -61,8 +68,12 @@ export class AudioEngine {
 					envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.05 },
 				}).toDestination();
 
+				this.activeSynths.add(synth);
 				synth.triggerAttackRelease("G2", "32n", now);
-				setTimeout(() => synth.dispose(), 200);
+				setTimeout(() => {
+					synth.dispose();
+					this.activeSynths.delete(synth);
+				}, 200);
 				break;
 			}
 
@@ -73,9 +84,13 @@ export class AudioEngine {
 					envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 },
 				}).toDestination();
 
+				this.activeSynths.add(synth);
 				synth.triggerAttackRelease("C5", "8n", now);
 				synth.triggerAttackRelease("E5", "8n", now + 0.1);
-				setTimeout(() => synth.dispose(), 400);
+				setTimeout(() => {
+					synth.dispose();
+					this.activeSynths.delete(synth);
+				}, 400);
 				break;
 			}
 
@@ -91,8 +106,12 @@ export class AudioEngine {
 					envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.2 },
 				}).toDestination();
 
+				this.activeSynths.add(bass);
 				bass.triggerAttackRelease("C1", "4n", now);
-				setTimeout(() => bass.dispose(), 800);
+				setTimeout(() => {
+					bass.dispose();
+					this.activeSynths.delete(bass);
+				}, 800);
 				break;
 			}
 		}
@@ -108,42 +127,42 @@ export class AudioEngine {
 
 		if (type === "menu") {
 			// Melodic menu theme
-			const synth = new Tone.PolySynth(Tone.Synth).toDestination();
-			synth.set({
+			this.musicSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+			this.musicSynth.set({
 				oscillator: { type: "sine" },
 				envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.5 },
 			});
 
-			const pattern = new Tone.Pattern(
+			this.musicPattern = new Tone.Pattern(
 				(time, note) => {
-					synth.triggerAttackRelease(note, "8n", time);
+					(this.musicSynth as Tone.PolySynth)?.triggerAttackRelease(note, "8n", time);
 				},
 				["C4", "E4", "G4", "B4", "A4", "G4", "E4", "D4"],
 				"upDown",
 			);
-			pattern.interval = "4n";
-			pattern.start(0);
+			this.musicPattern.interval = "4n";
+			this.musicPattern.start(0);
 
 			this.loop = new Tone.Loop(() => {}, "1m"); // Dummy loop to track
 			Tone.getTransport().start();
 		} else {
 			// Driving combat theme
-			const bass = new Tone.MonoSynth({
+			this.musicSynth = new Tone.MonoSynth({
 				oscillator: { type: "sawtooth" },
 				envelope: { attack: 0.1, decay: 0.3, sustain: 0.4, release: 0.1 },
 				filter: { Q: 2, type: "lowpass", rolloff: -12 },
 				filterEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.2, baseFrequency: 200, octaves: 2 },
 			}).toDestination();
 
-			const pattern = new Tone.Pattern(
+			this.musicPattern = new Tone.Pattern(
 				(time, note) => {
-					bass.triggerAttackRelease(note, "16n", time);
+					(this.musicSynth as Tone.MonoSynth)?.triggerAttackRelease(note, "16n", time);
 				},
 				["C2", "C2", "G2", "C2", "F2", "C2", "G2", "B1"],
 				"upDown",
 			);
-			pattern.interval = "8n";
-			pattern.start(0);
+			this.musicPattern.interval = "8n";
+			this.musicPattern.start(0);
 
 			Tone.getTransport().start();
 		}
@@ -159,6 +178,14 @@ export class AudioEngine {
 			this.loop.dispose();
 			this.loop = null;
 		}
+		if (this.musicPattern) {
+			this.musicPattern.dispose();
+			this.musicPattern = null;
+		}
+		if (this.musicSynth) {
+			this.musicSynth.dispose();
+			this.musicSynth = null;
+		}
 	}
 
 	/**
@@ -171,6 +198,11 @@ export class AudioEngine {
 			synth.dispose();
 		});
 		this.synths.clear();
+		// Dispose active SFX synths
+		this.activeSynths.forEach((synth) => {
+			synth.dispose();
+		});
+		this.activeSynths.clear();
 		this.initialized = false;
 	}
 

@@ -19,8 +19,7 @@ test.describe("OTTER: ELITE FORCE - Main Menu", () => {
 	});
 
 	test("should allow character selection", async ({ page }) => {
-		const whiskersBtn = page.locator('.char-card:has-text("GEN. WHISKERS")');
-		// Whiskers might be locked initially, check if bubbles is selected
+		// Check if bubbles is selected by default
 		const bubblesCard = page.locator('.char-card.selected:has-text("SGT. BUBBLES")');
 		await expect(bubblesCard).toBeVisible();
 	});

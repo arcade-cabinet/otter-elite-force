@@ -107,32 +107,6 @@ function PrisonCage({ position, rescued = false }: { position: THREE.Vector3; re
 }
 
 // Flag component for extraction points - URA banner waving in wind
-function Flag({ position }: { position: [number, number, number] }) {
-	const flagUniforms = useRef({ time: { value: 0 } });
-	useFrame((state) => {
-		flagUniforms.current.time.value = state.clock.elapsedTime;
-	});
-	return (
-		<group position={position}>
-			<mesh position={[0, 2, 0]}>
-				<cylinderGeometry args={[0.05, 0.05, 4, 8]} />
-				<meshStandardMaterial color="#333" />
-			</mesh>
-			<mesh position={[0.75, 3.3, 0]}>
-				<planeGeometry args={[1.5, 1, 20, 20]} />
-				<shaderMaterial
-					vertexShader={WATER_VERT}
-					fragmentShader={WATER_FRAG}
-					uniforms={flagUniforms.current}
-					side={THREE.DoubleSide}
-				/>
-			</mesh>
-		</group>
-	);
-}
-
-// Export Flag for use in extraction points
-export { Flag };
 
 function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 }) {
 	const waterUniforms = useRef({

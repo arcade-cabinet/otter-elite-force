@@ -32,6 +32,10 @@ export class InputSystem {
 	private handleDeviceOrientation: ((event: DeviceOrientationEvent) => void) | null = null;
 	private handleKeyDown: ((e: KeyboardEvent) => void) | null = null;
 	private handleKeyUp: ((e: KeyboardEvent) => void) | null = null;
+	private handleTouchStart: ((e: TouchEvent) => void) | null = null;
+	private handleTouchMove: ((e: TouchEvent) => void) | null = null;
+	private handleTouchEnd: (() => void) | null = null;
+	private lookZone: HTMLElement | null = null;
 
 	/**
 	 * Initialize input handlers
@@ -73,19 +77,19 @@ export class InputSystem {
 		}
 
 		// Touch drag for looking (right side)
-		const lookZone = document.getElementById("joystick-look"); // Reusing ID for now
-		if (lookZone) {
+		this.lookZone = document.getElementById("joystick-look"); // Reusing ID for now
+		if (this.lookZone) {
 			let lastX = 0;
 			let lastY = 0;
 
-			lookZone.addEventListener("touchstart", (e) => {
+			this.handleTouchStart = (e: TouchEvent) => {
 				const touch = e.touches[0];
 				lastX = touch.clientX;
 				lastY = touch.clientY;
 				this.state.drag.active = true;
-			});
+			};
 
-			lookZone.addEventListener("touchmove", (e) => {
+			this.handleTouchMove = (e: TouchEvent) => {
 				const touch = e.touches[0];
 				const dx = touch.clientX - lastX;
 				const dy = touch.clientY - lastY;
@@ -95,13 +99,17 @@ export class InputSystem {
 
 				lastX = touch.clientX;
 				lastY = touch.clientY;
-			});
+			};
 
-			lookZone.addEventListener("touchend", () => {
+			this.handleTouchEnd = () => {
 				this.state.drag.active = false;
 				this.state.drag.x = 0;
 				this.state.drag.y = 0;
-			});
+			};
+
+			this.lookZone.addEventListener("touchstart", this.handleTouchStart);
+			this.lookZone.addEventListener("touchmove", this.handleTouchMove);
+			this.lookZone.addEventListener("touchend", this.handleTouchEnd);
 		}
 	}
 
@@ -267,6 +275,17 @@ export class InputSystem {
 		}
 		if (this.handleKeyUp) {
 			window.removeEventListener("keyup", this.handleKeyUp);
+		}
+		if (this.lookZone) {
+			if (this.handleTouchStart) {
+				this.lookZone.removeEventListener("touchstart", this.handleTouchStart);
+			}
+			if (this.handleTouchMove) {
+				this.lookZone.removeEventListener("touchmove", this.handleTouchMove);
+			}
+			if (this.handleTouchEnd) {
+				this.lookZone.removeEventListener("touchend", this.handleTouchEnd);
+			}
 		}
 	}
 }
