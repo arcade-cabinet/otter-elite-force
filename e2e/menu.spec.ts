@@ -214,7 +214,7 @@ test.describe("OTTER: ELITE FORCE - Cutscene", () => {
 		const count = await continueBtn.count();
 
 		// Should have at least one way to progress
-		expect(count).toBeGreaterThanOrEqual(0);
+		expect(count).toBeGreaterThanOrEqual(1);
 	});
 
 	test("should display dialogue text", async ({ page }) => {
