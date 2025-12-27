@@ -3,7 +3,8 @@
 :root {
 	--primary: #ffaa00;
 	--accent: #00ccff;
-	--ui-bg: rgba(20, 15, 10, 0.95);
+	--ui-bg: rgba(15, 12, 8, 0.98);
+	--military-green: #3d4d29;
 }
 
 * {
@@ -155,10 +156,10 @@ h1 {
 }
 
 button {
-	background: linear-gradient(180deg, #ffcc44, #ff9900);
-	border: none;
-	border-radius: 4px;
-	color: #4a3000;
+	background: linear-gradient(180deg, #4d5d29, #3d4d29);
+	border: 1px solid #5d6d39;
+	border-radius: 2px;
+	color: #fff;
 	font-family: "Carter One", cursive;
 	font-size: 1.3rem;
 	padding: 15px;
@@ -166,7 +167,7 @@ button {
 	margin-top: 20px;
 	cursor: pointer;
 	text-transform: uppercase;
-	box-shadow: 0 4px 0 #b36b00;
+	box-shadow: 0 4px 0 #2d3d19;
 	transition: transform 0.1s;
 	pointer-events: auto;
 }

@@ -4,9 +4,9 @@
  */
 
 import { Environment, Sky } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import { Bloom, EffectComposer, Noise, Vignette } from "@react-three/postprocessing";
-import { useCallback, useEffect, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Bloom, BrightnessContrast, EffectComposer, HueSaturation, Noise, Vignette } from "@react-three/postprocessing";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
@@ -131,6 +131,33 @@ function Debris({ count = 10, color = "#444" }) {
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
 			<boxGeometry args={[1, 1, 1]} />
 			<meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
+		</instancedMesh>
+	);
+}
+
+function BurntTrees({ count = 15 }) {
+	const meshRef = useRef<THREE.InstancedMesh>(null);
+
+	useEffect(() => {
+		const mesh = meshRef.current;
+		if (!mesh) return;
+		const dummy = new THREE.Object3D();
+		for (let i = 0; i < count; i++) {
+			const angle = Math.random() * Math.PI * 2;
+			const dist = randomRange(30, 90);
+			dummy.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
+			dummy.scale.set(randomRange(0.5, 1), randomRange(4, 10), randomRange(0.5, 1));
+			dummy.rotation.set(Math.random() * 0.2, Math.random() * Math.PI, Math.random() * 0.2);
+			dummy.updateMatrix();
+			mesh.setMatrixAt(i, dummy.matrix);
+		}
+		mesh.instanceMatrix.needsUpdate = true;
+	}, [count, meshRef]);
+
+	return (
+		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
+			<cylinderGeometry args={[0.3, 0.5, 1, 6]} />
+			<meshStandardMaterial color="#1a1a1a" roughness={1} />
 		</instancedMesh>
 	);
 }
@@ -384,6 +411,7 @@ export function Level() {
 			<Reeds count={60} />
 			<Lilypads count={30} />
 			{currentLevel >= 1 && <Debris count={20} color={currentLevel === 1 ? "#444" : "#222"} />}
+			<BurntTrees count={currentLevel === 1 ? 30 : 10} />
 
 			{/* Player */}
 			<PlayerRig
@@ -410,11 +438,13 @@ export function Level() {
 			{/* Game Loop */}
 			<GameLoop onUpdate={handleUpdate} />
 
-			{/* Post-processing */}
+			{/* Post-processing: "Mekong War Film" Look */}
 			<EffectComposer>
-				<Bloom luminanceThreshold={1} luminanceSmoothing={0.9} height={300} />
-				<Noise opacity={0.02} />
-				<Vignette eskil={false} offset={0.1} darkness={1.1} />
+				<Bloom luminanceThreshold={1} luminanceSmoothing={0.9} height={300} intensity={0.5} />
+				<Noise opacity={0.05} />
+				<Vignette eskil={false} offset={0.1} darkness={1.2} />
+				<BrightnessContrast brightness={0.05} contrast={0.2} />
+				<HueSaturation saturation={-0.2} />
 			</EffectComposer>
 		</Canvas>
 	);
