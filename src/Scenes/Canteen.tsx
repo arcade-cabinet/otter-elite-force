@@ -50,8 +50,8 @@ export function Canteen() {
 
 			<div className="canteen-ui">
 				<div className="canteen-header">
-					<h2>RIVER CANTEEN</h2>
-					<div className="coin-display">COINS: {saveData.coins}</div>
+					<h2>FORWARD OPERATING BASE</h2>
+					<div className="coin-display">SUPPLY CREDITS: {saveData.coins}</div>
 				</div>
 
 				<div className="platoon-list">
@@ -73,10 +73,10 @@ export function Canteen() {
 
 				<div className="purchase-panel">
 					<h3>{selectedChar.traits.name}</h3>
-					<p>{selectedChar.traits.grizzled ? "A seasoned veteran." : "A rising star in the platoon."}</p>
+					<p>{selectedChar.traits.grizzled ? "A battle-hardened veteran of the early campaigns." : "Fresh meat, but ready for the soup."}</p>
 					
 					{isUnlocked ? (
-						<div className="status-unlocked">RECRUITED</div>
+						<div className="status-unlocked">DEPLOYED</div>
 					) : (
 						<button 
 							type="button" 
@@ -84,13 +84,13 @@ export function Canteen() {
 							onClick={handlePurchase}
 							disabled={saveData.coins < price}
 						>
-							RECRUIT FOR {price} COINS
+							REQUISITION: {price} CREDITS
 						</button>
 					)}
 				</div>
 
 				<button type="button" className="secondary" onClick={() => setMode("MENU")}>
-					BACK TO BASE
+					RETURN TO PERIMETER
 				</button>
 			</div>
 		</div>

@@ -48,8 +48,8 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 		const headRef = useRef<THREE.Group>(null);
 
 		// Materials
-		const matFur = new THREE.MeshStandardMaterial({ color: traits.furColor, roughness: 0.8 });
-		const matSnout = new THREE.MeshStandardMaterial({ color: "#8D6E63", roughness: 0.7 });
+		const matFur = new THREE.MeshStandardMaterial({ color: traits.furColor, roughness: 1.0 });
+		const matSnout = new THREE.MeshStandardMaterial({ color: "#8D6E63", roughness: 0.9 });
 		const matEye = new THREE.MeshStandardMaterial({ color: traits.eyeColor, roughness: 0.1 });
 
 		// Animate limbs

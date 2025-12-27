@@ -1,68 +1,60 @@
 /**
  * Game Constants
- * Central location for all game configuration values
+ * Grounded 1960s Riverine Warfare aesthetic
  */
 
 export const GAME_CONFIG = {
-	// Player settings
 	PLAYER_HEALTH: 100,
 	PLAYER_SPEED: 14,
 	PLAYER_STRAFE_SPEED: 8,
-
-	// Camera settings
 	CAMERA_DISTANCE: 20,
 	CAMERA_DISTANCE_ZOOM: 10,
 	CAMERA_HEIGHT: 12,
-
-	// Combat settings
-	FIRE_RATE: 0.1, // seconds between shots
-	BULLET_SPEED: 80,
+	FIRE_RATE: 0.12,
+	BULLET_SPEED: 90,
 	BULLET_DAMAGE: 1,
-
-	// Enemy settings
-	ENEMY_SPAWN_DISTANCE: 50,
+	ENEMY_SPAWN_DISTANCE: 60,
 	ENEMY_LIGHT_HP: 3,
-	ENEMY_HEAVY_HP: 8,
-	ENEMY_LIGHT_SPEED: 7,
-	ENEMY_HEAVY_SPEED: 4,
+	ENEMY_HEAVY_HP: 10,
+	ENEMY_LIGHT_SPEED: 6,
+	ENEMY_HEAVY_SPEED: 3.5,
 } as const;
 
 export const LEVELS = [
 	{
 		id: 0,
-		title: "PERIMETER BREACH",
-		desc: "Iron Scale scouts have been spotted near the Mekong entrance. Clear the way for the platoon.",
-		goal: 5,
-		enemies: 8,
-		sky: "#ffaa55", // Golden Hour
-		fog: "#ffcc88",
-		waterColor: "#1e3a5f",
+		title: "MUDDY CROSSING",
+		desc: "High noon in the delta. Clear the Iron Scale snipers from the reeds.",
+		goal: 8,
+		enemies: 12,
+		sky: "#f0e6d2", // Bleached sky
+		fog: "#d4c4a8", // Dust/Heat haze
+		waterColor: "#4d4233", // Murky silt
 		difficulty: "EASY",
 	},
 	{
 		id: 1,
-		title: "INDUSTRIAL SLUDGE",
-		desc: "The Dominion is pumping toxic waste into the delta. Destroy the mechanized cleanup crews.",
-		goal: 10,
-		enemies: 15,
-		sky: "#4a5a4a", // Sickly green/grey
-		fog: "#2a3a2a",
-		waterColor: "#1a2a1a", // Oily water
+		title: "THE SMOKE RUN",
+		desc: "The smell of napalm is thick here. Navigate through the burnt mangroves.",
+		goal: 15,
+		enemies: 20,
+		sky: "#ffccaa", // Fire-tinted sky
+		fog: "#8a7a6a", // Smoke haze
+		waterColor: "#2a251a", // Oily sludge
 		difficulty: "MEDIUM",
 	},
 	{
 		id: 2,
-		title: "THE CLAM VAULT",
-		desc: "Final stand. The Iron Scale Elite are guarding the Primal Clams. Do not fail, Bubbles.",
-		goal: 15,
-		enemies: 25,
-		sky: "#1a002a", // Deep purple/night
-		fog: "#0a001a",
-		waterColor: "#050010",
+		title: "CLAM POINT BASE",
+		desc: "The Iron Scale's forward operating base. Break their supply line.",
+		goal: 25,
+		enemies: 30,
+		sky: "#ffffff", // Overexposed daylight
+		fog: "#e0e0e0", // Heat shimmer
+		waterColor: "#3d3d29", // Algae-choked
 		difficulty: "HARD",
 	},
 ] as const;
 
 export const RANKS = ["PUP", "ENSIGN", "LIEUTENANT", "COMMANDER", "ADMIRAL"] as const;
-
 export const STORAGE_KEY = "otter_v8";
