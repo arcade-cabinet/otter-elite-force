@@ -150,10 +150,10 @@ export const loadFromLocalStorage = (): SaveData | null => {
 		// by strictly using the fields we expect from the migrated and merged data.
 
 		const migrated = migrateSchema(parsed as Record<string, unknown>);
-		const merged = deepMerge(
-			JSON.parse(JSON.stringify(DEFAULT_SAVE_DATA)) as Record<string, unknown>,
-			migrated as unknown as Record<string, unknown>,
-		);
+		// Deep clone DEFAULT_SAVE_DATA as base and merge with migrated data
+		const baseData: Record<string, unknown> = JSON.parse(JSON.stringify(DEFAULT_SAVE_DATA));
+		const migratedRecord: Record<string, unknown> = JSON.parse(JSON.stringify(migrated));
+		const merged = deepMerge(baseData, migratedRecord);
 		return merged as unknown as SaveData;
 	} catch (e) {
 		console.error("Load failed", e);

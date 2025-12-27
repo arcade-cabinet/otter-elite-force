@@ -172,6 +172,7 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 								maxHp: 10,
 								state: "IDLE",
 								suppression: entity.suppression || 0,
+								isHeavy: entity.isHeavy ?? false,
 							}}
 							targetPosition={playerPos}
 						/>

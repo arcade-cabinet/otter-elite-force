@@ -47,7 +47,7 @@ export const Projectiles = forwardRef<ProjectilesHandle, object>((_, ref) => {
 		// Update positions
 		for (let i = projectiles.current.length - 1; i >= 0; i--) {
 			const p = projectiles.current[i];
-			const _prevPosition = p.position.clone(); // Reserved for raycasting collision detection
+			// Note: prevPosition could be used for raycasting collision detection
 			p.position.add(p.velocity.clone().multiplyScalar(delta));
 			p.lifetime -= delta;
 
