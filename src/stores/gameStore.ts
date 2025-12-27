@@ -212,6 +212,7 @@ interface SaveData {
 	discoveredChunks: Record<string, ChunkData>;
 	territoryScore: number;
 	difficultyMode: DifficultyMode;
+	isFallTriggered: boolean;
 	strategicObjectives: {
 		siphonsDismantled: number;
 		villagesLiberated: number;
@@ -268,6 +269,7 @@ interface GameState {
 	setCarryingClam: (isCarrying: boolean) => void;
 	setPilotingRaft: (isPiloting: boolean, raftId?: string | null) => void;
 	setFallTriggered: (active: boolean) => void;
+	triggerFall: () => void; // Explicit trigger logic
 
 	// World management
 	currentChunkId: string;
@@ -334,6 +336,7 @@ const DEFAULT_SAVE_DATA: SaveData = {
 	territoryScore: 0,
 	peacekeepingScore: 0,
 	difficultyMode: "SUPPORT",
+	isFallTriggered: false,
 	strategicObjectives: {
 		siphonsDismantled: 0,
 		villagesLiberated: 0,
@@ -397,7 +400,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	// Player stats
 	takeDamage: (amount) => {
-		const { health, saveData, resetData, setFallTriggered, setMode } = get();
+		const { health, saveData, resetData, triggerFall, setMode } = get();
 		const newHealth = Math.max(0, health - amount);
 		
 		if (newHealth <= 0) {
@@ -406,8 +409,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 				return;
 			}
 			setMode("GAMEOVER");
-		} else if (newHealth < 30 && saveData.difficultyMode === "TACTICAL") {
-			setFallTriggered(true);
+		} else if (newHealth < 30) {
+			triggerFall();
 		}
 
 		set({ health: newHealth });
@@ -420,7 +423,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	addKill: () => set((state) => ({ kills: state.kills + 1 })),
 
-	resetStats: () => set({ health: 100, kills: 0, mudAmount: 0, isCarryingClam: false }),
+	resetStats: () => set((state) => ({
+		health: 100,
+		kills: 0,
+		mudAmount: 0,
+		isCarryingClam: false,
+		saveData: { ...state.saveData, isFallTriggered: false } // Reset fall state on new run
+	})),
 
 	setMud: (amount) => set({ mudAmount: amount }),
 
@@ -430,7 +439,19 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	setPilotingRaft: (isPiloting, raftId = null) => set({ isPilotingRaft: isPiloting, raftId }),
 
-	setFallTriggered: (active) => set({ isFallTriggered: active }),
+	setFallTriggered: (active) => set((state) => ({
+		saveData: { ...state.saveData, isFallTriggered: active }
+	})),
+
+	triggerFall: () => {
+		const { saveData } = get();
+		if (saveData.difficultyMode === "TACTICAL" && !saveData.isFallTriggered) {
+			set((state) => ({
+				saveData: { ...state.saveData, isFallTriggered: true }
+			}));
+			get().saveGame();
+		}
+	},
 
 	// World management
 	discoverChunk: (x, z) => {
