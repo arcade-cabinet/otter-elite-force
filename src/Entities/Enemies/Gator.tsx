@@ -20,6 +20,7 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 	// Ambush state
 	const [isAmbushing, setIsAmbushing] = useState(false);
 	const ambushCooldown = useRef(0);
+	const ambushTimer = useRef(0);
 
 	// Setup Yuka AI
 	useEffect(() => {
@@ -44,23 +45,24 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 		if (!vehicleRef.current || !groupRef.current || !bodyRef.current) return;
 
 		const distanceToPlayer = groupRef.current.position.distanceTo(targetPosition);
+		const baseSpeed = data.isHeavy ? 4 : 7;
 
 		// Ambush logic: Pop up when close, or at random
 		ambushCooldown.current -= delta;
-		if (distanceToPlayer < 15 && ambushCooldown.current <= 0) {
+		if (!isAmbushing && distanceToPlayer < 15 && ambushCooldown.current <= 0) {
 			setIsAmbushing(true);
 			ambushCooldown.current = 5 + Math.random() * 5; // 5-10s between ambushes
-
-			// Stop moving while ambushing
+			ambushTimer.current = 3;
 			vehicleRef.current.maxSpeed = 0;
+		}
 
-			// Stay up for 3 seconds then submerge
-			setTimeout(() => {
+		if (isAmbushing) {
+			ambushTimer.current -= delta;
+			if (ambushTimer.current <= 0) {
 				setIsAmbushing(false);
-				if (vehicleRef.current) {
-					vehicleRef.current.maxSpeed = data.isHeavy ? 4 : 7;
-				}
-			}, 3000);
+				vehicleRef.current.maxSpeed = baseSpeed;
+				ambushTimer.current = 0;
+			}
 		}
 
 		// Animate rising/submerging
@@ -85,11 +87,10 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 
 		// Handle Suppression
 		if (data.suppression > 0.1) {
-			vehicleRef.current.maxSpeed = (data.isHeavy ? 4 : 7) * (1 - data.suppression * 0.5);
-			// Ducking animation when suppressed
+			vehicleRef.current.maxSpeed = baseSpeed * (1 - data.suppression * 0.5);
 			bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, -0.2, 0.1);
 		} else if (!isAmbushing) {
-			vehicleRef.current.maxSpeed = data.isHeavy ? 4 : 7;
+			vehicleRef.current.maxSpeed = baseSpeed;
 			bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, 0.15, 0.1);
 		}
 
