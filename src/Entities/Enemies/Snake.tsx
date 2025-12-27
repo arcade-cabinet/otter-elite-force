@@ -30,12 +30,11 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 		if (!groupRef.current) return;
 
 		const t = state.clock.elapsedTime;
-		const distanceToPlayer = new THREE.Vector2(
-			groupRef.current.position.x,
-			groupRef.current.position.z,
-		).distanceTo(new THREE.Vector2(targetPosition.x, targetPosition.z));
+		const dx = groupRef.current.position.x - targetPosition.x;
+		const dz = groupRef.current.position.z - targetPosition.z;
+		const distanceSq = dx * dx + dz * dz;
 
-		if (distanceToPlayer < 8 && strikeTimer.current <= 0) {
+		if (distanceSq < 64 && strikeTimer.current <= 0) { // 8^2 = 64
 			setIsStriking(true);
 			strikeTimer.current = 4;
 		}
@@ -48,6 +47,15 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 		const swayX = Math.sin(t * 0.5) * 0.2;
 		const swayZ = Math.cos(t * 0.7) * 0.2;
 
+		// Calculate look direction once for the whole snake if striking
+		let strikeRotation = 0;
+		if (isStriking) {
+			strikeRotation = Math.atan2(
+				targetPosition.x - groupRef.current.position.x,
+				targetPosition.z - groupRef.current.position.z
+			);
+		}
+
 		segmentsRef.current.forEach((seg, i) => {
 			const targetSegY = isStriking ? initialY - i * 0.8 : initialY - i * 0.35;
 
@@ -56,10 +64,7 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 			seg.position.z = swayZ * (i * 0.5);
 
 			if (isStriking) {
-				const lookDir = targetPosition
-					.clone()
-					.sub(groupRef.current!.position.clone().add(seg.position));
-				seg.rotation.y = Math.atan2(lookDir.x, lookDir.z);
+				seg.rotation.y = strikeRotation;
 			}
 		});
 

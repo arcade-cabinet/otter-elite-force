@@ -36,7 +36,7 @@ export class GatorAI {
 	private wanderBehavior: YUKA.WanderBehavior;
 	private stateTimer = 0;
 
-	constructor(vehicle: YUKA.Vehicle, _entityManager: YUKA.EntityManager) {
+	constructor(vehicle: YUKA.Vehicle) {
 		this.vehicle = vehicle;
 		this.target = new YUKA.Vector3();
 

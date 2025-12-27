@@ -34,7 +34,7 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 		vehicle.position.set(data.position.x, data.position.y, data.position.z);
 
 		const entityManager = new YUKA.EntityManager();
-		aiRef.current = new GatorAI(vehicle, entityManager);
+		aiRef.current = new GatorAI(vehicle);
 		vehicleRef.current = vehicle;
 
 		return () => {

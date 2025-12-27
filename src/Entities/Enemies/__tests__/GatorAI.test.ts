@@ -31,7 +31,7 @@ describe("GatorAI", () => {
 	beforeEach(() => {
 		vehicle = new YUKA.Vehicle();
 		entityManager = new YUKA.EntityManager();
-		gatorAI = new GatorAI(vehicle, entityManager);
+		gatorAI = new GatorAI(vehicle);
 	});
 
 	it("should start in IDLE state", () => {

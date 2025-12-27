@@ -17,7 +17,6 @@ interface PlayerRigProps {
 	rotation?: number;
 	isMoving?: boolean;
 	isClimbing?: boolean;
-	velocity?: number;
 	children?: React.ReactNode;
 	muzzleRef?: React.RefObject<THREE.Group>;
 	isFiring?: boolean;
