@@ -8,6 +8,9 @@ A persistent, procedurally generated 3rd-person tactical shooter with open-world
 - Node.js 20
 - pnpm 10
 
+> [!IMPORTANT]
+> This project uses **React 19 (RC)**. While considered stable enough for development, be aware of its release candidate status and monitor for breaking changes until the final stable release.
+
 ### Installation
 ```bash
 pnpm install

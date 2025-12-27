@@ -16,6 +16,8 @@ export default defineConfig({
 					"react-vendor": ["react", "react-dom"],
 					"three-vendor": ["three", "@react-three/fiber", "@react-three/drei"],
 					"audio-vendor": ["tone"],
+					"ai-vendor": ["yuka"],
+					"animation-vendor": ["gsap"],
 				},
 			},
 		},
@@ -27,7 +29,8 @@ export default defineConfig({
 		coverage: {
 			provider: "v8",
 			reporter: ["text", "json", "html"],
-			exclude: ["node_modules/", "src/test/"],
+			exclude: ["node_modules/", "src/test/", "e2e/"],
 		},
+		exclude: ["node_modules/", "e2e/"],
 	},
 });

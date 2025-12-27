@@ -22,7 +22,7 @@
 				"useExhaustiveDependencies": "warn"
 			},
 			"style": {
-				"noNonNullAssertion": "off"
+				"noNonNullAssertion": "error"
 			},
 			"suspicious": {
 				"noExplicitAny": "error"

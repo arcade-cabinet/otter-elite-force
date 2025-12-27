@@ -42,6 +42,55 @@ declare module "yuka" {
 		constructor(target?: Vector3);
 	}
 
+	export class ArriveBehavior extends SteeringBehavior {
+		target: Vector3;
+		deceleration: number;
+		tolerance: number;
+		constructor(target?: Vector3, deceleration?: number, tolerance?: number);
+	}
+
+	export class WanderBehavior extends SteeringBehavior {
+		radius: number;
+		distance: number;
+		jitter: number;
+		constructor(radius?: number, distance?: number, jitter?: number);
+	}
+
+	export class ObstacleAvoidanceBehavior extends SteeringBehavior {
+		constructor();
+	}
+
+	export class StateMachine<T> {
+		owner: T;
+		currentState: State<T>;
+		previousState: State<T>;
+		globalState: State<T>;
+		constructor(owner: T);
+		update(): this;
+		changeTo(state: State<T>): this;
+		revert(): this;
+		inState(state: State<T>): boolean;
+	}
+
+	export class State<T> {
+		enter(entity: T): void;
+		execute(entity: T): void;
+		exit(entity: T): void;
+	}
+
+	export class Path {
+		loop: boolean;
+		constructor();
+		add(waypoint: Vector3): this;
+		clear(): this;
+	}
+
+	export class NavMesh {
+		constructor();
+		fromJSON(json: object): this;
+		findPath(start: Vector3, end: Vector3): Vector3[];
+	}
+
 	export class EntityManager {
 		entities: Vehicle[];
 		add(entity: Vehicle): this;
