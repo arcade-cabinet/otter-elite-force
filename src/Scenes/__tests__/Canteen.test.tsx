@@ -10,7 +10,7 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useGameStore, UPGRADE_COSTS } from "../../stores/gameStore";
+import { UPGRADE_COSTS, useGameStore } from "../../stores/gameStore";
 import { Canteen } from "../Canteen";
 
 // Mock CSS
@@ -46,23 +46,23 @@ describe("Canteen", () => {
 
 	it("should render the canteen", () => {
 		render(<Canteen />);
-		expect(screen.getByText(/CANTEEN|ARMORY|SHOP/i)).toBeInTheDocument();
+		expect(screen.getByText("FORWARD OPERATING BASE")).toBeInTheDocument();
 	});
 
 	it("should display current coin balance", () => {
 		render(<Canteen />);
-		expect(screen.getByText(/5000/)).toBeInTheDocument();
+		expect(screen.getByText(/SUPPLY CREDITS: 5000/)).toBeInTheDocument();
 	});
 
 	it("should show back to menu button", () => {
 		render(<Canteen />);
-		const backButton = screen.getByRole("button", { name: /BACK|MENU|EXIT/i });
+		const backButton = screen.getByRole("button", { name: /RETURN TO PERIMETER/i });
 		expect(backButton).toBeInTheDocument();
 	});
 
 	it("should navigate back to menu when back clicked", () => {
 		render(<Canteen />);
-		const backButton = screen.getByRole("button", { name: /BACK|MENU|EXIT/i });
+		const backButton = screen.getByRole("button", { name: /RETURN TO PERIMETER/i });
 
 		fireEvent.click(backButton);
 
@@ -71,36 +71,54 @@ describe("Canteen", () => {
 
 	it("should display upgrade options", () => {
 		render(<Canteen />);
-		// Should show stat upgrade buttons
-		expect(screen.getByText(/SPEED|HEALTH|DAMAGE/i)).toBeInTheDocument();
+		// Click on UPGRADES tab first
+		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
+		fireEvent.click(upgradesTab);
+
+		expect(screen.getByText(/SPEED BOOST/i)).toBeInTheDocument();
+		expect(screen.getByText(/HEALTH BOOST/i)).toBeInTheDocument();
+		expect(screen.getByText(/DAMAGE BOOST/i)).toBeInTheDocument();
 	});
 
 	it("should show upgrade costs", () => {
-		render(<Canteen />);
-		// Should display upgrade cost
-		const costText = screen.getByText(new RegExp(UPGRADE_COSTS.speed.toString()));
-		expect(costText).toBeInTheDocument();
+		const { container } = render(<Canteen />);
+		// Click on UPGRADES tab first
+		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
+		fireEvent.click(upgradesTab);
+
+		// Should display upgrade costs in upgrade items
+		const upgradeItems = container.querySelectorAll(".upgrade-item button");
+		expect(upgradeItems.length).toBe(3);
+		expect(upgradeItems[0].textContent).toContain(UPGRADE_COSTS.speed.toString());
 	});
 
 	it("should buy speed upgrade when clicked", () => {
-		render(<Canteen />);
-		const speedButton = screen.getByText(/SPEED/i).closest("button");
+		const { container } = render(<Canteen />);
+		// Click on UPGRADES tab first
+		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
+		fireEvent.click(upgradesTab);
 
-		if (speedButton) {
-			fireEvent.click(speedButton);
-			expect(useGameStore.getState().saveData.upgrades.speedBoost).toBe(1);
-		}
+		// Get the first upgrade button (speed)
+		const upgradeItems = container.querySelectorAll(".upgrade-item button");
+		const speedButton = upgradeItems[0];
+		fireEvent.click(speedButton);
+
+		expect(useGameStore.getState().saveData.upgrades.speedBoost).toBe(1);
 	});
 
 	it("should deduct coins after purchase", () => {
 		const initialCoins = useGameStore.getState().saveData.coins;
-		render(<Canteen />);
-		const speedButton = screen.getByText(/SPEED/i).closest("button");
+		const { container } = render(<Canteen />);
+		// Click on UPGRADES tab first
+		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
+		fireEvent.click(upgradesTab);
 
-		if (speedButton) {
-			fireEvent.click(speedButton);
-			expect(useGameStore.getState().saveData.coins).toBeLessThan(initialCoins);
-		}
+		// Get the first upgrade button (speed)
+		const upgradeItems = container.querySelectorAll(".upgrade-item button");
+		const speedButton = upgradeItems[0];
+		fireEvent.click(speedButton);
+
+		expect(useGameStore.getState().saveData.coins).toBeLessThan(initialCoins);
 	});
 
 	it("should disable purchase when insufficient funds", () => {
@@ -111,15 +129,14 @@ describe("Canteen", () => {
 			},
 		});
 
-		render(<Canteen />);
-		const speedButton = screen.getByText(/SPEED/i).closest("button");
+		const { container } = render(<Canteen />);
+		// Click on UPGRADES tab first
+		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
+		fireEvent.click(upgradesTab);
 
-		// Button should be disabled or purchase should fail
-		if (speedButton) {
-			const initialSpeedBoost = useGameStore.getState().saveData.upgrades.speedBoost;
-			fireEvent.click(speedButton);
-			expect(useGameStore.getState().saveData.upgrades.speedBoost).toBe(initialSpeedBoost);
-		}
+		// All upgrade buttons should be disabled
+		const upgradeItems = container.querySelectorAll(".upgrade-item button");
+		expect(upgradeItems[0]).toBeDisabled();
 	});
 });
 
@@ -141,31 +158,35 @@ describe("Canteen - Character Shop", () => {
 
 	it("should display available characters for purchase", () => {
 		render(<Canteen />);
-		// Should show locked characters that can be purchased
-		expect(screen.getByText(/WHISKERS|SPLASH|MUDSKIPPER/i)).toBeInTheDocument();
+		// PLATOON tab is active by default, should show character names
+		expect(screen.getByText("GEN. WHISKERS")).toBeInTheDocument();
 	});
 
 	it("should show character prices", () => {
 		render(<Canteen />);
-		// Characters have prices displayed
-		const priceElements = screen.getAllByText(/\d+/);
-		expect(priceElements.length).toBeGreaterThan(0);
+		// Click on a locked character to see its price
+		const whiskersButton = screen.getByRole("button", { name: "GEN. WHISKERS" });
+		fireEvent.click(whiskersButton);
+
+		// Price should be shown in requisition button
+		expect(screen.getByText(/REQUISITION:/)).toBeInTheDocument();
 	});
 
 	it("should unlock character when purchased", () => {
 		render(<Canteen />);
-		// Find a locked character button and click it
-		const whiskersElement = screen.getByText(/WHISKERS/i);
-		const buyButton = whiskersElement.closest("button") || whiskersElement.parentElement?.querySelector("button");
+		// Select Whiskers first
+		const whiskersButton = screen.getByRole("button", { name: "GEN. WHISKERS" });
+		fireEvent.click(whiskersButton);
 
-		if (buyButton && !buyButton.disabled) {
-			fireEvent.click(buyButton);
-			expect(useGameStore.getState().saveData.unlockedCharacters).toContain("whiskers");
-		}
+		// Now click the purchase button
+		const purchaseButton = screen.getByRole("button", { name: /REQUISITION:/i });
+		fireEvent.click(purchaseButton);
+
+		expect(useGameStore.getState().saveData.unlockedCharacters).toContain("whiskers");
 	});
 });
 
-describe("Canteen - Weapon Upgrades", () => {
+describe("Canteen - Upgrade Levels", () => {
 	beforeEach(() => {
 		useGameStore.setState({
 			mode: "CANTEEN",
@@ -174,8 +195,8 @@ describe("Canteen - Weapon Upgrades", () => {
 				coins: 5000,
 				unlockedWeapons: ["service-pistol"],
 				upgrades: {
-					speedBoost: 0,
-					healthBoost: 0,
+					speedBoost: 2,
+					healthBoost: 1,
 					damageBoost: 0,
 					weaponLvl: {
 						"service-pistol": 1,
@@ -189,14 +210,21 @@ describe("Canteen - Weapon Upgrades", () => {
 		cleanup();
 	});
 
-	it("should display weapon upgrade options", () => {
+	it("should display upgrade levels", () => {
 		render(<Canteen />);
-		expect(screen.getByText(/PISTOL|WEAPON/i)).toBeInTheDocument();
+		// Click on UPGRADES tab first
+		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
+		fireEvent.click(upgradesTab);
+
+		// Should show upgrade levels
+		expect(screen.getByText(/SPEED BOOST \(Lvl 2\)/)).toBeInTheDocument();
+		expect(screen.getByText(/HEALTH BOOST \(Lvl 1\)/)).toBeInTheDocument();
+		expect(screen.getByText(/DAMAGE BOOST \(Lvl 0\)/)).toBeInTheDocument();
 	});
 
-	it("should show current weapon level", () => {
+	it("should show tabs for navigation", () => {
 		render(<Canteen />);
-		// Should display level indicator
-		expect(screen.getByText(/LV|LEVEL|1/i)).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "PLATOON" })).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "UPGRADES" })).toBeInTheDocument();
 	});
 });

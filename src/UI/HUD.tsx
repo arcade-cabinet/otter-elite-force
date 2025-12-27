@@ -4,13 +4,14 @@
  */
 
 import { useCallback } from "react";
+import { useShallow } from "zustand/shallow";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
 import { useGameStore } from "../stores/gameStore";
 
 export function HUD() {
 	const { health, maxHealth, kills, mudAmount, playerPos, saveData, isBuildMode } = useGameStore(
-		(state) => ({
+		useShallow((state) => ({
 			health: state.health,
 			maxHealth: state.maxHealth,
 			kills: state.kills,
@@ -18,7 +19,7 @@ export function HUD() {
 			playerPos: state.playerPos,
 			saveData: state.saveData,
 			isBuildMode: state.isBuildMode,
-		}),
+		})),
 	);
 
 	const toggleZoom = useGameStore((state) => state.toggleZoom);

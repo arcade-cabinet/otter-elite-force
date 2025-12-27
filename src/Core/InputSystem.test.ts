@@ -118,16 +118,16 @@ describe("InputSystem", () => {
 
 	it("should handle multiple key releases", () => {
 		inputSystem.init();
-		
+
 		// Press W and D
 		window.dispatchEvent(new KeyboardEvent("keydown", { key: "w" }));
 		window.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
-		
+
 		// Release W, D should still be active
 		window.dispatchEvent(new KeyboardEvent("keyup", { key: "w" }));
 		expect(inputSystem.getState().move.x).toBeGreaterThan(0);
 		expect(inputSystem.getState().move.active).toBe(true);
-		
+
 		// Release D
 		window.dispatchEvent(new KeyboardEvent("keyup", { key: "d" }));
 		expect(inputSystem.getState().move.active).toBe(false);

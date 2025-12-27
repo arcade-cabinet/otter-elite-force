@@ -71,22 +71,33 @@ Object.defineProperty(window, "matchMedia", {
 	})),
 });
 
-// Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
-	observe: vi.fn(),
-	unobserve: vi.fn(),
-	disconnect: vi.fn(),
-}));
+// Mock ResizeObserver - must use class syntax for proper constructor
+class MockResizeObserver {
+	callback: ResizeObserverCallback;
+	constructor(callback: ResizeObserverCallback) {
+		this.callback = callback;
+	}
+	observe = vi.fn();
+	unobserve = vi.fn();
+	disconnect = vi.fn();
+}
+global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 
-// Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
-	observe: vi.fn(),
-	unobserve: vi.fn(),
-	disconnect: vi.fn(),
-	root: null,
-	rootMargin: "",
-	thresholds: [],
-}));
+// Mock IntersectionObserver - must use class syntax for proper constructor
+class MockIntersectionObserver {
+	callback: IntersectionObserverCallback;
+	root: Element | null = null;
+	rootMargin = "";
+	thresholds: readonly number[] = [];
+	constructor(callback: IntersectionObserverCallback) {
+		this.callback = callback;
+	}
+	observe = vi.fn();
+	unobserve = vi.fn();
+	disconnect = vi.fn();
+	takeRecords = vi.fn(() => []);
+}
+global.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
 
 // Mock requestAnimationFrame
 global.requestAnimationFrame = vi.fn((callback) => {
@@ -614,15 +625,19 @@ vi.mock("three", async (importOriginal) => {
 // Mock @react-three/fiber
 vi.mock("@react-three/fiber", async (importOriginal) => {
 	const actual = await importOriginal<typeof import("@react-three/fiber")>();
+	const React = await import("react");
+
 	return {
 		...actual,
-		useFrame: vi.fn((callback) => {
-			// Call once for testing
-			callback({ clock: { getElapsedTime: () => 0 } }, 0.016);
-		}),
+		// Canvas mock - renders as empty div, 3D elements are not rendered in RTL tests
+		Canvas: ({ children: _children }: { children: React.ReactNode }) => {
+			// Don't render R3F children - they can't exist in DOM
+			return React.createElement("div", { "data-testid": "r3f-canvas" });
+		},
+		useFrame: vi.fn(),
 		useThree: vi.fn(() => ({
 			camera: {
-				position: { x: 0, y: 10, z: 20 },
+				position: { x: 0, y: 10, z: 20, set: vi.fn(), copy: vi.fn() },
 				lookAt: vi.fn(),
 				updateProjectionMatrix: vi.fn(),
 			},
@@ -632,6 +647,28 @@ vi.mock("@react-three/fiber", async (importOriginal) => {
 			viewport: { width: 800, height: 600 },
 			clock: { getElapsedTime: () => 0 },
 		})),
+	};
+});
+
+// Mock @react-three/drei - common utility components
+vi.mock("@react-three/drei", () => {
+	return {
+		Environment: () => null,
+		Sky: () => null,
+		OrbitControls: () => null,
+		PerspectiveCamera: () => null,
+		Text: () => null,
+		Html: () => null,
+		useTexture: vi.fn(() => null),
+		useGLTF: vi.fn(() => ({ scene: {}, nodes: {}, materials: {} })),
+		useProgress: vi.fn(() => ({ progress: 100, loaded: true })),
+		Billboard: () => null,
+		Float: () => null,
+		Center: () => null,
+		Sparkles: () => null,
+		Stars: () => null,
+		Cloud: () => null,
+		Clouds: () => null,
 	};
 });
 

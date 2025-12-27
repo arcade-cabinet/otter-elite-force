@@ -5,7 +5,7 @@
  * Focus on user-visible behavior and interactions
  */
 
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameStore } from "../../stores/gameStore";
 import { HUD } from "../HUD";
@@ -172,14 +172,14 @@ describe("HUD Component", () => {
 
 		it("updates territory score when changed", () => {
 			const { rerender } = render(<HUD />);
-			
+
 			useGameStore.setState({
 				saveData: {
 					...useGameStore.getState().saveData,
 					territoryScore: 25,
 				},
 			});
-			
+
 			rerender(<HUD />);
 			expect(screen.getByText("TERRITORY SECURED: 25")).toBeInTheDocument();
 		});

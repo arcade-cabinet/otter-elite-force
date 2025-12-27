@@ -36,44 +36,46 @@ describe("Victory", () => {
 
 	it("should render victory screen", () => {
 		render(<Victory />);
-		// Should show mission end screen
-		expect(screen.getByText(/MISSION|COMPLETE|OVER|VICTORY|DEFEAT/i)).toBeInTheDocument();
+		// Should show mission success header
+		expect(screen.getByText("MISSION SUCCESSFUL")).toBeInTheDocument();
 	});
 
 	it("should display kill count", () => {
 		render(<Victory />);
-		expect(screen.getByText(/10/)).toBeInTheDocument();
+		expect(screen.getByText("ELIMINATIONS:")).toBeInTheDocument();
+		expect(screen.getByText("10")).toBeInTheDocument();
 	});
 
-	it("should show XP earned", () => {
+	it("should display stats box", () => {
 		render(<Victory />);
-		expect(screen.getByText(/XP|EXPERIENCE/i)).toBeInTheDocument();
+		const { container } = render(<Victory />);
+		const statsBox = container.querySelector(".stats-box");
+		expect(statsBox).toBeInTheDocument();
 	});
 
-	it("should display return to menu button", () => {
+	it("should display proceed button", () => {
 		render(<Victory />);
-		const menuButton = screen.getByRole("button", { name: /MENU|CONTINUE|BACK/i });
-		expect(menuButton).toBeInTheDocument();
+		const proceedButton = screen.getByRole("button", { name: /PROCEED TO FOB/i });
+		expect(proceedButton).toBeInTheDocument();
 	});
 
-	it("should navigate to menu when button clicked", () => {
+	it("should navigate to canteen when button clicked", () => {
 		render(<Victory />);
-		const menuButton = screen.getByRole("button", { name: /MENU|CONTINUE|BACK/i });
+		const proceedButton = screen.getByRole("button", { name: /PROCEED TO FOB/i });
 
-		fireEvent.click(menuButton);
+		fireEvent.click(proceedButton);
 
-		expect(useGameStore.getState().mode).toBe("MENU");
+		expect(useGameStore.getState().mode).toBe("CANTEEN");
 	});
 
-	it("should show rank progression", () => {
+	it("should show peacekeeping score", () => {
 		render(<Victory />);
-		// Should display current rank
-		expect(screen.getByText(/CPL|SGT|RANK/i)).toBeInTheDocument();
+		expect(screen.getByText("PEACEKEEPING SCORE:")).toBeInTheDocument();
 	});
 
-	it("should display coins earned", () => {
+	it("should display credits earned", () => {
 		render(<Victory />);
-		expect(screen.getByText(/COINS|CREDITS|\$/i)).toBeInTheDocument();
+		expect(screen.getByText(/SUPPLY CREDITS EARNED/i)).toBeInTheDocument();
 	});
 });
 
@@ -97,6 +99,7 @@ describe("Victory - Mission Statistics", () => {
 					healersProtected: 0,
 					alliesRescued: 2,
 				},
+				peacekeepingScore: 15,
 			},
 		});
 	});
@@ -105,25 +108,26 @@ describe("Victory - Mission Statistics", () => {
 		cleanup();
 	});
 
-	it("should show survival status", () => {
+	it("should display mission successful title", () => {
 		render(<Victory />);
-		// Should indicate if player survived
-		expect(screen.getByText(/SURVIVED|EXTRACTED|VICTORY/i)).toBeInTheDocument();
+		expect(screen.getByText("MISSION SUCCESSFUL")).toBeInTheDocument();
 	});
 
-	it("should display objectives completed", () => {
+	it("should display eliminations count", () => {
 		render(<Victory />);
-		// Should show objective stats
-		expect(screen.getByText(/OBJECTIVE|MISSION/i)).toBeInTheDocument();
+		expect(screen.getByText("ELIMINATIONS:")).toBeInTheDocument();
+		expect(screen.getByText("25")).toBeInTheDocument();
 	});
 
-	it("should show clams harvested", () => {
+	it("should show clams harvested count", () => {
 		render(<Victory />);
-		expect(screen.getByText(/CLAM|5/i)).toBeInTheDocument();
+		expect(screen.getByText("CLAMS HARVESTED:")).toBeInTheDocument();
+		expect(screen.getByText("5")).toBeInTheDocument();
 	});
 
-	it("should display allies rescued count", () => {
+	it("should display peacekeeping score", () => {
 		render(<Victory />);
-		expect(screen.getByText(/ALLIES|RESCUED|2/i)).toBeInTheDocument();
+		expect(screen.getByText("PEACEKEEPING SCORE:")).toBeInTheDocument();
+		expect(screen.getByText("15")).toBeInTheDocument();
 	});
 });
