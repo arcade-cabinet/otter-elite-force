@@ -10,8 +10,10 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-#root {
-	width: 100vw;
+.app-container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	height: 100vh;
-	overflow: hidden;
+	font-family: monospace;
 }

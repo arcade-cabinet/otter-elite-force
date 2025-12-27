@@ -12,6 +12,16 @@
 		"allowImportingTsExtensions": true,
 		"resolveJsonModule": true,
 		"isolatedModules": true,
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"],
+			"@core/*": ["src/core/*"],
+			"@entities/*": ["src/entities/*"],
+			"@scenes/*": ["src/scenes/*"],
+			"@ui/*": ["src/ui/*"],
+			"@stores/*": ["src/stores/*"],
+			"@utils/*": ["src/utils/*"]
+		},
 		"moduleDetection": "force",
 		"noEmit": true,
 		"jsx": "react-jsx",

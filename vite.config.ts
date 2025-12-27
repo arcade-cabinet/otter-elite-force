@@ -6,6 +6,17 @@ import { defineConfig } from "vite";
 export default defineConfig({
 	plugins: [react()],
 	base: "./",
+	resolve: {
+		alias: {
+			"@": "/src",
+			"@core": "/src/core",
+			"@entities": "/src/entities",
+			"@scenes": "/src/scenes",
+			"@ui": "/src/ui",
+			"@stores": "/src/stores",
+			"@utils": "/src/utils",
+		},
+	},
 	build: {
 		outDir: "dist",
 		assetsDir: "assets",

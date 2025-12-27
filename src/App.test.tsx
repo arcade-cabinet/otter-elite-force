@@ -3,5 +3,6 @@ import { test } from "vitest";
 import { App } from "./App";
 
 test("renders without crashing", () => {
-	render(<App />);
+	const { getByText } = render(<App />);
+	expect(getByText(/OTTER: ELITE FORCE/i)).toBeInTheDocument();
 });
