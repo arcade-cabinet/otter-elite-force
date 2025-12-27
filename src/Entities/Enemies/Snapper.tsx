@@ -73,8 +73,8 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 					<boxGeometry args={[0.4, 0.4, 1.2]} />
 					<meshStandardMaterial color="#111" metalness={0.8} />
 				</mesh>
-				<mesh position={[0, 0, 0.8]}>
-					<cylinderGeometry args={[0.1, 0.1, 1.5, 8]} rotation-x={Math.PI / 2} />
+				<mesh position={[0, 0, 0.8]} rotation-x={Math.PI / 2}>
+					<cylinderGeometry args={[0.1, 0.1, 1.5, 8]} />
 					<meshStandardMaterial color="#222" metalness={0.9} />
 				</mesh>
 				{isFiring && (
@@ -86,8 +86,8 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 				)}
 			</group>
 
-			<mesh position={[0, 0.3, 1.4]} rotation-x={0.2}>
-				<sphereGeometry args={[0.4, 12, 12]} scale={[1, 0.8, 1.2]} />
+			<mesh position={[0, 0.3, 1.4]} rotation-x={0.2} scale={[1, 0.8, 1.2]}>
+				<sphereGeometry args={[0.4, 12, 12]} />
 				<meshStandardMaterial color={bodyColor} />
 			</mesh>
 
