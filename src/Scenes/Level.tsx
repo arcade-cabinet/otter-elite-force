@@ -13,7 +13,7 @@ import {
 	Noise,
 	Vignette,
 } from "@react-three/postprocessing";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
@@ -41,6 +41,36 @@ import { WATER_FRAG, WATER_VERT } from "../utils/shaders";
 import { Enemy } from "./Enemies/Gator";
 import { Snake } from "./Enemies/Snake";
 import { Snapper } from "./Enemies/Snapper";
+
+function Flag({ position }: { position: [number, number, number] }) {
+	const flagUniforms = useRef({
+		time: { value: 0 },
+	});
+
+	useFrame((state) => {
+		flagUniforms.current.time.value = state.clock.elapsedTime;
+	});
+
+	return (
+		<group position={position}>
+			{/* Flagpole */}
+			<mesh position={[0, 2, 0]}>
+				<cylinderGeometry args={[0.05, 0.05, 4, 8]} />
+				<meshStandardMaterial color="#333" />
+			</mesh>
+			{/* Flag cloth */}
+			<mesh position={[0.75, 3.3, 0]}>
+				<planeGeometry args={[1.5, 1, 20, 20]} />
+				<shaderMaterial
+					vertexShader={WATER_VERT} // Reusing wave math for flag
+					fragmentShader={WATER_FRAG} // Placeholder
+					uniforms={flagUniforms.current}
+					side={THREE.DoubleSide}
+				/>
+			</mesh>
+		</group>
+	);
+}
 
 function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 }) {
 	const waterUniforms = useRef({
@@ -140,10 +170,15 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 							<meshStandardMaterial color="#2d1f15" roughness={1} />
 						</mesh>
 					);
-				if (entity.type === "SIPHON") return <Siphon key={entity.id} position={worldPos} />;
+				if (entity.type === "SIPHON") return <Siphon key={entity.id} position={worldPos} secured={data.secured} />;
 				if (entity.type === "OIL_SLICK")
 					return (
-						<mesh key={entity.id} position={worldPos} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+						<mesh
+							key={entity.id}
+							position={worldPos}
+							rotation={[-Math.PI / 2, 0, 0]}
+							receiveShadow
+						>
 							<circleGeometry args={[4, 16]} />
 							<meshStandardMaterial
 								color="#1a1a1a"
@@ -156,7 +191,12 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 					);
 				if (entity.type === "MUD_PIT")
 					return (
-						<mesh key={entity.id} position={worldPos} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+						<mesh
+							key={entity.id}
+							position={worldPos}
+							rotation={[-Math.PI / 2, 0, 0]}
+							receiveShadow
+						>
 							<circleGeometry args={[5, 16]} />
 							<meshStandardMaterial color="#3d2b1f" roughness={1} />
 						</mesh>
@@ -168,7 +208,7 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 }
 
 export function Level() {
-	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud } = useGameStore();
+	const { isZoomed, selectedCharacterId, getNearbyChunks, setPlayerPos, setMud, secureChunk } = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 
 	const [playerPos] = useState(new THREE.Vector3(0, 0, 0));
@@ -215,7 +255,6 @@ export function Level() {
 		const cz = Math.floor(playerRef.current.position.z / CHUNK_SIZE);
 
 		const nearby = getNearbyChunks(cx, cz);
-		// Update if needed (simple check)
 		if (nearby.length !== activeChunks.length || nearby[0].id !== activeChunks[0]?.id) {
 			setActiveChunks(nearby);
 		}
@@ -229,7 +268,6 @@ export function Level() {
 		const input = inputSystem.getState();
 		const cam = state.camera;
 
-		// Movement logic (same as before)
 		const camDir = new THREE.Vector3();
 		cam.getWorldDirection(camDir);
 		camDir.y = 0;
@@ -271,40 +309,30 @@ export function Level() {
 
 		// --- 3D PHYSICS: JUMP & GRAVITY ---
 		let newVelY = playerVelY;
-
-		// Gravity
 		if (!isGrounded) {
-			newVelY -= 30 * delta; // Gravity constant
+			newVelY -= 30 * delta;
 		}
-
-		// Jump
 		if (input.jump && isGrounded) {
-			newVelY = 12; // Jump impulse
+			newVelY = 12;
 			setIsGrounded(false);
-			audioEngine.playSFX("pickup"); // Use pickup sound as temp jump sound
+			audioEngine.playSFX("pickup");
 		}
-
-		// Apply vertical movement
 		playerRef.current.position.y += newVelY * delta;
 
-		// Floor Collision (Simplified)
 		if (playerRef.current.position.y <= 0) {
 			playerRef.current.position.y = 0;
 			newVelY = 0;
 			setIsGrounded(true);
 		}
 
-		// Platform Collision (AABB check against nearby chunks)
 		activeChunks.forEach((chunk) => {
 			chunk.entities.forEach((entity) => {
 				if (entity.type === "PLATFORM") {
 					const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
 					const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
 					const platformTop = entity.position[1] + 0.5;
-
 					const dx = Math.abs(playerRef.current!.position.x - worldX);
 					const dz = Math.abs(playerRef.current!.position.z - worldZ);
-
 					if (dx < 2.5 && dz < 2.5) {
 						const footLevel = playerRef.current!.position.y;
 						if (footLevel >= platformTop - 0.2 && footLevel <= platformTop + 0.5 && newVelY <= 0) {
@@ -324,12 +352,10 @@ export function Level() {
 				if (entity.type === "CLIMBABLE") {
 					const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
 					const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
-
 					const dist = new THREE.Vector2(
 						playerRef.current!.position.x,
 						playerRef.current!.position.z,
 					).distanceTo(new THREE.Vector2(worldX, worldZ));
-
 					if (dist < 2.5) {
 						nearClimbable = true;
 					}
@@ -343,22 +369,18 @@ export function Level() {
 				setIsGrounded(false);
 				newVelY = 0;
 			}
-			// Vertical movement from right stick (look input)
 			newVelY = -input.look.y * character.traits.climbSpeed;
 		} else {
 			if (isClimbing) {
 				setIsClimbing(false);
-				// Small jump away if desired, but for now just fall
 			}
 		}
 
 		setPlayerVelY(newVelY);
 
 		if (isClimbing) {
-			// Update state for animation
 			setIsPlayerMoving(Math.abs(newVelY) > 0.1);
 			playerPos.copy(playerRef.current.position);
-			// Face the climbable? For now just stay as is.
 		} else if (isAiming) {
 			playerRef.current.rotation.y -= input.look.x * 3 * delta;
 			if (moveVec.lengthSq() > 0.01) {
@@ -374,19 +396,15 @@ export function Level() {
 				audioEngine.playSFX("shoot");
 				lastFireTime.current = currentTime;
 
-				// Recoil
 				const recoilAmount = character.gear.weapon === "fish-cannon" ? 0.05 : 0.02;
 				playerRef.current.rotation.y += (Math.random() - 0.5) * recoilAmount;
 
-				// Apply suppression to nearby gators
-				activeChunks.forEach((chunk) => {
-					chunk.entities.forEach((entity) => {
+				activeChunks.forEach(chunk => {
+					chunk.entities.forEach(entity => {
 						if (entity.type === "GATOR") {
 							const worldX = chunk.x * CHUNK_SIZE + entity.position[0];
 							const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
-							const dist = new THREE.Vector3(worldX, 0, worldZ).distanceTo(
-								playerRef.current!.position,
-							);
+							const dist = new THREE.Vector3(worldX, 0, worldZ).distanceTo(playerRef.current!.position);
 							if (dist < 15) {
 								entity.suppression = Math.min(1, (entity.suppression || 0) + 0.15);
 							}
@@ -416,40 +434,32 @@ export function Level() {
 					const worldY = entity.position[1];
 					const worldZ = chunk.z * CHUNK_SIZE + entity.position[2];
 					const worldPos = new THREE.Vector3(worldX, worldY, worldZ);
-
 					const dist = projectile.position.distanceTo(worldPos);
 					let hit = false;
 					let hitType: "blood" | "shell" = "blood";
 
-					if (entity.type === "GATOR" && dist < 1.5) {
-						hit = true;
-						hitType = "blood";
-					} else if (entity.type === "SNAKE" && dist < 1.0) {
-						hit = true;
-						hitType = "blood";
-					} else if (entity.type === "SNAPPER" && dist < 2.0) {
-						hit = true;
-						hitType = "shell";
-					} else if (entity.type === "SIPHON" && dist < 2.0) {
-						hit = true;
-						hitType = "shell";
-					}
+					if (entity.type === "GATOR" && dist < 1.5) { hit = true; hitType = "blood"; }
+					else if (entity.type === "SNAKE" && dist < 1.0) { hit = true; hitType = "blood"; }
+					else if (entity.type === "SNAPPER" && dist < 2.0) { hit = true; hitType = "shell"; }
+					else if (entity.type === "SIPHON" && dist < 2.0 && !chunk.secured) { hit = true; hitType = "shell"; }
 
 					if (hit) {
 						entity.hp = (entity.hp || 10) - GAME_CONFIG.BULLET_DAMAGE;
 						handleImpact(projectile.position, hitType);
 						projectilesRef.current?.remove(projectile.id);
 						if (entity.hp <= 0) {
-							// Handle death (would ideally update store)
-							chunk.entities = chunk.entities.filter((e) => e.id !== entity.id);
-							useGameStore.getState().addCoins(10);
+							if (entity.type === "SIPHON") {
+								secureChunk(chunk.id);
+							} else {
+								chunk.entities = chunk.entities.filter((e) => e.id !== entity.id);
+								useGameStore.getState().addCoins(10);
+							}
 						}
 					}
 				});
 			});
 		}
 
-		// Update state
 		const velocity = moveVec.length();
 		setIsPlayerMoving(velocity > 0.01);
 		setPlayerVelocity(velocity);
@@ -457,7 +467,6 @@ export function Level() {
 		playerPos.copy(playerRef.current.position);
 		setPlayerPos([playerPos.x, playerPos.y, playerPos.z]);
 
-		// Update mud based on current chunk
 		const cx = Math.floor(playerPos.x / CHUNK_SIZE);
 		const cz = Math.floor(playerPos.z / CHUNK_SIZE);
 		const currentChunk = activeChunks.find((c) => c.x === cx && c.z === cz);
@@ -474,7 +483,6 @@ export function Level() {
 		state.camera.lookAt(playerRef.current.position.clone().add(new THREE.Vector3(0, 2, 0)));
 	});
 
-	// Handle particle expiration
 	const handleParticleExpire = useCallback((id: string) => {
 		setParticles((prev) => prev.filter((p) => p.id !== id));
 	}, []);
@@ -482,17 +490,11 @@ export function Level() {
 	return (
 		<Canvas shadows camera={{ position: [0, 12, 20], fov: 60 }} gl={{ antialias: true }}>
 			<ambientLight intensity={0.4} />
-			<directionalLight
-				position={[50, 50, 25]}
-				intensity={1}
-				castShadow
-				shadow-mapSize={[2048, 2048]}
-			/>
+			<directionalLight position={[50, 50, 25]} intensity={1} castShadow shadow-mapSize={[2048, 2048]} />
 			<Sky sunPosition={[100, 20, 100]} />
 			<fog attach="fog" args={["#d4c4a8", 20, 150]} />
 			<Environment preset="sunset" />
 
-			{/* Render Chunks */}
 			{activeChunks.map((chunk) => (
 				<Chunk key={chunk.id} data={chunk} playerPos={playerPos} />
 			))}
