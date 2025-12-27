@@ -151,6 +151,15 @@ interface SaveData {
 	coins: number;
 	discoveredChunks: Record<string, ChunkData>;
 	territoryScore: number;
+	strategicObjectives: {
+		siphonsDismantled: number;
+		villagesLiberated: number;
+		clamsRetrieved: number;
+	};
+	spoilsOfWar: {
+		creditsEarned: number;
+		upgradesUnlocked: number;
+	};
 	upgrades: {
 		speedBoost: number;
 		healthBoost: number;
