@@ -24,6 +24,7 @@ export function App() {
 		const initAudio = async () => {
 			await audioEngine.init();
 			console.log("Audio initialized");
+			audioEngine.playMusic("menu");
 		};
 
 		// Initialize input system
@@ -45,6 +46,14 @@ export function App() {
 			inputSystem.destroy();
 		};
 	}, [loadData]);
+
+	useEffect(() => {
+		if (mode === "GAME") {
+			audioEngine.playMusic("combat");
+		} else if (mode === "MENU") {
+			audioEngine.playMusic("menu");
+		}
+	}, [mode]);
 
 	return (
 		<div className="app">

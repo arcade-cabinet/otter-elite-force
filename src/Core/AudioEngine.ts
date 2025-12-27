@@ -103,16 +103,68 @@ export class AudioEngine {
 	playMusic(type: "menu" | "combat"): void {
 		if (!this.initialized) return;
 
-		// TODO: Implement procedural music with Tone.js Pattern/Sequence
-		console.log(`Playing ${type} music`);
+		this.stopMusic();
+
+		if (type === "menu") {
+			// Melodic menu theme
+			const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+			synth.set({
+				oscillator: { type: "sine" },
+				envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.5 },
+			});
+
+			const pattern = new Tone.Pattern(
+				(time, note) => {
+					synth.triggerAttackRelease(note, "8n", time);
+				},
+				["C4", "E4", "G4", "B4", "A4", "G4", "E4", "D4"],
+				"upDown",
+			);
+			pattern.interval = "4n";
+			pattern.start(0);
+
+			this.loop = new Tone.Loop(() => {}, "1m"); // Dummy loop to track
+			Tone.getTransport().start();
+		} else {
+			// Driving combat theme
+			const bass = new Tone.MonoSynth({
+				oscillator: { type: "sawtooth" },
+				envelope: { attack: 0.1, decay: 0.3, sustain: 0.4, release: 0.1 },
+				filter: { Q: 2, type: "lowpass", rolloff: -12 },
+				filterEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.2, baseFrequency: 200, octaves: 2 },
+			}).toDestination();
+
+			const pattern = new Tone.Pattern(
+				(time, note) => {
+					bass.triggerAttackRelease(note, "16n", time);
+				},
+				["C2", "C2", "G2", "C2", "F2", "C2", "G2", "B1"],
+				"upDown",
+			);
+			pattern.interval = "8n";
+			pattern.start(0);
+
+			Tone.getTransport().start();
+		}
+	}
+
+	/**
+	 * Stop background music
+	 */
+	stopMusic(): void {
+		Tone.getTransport().stop();
+		Tone.getTransport().cancel();
 	}
 
 	/**
 	 * Stop all sounds
 	 */
 	stopAll(): void {
+		this.stopMusic();
 		// Dispose all synths
-		this.synths.forEach((synth) => synth.dispose());
+		this.synths.forEach((synth) => {
+			synth.dispose();
+		});
 		this.synths.clear();
 	}
 

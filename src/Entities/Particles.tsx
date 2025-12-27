@@ -81,7 +81,9 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 		});
 
 		// Remove expired particles
-		toRemove.forEach((id) => onExpire?.(id));
+		toRemove.forEach((id) => {
+			onExpire?.(id);
+		});
 
 		// Update geometry
 		geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
