@@ -100,7 +100,7 @@ export function MainMenu() {
 								onClick={handleNewGame}
 								style={{ marginTop: "10px" }}
 							>
-								NEW GAME (Reset Progress)
+								RESTART CAMPAIGN
 							</button>
 						</>
 					) : (
