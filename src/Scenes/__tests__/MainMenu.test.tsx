@@ -11,8 +11,20 @@
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useGameStore } from "../../stores/gameStore";
+import { type ChunkData, useGameStore } from "../../stores/gameStore";
 import { MainMenu } from "../MainMenu";
+
+// Helper to create a minimal valid ChunkData for testing
+const createMockChunk = (x: number, z: number): ChunkData => ({
+	id: `${x},${z}`,
+	x,
+	z,
+	seed: 12345,
+	terrainType: "RIVER",
+	secured: true,
+	entities: [],
+	decorations: [],
+});
 
 // Mock the CSS import
 vi.mock("../../styles/main.css", () => ({}));
@@ -264,10 +276,11 @@ describe("MainMenu - Game Loader Interface", () => {
 	// Stats Display Tests
 	// ============================================
 
-	it("should display territory score", () => {
+	it("should display territory score when greater than 0 and has save data", () => {
 		useGameStore.setState({
 			saveData: {
 				...useGameStore.getState().saveData,
+				discoveredChunks: { "0,0": createMockChunk(0, 0) }, // Must have save data
 				territoryScore: 5,
 			},
 		});
@@ -277,10 +290,11 @@ describe("MainMenu - Game Loader Interface", () => {
 		expect(screen.getByText("5")).toBeInTheDocument();
 	});
 
-	it("should display peacekeeping score", () => {
+	it("should display peacekeeping score when greater than 0 and has save data", () => {
 		useGameStore.setState({
 			saveData: {
 				...useGameStore.getState().saveData,
+				discoveredChunks: { "0,0": createMockChunk(0, 0) }, // Must have save data
 				peacekeepingScore: 100,
 			},
 		});
@@ -290,10 +304,34 @@ describe("MainMenu - Game Loader Interface", () => {
 		expect(screen.getByText("100")).toBeInTheDocument();
 	});
 
-	it("should display player rank", () => {
+	it("should display player rank when save data exists", () => {
+		// RANK only shows when there's save data (discovered chunks)
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				discoveredChunks: { "0,0": createMockChunk(0, 0) },
+			},
+		});
+
 		render(<MainMenu />);
 		expect(screen.getByText("RANK")).toBeInTheDocument();
 		expect(screen.getByText("PUP")).toBeInTheDocument();
+	});
+
+	it("should hide rank and empty stats for new players", () => {
+		// New players (no discovered chunks) should not see empty stats
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				discoveredChunks: {},
+				territoryScore: 0,
+				peacekeepingScore: 0,
+			},
+		});
+
+		render(<MainMenu />);
+		expect(screen.queryByText("RANK")).not.toBeInTheDocument();
+		expect(screen.queryByText("TERRITORY SECURED")).not.toBeInTheDocument();
 	});
 
 	// ============================================

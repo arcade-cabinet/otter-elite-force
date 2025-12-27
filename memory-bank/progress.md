@@ -151,26 +151,33 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 ## Known Issues
 
 ### Critical
-- [ ] Main menu still shows legacy "level select" (blocks new design)
+- [x] ~~Main menu still shows legacy "level select"~~ → FIXED: Game loader interface
 - [ ] Chunks may regenerate on revisit (persistence incomplete)
 
 ### High Priority
-- [ ] Bullet tunneling at high framerates
+- [ ] Bullet tunneling at high framerates → Rapier CCD available but not wired
 - [ ] `localStorage` quota error handling
-- [ ] Missing difficulty mode implementation
+- [ ] Missing difficulty mode implementation (SUPPORT/TACTICAL/ELITE logic)
+- [ ] Canteen UI not wired to ECS weapon templates (code exists, needs UI)
 
 ### Medium Priority
-- [ ] Mobile safe-area padding issues
-- [ ] No base building system yet
+- [x] ~~Mobile safe-area padding issues~~ → FIXED: Visible joystick zones
+- [ ] Base building ghost preview missing
 - [ ] Pack hunting AI not coordinated
+- [ ] Enemy health bars not visible to player
 
 ### Low Priority
 - [ ] LOD missing for dense enemy encounters
 - [ ] Chunk hibernation for distant AI
 - [ ] Weather effects not implemented
+- [ ] Haptics only on damage, not on other interactions
 
 ## Recent Integration Victories
 
+- **@react-three/rapier Physics Integration** - Added proper physics engine for collisions, character controller, trigger volumes
+- **UI/UX Target Audience Simulation** - Comprehensive playthrough scenarios (new player, returning player, combat, build mode, canteen)
+- **HUD Improvements** - Visible joystick zones, first-objective prompts, directional damage indicators, haptic feedback
+- **Conditional Stats Display** - Empty stats hidden for new players, reducing UI clutter
 - **DRY Procedural Assembly System** - Component Library with 45+ meshes, faction materials, universal skeleton
 - **Structure/Settlement Assemblers** - Algorithmic building generation with layout patterns
 - **Build Mode Framework** - Snap points, placement validation, resource costs
@@ -182,7 +189,7 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 - **ECS Slot Definitions** - Single source of truth for all slot types (equipment, attachments, gadgets, build categories)
 - **ECS Data Templates** - Weapons, equipment, buildables defined as ECS-centric templates (replacing old constants)
 - **World Generator ECS Integration** - POIs automatically spawn ECS settlements via assembly bridge
-- **497 Tests Passing** - Comprehensive coverage including ECS systems, AI, slots, data templates, assembly
+- **499 Tests Passing** - Comprehensive coverage including ECS systems, AI, slots, data templates, assembly, UI
 - **55%+ Statement Coverage** - Key systems (stores, ECS data, assembly) at 75-95%
 - Unified domain-specific PRs into hardened `main`
 - Resolved "shaky" assembly bugs in state management
@@ -211,3 +218,7 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 | 2025-12-27 | ECS Slot Definitions | Single source of truth for slots replaces scattered constants |
 | 2025-12-27 | ECS Data Templates | Weapons/equipment/buildables as proper ECS entities |
 | 2025-12-27 | WorldGenerator ECS Integration | POIs spawn ECS settlements automatically |
+| 2025-12-27 | @react-three/rapier | Physics engine for proper collisions, character controller |
+| 2025-12-27 | UI/UX Simulation Pass | Target audience playthrough scenarios identified gaps |
+| 2025-12-27 | Movement Assessment | Confirmed NOT tank controls - world-space movement |
+| 2025-12-27 | HUD Improvements | Visible joysticks, first objective, damage direction |

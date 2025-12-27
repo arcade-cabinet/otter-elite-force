@@ -6,6 +6,11 @@ The project has successfully transitioned through a complex integration phase. T
 
 ## Recent Accomplishments
 
+- **@react-three/rapier Physics Integration**: Added proper physics engine for collisions, character controller, trigger volumes
+- **UI/UX Target Audience Simulation**: Comprehensive playthrough scenarios (new player, returning player, combat, build mode, canteen)
+- **HUD Improvements**: Visible joystick zones with labels, first-objective prompts for new players, directional damage indicators, haptic feedback on damage
+- **Conditional Stats Display**: Empty stats hidden for new players (RANK, TERRITORY, PEACEKEEPING only show when > 0)
+- **Movement Assessment**: Confirmed NOT tank controls - using world-space movement with smooth rotation interpolation
 - **DRY Procedural Assembly System**: Complete component library with 45+ meshes, faction materials, universal character skeleton
 - **ECS-Assembly Integration Bridge**: Seamless connection between Miniplex ECS and procedural generation
 - **Modular Weapon Assembly**: Detachable weapon parts (receiver, barrel, stock, grip, magazine) with attachment system
@@ -15,7 +20,7 @@ The project has successfully transitioned through a complex integration phase. T
 - **ECS Slot Definitions**: Single source of truth for all slot types (equipment, attachments, gadgets, build categories) - no more scattered constants
 - **ECS Data Templates**: Weapons, equipment, and buildables defined as ECS-centric templates replacing old constants approach
 - **World Generator ECS Integration**: POIs automatically spawn proper ECS settlements via assembly bridge
-- **497 Tests Passing**: Comprehensive coverage including ECS systems, AI, slots, data templates, and assembly
+- **499 Tests Passing**: Comprehensive coverage including ECS systems, AI, slots, data templates, assembly, and UI
 
 ## Current Work Focus
 
@@ -108,11 +113,14 @@ The store has base building primitives, but UI needs implementation:
 
 ## Known Technical Debt
 
-- [ ] Bullet tunneling at high framerates (needs continuous collision detection)
+- [ ] Bullet tunneling at high framerates (Rapier CCD available, needs wiring)
 - [ ] `localStorage` quota handling (needs user-facing fail-state)
-- [ ] Mobile safe-area padding in certain ultrawide aspect ratios
+- [x] ~~Mobile safe-area padding~~ → FIXED: Visible joystick zones with labels
 - [ ] Chunk hibernation for distant AI (CPU optimization)
 - [ ] LOD system for dense enemy encounters
+- [ ] Canteen UI not wired to ECS weapon templates (full system exists, needs UI)
+- [ ] Enemy health bars not visible to player
+- [ ] Build mode ghost preview not implemented
 
 ## Integration Milestones
 
@@ -129,11 +137,17 @@ The store has base building primitives, but UI needs implementation:
 | ECS Slot Definitions | ✅ Complete | 2025-12-27 |
 | ECS Data Templates | ✅ Complete | 2025-12-27 |
 | WorldGen ECS Integration | ✅ Complete | 2025-12-27 |
-| 497 Tests Passing | ✅ Complete | 2025-12-27 |
-| Main Menu Redesign | 🔄 In Progress | - |
+| @react-three/rapier Physics | ✅ Complete | 2025-12-27 |
+| Movement Assessment (NOT tank) | ✅ Complete | 2025-12-27 |
+| UI/UX Simulation Pass | ✅ Complete | 2025-12-27 |
+| HUD Improvements | ✅ Complete | 2025-12-27 |
+| 499 Tests Passing | ✅ Complete | 2025-12-27 |
+| Main Menu Redesign | ✅ Complete | 2025-12-27 |
 | Open World Persistence | 🔄 In Progress | - |
+| Physics Integration | 🔄 In Progress | - |
 | Base Building v1 | ⏳ Pending | - |
 | Difficulty System | ⏳ Pending | - |
+| Canteen UI Wire-up | ⏳ Pending | - |
 
 ## Agent Coordination Notes
 

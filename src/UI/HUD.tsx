@@ -1,16 +1,31 @@
 /**
  * HUD (Heads-Up Display)
  * In-game UI overlay
+ *
+ * Mobile-first design with:
+ * - 48px minimum touch targets
+ * - Visible joystick zones
+ * - First-objective prompts
+ * - Directional damage indicators
  */
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
 import { useGameStore } from "../stores/gameStore";
 
 export function HUD() {
-	const { health, maxHealth, kills, mudAmount, playerPos, saveData, isBuildMode } = useGameStore(
+	const {
+		health,
+		maxHealth,
+		kills,
+		mudAmount,
+		playerPos,
+		saveData,
+		isBuildMode,
+		lastDamageDirection,
+	} = useGameStore(
 		useShallow((state) => ({
 			health: state.health,
 			maxHealth: state.maxHealth,
@@ -19,12 +34,34 @@ export function HUD() {
 			playerPos: state.playerPos,
 			saveData: state.saveData,
 			isBuildMode: state.isBuildMode,
+			lastDamageDirection: state.lastDamageDirection,
 		})),
 	);
 
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
 	const placeComponent = useGameStore((state) => state.placeComponent);
+
+	// Track damage flash for directional indicator
+	const [showDamageFlash, setShowDamageFlash] = useState(false);
+	const [prevHealth, setPrevHealth] = useState(health);
+
+	useEffect(() => {
+		if (health < prevHealth) {
+			setShowDamageFlash(true);
+			// Haptic feedback on damage
+			if (navigator.vibrate) {
+				navigator.vibrate(100);
+			}
+			const timer = setTimeout(() => setShowDamageFlash(false), 300);
+			return () => clearTimeout(timer);
+		}
+		setPrevHealth(health);
+	}, [health, prevHealth]);
+
+	// First objective prompt for new players
+	const showFirstObjective =
+		!saveData.isLZSecured && Object.keys(saveData.discoveredChunks).length < 3;
 
 	const handlePlace = useCallback(
 		(type: "FLOOR" | "WALL" | "ROOF" | "STILT") => {
@@ -52,6 +89,62 @@ export function HUD() {
 			{/* Mud Overlay */}
 			<div className="mud-overlay" style={{ opacity: mudAmount }} />
 
+			{/* Directional Damage Indicator */}
+			{showDamageFlash && lastDamageDirection && (
+				<div
+					className="damage-indicator"
+					style={{
+						position: "absolute",
+						top: lastDamageDirection.y < 0 ? "0" : "auto",
+						bottom: lastDamageDirection.y > 0 ? "0" : "auto",
+						left: lastDamageDirection.x < 0 ? "0" : "auto",
+						right: lastDamageDirection.x > 0 ? "0" : "auto",
+						width:
+							Math.abs(lastDamageDirection.x) > Math.abs(lastDamageDirection.y) ? "30%" : "100%",
+						height:
+							Math.abs(lastDamageDirection.y) > Math.abs(lastDamageDirection.x) ? "30%" : "100%",
+						background: "linear-gradient(to center, rgba(255,0,0,0.6), transparent)",
+						pointerEvents: "none",
+						zIndex: 100,
+					}}
+				/>
+			)}
+
+			{/* First Objective Prompt */}
+			{showFirstObjective && (
+				<div
+					className="first-objective-prompt"
+					style={{
+						position: "absolute",
+						top: "50%",
+						left: "50%",
+						transform: "translate(-50%, -50%)",
+						background: "rgba(0, 0, 0, 0.85)",
+						border: "2px solid var(--primary, #ffa500)",
+						borderRadius: "8px",
+						padding: "20px 30px",
+						textAlign: "center",
+						zIndex: 50,
+						animation: "pulse 2s infinite",
+					}}
+				>
+					<div
+						style={{
+							color: "var(--primary, #ffa500)",
+							fontSize: "1.2rem",
+							fontWeight: "bold",
+							marginBottom: "8px",
+						}}
+					>
+						FIRST OBJECTIVE
+					</div>
+					<div style={{ color: "#fff", fontSize: "1rem" }}>SECURE YOUR LZ</div>
+					<div style={{ color: "#888", fontSize: "0.8rem", marginTop: "8px" }}>
+						Return to coordinates (0, 0) and establish your base
+					</div>
+				</div>
+			)}
+
 			{/* Top HUD */}
 			<div className="hud-top">
 				<div className="hud-left">
@@ -64,8 +157,12 @@ export function HUD() {
 					<div className="hud-coords">
 						COORD: {Math.floor(playerPos[0])}, {Math.floor(playerPos[2])}
 					</div>
-					<div className="hud-territory">TERRITORY SECURED: {saveData.territoryScore}</div>
-					<div className="hud-peacekeeping">PEACEKEEPING: {saveData.peacekeepingScore}</div>
+					{saveData.territoryScore > 0 && (
+						<div className="hud-territory">TERRITORY: {saveData.territoryScore}</div>
+					)}
+					{saveData.peacekeepingScore > 0 && (
+						<div className="hud-peacekeeping">PEACEKEEPING: {saveData.peacekeepingScore}</div>
+					)}
 				</div>
 
 				<div className="hud-objective">
@@ -134,9 +231,67 @@ export function HUD() {
 				</div>
 			)}
 
-			{/* Joystick zones */}
-			<div id="joystick-move" className="joystick-zone left" />
-			<div id="joystick-look" className="joystick-zone drag-area" />
+			{/* Joystick zones - visible indicators for mobile players */}
+			<div
+				id="joystick-move"
+				className="joystick-zone left"
+				style={{
+					position: "absolute",
+					left: "20px",
+					bottom: "20px",
+					width: "150px",
+					height: "150px",
+					borderRadius: "50%",
+					border: "2px dashed rgba(255, 170, 0, 0.3)",
+					background: "radial-gradient(circle, rgba(255, 170, 0, 0.1) 0%, transparent 70%)",
+				}}
+			>
+				<div
+					style={{
+						position: "absolute",
+						top: "50%",
+						left: "50%",
+						transform: "translate(-50%, -50%)",
+						color: "rgba(255, 170, 0, 0.4)",
+						fontSize: "0.7rem",
+						textAlign: "center",
+						pointerEvents: "none",
+					}}
+				>
+					MOVE
+				</div>
+			</div>
+			<div
+				id="joystick-look"
+				className="joystick-zone drag-area"
+				style={{
+					position: "absolute",
+					right: "20px",
+					bottom: "180px",
+					width: "150px",
+					height: "150px",
+					borderRadius: "8px",
+					border: "2px dashed rgba(255, 170, 0, 0.2)",
+					background: "rgba(255, 170, 0, 0.05)",
+				}}
+			>
+				<div
+					style={{
+						position: "absolute",
+						top: "50%",
+						left: "50%",
+						transform: "translate(-50%, -50%)",
+						color: "rgba(255, 170, 0, 0.3)",
+						fontSize: "0.7rem",
+						textAlign: "center",
+						pointerEvents: "none",
+					}}
+				>
+					DRAG TO
+					<br />
+					AIM
+				</div>
+			</div>
 		</div>
 	);
 }

@@ -160,12 +160,25 @@ describe("HUD Component", () => {
 	});
 
 	describe("Territory and Peacekeeping Scores", () => {
-		it("displays territory score", () => {
+		it("displays territory score when greater than 0", () => {
 			render(<HUD />);
-			expect(screen.getByText("TERRITORY SECURED: 10")).toBeInTheDocument();
+			// HUD uses shorter label "TERRITORY:" instead of "TERRITORY SECURED:"
+			expect(screen.getByText("TERRITORY: 10")).toBeInTheDocument();
 		});
 
-		it("displays peacekeeping score", () => {
+		it("hides territory score when 0", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					territoryScore: 0,
+				},
+			});
+
+			render(<HUD />);
+			expect(screen.queryByText(/TERRITORY:/)).not.toBeInTheDocument();
+		});
+
+		it("displays peacekeeping score when greater than 0", () => {
 			render(<HUD />);
 			expect(screen.getByText("PEACEKEEPING: 5")).toBeInTheDocument();
 		});
@@ -181,7 +194,7 @@ describe("HUD Component", () => {
 			});
 
 			rerender(<HUD />);
-			expect(screen.getByText("TERRITORY SECURED: 25")).toBeInTheDocument();
+			expect(screen.getByText("TERRITORY: 25")).toBeInTheDocument();
 		});
 	});
 

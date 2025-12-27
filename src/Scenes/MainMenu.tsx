@@ -57,23 +57,31 @@ export function MainMenu() {
 			</div>
 
 			<div className="panel">
-				{/* Current Campaign Status */}
+				{/* Current Campaign Status - Only show meaningful stats */}
 				<div className="stat-row">
 					<span>PLATOON COMMANDER</span>
 					<span className="stat-val">{CHARACTERS[selectedCharacterId].traits.name}</span>
 				</div>
-				<div className="stat-row">
-					<span>RANK</span>
-					<span className="stat-val">{RANKS[saveData.rank]}</span>
-				</div>
-				<div className="stat-row">
-					<span>TERRITORY SECURED</span>
-					<span className="stat-val">{saveData.territoryScore}</span>
-				</div>
-				<div className="stat-row">
-					<span>PEACEKEEPING SCORE</span>
-					<span className="stat-val">{saveData.peacekeepingScore}</span>
-				</div>
+				{hasSaveData && (
+					<>
+						<div className="stat-row">
+							<span>RANK</span>
+							<span className="stat-val">{RANKS[saveData.rank]}</span>
+						</div>
+						{saveData.territoryScore > 0 && (
+							<div className="stat-row">
+								<span>TERRITORY SECURED</span>
+								<span className="stat-val">{saveData.territoryScore}</span>
+							</div>
+						)}
+						{saveData.peacekeepingScore > 0 && (
+							<div className="stat-row">
+								<span>PEACEKEEPING SCORE</span>
+								<span className="stat-val">{saveData.peacekeepingScore}</span>
+							</div>
+						)}
+					</>
+				)}
 				<div className="stat-row">
 					<span>DIFFICULTY</span>
 					<span className="stat-val">{saveData.difficultyMode}</span>

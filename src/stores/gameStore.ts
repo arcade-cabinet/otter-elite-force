@@ -332,8 +332,9 @@ interface GameState {
 	isFallTriggered: boolean;
 	raftId: string | null;
 	playerPos: [number, number, number];
+	lastDamageDirection: { x: number; y: number } | null;
 
-	takeDamage: (amount: number) => void;
+	takeDamage: (amount: number, direction?: { x: number; y: number }) => void;
 	heal: (amount: number) => void;
 	addKill: () => void;
 	resetStats: () => void;
@@ -457,6 +458,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	raftId: null,
 	selectedCharacterId: "bubbles",
 	playerPos: [0, 0, 0],
+	lastDamageDirection: null,
 	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
 	isBuildMode: false,
@@ -480,7 +482,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	// Player stats
-	takeDamage: (amount) => {
+	takeDamage: (amount, direction) => {
 		const { health, saveData, resetData, triggerFall, setMode } = get();
 		const newHealth = Math.max(0, health - amount);
 
@@ -494,7 +496,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 			triggerFall();
 		}
 
-		set({ health: newHealth });
+		set({ health: newHealth, lastDamageDirection: direction ?? null });
+
+		// Clear damage direction after a short delay
+		if (direction) {
+			setTimeout(() => set({ lastDamageDirection: null }), 500);
+		}
 	},
 
 	heal: (amount) =>
