@@ -1,4 +1,4 @@
-import { CharacterGear, CharacterTraits, WeaponData } from "./types";
+import type { CharacterGear, CharacterTraits, WeaponData } from "./types";
 
 export const WEAPONS: Record<string, WeaponData> = {
 	"service-pistol": {
@@ -36,7 +36,10 @@ export const WEAPONS: Record<string, WeaponData> = {
 	},
 };
 
-export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: CharacterGear }> = {
+export const CHARACTERS: Record<
+	string,
+	{ traits: CharacterTraits; gear: CharacterGear }
+> = {
 	bubbles: {
 		traits: {
 			id: "bubbles",

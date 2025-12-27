@@ -1,5 +1,10 @@
-
-export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN" | "VICTORY";
+export type GameMode =
+	| "MENU"
+	| "CUTSCENE"
+	| "GAME"
+	| "GAMEOVER"
+	| "CANTEEN"
+	| "VICTORY";
 export type DifficultyMode = "ELITE" | "TACTICAL" | "SUPPORT";
 
 export interface CharacterTraits {
@@ -55,7 +60,13 @@ export type ObjectiveEntity = BaseEntity & {
 };
 
 export type InteractionEntity = BaseEntity & {
-	type: "VILLAGER" | "HEALER" | "HUT" | "EXTRACTION_POINT" | "RAFT" | "CLAM_BASKET";
+	type:
+		| "VILLAGER"
+		| "HEALER"
+		| "HUT"
+		| "EXTRACTION_POINT"
+		| "RAFT"
+		| "CLAM_BASKET";
 	interacted?: boolean;
 	isHeavy?: boolean;
 };
@@ -64,7 +75,11 @@ export type EnvironmentEntity = BaseEntity & {
 	type: "PLATFORM" | "CLIMBABLE" | "OIL_SLICK" | "MUD_PIT";
 };
 
-export type Entity = PredatorEntity | ObjectiveEntity | InteractionEntity | EnvironmentEntity;
+export type Entity =
+	| PredatorEntity
+	| ObjectiveEntity
+	| InteractionEntity
+	| EnvironmentEntity;
 
 export interface ChunkData {
 	id: string; // "x,z"

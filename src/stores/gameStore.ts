@@ -3,17 +3,16 @@
  * Central state management using Zustand
  */
 
-import { create } from "zustand";
 import { v4 as uuidv4 } from "uuid";
+import { create } from "zustand";
 import { RANKS } from "../utils/constants";
-import { CHARACTERS, CHAR_PRICES, UPGRADE_COSTS, WEAPONS } from "./gameData";
 import {
 	DEFAULT_SAVE_DATA,
 	deepClone,
 	loadFromLocalStorage,
 	saveToLocalStorage,
 } from "./persistence";
-import {
+import type {
 	ChunkData,
 	DifficultyMode,
 	GameMode,
@@ -29,6 +28,8 @@ const MAX_CHUNK_CACHE = 50;
 const MAX_UPGRADE_LEVEL = 10;
 const HEALTH_LOW_THRESHOLD = 30;
 const SAVE_DEBOUNCE_MS = 1000;
+
+const WORLD_BOUNDS = 10000; // Example max coordinate
 
 interface GameState {
 	// Mode management
@@ -91,6 +92,9 @@ interface GameState {
 	completeStrategic: (type: "gas") => void;
 	setLevel: (levelId: number) => void;
 
+	// Save status
+	saveTimeout: ReturnType<typeof setTimeout> | null;
+
 	// Base Building
 	secureLZ: () => void;
 	placeComponent: (component: Omit<PlacedComponent, "id">) => void;
@@ -101,7 +105,7 @@ interface GameState {
 	toggleZoom: () => void;
 }
 
-let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+const _saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const useGameStore = create<GameState>((set, get) => ({
 	// Initial state
@@ -121,6 +125,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	isZoomed: false,
 	isBuildMode: false,
 	currentChunkId: "0,0",
+	saveTimeout: null,
 
 	/**
 	 * Mode Management
@@ -183,17 +188,23 @@ export const useGameStore = create<GameState>((set, get) => ({
 	setMud: (amount) => set({ mudAmount: amount }),
 
 	setPlayerPos: (pos) => {
-		const x = Math.floor(pos[0] / CHUNK_SIZE);
-		const z = Math.floor(pos[2] / CHUNK_SIZE);
+		const [xPos, yPos, zPos] = pos;
+		const clampedX = Math.max(-WORLD_BOUNDS, Math.min(WORLD_BOUNDS, xPos));
+		const clampedZ = Math.max(-WORLD_BOUNDS, Math.min(WORLD_BOUNDS, zPos));
+
+		const x = Math.floor(clampedX / CHUNK_SIZE);
+		const z = Math.floor(clampedZ / CHUNK_SIZE);
 		const currentChunkId = `${x},${z}`;
-		set({ playerPos: pos, currentChunkId });
+		set({ playerPos: [clampedX, yPos, clampedZ], currentChunkId });
 	},
 
 	setCarryingClam: (isCarrying) => set({ isCarryingClam: isCarrying }),
 
-	setEscortingVillager: (isEscorting) => set({ isEscortingVillager: isEscorting }),
+	setEscortingVillager: (isEscorting) =>
+		set({ isEscortingVillager: isEscorting }),
 
-	setPilotingRaft: (isPiloting, raftId = null) => set({ isPilotingRaft: isPiloting, raftId }),
+	setPilotingRaft: (isPiloting, raftId = null) =>
+		set({ isPilotingRaft: isPiloting, raftId }),
 
 	setFallTriggered: (active) =>
 		set((state) => ({
@@ -226,20 +237,26 @@ export const useGameStore = create<GameState>((set, get) => ({
 		const newChunk = generateChunk(x, z);
 
 		set((state) => {
-			const newDiscoveredChunks = { ...state.saveData.discoveredChunks, [id]: newChunk };
+			const newDiscoveredChunks = {
+				...state.saveData.discoveredChunks,
+				[id]: newChunk,
+			};
 
 			// Chunk unloading: Keep only up to MAX_CHUNK_CACHE chunks
 			const keys = Object.keys(newDiscoveredChunks);
 			if (keys.length > MAX_CHUNK_CACHE) {
-				// Prioritize removing oldest chunks that aren't the current or origin chunk
-				// and aren't secured (to preserve progress for now)
 				const currentId = state.currentChunkId;
 				const keysToRemove = keys.filter(
-					(k) => k !== "0,0" && k !== id && k !== currentId && !newDiscoveredChunks[k].secured
+					(k) =>
+						k !== "0,0" &&
+						k !== id &&
+						k !== currentId &&
+						!newDiscoveredChunks[k].secured,
 				);
 
-				if (keysToRemove.length > 0) {
-					delete newDiscoveredChunks[keysToRemove[0]];
+				const excessCount = keys.length - MAX_CHUNK_CACHE;
+				for (let i = 0; i < Math.min(excessCount, keysToRemove.length); i++) {
+					delete newDiscoveredChunks[keysToRemove[i]];
 				}
 			}
 
@@ -275,7 +292,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 			const newStrategic = { ...state.saveData.strategicObjectives };
 			let peacekeepingGain = 0;
 
-			if (chunk.entities.some((e) => e.type === "SIPHON")) newStrategic.siphonsDismantled++;
+			if (chunk.entities.some((e) => e.type === "SIPHON"))
+				newStrategic.siphonsDismantled++;
 			if (chunk.entities.some((e) => e.type === "HUT")) {
 				newStrategic.villagesLiberated++;
 				peacekeepingGain += 10;
@@ -289,7 +307,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 				saveData: {
 					...state.saveData,
 					territoryScore: state.saveData.territoryScore + 1,
-					peacekeepingScore: state.saveData.peacekeepingScore + peacekeepingGain,
+					peacekeepingScore:
+						state.saveData.peacekeepingScore + peacekeepingGain,
 					strategicObjectives: newStrategic,
 					discoveredChunks: {
 						...state.saveData.discoveredChunks,
@@ -430,7 +449,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 		set((state) => ({
 			saveData: {
 				...state.saveData,
-				baseComponents: [...state.saveData.baseComponents, { ...comp, id: `base-${uuidv4()}` }],
+				baseComponents: [
+					...state.saveData.baseComponents,
+					{ ...comp, id: `base-${uuidv4()}` },
+				],
 			},
 		}));
 		get().saveGame();
@@ -440,14 +462,18 @@ export const useGameStore = create<GameState>((set, get) => ({
 		set((state) => ({
 			saveData: {
 				...state.saveData,
-				baseComponents: state.saveData.baseComponents.filter((c) => c.id !== id),
+				baseComponents: state.saveData.baseComponents.filter(
+					(c) => c.id !== id,
+				),
 			},
 		}));
 		get().saveGame(true);
 	},
 
 	addCoins: (amount) => {
-		set((state) => ({ saveData: { ...state.saveData, coins: state.saveData.coins + amount } }));
+		set((state) => ({
+			saveData: { ...state.saveData, coins: state.saveData.coins + amount },
+		}));
 		get().saveGame();
 	},
 
@@ -464,7 +490,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	buyUpgrade: (type, cost) => {
 		const { saveData } = get();
-		const boostKey = `${type}Boost` as "speedBoost" | "healthBoost" | "damageBoost";
+		const boostKey = `${type}Boost` as
+			| "speedBoost"
+			| "healthBoost"
+			| "damageBoost";
 		const currentBoost = saveData.upgrades[boostKey];
 
 		// Validation before spending coins
@@ -494,27 +523,28 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	saveGame: (immediate = false) => {
+		const { saveTimeout } = get();
 		if (saveTimeout) {
 			clearTimeout(saveTimeout);
-			saveTimeout = null;
 		}
 
 		const performSave = () => {
 			saveToLocalStorage(get().saveData);
-			saveTimeout = null;
+			set({ saveTimeout: null });
 		};
 
 		if (immediate) {
 			performSave();
 		} else {
-			saveTimeout = setTimeout(performSave, SAVE_DEBOUNCE_MS);
+			const timeout = setTimeout(performSave, SAVE_DEBOUNCE_MS);
+			set({ saveTimeout: timeout });
 		}
 	},
 
 	resetData: () => {
+		const { saveTimeout } = get();
 		if (saveTimeout) {
 			clearTimeout(saveTimeout);
-			saveTimeout = null;
 		}
 		const freshData = deepClone(DEFAULT_SAVE_DATA);
 		saveToLocalStorage(freshData);
@@ -535,6 +565,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 			isZoomed: false,
 			isBuildMode: false,
 			currentChunkId: "0,0",
+			saveTimeout: null,
 		});
 	},
 

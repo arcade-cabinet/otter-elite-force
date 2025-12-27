@@ -1,4 +1,11 @@
-import { ChunkData, Entity, EnvironmentEntity, InteractionEntity, ObjectiveEntity, PredatorEntity } from "./types";
+import type {
+	ChunkData,
+	Entity,
+	EnvironmentEntity,
+	InteractionEntity,
+	ObjectiveEntity,
+	PredatorEntity,
+} from "./types";
 
 export const CHUNK_SIZE = 100;
 
@@ -16,8 +23,13 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 
 	const nextRand = () => getSeededRandom(x, z, randIndex++);
 
-	const terrainTypes: ChunkData["terrainType"][] = ["RIVER", "MARSH", "DENSE_JUNGLE"];
-	const terrainType = terrainTypes[Math.floor(nextRand() * terrainTypes.length)];
+	const terrainTypes: ChunkData["terrainType"][] = [
+		"RIVER",
+		"MARSH",
+		"DENSE_JUNGLE",
+	];
+	const terrainType =
+		terrainTypes[Math.floor(nextRand() * terrainTypes.length)];
 
 	const entities: Entity[] = [];
 
@@ -47,7 +59,11 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 		const platform: EnvironmentEntity = {
 			id: `p-${id}-${i}`,
 			type: "PLATFORM",
-			position: [(nextRand() - 0.5) * (CHUNK_SIZE - 20), 0.5, (nextRand() - 0.5) * (CHUNK_SIZE - 20)],
+			position: [
+				(nextRand() - 0.5) * (CHUNK_SIZE - 20),
+				0.5,
+				(nextRand() - 0.5) * (CHUNK_SIZE - 20),
+			],
 		};
 		entities.push(platform);
 	}
@@ -58,7 +74,11 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 		const climbable: EnvironmentEntity = {
 			id: `c-${id}-${i}`,
 			type: "CLIMBABLE",
-			position: [(nextRand() - 0.5) * (CHUNK_SIZE - 30), 5, (nextRand() - 0.5) * (CHUNK_SIZE - 30)],
+			position: [
+				(nextRand() - 0.5) * (CHUNK_SIZE - 30),
+				5,
+				(nextRand() - 0.5) * (CHUNK_SIZE - 30),
+			],
 		};
 		entities.push(climbable);
 	}
@@ -113,7 +133,11 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 			const snapper: PredatorEntity = {
 				id: `outpost-snapper-${id}-${i}`,
 				type: "SNAPPER",
-				position: [outpostX + Math.cos(angle) * 8, 0, outpostZ + Math.sin(angle) * 8],
+				position: [
+					outpostX + Math.cos(angle) * 8,
+					0,
+					outpostZ + Math.sin(angle) * 8,
+				],
 				hp: 30,
 				suppression: 0,
 			};
@@ -133,7 +157,11 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 		const isHealerVillage = nextRand() > 0.8;
 		const villageX = (nextRand() - 0.5) * 30;
 		const villageZ = (nextRand() - 0.5) * 30;
-		const hut: InteractionEntity = { id: `hut-${id}`, type: "HUT", position: [villageX, 0, villageZ] };
+		const hut: InteractionEntity = {
+			id: `hut-${id}`,
+			type: "HUT",
+			position: [villageX, 0, villageZ],
+		};
 		const villager: InteractionEntity = {
 			id: `vil-${id}`,
 			type: isHealerVillage ? "HEALER" : "VILLAGER",
@@ -150,14 +178,22 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 		const hazard: EnvironmentEntity = {
 			id: `h-${id}-${i}`,
 			type: type as "OIL_SLICK" | "MUD_PIT",
-			position: [(nextRand() - 0.5) * (CHUNK_SIZE - 20), 0.05, (nextRand() - 0.5) * (CHUNK_SIZE - 20)],
+			position: [
+				(nextRand() - 0.5) * (CHUNK_SIZE - 20),
+				0.05,
+				(nextRand() - 0.5) * (CHUNK_SIZE - 20),
+			],
 		};
 		entities.push(hazard);
 	}
 
 	// Extraction Point
 	if (id === "0,0" || nextRand() > 0.98) {
-		const extract: InteractionEntity = { id: `extract-${id}`, type: "EXTRACTION_POINT", position: [0, 0, 0] };
+		const extract: InteractionEntity = {
+			id: `extract-${id}`,
+			type: "EXTRACTION_POINT",
+			position: [0, 0, 0],
+		};
 		entities.push(extract);
 	}
 
@@ -190,11 +226,27 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 		secured: false,
 		entities,
 		decorations: [
-			{ id: `${id}-dec-0`, type: "REED", count: Math.floor(nextRand() * 20) + 10 },
-			{ id: `${id}-dec-1`, type: "LILYPAD", count: Math.floor(nextRand() * 15) + 5 },
+			{
+				id: `${id}-dec-0`,
+				type: "REED",
+				count: Math.floor(nextRand() * 20) + 10,
+			},
+			{
+				id: `${id}-dec-1`,
+				type: "LILYPAD",
+				count: Math.floor(nextRand() * 15) + 5,
+			},
 			{ id: `${id}-dec-2`, type: "DEBRIS", count: Math.floor(nextRand() * 5) },
-			{ id: `${id}-dec-3`, type: "BURNT_TREE", count: terrainType === "DENSE_JUNGLE" ? 15 : 5 },
-			{ id: `${id}-dec-4`, type: "MANGROVE", count: terrainType === "DENSE_JUNGLE" ? 20 : 10 },
+			{
+				id: `${id}-dec-3`,
+				type: "BURNT_TREE",
+				count: terrainType === "DENSE_JUNGLE" ? 15 : 5,
+			},
+			{
+				id: `${id}-dec-4`,
+				type: "MANGROVE",
+				count: terrainType === "DENSE_JUNGLE" ? 20 : 10,
+			},
 			{ id: `${id}-dec-5`, type: "DRUM", count: Math.floor(nextRand() * 3) },
 		],
 	};
