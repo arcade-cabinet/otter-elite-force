@@ -10,10 +10,20 @@ declare module "yuka" {
 		length(): number;
 	}
 
+	export class Quaternion {
+		x: number;
+		y: number;
+		z: number;
+		w: number;
+		constructor(x?: number, y?: number, z?: number, w?: number);
+		set(x: number, y: number, z: number, w: number): this;
+		copy(q: Quaternion): this;
+	}
+
 	export class Vehicle {
 		position: Vector3;
 		velocity: Vector3;
-		rotation: any;
+		rotation: Quaternion;
 		maxSpeed: number;
 		steering: SteeringManager;
 		constructor();

@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
@@ -9,6 +10,15 @@ export default defineConfig({
 		outDir: "dist",
 		assetsDir: "assets",
 		sourcemap: true,
+		rollupOptions: {
+			output: {
+				manualChunks: {
+					"react-vendor": ["react", "react-dom"],
+					"three-vendor": ["three", "@react-three/fiber", "@react-three/drei"],
+					"audio-vendor": ["tone"],
+				},
+			},
+		},
 	},
 	test: {
 		globals: true,

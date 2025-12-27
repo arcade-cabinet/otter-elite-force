@@ -10,8 +10,10 @@ updates:
     groups:
       react:
         patterns:
-          - "react*"
-          - "@types/react*"
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
       three:
         patterns:
           - "three"
