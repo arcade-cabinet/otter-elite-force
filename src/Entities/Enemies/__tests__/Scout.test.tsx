@@ -9,7 +9,7 @@
  */
 
 import * as THREE from "three";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ScoutData } from "../types";
 
 // Mock Yuka before importing the component
@@ -79,10 +79,7 @@ vi.mock("yuka", () => {
 
 // Mock React Three Fiber
 vi.mock("@react-three/fiber", () => ({
-	useFrame: vi.fn((callback) => {
-		// Store callback for manual invocation in tests
-		(global as Record<string, unknown>).__useFrameCallback = callback;
-	}),
+	useFrame: vi.fn(),
 }));
 
 describe("Scout Component Logic", () => {
@@ -92,6 +89,8 @@ describe("Scout Component Logic", () => {
 		hp: 5,
 		maxHp: 5,
 		suppression: 0,
+		hasSpottedPlayer: false,
+		isSignaling: false,
 		...overrides,
 	});
 

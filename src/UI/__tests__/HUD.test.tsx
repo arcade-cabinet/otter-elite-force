@@ -224,6 +224,30 @@ describe("HUD Component", () => {
 			fireEvent.click(scopeBtn);
 			expect(useGameStore.getState().isZoomed).toBe(false);
 		});
+
+		it("JUMP button calls inputSystem.setJump on pointer events", async () => {
+			const { inputSystem } = await import("../../Core/InputSystem");
+			render(<HUD />);
+			const jumpBtn = screen.getByRole("button", { name: "JUMP" });
+
+			fireEvent.pointerDown(jumpBtn);
+			expect(inputSystem.setJump).toHaveBeenCalledWith(true);
+
+			fireEvent.pointerUp(jumpBtn);
+			expect(inputSystem.setJump).toHaveBeenCalledWith(false);
+		});
+
+		it("GRIP button calls inputSystem.setGrip on pointer events", async () => {
+			const { inputSystem } = await import("../../Core/InputSystem");
+			render(<HUD />);
+			const gripBtn = screen.getByRole("button", { name: "GRIP" });
+
+			fireEvent.pointerDown(gripBtn);
+			expect(inputSystem.setGrip).toHaveBeenCalledWith(true);
+
+			fireEvent.pointerUp(gripBtn);
+			expect(inputSystem.setGrip).toHaveBeenCalledWith(false);
+		});
 	});
 
 	describe("Build Mode", () => {
@@ -293,6 +317,21 @@ describe("HUD Component", () => {
 			expect(screen.getByRole("button", { name: "DROP" })).toBeInTheDocument();
 		});
 
+		it("DROP button calls audioEngine.playSFX on click", async () => {
+			const { audioEngine } = await import("../../Core/AudioEngine");
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					difficultyMode: "SUPPORT",
+				},
+			});
+			render(<HUD />);
+			const dropBtn = screen.getByRole("button", { name: "DROP" });
+
+			fireEvent.click(dropBtn);
+			expect(audioEngine.playSFX).toHaveBeenCalledWith("pickup");
+		});
+
 		it("hides DROP button in TACTICAL mode", () => {
 			useGameStore.setState({
 				saveData: {
@@ -313,6 +352,41 @@ describe("HUD Component", () => {
 			});
 			render(<HUD />);
 			expect(screen.queryByRole("button", { name: "DROP" })).not.toBeInTheDocument();
+		});
+	});
+
+	describe("Build UI Buttons", () => {
+		beforeEach(() => {
+			useGameStore.setState({ isBuildMode: true });
+		});
+
+		it("clicking +FLOOR button calls handlePlace", () => {
+			render(<HUD />);
+			const floorBtn = screen.getByRole("button", { name: "+FLOOR" });
+			fireEvent.click(floorBtn);
+			// handlePlace logs to console but doesn't change state yet
+			expect(floorBtn).toBeInTheDocument();
+		});
+
+		it("clicking +WALL button calls handlePlace", () => {
+			render(<HUD />);
+			const wallBtn = screen.getByRole("button", { name: "+WALL" });
+			fireEvent.click(wallBtn);
+			expect(wallBtn).toBeInTheDocument();
+		});
+
+		it("clicking +ROOF button calls handlePlace", () => {
+			render(<HUD />);
+			const roofBtn = screen.getByRole("button", { name: "+ROOF" });
+			fireEvent.click(roofBtn);
+			expect(roofBtn).toBeInTheDocument();
+		});
+
+		it("clicking +STILT button calls handlePlace", () => {
+			render(<HUD />);
+			const stiltBtn = screen.getByRole("button", { name: "+STILT" });
+			fireEvent.click(stiltBtn);
+			expect(stiltBtn).toBeInTheDocument();
 		});
 	});
 

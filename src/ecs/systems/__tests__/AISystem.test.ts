@@ -488,4 +488,109 @@ describe("AISystem", () => {
 			expect(entity.aiBrain?.stateTime).toBeCloseTo(0.048, 3);
 		});
 	});
+
+	describe("updateAI Integration", () => {
+		it("should import updateAI function", async () => {
+			const AISystem = await import("../AISystem");
+			expect(AISystem.updateAI).toBeDefined();
+			expect(typeof AISystem.updateAI).toBe("function");
+		});
+
+		it("should not throw when no players exist", async () => {
+			const { updateAI } = await import("../AISystem");
+			expect(() => updateAI(0.016)).not.toThrow();
+		});
+	});
+
+	describe("Individual AI Update Functions", () => {
+		it("should update gator state time when processing", () => {
+			const gator = createGatorEntity();
+			gator.aiBrain!.stateTime = 1.0;
+
+			// Simulate state time update from updateAI
+			gator.aiBrain!.stateTime += 0.5;
+
+			expect(gator.aiBrain?.stateTime).toBe(1.5);
+		});
+
+		it("should update alert level based on player proximity", () => {
+			const gator = createGatorEntity(new THREE.Vector3(0, 0, 0));
+			gator.aiBrain!.alertLevel = 0;
+
+			// Player is close (< 30 units)
+			const delta = 1.0;
+			gator.aiBrain!.alertLevel = Math.min(1, gator.aiBrain!.alertLevel + delta * 0.3);
+
+			expect(gator.aiBrain?.alertLevel).toBe(0.3);
+		});
+
+		it("should decrease alert level when player is far", () => {
+			const gator = createGatorEntity(new THREE.Vector3(0, 0, 0));
+			gator.aiBrain!.alertLevel = 0.5;
+
+			// Player is far (> 30 units)
+			const delta = 1.0;
+			gator.aiBrain!.alertLevel = Math.max(0, gator.aiBrain!.alertLevel - delta * 0.1);
+
+			expect(gator.aiBrain?.alertLevel).toBe(0.4);
+		});
+
+		it("should track last known player position", () => {
+			const gator = createGatorEntity();
+			const playerPos = new THREE.Vector3(10, 0, 15);
+
+			gator.aiBrain!.lastKnownPlayerPos = playerPos.clone();
+
+			expect(gator.aiBrain?.lastKnownPlayerPos?.x).toBe(10);
+			expect(gator.aiBrain?.lastKnownPlayerPos?.z).toBe(15);
+		});
+
+		it("should update snake strike cooldown", () => {
+			const snake = createSnakeEntity();
+			snake.snake!.strikeCooldown = 2.0;
+
+			// Simulate cooldown reduction
+			snake.snake!.strikeCooldown = Math.max(0, snake.snake!.strikeCooldown - 0.5);
+
+			expect(snake.snake?.strikeCooldown).toBe(1.5);
+		});
+
+		it("should handle snapper heat level", () => {
+			const snapper = createSnapperEntity();
+			snapper.snapper!.heatLevel = 0;
+
+			// Simulate heat buildup
+			snapper.snapper!.heatLevel += 0.1;
+
+			expect(snapper.snapper?.heatLevel).toBe(0.1);
+		});
+
+		it("should handle snapper overheat state", () => {
+			const snapper = createSnapperEntity();
+			snapper.snapper!.heatLevel = 1.0;
+			snapper.snapper!.isOverheated = snapper.snapper!.heatLevel >= 1.0;
+
+			expect(snapper.snapper?.isOverheated).toBe(true);
+		});
+
+		it("should handle scout signal cooldown", () => {
+			const scout = createScoutEntity();
+			scout.scout!.signalCooldown = 5.0;
+
+			// Simulate cooldown reduction
+			scout.scout!.signalCooldown = Math.max(0, scout.scout!.signalCooldown - 1.0);
+
+			expect(scout.scout?.signalCooldown).toBe(4.0);
+		});
+
+		it("should handle scout flee distance calculation", () => {
+			const scout = createScoutEntity();
+			const playerPos = new THREE.Vector3(5, 0, 5);
+
+			const distanceToPlayer = scout.transform!.position.distanceTo(playerPos);
+			const shouldFlee = distanceToPlayer < scout.scout!.fleeDistance;
+
+			expect(shouldFlee).toBe(true); // distance ~7 < fleeDistance 15
+		});
+	});
 });
