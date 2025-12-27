@@ -3,11 +3,44 @@
  * In-game UI overlay
  */
 
+import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
-import { useGameStore } from "../stores/gameStore";
+import { useGameStore, CHAR_PRICES, UPGRADE_COSTS } from "../stores/gameStore";
 
-export function HUD() {
-	const { health, maxHealth, kills, mudAmount, playerPos, toggleZoom } = useGameStore();
+	const {
+		health,
+		maxHealth,
+		kills,
+		mudAmount,
+		playerPos,
+		toggleZoom,
+		saveData,
+		setMode,
+		isBuildMode,
+		setBuildMode,
+		placeComponent,
+	} = useGameStore();
+
+	const handlePlace = (type: "FLOOR" | "WALL" | "ROOF" | "STILT") => {
+		// Place relative to player position
+		const pos: [number, number, number] = [
+			Math.round(playerPos[0] / 4) * 4,
+			Math.round(playerPos[1]),
+			Math.round(playerPos[2] / 4) * 4,
+		];
+		
+		// Adjust height for roof
+		if (type === "ROOF") pos[1] += 2.5;
+		if (type === "WALL") pos[1] += 1;
+		if (type === "STILT") pos[1] += 0;
+
+		placeComponent({
+			type,
+			position: pos,
+			rotation: [0, 0, 0],
+		});
+		audioEngine.playSFX("pickup");
+	};
 	// HUD logic...
 
 	return (
@@ -67,7 +100,26 @@ export function HUD() {
 				>
 					SCOPE
 				</button>
+				{saveData.isLZSecured && (
+					<button 
+						type="button" 
+						className={`action-btn build ${isBuildMode ? "active" : ""}`} 
+						onClick={() => setBuildMode(!isBuildMode)}
+					>
+						BUILD
+					</button>
+				)}
 			</div>
+
+			{/* BUILD UI (Bottom Center) */}
+			{isBuildMode && (
+				<div className="build-ui">
+					<button type="button" onClick={() => handlePlace("FLOOR")}>+FLOOR</button>
+					<button type="button" onClick={() => handlePlace("WALL")}>+WALL</button>
+					<button type="button" onClick={() => handlePlace("ROOF")}>+ROOF</button>
+					<button type="button" onClick={() => handlePlace("STILT")}>+STILT</button>
+				</div>
+			)}
 
 			{/* Joystick zones */}
 			<div id="joystick-move" className="joystick-zone left" />

@@ -36,6 +36,11 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 		if (data.hp <= 0 && onDeath) {
 			onDeath(data.id);
 		}
+
+		// Suppression logic for snappers
+		if (data.suppression > 0.7) {
+			setIsFiring(false); // Overheated/Suppressed
+		}
 	});
 
 	const shellColor = "#3d3329";

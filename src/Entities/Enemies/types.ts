@@ -10,6 +10,7 @@ export interface EnemyBaseData {
 	hp: number;
 	maxHp: number;
 	isHeavy?: boolean;
+	suppression: number;
 }
 
 export interface GatorData extends EnemyBaseData {

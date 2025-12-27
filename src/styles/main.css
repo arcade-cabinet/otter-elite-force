@@ -305,7 +305,7 @@ button.secondary {
 	grid-template-areas: 
 		". jump ."
 		"grip . scope"
-		". . .";
+		". build .";
 	gap: 10px;
 	z-index: 100;
 }
@@ -336,6 +336,7 @@ button.secondary {
 .action-btn.jump { grid-area: jump; }
 .action-btn.grip { grid-area: grip; }
 .action-btn.scope { grid-area: scope; }
+.action-btn.build { grid-area: build; background: rgba(0, 50, 0, 0.6) !important; }
 
 .drag-area {
 	position: absolute;
@@ -640,6 +641,32 @@ button.secondary {
 	margin-top: 0;
 	padding: 5px 15px;
 	font-size: 0.7rem;
+}
+
+.action-btn.build.active {
+	background: var(--primary) !important;
+	color: #000 !important;
+}
+
+.build-ui {
+	position: absolute;
+	bottom: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	gap: 10px;
+	z-index: 150;
+	pointer-events: auto;
+}
+
+.build-ui button {
+	width: auto;
+	padding: 10px 15px;
+	font-size: 0.7rem;
+	background: rgba(0, 0, 0, 0.8);
+	border: 1px solid var(--primary);
+	color: var(--primary);
+	margin-top: 0;
 }
 
 /* Mobile optimizations */
