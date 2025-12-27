@@ -39,36 +39,36 @@ export function HUD() {
 				</div>
 			</div>
 
-			{/* Scope Button */}
-			<button type="button" className="scope-btn" onClick={toggleZoom} aria-label="Toggle Scope">
-				SCOPE
-			</button>
-
-			{/* Jump Button */}
-			<button
-				type="button"
-				className="jump-btn"
-				onPointerDown={() => inputSystem.setJump(true)}
-				onPointerUp={() => inputSystem.setJump(false)}
-				aria-label="Jump"
-			>
-				JUMP
-			</button>
-
-			{/* Grip Button */}
-			<button
-				type="button"
-				className="grip-btn"
-				onPointerDown={() => inputSystem.setGrip(true)}
-				onPointerUp={() => inputSystem.setGrip(false)}
-				aria-label="Grip"
-			>
-				GRIP
-			</button>
+			{/* Action Cluster (Right Side) */}
+			<div className="action-cluster">
+				<button 
+					type="button" 
+					className="action-btn jump" 
+					onPointerDown={() => inputSystem.setJump(true)}
+					onPointerUp={() => inputSystem.setJump(false)}
+				>
+					JUMP
+				</button>
+				<button 
+					type="button" 
+					className="action-btn grip" 
+					onPointerDown={() => inputSystem.setGrip(true)}
+					onPointerUp={() => inputSystem.setGrip(false)}
+				>
+					GRIP
+				</button>
+				<button 
+					type="button" 
+					className="action-btn scope" 
+					onClick={toggleZoom}
+				>
+					SCOPE
+				</button>
+			</div>
 
 			{/* Joystick zones */}
 			<div id="joystick-move" className="joystick-zone left" />
-			<div id="joystick-look" className="joystick-zone right" />
+			<div id="joystick-look" className="joystick-zone drag-area" />
 		</div>
 	);
 }

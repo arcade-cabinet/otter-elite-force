@@ -144,6 +144,13 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 
 	return (
 		<group position={[chunkX, 0, chunkZ]}>
+			{/* Diorama Base (The "Dirt" underneath) */}
+			<mesh position={[0, -2.5, 0]} receiveShadow>
+				<boxGeometry args={[CHUNK_SIZE, 5, CHUNK_SIZE]} />
+				<meshStandardMaterial color="#1a1208" roughness={1} />
+			</mesh>
+
+			{/* Terrain Surface */}
 			<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
 				<planeGeometry args={[CHUNK_SIZE, CHUNK_SIZE]} />
 				<meshStandardMaterial color="#2d5016" roughness={0.9} />
@@ -581,13 +588,26 @@ export function Level() {
 			const targetMud = currentChunk.terrainType === "MARSH" ? 0.4 : 0;
 			setMud(targetMud);
 		}
-		const targetDist = isZoomed ? GAME_CONFIG.CAMERA_DISTANCE_ZOOM : GAME_CONFIG.CAMERA_DISTANCE;
-		const cameraOffset = new THREE.Vector3(0, GAME_CONFIG.CAMERA_HEIGHT, targetDist).applyAxisAngle(
+
+		// --- DIORAMA CAMERA: Over-the-shoulder, down and in ---
+		const targetDist = isZoomed ? 6 : 12; // Much tighter than before
+		const sideOffset = 1.5; // Lateral offset for OTS look
+		const verticalOffset = 4; // Lower height for "down and in"
+		
+		const cameraOffset = new THREE.Vector3(sideOffset, verticalOffset, targetDist).applyAxisAngle(
 			new THREE.Vector3(0, 1, 0),
 			playerRef.current.rotation.y,
 		);
-		state.camera.position.lerp(playerRef.current.position.clone().add(cameraOffset), 0.1);
-		state.camera.lookAt(playerRef.current.position.clone().add(new THREE.Vector3(0, 2, 0)));
+		
+		const targetCameraPos = playerRef.current.position.clone().add(cameraOffset);
+		state.camera.position.lerp(targetCameraPos, 0.08); // Smoother, springier arm
+		
+		// Look slightly ahead of player for better vision
+		const lookAtPos = playerRef.current.position.clone().add(new THREE.Vector3(0, 1.5, 0));
+		const forwardVec = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRef.current.rotation.y);
+		lookAtPos.add(forwardVec.multiplyScalar(2));
+		
+		state.camera.lookAt(lookAtPos);
 	});
 
 	const handleParticleExpire = useCallback((id: string) => {
@@ -595,11 +615,13 @@ export function Level() {
 	}, []);
 
 	return (
-		<Canvas shadows camera={{ position: [0, 12, 20], fov: 60 }} gl={{ antialias: true }}>
-			<ambientLight intensity={0.4} />
-			<directionalLight position={[50, 50, 25]} intensity={1} castShadow shadow-mapSize={[2048, 2048]} />
-			<Sky sunPosition={[100, 20, 100]} />
-			<fog attach="fog" args={["#d4c4a8", 20, 150]} />
+		<Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }} gl={{ antialias: true }}>
+			<ambientLight intensity={0.3} />
+			<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow shadow-mapSize={[2048, 2048]} />
+			<Sky sunPosition={[100, 20, 100]} turbidity={10} rayleigh={2} />
+			
+			{/* Immersive Fog: Fades edges into the Reach mist */}
+			<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
 			<Environment preset="sunset" />
 
 			{activeChunks.map((chunk) => (
