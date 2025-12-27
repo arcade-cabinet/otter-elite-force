@@ -3,30 +3,36 @@
  * In-game UI overlay
  */
 
+import { inputSystem } from "../Core/InputSystem";
 import { useGameStore } from "../stores/gameStore";
-import { LEVELS } from "../utils/constants";
 
 export function HUD() {
-	const { health, maxHealth, kills, currentLevel, toggleZoom } = useGameStore();
-	const level = LEVELS[currentLevel];
+	const { health, maxHealth, kills, mudAmount, playerPos, toggleZoom } = useGameStore();
+	// HUD logic...
 
 	return (
 		<div className="hud-container">
+			{/* Mud Overlay */}
+			<div className="mud-overlay" style={{ opacity: mudAmount }} />
+
 			{/* Top HUD */}
 			<div className="hud-top">
-				<div className="hud-health">
-					<span className="hud-label">INTEGRITY</span>
-					<div className="hud-hp-bar">
-						<div className="hud-hp-fill" style={{ width: `${(health / maxHealth) * 100}%` }} />
+				<div className="hud-left">
+					<div className="hud-health">
+						<span className="hud-label">INTEGRITY</span>
+						<div className="hud-hp-bar">
+							<div className="hud-hp-fill" style={{ width: `${(health / maxHealth) * 100}%` }} />
+						</div>
+					</div>
+					<div className="hud-coords">
+						COORD: {Math.floor(playerPos[0])}, {Math.floor(playerPos[2])}
 					</div>
 				</div>
 
 				<div className="hud-objective">
-					<span className="hud-label">OBJECTIVE</span>
+					<span className="hud-label">ELIMINATIONS</span>
 					<br />
-					<span className="hud-value">
-						{kills}/{level.goal}
-					</span>
+					<span className="hud-value">{kills}</span>
 				</div>
 			</div>
 
@@ -36,9 +42,9 @@ export function HUD() {
 			</button>
 
 			{/* Jump Button */}
-			<button 
-				type="button" 
-				className="jump-btn" 
+			<button
+				type="button"
+				className="jump-btn"
 				onPointerDown={() => inputSystem.setJump(true)}
 				onPointerUp={() => inputSystem.setJump(false)}
 				aria-label="Jump"
@@ -47,9 +53,9 @@ export function HUD() {
 			</button>
 
 			{/* Grip Button */}
-			<button 
-				type="button" 
-				className="grip-btn" 
+			<button
+				type="button"
+				className="grip-btn"
 				onPointerDown={() => inputSystem.setGrip(true)}
 				onPointerUp={() => inputSystem.setGrip(false)}
 				aria-label="Grip"

@@ -7,7 +7,8 @@ import { CHARACTERS, useGameStore } from "../stores/gameStore";
 import { LEVELS, RANKS } from "../utils/constants";
 
 export function MainMenu() {
-	const { saveData, setMode, setLevel, resetData, selectedCharacterId, selectCharacter } = useGameStore();
+	const { saveData, setMode, setLevel, resetData, selectedCharacterId, selectCharacter } =
+		useGameStore();
 
 	const handleCampaign = () => {
 		setMode("CUTSCENE");
@@ -45,7 +46,9 @@ export function MainMenu() {
 					<span className="stat-val">{saveData.medals}</span>
 				</div>
 
-				<h3 style={{ marginTop: "20px", color: "var(--primary)", fontSize: "0.9rem" }}>SELECT WARRIOR</h3>
+				<h3 style={{ marginTop: "20px", color: "var(--primary)", fontSize: "0.9rem" }}>
+					SELECT WARRIOR
+				</h3>
 				<div className="character-grid">
 					{Object.values(CHARACTERS).map((char) => {
 						const isUnlocked = saveData.unlockedCharacters.includes(char.traits.id);

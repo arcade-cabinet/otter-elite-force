@@ -128,10 +128,14 @@ interface GameState {
 	health: number;
 	maxHealth: number;
 	kills: number;
+	mudAmount: number;
 	takeDamage: (amount: number) => void;
 	heal: (amount: number) => void;
 	addKill: () => void;
 	resetStats: () => void;
+	setMud: (amount: number) => void;
+	playerPos: [number, number, number];
+	setPlayerPos: (pos: [number, number, number]) => void;
 
 	// World management
 	currentChunkId: string;
@@ -185,6 +189,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	health: 100,
 	maxHealth: 100,
 	kills: 0,
+	mudAmount: 0,
 	currentLevel: 0,
 	selectedCharacterId: "bubbles",
 	saveData: { ...DEFAULT_SAVE_DATA },
@@ -206,7 +211,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	addKill: () => set((state) => ({ kills: state.kills + 1 })),
 
-	resetStats: () => set({ health: 100, kills: 0 }),
+	resetStats: () => set({ health: 100, kills: 0, mudAmount: 0 }),
+
+	setMud: (amount) => set({ mudAmount: amount }),
+
+	playerPos: [0, 0, 0] as [number, number, number],
+	setPlayerPos: (pos) => set({ playerPos: pos }),
 
 	// World management
 	currentChunkId: "0,0",
@@ -256,11 +266,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 			entities.push({
 				id: `p-${id}-${i}`,
 				type: "PLATFORM",
-				position: [
-					(rand() - 0.5) * (CHUNK_SIZE - 20),
-					0.5,
-					(rand() - 0.5) * (CHUNK_SIZE - 20),
-				],
+				position: [(rand() - 0.5) * (CHUNK_SIZE - 20), 0.5, (rand() - 0.5) * (CHUNK_SIZE - 20)],
 			});
 		}
 

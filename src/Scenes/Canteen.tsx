@@ -3,11 +3,11 @@
  * Where players spend coins on character unlocks and gear
  */
 
-import { Canvas } from "@react-three/fiber";
 import { Environment, OrbitControls, Sky } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
 import { useState } from "react";
 import { PlayerRig } from "../Entities/PlayerRig";
-import { CHARACTERS, CHAR_PRICES, useGameStore } from "../stores/gameStore";
+import { CHAR_PRICES, CHARACTERS, useGameStore } from "../stores/gameStore";
 
 export function Canteen() {
 	const { saveData, unlockCharacter, spendCoins, setMode } = useGameStore();
@@ -44,7 +44,11 @@ export function Canteen() {
 						<meshStandardMaterial color="#332211" />
 					</mesh>
 
-					<OrbitControls enableZoom={false} minPolarAngle={Math.PI / 3} maxPolarAngle={Math.PI / 2} />
+					<OrbitControls
+						enableZoom={false}
+						minPolarAngle={Math.PI / 3}
+						maxPolarAngle={Math.PI / 2}
+					/>
 				</Canvas>
 			</div>
 
@@ -73,14 +77,18 @@ export function Canteen() {
 
 				<div className="purchase-panel">
 					<h3>{selectedChar.traits.name}</h3>
-					<p>{selectedChar.traits.grizzled ? "A battle-hardened veteran of the early campaigns." : "Fresh meat, but ready for the soup."}</p>
-					
+					<p>
+						{selectedChar.traits.grizzled
+							? "A battle-hardened veteran of the early campaigns."
+							: "Fresh meat, but ready for the soup."}
+					</p>
+
 					{isUnlocked ? (
 						<div className="status-unlocked">DEPLOYED</div>
 					) : (
-						<button 
-							type="button" 
-							className="purchase-btn" 
+						<button
+							type="button"
+							className="purchase-btn"
 							onClick={handlePurchase}
 							disabled={saveData.coins < price}
 						>

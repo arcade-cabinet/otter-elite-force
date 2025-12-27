@@ -23,9 +23,9 @@ interface SnakeProps {
 
 export function Snake({ data, targetPosition, onDeath }: SnakeProps) {
 	const groupRef = useRef<Group>(null);
-	const headRef = useRef<THREE.Mesh>(null);
+	const _headRef = useRef<THREE.Mesh>(null);
 	const segmentsRef = useRef<THREE.Mesh[]>([]);
-	
+
 	const [isStriking, setIsAmbushing] = useState(false);
 	const strikeTimer = useRef(0);
 	const initialY = data.position.y + randomRange(4, 7); // Hang high in the trees
@@ -41,8 +41,10 @@ export function Snake({ data, targetPosition, onDeath }: SnakeProps) {
 		if (!groupRef.current) return;
 
 		const t = state.clock.elapsedTime;
-		const distanceToPlayer = new THREE.Vector2(groupRef.current.position.x, groupRef.current.position.z)
-			.distanceTo(new THREE.Vector2(targetPosition.x, targetPosition.z));
+		const distanceToPlayer = new THREE.Vector2(
+			groupRef.current.position.x,
+			groupRef.current.position.z,
+		).distanceTo(new THREE.Vector2(targetPosition.x, targetPosition.z));
 
 		// Strike logic
 		if (distanceToPlayer < 8 && strikeTimer.current <= 0) {
@@ -61,17 +63,19 @@ export function Snake({ data, targetPosition, onDeath }: SnakeProps) {
 
 		segmentsRef.current.forEach((seg, i) => {
 			// Hanging physics: top segment is fixed, others follow with delay
-			const targetSegY = isStriking 
-				? initialY - i * 0.8  // Stretch out during strike
+			const targetSegY = isStriking
+				? initialY - i * 0.8 // Stretch out during strike
 				: initialY - i * 0.35; // Coil up normally
-			
+
 			seg.position.y = THREE.MathUtils.lerp(seg.position.y, targetSegY, 0.1);
 			seg.position.x = swayX * (i * 0.5);
 			seg.position.z = swayZ * (i * 0.5);
-			
+
 			// Face the player during strike
 			if (isStriking) {
-				const lookDir = targetPosition.clone().sub(groupRef.current!.position.clone().add(seg.position));
+				const lookDir = targetPosition
+					.clone()
+					.sub(groupRef.current!.position.clone().add(seg.position));
 				seg.rotation.y = Math.atan2(lookDir.x, lookDir.z);
 			}
 		});
@@ -95,19 +99,21 @@ export function Snake({ data, targetPosition, onDeath }: SnakeProps) {
 
 			{/* Segmented Body */}
 			{[...Array(12)].map((_, i) => (
-				<mesh 
-					key={`seg-${i}`}
-					ref={(el) => { if(el) segmentsRef.current[i] = el; }}
+				<mesh
+					key={`seg-${data.id}-${i}`}
+					ref={(el) => {
+						if (el) segmentsRef.current[i] = el;
+					}}
 					castShadow
 				>
 					<sphereGeometry args={[0.15 - i * 0.005, 8, 8]} />
 					<meshStandardMaterial color={i % 2 === 0 ? bodyColor : patternColor} roughness={0.5} />
-					
+
 					{/* Head features on first segment */}
 					{i === 11 && (
 						<group>
 							{/* Glowing amber eyes */}
-							{[-1, 1].map(side => (
+							{[-1, 1].map((side) => (
 								<mesh key={`eye-${side}`} position={[side * 0.08, 0.05, 0.1]}>
 									<sphereGeometry args={[0.02, 4, 4]} />
 									<meshBasicMaterial color="#ffaa00" />
