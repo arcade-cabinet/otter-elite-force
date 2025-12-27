@@ -26,7 +26,7 @@ export function Snapper({ data, targetPosition, onDeath }: SnapperProps) {
 	const turretRef = useRef<Group>(null);
 	const [isFiring, setIsFiring] = useState(false);
 
-	useFrame((state, delta) => {
+	useFrame((state, _delta) => {
 		if (!groupRef.current || !turretRef.current) return;
 
 		const distanceToPlayer = groupRef.current.position.distanceTo(targetPosition);
@@ -36,8 +36,12 @@ export function Snapper({ data, targetPosition, onDeath }: SnapperProps) {
 			// Track player
 			const lookDir = targetPosition.clone().sub(groupRef.current.position);
 			const targetAngle = Math.atan2(lookDir.x, lookDir.z);
-			turretRef.current.rotation.y = THREE.MathUtils.lerp(turretRef.current.rotation.y, targetAngle, 0.05);
-			
+			turretRef.current.rotation.y = THREE.MathUtils.lerp(
+				turretRef.current.rotation.y,
+				targetAngle,
+				0.05,
+			);
+
 			// Fire rate
 			setIsFiring(Math.sin(state.clock.elapsedTime * 10) > 0.8);
 		} else {
@@ -59,15 +63,15 @@ export function Snapper({ data, targetPosition, onDeath }: SnapperProps) {
 				<sphereGeometry args={[1.5, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
 				<meshStandardMaterial color={shellColor} roughness={1} />
 			</mesh>
-			
+
 			{/* Spiky ridges */}
 			{[...Array(8)].map((_, i) => (
-				<mesh 
-					key={`spike-${i}`}
+				<mesh
+					key={`spike-${data.id}-${i}`}
 					position={[
 						Math.cos((i / 8) * Math.PI * 2) * 1.2,
 						0.5,
-						Math.sin((i / 8) * Math.PI * 2) * 1.2
+						Math.sin((i / 8) * Math.PI * 2) * 1.2,
 					]}
 					rotation-x={-0.5}
 				>

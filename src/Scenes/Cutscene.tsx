@@ -92,7 +92,9 @@ export function Cutscene() {
 			</div>
 
 			<div className="dialogue-box">
-				<div className="dialogue-name">{isSgtBubbles ? character.traits.name : currentLine.name}</div>
+				<div className="dialogue-name">
+					{isSgtBubbles ? character.traits.name : currentLine.name}
+				</div>
 				<div className="dialogue-text">{currentLine.text}</div>
 				<button type="button" className="dialogue-next" onClick={handleNext}>
 					{index < INTRO_DIALOGUE.length - 1 ? "NEXT >>" : "BEGIN MISSION"}

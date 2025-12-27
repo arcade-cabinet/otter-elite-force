@@ -149,12 +149,8 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 						{/* Whiskers */}
 						{[...Array(6)].map((_, i) => (
 							<mesh
-								key={`whisker-${i}`}
-								position={[
-									(i % 2 === 0 ? 1 : -1) * 0.2,
-									-0.05 + Math.floor(i / 2) * 0.05,
-									0.1,
-								]}
+								key={`whisker-${traits.id}-${i}`}
+								position={[(i % 2 === 0 ? 1 : -1) * 0.2, -0.05 + Math.floor(i / 2) * 0.05, 0.1]}
 								rotation-z={(i % 2 === 0 ? 1 : -1) * (0.2 + Math.random() * 0.2)}
 								rotation-y={(i % 2 === 0 ? 1 : -1) * 0.5}
 							>
@@ -236,13 +232,7 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 				)}
 
 				{/* --- ARMS --- */}
-				<mesh
-					ref={armLRef}
-					position={[-0.7, 1.1, 0]}
-					rotation-z={0.4}
-					castShadow
-					material={matFur}
-				>
+				<mesh ref={armLRef} position={[-0.7, 1.1, 0]} rotation-z={0.4} castShadow material={matFur}>
 					<capsuleGeometry args={[0.14, 0.6, 4, 12]} />
 				</mesh>
 

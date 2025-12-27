@@ -6,10 +6,10 @@
 import { useEffect } from "react";
 import { audioEngine } from "./Core/AudioEngine";
 import { inputSystem } from "./Core/InputSystem";
+import { Canteen } from "./Scenes/Canteen";
 import { Cutscene } from "./Scenes/Cutscene";
 import { Level } from "./Scenes/Level";
 import { MainMenu } from "./Scenes/MainMenu";
-import { Canteen } from "./Scenes/Canteen";
 import { useGameStore } from "./stores/gameStore";
 import { HUD } from "./UI/HUD";
 
