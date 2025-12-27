@@ -68,19 +68,24 @@ src/
 
 ```typescript
 // Chunk generation is coordinate-based and deterministic
-function generateChunk(x: number, y: number): ChunkData {
-  const seed = hashCoords(x, y);
+function generateChunk(x: number, z: number): ChunkData {
+  const seed = hashCoords(x, z);
   const rng = seededRandom(seed);
   return {
-    x, y, seed,
+    id: `${x},${z}`,
+    x,
+    z,
+    seed,
+    terrainType: generateTerrainType(rng),
     entities: generateEntities(rng),
-    isDiscovered: false,
-    isSecured: false,
+    decorations: generateDecorations(rng),
+    secured: false,
   };
 }
 
 // RULE: Once discovered, chunks are NEVER regenerated
 // They are loaded from the Zustand store
+// Discovery is implicit - chunk exists in discoveredChunks map or not
 ```
 
 ### 4. Mobile-First Design

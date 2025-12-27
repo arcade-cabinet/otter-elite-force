@@ -23,7 +23,7 @@ Instead:
 
 - ✅ One continuous world generated chunk-by-chunk
 - ✅ Chunks are FIXED once discovered (stored in Zustand)
-- ✅ Returning to (5, 3) shows the exact same layout
+- ✅ Returning to chunk (x:5, z:3) shows the exact same layout
 - ✅ Changes persist: destroyed siphons stay destroyed
 
 ### Main Menu = Game Loader
@@ -123,16 +123,19 @@ The `gameStore` is the global FSM tracking:
 
 ```typescript
 // Coordinate-based deterministic seeding
-function generateChunk(x: number, y: number): ChunkData {
-  const seed = hashCoords(x, y);
+function generateChunk(x: number, z: number): ChunkData {
+  const seed = hashCoords(x, z);
   const rng = seededRandom(seed);
-  
+
   return {
-    x, y, seed,
+    id: `${x},${z}`,
+    x,
+    z,
+    seed,
+    terrainType: generateTerrainType(rng),
     entities: generateEntities(rng),
     decorations: generateDecorations(rng),
-    isDiscovered: false,
-    isSecured: false,
+    secured: false,
   };
 }
 ```
@@ -241,8 +244,8 @@ When working on this codebase:
 
 ## 10. Reference Coordinates
 
-| Coordinate | Name | Purpose |
-|------------|------|---------|
+| Coordinate (x, z) | Name | Purpose |
+|-------------------|------|---------|
 | (0, 0) | Landing Zone | Base, extraction point |
 | (5, 5) | Prison Camp | Gen. Whiskers rescue |
 | (10, -10) | Great Siphon | Boss encounter |

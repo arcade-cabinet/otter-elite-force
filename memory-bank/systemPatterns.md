@@ -28,19 +28,22 @@ src/
 
 ```typescript
 // World generation is coordinate-based and deterministic
-type ChunkData = {
+interface ChunkData {
+  id: string;             // "x,z"
   x: number;
-  y: number;
+  z: number;
   seed: number;           // Deterministic from coordinates
-  entities: Entity[];     // Enemies, objectives, decorations
-  isDiscovered: boolean;  // Has player visited?
-  isSecured: boolean;     // Is URA flag planted?
-};
+  terrainType: TerrainType;
+  entities: ChunkEntity[]; // Enemies, objectives, decorations
+  decorations: ChunkDecoration[];
+  secured: boolean;       // Is URA flag planted?
+}
 
 // Key behaviors:
-// 1. generateChunk(x, y) always returns same data for same coords
+// 1. generateChunk(x, z) always returns same data for same coords
 // 2. Once discovered, chunk is stored in Zustand and never regenerated
 // 3. Modifications (destroyed siphon, rescued villager) are permanent
+// 4. Discovery is implicit - chunk exists in discoveredChunks map or not
 ```
 
 **Chunk Lifecycle**:

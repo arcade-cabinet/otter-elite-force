@@ -51,7 +51,7 @@ To prevent the game from becoming "boring" and ensure progression variety:
 
 ### Vertical 1: The Platoon (In-World Rescues)
 - Characters are NOT purchased — they must be **rescued** from specific coordinates
-- Gen. Whiskers is held in a Prison Camp at COORD (5, 5)
+- Gen. Whiskers is held in a Prison Camp at COORD (x:5, z:5)
 - Discovering trapped allies provides long-term exploration goals
 
 ### Vertical 2: The Arsenal (Canteen Upgrades)
@@ -66,7 +66,7 @@ To prevent the game from becoming "boring" and ensure progression variety:
 
 ## Base Building at the LZ
 
-**First Objective**: Secure your Landing Zone at COORD (0, 0)
+**First Objective**: Secure your Landing Zone at COORD (x:0, z:0)
 
 - **Modular Construction**: Use algorithmic building system (stilts, floors, walls, roofs)
 - **Base Expansion**: Build defensive structures and resource processing
@@ -84,7 +84,7 @@ Difficulty can go **UP but NOT DOWN** — once committed, no going back:
 
 ### 2. TACTICAL Mode (Mid Tier)
 - **"The Fall" Mechanic**: If integrity drops below 30%, triggers emergency extraction
-- **Must Return to LZ**: Navigate back to (0, 0) for evacuation to salvage position
+- **Must Return to LZ**: Navigate back to (x:0, z:0) for evacuation to salvage position
 - **Risk Factor**: Chance that your base is damaged by enemy while you're down
 - **Cannot downgrade to SUPPORT**
 

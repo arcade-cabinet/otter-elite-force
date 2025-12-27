@@ -12,7 +12,7 @@ The game consists of a single, infinite open world — NOT discrete levels:
 
 - **Chunk-Based Generation**: World generates as player explores
 - **Fixed On Discovery**: Once visited, terrain is PERMANENT in Zustand
-- **Never Regenerates**: Return to (5, 3) = same layout as before
+- **Never Regenerates**: Return to chunk (x:5, z:3) = same layout as before
 - **Deterministic Seeds**: Coordinates → reproducible chunk content
 
 ### Main Menu = Game Loader
@@ -28,9 +28,9 @@ To prevent monotony, players have three paths to victory:
 
 ### Vertical 1: The Platoon (In-World Rescues)
 - Characters are NOT purchased — they must be **rescued**
-- Gen. Whiskers: Prison Camp at (5, 5)
-- Cpl. Splash: Underwater cache at (-10, 15)
-- Sgt. Fang: Scale-Guard stronghold at (10, -10)
+- Gen. Whiskers: Prison Camp at (x:5, z:5)
+- Cpl. Splash: Underwater cache at (x:-10, z:15)
+- Sgt. Fang: Scale-Guard stronghold at (x:10, z:-10)
 
 ### Vertical 2: The Arsenal (Canteen Upgrades)
 - **Economic sink** for Supply Credits
@@ -127,8 +127,8 @@ When performing a loop, Claude must:
 
 ## 🗺️ Persistent Coordinates of Interest
 
-| Coordinate | Location | Significance |
-|------------|----------|--------------|
+| Coordinate (x, z) | Location | Significance |
+|-------------------|----------|--------------|
 | (0, 0) | Landing Zone / Base | Starting point, extraction hub |
 | (5, 5) | Prison Camp | Gen. Whiskers rescue |
 | (10, -10) | The Great Siphon | Scale-Guard HQ, boss encounter |
