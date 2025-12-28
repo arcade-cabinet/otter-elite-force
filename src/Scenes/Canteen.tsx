@@ -10,13 +10,14 @@
 
 import { Environment } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Group } from "three";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, useGameStore } from "../stores/gameStore";
 
 // Color constants for theming
 const GROUND_PLANE_COLOR = "#332211";
+const ROTATION_SPEED = 0.5;
 
 /** Slowly rotating character display for modal preview */
 function RotatingCharacterDisplay({
@@ -30,7 +31,7 @@ function RotatingCharacterDisplay({
 
 	useFrame((_, delta) => {
 		if (groupRef.current) {
-			groupRef.current.rotation.y += delta * 0.5;
+			groupRef.current.rotation.y += delta * ROTATION_SPEED;
 		}
 	});
 
@@ -150,18 +151,27 @@ export function Canteen() {
 	const [view, setView] = useState<"PLATOON" | "UPGRADES">("PLATOON");
 	const [previewCharId, setPreviewCharId] = useState<string | null>(null);
 
-	const previewChar = previewCharId ? CHARACTERS[previewCharId] : null;
-	const isPreviewUnlocked = previewCharId
-		? saveData.unlockedCharacters.includes(previewCharId)
-		: false;
-	const previewPrice = previewCharId ? CHAR_PRICES[previewCharId] : 0;
+	const { previewChar, isPreviewUnlocked, previewPrice } = useMemo(() => {
+		if (!previewCharId) {
+			return { previewChar: null, isPreviewUnlocked: false, previewPrice: 0 };
+		}
+		return {
+			previewChar: CHARACTERS[previewCharId],
+			isPreviewUnlocked: saveData.unlockedCharacters.includes(previewCharId),
+			previewPrice: CHAR_PRICES[previewCharId] || 0,
+		};
+	}, [previewCharId, saveData.unlockedCharacters]);
 
-	const handlePurchase = () => {
+	const handlePurchase = useCallback(() => {
 		if (previewCharId && spendCoins(previewPrice)) {
 			unlockCharacter(previewCharId);
 			setPreviewCharId(null); // Auto-close modal after successful purchase
 		}
-	};
+	}, [previewCharId, previewPrice, spendCoins, unlockCharacter]);
+
+	const handleCancel = useCallback(() => {
+		setPreviewCharId(null);
+	}, []);
 
 	return (
 		<div className="screen active canteen-screen">
@@ -272,7 +282,7 @@ export function Canteen() {
 					price={previewPrice}
 					coins={saveData.coins}
 					onConfirm={handlePurchase}
-					onCancel={() => setPreviewCharId(null)}
+					onCancel={handleCancel}
 				/>
 			)}
 		</div>

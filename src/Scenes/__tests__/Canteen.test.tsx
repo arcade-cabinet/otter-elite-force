@@ -172,8 +172,7 @@ describe("Canteen - Character Shop", () => {
 	it("should open modal when character clicked", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
-		if (!whiskersCard) throw new Error("Whiskers card not found");
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
 		fireEvent.click(whiskersCard);
 
 		// Modal should be visible with character details
@@ -184,8 +183,7 @@ describe("Canteen - Character Shop", () => {
 	it("should unlock character when purchased from modal", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
-		if (!whiskersCard) throw new Error("Whiskers card not found");
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
 		fireEvent.click(whiskersCard);
 
 		// Now click the purchase button in modal
@@ -198,8 +196,7 @@ describe("Canteen - Character Shop", () => {
 	it("should close modal when cancel clicked", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
-		if (!whiskersCard) throw new Error("Whiskers card not found");
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
 		fireEvent.click(whiskersCard);
 
 		// Modal should be open
@@ -218,8 +215,7 @@ describe("Canteen - Character Shop", () => {
 	it("should close modal when Escape key is pressed", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
-		if (!whiskersCard) throw new Error("Whiskers card not found");
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
 		fireEvent.click(whiskersCard);
 
 		// Modal should be open
@@ -235,8 +231,7 @@ describe("Canteen - Character Shop", () => {
 	it("should auto-close modal after successful purchase", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
-		if (!whiskersCard) throw new Error("Whiskers card not found");
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
 		fireEvent.click(whiskersCard);
 
 		// Modal should be open

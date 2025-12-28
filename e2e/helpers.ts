@@ -75,7 +75,9 @@ export const injectGameState = async (page: Page, stateOverrides: Record<string,
 					continue;
 				}
 				if (source[key] instanceof Object && !Array.isArray(source[key])) {
-					if (!target[key]) target[key] = {};
+					if (!target[key] || typeof target[key] !== "object" || Array.isArray(target[key])) {
+						target[key] = {};
+					}
 					merge(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>);
 				} else {
 					target[key] = source[key];
@@ -122,9 +124,17 @@ export const skipCutscene = async (page: Page) => {
 
 	let buttonText = await nextBtn.innerText();
 	while (buttonText.includes("NEXT")) {
+		const previousText = buttonText;
 		await nextBtn.click();
-		await page.waitForTimeout(500); // Wait for dialogue to update
-		buttonText = await nextBtn.innerText();
+		// Wait for the button text to change or for the button to disappear
+		await page.waitForFunction(
+			(args) => {
+				const btn = document.querySelector(args.selector);
+				return !btn || btn.textContent !== args.previousText;
+			},
+			{ selector: "button.dialogue-next", previousText },
+		);
+		buttonText = (await nextBtn.innerText()) || "";
 	}
 	await nextBtn.click(); // Final click on BEGIN MISSION
 	await waitForStable(page, 2000); // Give time for game world to initialize
@@ -153,9 +163,9 @@ export const robustClick = async (
 	try {
 		await locator.click({ timeout: 5000, force: options?.force });
 		return;
-	} catch (_error) {
+	} catch (error) {
 		// Fallback to force click if normal click fails
-		console.log(`Normal click failed for ${selector}, trying force click`);
+		console.log(`Normal click failed for ${selector}, trying force click. Error: ${error}`);
 		await locator.click({ force: true, timeout: 5000 });
 	}
 };
