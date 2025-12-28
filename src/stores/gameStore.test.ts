@@ -111,6 +111,24 @@ describe("gameStore - Basic Operations", () => {
 		store.addKill();
 		expect(useGameStore.getState().kills).toBe(1);
 	});
+
+	it("should award resources on kill", () => {
+		const store = useGameStore.getState();
+		const initialWood = store.saveData.resources.wood;
+		const initialMetal = store.saveData.resources.metal;
+		const initialSupplies = store.saveData.resources.supplies;
+
+		store.addKill();
+
+		const newState = useGameStore.getState();
+		// Wood should increase (1-3)
+		expect(newState.saveData.resources.wood).toBeGreaterThan(initialWood);
+		expect(newState.saveData.resources.wood).toBeLessThanOrEqual(initialWood + 3);
+		// Metal might increase (30% chance)
+		expect(newState.saveData.resources.metal).toBeGreaterThanOrEqual(initialMetal);
+		// Supplies might increase (50% chance)
+		expect(newState.saveData.resources.supplies).toBeGreaterThanOrEqual(initialSupplies);
+	});
 });
 
 describe("gameStore - Open World Chunk Persistence", () => {

@@ -52,6 +52,11 @@ describe("HUD Component", () => {
 				difficultyMode: "SUPPORT",
 				territoryScore: 10,
 				peacekeepingScore: 5,
+				resources: {
+					wood: 100,
+					metal: 20,
+					supplies: 30,
+				},
 			},
 		});
 	});
@@ -256,12 +261,9 @@ describe("HUD Component", () => {
 			expect(screen.getByRole("button", { name: "BUILD" })).toBeInTheDocument();
 		});
 
-		it("hides BUILD button when LZ is not secured", () => {
+		it("hides BUILD button when player is far from LZ (old test - now handled by nearLZ logic)", () => {
 			useGameStore.setState({
-				saveData: {
-					...useGameStore.getState().saveData,
-					isLZSecured: false,
-				},
+				playerPos: [500, 0, 500], // Far from LZ
 			});
 			render(<HUD />);
 			expect(screen.queryByRole("button", { name: "BUILD" })).not.toBeInTheDocument();
@@ -278,22 +280,18 @@ describe("HUD Component", () => {
 			expect(useGameStore.getState().isBuildMode).toBe(false);
 		});
 
-		it("shows build options when in build mode", () => {
+		it("shows BuildPalette when in build mode", () => {
 			useGameStore.setState({ isBuildMode: true });
 			render(<HUD />);
 
-			expect(screen.getByRole("button", { name: "+FLOOR" })).toBeInTheDocument();
-			expect(screen.getByRole("button", { name: "+WALL" })).toBeInTheDocument();
-			expect(screen.getByRole("button", { name: "+ROOF" })).toBeInTheDocument();
-			expect(screen.getByRole("button", { name: "+STILT" })).toBeInTheDocument();
+			expect(screen.getByText("BUILD MODE")).toBeInTheDocument();
 		});
 
-		it("hides build options when not in build mode", () => {
+		it("hides BuildPalette when not in build mode", () => {
 			useGameStore.setState({ isBuildMode: false });
 			render(<HUD />);
 
-			expect(screen.queryByRole("button", { name: "+FLOOR" })).not.toBeInTheDocument();
-			expect(screen.queryByRole("button", { name: "+WALL" })).not.toBeInTheDocument();
+			expect(screen.queryByText("BUILD MODE")).not.toBeInTheDocument();
 		});
 
 		it("BUILD button has active class when build mode is on", () => {
@@ -355,41 +353,6 @@ describe("HUD Component", () => {
 		});
 	});
 
-	describe("Build UI Buttons", () => {
-		beforeEach(() => {
-			useGameStore.setState({ isBuildMode: true });
-		});
-
-		it("clicking +FLOOR button calls handlePlace", () => {
-			render(<HUD />);
-			const floorBtn = screen.getByRole("button", { name: "+FLOOR" });
-			fireEvent.click(floorBtn);
-			// handlePlace logs to console but doesn't change state yet
-			expect(floorBtn).toBeInTheDocument();
-		});
-
-		it("clicking +WALL button calls handlePlace", () => {
-			render(<HUD />);
-			const wallBtn = screen.getByRole("button", { name: "+WALL" });
-			fireEvent.click(wallBtn);
-			expect(wallBtn).toBeInTheDocument();
-		});
-
-		it("clicking +ROOF button calls handlePlace", () => {
-			render(<HUD />);
-			const roofBtn = screen.getByRole("button", { name: "+ROOF" });
-			fireEvent.click(roofBtn);
-			expect(roofBtn).toBeInTheDocument();
-		});
-
-		it("clicking +STILT button calls handlePlace", () => {
-			render(<HUD />);
-			const stiltBtn = screen.getByRole("button", { name: "+STILT" });
-			fireEvent.click(stiltBtn);
-			expect(stiltBtn).toBeInTheDocument();
-		});
-	});
-
 	describe("Mud Overlay", () => {
 		it("renders mud overlay with opacity 0 when clean", () => {
 			useGameStore.setState({ mudAmount: 0 });
@@ -414,6 +377,148 @@ describe("HUD Component", () => {
 
 			const mudOverlay = container.querySelector(".mud-overlay") as HTMLElement;
 			expect(mudOverlay.style.opacity).toBe("1");
+		});
+	});
+
+	describe("Resource Display", () => {
+		it("displays player wood resources", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					resources: { wood: 150, metal: 30, supplies: 40 },
+				},
+			});
+			const { container } = render(<HUD />);
+			const resourceDisplay = container.querySelector(".hud-resources");
+			expect(resourceDisplay).toHaveTextContent("150");
+		});
+
+		it("displays player metal resources", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					resources: { wood: 100, metal: 25, supplies: 30 },
+				},
+			});
+			const { container } = render(<HUD />);
+			const resourceDisplay = container.querySelector(".hud-resources");
+			expect(resourceDisplay).toHaveTextContent("25");
+		});
+
+		it("displays player supplies resources", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					resources: { wood: 100, metal: 20, supplies: 50 },
+				},
+			});
+			const { container } = render(<HUD />);
+			const resourceDisplay = container.querySelector(".hud-resources");
+			expect(resourceDisplay).toHaveTextContent("50");
+		});
+	});
+
+	describe("Build Mode Near LZ", () => {
+		it("shows BUILD button when player is near LZ", () => {
+			useGameStore.setState({
+				playerPos: [10, 0, 10], // Close to 0,0
+			});
+			render(<HUD />);
+			expect(screen.getByRole("button", { name: "BUILD" })).toBeInTheDocument();
+		});
+
+		it("hides BUILD button when player is far from LZ", () => {
+			useGameStore.setState({
+				playerPos: [500, 0, 500], // Far from 0,0
+			});
+			render(<HUD />);
+			expect(screen.queryByRole("button", { name: "BUILD" })).not.toBeInTheDocument();
+		});
+
+		it("BUILD button opens build palette", () => {
+			useGameStore.setState({
+				playerPos: [10, 0, 10],
+				isBuildMode: false,
+			});
+			render(<HUD />);
+			const buildBtn = screen.getByRole("button", { name: "BUILD" });
+			fireEvent.click(buildBtn);
+			expect(useGameStore.getState().isBuildMode).toBe(true);
+		});
+
+		it("shows BuildPalette when build mode active", () => {
+			useGameStore.setState({
+				playerPos: [10, 0, 10],
+				isBuildMode: true,
+			});
+			render(<HUD />);
+			expect(screen.getByText("BUILD MODE")).toBeInTheDocument();
+		});
+	});
+
+	describe("First Objective Tutorial", () => {
+		it("shows first objective prompt when LZ not secured", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					isLZSecured: false,
+					discoveredChunks: {},
+				},
+			});
+			render(<HUD />);
+			expect(screen.getByText("FIRST OBJECTIVE")).toBeInTheDocument();
+			expect(screen.getByText("SECURE YOUR LZ")).toBeInTheDocument();
+		});
+
+		it("mentions watchtower in first objective", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					isLZSecured: false,
+					discoveredChunks: {},
+				},
+			});
+			render(<HUD />);
+			expect(screen.getByText(/WATCHTOWER/i)).toBeInTheDocument();
+		});
+
+		it("mentions resource collection in first objective", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					isLZSecured: false,
+					discoveredChunks: {},
+				},
+			});
+			render(<HUD />);
+			expect(screen.getByText(/Defeat enemies to collect resources/i)).toBeInTheDocument();
+		});
+
+		it("hides first objective when LZ is secured", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					isLZSecured: true,
+				},
+			});
+			render(<HUD />);
+			expect(screen.queryByText("FIRST OBJECTIVE")).not.toBeInTheDocument();
+		});
+
+		it("hides first objective after exploring multiple chunks", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					isLZSecured: false,
+					discoveredChunks: {
+						"0,0": {} as any,
+						"1,0": {} as any,
+						"0,1": {} as any,
+					},
+				},
+			});
+			render(<HUD />);
+			expect(screen.queryByText("FIRST OBJECTIVE")).not.toBeInTheDocument();
 		});
 	});
 });
