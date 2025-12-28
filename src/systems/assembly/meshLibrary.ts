@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { MeshId, MeshDef } from "./libraryTypes";
+import type { MeshDef, MeshId } from "./libraryTypes";
 
 /**
  * Mesh library - ALL reusable geometries

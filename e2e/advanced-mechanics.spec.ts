@@ -157,17 +157,20 @@ test.describe("Advanced Gameplay Mechanics", () => {
 
 		// Secure the chunk using game logic (store method)
 		await page.evaluate(() => {
+			// biome-ignore lint/suspicious/noExplicitAny: E2E testing
 			(window as any).useGameStore.getState().secureChunk("0,0");
 		});
 
 		// Verify score increased in the store
 		const newScore = await page.evaluate(() => {
+			// biome-ignore lint/suspicious/noExplicitAny: E2E testing
 			return (window as any).useGameStore.getState().saveData.territoryScore;
 		});
 		expect(newScore).toBe(1);
 
 		// Verify chunk is marked as secured in store
 		const isSecured = await page.evaluate(() => {
+			// biome-ignore lint/suspicious/noExplicitAny: E2E testing
 			return (window as any).useGameStore.getState().saveData.discoveredChunks["0,0"].secured;
 		});
 		expect(isSecured).toBe(true);
@@ -223,6 +226,7 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		// Complete strategic objective using game logic (store method)
 		// This simulates rescuing an ally
 		await page.evaluate(() => {
+			// biome-ignore lint/suspicious/noExplicitAny: E2E testing
 			(window as any).useGameStore.getState().rescueCharacter("whiskers");
 		});
 

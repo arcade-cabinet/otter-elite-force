@@ -3,11 +3,11 @@
  */
 
 import * as THREE from "three";
-import { type Faction, FACTION_PALETTES } from "./factionPalettes";
-import { type JointName, type JointDef, UNIVERSAL_SKELETON } from "./skeleton";
-import { type MeshId, type MeshDef, type MaterialType } from "./libraryTypes";
+import { FACTION_PALETTES, type Faction } from "./factionPalettes";
+import type { MaterialType, MeshDef, MeshId } from "./libraryTypes";
 import { MESH_LIBRARY } from "./meshLibrary";
-import { createMaterial, createGeometry } from "./meshUtils";
+import { createGeometry, createMaterial } from "./meshUtils";
+import { type JointDef, type JointName, UNIVERSAL_SKELETON } from "./skeleton";
 
 // Re-exports
 export { type Faction, FACTION_PALETTES };

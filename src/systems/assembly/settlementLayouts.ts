@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import type { SettlementConfig } from "./types";
 import type { SettlementRandom } from "./settlementUtils";
+import type { SettlementConfig } from "./types";
 
 /**
  * Scattered layout - organic, irregular placement

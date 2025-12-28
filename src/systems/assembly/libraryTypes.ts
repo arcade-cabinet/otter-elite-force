@@ -1,5 +1,3 @@
-import type { Faction } from "./factionPalettes";
-
 /**
  * Mesh identifiers - each geometry defined ONCE
  */

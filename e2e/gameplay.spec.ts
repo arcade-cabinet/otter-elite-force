@@ -70,7 +70,18 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 	test("continue campaign flow for returning players", async ({ page }) => {
 		// Inject save data with some progress
 		await injectGameState(page, {
-			discoveredChunks: { "0,0": { id: "0,0", x: 0, z: 0, secured: false } },
+			discoveredChunks: {
+				"0,0": {
+					id: "0,0",
+					x: 0,
+					z: 0,
+					secured: false,
+					seed: 123,
+					terrainType: "MARSH",
+					entities: [],
+					decorations: [],
+				},
+			},
 			isLZSecured: false,
 			coins: 500,
 			rank: 1,
@@ -128,7 +139,18 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 			difficultyMode: "TACTICAL",
 			isFallTriggered: true,
 			isLZSecured: true,
-			discoveredChunks: { "0,0": { id: "0,0", x: 0, z: 0, secured: true } },
+			discoveredChunks: {
+				"0,0": {
+					id: "0,0",
+					x: 0,
+					z: 0,
+					secured: true,
+					seed: 123,
+					terrainType: "MARSH",
+					entities: [],
+					decorations: [],
+				},
+			},
 		});
 
 		// Start game

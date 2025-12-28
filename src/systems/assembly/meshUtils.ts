@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { type Faction, FACTION_PALETTES } from "./factionPalettes";
+import { FACTION_PALETTES, type Faction } from "./factionPalettes";
 import type { MeshDef } from "./libraryTypes";
 
 /**

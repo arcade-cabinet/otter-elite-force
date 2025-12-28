@@ -1,10 +1,6 @@
 import * as THREE from "three";
-import type {
-	AssemblyConfig,
-	InteractionPoint,
-	SnapPoint,
-} from "./types";
 import type { AssemblyRandom } from "./assemblyUtils";
+import type { AssemblyConfig, InteractionPoint, SnapPoint } from "./types";
 
 /**
  * Calculates positions for stilts based on hut dimensions

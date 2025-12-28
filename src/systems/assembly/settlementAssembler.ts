@@ -10,6 +10,16 @@
 
 import * as THREE from "three";
 import type { Faction } from "./componentLibrary";
+import { SETTLEMENT_CONFIGS } from "./settlementConfigs";
+import {
+	calculateRotation,
+	layoutCircular,
+	layoutDefensive,
+	layoutGrid,
+	layoutLinear,
+	layoutScattered,
+} from "./settlementLayouts";
+import { SettlementRandom } from "./settlementUtils";
 import {
 	assembleHut,
 	assemblePlatformNetwork,
@@ -23,16 +33,6 @@ import type {
 	StructureArchetype,
 	StructureTemplate,
 } from "./types";
-import { SettlementRandom } from "./settlementUtils";
-import { SETTLEMENT_CONFIGS } from "./settlementConfigs";
-import {
-	layoutScattered,
-	layoutCircular,
-	layoutLinear,
-	layoutGrid,
-	layoutDefensive,
-	calculateRotation,
-} from "./settlementLayouts";
 
 // Re-exports for convenience
 export { SETTLEMENT_CONFIGS };

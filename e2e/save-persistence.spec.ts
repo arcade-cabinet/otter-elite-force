@@ -17,7 +17,38 @@ test.describe("Save and Persistence", () => {
 		await injectGameState(page, {
 			coins: 777,
 			rank: 3,
-			discoveredChunks: { "0,0": {}, "1,0": {}, "0,1": {} },
+			discoveredChunks: {
+				"0,0": {
+					id: "0,0",
+					x: 0,
+					z: 0,
+					secured: true,
+					seed: 1,
+					terrainType: "MARSH",
+					entities: [],
+					decorations: [],
+				},
+				"1,0": {
+					id: "1,0",
+					x: 1,
+					z: 0,
+					secured: false,
+					seed: 2,
+					terrainType: "RIVER",
+					entities: [],
+					decorations: [],
+				},
+				"0,1": {
+					id: "0,1",
+					x: 0,
+					z: 1,
+					secured: false,
+					seed: 3,
+					terrainType: "DENSE_JUNGLE",
+					entities: [],
+					decorations: [],
+				},
+			},
 		});
 
 		// Reload and verify state persisted
@@ -39,7 +70,28 @@ test.describe("Save and Persistence", () => {
 		await injectGameState(page, {
 			coins: 999,
 			rank: 5,
-			discoveredChunks: { "0,0": {}, "1,1": {} },
+			discoveredChunks: {
+				"0,0": {
+					id: "0,0",
+					x: 0,
+					z: 0,
+					secured: true,
+					seed: 1,
+					terrainType: "MARSH",
+					entities: [],
+					decorations: [],
+				},
+				"1,1": {
+					id: "1,1",
+					x: 1,
+					z: 1,
+					secured: true,
+					seed: 2,
+					terrainType: "DENSE_JUNGLE",
+					entities: [],
+					decorations: [],
+				},
+			},
 			isLZSecured: true,
 		});
 

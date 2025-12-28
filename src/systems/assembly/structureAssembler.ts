@@ -6,21 +6,21 @@
  */
 
 import * as THREE from "three";
+import { DEFAULT_ASSEMBLY_CONFIG } from "./assemblyConstants";
+import { AssemblyRandom } from "./assemblyUtils";
+import {
+	calculateStiltPositions,
+	generateHutInteractionPoints,
+	generateHutSnapPoints,
+	getLadderPosition,
+	getWallPosition,
+} from "./structureUtils";
 import type {
 	AssemblyConfig,
 	PlatformSection,
 	StructureComponent,
 	StructureTemplate,
 } from "./types";
-import { AssemblyRandom } from "./assemblyUtils";
-import { DEFAULT_ASSEMBLY_CONFIG } from "./assemblyConstants";
-import {
-	calculateStiltPositions,
-	getWallPosition,
-	getLadderPosition,
-	generateHutSnapPoints,
-	generateHutInteractionPoints,
-} from "./structureUtils";
 
 // Re-exports for convenience
 export { DEFAULT_ASSEMBLY_CONFIG };

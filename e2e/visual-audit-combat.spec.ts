@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { type Page, test } from "@playwright/test";
+import { test } from "@playwright/test";
+import { updateSaveData, waitForStable } from "./helpers";
 
 const SCREENSHOT_DIR = "visual-audit-results-combat";
 
@@ -12,14 +13,6 @@ test.beforeAll(async () => {
 		fs.mkdirSync(SCREENSHOT_DIR);
 	}
 });
-
-// Deterministic wait using networkidle + optional additional delay
-const waitForStable = async (page: Page, ms = 1000) => {
-	await page.waitForLoadState("networkidle");
-	if (ms > 0) {
-		await page.waitForTimeout(ms);
-	}
-};
 
 test.describe("Visual Audit - Combat and Objectives", () => {
 	test("capture combat and objective states", async ({ page }) => {
@@ -108,13 +101,7 @@ test.describe("Visual Audit - Combat and Objectives", () => {
 			await page.screenshot({ path: path.join(SCREENSHOT_DIR, "02-combat-center.png") });
 
 			// Test "The Fall" UI in a real scene
-			await page.evaluate(() => {
-				// Trigger fall via console
-				// We need to access the store... but we can just update localStorage and reload
-				const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-				data.isFallTriggered = true;
-				localStorage.setItem("otter_v8", JSON.stringify(data));
-			});
+			await updateSaveData(page, { isFallTriggered: true });
 			await page.reload();
 			await page.waitForLoadState("networkidle");
 			await waitForStable(page, 2000);

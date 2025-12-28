@@ -84,6 +84,12 @@ jobs:
         )
       )
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
 
     steps:
       - name: Checkout repository
@@ -125,6 +131,11 @@ jobs:
     name: Claude PR Review
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+      actions: read
 
     steps:
       - name: Checkout repository
@@ -404,6 +415,10 @@ jobs:
     name: Claude Dependency Update
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.task == 'dependency-update'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
 
     steps:
       - name: Checkout repository

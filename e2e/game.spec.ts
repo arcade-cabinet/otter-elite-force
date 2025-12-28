@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { skipCutscene } from "./helpers";
+import { getSaveData, skipCutscene } from "./helpers";
 
 /**
  * E2E Tests for OTTER: ELITE FORCE
@@ -219,11 +219,11 @@ test.describe("OTTER: ELITE FORCE - Game Flow", () => {
 		await page.waitForTimeout(2000);
 
 		// Check if save data exists
-		const saveData = await page.evaluate(() => {
-			return localStorage.getItem("otter_v8");
-		});
+		const saveData = await getSaveData(page);
 
-		console.log(`Save data: ${saveData}`);
+		console.log(`Save data: ${JSON.stringify(saveData)}`);
 		// Save data should exist or be initialized
+		expect(saveData).toBeDefined();
+		expect(saveData.version).toBeGreaterThan(0);
 	});
 });
