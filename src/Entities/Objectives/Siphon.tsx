@@ -48,7 +48,7 @@ export function Siphon({ position, secured = false }: SiphonProps) {
 		<group position={position}>
 			{/* Main Siphon Structure */}
 			<mesh ref={structureRef} castShadow receiveShadow>
-				<cylinderGeometry args={[1.5, 2, 4, 8]} />
+				<cylinderGeometry args={[1.5, 2, 4, 32]} />
 				<meshStandardMaterial
 					color={secured ? "#1a1a1a" : "#111"}
 					metalness={0.8}
@@ -59,7 +59,7 @@ export function Siphon({ position, secured = false }: SiphonProps) {
 			{/* Pumping Pipes */}
 			{[0, 1, 2].map((i) => (
 				<mesh key={`pipe-${i}`} rotation-y={(i * Math.PI * 2) / 3} position={[0, -1, 0]}>
-					<cylinderGeometry args={[0.3, 0.3, 5]} />
+					<cylinderGeometry args={[0.3, 0.3, 5, 16]} />
 					<meshStandardMaterial color={secured ? "#333" : "#222"} />
 				</mesh>
 			))}
@@ -69,7 +69,7 @@ export function Siphon({ position, secured = false }: SiphonProps) {
 				<group ref={smokeRef} position={[0, 2, 0]}>
 					{[...Array(5)].map((_, i) => (
 						<mesh key={`smoke-${i}`} position={[0, i * 1, 0]} scale={0.2}>
-							<sphereGeometry args={[0.5, 8, 8]} />
+							<sphereGeometry args={[0.5, 16, 16]} />
 							<meshBasicMaterial color="#333" transparent opacity={0.4} />
 						</mesh>
 					))}

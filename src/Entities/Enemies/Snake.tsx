@@ -91,19 +91,19 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 					}}
 					castShadow
 				>
-					<sphereGeometry args={[0.15 - i * 0.005, 8, 8]} />
+					<sphereGeometry args={[0.15 - i * 0.005, 24, 16]} />
 					<meshStandardMaterial color={i % 2 === 0 ? bodyColor : patternColor} roughness={0.5} />
 
 					{i === 11 && (
 						<group>
 							{[-1, 1].map((side) => (
 								<mesh key={`${data.id}-eye-${side}`} position={[side * 0.08, 0.05, 0.1]}>
-									<sphereGeometry args={[0.02, 4, 4]} />
+									<sphereGeometry args={[0.02, 12, 12]} />
 									<meshBasicMaterial color="#ffaa00" />
 								</mesh>
 							))}
 							<mesh position={[0, -0.05, 0.12]} rotation-x={0.5}>
-								<boxGeometry args={[0.1, 0.02, 0.05]} />
+								<sphereGeometry args={[0.08, 16, 16]} />
 								<meshStandardMaterial color="#eee" />
 							</mesh>
 						</group>

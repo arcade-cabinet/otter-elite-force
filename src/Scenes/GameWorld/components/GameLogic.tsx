@@ -162,7 +162,7 @@ export function GameLogic({
 				const shootDir = new THREE.Vector3(0, 0, 1).applyQuaternion(playerRef.current.quaternion);
 				const muzzlePos = playerRef.current.position
 					.clone()
-					.add(new THREE.Vector3(0, 1, 0))
+					.add(new THREE.Vector3(0, 0.45, 0))
 					.add(shootDir.clone().multiplyScalar(1.5));
 				projectilesRef.current?.spawn(muzzlePos, shootDir);
 				audioEngine.playSFX("shoot");
@@ -192,7 +192,7 @@ export function GameLogic({
 			playerRef.current.rotation.y,
 		);
 		state.camera.position.lerp(playerRef.current.position.clone().add(cameraOffset), 0.08);
-		state.camera.lookAt(playerRef.current.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+		state.camera.lookAt(playerRef.current.position.clone().add(new THREE.Vector3(0, 0.8, 0)));
 	});
 
 	return null;

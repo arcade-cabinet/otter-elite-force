@@ -32,7 +32,7 @@ export function BurntTrees({ count = 15, seed = 0 }) {
 
 	return (
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<cylinderGeometry args={[0.3, 0.5, 1, 6]} />
+			<cylinderGeometry args={[0.3, 0.5, 1, 16]} />
 			<meshStandardMaterial color="#1a1a1a" roughness={1} />
 		</instancedMesh>
 	);
