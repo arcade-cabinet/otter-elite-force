@@ -15,16 +15,18 @@ export interface InputState {
 	grip: boolean;
 }
 
+const INITIAL_INPUT_STATE: InputState = {
+	move: { x: 0, y: 0, active: false },
+	look: { x: 0, y: 0, active: false },
+	drag: { x: 0, y: 0, active: false },
+	gyro: { x: 0, y: 0 },
+	zoom: false,
+	jump: false,
+	grip: false,
+};
+
 export class InputSystem {
-	private state: InputState = {
-		move: { x: 0, y: 0, active: false },
-		look: { x: 0, y: 0, active: false },
-		drag: { x: 0, y: 0, active: false },
-		gyro: { x: 0, y: 0 },
-		zoom: false,
-		jump: false,
-		grip: false,
-	};
+	private state: InputState = { ...INITIAL_INPUT_STATE };
 
 	private moveJoystick: JoystickManager | null = null;
 	private lookJoystick: JoystickManager | null = null;
@@ -300,15 +302,7 @@ export class InputSystem {
 		}
 
 		// Reset input state
-		this.state = {
-			move: { x: 0, y: 0, active: false },
-			look: { x: 0, y: 0, active: false },
-			drag: { x: 0, y: 0, active: false },
-			gyro: { x: 0, y: 0 },
-			zoom: false,
-			jump: false,
-			grip: false,
-		};
+		this.state = { ...INITIAL_INPUT_STATE };
 		this.gyroEnabled = false;
 	}
 }

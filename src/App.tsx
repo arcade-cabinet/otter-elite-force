@@ -46,15 +46,23 @@ export function App() {
 
 	// Initialize input system when entering GAME mode and HUD is ready (deterministic)
 	useEffect(() => {
-		if (mode === "GAME" && hudReady && !inputInitialized.current) {
+		const shouldBeInitialized = mode === "GAME" && hudReady;
+
+		if (shouldBeInitialized && !inputInitialized.current) {
 			inputSystem.init();
 			inputInitialized.current = true;
-		}
-		// Destroy input system when exiting GAME mode
-		if (mode !== "GAME" && inputInitialized.current) {
+		} else if (!shouldBeInitialized && inputInitialized.current) {
 			inputSystem.destroy();
 			inputInitialized.current = false;
 		}
+
+		// Handle unmount - if we are still initialized, destroy
+		return () => {
+			if (inputInitialized.current) {
+				inputSystem.destroy();
+				inputInitialized.current = false;
+			}
+		};
 	}, [mode, hudReady]);
 
 	useEffect(() => {
