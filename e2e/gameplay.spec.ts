@@ -902,7 +902,18 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		await page.goto("/");
 		await injectGameState(page, {
 			isLZSecured: true,
-			discoveredChunks: { "0,0": { id: "0,0", x: 0, z: 0, secured: true } },
+			discoveredChunks: {
+				"0,0": {
+					id: "0,0",
+					x: 0,
+					z: 0,
+					secured: true,
+					seed: 0,
+					terrainType: "PLAINS",
+					entities: [],
+					decorations: [],
+				},
+			},
 			lastPlayerPosition: [0, 0, 0],
 		});
 
