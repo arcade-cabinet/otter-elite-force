@@ -47,5 +47,9 @@ export default defineConfig(({ mode }) => ({
 			reporter: ["text", "json", "html"],
 			exclude: ["node_modules/", "src/test/"],
 		},
+		deps: {
+			// Inline strata packages to handle ESM resolution
+			inline: [/@strata-game-library\/.*/],
+		},
 	},
 }));
