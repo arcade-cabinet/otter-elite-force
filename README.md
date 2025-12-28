@@ -172,7 +172,18 @@ This project includes deployment configurations for:
 For AI agents and developers:
 - `CLAUDE.md` - Mission control and tactical priorities
 - `AGENTS.md` - Technical briefing and guidelines
+- `docs/BUNDLE_SIZE.md` - Bundle size monitoring guide
 - `memory-bank/` - Comprehensive project context
+
+## 📊 Performance Monitoring
+
+The project includes comprehensive bundle size monitoring:
+- Automatic bundle analysis on every build
+- PR comments with size comparisons
+- Visual bundle analyzer (`pnpm build:analyze`)
+- Historical tracking in CI artifacts
+
+See `docs/BUNDLE_SIZE.md` for details.
 
 ---
 

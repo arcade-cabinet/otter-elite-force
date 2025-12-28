@@ -1,14 +1,42 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vite.dev/config/
-export default defineConfig({
-	plugins: [react()],
+export default defineConfig(({ mode }) => ({
+	plugins: [
+		react(),
+		// Generate bundle visualization in analyze mode
+		mode === "analyze" &&
+			visualizer({
+				filename: "./dist/stats.html",
+				open: true,
+				gzipSize: true,
+				brotliSize: true,
+			}),
+	].filter(Boolean),
 	base: "./",
 	build: {
 		outDir: "dist",
 		assetsDir: "assets",
 		sourcemap: true,
+		rollupOptions: {
+			output: {
+				manualChunks: {
+					// Split vendor chunks for better caching
+					react: ["react", "react-dom"],
+					three: [
+						"three",
+						"@react-three/fiber",
+						"@react-three/drei",
+						"@react-three/postprocessing",
+						"@react-three/rapier",
+					],
+					audio: ["tone"],
+					ai: ["yuka"],
+				},
+			},
+		},
 	},
 	test: {
 		globals: true,
@@ -20,4 +48,4 @@ export default defineConfig({
 			exclude: ["node_modules/", "src/test/"],
 		},
 	},
-});
+}));
