@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 /**
  * Mesh identifiers - each geometry defined ONCE
  */
