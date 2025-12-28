@@ -21,7 +21,7 @@ export function Villager({ position }: { position: THREE.Vector3 }) {
 		groupRef.current.rotation.y = Math.sin(t * 0.5) * 0.05;
 		headRef.current.rotation.y = Math.sin(t * 1.5) * 0.15;
 		headRef.current.position.y = 0.5 + Math.sin(t * 3) * 0.01;
-		
+
 		if (tailRef.current) {
 			tailRef.current.rotation.z = Math.sin(t * 2) * 0.1;
 		}
@@ -42,7 +42,10 @@ export function Villager({ position }: { position: THREE.Vector3 }) {
 
 				{/* 4 Simple Legs */}
 				{[
-					[-0.2, -0.2], [0.2, -0.2], [-0.2, 0.2], [0.2, 0.2]
+					[-0.2, -0.2],
+					[0.2, -0.2],
+					[-0.2, 0.2],
+					[0.2, 0.2],
 				].map((pos, i) => (
 					<mesh key={i} position={[pos[0], -0.2, pos[1]]} castShadow>
 						<sphereGeometry args={[0.1, 12, 12]} />
@@ -75,7 +78,7 @@ export function Villager({ position }: { position: THREE.Vector3 }) {
 							<meshStandardMaterial color={snoutColor} />
 						</mesh>
 						{/* Eyes */}
-						{[-1, 1].map(side => (
+						{[-1, 1].map((side) => (
 							<mesh key={side} position={[side * 0.1, 0.08, 0.15]}>
 								<sphereGeometry args={[0.03, 12, 12]} />
 								<meshBasicMaterial color="#111" />

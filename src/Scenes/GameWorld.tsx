@@ -23,11 +23,7 @@ import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
 import { Raft } from "../Entities/Raft";
-import {
-	CHARACTERS,
-	type ChunkData,
-	useGameStore,
-} from "../stores/gameStore";
+import { CHARACTERS, type ChunkData, useGameStore } from "../stores/gameStore";
 import { ChunkRenderer } from "./GameWorld/components/ChunkRenderer";
 import { GameLogic } from "./GameWorld/components/GameLogic";
 

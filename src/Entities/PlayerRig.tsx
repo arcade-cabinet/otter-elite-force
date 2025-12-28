@@ -115,8 +115,10 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 				// Climbing gait
 				const speed = time * 10;
 				if (legLRef.current) legLRef.current.rotation.x = -Math.PI / 4 + Math.sin(speed) * 0.4;
-				if (legRRef.current) legRRef.current.rotation.x = -Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
-				if (armLRef.current) armLRef.current.rotation.x = Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
+				if (legRRef.current)
+					legRRef.current.rotation.x = -Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
+				if (armLRef.current)
+					armLRef.current.rotation.x = Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
 				if (armRRef.current) armRRef.current.rotation.x = Math.PI / 4 + Math.sin(speed) * 0.4;
 				return;
 			}
@@ -138,12 +140,13 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 				const walkSpeed = time * 14;
 				if (legLRef.current) legLRef.current.rotation.x = Math.sin(walkSpeed) * 0.6;
 				if (armRRef.current) armRRef.current.rotation.x = Math.sin(walkSpeed) * 0.6;
-				
+
 				if (legRRef.current) legRRef.current.rotation.x = Math.sin(walkSpeed + Math.PI) * 0.6;
 				if (armLRef.current) armLRef.current.rotation.x = Math.sin(walkSpeed + Math.PI) * 0.6;
 			} else {
-				[legLRef, legRRef, armLRef, armRRef].forEach(ref => {
-					if (ref.current) ref.current.rotation.x = THREE.MathUtils.lerp(ref.current.rotation.x, 0, 0.1);
+				[legLRef, legRRef, armLRef, armRRef].forEach((ref) => {
+					if (ref.current)
+						ref.current.rotation.x = THREE.MathUtils.lerp(ref.current.rotation.x, 0, 0.1);
 				});
 			}
 
@@ -192,9 +195,15 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 					<mesh position={[0, 0, -0.4]} castShadow receiveShadow material={materials.fur}>
 						<sphereGeometry args={[0.35, 32, 32]} />
 					</mesh>
-					
+
 					{/* Main elongated body capsule */}
-					<mesh position={[0, 0, 0]} rotation-x={Math.PI / 2} castShadow receiveShadow material={materials.fur}>
+					<mesh
+						position={[0, 0, 0]}
+						rotation-x={Math.PI / 2}
+						castShadow
+						receiveShadow
+						material={materials.fur}
+					>
 						<capsuleGeometry args={[0.32, 0.8, 24, 32]} />
 					</mesh>
 
@@ -228,11 +237,11 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 					{/* === TAIL - Iconically thick and tapered === */}
 					<group ref={tailRef} position={[0, -0.05, -0.65]} rotation-x={-0.1}>
 						{[0.2, 0.15, 0.1, 0.05].map((radius, i) => (
-							<mesh 
-								key={`tail-seg-${i}`} 
-								position={[0, 0, -i * 0.4]} 
-								rotation-x={Math.PI / 2} 
-								castShadow 
+							<mesh
+								key={`tail-seg-${i}`}
+								position={[0, 0, -i * 0.4]}
+								rotation-x={Math.PI / 2}
+								castShadow
 								material={materials.fur}
 							>
 								<capsuleGeometry args={[radius, 0.4, 16, 24]} />
@@ -284,17 +293,22 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 					{/* === NECK & HEAD === */}
 					<group ref={headRef} position={[0, 0.1, 0.55]}>
 						{/* Neck */}
-						<mesh position={[0, 0.15, 0.1]} rotation-x={-Math.PI / 4} material={materials.fur} castShadow>
+						<mesh
+							position={[0, 0.15, 0.1]}
+							rotation-x={-Math.PI / 4}
+							material={materials.fur}
+							castShadow
+						>
 							<capsuleGeometry args={[0.18, 0.3, 16, 24]} />
 						</mesh>
-						
+
 						{/* Head Group */}
 						<group position={[0, 0.45, 0.2]}>
 							{/* Skull */}
 							<mesh castShadow material={materials.fur}>
 								<sphereGeometry args={[0.3, 32, 32]} />
 							</mesh>
-							
+
 							{/* Snout */}
 							<group position={[0, -0.1, 0.22]}>
 								<mesh material={materials.snout}>
@@ -315,7 +329,9 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 												rotation-z={side * (0.2 + row * 0.1)}
 												rotation-y={side * 0.3}
 											>
-												<cylinderGeometry args={[0.002, 0.0005, traits.whiskerLength + row * 0.04, 8]} />
+												<cylinderGeometry
+													args={[0.002, 0.0005, traits.whiskerLength + row * 0.04, 8]}
+												/>
 												<meshBasicMaterial color="#ddd" transparent opacity={0.6} />
 											</mesh>
 										))}
@@ -337,7 +353,12 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 
 							{/* Ears */}
 							{[-1, 1].map((side) => (
-								<mesh key={`ear-${side}`} position={[side * 0.28, 0.2, -0.05]} rotation-z={side * 0.3} material={materials.fur}>
+								<mesh
+									key={`ear-${side}`}
+									position={[side * 0.28, 0.2, -0.05]}
+									rotation-z={side * 0.3}
+									material={materials.fur}
+								>
 									<sphereGeometry args={[0.08, 16, 16]} />
 								</mesh>
 							))}

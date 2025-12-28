@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 /**
  * End-to-End Gameplay Tests for OTTER: ELITE FORCE
@@ -23,10 +23,7 @@ const waitForStable = async (page: Page, ms = 1500) => {
 };
 
 // Helper to inject game state for testing specific scenarios
-const injectGameState = async (
-	page: Page,
-	stateOverrides: Record<string, unknown>,
-) => {
+const injectGameState = async (page: Page, stateOverrides: Record<string, unknown>) => {
 	await page.evaluate((overrides) => {
 		const key = "otter_v8";
 		// Provide a full valid base state to pass validation
@@ -66,12 +63,15 @@ const injectGameState = async (
 			baseComponents: [],
 			lastPlayerPosition: [0, 0, 0],
 		};
-		
+
 		const existing = localStorage.getItem(key);
 		const current = existing ? JSON.parse(existing) : baseState;
-		
+
 		// Deep merge helper for evaluate block
-		const merge = (target: any, source: any) => {
+		const merge = (
+			target: Record<string, unknown>,
+			source: Record<string, unknown>,
+		): Record<string, unknown> => {
 			for (const key of Object.keys(source)) {
 				// Guard against prototype pollution
 				if (key === "__proto__" || key === "constructor" || key === "prototype") {
@@ -79,14 +79,14 @@ const injectGameState = async (
 				}
 				if (source[key] instanceof Object && !Array.isArray(source[key])) {
 					if (!target[key]) target[key] = {};
-					merge(target[key], source[key]);
+					merge(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>);
 				} else {
 					target[key] = source[key];
 				}
 			}
 			return target;
 		};
-		
+
 		const merged = merge({ ...current }, overrides);
 		localStorage.setItem(key, JSON.stringify(merged));
 	}, stateOverrides);
@@ -130,16 +130,16 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		await expect(dialogueText).toBeVisible();
 
 		// Click through cutscene
-		const nextBtn = page.locator('button.dialogue-next');
+		const nextBtn = page.locator("button.dialogue-next");
 		await expect(nextBtn).toBeVisible({ timeout: 10000 });
-		
+
 		// Click NEXT >> until we reach BEGIN MISSION
 		let buttonText = await nextBtn.innerText();
 		while (buttonText.includes("NEXT")) {
 			await nextBtn.click();
 			buttonText = await nextBtn.innerText();
 		}
-		
+
 		// Final click on BEGIN MISSION
 		await nextBtn.click();
 
@@ -147,7 +147,7 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		if (hasMcpSupport) {
 			const canvas = page.locator("canvas");
 			await expect(canvas).toBeVisible({ timeout: 15000 });
-			
+
 			// HUD should also be visible
 			await expect(page.locator(".hud-container")).toBeVisible({ timeout: 5000 });
 		} else {
@@ -555,7 +555,7 @@ test.describe("Game World and Environment", () => {
 				return data.discoveredChunks;
 			});
 			expect(Object.keys(secondDiscovery)).toEqual(chunkKeys);
-			
+
 			// Verify deterministic content (seed is same)
 			for (const key of chunkKeys) {
 				expect(secondDiscovery[key].seed).toBe(firstDiscovery[key].seed);
@@ -567,18 +567,27 @@ test.describe("Game World and Environment", () => {
 			await page.goto("/");
 			await injectGameState(page, {
 				unlockedCharacters: ["bubbles"],
-				discoveredChunks: { 
-					"5,5": { 
-						id: "5,5", x: 5, z: 5, 
-						entities: [{ type: "PRISON_CAGE", id: "whiskers-cage", objectiveId: "whiskers", position: [0, 0, 0] }] 
-					} 
-				}
+				discoveredChunks: {
+					"5,5": {
+						id: "5,5",
+						x: 5,
+						z: 5,
+						entities: [
+							{
+								type: "PRISON_CAGE",
+								id: "whiskers-cage",
+								objectiveId: "whiskers",
+								position: [0, 0, 0],
+							},
+						],
+					},
+				},
 			});
 
 			// We can't easily simulate 3D collision for rescue in E2E without complex setup,
 			// but we can verify that the store action for rescue works by injecting state
 			// and checking the UI.
-			
+
 			// Verify whiskers is locked
 			await expect(page.locator('.char-card.locked:has-text("GEN. WHISKERS")')).toBeVisible();
 
@@ -589,7 +598,7 @@ test.describe("Game World and Environment", () => {
 				data.unlockedCharacters.push("whiskers");
 				localStorage.setItem("otter_v8", JSON.stringify(data));
 			});
-			
+
 			await page.reload();
 			await waitForStable(page);
 
@@ -646,13 +655,13 @@ test.describe("Character Selection and Unlocks", () => {
 
 		// Find unlocked character cards
 		const unlockedCards = page.locator(".char-card.unlocked");
-		
+
 		// Ensure both characters are unlocked
 		await expect(unlockedCards).toHaveCount(2);
 
 		// Click the second unlocked card (Whiskers)
 		await unlockedCards.nth(1).click();
-		
+
 		// Should be selected
 		await expect(unlockedCards.nth(1)).toHaveClass(/selected/);
 	});
