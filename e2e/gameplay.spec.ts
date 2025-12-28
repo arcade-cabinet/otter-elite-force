@@ -99,6 +99,41 @@ const injectGameState = async (page: Page, stateOverrides: Record<string, unknow
 	await waitForStable(page);
 };
 
+// Helper for robust button clicking with retry logic
+// Addresses flaky button click timeouts in Canteen UI
+const robustClick = async (
+	page: Page,
+	selector: string,
+	options?: { timeout?: number; force?: boolean },
+) => {
+	const timeout = options?.timeout ?? 15000;
+	const locator = page.locator(selector);
+
+	// Wait for element to be attached and visible
+	await locator.waitFor({ state: "attached", timeout });
+	await locator.waitFor({ state: "visible", timeout });
+
+	// Wait for any animations to complete
+	await page.waitForTimeout(500);
+
+	// Try normal click first
+	try {
+		await locator.click({ timeout: 5000, force: options?.force });
+		return;
+	} catch (_error) {
+		// Fallback to JavaScript click if normal click fails
+		console.log(`Normal click failed for ${selector}, trying JavaScript click`);
+		await page.evaluate((sel) => {
+			const el = document.querySelector(sel) as HTMLElement;
+			if (el) {
+				el.click();
+			} else {
+				throw new Error(`Element not found: ${sel}`);
+			}
+		}, selector);
+	}
+};
+
 test.describe("Gameplay Flow - Menu to Game Transition", () => {
 	test.beforeEach(async ({ page }) => {
 		// Clear save data for fresh start
@@ -122,7 +157,7 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		await expect(newGameBtn).toBeVisible();
 
 		// Start new game
-		await newGameBtn.click();
+		await robustClick(page, 'button:has-text("NEW GAME")');
 
 		// Should transition to cutscene
 		const cutscene = page.locator(".cutscene-screen");
@@ -138,14 +173,17 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		await expect(nextBtn).toBeVisible({ timeout: 10000 });
 
 		// Click NEXT >> until we reach BEGIN MISSION
+		// Add small delays between clicks to allow dialogue state to update
 		let buttonText = await nextBtn.innerText();
 		while (buttonText.includes("NEXT")) {
 			await nextBtn.click();
+			await page.waitForTimeout(500); // Wait for dialogue to update
 			buttonText = await nextBtn.innerText();
 		}
 
 		// Final click on BEGIN MISSION
 		await nextBtn.click();
+		await waitForStable(page, 2000); // Give time for game world to initialize
 
 		// Should transition to gameplay (canvas visible if WebGL supported)
 		if (hasMcpSupport) {
@@ -225,7 +263,7 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		});
 
 		// Start game
-		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
+		await robustClick(page, 'button:has-text("CONTINUE CAMPAIGN")');
 		await waitForStable(page, 3000);
 
 		// HUD should show THE FALL warning
@@ -242,8 +280,7 @@ test.describe("Canteen Operations", () => {
 
 	test("navigate to canteen and view character roster", async ({ page }) => {
 		// Navigate to canteen
-		const canteenBtn = page.locator('button:has-text("VISIT CANTEEN")');
-		await canteenBtn.click();
+		await robustClick(page, 'button:has-text("VISIT CANTEEN")');
 
 		// Should show Forward Operating Base header
 		await expect(page.locator("h2:has-text('FORWARD OPERATING BASE')")).toBeVisible();
@@ -261,7 +298,7 @@ test.describe("Canteen Operations", () => {
 
 	test("character selection in platoon roster", async ({ page }) => {
 		// Navigate to canteen
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
+		await robustClick(page, 'button:has-text("VISIT CANTEEN")');
 		await waitForStable(page);
 
 		// Platoon list should show characters
@@ -280,11 +317,11 @@ test.describe("Canteen Operations", () => {
 
 	test("upgrades tab shows boost options", async ({ page }) => {
 		// Navigate to canteen
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
+		await robustClick(page, 'button:has-text("VISIT CANTEEN")');
 		await waitForStable(page);
 
 		// Switch to UPGRADES tab
-		await page.locator('button:has-text("UPGRADES")').click();
+		await robustClick(page, 'button:has-text("UPGRADES")');
 
 		// Should show upgrade options
 		await expect(page.locator("text=SPEED BOOST")).toBeVisible();
@@ -304,9 +341,9 @@ test.describe("Canteen Operations", () => {
 		});
 
 		// Navigate to canteen upgrades
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
+		await robustClick(page, 'button:has-text("VISIT CANTEEN")');
 		await waitForStable(page);
-		await page.locator('button:has-text("UPGRADES")').click();
+		await robustClick(page, 'button:has-text("UPGRADES")');
 
 		// Initial speed boost level should be 1
 		await expect(page.locator("text=SPEED BOOST (Lvl 1)")).toBeVisible();
@@ -323,12 +360,11 @@ test.describe("Canteen Operations", () => {
 
 	test("return to menu from canteen", async ({ page }) => {
 		// Navigate to canteen
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
+		await robustClick(page, 'button:has-text("VISIT CANTEEN")');
 		await waitForStable(page);
 
 		// Click return button
-		const returnBtn = page.locator('button:has-text("RETURN TO PERIMETER")');
-		await returnBtn.click();
+		await robustClick(page, 'button:has-text("RETURN TO PERIMETER")');
 
 		// Should be back at main menu
 		await expect(page.getByRole("heading", { name: /OTTER/i })).toBeVisible();

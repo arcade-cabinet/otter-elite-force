@@ -85,7 +85,8 @@ test.describe("Visual Audit - Combat and Objectives", () => {
 
 		// 1. Continue Campaign
 		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-		await waitForStable(page, 5000);
+		await page.waitForLoadState("networkidle");
+		await waitForStable(page, 3000); // Extended wait for game world initialization
 
 		const canvas = page.locator("canvas");
 		if (await canvas.isVisible()) {
@@ -115,9 +116,11 @@ test.describe("Visual Audit - Combat and Objectives", () => {
 				localStorage.setItem("otter_v8", JSON.stringify(data));
 			});
 			await page.reload();
-			await waitForStable(page, 5000);
+			await page.waitForLoadState("networkidle");
+			await waitForStable(page, 2000);
 			await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-			await waitForStable(page, 3000);
+			await page.waitForLoadState("networkidle");
+			await waitForStable(page, 2000);
 			await page.screenshot({
 				path: path.join(SCREENSHOT_DIR, "03-fall-warning-overlay.png"),
 				fullPage: true,

@@ -59,10 +59,11 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 			let buttonText = await nextBtn.innerText();
 			while (buttonText.includes("NEXT")) {
 				await nextBtn.click();
-				await page.waitForTimeout(300);
+				await page.waitForTimeout(500); // Wait for dialogue state to update
 				buttonText = await nextBtn.innerText();
 			}
 			await nextBtn.click(); // BEGIN MISSION
+			await waitForStable(page, 2000); // Wait for game world to initialize
 			console.log("Passed through Cutscene");
 		} catch {
 			console.log("Cutscene button not found - skipping cutscene flow");
