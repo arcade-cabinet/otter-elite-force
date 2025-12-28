@@ -39,18 +39,27 @@ test.describe("Canteen Operations", () => {
 		await robustClick(page, 'button:has-text("VISIT CANTEEN")');
 		await waitForStable(page);
 
-		// Platoon list should show characters
-		const platoonList = page.locator(".platoon-list");
-		await expect(platoonList).toBeVisible();
+		// Platoon grid should show character cards
+		const platoonGrid = page.locator(".platoon-grid");
+		await expect(platoonGrid).toBeVisible();
 
 		// Default character (bubbles) should be unlocked
-		const bubblesItem = page.locator('.platoon-item:has-text("SGT. BUBBLES")');
-		await expect(bubblesItem).toHaveClass(/unlocked/);
+		const bubblesCard = page.locator('.platoon-card:has-text("SGT. BUBBLES")');
+		await expect(bubblesCard).toHaveClass(/unlocked/);
 
 		// Select different character if available
-		const characterItems = page.locator(".platoon-item");
-		const count = await characterItems.count();
+		const characterCards = page.locator(".platoon-card");
+		const count = await characterCards.count();
 		expect(count).toBeGreaterThan(0);
+
+		// Clicking a card should open the preview modal
+		await bubblesCard.click();
+		await expect(page.locator(".canteen-modal")).toBeVisible();
+		await expect(page.locator(".canteen-modal h3")).toContainText("SGT. BUBBLES");
+
+		// Close modal
+		await page.locator(".cancel-btn").click();
+		await expect(page.locator(".canteen-modal")).not.toBeVisible();
 	});
 
 	test("upgrades tab shows boost options", async ({ page }) => {
@@ -66,8 +75,8 @@ test.describe("Canteen Operations", () => {
 		await expect(page.locator("text=HEALTH BOOST")).toBeVisible();
 		await expect(page.locator("text=DAMAGE BOOST")).toBeVisible();
 
-		// Each upgrade should have a BUY button
-		const buyButtons = page.locator('.upgrade-item button:has-text("BUY")');
+		// Each upgrade should have a buy button with CR (credits) cost
+		const buyButtons = page.locator('.upgrade-item button:has-text("CR")');
 		await expect(buyButtons.first()).toBeVisible();
 	});
 
@@ -83,17 +92,17 @@ test.describe("Canteen Operations", () => {
 		await waitForStable(page);
 		await robustClick(page, 'button:has-text("UPGRADES")');
 
-		// Initial speed boost level should be 1
-		await expect(page.locator("text=SPEED BOOST (Lvl 1)")).toBeVisible();
+		// Initial speed boost level should be 1 - check within the speed boost item
+		const speedItem = page.locator('.upgrade-item:has-text("SPEED BOOST")');
+		await expect(speedItem).toBeVisible();
+		await expect(speedItem.locator("text=Level 1")).toBeVisible();
 
 		// Click buy on speed boost
-		const speedBuyBtn = page
-			.locator('.upgrade-item:has-text("SPEED BOOST")')
-			.locator('button:has-text("BUY")');
+		const speedBuyBtn = speedItem.locator('button:has-text("CR")');
 		await speedBuyBtn.click();
 
 		// Should now show level 2
-		await expect(page.locator("text=SPEED BOOST (Lvl 2)")).toBeVisible();
+		await expect(speedItem.locator("text=Level 2")).toBeVisible();
 	});
 
 	test("return to menu from canteen", async ({ page }) => {
