@@ -1,6 +1,7 @@
 /**
  * Gator Predator
- * Gritty biological crocodilians with mud camo and ambush mechanics
+ * Gritty biological crocodilians with mud camo and ambush mechanics.
+ * Uses strata YukaVehicle for AI-driven movement.
  */
 
 import { useFrame } from "@react-three/fiber";
@@ -8,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import * as YUKA from "yuka";
+import { YukaVehicle, type YukaVehicleRef } from "@strata-game-library/core/components";
 import { Weapon } from "../Weapon";
 import type { EnemyProps, GatorData } from "./types";
 
@@ -17,40 +19,45 @@ const AMBUSH_COOLDOWN_MIN_S = 5;
 const AMBUSH_COOLDOWN_RANDOM_S = 5;
 
 export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) {
-	const groupRef = useRef<Group>(null);
 	const bodyRef = useRef<Group>(null);
-	const vehicleRef = useRef<YUKA.Vehicle | null>(null);
-	const targetRef = useRef<YUKA.Vector3 | null>(null);
+	const vehicleRef = useRef<YukaVehicleRef>(null);
+	const seekBehaviorRef = useRef<YUKA.SeekBehavior | null>(null);
+	const targetRef = useRef(new YUKA.Vector3());
 
 	// Ambush state
 	const [isAmbushing, setIsAmbushing] = useState(false);
 	const ambushCooldown = useRef(0);
 	const ambushTimer = useRef(0);
 
-	// Setup Yuka AI
+	// Setup seek behavior after vehicle is created
 	useEffect(() => {
-		const vehicle = new YUKA.Vehicle();
-		vehicle.position.set(data.position.x, data.position.y, data.position.z);
-		vehicle.maxSpeed = data.isHeavy ? 4 : 7;
+		if (!vehicleRef.current) return;
 
 		const seekBehavior = new YUKA.SeekBehavior();
-		targetRef.current = new YUKA.Vector3();
 		seekBehavior.target = targetRef.current;
-
-		vehicle.steering.add(seekBehavior);
-		vehicleRef.current = vehicle;
+		vehicleRef.current.addBehavior(seekBehavior);
+		seekBehaviorRef.current = seekBehavior;
 
 		return () => {
-			vehicle.steering.clear();
+			if (vehicleRef.current && seekBehaviorRef.current) {
+				vehicleRef.current.removeBehavior(seekBehaviorRef.current);
+			}
 		};
-	}, [data.position.x, data.position.y, data.position.z, data.isHeavy]);
+	}, []);
 
-	// Update AI and sync with Three.js mesh
-	useFrame((_state, delta) => {
-		if (!vehicleRef.current || !groupRef.current || !bodyRef.current) return;
+	// Handle vehicle update each frame
+	const handleVehicleUpdate = (vehicle: YUKA.Vehicle, delta: number) => {
+		if (!bodyRef.current) return;
 
-		const distanceToPlayer = groupRef.current.position.distanceTo(targetPosition);
+		const distanceToPlayer = new THREE.Vector3(
+			vehicle.position.x,
+			0,
+			vehicle.position.z,
+		).distanceTo(targetPosition);
 		const baseSpeed = data.isHeavy ? 4 : 7;
+
+		// Update target position for seek behavior
+		targetRef.current.set(targetPosition.x, targetPosition.y, targetPosition.z);
 
 		// Ambush logic: Pop up when close, or at random
 		ambushCooldown.current -= delta;
@@ -76,15 +83,17 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 			targetSpeed = 0;
 		}
 
-		// Handle Suppression (overrides normal behavior, but speed 0 if ambushing)
+		// Handle Suppression (overrides normal behavior)
 		if (data.suppression > 0.1) {
 			targetY = -0.2;
 			targetSpeed = baseSpeed * (1 - data.suppression * 0.5);
 			if (isAmbushing) targetSpeed = 0;
 		}
 
-		// Apply movement and animation
-		vehicleRef.current.maxSpeed = targetSpeed;
+		// Apply movement speed
+		vehicle.maxSpeed = targetSpeed;
+
+		// Animate body position
 		bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, targetY, 0.1);
 
 		// Tilt body up when ambushing
@@ -94,34 +103,13 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 			targetRotationX,
 			0.1,
 		);
+	};
 
-		// Update target position
-		if (targetRef.current) {
-			targetRef.current.set(targetPosition.x, targetPosition.y, targetPosition.z);
-		}
+	// Procedural swimming animation (runs every frame)
+	useFrame((state) => {
+		if (!bodyRef.current) return;
 
-		// Update Yuka AI
-		vehicleRef.current.update(delta);
-
-		// Sync Three.js mesh with Yuka vehicle
-		groupRef.current.position.set(vehicleRef.current.position.x, 0, vehicleRef.current.position.z);
-
-		// Face direction of movement (or player if ambushing)
-		if (isAmbushing) {
-			const lookDir = targetPosition.clone().sub(groupRef.current.position);
-			const targetAngle = Math.atan2(lookDir.x, lookDir.z);
-			groupRef.current.rotation.y = THREE.MathUtils.lerp(
-				groupRef.current.rotation.y,
-				targetAngle,
-				0.1,
-			);
-		} else if (vehicleRef.current.velocity.length() > 0.1) {
-			const angle = Math.atan2(vehicleRef.current.velocity.x, vehicleRef.current.velocity.z);
-			groupRef.current.rotation.y = angle;
-		}
-
-		// Procedural swimming animation
-		const time = _state.clock.elapsedTime;
+		const time = state.clock.elapsedTime;
 		const swimSpeed = isAmbushing ? 2 : data.isHeavy ? 4 : 6;
 		const swimAmount = isAmbushing ? 0.05 : data.isHeavy ? 0.15 : 0.25;
 
@@ -144,7 +132,14 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 	const strapColor = "#1a1a1a";
 
 	return (
-		<group ref={groupRef}>
+		<YukaVehicle
+			ref={vehicleRef}
+			position={[data.position.x, 0, data.position.z]}
+			maxSpeed={data.isHeavy ? 4 : 7}
+			maxForce={15}
+			mass={data.isHeavy ? 3 : 2}
+			onUpdate={handleVehicleUpdate}
+		>
 			<group ref={bodyRef}>
 				{/* Head / Jaws */}
 				<group position={[0, 0.15 * scale, 1.2 * scale]} name="segment-0">
@@ -229,6 +224,7 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 				))}
 			</group>
 
+			{/* Health bar */}
 			<group position={[0, 2 * scale, 0]}>
 				<mesh position={[0, 0, 0]}>
 					<planeGeometry args={[1.4, 0.08]} />
@@ -242,6 +238,6 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 					<meshBasicMaterial color="#ff4400" side={THREE.DoubleSide} />
 				</mesh>
 			</group>
-		</group>
+		</YukaVehicle>
 	);
 }

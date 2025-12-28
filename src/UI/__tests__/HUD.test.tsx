@@ -10,6 +10,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameStore } from "../../stores/gameStore";
 import { HUD } from "../HUD";
 
+// Mock strata components to avoid ESM import issues in tests
+vi.mock("@strata-game-library/core/components", () => ({
+	VirtualJoystick: ({ containerStyle }: { containerStyle?: React.CSSProperties }) => (
+		<div data-testid="virtual-joystick" style={containerStyle} />
+	),
+}));
+
 // Mock audio engine - it requires user gesture to initialize
 vi.mock("../../Core/AudioEngine", () => ({
 	audioEngine: {
@@ -24,6 +31,8 @@ vi.mock("../../Core/InputSystem", () => ({
 	inputSystem: {
 		setJump: vi.fn(),
 		setGrip: vi.fn(),
+		setMove: vi.fn(),
+		setLook: vi.fn(),
 		init: vi.fn(),
 		destroy: vi.fn(),
 		getState: () => ({ move: { x: 0, y: 0, active: false } }),

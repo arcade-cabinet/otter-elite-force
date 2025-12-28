@@ -6,6 +6,18 @@ import { useGameStore } from "./stores/gameStore";
 // Mock CSS imports
 vi.mock("./styles/main.css", () => ({}));
 
+// Mock strata components to avoid ESM import issues in tests
+vi.mock("@strata-game-library/core/components", () => ({
+	VirtualJoystick: () => null,
+	FollowCamera: () => null,
+	WeatherSystem: () => null,
+	YukaEntityManager: ({ children }: { children: React.ReactNode }) => children,
+	Water: () => null,
+	HealthBar: () => null,
+	ParticleEmitter: () => null,
+	YukaVehicle: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 describe("App", () => {
 	beforeEach(() => {
 		useGameStore.setState({

@@ -1,9 +1,8 @@
 /**
  * Input System
- * Handles all player input: touch joysticks, gyroscope, keyboard
+ * Handles all player input using strata VirtualJoystick callbacks,
+ * plus keyboard and gyroscope support.
  */
-
-import nipplejs, { type JoystickManager } from "nipplejs";
 
 export interface InputState {
 	move: { x: number; y: number; active: boolean };
@@ -25,102 +24,73 @@ const INITIAL_INPUT_STATE: InputState = {
 	grip: false,
 };
 
+/**
+ * Input System that manages game input state.
+ * Touch joystick controls are handled by strata VirtualJoystick components.
+ */
 export class InputSystem {
 	private state: InputState = { ...INITIAL_INPUT_STATE };
-
-	private moveJoystick: JoystickManager | null = null;
-	private lookJoystick: JoystickManager | null = null;
 	private gyroEnabled = false;
 	private handleDeviceOrientation: ((event: DeviceOrientationEvent) => void) | null = null;
 	private handleKeyDown: ((e: KeyboardEvent) => void) | null = null;
 	private handleKeyUp: ((e: KeyboardEvent) => void) | null = null;
-	private handleTouchStart: ((e: TouchEvent) => void) | null = null;
-	private handleTouchMove: ((e: TouchEvent) => void) | null = null;
-	private handleTouchEnd: (() => void) | null = null;
-	private lookZone: HTMLElement | null = null;
+	private keys: Record<string, boolean> = {};
+	private joystickMoveActive = false;
+	private joystickLookActive = false;
 
 	/**
-	 * Initialize input handlers
+	 * Initialize input handlers (keyboard and gyroscope).
+	 * Touch joysticks are handled by strata VirtualJoystick in HUD.
 	 */
 	init(): void {
-		this.setupJoysticks();
 		this.setupGyroscope();
 		this.setupKeyboard();
 	}
 
 	/**
-	 * Setup virtual joysticks using nipplejs
+	 * Set movement input from strata VirtualJoystick.
+	 * Called from HUD's onMove callback.
 	 */
-	private setupJoysticks(): void {
-		// Movement joystick (left side)
-		const moveZone = document.getElementById("joystick-move");
-		if (!moveZone) {
-			console.warn("InputSystem: joystick-move zone not found");
-		} else {
-			this.moveJoystick = nipplejs.create({
-				zone: moveZone,
-				mode: "static",
-				position: { left: "80px", bottom: "80px" },
-				color: "rgba(255, 170, 0, 0.5)",
-				size: 120,
-			});
-
-			this.moveJoystick.on("move", (_evt, data) => {
-				const force = Math.min(data.force, 2) / 2;
-				const angle = data.angle.radian;
-				this.state.move = {
-					x: Math.cos(angle) * force,
-					y: Math.sin(angle) * force,
-					active: true,
-				};
-			});
-
-			this.moveJoystick.on("end", () => {
+	setMove(x: number, y: number): void {
+		if (x === 0 && y === 0) {
+			this.joystickMoveActive = false;
+			// Only reset if keyboard isn't providing input
+			if (!this.hasKeyboardMoveInput()) {
 				this.state.move = { x: 0, y: 0, active: false };
-			});
-		}
-
-		// Touch drag for looking (right side)
-		this.lookZone = document.getElementById("joystick-look"); // Reusing ID for now
-		if (!this.lookZone) {
-			console.warn("InputSystem: joystick-look zone not found");
+			}
 		} else {
-			let lastX = 0;
-			let lastY = 0;
-
-			this.handleTouchStart = (e: TouchEvent) => {
-				const touch = e.touches[0];
-				lastX = touch.clientX;
-				lastY = touch.clientY;
-				this.state.drag.active = true;
-			};
-
-			this.handleTouchMove = (e: TouchEvent) => {
-				const touch = e.touches[0];
-				const dx = touch.clientX - lastX;
-				const dy = touch.clientY - lastY;
-
-				this.state.drag.x = dx * 0.01;
-				this.state.drag.y = dy * 0.01;
-
-				lastX = touch.clientX;
-				lastY = touch.clientY;
-			};
-
-			this.handleTouchEnd = () => {
-				this.state.drag.active = false;
-				this.state.drag.x = 0;
-				this.state.drag.y = 0;
-			};
-
-			this.lookZone.addEventListener("touchstart", this.handleTouchStart);
-			this.lookZone.addEventListener("touchmove", this.handleTouchMove);
-			this.lookZone.addEventListener("touchend", this.handleTouchEnd);
+			this.joystickMoveActive = true;
+			this.state.move = { x, y, active: true };
 		}
 	}
 
 	/**
-	 * Setup gyroscope/device orientation for fine aiming
+	 * Set look/aim input from strata VirtualJoystick.
+	 * Called from HUD's onMove callback for look joystick.
+	 */
+	setLook(x: number, y: number): void {
+		if (x === 0 && y === 0) {
+			this.joystickLookActive = false;
+			// Only reset if keyboard isn't providing input
+			if (!this.hasKeyboardLookInput()) {
+				this.state.look = { x: 0, y: 0, active: false };
+			}
+		} else {
+			this.joystickLookActive = true;
+			this.state.look = { x, y, active: true };
+		}
+	}
+
+	private hasKeyboardMoveInput(): boolean {
+		return this.keys.w || this.keys.a || this.keys.s || this.keys.d;
+	}
+
+	private hasKeyboardLookInput(): boolean {
+		return this.keys.arrowup || this.keys.arrowdown || this.keys.arrowleft || this.keys.arrowright;
+	}
+
+	/**
+	 * Setup gyroscope/device orientation for fine aiming.
 	 */
 	private setupGyroscope(): void {
 		if (window.DeviceOrientationEvent) {
@@ -142,17 +112,15 @@ export class InputSystem {
 	}
 
 	/**
-	 * Setup keyboard controls (for desktop testing)
+	 * Setup keyboard controls (for desktop testing).
 	 */
 	private setupKeyboard(): void {
-		const keys: Record<string, boolean> = {};
-
 		this.handleKeyDown = (e: KeyboardEvent) => {
 			const key = e.key.toLowerCase();
-			keys[key] = true;
-			this.updateKeyboardState(keys);
+			this.keys[key] = true;
+			this.updateKeyboardState();
 
-			// Toggles - use lowercase for Caps Lock compatibility
+			// Toggles
 			if (e.key === " ") {
 				this.state.jump = true;
 			}
@@ -166,8 +134,8 @@ export class InputSystem {
 
 		this.handleKeyUp = (e: KeyboardEvent) => {
 			const key = e.key.toLowerCase();
-			keys[key] = false;
-			this.updateKeyboardState(keys);
+			this.keys[key] = false;
+			this.updateKeyboardState();
 			if (e.key === " ") {
 				this.state.jump = false;
 			}
@@ -181,40 +149,46 @@ export class InputSystem {
 	}
 
 	/**
-	 * Update input state from keyboard
-	 * Normalizes diagonal movement to prevent faster diagonal speed
+	 * Update input state from keyboard.
+	 * Normalizes diagonal movement to prevent faster diagonal speed.
 	 */
-	private updateKeyboardState(keys: Record<string, boolean>): void {
-		// WASD movement
-		let x = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-		let y = (keys.s ? 1 : 0) - (keys.w ? 1 : 0);
+	private updateKeyboardState(): void {
+		// Skip keyboard updates if joystick is active (joystick takes priority)
+		if (!this.joystickMoveActive) {
+			// WASD movement
+			let x = (this.keys.d ? 1 : 0) - (this.keys.a ? 1 : 0);
+			let y = (this.keys.s ? 1 : 0) - (this.keys.w ? 1 : 0);
 
-		// Normalize diagonal movement to prevent sqrt(2) speed boost
-		if (x !== 0 && y !== 0) {
-			const invLength = 1 / Math.sqrt(x * x + y * y);
-			x *= invLength;
-			y *= invLength;
+			// Normalize diagonal movement to prevent sqrt(2) speed boost
+			if (x !== 0 && y !== 0) {
+				const invLength = 1 / Math.sqrt(x * x + y * y);
+				x *= invLength;
+				y *= invLength;
+			}
+
+			if (x !== 0 || y !== 0) {
+				this.state.move = { x, y, active: true };
+			} else {
+				this.state.move = { x: 0, y: 0, active: false };
+			}
 		}
 
-		if (x !== 0 || y !== 0) {
-			this.state.move = { x, y, active: true };
-		} else {
-			this.state.move = { x: 0, y: 0, active: false };
-		}
+		// Skip keyboard look updates if joystick is active
+		if (!this.joystickLookActive) {
+			// Arrow keys for looking
+			const lookX = (this.keys.arrowright ? 1 : 0) - (this.keys.arrowleft ? 1 : 0);
+			const lookY = (this.keys.arrowdown ? 1 : 0) - (this.keys.arrowup ? 1 : 0);
 
-		// Arrow keys for looking
-		const lookX = (keys.arrowright ? 1 : 0) - (keys.arrowleft ? 1 : 0);
-		const lookY = (keys.arrowdown ? 1 : 0) - (keys.arrowup ? 1 : 0);
-
-		if (lookX !== 0 || lookY !== 0) {
-			this.state.look = { x: lookX, y: lookY, active: true };
-		} else {
-			this.state.look = { x: 0, y: 0, active: false };
+			if (lookX !== 0 || lookY !== 0) {
+				this.state.look = { x: lookX, y: lookY, active: true };
+			} else {
+				this.state.look = { x: 0, y: 0, active: false };
+			}
 		}
 	}
 
 	/**
-	 * Request gyroscope permission (required on iOS)
+	 * Request gyroscope permission (required on iOS).
 	 */
 	async requestGyroPermission(): Promise<boolean> {
 		if (
@@ -239,44 +213,38 @@ export class InputSystem {
 	}
 
 	/**
-	 * Get current input state
+	 * Get current input state.
 	 */
 	getState(): InputState {
 		return { ...this.state };
 	}
 
 	/**
-	 * Toggle zoom
+	 * Toggle zoom.
 	 */
 	toggleZoom(): void {
 		this.state.zoom = !this.state.zoom;
 	}
 
 	/**
-	 * Set jump state
+	 * Set jump state.
 	 */
 	setJump(active: boolean): void {
 		this.state.jump = active;
 	}
 
 	/**
-	 * Set grip state
+	 * Set grip state.
 	 */
 	setGrip(active: boolean): void {
 		this.state.grip = active;
 	}
 
 	/**
-	 * Cleanup - safe to call even when not initialized
+	 * Cleanup - safe to call even when not initialized.
 	 */
 	destroy(): void {
-		// Destroy joysticks (optional chaining handles null case)
-		this.moveJoystick?.destroy();
-		this.moveJoystick = null;
-		this.lookJoystick?.destroy();
-		this.lookJoystick = null;
-
-		// Remove event listeners (guards ensure safety when not initialized)
+		// Remove event listeners
 		if (this.handleDeviceOrientation) {
 			window.removeEventListener("deviceorientation", this.handleDeviceOrientation);
 			this.handleDeviceOrientation = null;
@@ -289,25 +257,13 @@ export class InputSystem {
 			window.removeEventListener("keyup", this.handleKeyUp);
 			this.handleKeyUp = null;
 		}
-		if (this.lookZone) {
-			if (this.handleTouchStart) {
-				this.lookZone.removeEventListener("touchstart", this.handleTouchStart);
-				this.handleTouchStart = null;
-			}
-			if (this.handleTouchMove) {
-				this.lookZone.removeEventListener("touchmove", this.handleTouchMove);
-				this.handleTouchMove = null;
-			}
-			if (this.handleTouchEnd) {
-				this.lookZone.removeEventListener("touchend", this.handleTouchEnd);
-				this.handleTouchEnd = null;
-			}
-			this.lookZone = null;
-		}
 
-		// Reset input state
+		// Reset state
 		this.state = { ...INITIAL_INPUT_STATE };
+		this.keys = {};
 		this.gyroEnabled = false;
+		this.joystickMoveActive = false;
+		this.joystickLookActive = false;
 	}
 }
 
