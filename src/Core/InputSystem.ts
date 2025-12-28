@@ -15,16 +15,18 @@ export interface InputState {
 	grip: boolean;
 }
 
+const INITIAL_INPUT_STATE: InputState = {
+	move: { x: 0, y: 0, active: false },
+	look: { x: 0, y: 0, active: false },
+	drag: { x: 0, y: 0, active: false },
+	gyro: { x: 0, y: 0 },
+	zoom: false,
+	jump: false,
+	grip: false,
+};
+
 export class InputSystem {
-	private state: InputState = {
-		move: { x: 0, y: 0, active: false },
-		look: { x: 0, y: 0, active: false },
-		drag: { x: 0, y: 0, active: false },
-		gyro: { x: 0, y: 0 },
-		zoom: false,
-		jump: false,
-		grip: false,
-	};
+	private state: InputState = { ...INITIAL_INPUT_STATE };
 
 	private moveJoystick: JoystickManager | null = null;
 	private lookJoystick: JoystickManager | null = null;
@@ -52,7 +54,9 @@ export class InputSystem {
 	private setupJoysticks(): void {
 		// Movement joystick (left side)
 		const moveZone = document.getElementById("joystick-move");
-		if (moveZone) {
+		if (!moveZone) {
+			console.warn("InputSystem: joystick-move zone not found");
+		} else {
 			this.moveJoystick = nipplejs.create({
 				zone: moveZone,
 				mode: "static",
@@ -78,7 +82,9 @@ export class InputSystem {
 
 		// Touch drag for looking (right side)
 		this.lookZone = document.getElementById("joystick-look"); // Reusing ID for now
-		if (this.lookZone) {
+		if (!this.lookZone) {
+			console.warn("InputSystem: joystick-look zone not found");
+		} else {
 			let lastX = 0;
 			let lastY = 0;
 
@@ -261,32 +267,47 @@ export class InputSystem {
 	}
 
 	/**
-	 * Cleanup
+	 * Cleanup - safe to call even when not initialized
 	 */
 	destroy(): void {
+		// Destroy joysticks (optional chaining handles null case)
 		this.moveJoystick?.destroy();
+		this.moveJoystick = null;
 		this.lookJoystick?.destroy();
+		this.lookJoystick = null;
 
+		// Remove event listeners (guards ensure safety when not initialized)
 		if (this.handleDeviceOrientation) {
 			window.removeEventListener("deviceorientation", this.handleDeviceOrientation);
+			this.handleDeviceOrientation = null;
 		}
 		if (this.handleKeyDown) {
 			window.removeEventListener("keydown", this.handleKeyDown);
+			this.handleKeyDown = null;
 		}
 		if (this.handleKeyUp) {
 			window.removeEventListener("keyup", this.handleKeyUp);
+			this.handleKeyUp = null;
 		}
 		if (this.lookZone) {
 			if (this.handleTouchStart) {
 				this.lookZone.removeEventListener("touchstart", this.handleTouchStart);
+				this.handleTouchStart = null;
 			}
 			if (this.handleTouchMove) {
 				this.lookZone.removeEventListener("touchmove", this.handleTouchMove);
+				this.handleTouchMove = null;
 			}
 			if (this.handleTouchEnd) {
 				this.lookZone.removeEventListener("touchend", this.handleTouchEnd);
+				this.handleTouchEnd = null;
 			}
+			this.lookZone = null;
 		}
+
+		// Reset input state
+		this.state = { ...INITIAL_INPUT_STATE };
+		this.gyroEnabled = false;
 	}
 }
 
