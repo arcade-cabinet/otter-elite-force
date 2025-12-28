@@ -77,12 +77,34 @@ interface GameState {
 	/** Direction of last damage taken (for screen shake/feedback) */
 	lastDamageDirection: { x: number; y: number } | null;
 
+	// Combat feedback
+	/** Current combo count */
+	comboCount: number;
+	/** Combo timer in seconds (resets combo when reaches 0) */
+	comboTimer: number;
+	/** Last hit data for damage feedback UI */
+	lastHit: {
+		isCritical: boolean;
+		isKill: boolean;
+		enemyType?: string;
+		xp?: number;
+		credits?: number;
+	} | null;
+
 	/** Apply damage to player, optionally with directional feedback */
 	takeDamage: (amount: number, direction?: { x: number; y: number }) => void;
 	/** Heal player by amount (capped at maxHealth) */
 	heal: (amount: number) => void;
 	/** Increment kill counter */
 	addKill: () => void;
+	/** Register a hit for damage feedback */
+	registerHit: (
+		isCritical: boolean,
+		isKill: boolean,
+		enemyType?: string,
+		xp?: number,
+		credits?: number,
+	) => void;
 	/** Reset all player stats to defaults */
 	resetStats: () => void;
 	/** Set mud accumulation level */
@@ -186,6 +208,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 	selectedCharacterId: "bubbles",
 	playerPos: [0, 0, 0],
 	lastDamageDirection: null,
+	comboCount: 0,
+	comboTimer: 0,
+	lastHit: null,
 	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
 	isBuildMode: false,
@@ -240,6 +265,40 @@ export const useGameStore = create<GameState>((set, get) => ({
 		})),
 
 	addKill: () => set((state) => ({ kills: state.kills + 1 })),
+
+	registerHit: (isCritical, isKill, enemyType, xp, credits) => {
+		const { comboCount, comboTimer } = get();
+
+		// Update combo
+		let newComboCount = comboCount;
+		const newComboTimer = 3; // Reset to 3 seconds
+
+		if (isKill) {
+			// Only kills contribute to combo
+			if (comboTimer > 0) {
+				// Continue combo
+				newComboCount = comboCount + 1;
+			} else {
+				// Start new combo
+				newComboCount = 1;
+			}
+		}
+
+		set({
+			lastHit: {
+				isCritical,
+				isKill,
+				enemyType,
+				xp,
+				credits,
+			},
+			comboCount: newComboCount,
+			comboTimer: newComboTimer,
+		});
+
+		// Clear lastHit after a short delay
+		setTimeout(() => set({ lastHit: null }), 100);
+	},
 
 	resetStats: () =>
 		set((state) => ({

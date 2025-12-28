@@ -13,6 +13,19 @@ import { type Entity, enemies, packMembers, players } from "../world";
 // =============================================================================
 
 /**
+ * Calculate speed multiplier based on suppression level
+ * 50%+ suppression = slower movement
+ */
+export const getSuppressionSpeedModifier = (suppressionLevel: number): number => {
+	if (suppressionLevel >= 50) {
+		// At 50% suppression, move at 70% speed
+		// At 100% suppression, move at 40% speed
+		return Math.max(0.4, 1 - (suppressionLevel / 100) * 0.6);
+	}
+	return 1.0;
+};
+
+/**
  * Transition an entity to a new AI state
  */
 export const transitionState = (entity: Entity, newState: AIState): void => {
@@ -98,8 +111,13 @@ const updateGatorAI = (
 	entity.gator.ambushCooldown = Math.max(0, entity.gator.ambushCooldown - delta);
 
 	const state = entity.aiBrain.currentState;
-	const isSuppressed =
-		entity.suppression && entity.suppression.amount > entity.suppression.threshold;
+
+	// Graduated suppression effects (0-100 scale)
+	const suppressionLevel = entity.suppression?.amount ?? 0;
+	const isFullyPanicked = suppressionLevel >= 100;
+	const isForcedCoverSeeking = suppressionLevel >= 75;
+	// hasReducedMovement and hasReducedAccuracy handled by caller
+	const isSuppressed = isForcedCoverSeeking || isFullyPanicked;
 
 	switch (state) {
 		case "idle":
@@ -172,8 +190,10 @@ const updateSnakeAI = (
 	entity.snake.strikeCooldown = Math.max(0, entity.snake.strikeCooldown - delta);
 
 	const state = entity.aiBrain.currentState;
-	const isSuppressed =
-		entity.suppression && entity.suppression.amount > entity.suppression.threshold;
+
+	// Graduated suppression effects (0-100 scale)
+	const suppressionLevel = entity.suppression?.amount ?? 0;
+	const isSuppressed = suppressionLevel >= 75; // Force cover seeking at 75%
 
 	switch (state) {
 		case "idle":
@@ -215,8 +235,10 @@ const updateSnapperAI = (
 	if (!entity.aiBrain || !entity.snapper || !entity.weapon) return;
 
 	const state = entity.aiBrain.currentState;
-	const isSuppressed =
-		entity.suppression && entity.suppression.amount > entity.suppression.threshold;
+
+	// Graduated suppression effects (0-100 scale)
+	const suppressionLevel = entity.suppression?.amount ?? 0;
+	const isSuppressed = suppressionLevel >= 75; // Force cover seeking at 75%
 
 	// Cool down heat
 	entity.snapper.heatLevel = Math.max(0, entity.snapper.heatLevel - SNAPPER_COOLDOWN_RATE * delta);
@@ -224,10 +246,18 @@ const updateSnapperAI = (
 		entity.snapper.isOverheated = false;
 	}
 
-	// Calculate target turret rotation
+	// Calculate target turret rotation (with reduced accuracy if suppressed)
 	if (distance < SNAPPER_ENGAGE_RANGE && entity.transform) {
 		const lookDir = playerPos.clone().sub(entity.transform.position);
-		entity.snapper.turretTargetRotation = Math.atan2(lookDir.x, lookDir.z);
+		let targetRotation = Math.atan2(lookDir.x, lookDir.z);
+
+		// Reduced accuracy at 25%+ suppression
+		if (suppressionLevel >= 25) {
+			const accuracyPenalty = (suppressionLevel / 100) * 0.5;
+			targetRotation += (Math.random() - 0.5) * accuracyPenalty;
+		}
+
+		entity.snapper.turretTargetRotation = targetRotation;
 	}
 
 	// Smoothly rotate turret
@@ -287,8 +317,10 @@ const updateScoutAI = (
 	entity.scout.signalCooldown = Math.max(0, entity.scout.signalCooldown - delta);
 
 	const state = entity.aiBrain.currentState;
-	const isSuppressed =
-		entity.suppression && entity.suppression.amount > entity.suppression.threshold;
+
+	// Graduated suppression effects (0-100 scale)
+	const suppressionLevel = entity.suppression?.amount ?? 0;
+	const isSuppressed = suppressionLevel >= 75; // Force cover seeking at 75%
 
 	switch (state) {
 		case "patrol":

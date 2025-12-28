@@ -253,11 +253,13 @@ describe("createSnapper", () => {
 		expect(calledWith.enemy!.lootTable).toContain("upgrade_token");
 	});
 
-	it("should set higher suppression threshold", () => {
+	it("should set suppression with slower decay rate", () => {
 		createSnapper(defaultOptions);
 
 		const calledWith = vi.mocked(world.add).mock.calls[0][0];
-		expect(calledWith.suppression!.threshold).toBe(0.8);
+		// Snappers have a 10 point/sec decay rate (graduated suppression system)
+		expect(calledWith.suppression!.decayRate).toBe(10);
+		expect(calledWith.suppression!.amount).toBe(0);
 	});
 });
 
