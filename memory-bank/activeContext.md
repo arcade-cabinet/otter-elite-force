@@ -23,6 +23,19 @@ The project has successfully transitioned through a complex integration phase. T
 - **499 Tests Passing**: Comprehensive coverage including ECS systems, AI, slots, data templates, assembly, and UI
 - **SonarCloud Integration**: Automated PR comments for code quality, complexity, security hotspots, and technical debt tracking
 
+## Active PR Status (as of 2025-12-28)
+
+| PR | Branch | Status | Next Action |
+|----|--------|--------|-------------|
+| #35 | cursor/gameplay-core-issues-joystick-267b | ✅ Ready | Merge (all issues resolved) |
+| #36 | cursor/canteen-view-corrections-5f21 | ⚠️ 9 issues | UX fixes needed |
+| #34 | copilot/sub-pr-33 | ⚠️ Lint fail | Run `pnpm lint:fix` |
+| #33 | 21st/pr-d0f560bb-fac3-4eee-914d-c8c832646419 | ⚠️ E2E fail | Investigate test failures |
+
+### P1 Issues Without PRs (Need Immediate Attention)
+- **#27 Base Building UI** - No active PR
+- **#25 Pack Hunting AI** - No active PR
+
 ## Current Work Focus
 
 ### Completed: Main Menu Redesign ✅
