@@ -1,39 +1,86 @@
 /**
  * Type Definitions - Single Source of Truth
- * All game types are defined here and exported for use across the codebase
+ *
+ * All game types are defined here and exported for use across the codebase.
+ * This file serves as the canonical reference for:
+ * - Game mode FSM states
+ * - Character and weapon definitions
+ * - World/chunk data structures
+ * - Save data schema
+ *
+ * @module stores/types
  */
 
 // =============================================================================
 // GAME MODE TYPES
 // =============================================================================
 
+/**
+ * Game mode FSM states.
+ * Transitions: MENU → CUTSCENE → GAME → (VICTORY | GAMEOVER)
+ * CANTEEN is accessible from MENU for upgrades.
+ */
 export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN" | "VICTORY";
+
+/**
+ * Difficulty modes with escalation-only progression.
+ * Can go UP (SUPPORT → TACTICAL → ELITE) but NEVER down.
+ * - SUPPORT: Casual mode, supply drops anywhere
+ * - TACTICAL: "The Fall" mechanic at 30% HP
+ * - ELITE: Permadeath enabled
+ */
 export type DifficultyMode = "ELITE" | "TACTICAL" | "SUPPORT";
 
 // =============================================================================
 // CHARACTER TYPES
 // =============================================================================
 
+/**
+ * Visual and gameplay traits for a playable otter character.
+ * Characters are unlocked by rescuing them in the world (not purchased).
+ */
 export interface CharacterTraits {
+	/** Unique identifier (e.g., "bubbles", "whiskers") */
 	id: string;
+	/** Display name (e.g., "SGT. BUBBLES") */
 	name: string;
+	/** Hex color for fur rendering */
 	furColor: string;
+	/** Hex color for eye rendering */
 	eyeColor: string;
+	/** Visual whisker length in world units */
 	whiskerLength: number;
+	/** Whether character has battle-worn appearance */
 	grizzled: boolean;
+	/** Base movement speed multiplier */
 	baseSpeed: number;
+	/** Base max health points */
 	baseHealth: number;
+	/** Speed multiplier when climbing */
 	climbSpeed: number;
+	/** Description of how to unlock (e.g., "Rescue at Prison Camp (5,5)") */
 	unlockRequirement?: string;
 }
 
+/**
+ * Equipment loadout for a character.
+ * Determines visual appearance and starting weapon.
+ */
 export interface CharacterGear {
+	/** Head accessory type */
 	headgear?: "bandana" | "beret" | "helmet" | "none";
+	/** Body armor type */
 	vest?: "tactical" | "heavy" | "none";
+	/** Back equipment type */
 	backgear?: "radio" | "scuba" | "none";
+	/** Starting weapon ID (must exist in WEAPONS registry) */
 	weaponId: string;
 }
 
+/**
+ * Complete character definition combining traits and gear.
+ * Used in the CHARACTERS registry.
+ */
 export interface CharacterDefinition {
 	traits: CharacterTraits;
 	gear: CharacterGear;

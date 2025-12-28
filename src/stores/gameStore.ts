@@ -1,6 +1,23 @@
 /**
- * Game State Store
- * Central state management using Zustand
+ * Game State Store - Central State Management
+ *
+ * This Zustand store manages all game state including:
+ * - Game mode FSM (MENU → CUTSCENE → GAME → VICTORY/GAMEOVER)
+ * - Player stats (health, kills, position, status effects)
+ * - World state (discovered chunks, secured territory)
+ * - Character/weapon unlocks and selection
+ * - Economy (coins, medals, upgrades)
+ * - Persistent save data (localStorage)
+ *
+ * Architecture Notes:
+ * - State is hydrated from localStorage on app start (loadData)
+ * - Chunks are generated deterministically from coordinates
+ * - Difficulty can only escalate (SUPPORT → TACTICAL → ELITE), never downgrade
+ * - "The Fall" mechanic triggers emergency extraction in TACTICAL mode
+ *
+ * @see ./types.ts for TypeScript interfaces
+ * @see ./persistence.ts for save/load utilities
+ * @see ./gameData.ts for static character/weapon definitions
  */
 
 import { create } from "zustand";
@@ -16,45 +33,88 @@ export { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS };
 // Re-export types from ./types.ts for backward compatibility
 export type { CharacterGear, CharacterTraits, WeaponData } from "./types";
 
+/**
+ * Core game state interface.
+ * Organized into logical sections: mode, player, world, character, economy.
+ */
 interface GameState {
-	// Mode management
+	// =========================================================================
+	// MODE MANAGEMENT
+	// =========================================================================
+	/** Current game mode (FSM state) */
 	mode: GameMode;
+	/** Transition to a new game mode */
 	setMode: (mode: GameMode) => void;
+	/** Upgrade difficulty (can only go UP: SUPPORT → TACTICAL → ELITE) */
 	setDifficulty: (difficulty: DifficultyMode) => void;
 
-	// Player stats
+	// =========================================================================
+	// PLAYER STATS
+	// =========================================================================
+	/** Current health (0 = death/fall) */
 	health: number;
+	/** Maximum health (can be upgraded) */
 	maxHealth: number;
+	/** Kill count for current session */
 	kills: number;
+	/** Mud accumulation (affects movement speed) */
 	mudAmount: number;
+	/** Whether player is carrying a clam (affects speed, enables deposit) */
 	isCarryingClam: boolean;
+	/** Whether player is piloting a raft */
 	isPilotingRaft: boolean;
+	/** Whether "The Fall" has been triggered (TACTICAL mode emergency) */
 	isFallTriggered: boolean;
+	/** ID of the raft being piloted, if any */
 	raftId: string | null;
+	/** Player's 3D position [x, y, z] - y is height for platforms/trees */
 	playerPos: [number, number, number];
+	/** Direction of last damage taken (for screen shake/feedback) */
 	lastDamageDirection: { x: number; y: number } | null;
 
+	/** Apply damage to player, optionally with directional feedback */
 	takeDamage: (amount: number, direction?: { x: number; y: number }) => void;
+	/** Heal player by amount (capped at maxHealth) */
 	heal: (amount: number) => void;
+	/** Increment kill counter */
 	addKill: () => void;
+	/** Reset all player stats to defaults */
 	resetStats: () => void;
+	/** Set mud accumulation level */
 	setMud: (amount: number) => void;
+	/** Update player's 3D position */
 	setPlayerPos: (pos: [number, number, number]) => void;
+	/** Set clam carrying state */
 	setCarryingClam: (isCarrying: boolean) => void;
+	/** Set raft piloting state */
 	setPilotingRaft: (isPiloting: boolean, raftId?: string | null) => void;
+	/** Set fall triggered state */
 	setFallTriggered: (active: boolean) => void;
-	triggerFall: () => void; // Explicit trigger logic
+	/** Trigger "The Fall" - emergency extraction in TACTICAL mode */
+	triggerFall: () => void;
 
-	// World management
+	// =========================================================================
+	// WORLD MANAGEMENT
+	// =========================================================================
+	/** Current chunk ID in "x,z" format */
 	currentChunkId: string;
-	isBuildMode: boolean; // New UI state
+	/** Whether base building mode is active */
+	isBuildMode: boolean;
+	/** Toggle base building mode */
 	setBuildMode: (active: boolean) => void;
+	/** Discover (or retrieve cached) chunk at coordinates */
 	discoverChunk: (x: number, z: number) => ChunkData;
+	/** Get all chunks within render distance of coordinates */
 	getNearbyChunks: (x: number, z: number) => ChunkData[];
+	/** Mark a chunk as secured (URA territory) */
 	secureChunk: (chunkId: string) => void;
 
-	// Character management
+	// =========================================================================
+	// CHARACTER MANAGEMENT
+	// =========================================================================
+	/** Currently selected character ID */
 	selectedCharacterId: string;
+	/** Select a different character (must be unlocked) */
 	selectCharacter: (id: string) => void;
 
 	// Economy & Upgrades

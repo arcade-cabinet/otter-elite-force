@@ -1,10 +1,27 @@
+/**
+ * Persistence Module - Save/Load Game Data
+ *
+ * Handles all game data persistence using localStorage.
+ * Provides schema migration for backward compatibility with older saves.
+ *
+ * Key responsibilities:
+ * - Define default save data structure
+ * - Validate and migrate saved data schemas
+ * - Deep clone/merge utilities for immutable updates
+ * - Safe localStorage read/write with error handling
+ *
+ * @module stores/persistence
+ */
+
 import { STORAGE_KEY } from "../utils/constants";
 import { WEAPONS } from "./gameData";
 import type { PlacedComponent, SaveData } from "./types";
 
 /**
- * Generate default weapon levels from WEAPONS registry
- * Ensures all weapons start at level 1
+ * Generate default weapon levels from WEAPONS registry.
+ * Ensures all weapons start at level 1 for new games.
+ *
+ * @returns Record mapping weapon IDs to their starting level (1)
  */
 const generateDefaultWeaponLevels = (): Record<string, number> => {
 	const levels: Record<string, number> = {};
@@ -51,10 +68,25 @@ export const DEFAULT_SAVE_DATA: SaveData = {
 	lastPlayerPosition: [0, 0, 0],
 };
 
+/**
+ * Deep clone an object using JSON serialization.
+ * Fast and reliable for plain data objects (no functions, dates, etc.)
+ *
+ * @param obj - Object to clone
+ * @returns Deep copy of the object
+ */
 export const deepClone = <T>(obj: T): T => {
 	return JSON.parse(JSON.stringify(obj));
 };
 
+/**
+ * Deep merge two objects, with source values overwriting target.
+ * Recursively merges nested objects.
+ *
+ * @param target - Base object
+ * @param source - Object with values to merge in
+ * @returns New object with merged values
+ */
 export const deepMerge = (
 	target: Record<string, unknown>,
 	source: Record<string, unknown>,
