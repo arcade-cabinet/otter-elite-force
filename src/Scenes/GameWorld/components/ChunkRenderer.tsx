@@ -1,6 +1,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
+import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../../../Entities/BaseBuilding";
 import { Gator } from "../../../Entities/Enemies/Gator";
 import { Snake } from "../../../Entities/Enemies/Snake";
 import { Snapper } from "../../../Entities/Enemies/Snapper";
@@ -209,6 +210,16 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 						/>
 					);
 				}
+				if (entity.type === "FLOOR")
+					return (
+						<BaseFloor key={entity.id} position={entity.position} rotation={entity.rotation} />
+					);
+				if (entity.type === "WALL")
+					return <BaseWall key={entity.id} position={entity.position} rotation={entity.rotation} />;
+				if (entity.type === "ROOF")
+					return <BaseRoof key={entity.id} position={entity.position} rotation={entity.rotation} />;
+				if (entity.type === "STILT")
+					return <BaseStilt key={entity.id} position={entity.position} />;
 				return null;
 			})}
 		</group>

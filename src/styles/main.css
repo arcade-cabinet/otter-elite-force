@@ -361,6 +361,22 @@ button.secondary {
 	background: rgba(0, 50, 0, 0.6) !important;
 }
 
+.action-btn.place {
+	grid-area: jump;
+	background: rgba(0, 80, 0, 0.8) !important;
+	border-color: #00ff00 !important;
+	color: #fff !important;
+	width: 80px;
+	height: 80px;
+}
+
+.action-btn.cancel {
+	grid-area: scope;
+	background: rgba(80, 0, 0, 0.8) !important;
+	border-color: #ff0000 !important;
+	color: #fff !important;
+}
+
 .drag-area {
 	position: absolute;
 	top: 0;

@@ -17,7 +17,7 @@ import { useCallback, useRef, useState } from "react";
 import * as THREE from "three";
 import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
-import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
+import { GhostPreview } from "../Entities/GhostPreview";
 import { Clam } from "../Entities/Objectives/Clam";
 import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
@@ -28,7 +28,7 @@ import { ChunkRenderer } from "./GameWorld/components/ChunkRenderer";
 import { GameLogic } from "./GameWorld/components/GameLogic";
 
 export function GameWorld() {
-	const { selectedCharacterId, saveData, isCarryingClam, isPilotingRaft } = useGameStore();
+	const { selectedCharacterId, isCarryingClam, isPilotingRaft } = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 	const [playerPos] = useState(() => new THREE.Vector3(0, 0, 0));
 	const [, setPlayerVelY] = useState(0);
@@ -88,13 +88,7 @@ export function GameWorld() {
 				{isCarryingClam && <Clam position={new THREE.Vector3(0, 0.8, 0)} isCarried />}
 				{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
 			</PlayerRig>
-			{saveData.baseComponents.map((comp) => {
-				if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
-				if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
-				if (comp.type === "ROOF") return <BaseRoof key={comp.id} position={comp.position} />;
-				if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
-				return null;
-			})}
+			<GhostPreview />
 			<Projectiles ref={projectilesRef} />
 			<Particles
 				particles={particles}

@@ -129,6 +129,7 @@ export type InteractionType =
 	| "CLAM_BASKET";
 export type EnvironmentType = "PLATFORM" | "CLIMBABLE" | "OIL_SLICK" | "MUD_PIT" | "TOXIC_SLUDGE";
 export type DecorationType = "REED" | "LILYPAD" | "DEBRIS" | "BURNT_TREE" | "MANGROVE" | "DRUM";
+export type BaseComponentType = "FLOOR" | "WALL" | "ROOF" | "STILT";
 
 export type BaseEntity = {
 	id: string;
@@ -160,18 +161,34 @@ export type EnvironmentEntity = BaseEntity & {
 	type: EnvironmentType;
 };
 
-export type Entity = PredatorEntity | ObjectiveEntity | InteractionEntity | EnvironmentEntity;
+export type BaseBuildingEntity = BaseEntity & {
+	type: BaseComponentType;
+	rotation: [number, number, number];
+};
+
+export type Entity =
+	| PredatorEntity
+	| ObjectiveEntity
+	| InteractionEntity
+	| EnvironmentEntity
+	| BaseBuildingEntity;
 
 /**
  * Combined entity type for chunk generation.
  * Uses the union of all entity type enums to avoid duplication.
  */
-export type ChunkEntityType = PredatorType | ObjectiveType | InteractionType | EnvironmentType;
+export type ChunkEntityType =
+	| PredatorType
+	| ObjectiveType
+	| InteractionType
+	| EnvironmentType
+	| BaseComponentType;
 
 export type ChunkEntity = {
 	id: string;
 	type: ChunkEntityType;
 	position: [number, number, number];
+	rotation?: [number, number, number];
 	isHeavy?: boolean;
 	objectiveId?: string;
 	hp?: number;
@@ -207,8 +224,6 @@ export interface ChunkData {
 // =============================================================================
 // BASE BUILDING TYPES
 // =============================================================================
-
-export type BaseComponentType = "FLOOR" | "WALL" | "ROOF" | "STILT";
 
 export interface PlacedComponent {
 	id: string;

@@ -13,9 +13,9 @@
  * @module stores/persistence
  */
 
-import { STORAGE_KEY } from "../utils/constants";
+import { GAME_CONFIG, STORAGE_KEY } from "../utils/constants";
 import { WEAPONS } from "./gameData";
-import type { PlacedComponent, SaveData } from "./types";
+import type { ChunkData, PlacedComponent, SaveData } from "./types";
 
 /**
  * Generate default weapon levels from WEAPONS registry.
@@ -125,6 +125,33 @@ export const migrateSchema = (data: Record<string, unknown>): Record<string, unk
 			deepClone(DEFAULT_SAVE_DATA.strategicObjectives);
 		data.spoilsOfWar =
 			(data.spoilsOfWar as SaveData["spoilsOfWar"]) || deepClone(DEFAULT_SAVE_DATA.spoilsOfWar);
+
+		// Migrate base components to discoveredChunks
+		const baseComponents = data.baseComponents as PlacedComponent[];
+		const discoveredChunks = (data.discoveredChunks as Record<string, ChunkData>) || {};
+		const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
+
+		for (const comp of baseComponents) {
+			const pos = comp.position;
+			const chunkX = Math.floor(pos[0] / CHUNK_SIZE);
+			const chunkZ = Math.floor(pos[2] / CHUNK_SIZE);
+			const chunkId = `${chunkX},${chunkZ}`;
+
+			if (discoveredChunks[chunkId]) {
+				// Avoid duplicates
+				if (!discoveredChunks[chunkId].entities.some((e) => e.id === comp.id)) {
+					const relativePos: [number, number, number] = [
+						pos[0] - chunkX * CHUNK_SIZE,
+						pos[1],
+						pos[2] - chunkZ * CHUNK_SIZE,
+					];
+					discoveredChunks[chunkId].entities.push({
+						...comp,
+						position: relativePos,
+					});
+				}
+			}
+		}
 	}
 
 	// Ensure weaponLvl exists for all base weapons

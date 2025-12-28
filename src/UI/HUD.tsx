@@ -27,6 +27,7 @@ export function HUD() {
 		playerPos,
 		saveData,
 		isBuildMode,
+		selectedBuildItem,
 		lastDamageDirection,
 	} = useGameStore(
 		useShallow((state) => ({
@@ -37,18 +38,21 @@ export function HUD() {
 			playerPos: state.playerPos,
 			saveData: state.saveData,
 			isBuildMode: state.isBuildMode,
+			selectedBuildItem: state.selectedBuildItem,
 			lastDamageDirection: state.lastDamageDirection,
 		})),
 	);
 
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
+	const setSelectedBuildItem = useGameStore((state) => state.setSelectedBuildItem);
 	const placeComponent = useGameStore((state) => state.placeComponent);
 const setHudReady = useGameStore((state) => state.setHudReady);
 	const spendResources = useGameStore((state) => state.spendResources);
 	const isNearLZ = useGameStore((state) => state.isNearLZ);
 	const secureLZ = useGameStore((state) => state.secureLZ);
 
+<<<<<<< HEAD
 	const [_selectedBuildItem, setSelectedBuildItem] = useState<BuildableTemplate | null>(null);
 
 	// Signal HUD mount/unmount for input system initialization
@@ -57,6 +61,8 @@ const setHudReady = useGameStore((state) => state.setHudReady);
 		return () => setHudReady(false);
 	}, [setHudReady]);
 
+=======
+>>>>>>> 26bd894 (feat: implement chunk-based building persistence and ghost preview placement)
 	// Track damage flash for directional indicator
 	const [showDamageFlash, setShowDamageFlash] = useState(false);
 	const [prevHealth, setPrevHealth] = useState(health);
@@ -86,36 +92,63 @@ const setHudReady = useGameStore((state) => state.setHudReady);
 	const handleSelectItem = useCallback(
 		(item: BuildableTemplate) => {
 			setSelectedBuildItem(item);
-			// In a full implementation, this would enter placement mode
-			// For now, we'll just place it at player position
-			const pos: [number, number, number] = [
-				Math.round(playerPos[0] / 4) * 4,
-				Math.round(playerPos[1]),
-				Math.round(playerPos[2] / 4) * 4,
-			];
-
-			// Check if can afford and spend resources
-			if (spendResources(item.cost.wood, item.cost.metal, item.cost.supplies)) {
-				placeComponent({
-					type: "FLOOR", // Simplified - would map from item
-					position: pos,
-					rotation: [0, 0, 0],
-				});
-				audioEngine.playSFX("pickup");
-
-				// First build completes the tutorial
-				if (!saveData.isLZSecured && item.id === "watchtower-kit") {
-					secureLZ();
-				}
-			}
+			setBuildMode(false); // Close palette to show world and ghost
 		},
-		[playerPos, placeComponent, spendResources, saveData.isLZSecured, secureLZ],
+		[setSelectedBuildItem, setBuildMode],
 	);
+
+	const handleConfirmPlacement = useCallback(() => {
+		if (!selectedBuildItem) return;
+
+		const pos: [number, number, number] = [
+			Math.round(playerPos[0] / 4) * 4,
+			Math.round(playerPos[1]),
+			Math.round(playerPos[2] / 4) * 4,
+		];
+
+		// Check if can afford and spend resources
+		if (
+			spendResources(
+				selectedBuildItem.cost.wood,
+				selectedBuildItem.cost.metal,
+				selectedBuildItem.cost.supplies,
+			)
+		) {
+			// Map template ID to component type
+			let componentType: BaseComponentType = "FLOOR";
+			if (selectedBuildItem.id.includes("wall")) componentType = "WALL";
+			else if (selectedBuildItem.id.includes("roof")) componentType = "ROOF";
+			else if (selectedBuildItem.id.includes("stilt")) componentType = "STILT";
+			else if (selectedBuildItem.id.includes("watchtower")) componentType = "STILT";
+
+			placeComponent({
+				type: componentType,
+				position: pos,
+				rotation: [0, 0, 0],
+			});
+			audioEngine.playSFX("pickup");
+
+			// First build completes the tutorial
+			if (!saveData.isLZSecured && selectedBuildItem.id === "watchtower-kit") {
+				secureLZ();
+			}
+
+			setSelectedBuildItem(null);
+		}
+	}, [
+		playerPos,
+		placeComponent,
+		spendResources,
+		saveData.isLZSecured,
+		secureLZ,
+		selectedBuildItem,
+		setSelectedBuildItem,
+	]);
 
 	const handleClosePalette = useCallback(() => {
 		setBuildMode(false);
 		setSelectedBuildItem(null);
-	}, [setBuildMode]);
+	}, [setBuildMode, setSelectedBuildItem]);
 
 	return (
 		<div className="hud-container">
@@ -174,6 +207,11 @@ const setHudReady = useGameStore((state) => state.setHudReady);
 					<div style={{ color: "#888", fontSize: "0.8rem", marginTop: "8px" }}>
 						Return to coordinates (0, 0) and build a WATCHTOWER
 					</div>
+					{!nearLZ && (
+						<div style={{ color: "var(--accent, #00ccff)", fontSize: "0.9rem", marginTop: "10px" }}>
+							LZ DISTANCE: {Math.round(Math.sqrt(playerPos[0] ** 2 + playerPos[2] ** 2))}m
+						</div>
+					)}
 					<div style={{ color: "#aaa", fontSize: "0.7rem", marginTop: "4px" }}>
 						Defeat enemies to collect resources
 					</div>
@@ -251,42 +289,59 @@ const setHudReady = useGameStore((state) => state.setHudReady);
 
 			{/* Action Cluster (Right Side) */}
 			<div className="action-cluster">
-				<button
-					type="button"
-					className="action-btn jump"
-					onPointerDown={() => inputSystem.setJump(true)}
-					onPointerUp={() => inputSystem.setJump(false)}
-				>
-					JUMP
-				</button>
-				<button
-					type="button"
-					className="action-btn grip"
-					onPointerDown={() => inputSystem.setGrip(true)}
-					onPointerUp={() => inputSystem.setGrip(false)}
-				>
-					GRIP
-				</button>
-				<button type="button" className="action-btn scope" onClick={toggleZoom}>
-					SCOPE
-				</button>
-				{nearLZ && (
-					<button
-						type="button"
-						className={`action-btn build ${isBuildMode ? "active" : ""}`}
-						onClick={() => setBuildMode(!isBuildMode)}
-					>
-						BUILD
-					</button>
-				)}
-				{saveData.difficultyMode === "SUPPORT" && (
-					<button
-						type="button"
-						className="action-btn support"
-						onClick={() => audioEngine.playSFX("pickup")}
-					>
-						DROP
-					</button>
+				{selectedBuildItem ? (
+					<>
+						<button type="button" className="action-btn place" onClick={handleConfirmPlacement}>
+							PLACE
+						</button>
+						<button
+							type="button"
+							className="action-btn cancel"
+							onClick={() => setSelectedBuildItem(null)}
+						>
+							✕
+						</button>
+					</>
+				) : (
+					<>
+						<button
+							type="button"
+							className="action-btn jump"
+							onPointerDown={() => inputSystem.setJump(true)}
+							onPointerUp={() => inputSystem.setJump(false)}
+						>
+							JUMP
+						</button>
+						<button
+							type="button"
+							className="action-btn grip"
+							onPointerDown={() => inputSystem.setGrip(true)}
+							onPointerUp={() => inputSystem.setGrip(false)}
+						>
+							GRIP
+						</button>
+						<button type="button" className="action-btn scope" onClick={toggleZoom}>
+							SCOPE
+						</button>
+						{nearLZ && (
+							<button
+								type="button"
+								className={`action-btn build ${isBuildMode ? "active" : ""}`}
+								onClick={() => setBuildMode(!isBuildMode)}
+							>
+								BUILD
+							</button>
+						)}
+						{saveData.difficultyMode === "SUPPORT" && (
+							<button
+								type="button"
+								className="action-btn support"
+								onClick={() => audioEngine.playSFX("pickup")}
+							>
+								DROP
+							</button>
+						)}
+					</>
 				)}
 			</div>
 

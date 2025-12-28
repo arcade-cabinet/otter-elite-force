@@ -104,8 +104,12 @@ interface GameState {
 	currentChunkId: string;
 	/** Whether base building mode is active */
 	isBuildMode: boolean;
+	/** Currently selected build item template */
+	selectedBuildItem: BuildableTemplate | null;
 	/** Toggle base building mode */
 	setBuildMode: (active: boolean) => void;
+	/** Set the currently selected build item */
+	setSelectedBuildItem: (item: BuildableTemplate | null) => void;
 	/** Discover (or retrieve cached) chunk at coordinates */
 	discoverChunk: (x: number, z: number) => ChunkData;
 	/** Get all chunks within render distance of coordinates */
@@ -176,12 +180,18 @@ export const useGameStore = create<GameState>((set, get) => ({
 	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
 	isBuildMode: false,
+	selectedBuildItem: null,
 	currentChunkId: "0,0",
 
 	// Mode management
 	setMode: (mode) => set({ mode }),
+<<<<<<< HEAD
 	setHudReady: (ready) => set({ hudReady: ready }),
 	setBuildMode: (active) => set({ isBuildMode: active }),
+=======
+	setBuildMode: (active) => set({ isBuildMode: active, selectedBuildItem: null }),
+	setSelectedBuildItem: (item) => set({ selectedBuildItem: item }),
+>>>>>>> 26bd894 (feat: implement chunk-based building persistence and ghost preview placement)
 	setDifficulty: (difficulty) => {
 		// Use centralized DIFFICULTY_ORDER constant for escalation logic
 		const current = get().saveData.difficultyMode;
@@ -557,25 +567,67 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	placeComponent: (comp) => {
-		set((state) => ({
-			saveData: {
-				...state.saveData,
-				baseComponents: [
-					...state.saveData.baseComponents,
-					{ ...comp, id: `base-${crypto.randomUUID()}` },
-				],
-			},
-		}));
+		const pos = comp.position;
+		const chunkX = Math.floor(pos[0] / CHUNK_SIZE);
+		const chunkZ = Math.floor(pos[2] / CHUNK_SIZE);
+		const chunkId = `${chunkX},${chunkZ}`;
+
+		// Convert absolute position to chunk-relative position for ChunkRenderer
+		const relativePos: [number, number, number] = [
+			pos[0] - chunkX * CHUNK_SIZE,
+			pos[1],
+			pos[2] - chunkZ * CHUNK_SIZE,
+		];
+
+		set((state) => {
+			const chunk = state.saveData.discoveredChunks[chunkId] || get().discoverChunk(chunkX, chunkZ);
+			const newEntity = {
+				...comp,
+				id: `base-${crypto.randomUUID()}`,
+				position: relativePos,
+			};
+
+			return {
+				saveData: {
+					...state.saveData,
+					// Keep baseComponents with absolute positions for backward compatibility
+					baseComponents: [...state.saveData.baseComponents, { ...comp, id: newEntity.id }],
+					discoveredChunks: {
+						...state.saveData.discoveredChunks,
+						[chunkId]: {
+							...chunk,
+							entities: [...chunk.entities, newEntity],
+						},
+					},
+				},
+			};
+		});
 		get().saveGame();
 	},
 
 	removeComponent: (id) => {
-		set((state) => ({
-			saveData: {
-				...state.saveData,
-				baseComponents: state.saveData.baseComponents.filter((c) => c.id !== id),
-			},
-		}));
+		set((state) => {
+			const newDiscoveredChunks = { ...state.saveData.discoveredChunks };
+
+			// Remove from chunks
+			for (const chunkId in newDiscoveredChunks) {
+				const chunk = newDiscoveredChunks[chunkId];
+				if (chunk.entities.some((e) => e.id === id)) {
+					newDiscoveredChunks[chunkId] = {
+						...chunk,
+						entities: chunk.entities.filter((e) => e.id !== id),
+					};
+				}
+			}
+
+			return {
+				saveData: {
+					...state.saveData,
+					baseComponents: state.saveData.baseComponents.filter((c) => c.id !== id),
+					discoveredChunks: newDiscoveredChunks,
+				},
+			};
+		});
 		get().saveGame();
 	},
 
