@@ -460,11 +460,25 @@ test.describe("HUD and Player Interface", () => {
 			// Start new game
 			await page.locator('button:has-text("NEW GAME")').click();
 
-			// Click through cutscene if present
-			const continueBtn = page.locator('button:has-text("Continue")');
-			await expect(continueBtn).toBeVisible({ timeout: 10000 });
-			await continueBtn.click();
-			
+			// Should show cutscene
+			await expect(page.locator(".cutscene-screen")).toBeVisible();
+
+			// Click through ALL cutscene dialogue until BEGIN MISSION
+			const nextBtn = page.locator("button.dialogue-next");
+			await expect(nextBtn).toBeVisible({ timeout: 10000 });
+
+			let buttonText = await nextBtn.innerText();
+			while (buttonText.includes("NEXT")) {
+				await nextBtn.click();
+				await page.waitForTimeout(300);
+				buttonText = await nextBtn.innerText();
+			}
+
+			// Final click on BEGIN MISSION
+			await nextBtn.click();
+
+			// Verify we transitioned to gameplay
+			await expect(page.locator("canvas")).toBeVisible({ timeout: 15000 });
 			await waitForStable(page, 3000);
 
 			// First objective prompt should be visible
@@ -501,7 +515,26 @@ test.describe("Game World and Environment", () => {
 
 			// Start new game
 			await page.locator('button:has-text("NEW GAME")').click();
-			await page.locator('button:has-text("Continue")').click();
+
+			// Should show cutscene
+			await expect(page.locator(".cutscene-screen")).toBeVisible();
+
+			// Click through ALL cutscene dialogue until BEGIN MISSION
+			const nextBtn = page.locator("button.dialogue-next");
+			await expect(nextBtn).toBeVisible({ timeout: 10000 });
+
+			let buttonText = await nextBtn.innerText();
+			while (buttonText.includes("NEXT")) {
+				await nextBtn.click();
+				await page.waitForTimeout(300);
+				buttonText = await nextBtn.innerText();
+			}
+
+			// Final click on BEGIN MISSION
+			await nextBtn.click();
+
+			// Verify we transitioned to gameplay
+			await expect(page.locator("canvas")).toBeVisible({ timeout: 15000 });
 			await waitForStable(page, 4000);
 
 			// Record discovered chunks
