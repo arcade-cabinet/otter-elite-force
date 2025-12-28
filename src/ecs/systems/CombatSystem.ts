@@ -5,6 +5,7 @@
  */
 
 import * as THREE from "three";
+import { useGameStore } from "../../stores/gameStore";
 import { createProjectile } from "../archetypes";
 import { damageables, deadEntities, enemies, players, projectiles, world } from "../world";
 
@@ -15,7 +16,8 @@ export const applyDamage = (
 	entityId: string,
 	damage: number,
 	_damageType: "kinetic" | "explosive" | "fire" | "toxic" = "kinetic",
-	_sourceId?: string,
+	sourceId?: string,
+	isCritical = false,
 ): void => {
 	const entity = [...damageables].find((e) => e.id === entityId);
 	if (!entity?.health) return;
@@ -33,9 +35,26 @@ export const applyDamage = (
 		entity.suppression.lastIncrementTime = Date.now();
 	}
 
-	// Check for death
-	if (entity.health.current <= 0) {
+	// Check for death and register hit feedback
+	const isKill = entity.health.current <= 0;
+	if (isKill) {
 		world.addComponent(entity, "isDead", { __tag: "IsDead" });
+	}
+	
+	// If source was player, register hit for feedback UI
+	const isPlayerSource = [...players].some((p) => p.id === sourceId);
+	if (isPlayerSource && entity.isEnemy) {
+		const enemyType = entity.enemy?.type || "enemy";
+		const xp = isKill ? entity.enemy?.xpValue || 0 : 0;
+		const credits = isKill ? Math.floor(Math.random() * 10) + 5 : 0; // Random credits 5-15
+		
+		useGameStore.getState().registerHit(
+			isCritical,
+			isKill,
+			enemyType,
+			xp,
+			credits
+		);
 	}
 };
 

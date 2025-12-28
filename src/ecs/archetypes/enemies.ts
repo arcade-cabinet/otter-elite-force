@@ -161,9 +161,9 @@ export const createSnake = (options: CreateSnakeOptions): Entity => {
 		},
 
 		suppression: {
-			amount: 0,
-			decayRate: 0.2,
-			threshold: 0.3,
+			amount: 0, // 0-100 scale
+			decayRate: 10, // Decay 10 points per second
+			lastIncrementTime: 0,
 		},
 
 		aiBrain: {
@@ -267,9 +267,9 @@ export const createSnapper = (options: CreateSnapperOptions): Entity => {
 		},
 
 		suppression: {
-			amount: 0,
-			decayRate: 0.05,
-			threshold: 0.8,
+			amount: 0, // 0-100 scale
+			decayRate: 10, // Decay 10 points per second
+			lastIncrementTime: 0,
 		},
 
 		aiBrain: {
@@ -378,9 +378,9 @@ export const createScout = (options: CreateScoutOptions): Entity => {
 		},
 
 		suppression: {
-			amount: 0,
-			decayRate: 0.3,
-			threshold: 0.2,
+			amount: 0, // 0-100 scale
+			decayRate: 10, // Decay 10 points per second
+			lastIncrementTime: 0,
 		},
 
 		aiBrain: {
