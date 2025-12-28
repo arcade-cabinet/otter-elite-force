@@ -2,26 +2,30 @@
 
 ## Current State (2025-12-28)
 
-PR #33 (comprehensive E2E tests) has merged to main. The project is now in a **clean extraction phase** where conflicting branches are being replaced with cleanly rebased PRs.
+All PRs have been merged or closed. The codebase is **clean with zero open PRs**.
 
-### Merge Queue Status
+### Recent Merges (2025-12-28)
 
-| Position | PR | Title | Status |
-|----------|-----|-------|--------|
-| 1 | #53 | Canteen modal redesign | 🔄 Ready for review |
-| 2 | #54 | Input lifecycle fix | 🔄 Ready for review |
-| 3 | #47 | Chunk persistence | ⏳ Needs rebase |
-| 4 | #48 | Character rescue | ⏳ Needs rebase |
-| 5 | #49 | Enemy health bars | ⏳ Needs rebase |
-| 6 | #46 | Base building | ⏳ Needs rebase |
-| 7 | #45 | Tactical features | ⏳ Later |
+| PR | Title | Status |
+|----|-------|--------|
+| #64 | Standardize Node.js 22 and pnpm 10 | ✅ Merged |
+| #63 | Fix E2E blocking CI | ✅ Merged |
+| #49 | Enemy health bars and suppression mechanics | ✅ Merged |
+| #62 | Pull request integration workflow | ❌ Closed (approach reverted) |
+| #41 | Test coverage 75% | ❌ Closed (needs cleanup) |
 
-### Stacked PRs
-- #55 stacked on #53 (Copilot additions)
-- #56 stacked on #54 (Copilot additions)
+### CI/CD Status
+- Main branch: All workflows passing
+- GitHub Pages: Deploying successfully
+- E2E tests: Non-blocking (continue-on-error enabled)
 
-### Agent Coordination
-All PRs have been commented with merge order and rebase instructions. Agents (@cursor, @copilot, @claude) are coordinating via PR comments.
+### Latest Features in Main
+- **Enemy Health Bars**: Visual feedback for enemy damage
+- **Suppression Mechanics**: Tactical suppression system
+- **Damage Feedback UI**: Visual damage indicators
+- **Territory State Display**: Chunk status (HOSTILE/NEUTRAL/SECURED) in HUD
+- **Chunk Hibernation**: Performance optimization for distant chunks
+- **Workflow Standardization**: Node.js 22, pnpm 10 across all workflows
 
 ---
 
@@ -142,10 +146,10 @@ The store has base building primitives, but UI needs implementation:
 - [ ] Bullet tunneling at high framerates (Rapier CCD available, needs wiring)
 - [ ] `localStorage` quota handling (needs user-facing fail-state)
 - [x] ~~Mobile safe-area padding~~ → FIXED: Visible joystick zones with labels
-- [ ] Chunk hibernation for distant AI (CPU optimization)
+- [x] ~~Chunk hibernation for distant AI~~ → FIXED: hibernateDistantChunks action in gameStore
 - [ ] LOD system for dense enemy encounters
 - [ ] Canteen UI not wired to ECS weapon templates (full system exists, needs UI)
-- [ ] Enemy health bars not visible to player
+- [x] ~~Enemy health bars not visible to player~~ → FIXED: EnemyHealthBars.tsx added
 - [ ] Build mode ghost preview not implemented
 
 ## Integration Milestones
