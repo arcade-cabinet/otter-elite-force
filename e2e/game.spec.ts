@@ -202,13 +202,16 @@ test.describe("OTTER: ELITE FORCE - Game Flow", () => {
 
 		// Loop through NEXT >> buttons until we reach BEGIN MISSION
 		let buttonText = await nextBtn.innerText();
-		while (buttonText.includes("NEXT")) {
+		let clickCount = 0;
+		while (buttonText.includes("NEXT") && clickCount < 20) {
 			await nextBtn.click();
 			await page.waitForTimeout(300); // Brief pause between clicks
 			buttonText = await nextBtn.innerText();
+			clickCount++;
 		}
 
 		// Final click on BEGIN MISSION
+		await expect(nextBtn).toBeVisible();
 		await nextBtn.click();
 
 		// CRITICAL: Verify we actually transitioned to gameplay

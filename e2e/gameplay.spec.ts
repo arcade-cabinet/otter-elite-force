@@ -137,14 +137,18 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		const nextBtn = page.locator("button.dialogue-next");
 		await expect(nextBtn).toBeVisible({ timeout: 10000 });
 
-		// Click NEXT >> until we reach BEGIN MISSION
+		// Click NEXT >> until we reach BEGIN MISSION (with delays for stability)
 		let buttonText = await nextBtn.innerText();
-		while (buttonText.includes("NEXT")) {
+		let clickCount = 0;
+		while (buttonText.includes("NEXT") && clickCount < 20) {
 			await nextBtn.click();
+			await page.waitForTimeout(300);
 			buttonText = await nextBtn.innerText();
+			clickCount++;
 		}
 
 		// Final click on BEGIN MISSION
+		await expect(nextBtn).toBeVisible();
 		await nextBtn.click();
 
 		// Should transition to gameplay (canvas visible if WebGL supported)
@@ -501,13 +505,16 @@ test.describe("HUD and Player Interface", () => {
 			await expect(nextBtn).toBeVisible({ timeout: 10000 });
 
 			let buttonText = await nextBtn.innerText();
-			while (buttonText.includes("NEXT")) {
+			let clickCount = 0;
+			while (buttonText.includes("NEXT") && clickCount < 20) {
 				await nextBtn.click();
 				await page.waitForTimeout(300);
 				buttonText = await nextBtn.innerText();
+				clickCount++;
 			}
 
 			// Final click on BEGIN MISSION
+			await expect(nextBtn).toBeVisible();
 			await nextBtn.click();
 
 			// Verify we transitioned to gameplay
@@ -557,13 +564,16 @@ test.describe("Game World and Environment", () => {
 			await expect(nextBtn).toBeVisible({ timeout: 10000 });
 
 			let buttonText = await nextBtn.innerText();
-			while (buttonText.includes("NEXT")) {
+			let clickCount = 0;
+			while (buttonText.includes("NEXT") && clickCount < 20) {
 				await nextBtn.click();
 				await page.waitForTimeout(300);
 				buttonText = await nextBtn.innerText();
+				clickCount++;
 			}
 
 			// Final click on BEGIN MISSION
+			await expect(nextBtn).toBeVisible();
 			await nextBtn.click();
 
 			// Verify we transitioned to gameplay

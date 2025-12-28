@@ -59,11 +59,14 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 
 			// Click through all NEXT >> buttons until BEGIN MISSION
 			let buttonText = await nextBtn.innerText();
-			while (buttonText.includes("NEXT")) {
+			let clickCount = 0;
+			while (buttonText.includes("NEXT") && clickCount < 20) {
 				await nextBtn.click();
 				await page.waitForTimeout(300);
 				buttonText = await nextBtn.innerText();
+				clickCount++;
 			}
+			await expect(nextBtn).toBeVisible();
 			await nextBtn.click(); // BEGIN MISSION
 			console.log("Passed through Cutscene");
 		} catch {
