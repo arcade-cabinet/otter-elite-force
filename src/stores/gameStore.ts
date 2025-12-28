@@ -145,6 +145,11 @@ interface GameState {
 	placeComponent: (component: Omit<PlacedComponent, "id">) => void;
 	removeComponent: (id: string) => void;
 
+	// Resources
+	addResources: (wood: number, metal: number, supplies: number) => void;
+	spendResources: (wood: number, metal: number, supplies: number) => boolean;
+	isNearLZ: () => boolean;
+
 	// UI state
 	isZoomed: boolean;
 	toggleZoom: () => void;
@@ -219,7 +224,25 @@ export const useGameStore = create<GameState>((set, get) => ({
 			health: Math.min(state.maxHealth, state.health + amount),
 		})),
 
-	addKill: () => set((state) => ({ kills: state.kills + 1 })),
+	addKill: () =>
+		set((state) => {
+			// Award resources for enemy kills
+			const woodGain = Math.floor(Math.random() * 3) + 1; // 1-3 wood
+			const metalGain = Math.random() > 0.7 ? 1 : 0; // 30% chance for 1 metal
+			const suppliesGain = Math.random() > 0.5 ? 1 : 0; // 50% chance for 1 supply
+
+			return {
+				kills: state.kills + 1,
+				saveData: {
+					...state.saveData,
+					resources: {
+						wood: state.saveData.resources.wood + woodGain,
+						metal: state.saveData.resources.metal + metalGain,
+						supplies: state.saveData.resources.supplies + suppliesGain,
+					},
+				},
+			};
+		}),
 
 	resetStats: () =>
 		set((state) => ({
@@ -674,5 +697,49 @@ export const useGameStore = create<GameState>((set, get) => ({
 	setLevel: (levelId: number) => {
 		// Store level selection for cutscene/game transition
 		set({ currentChunkId: `${levelId},0` });
+	},
+
+	addResources: (wood, metal, supplies) => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				resources: {
+					wood: state.saveData.resources.wood + wood,
+					metal: state.saveData.resources.metal + metal,
+					supplies: state.saveData.resources.supplies + supplies,
+				},
+			},
+		}));
+		get().saveGame();
+	},
+
+	spendResources: (wood, metal, supplies) => {
+		const { saveData } = get();
+		if (
+			saveData.resources.wood >= wood &&
+			saveData.resources.metal >= metal &&
+			saveData.resources.supplies >= supplies
+		) {
+			set((state) => ({
+				saveData: {
+					...state.saveData,
+					resources: {
+						wood: state.saveData.resources.wood - wood,
+						metal: state.saveData.resources.metal - metal,
+						supplies: state.saveData.resources.supplies - supplies,
+					},
+				},
+			}));
+			get().saveGame();
+			return true;
+		}
+		return false;
+	},
+
+	isNearLZ: () => {
+		const pos = get().playerPos;
+		const distanceFromLZ = Math.sqrt(pos[0] * pos[0] + pos[2] * pos[2]);
+		// Within 2 chunks of 0,0 (2 * CHUNK_SIZE)
+		return distanceFromLZ <= 2 * CHUNK_SIZE;
 	},
 }));

@@ -63,6 +63,11 @@ export const DEFAULT_SAVE_DATA: SaveData = {
 		damageBoost: 0,
 		weaponLvl: generateDefaultWeaponLevels(),
 	},
+	resources: {
+		wood: 100,
+		metal: 20,
+		supplies: 30,
+	},
 	isLZSecured: false,
 	baseComponents: [],
 	lastPlayerPosition: [0, 0, 0],

@@ -7,13 +7,16 @@
  * - Visible joystick zones
  * - First-objective prompts
  * - Directional damage indicators
+ * - Build mode with palette UI
  */
 
 import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
+import type { BuildableTemplate } from "../ecs/data/buildableTemplates";
 import { useGameStore } from "../stores/gameStore";
+import { BuildPalette } from "./BuildPalette";
 
 export function HUD() {
 	const {
@@ -41,7 +44,12 @@ export function HUD() {
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
 	const placeComponent = useGameStore((state) => state.placeComponent);
-	const setHudReady = useGameStore((state) => state.setHudReady);
+const setHudReady = useGameStore((state) => state.setHudReady);
+	const spendResources = useGameStore((state) => state.spendResources);
+	const isNearLZ = useGameStore((state) => state.isNearLZ);
+	const secureLZ = useGameStore((state) => state.secureLZ);
+
+	const [_selectedBuildItem, setSelectedBuildItem] = useState<BuildableTemplate | null>(null);
 
 	// Signal HUD mount/unmount for input system initialization
 	useEffect(() => {
@@ -73,26 +81,41 @@ export function HUD() {
 	// The Fall mechanic for TACTICAL mode
 	const showTheFall = saveData.difficultyMode === "TACTICAL" && saveData.isFallTriggered;
 
-	const handlePlace = useCallback(
-		(type: "FLOOR" | "WALL" | "ROOF" | "STILT") => {
+	const nearLZ = isNearLZ();
+
+	const handleSelectItem = useCallback(
+		(item: BuildableTemplate) => {
+			setSelectedBuildItem(item);
+			// In a full implementation, this would enter placement mode
+			// For now, we'll just place it at player position
 			const pos: [number, number, number] = [
 				Math.round(playerPos[0] / 4) * 4,
 				Math.round(playerPos[1]),
 				Math.round(playerPos[2] / 4) * 4,
 			];
 
-			if (type === "ROOF") pos[1] += 2.5;
-			if (type === "WALL") pos[1] += 1;
+			// Check if can afford and spend resources
+			if (spendResources(item.cost.wood, item.cost.metal, item.cost.supplies)) {
+				placeComponent({
+					type: "FLOOR", // Simplified - would map from item
+					position: pos,
+					rotation: [0, 0, 0],
+				});
+				audioEngine.playSFX("pickup");
 
-			placeComponent({
-				type,
-				position: pos,
-				rotation: [0, 0, 0],
-			});
-			audioEngine.playSFX("pickup");
+				// First build completes the tutorial
+				if (!saveData.isLZSecured && item.id === "watchtower-kit") {
+					secureLZ();
+				}
+			}
 		},
-		[playerPos, placeComponent],
+		[playerPos, placeComponent, spendResources, saveData.isLZSecured, secureLZ],
 	);
+
+	const handleClosePalette = useCallback(() => {
+		setBuildMode(false);
+		setSelectedBuildItem(null);
+	}, [setBuildMode]);
 
 	return (
 		<div className="hud-container">
@@ -135,7 +158,6 @@ export function HUD() {
 						padding: "20px 30px",
 						textAlign: "center",
 						zIndex: 50,
-						animation: "pulse 2s infinite",
 					}}
 				>
 					<div
@@ -150,7 +172,10 @@ export function HUD() {
 					</div>
 					<div style={{ color: "#fff", fontSize: "1rem" }}>SECURE YOUR LZ</div>
 					<div style={{ color: "#888", fontSize: "0.8rem", marginTop: "8px" }}>
-						Return to coordinates (0, 0) and establish your base
+						Return to coordinates (0, 0) and build a WATCHTOWER
+					</div>
+					<div style={{ color: "#aaa", fontSize: "0.7rem", marginTop: "4px" }}>
+						Defeat enemies to collect resources
 					</div>
 				</div>
 			)}
@@ -209,6 +234,12 @@ export function HUD() {
 					{saveData.peacekeepingScore > 0 && (
 						<div className="hud-peacekeeping">PEACEKEEPING: {saveData.peacekeepingScore}</div>
 					)}
+					{/* Resource Display */}
+					<div className="hud-resources">
+						<span className="resource-mini">🪵 {saveData.resources.wood}</span>
+						<span className="resource-mini">⚙️ {saveData.resources.metal}</span>
+						<span className="resource-mini">📦 {saveData.resources.supplies}</span>
+					</div>
 				</div>
 
 				<div className="hud-objective">
@@ -239,7 +270,7 @@ export function HUD() {
 				<button type="button" className="action-btn scope" onClick={toggleZoom}>
 					SCOPE
 				</button>
-				{saveData.isLZSecured && (
+				{nearLZ && (
 					<button
 						type="button"
 						className={`action-btn build ${isBuildMode ? "active" : ""}`}
@@ -259,23 +290,8 @@ export function HUD() {
 				)}
 			</div>
 
-			{/* BUILD UI (Bottom Center) */}
-			{isBuildMode && (
-				<div className="build-ui">
-					<button type="button" onClick={() => handlePlace("FLOOR")}>
-						+FLOOR
-					</button>
-					<button type="button" onClick={() => handlePlace("WALL")}>
-						+WALL
-					</button>
-					<button type="button" onClick={() => handlePlace("ROOF")}>
-						+ROOF
-					</button>
-					<button type="button" onClick={() => handlePlace("STILT")}>
-						+STILT
-					</button>
-				</div>
-			)}
+			{/* BUILD UI (Component Palette) */}
+			{isBuildMode && <BuildPalette onSelectItem={handleSelectItem} onClose={handleClosePalette} />}
 
 			{/* Joystick zones - visible indicators for mobile players */}
 			<div

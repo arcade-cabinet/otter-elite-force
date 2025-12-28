@@ -242,6 +242,12 @@ export interface PlayerUpgrades {
 	weaponLvl: Record<string, number>;
 }
 
+export interface PlayerResources {
+	wood: number;
+	metal: number;
+	supplies: number;
+}
+
 /**
  * Save Data Schema (v8)
  *
@@ -268,6 +274,7 @@ export interface SaveData {
 	spoilsOfWar: SpoilsOfWar;
 	peacekeepingScore: number;
 	upgrades: PlayerUpgrades;
+	resources: PlayerResources;
 	isLZSecured: boolean;
 	baseComponents: PlacedComponent[];
 	/**
