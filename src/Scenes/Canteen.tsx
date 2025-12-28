@@ -21,8 +21,18 @@ const GROUND_PLANE_COLOR = "#332211";
 // Upgrade configuration for DRY rendering
 const UPGRADE_CONFIG = [
 	{ key: "speed", name: "SPEED BOOST", storeKey: "speedBoost" as const, cost: UPGRADE_COSTS.speed },
-	{ key: "health", name: "HEALTH BOOST", storeKey: "healthBoost" as const, cost: UPGRADE_COSTS.health },
-	{ key: "damage", name: "DAMAGE BOOST", storeKey: "damageBoost" as const, cost: UPGRADE_COSTS.damage },
+	{
+		key: "health",
+		name: "HEALTH BOOST",
+		storeKey: "healthBoost" as const,
+		cost: UPGRADE_COSTS.health,
+	},
+	{
+		key: "damage",
+		name: "DAMAGE BOOST",
+		storeKey: "damageBoost" as const,
+		cost: UPGRADE_COSTS.damage,
+	},
 ] as const;
 
 /** Slowly rotating character display for modal preview */
@@ -167,12 +177,7 @@ function PreviewModal({
 								{canAfford ? `REQUISITION: ${price} CREDITS` : `NEED ${price - coins} MORE`}
 							</button>
 						)}
-						<button
-							ref={closeButtonRef}
-							type="button"
-							className="cancel-btn"
-							onClick={onCancel}
-						>
+						<button ref={closeButtonRef} type="button" className="cancel-btn" onClick={onCancel}>
 							{isUnlocked ? "CLOSE" : "CANCEL"}
 						</button>
 					</div>
