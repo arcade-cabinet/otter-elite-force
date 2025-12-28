@@ -158,30 +158,92 @@ describe("Canteen - Character Shop", () => {
 
 	it("should display available characters for purchase", () => {
 		render(<Canteen />);
-		// PLATOON tab is active by default, should show character names
+		// PLATOON tab is active by default, should show character cards
 		expect(screen.getByText("GEN. WHISKERS")).toBeInTheDocument();
 	});
 
-	it("should show character prices", () => {
+	it("should show character prices in cards", () => {
 		render(<Canteen />);
-		// Click on a locked character to see its price
-		const whiskersButton = screen.getByRole("button", { name: "GEN. WHISKERS" });
-		fireEvent.click(whiskersButton);
+		// Locked characters show their price in the card (multiple cards have prices)
+		const priceElements = screen.getAllByText(/\d+ CREDITS/);
+		expect(priceElements.length).toBeGreaterThan(0);
+	});
 
-		// Price should be shown in requisition button
+	it("should open modal when character clicked", () => {
+		render(<Canteen />);
+		// Click on Whiskers card to open modal
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
+		fireEvent.click(whiskersCard);
+
+		// Modal should be visible with character details
+		expect(screen.getByRole("heading", { level: 3, name: "GEN. WHISKERS" })).toBeInTheDocument();
 		expect(screen.getByText(/REQUISITION:/)).toBeInTheDocument();
 	});
 
-	it("should unlock character when purchased", () => {
+	it("should unlock character when purchased from modal", () => {
 		render(<Canteen />);
-		// Select Whiskers first
-		const whiskersButton = screen.getByRole("button", { name: "GEN. WHISKERS" });
-		fireEvent.click(whiskersButton);
+		// Click on Whiskers card to open modal
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
+		fireEvent.click(whiskersCard);
 
-		// Now click the purchase button
+		// Now click the purchase button in modal
 		const purchaseButton = screen.getByRole("button", { name: /REQUISITION:/i });
 		fireEvent.click(purchaseButton);
 
+		expect(useGameStore.getState().saveData.unlockedCharacters).toContain("whiskers");
+	});
+
+	it("should close modal when cancel clicked", () => {
+		render(<Canteen />);
+		// Click on Whiskers card to open modal
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
+		fireEvent.click(whiskersCard);
+
+		// Modal should be open
+		expect(screen.getByRole("heading", { level: 3, name: "GEN. WHISKERS" })).toBeInTheDocument();
+
+		// Click cancel button
+		const cancelButton = screen.getByRole("button", { name: /CANCEL/i });
+		fireEvent.click(cancelButton);
+
+		// Modal should be closed (no h3 visible)
+		expect(
+			screen.queryByRole("heading", { level: 3, name: "GEN. WHISKERS" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("should close modal when Escape key is pressed", () => {
+		render(<Canteen />);
+		// Click on Whiskers card to open modal
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
+		fireEvent.click(whiskersCard);
+
+		// Modal should be open
+		expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+		// Press Escape key
+		fireEvent.keyDown(window, { key: "Escape" });
+
+		// Modal should be closed
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	});
+
+	it("should auto-close modal after successful purchase", () => {
+		render(<Canteen />);
+		// Click on Whiskers card to open modal
+		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
+		fireEvent.click(whiskersCard);
+
+		// Modal should be open
+		expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+		// Click purchase button
+		const purchaseButton = screen.getByRole("button", { name: /REQUISITION:/i });
+		fireEvent.click(purchaseButton);
+
+		// Modal should auto-close after successful purchase
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		// And character should be unlocked
 		expect(useGameStore.getState().saveData.unlockedCharacters).toContain("whiskers");
 	});
 });
@@ -216,10 +278,13 @@ describe("Canteen - Upgrade Levels", () => {
 		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
 		fireEvent.click(upgradesTab);
 
-		// Should show upgrade levels
-		expect(screen.getByText(/SPEED BOOST \(Lvl 2\)/)).toBeInTheDocument();
-		expect(screen.getByText(/HEALTH BOOST \(Lvl 1\)/)).toBeInTheDocument();
-		expect(screen.getByText(/DAMAGE BOOST \(Lvl 0\)/)).toBeInTheDocument();
+		// Should show upgrade names and their levels
+		expect(screen.getByText("SPEED BOOST")).toBeInTheDocument();
+		expect(screen.getByText("Level 2")).toBeInTheDocument();
+		expect(screen.getByText("HEALTH BOOST")).toBeInTheDocument();
+		expect(screen.getByText("Level 1")).toBeInTheDocument();
+		expect(screen.getByText("DAMAGE BOOST")).toBeInTheDocument();
+		expect(screen.getByText("Level 0")).toBeInTheDocument();
 	});
 
 	it("should show tabs for navigation", () => {
