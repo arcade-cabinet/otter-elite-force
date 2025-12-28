@@ -167,7 +167,7 @@ export const skipCutscene = async (page: Page) => {
 	let buttonText = await nextBtn.innerText();
 	while (buttonText.includes("NEXT")) {
 		const previousText = buttonText;
-		await nextBtn.click();
+		await nextBtn.click({ force: true }); // force: true bypasses scroll issues
 		// Wait for the button text to change or for the button to disappear
 		await page.waitForFunction(
 			(args) => {
@@ -178,7 +178,7 @@ export const skipCutscene = async (page: Page) => {
 		);
 		buttonText = (await nextBtn.innerText()) || "";
 	}
-	await nextBtn.click(); // Final click on BEGIN MISSION
+	await nextBtn.click({ force: true }); // Final click on BEGIN MISSION
 	await waitForStable(page, 2000); // Give time for game world to initialize
 };
 

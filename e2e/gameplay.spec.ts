@@ -137,23 +137,20 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		const nextBtn = page.locator("button.dialogue-next");
 		await expect(nextBtn).toBeVisible({ timeout: 10000 });
 
-		// Click NEXT >> until we reach BEGIN MISSION (with delays for stability)
+		// Click NEXT >> until we reach BEGIN MISSION (with force: true to bypass scroll issues)
 		let buttonText = await nextBtn.innerText();
 		let clickCount = 0;
 		while (buttonText.includes("NEXT") && clickCount < 20) {
-			await nextBtn.click();
-			await page.waitForTimeout(500);
+			await nextBtn.click({ force: true });
+			await page.waitForTimeout(300);
 			buttonText = await nextBtn.innerText();
 			clickCount++;
 		}
 
-		// Final click on BEGIN MISSION - use JS click to bypass animation issues
+		// Final click on BEGIN MISSION - use force click to bypass animation/scroll issues
 		const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
 		await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
-		await page.evaluate(() => {
-			const btn = document.querySelector("button.dialogue-next") as HTMLButtonElement;
-			if (btn) btn.click();
-		});
+		await beginMissionBtn.click({ force: true });
 
 		// Wait for transition to start
 		await page.waitForTimeout(500);
@@ -514,8 +511,8 @@ test.describe("HUD and Player Interface", () => {
 			let buttonText = await nextBtn.innerText();
 			let clickCount = 0;
 			while (buttonText.includes("NEXT") && clickCount < 20) {
-				await nextBtn.click();
-				await page.waitForTimeout(500);
+				await nextBtn.click({ force: true });
+				await page.waitForTimeout(300);
 				buttonText = await nextBtn.innerText();
 				clickCount++;
 			}
@@ -523,10 +520,7 @@ test.describe("HUD and Player Interface", () => {
 			// Final click on BEGIN MISSION - use force:true for animation stability
 			const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
 			await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
-			await page.evaluate(() => {
-				const btn = document.querySelector("button.dialogue-next") as HTMLButtonElement;
-				if (btn) btn.click();
-			});
+			await beginMissionBtn.click({ force: true });
 			await page.waitForTimeout(500);
 
 			// Verify we transitioned to gameplay
@@ -578,8 +572,8 @@ test.describe("Game World and Environment", () => {
 			let buttonText = await nextBtn.innerText();
 			let clickCount = 0;
 			while (buttonText.includes("NEXT") && clickCount < 20) {
-				await nextBtn.click();
-				await page.waitForTimeout(500);
+				await nextBtn.click({ force: true });
+				await page.waitForTimeout(300);
 				buttonText = await nextBtn.innerText();
 				clickCount++;
 			}
@@ -587,10 +581,7 @@ test.describe("Game World and Environment", () => {
 			// Final click on BEGIN MISSION - use force:true for animation stability
 			const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
 			await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
-			await page.evaluate(() => {
-				const btn = document.querySelector("button.dialogue-next") as HTMLButtonElement;
-				if (btn) btn.click();
-			});
+			await beginMissionBtn.click({ force: true });
 			await page.waitForTimeout(500);
 
 			// Verify we transitioned to gameplay

@@ -46,11 +46,11 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 		});
 		console.log("Captured Cutscene Start");
 
-		// Click through dialogue - use proper waiting
+		// Click through dialogue - use proper waiting with force: true
 		const nextBtn = page.locator("button.dialogue-next");
 		try {
 			await nextBtn.waitFor({ state: "visible", timeout: 10000 });
-			await nextBtn.click();
+			await nextBtn.click({ force: true });
 			await waitForStable(page, 500);
 			await page.screenshot({
 				path: path.join(SCREENSHOT_DIR, "04-cutscene-line-2.png"),
@@ -61,18 +61,15 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 			let buttonText = await nextBtn.innerText();
 			let clickCount = 0;
 			while (buttonText.includes("NEXT") && clickCount < 20) {
-				await nextBtn.click();
-				await page.waitForTimeout(500);
+				await nextBtn.click({ force: true });
+				await page.waitForTimeout(300);
 				buttonText = await nextBtn.innerText();
 				clickCount++;
 			}
-			// Use JS click to bypass animation instability
+			// Final click with force: true
 			const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
 			await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
-			await page.evaluate(() => {
-				const btn = document.querySelector("button.dialogue-next") as HTMLButtonElement;
-				if (btn) btn.click();
-			});
+			await beginMissionBtn.click({ force: true });
 			await page.waitForTimeout(500);
 			console.log("Passed through Cutscene");
 		} catch {

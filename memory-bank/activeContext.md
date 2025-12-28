@@ -2,26 +2,43 @@
 
 ## Current State (2025-12-28)
 
-PR #33 (comprehensive E2E tests) has merged to main. The project is now in a **clean extraction phase** where conflicting branches are being replaced with cleanly rebased PRs.
+### Key Architectural Change: Level.tsx → GameWorld.tsx
 
-### Merge Queue Status
+**PR #33** (merged Dec 28) was a major refactor:
+- Deleted `src/Scenes/Level.tsx` (510 lines)
+- Added modular `src/Scenes/GameWorld.tsx` architecture:
+  - `GameWorld.tsx` (116 lines) - main scene
+  - `GameWorld/components/ChunkRenderer.tsx` (216 lines)
+  - `GameWorld/components/GameLogic.tsx` (199 lines)
 
-| Position | PR | Title | Status |
-|----------|-----|-------|--------|
-| 1 | #53 | Canteen modal redesign | 🔄 Ready for review |
-| 2 | #54 | Input lifecycle fix | 🔄 Ready for review |
-| 3 | #47 | Chunk persistence | ⏳ Needs rebase |
-| 4 | #48 | Character rescue | ⏳ Needs rebase |
-| 5 | #49 | Enemy health bars | ⏳ Needs rebase |
-| 6 | #46 | Base building | ⏳ Needs rebase |
-| 7 | #45 | Tactical features | ⏳ Later |
+**Impact**: All WIP PRs created before PR #33 that reference Level.tsx are now stale.
 
-### Stacked PRs
-- #55 stacked on #53 (Copilot additions)
-- #56 stacked on #54 (Copilot additions)
+### Merged Today
+- ✅ #54 - InputSystem lifecycle fix
+- ✅ #53 - Canteen modal redesign  
+- ✅ #57 - Memory bank update
+- ✅ #59 - Remove package-lock.json (pnpm project)
+
+### Closed as Stale/Superseded
+- ❌ #58 - Superseded by #53
+- ❌ #55, #56 - Stacked PRs, base merged
+- ❌ #48 - References deleted Level.tsx, needs full rewrite
+- ❌ #34 - Superseded by #33
+
+### Merged Today
+- ✅ #45 - Tactical simulation (type errors fixed, merged with admin override)
+
+### Remaining WIP PRs (Status)
+| PR | Title | Status |
+|----|-------|--------|
+| #47 | Chunk persistence | ⚠️ E2E tests failing (same as main branch) |
+| #49 | Enemy health bars | ⏳ Needs rebase onto latest main |
+| #46 | Base building UI | ⏳ Needs rebase onto latest main |
+| #41 | Test coverage 75% | ⚠️ Level.tsx tests need removal |
 
 ### Agent Coordination
-All PRs have been commented with merge order and rebase instructions. Agents (@cursor, @copilot, @claude) are coordinating via PR comments.
+- All PRs commented with architecture assessment notes
+- Main branch E2E tests are failing (15 tests) - needs investigation
 
 ---
 
