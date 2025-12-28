@@ -67,58 +67,7 @@ jobs:
         run: cp bundle-size.json base-bundle-size.json
 
       - name: Compare bundle sizes
-        id: compare
-        run: |
-          node - <<'EOF'
-          const fs = require('fs');
-
-          const prBundle = JSON.parse(fs.readFileSync('pr-bundle-size.json', 'utf8'));
-          const baseBundle = JSON.parse(fs.readFileSync('base-bundle-size.json', 'utf8'));
-
-          const prSize = prBundle.total.bytes;
-          const baseSize = baseBundle.total.bytes;
-          const diff = prSize - baseSize;
-          const diffPercent = ((diff / baseSize) * 100).toFixed(2);
-
-          const formatBytes = (bytes) => {
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-          };
-
-          const formatDiff = (bytes) => {
-            const sign = bytes >= 0 ? '+' : '';
-            return `${sign}${formatBytes(Math.abs(bytes))}`;
-          };
-
-          const emoji = diff > 0 ? '📈' : diff < 0 ? '📉' : '✅';
-          const status = Math.abs(diff) < 10000 ? 'acceptable' : diff > 0 ? 'increased' : 'decreased';
-
-          let comment = `## ${emoji} Bundle Size Report\n\n`;
-          comment += `| Metric | Base | PR | Diff |\n`;
-          comment += `|--------|------|-----|------|\n`;
-          comment += `| **Total** | ${baseBundle.total.formatted} | ${prBundle.total.formatted} | ${formatDiff(diff)} (${diffPercent}%) |\n`;
-          comment += `| JavaScript | ${baseBundle.breakdown.javascript.formatted} | ${prBundle.breakdown.javascript.formatted} | ${formatDiff(prBundle.breakdown.javascript.bytes - baseBundle.breakdown.javascript.bytes)} |\n`;
-          comment += `| CSS | ${baseBundle.breakdown.css.formatted} | ${prBundle.breakdown.css.formatted} | ${formatDiff(prBundle.breakdown.css.bytes - baseBundle.breakdown.css.bytes)} |\n`;
-          comment += `| Assets | ${baseBundle.breakdown.assets.formatted} | ${prBundle.breakdown.assets.formatted} | ${formatDiff(prBundle.breakdown.assets.bytes - baseBundle.breakdown.assets.bytes)} |\n\n`;
-
-          if (Math.abs(diffPercent) >= 5) {
-            comment += `> ⚠️ **Warning**: Bundle size changed by ${Math.abs(diffPercent)}%\n\n`;
-          }
-
-          comment += `### 📊 Largest Files (PR)\n\n`;
-          prBundle.largestFiles.slice(0, 5).forEach(file => {
-            comment += `- \`${file.path}\` - ${file.formatted}\n`;
-          });
-
-          comment += `\n*Bundle size tracking helps monitor application performance and load times.*`;
-
-          fs.writeFileSync('bundle-comment.md', comment);
-
-          console.log('Status:', status);
-          console.log('Diff:', formatDiff(diff));
-          EOF
+        run: node scripts/compare-bundle-size.js
 
       - name: Comment PR
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1

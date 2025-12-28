@@ -8,53 +8,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { formatBytes, getAllFiles, getFileSize } from "./bundle-utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const distPath = path.join(__dirname, "..", "dist");
 const outputPath = path.join(__dirname, "..", "bundle-size.json");
-
-/**
- * Get file size in bytes and format it
- */
-function getFileSize(filePath) {
-	const stats = fs.statSync(filePath);
-	return stats.size;
-}
-
-/**
- * Format bytes to human readable format
- */
-function formatBytes(bytes, decimals = 2) {
-	if (bytes === 0) return "0 Bytes";
-
-	const k = 1024;
-	const dm = decimals < 0 ? 0 : decimals;
-	const sizes = ["Bytes", "KB", "MB", "GB"];
-
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-	return `${Number.parseFloat((bytes / k ** i).toFixed(dm))} ${sizes[i]}`;
-}
-
-/**
- * Recursively get all files in directory
- */
-function getAllFiles(dirPath, arrayOfFiles = []) {
-	const files = fs.readdirSync(dirPath);
-
-	for (const file of files) {
-		const filePath = path.join(dirPath, file);
-		if (fs.statSync(filePath).isDirectory()) {
-			arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
-		} else {
-			arrayOfFiles.push(filePath);
-		}
-	}
-
-	return arrayOfFiles;
-}
 
 /**
  * Analyze bundle and generate report

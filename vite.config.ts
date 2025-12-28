@@ -25,7 +25,13 @@ export default defineConfig(({ mode }) => ({
 				manualChunks: {
 					// Split vendor chunks for better caching
 					react: ["react", "react-dom"],
-					three: ["three", "@react-three/fiber", "@react-three/drei"],
+					three: [
+						"three",
+						"@react-three/fiber",
+						"@react-three/drei",
+						"@react-three/postprocessing",
+						"@react-three/rapier",
+					],
 					audio: ["tone"],
 					ai: ["yuka"],
 				},
