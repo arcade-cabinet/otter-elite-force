@@ -1,20 +1,15 @@
-import { spawnPOISettlement } from "./game/world/generator/settlementGenerator";
 import { generateChunk } from "./game/world/generator/chunkGenerator";
+import { spawnPOISettlement } from "./game/world/generator/settlementGenerator";
+import type { WorldLayout } from "./game/world/types";
 import {
 	DEFAULT_WORLD_CONFIG,
 	generateWorldLayout,
 	getKeyCoordinateForChunk,
 	getTerrainForChunk,
 } from "./worldLayout";
-import type { WorldLayout } from "./game/world/types";
 
 export { spawnPOISettlement, generateChunk };
-export {
-	DEFAULT_WORLD_CONFIG,
-	generateWorldLayout,
-	getKeyCoordinateForChunk,
-	getTerrainForChunk,
-};
+export { DEFAULT_WORLD_CONFIG, generateWorldLayout, getKeyCoordinateForChunk, getTerrainForChunk };
 export type { WorldLayout };
 
 // Global world layout - generated once per game session
@@ -75,15 +70,25 @@ export function getKeyCoordinates(): Record<
 
 function getPointName(point: any): string {
 	switch (point.type) {
-		case "LZ": return "Landing Zone / Base";
-		case "VILLAGE": return "Native Village";
-		case "HEALER_HUB": return "Healer's Grove";
-		case "PRISON_CAMP": return "Prison Camp";
-		case "ENEMY_OUTPOST": return "Scale-Guard Outpost";
-		case "SIPHON_CLUSTER": return "Siphon Cluster";
-		case "GAS_DEPOT": return "Gas Depot";
-		case "BOSS_ARENA": return "The Great Siphon";
-		case "RAFT_DOCK": return "River Crossing";
-		default: return "Unknown Location";
+		case "LZ":
+			return "Landing Zone / Base";
+		case "VILLAGE":
+			return "Native Village";
+		case "HEALER_HUB":
+			return "Healer's Grove";
+		case "PRISON_CAMP":
+			return "Prison Camp";
+		case "ENEMY_OUTPOST":
+			return "Scale-Guard Outpost";
+		case "SIPHON_CLUSTER":
+			return "Siphon Cluster";
+		case "GAS_DEPOT":
+			return "Gas Depot";
+		case "BOSS_ARENA":
+			return "The Great Siphon";
+		case "RAFT_DOCK":
+			return "River Crossing";
+		default:
+			return "Unknown Location";
 	}
 }
