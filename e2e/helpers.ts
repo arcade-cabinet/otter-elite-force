@@ -93,6 +93,27 @@ export const injectGameState = async (page: Page, stateOverrides: Record<string,
 };
 
 /**
+ * Helper to read save data without modification
+ */
+export const getSaveData = async (page: Page) => {
+	return await page.evaluate(() => {
+		const data = localStorage.getItem("otter_v8");
+		return data ? JSON.parse(data) : {};
+	});
+};
+
+/**
+ * Helper to update specific save data fields
+ */
+export const updateSaveData = async (page: Page, updates: Record<string, unknown>) => {
+	await page.evaluate((updates) => {
+		const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
+		Object.assign(data, updates);
+		localStorage.setItem("otter_v8", JSON.stringify(data));
+	}, updates);
+};
+
+/**
  * Helper for robust button clicking with retry logic
  * Addresses flaky button click timeouts in Canteen UI
  */
@@ -116,15 +137,8 @@ export const robustClick = async (
 		await locator.click({ timeout: 5000, force: options?.force });
 		return;
 	} catch (_error) {
-		// Fallback to JavaScript click if normal click fails
-		console.log(`Normal click failed for ${selector}, trying JavaScript click`);
-		await page.evaluate((sel) => {
-			const el = document.querySelector(sel) as HTMLElement;
-			if (el) {
-				el.click();
-			} else {
-				throw new Error(`Element not found: ${sel}`);
-			}
-		}, selector);
+		// Fallback to force click if normal click fails
+		console.log(`Normal click failed for ${selector}, trying force click`);
+		await locator.click({ force: true, timeout: 5000 });
 	}
 };

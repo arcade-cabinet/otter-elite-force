@@ -1,5 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { hasMcpSupport, injectGameState, robustClick, waitForStable } from "./helpers";
+import {
+	getSaveData,
+	hasMcpSupport,
+	injectGameState,
+	robustClick,
+	updateSaveData,
+	waitForStable,
+} from "./helpers";
 
 /**
  * E2E Tests: Advanced Gameplay Mechanics
@@ -33,10 +40,8 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		await waitForStable(page, 4000);
 
 		// Record discovered chunks with full content
-		const firstDiscovery = await page.evaluate(() => {
-			const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-			return data.discoveredChunks;
-		});
+		const firstSaveData = await getSaveData(page);
+		const firstDiscovery = firstSaveData.discoveredChunks;
 		const chunkKeys = Object.keys(firstDiscovery);
 		expect(chunkKeys.length).toBeGreaterThan(0);
 
@@ -49,21 +54,21 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		await waitForStable(page);
 
 		// Verify chunks are identical (content, not just IDs)
-		const secondDiscovery = await page.evaluate(() => {
-			const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-			return data.discoveredChunks;
-		});
+		const secondSaveData = await getSaveData(page);
+		const secondDiscovery = secondSaveData.discoveredChunks;
 		const secondKeys = Object.keys(secondDiscovery);
 
 		// Same number of chunks
 		expect(secondKeys.length).toBe(chunkKeys.length);
 
-		// Same chunk IDs
+		// Same chunk IDs and content
 		for (const key of chunkKeys) {
 			expect(secondKeys).toContain(key);
+			// Deep equality check for the chunk data
+			expect(secondDiscovery[key]).toEqual(firstDiscovery[key]);
 		}
 
-		// Verify chunk content remains identical (seed, terrainType, entities, decorations)
+		// Verify specific chunk content remains identical (seed, terrainType, entities, decorations)
 		const reloadedChunk = secondDiscovery[testChunkId];
 		expect(reloadedChunk.seed).toBe(originalChunk.seed);
 		expect(reloadedChunk.terrainType).toBe(originalChunk.terrainType);
@@ -140,11 +145,8 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		});
 
 		// Check initial territory score
-		const initialScore = await page.evaluate(() => {
-			const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-			return data.territoryScore;
-		});
-		expect(initialScore).toBe(0);
+		const initialSaveData = await getSaveData(page);
+		expect(initialSaveData.territoryScore).toBe(0);
 
 		// Start game and interact with game world to secure the chunk
 		await robustClick(page, 'button:has-text("CONTINUE CAMPAIGN")');
@@ -156,22 +158,18 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		// and that the scoring system is properly initialized.
 
 		// Verify the chunk data structure is complete and scoring system is ready
-		const chunkData = await page.evaluate(() => {
-			const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-			const chunk = data.discoveredChunks["0,0"];
-			return {
-				hasRequiredFields:
-					chunk &&
-					typeof chunk.seed === "number" &&
-					typeof chunk.terrainType === "string" &&
-					Array.isArray(chunk.entities) &&
-					Array.isArray(chunk.decorations),
-				territoryScore: data.territoryScore,
-			};
-		});
+		const currentSaveData = await getSaveData(page);
+		const chunk = currentSaveData.discoveredChunks["0,0"];
 
-		expect(chunkData.hasRequiredFields).toBe(true);
-		expect(typeof chunkData.territoryScore).toBe("number");
+		const hasRequiredFields =
+			chunk &&
+			typeof chunk.seed === "number" &&
+			typeof chunk.terrainType === "string" &&
+			Array.isArray(chunk.entities) &&
+			Array.isArray(chunk.decorations);
+
+		expect(hasRequiredFields).toBe(true);
+		expect(typeof currentSaveData.territoryScore).toBe("number");
 	});
 
 	test("peacekeeping score tracking with rescue mission objectives", async ({ page }) => {
@@ -213,15 +211,9 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		});
 
 		// Check initial peacekeeping score and objectives
-		const initialState = await page.evaluate(() => {
-			const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-			return {
-				peacekeepingScore: data.peacekeepingScore,
-				alliesRescued: data.strategicObjectives.alliesRescued,
-			};
-		});
-		expect(initialState.peacekeepingScore).toBe(0);
-		expect(initialState.alliesRescued).toBe(0);
+		const initialSaveData = await getSaveData(page);
+		expect(initialSaveData.peacekeepingScore).toBe(0);
+		expect(initialSaveData.strategicObjectives.alliesRescued).toBe(0);
 
 		// Start game - this loads the world with the prison cage objective
 		await robustClick(page, 'button:has-text("CONTINUE CAMPAIGN")');
@@ -232,46 +224,36 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		// simulation, we verify the objective structure is properly initialized.
 
 		// Verify the rescue objective is properly structured and tracking is initialized
-		const objectiveData = await page.evaluate(() => {
-			const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-			const chunk = data.discoveredChunks["5,5"];
-			const cageEntity = chunk?.entities?.[0];
-			return {
-				hasRescueObjective:
-					cageEntity &&
-					cageEntity.type === "PRISON_CAGE" &&
-					typeof cageEntity.objectiveId === "string",
-				peacekeepingScoreType: typeof data.peacekeepingScore,
-				strategicObjectivesExists: !!data.strategicObjectives,
-			};
-		});
+		const currentSaveData = await getSaveData(page);
+		const chunk = currentSaveData.discoveredChunks["5,5"];
+		const cageEntity = chunk?.entities?.[0];
 
-		expect(objectiveData.hasRescueObjective).toBe(true);
-		expect(objectiveData.peacekeepingScoreType).toBe("number");
-		expect(objectiveData.strategicObjectivesExists).toBe(true);
+		const hasRescueObjective =
+			cageEntity &&
+			cageEntity.type === "PRISON_CAGE" &&
+			typeof cageEntity.objectiveId === "string";
+
+		expect(hasRescueObjective).toBe(true);
+		expect(typeof currentSaveData.peacekeepingScore).toBe("number");
+		expect(!!currentSaveData.strategicObjectives).toBe(true);
 	});
 
 	test("permadeath in ELITE mode - death purges save data", async ({ page }) => {
 		await page.goto("/");
 
 		// Set ELITE difficulty
-		await page.evaluate(() => {
-			const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-			data.difficultyMode = "ELITE";
-			data.coins = 500;
-			data.rank = 5;
-			localStorage.setItem("otter_v8", JSON.stringify(data));
+		await updateSaveData(page, {
+			difficultyMode: "ELITE",
+			coins: 500,
+			rank: 5,
 		});
 
 		await page.reload();
 		await waitForStable(page);
 
 		// Verify ELITE mode is set
-		const difficulty = await page.evaluate(() => {
-			const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-			return data.difficultyMode;
-		});
-		expect(difficulty).toBe("ELITE");
+		const saveData = await getSaveData(page);
+		expect(saveData.difficultyMode).toBe("ELITE");
 
 		// Simulate death by clearing save data (as would happen on death in ELITE)
 		await page.evaluate(() => {
@@ -279,10 +261,10 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		});
 
 		// Verify save data is gone
-		const saveData = await page.evaluate(() => {
+		const rawSaveData = await page.evaluate(() => {
 			return localStorage.getItem("otter_v8");
 		});
-		expect(saveData).toBeNull();
+		expect(rawSaveData).toBeNull();
 
 		// Reload page - should show NEW GAME button (fresh start)
 		await page.reload();
