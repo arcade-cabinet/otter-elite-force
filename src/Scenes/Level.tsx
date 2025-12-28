@@ -46,6 +46,8 @@ import {
 	type ChunkData,
 	useGameStore,
 } from "../stores/gameStore";
+import { CharacterUnlockedNotification } from "../UI/CharacterUnlockedNotification";
+import { InteractionPrompt } from "../UI/InteractionPrompt";
 import { GAME_CONFIG } from "../utils/constants";
 import { WATER_FRAG, WATER_VERT } from "../utils/shaders";
 
@@ -89,14 +91,59 @@ function ClamBasket({ position, isTrap = false }: { position: THREE.Vector3; isT
 	);
 }
 
-function PrisonCage({ position, rescued = false }: { position: THREE.Vector3; rescued?: boolean }) {
+function PrisonCage({
+	position,
+	rescued = false,
+}: {
+	position: THREE.Vector3;
+	rescued?: boolean;
+	characterId?: string;
+}) {
 	return (
 		<group position={position}>
 			{!rescued && (
-				<mesh castShadow>
-					<boxGeometry args={[2, 3, 2]} />
-					<meshStandardMaterial color="#222" wireframe />
-				</mesh>
+				<>
+					{/* Cage bars */}
+					<mesh castShadow>
+						<boxGeometry args={[2, 3, 2]} />
+						<meshStandardMaterial color="#222" wireframe />
+					</mesh>
+					{/* Solid top and bottom */}
+					<mesh position={[0, 1.5, 0]} castShadow>
+						<boxGeometry args={[2, 0.1, 2]} />
+						<meshStandardMaterial color="#111" metalness={0.7} />
+					</mesh>
+					<mesh position={[0, -1.5, 0]} castShadow receiveShadow>
+						<boxGeometry args={[2, 0.1, 2]} />
+						<meshStandardMaterial color="#111" metalness={0.7} />
+					</mesh>
+					{/* Character silhouette inside */}
+					<mesh position={[0, -0.5, 0]} castShadow>
+						<capsuleGeometry args={[0.3, 0.8, 4, 8]} />
+						<meshStandardMaterial
+							color="#333"
+							transparent
+							opacity={0.6}
+							emissive="#4d4233"
+							emissiveIntensity={0.3}
+						/>
+					</mesh>
+					{/* Indicator light */}
+					<pointLight color="#ff8800" intensity={0.5} distance={5} position={[0, 1.8, 0]} />
+				</>
+			)}
+			{rescued && (
+				/* Empty cage broken open */
+				<>
+					<mesh position={[1, 0, 0]} rotation={[0, 0, Math.PI / 6]} castShadow>
+						<boxGeometry args={[0.1, 3, 2]} />
+						<meshStandardMaterial color="#222" />
+					</mesh>
+					<mesh position={[-1, 0, 0]} rotation={[0, 0, -Math.PI / 6]} castShadow>
+						<boxGeometry args={[0.1, 3, 2]} />
+						<meshStandardMaterial color="#222" />
+					</mesh>
+				</>
 			)}
 			<mesh position={[0, -0.1, 0]} receiveShadow>
 				<boxGeometry args={[2.5, 0.2, 2.5]} />
@@ -218,7 +265,14 @@ function Chunk({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 
 				if (entity.type === "HUT")
 					return <ModularHut key={entity.id} position={worldPos} seed={data.seed} />;
 				if (entity.type === "PRISON_CAGE")
-					return <PrisonCage key={entity.id} position={worldPos} rescued={entity.rescued} />;
+					return (
+						<PrisonCage
+							key={entity.id}
+							position={worldPos}
+							rescued={entity.rescued}
+							characterId={entity.objectiveId}
+						/>
+					);
 				if (entity.type === "RAFT") {
 					const isThisRaft = useGameStore.getState().raftId === entity.id;
 					return (
@@ -245,6 +299,16 @@ function GameLogic({
 	activeChunks,
 	character,
 	handleImpact,
+	setInteractionPrompt,
+	setInteractionProgress,
+	setIsInteracting,
+	setInteractingEntity,
+	setRecentlyRescuedCharacter,
+	interactionPrompt,
+	interactionProgress,
+	isInteracting,
+	interactingEntity,
+	lastDamageTime,
 }: {
 	playerRef: React.RefObject<THREE.Group | null>;
 	projectilesRef: React.RefObject<ProjectilesHandle | null>;
@@ -254,6 +318,18 @@ function GameLogic({
 	activeChunks: ChunkData[];
 	character: { traits: CharacterTraits; gear: CharacterGear };
 	handleImpact: (pos: THREE.Vector3, type: "blood" | "shell") => void;
+	setInteractionPrompt: (prompt: string | null) => void;
+	setInteractionProgress: (progress: number) => void;
+	setIsInteracting: (isInteracting: boolean) => void;
+	setInteractingEntity: (
+		entity: { entity: ChunkData["entities"][0]; chunk: ChunkData } | null,
+	) => void;
+	setRecentlyRescuedCharacter: (characterId: string | null) => void;
+	interactionPrompt: string | null;
+	interactionProgress: number;
+	isInteracting: boolean;
+	interactingEntity: { entity: ChunkData["entities"][0]; chunk: ChunkData } | null;
+	lastDamageTime: React.RefObject<number>;
 }) {
 	const {
 		isZoomed,
@@ -345,6 +421,7 @@ function GameLogic({
 					entity.interacted = true;
 					if (entity.isHeavy) {
 						takeDamage(30);
+						lastDamageTime.current = Date.now();
 						audioEngine.playSFX("explode");
 						handleImpact(worldPos, "shell");
 					} else {
@@ -363,12 +440,59 @@ function GameLogic({
 						collectSpoils("clam");
 					}
 				}
-				if (entity.type === "PRISON_CAGE" && dist < 2 && !entity.rescued) {
-					entity.rescued = true;
-					if (entity.objectiveId) {
-						rescueCharacter(entity.objectiveId);
-						audioEngine.playSFX("pickup");
+				if (entity.type === "PRISON_CAGE" && dist < 3 && !entity.rescued) {
+					// Check if action button is being held
+					if (input.shoot && !isAiming) {
+						// Start or continue interaction
+						if (!isInteracting || interactingEntity?.entity.id !== entity.id) {
+							setIsInteracting(true);
+							setInteractingEntity({ entity, chunk });
+							setInteractionProgress(0);
+							setInteractionPrompt("RESCUE");
+						} else if (interactingEntity?.entity.id === entity.id) {
+							// Continue interaction - progress over 3 seconds
+							const newProgress = interactionProgress + delta / 3.0;
+							setInteractionProgress(newProgress);
+
+							// Check if interrupted by damage
+							if (Date.now() - lastDamageTime.current < 100) {
+								// Recently damaged, interrupt
+								setIsInteracting(false);
+								setInteractingEntity(null);
+								setInteractionProgress(0);
+								setInteractionPrompt(null);
+							} else if (newProgress >= 1.0) {
+								// Interaction complete!
+								entity.rescued = true;
+								if (entity.objectiveId) {
+									rescueCharacter(entity.objectiveId);
+									setRecentlyRescuedCharacter(entity.objectiveId);
+									audioEngine.playSFX("pickup");
+								}
+								setIsInteracting(false);
+								setInteractingEntity(null);
+								setInteractionProgress(0);
+								setInteractionPrompt(null);
+							}
+						}
+					} else {
+						// Show prompt but not interacting
+						if (!isInteracting) {
+							setInteractionPrompt("RESCUE");
+						} else if (interactingEntity?.entity.id === entity.id) {
+							// Button released, cancel interaction
+							setIsInteracting(false);
+							setInteractingEntity(null);
+							setInteractionProgress(0);
+							setInteractionPrompt("RESCUE");
+						}
 					}
+				} else if (isInteracting && interactingEntity?.entity.id === entity.id) {
+					// Moved out of range
+					setIsInteracting(false);
+					setInteractingEntity(null);
+					setInteractionProgress(0);
+					setInteractionPrompt(null);
 				}
 				if (entity.type === "RAFT" && dist < 2 && !isPilotingRaft) {
 					setPilotingRaft(true, entity.id);
@@ -409,6 +533,25 @@ function GameLogic({
 			playerRef.current.position.z,
 		]);
 
+		// Clear interaction prompt if no longer near any prison cages
+		const nearAnyCage = activeChunks.some((chunk) =>
+			chunk.entities.some((entity) => {
+				if (entity.type !== "PRISON_CAGE" || entity.rescued) return false;
+				const worldPos = new THREE.Vector3(
+					chunk.x * CHUNK_SIZE + entity.position[0],
+					entity.position[1],
+					chunk.z * CHUNK_SIZE + entity.position[2],
+				);
+				return playerRef.current!.position.distanceTo(worldPos) < 3;
+			}),
+		);
+		if (!nearAnyCage && interactionPrompt) {
+			setInteractionPrompt(null);
+			setIsInteracting(false);
+			setInteractingEntity(null);
+			setInteractionProgress(0);
+		}
+
 		const targetDist = isZoomed ? 6 : 12;
 		const cameraOffset = new THREE.Vector3(1.5, 4, targetDist).applyAxisAngle(
 			new THREE.Vector3(0, 1, 0),
@@ -431,8 +574,17 @@ export function Level() {
 	const [isPlayerMoving, setIsPlayerMoving] = useState(false);
 	const [activeChunks, setActiveChunks] = useState<ChunkData[]>([]);
 	const [particles, setParticles] = useState<ParticleData[]>([]);
+	const [interactionPrompt, setInteractionPrompt] = useState<string | null>(null);
+	const [interactionProgress, setInteractionProgress] = useState(0);
+	const [isInteracting, setIsInteracting] = useState(false);
+	const [interactingEntity, setInteractingEntity] = useState<{
+		entity: ChunkData["entities"][0];
+		chunk: ChunkData;
+	} | null>(null);
+	const [recentlyRescuedCharacter, setRecentlyRescuedCharacter] = useState<string | null>(null);
 	const playerRef = useRef<THREE.Group | null>(null);
 	const projectilesRef = useRef<ProjectilesHandle | null>(null);
+	const lastDamageTime = useRef(0);
 
 	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell") => {
 		audioEngine.playSFX("hit");
@@ -451,60 +603,82 @@ export function Level() {
 	}, []);
 
 	return (
-		<Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
-			<GameLogic
-				playerRef={playerRef}
-				projectilesRef={projectilesRef}
-				setPlayerVelY={setPlayerVelY}
-				setIsPlayerMoving={setIsPlayerMoving}
-				setActiveChunks={setActiveChunks}
-				activeChunks={activeChunks}
-				character={character}
-				handleImpact={handleImpact}
+		<>
+			<Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
+				<GameLogic
+					playerRef={playerRef}
+					projectilesRef={projectilesRef}
+					setPlayerVelY={setPlayerVelY}
+					setIsPlayerMoving={setIsPlayerMoving}
+					setActiveChunks={setActiveChunks}
+					activeChunks={activeChunks}
+					character={character}
+					handleImpact={handleImpact}
+					setInteractionPrompt={setInteractionPrompt}
+					setInteractionProgress={setInteractionProgress}
+					setIsInteracting={setIsInteracting}
+					setInteractingEntity={setInteractingEntity}
+					setRecentlyRescuedCharacter={setRecentlyRescuedCharacter}
+					interactionPrompt={interactionPrompt}
+					interactionProgress={interactionProgress}
+					isInteracting={isInteracting}
+					interactingEntity={interactingEntity}
+					lastDamageTime={lastDamageTime}
+				/>
+				<ambientLight intensity={0.3} />
+				<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
+				<Sky sunPosition={[100, 20, 100]} />
+				<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
+				<Environment preset="sunset" />
+				{activeChunks.map((chunk) => (
+					<Chunk key={chunk.id} data={chunk} playerPos={playerPos} />
+				))}
+				<PlayerRig
+					ref={playerRef}
+					traits={character.traits}
+					gear={character.gear}
+					position={[0, 0, 0]}
+					rotation={playerRot}
+					isMoving={isPlayerMoving}
+					isClimbing={isClimbing}
+				>
+					{isCarryingClam && <Clam position={new THREE.Vector3(0, 1.5, 0)} isCarried />}
+					{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
+				</PlayerRig>
+				{saveData.baseComponents.map((comp) => {
+					if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
+					if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
+					if (comp.type === "ROOF") return <BaseRoof key={comp.id} position={comp.position} />;
+					if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
+					return null;
+				})}
+				<Projectiles ref={projectilesRef} />
+				<Particles
+					particles={particles}
+					onExpire={useCallback(
+						(id: string) => setParticles((prev) => prev.filter((p) => p.id !== id)),
+						[],
+					)}
+				/>
+				<GameLoop />
+				<EffectComposer>
+					<Bloom intensity={0.5} />
+					<Noise opacity={0.05} />
+					<Vignette darkness={1.2} />
+					<BrightnessContrast brightness={0.05} contrast={0.2} />
+					<HueSaturation saturation={-0.2} />
+				</EffectComposer>
+			</Canvas>
+			{/* UI overlays outside Canvas */}
+			<InteractionPrompt
+				promptText={interactionPrompt}
+				progress={interactionProgress}
+				isInteracting={isInteracting}
 			/>
-			<ambientLight intensity={0.3} />
-			<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
-			<Sky sunPosition={[100, 20, 100]} />
-			<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
-			<Environment preset="sunset" />
-			{activeChunks.map((chunk) => (
-				<Chunk key={chunk.id} data={chunk} playerPos={playerPos} />
-			))}
-			<PlayerRig
-				ref={playerRef}
-				traits={character.traits}
-				gear={character.gear}
-				position={[0, 0, 0]}
-				rotation={playerRot}
-				isMoving={isPlayerMoving}
-				isClimbing={isClimbing}
-			>
-				{isCarryingClam && <Clam position={new THREE.Vector3(0, 1.5, 0)} isCarried />}
-				{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
-			</PlayerRig>
-			{saveData.baseComponents.map((comp) => {
-				if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
-				if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
-				if (comp.type === "ROOF") return <BaseRoof key={comp.id} position={comp.position} />;
-				if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
-				return null;
-			})}
-			<Projectiles ref={projectilesRef} />
-			<Particles
-				particles={particles}
-				onExpire={useCallback(
-					(id: string) => setParticles((prev) => prev.filter((p) => p.id !== id)),
-					[],
-				)}
+			<CharacterUnlockedNotification
+				characterId={recentlyRescuedCharacter}
+				onComplete={() => setRecentlyRescuedCharacter(null)}
 			/>
-			<GameLoop />
-			<EffectComposer>
-				<Bloom intensity={0.5} />
-				<Noise opacity={0.05} />
-				<Vignette darkness={1.2} />
-				<BrightnessContrast brightness={0.05} contrast={0.2} />
-				<HueSaturation saturation={-0.2} />
-			</EffectComposer>
-		</Canvas>
+		</>
 	);
 }

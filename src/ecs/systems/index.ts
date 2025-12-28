@@ -4,4 +4,5 @@
 
 export * from "./AISystem";
 export * from "./CombatSystem";
+export * from "./InteractionSystem";
 export * from "./MovementSystem";

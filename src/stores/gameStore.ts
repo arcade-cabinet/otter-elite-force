@@ -376,6 +376,58 @@ export const useGameStore = create<GameState>((set, get) => ({
 				position: [0, 0, 0],
 				objectiveId: "whiskers",
 			});
+			// Add guards around the prison cage
+			for (let i = 0; i < 3; i++) {
+				const angle = (i / 3) * Math.PI * 2;
+				entities.push({
+					id: `guard-whiskers-${i}`,
+					type: "SNAPPER",
+					position: [Math.cos(angle) * 8, 0, Math.sin(angle) * 8],
+					hp: 20,
+					suppression: 0,
+					isHeavy: true,
+				});
+			}
+		}
+		if (x === -10 && z === 15) {
+			entities.push({
+				id: "cage-splash",
+				type: "PRISON_CAGE",
+				position: [0, 0, 0],
+				objectiveId: "splash",
+			});
+			// Add guards around the prison cage
+			for (let i = 0; i < 3; i++) {
+				const angle = (i / 3) * Math.PI * 2;
+				entities.push({
+					id: `guard-splash-${i}`,
+					type: "SNAPPER",
+					position: [Math.cos(angle) * 8, 0, Math.sin(angle) * 8],
+					hp: 20,
+					suppression: 0,
+					isHeavy: true,
+				});
+			}
+		}
+		if (x === 10 && z === -10) {
+			entities.push({
+				id: "cage-fang",
+				type: "PRISON_CAGE",
+				position: [0, 0, 0],
+				objectiveId: "fang",
+			});
+			// Add guards around the prison cage
+			for (let i = 0; i < 3; i++) {
+				const angle = (i / 3) * Math.PI * 2;
+				entities.push({
+					id: `guard-fang-${i}`,
+					type: "SNAPPER",
+					position: [Math.cos(angle) * 8, 0, Math.sin(angle) * 8],
+					hp: 20,
+					suppression: 0,
+					isHeavy: true,
+				});
+			}
 		}
 		if (terrainType === "RIVER" && rand() > 0.8) {
 			entities.push({
