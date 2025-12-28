@@ -73,6 +73,10 @@ const injectGameState = async (
 		// Deep merge helper for evaluate block
 		const merge = (target: any, source: any) => {
 			for (const key of Object.keys(source)) {
+				// Guard against prototype pollution
+				if (key === "__proto__" || key === "constructor" || key === "prototype") {
+					continue;
+				}
 				if (source[key] instanceof Object && !Array.isArray(source[key])) {
 					if (!target[key]) target[key] = {};
 					merge(target[key], source[key]);
