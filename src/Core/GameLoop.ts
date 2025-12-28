@@ -26,7 +26,7 @@ export function GameLoop({ onUpdate }: GameLoopProps) {
 		if (comboTimer > 0) {
 			const newTimer = Math.max(0, comboTimer - delta);
 			useGameStore.setState({ comboTimer: newTimer });
-			
+
 			// Reset combo when timer expires
 			if (newTimer === 0) {
 				useGameStore.setState({ comboCount: 0 });

@@ -76,7 +76,7 @@ interface GameState {
 	playerPos: [number, number, number];
 	/** Direction of last damage taken (for screen shake/feedback) */
 	lastDamageDirection: { x: number; y: number } | null;
-	
+
 	// Combat feedback
 	/** Current combo count */
 	comboCount: number;
@@ -98,7 +98,13 @@ interface GameState {
 	/** Increment kill counter */
 	addKill: () => void;
 	/** Register a hit for damage feedback */
-	registerHit: (isCritical: boolean, isKill: boolean, enemyType?: string, xp?: number, credits?: number) => void;
+	registerHit: (
+		isCritical: boolean,
+		isKill: boolean,
+		enemyType?: string,
+		xp?: number,
+		credits?: number,
+	) => void;
 	/** Reset all player stats to defaults */
 	resetStats: () => void;
 	/** Set mud accumulation level */
@@ -259,14 +265,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 		})),
 
 	addKill: () => set((state) => ({ kills: state.kills + 1 })),
-	
+
 	registerHit: (isCritical, isKill, enemyType, xp, credits) => {
 		const { comboCount, comboTimer } = get();
-		
+
 		// Update combo
 		let newComboCount = comboCount;
-		let newComboTimer = 3; // Reset to 3 seconds
-		
+		const newComboTimer = 3; // Reset to 3 seconds
+
 		if (isKill) {
 			// Only kills contribute to combo
 			if (comboTimer > 0) {
@@ -277,7 +283,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 				newComboCount = 1;
 			}
 		}
-		
+
 		set({
 			lastHit: {
 				isCritical,
@@ -289,7 +295,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 			comboCount: newComboCount,
 			comboTimer: newComboTimer,
 		});
-		
+
 		// Clear lastHit after a short delay
 		setTimeout(() => set({ lastHit: null }), 100);
 	},

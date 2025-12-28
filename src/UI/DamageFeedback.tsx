@@ -116,6 +116,7 @@ export function DamageFeedback() {
 								width="30"
 								height="30"
 								viewBox="0 0 30 30"
+								aria-hidden="true"
 								style={{
 									filter: "drop-shadow(0 0 3px #ff0)",
 								}}
@@ -142,7 +143,7 @@ export function DamageFeedback() {
 							</svg>
 						) : (
 							// Regular hit marker
-							<svg width="30" height="30" viewBox="0 0 30 30">
+							<svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
 								<line
 									x1="15"
 									y1="5"

@@ -40,21 +40,15 @@ export const applyDamage = (
 	if (isKill) {
 		world.addComponent(entity, "isDead", { __tag: "IsDead" });
 	}
-	
+
 	// If source was player, register hit for feedback UI
 	const isPlayerSource = [...players].some((p) => p.id === sourceId);
 	if (isPlayerSource && entity.isEnemy) {
 		const enemyType = entity.enemy?.type || "enemy";
 		const xp = isKill ? entity.enemy?.xpValue || 0 : 0;
 		const credits = isKill ? Math.floor(Math.random() * 10) + 5 : 0; // Random credits 5-15
-		
-		useGameStore.getState().registerHit(
-			isCritical,
-			isKill,
-			enemyType,
-			xp,
-			credits
-		);
+
+		useGameStore.getState().registerHit(isCritical, isKill, enemyType, xp, credits);
 	}
 };
 
