@@ -345,8 +345,8 @@ export function HUD() {
 					width: "150px",
 					height: "150px",
 					borderRadius: "8px",
-					border: "2px dashed rgba(255, 170, 0, 0.2)",
-					background: "rgba(255, 170, 0, 0.05)",
+					border: "2px dashed rgba(255, 170, 0, 0.4)",
+					background: "rgba(255, 170, 0, 0.1)",
 				}}
 			>
 				<div
