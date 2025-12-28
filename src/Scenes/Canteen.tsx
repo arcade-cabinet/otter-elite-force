@@ -74,10 +74,10 @@ function PreviewModal({
 		/* biome-ignore lint/a11y/useKeyWithClickEvents: Escape key handled via useEffect */
 		/* biome-ignore lint/a11y/noStaticElementInteractions: Backdrop needs click handler for modal UX */
 		<div className="canteen-modal-overlay" onClick={onCancel}>
+			{/* biome-ignore lint/a11y/useKeyWithClickEvents: onClick only used to stop propagation, not for interaction */}
 			<div
 				className="canteen-modal"
 				onClick={(e) => e.stopPropagation()}
-				onKeyDown={(e) => e.stopPropagation()}
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby="canteen-modal-title"
