@@ -19,6 +19,13 @@ import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, useGameStore } from "../stores/
 const GROUND_PLANE_COLOR = "#332211";
 const ROTATION_SPEED = 0.5;
 
+// Upgrade configuration for looping
+const UPGRADES_CONFIG = [
+	{ id: "speed", name: "SPEED BOOST", key: "speedBoost" },
+	{ id: "health", name: "HEALTH BOOST", key: "healthBoost" },
+	{ id: "damage", name: "DAMAGE BOOST", key: "damageBoost" },
+] as const;
+
 /** Slowly rotating character display for modal preview */
 function RotatingCharacterDisplay({
 	traits,
@@ -147,7 +154,12 @@ function PreviewModal({
 }
 
 export function Canteen() {
-	const { saveData, unlockCharacter, spendCoins, setMode, buyUpgrade } = useGameStore();
+	const saveData = useGameStore((state) => state.saveData);
+	const unlockCharacter = useGameStore((state) => state.unlockCharacter);
+	const spendCoins = useGameStore((state) => state.spendCoins);
+	const setMode = useGameStore((state) => state.setMode);
+	const buyUpgrade = useGameStore((state) => state.buyUpgrade);
+
 	const [view, setView] = useState<"PLATOON" | "UPGRADES">("PLATOON");
 	const [previewCharId, setPreviewCharId] = useState<string | null>(null);
 
@@ -226,45 +238,21 @@ export function Canteen() {
 						</div>
 					) : (
 						<div className="upgrades-list">
-							<div className="upgrade-item">
-								<div className="upgrade-info">
-									<span className="upgrade-name">SPEED BOOST</span>
-									<span className="upgrade-level">Level {saveData.upgrades.speedBoost}</span>
+							{UPGRADES_CONFIG.map((upgrade) => (
+								<div className="upgrade-item" key={upgrade.id}>
+									<div className="upgrade-info">
+										<span className="upgrade-name">{upgrade.name}</span>
+										<span className="upgrade-level">Level {saveData.upgrades[upgrade.key]}</span>
+									</div>
+									<button
+										type="button"
+										onClick={() => buyUpgrade(upgrade.id, UPGRADE_COSTS[upgrade.id])}
+										disabled={saveData.coins < UPGRADE_COSTS[upgrade.id]}
+									>
+										{UPGRADE_COSTS[upgrade.id]} CR
+									</button>
 								</div>
-								<button
-									type="button"
-									onClick={() => buyUpgrade("speed", UPGRADE_COSTS.speed)}
-									disabled={saveData.coins < UPGRADE_COSTS.speed}
-								>
-									{UPGRADE_COSTS.speed} CR
-								</button>
-							</div>
-							<div className="upgrade-item">
-								<div className="upgrade-info">
-									<span className="upgrade-name">HEALTH BOOST</span>
-									<span className="upgrade-level">Level {saveData.upgrades.healthBoost}</span>
-								</div>
-								<button
-									type="button"
-									onClick={() => buyUpgrade("health", UPGRADE_COSTS.health)}
-									disabled={saveData.coins < UPGRADE_COSTS.health}
-								>
-									{UPGRADE_COSTS.health} CR
-								</button>
-							</div>
-							<div className="upgrade-item">
-								<div className="upgrade-info">
-									<span className="upgrade-name">DAMAGE BOOST</span>
-									<span className="upgrade-level">Level {saveData.upgrades.damageBoost}</span>
-								</div>
-								<button
-									type="button"
-									onClick={() => buyUpgrade("damage", UPGRADE_COSTS.damage)}
-									disabled={saveData.coins < UPGRADE_COSTS.damage}
-								>
-									{UPGRADE_COSTS.damage} CR
-								</button>
-							</div>
+							))}
 						</div>
 					)}
 				</div>

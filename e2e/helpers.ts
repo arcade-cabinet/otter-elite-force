@@ -61,6 +61,7 @@ export const injectGameState = async (page: Page, stateOverrides: Record<string,
 			lastPlayerPosition: [0, 0, 0],
 		};
 
+		// NOSONAR: localStorage is used to inject game state for E2E testing
 		const existing = localStorage.getItem(key);
 		const current = existing ? JSON.parse(existing) : baseState;
 
@@ -87,6 +88,7 @@ export const injectGameState = async (page: Page, stateOverrides: Record<string,
 		};
 
 		const merged = merge({ ...current }, overrides);
+		// NOSONAR: localStorage is used to inject game state for E2E testing
 		localStorage.setItem(key, JSON.stringify(merged));
 	}, stateOverrides);
 	await page.reload();
@@ -99,6 +101,7 @@ export const injectGameState = async (page: Page, stateOverrides: Record<string,
  */
 export const getSaveData = async (page: Page) => {
 	return await page.evaluate(() => {
+		// NOSONAR: localStorage is used to read game state for E2E testing verification
 		const data = localStorage.getItem("otter_v8");
 		return data ? JSON.parse(data) : {};
 	});
@@ -109,6 +112,7 @@ export const getSaveData = async (page: Page) => {
  */
 export const updateSaveData = async (page: Page, updates: Record<string, unknown>) => {
 	await page.evaluate((updates) => {
+		// NOSONAR: localStorage is used to update game state for E2E testing
 		const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
 		Object.assign(data, updates);
 		localStorage.setItem("otter_v8", JSON.stringify(data));
