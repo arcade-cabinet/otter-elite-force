@@ -24,7 +24,11 @@
 			"import": "./dist/presets/index.js"
 		}
 	},
-	"files": ["dist", "src", "README.md"],
+	"files": [
+		"dist",
+		"src",
+		"README.md"
+	],
 	"scripts": {
 		"build": "tsc",
 		"typecheck": "tsc --noEmit",

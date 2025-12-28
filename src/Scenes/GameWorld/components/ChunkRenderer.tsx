@@ -1,11 +1,6 @@
-/**
- * Chunk Renderer
- * Renders individual world chunks with terrain, water, decorations, and entities.
- * Uses strata Water component for water rendering.
- */
-
+import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
 import * as THREE from "three";
-import { Water } from "../../../lib/strata/core";
 import { Gator } from "../../../Entities/Enemies/Gator";
 import { Snake } from "../../../Entities/Enemies/Snake";
 import { Snapper } from "../../../Entities/Enemies/Snapper";
@@ -23,6 +18,7 @@ import { Siphon } from "../../../Entities/Objectives/Siphon";
 import { Raft } from "../../../Entities/Raft";
 import { Villager } from "../../../Entities/Villager";
 import { CHUNK_SIZE, type ChunkData, useGameStore } from "../../../stores/gameStore";
+import { WATER_FRAG, WATER_VERT } from "../../../utils/shaders";
 
 export function GasStockpile({
 	position,
@@ -93,35 +89,36 @@ export function PrisonCage({
 }
 
 export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 }) {
+	const waterUniforms = useRef({
+		time: { value: 0 },
+		waterColor: { value: new THREE.Color("#4d4233") },
+	});
+	useFrame((state) => {
+		waterUniforms.current.time.value = state.clock.elapsedTime;
+	});
 	const chunkX = data.x * CHUNK_SIZE;
 	const chunkZ = data.z * CHUNK_SIZE;
 
 	return (
 		<group position={[chunkX, 0, chunkZ]}>
-			{/* Ground base */}
 			<mesh position={[0, -2.5, 0]} receiveShadow>
 				<boxGeometry args={[CHUNK_SIZE, 5, CHUNK_SIZE]} />
 				<meshStandardMaterial color="#1a1208" />
 			</mesh>
-
-			{/* Terrain surface */}
 			<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
 				<planeGeometry args={[CHUNK_SIZE, CHUNK_SIZE]} />
 				<meshStandardMaterial color="#2d5016" />
 			</mesh>
-
-			{/* Strata Water component */}
-			<Water
-				position={[0, 0.1, 0]}
-				size={CHUNK_SIZE}
-				segments={16}
-				color={0x4d4233}
-				opacity={0.7}
-				waveSpeed={0.5}
-				waveHeight={0.1}
-			/>
-
-			{/* Decorations */}
+			<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}>
+				<planeGeometry args={[CHUNK_SIZE, CHUNK_SIZE]} />
+				<shaderMaterial
+					vertexShader={WATER_VERT}
+					fragmentShader={WATER_FRAG}
+					uniforms={waterUniforms.current}
+					transparent
+					opacity={0.7}
+				/>
+			</mesh>
 			{data.decorations.map((dec) => {
 				const key = dec.id;
 				if (dec.type === "REED") return <Reeds key={key} count={dec.count} seed={data.seed} />;
@@ -136,8 +133,6 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 				if (dec.type === "DEBRIS") return <Debris key={key} count={dec.count} seed={data.seed} />;
 				return null;
 			})}
-
-			{/* Entities */}
 			{data.entities.map((entity) => {
 				const worldPos = new THREE.Vector3(
 					chunkX + entity.position[0],

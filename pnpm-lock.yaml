@@ -27,17 +27,11 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(react@19.0.0-rc.1)(three@0.182.0)
       '@strata-game-library/audio-synth':
-        specifier: github:strata-game-library/audio-synth#main
-        version: https://codeload.github.com/strata-game-library/audio-synth/tar.gz/73b20ed6ee84836393536363fac364f08bd052cc(react@19.0.0-rc.1)(tone@15.1.22)
+        specifier: 1.0.2
+        version: 1.0.2(react@19.0.0-rc.1)(tone@15.1.22)
       '@strata-game-library/core':
-        specifier: github:strata-game-library/core#main
-        version: https://codeload.github.com/strata-game-library/core/tar.gz/f0b9ee21d314ae1504abc8a5e86c4f0acd188d2c(@react-three/drei@10.7.7(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@types/react@19.2.7)(@types/three@0.182.0)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/rapier@2.2.0(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(react@19.0.0-rc.1)(three@0.182.0))(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(@types/three@0.182.0)(postprocessing@6.38.2(three@0.182.0))(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)(yuka@0.7.8)(zustand@5.0.9(@types/react@19.2.7)(immer@11.1.0)(react@19.0.0-rc.1)(use-sync-external-store@1.6.0(react@19.0.0-rc.1)))
-      '@strata-game-library/presets':
-        specifier: github:strata-game-library/presets#main
-        version: https://codeload.github.com/strata-game-library/presets/tar.gz/14a5eab9a7872658eef4ae21d005b06f915e902c(bd703af8644c7fce42faf3d6fa32a0f2)
-      '@strata-game-library/shaders':
-        specifier: github:strata-game-library/shaders#main
-        version: https://codeload.github.com/strata-game-library/shaders/tar.gz/01af623fd27e37249d4bf0847b7beed247dbfc79(three@0.182.0)
+        specifier: 1.4.11
+        version: 1.4.11(@react-three/drei@10.7.7(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@types/react@19.2.7)(@types/three@0.182.0)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/rapier@2.2.0(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(react@19.0.0-rc.1)(three@0.182.0))(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(@types/three@0.182.0)(postprocessing@6.38.2(three@0.182.0))(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)(yuka@0.7.8)(zustand@5.0.9(@types/react@19.2.7)(immer@11.1.0)(react@19.0.0-rc.1)(use-sync-external-store@1.6.0(react@19.0.0-rc.1)))
       gsap:
         specifier: ^3.14.2
         version: 3.14.2
@@ -1024,16 +1018,14 @@ packages:
     peerDependencies:
       react: '>= 16.3.0'
 
-  '@strata-game-library/audio-synth@https://codeload.github.com/strata-game-library/audio-synth/tar.gz/73b20ed6ee84836393536363fac364f08bd052cc':
-    resolution: {tarball: https://codeload.github.com/strata-game-library/audio-synth/tar.gz/73b20ed6ee84836393536363fac364f08bd052cc}
-    version: 1.0.0
+  '@strata-game-library/audio-synth@1.0.2':
+    resolution: {integrity: sha512-cokJdOdm8y35x1OfIkIE3Cl6Z5t3vKNJCWTvYmeDJP5+aLcC4eKjZ14erOmgCaE2/++M55nuHAdbTM3KoKOr/w==}
     peerDependencies:
       react: '>=18.0.0'
       tone: '>=14.0.0'
 
-  '@strata-game-library/core@https://codeload.github.com/strata-game-library/core/tar.gz/f0b9ee21d314ae1504abc8a5e86c4f0acd188d2c':
-    resolution: {tarball: https://codeload.github.com/strata-game-library/core/tar.gz/f0b9ee21d314ae1504abc8a5e86c4f0acd188d2c}
-    version: 1.4.10
+  '@strata-game-library/core@1.4.11':
+    resolution: {integrity: sha512-z8bN2yhJWz6lfK+brA6K4gsQhD7JCqg5rrH1oFEbtmqUSnSr7RjdDJwe6Lu+UKXVIxmlGHN98OgxS8LO2s8LVw==}
     peerDependencies:
       '@react-three/drei': '>=9.0.0'
       '@react-three/fiber': '>=8.0.0'
@@ -1053,22 +1045,6 @@ packages:
         optional: true
       zustand:
         optional: true
-
-  '@strata-game-library/presets@https://codeload.github.com/strata-game-library/presets/tar.gz/14a5eab9a7872658eef4ae21d005b06f915e902c':
-    resolution: {tarball: https://codeload.github.com/strata-game-library/presets/tar.gz/14a5eab9a7872658eef4ae21d005b06f915e902c}
-    version: 1.0.0
-    peerDependencies:
-      '@react-three/fiber': '>=8.0.0'
-      '@strata-game-library/core': '>=1.4.0'
-      react: '>=18.0.0'
-      three: '>=0.150.0'
-      yuka: '>=0.7.0'
-
-  '@strata-game-library/shaders@https://codeload.github.com/strata-game-library/shaders/tar.gz/01af623fd27e37249d4bf0847b7beed247dbfc79':
-    resolution: {tarball: https://codeload.github.com/strata-game-library/shaders/tar.gz/01af623fd27e37249d4bf0847b7beed247dbfc79}
-    version: 1.0.2
-    peerDependencies:
-      three: '>=0.150.0'
 
   '@testing-library/dom@10.4.1':
     resolution: {integrity: sha512-o4PXJQidqJl82ckFaXUeoAW+XysPLauYI43Abki5hABd853iMhitooc6znOnczgbTYmEP6U6/y1ZyKAIsvMKGg==}
@@ -3021,13 +2997,13 @@ snapshots:
     dependencies:
       react: 19.0.0-rc.1
 
-  '@strata-game-library/audio-synth@https://codeload.github.com/strata-game-library/audio-synth/tar.gz/73b20ed6ee84836393536363fac364f08bd052cc(react@19.0.0-rc.1)(tone@15.1.22)':
+  '@strata-game-library/audio-synth@1.0.2(react@19.0.0-rc.1)(tone@15.1.22)':
     dependencies:
       react: 19.0.0-rc.1
       tone: 15.1.22
 
-  ? '@strata-game-library/core@https://codeload.github.com/strata-game-library/core/tar.gz/f0b9ee21d314ae1504abc8a5e86c4f0acd188d2c(@react-three/drei@10.7.7(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@types/react@19.2.7)(@types/three@0.182.0)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/rapier@2.2.0(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(react@19.0.0-rc.1)(three@0.182.0))(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(@types/three@0.182.0)(postprocessing@6.38.2(three@0.182.0))(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)(yuka@0.7.8)(zustand@5.0.9(@types/react@19.2.7)(immer@11.1.0)(react@19.0.0-rc.1)(use-sync-external-store@1.6.0(react@19.0.0-rc.1)))'
-  : dependencies:
+  '@strata-game-library/core@1.4.11(@react-three/drei@10.7.7(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@types/react@19.2.7)(@types/three@0.182.0)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/rapier@2.2.0(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(react@19.0.0-rc.1)(three@0.182.0))(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(@types/three@0.182.0)(postprocessing@6.38.2(three@0.182.0))(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)(yuka@0.7.8)(zustand@5.0.9(@types/react@19.2.7)(immer@11.1.0)(react@19.0.0-rc.1)(use-sync-external-store@1.6.0(react@19.0.0-rc.1)))':
+    dependencies:
       '@react-three/drei': 10.7.7(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@types/react@19.2.7)(@types/three@0.182.0)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)
       '@react-three/fiber': 9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)
       '@types/howler': 2.2.12
@@ -3056,18 +3032,6 @@ snapshots:
       - '@types/react'
       - '@types/react-dom'
       - '@types/three'
-
-  '@strata-game-library/presets@https://codeload.github.com/strata-game-library/presets/tar.gz/14a5eab9a7872658eef4ae21d005b06f915e902c(bd703af8644c7fce42faf3d6fa32a0f2)':
-    dependencies:
-      '@react-three/fiber': 9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)
-      '@strata-game-library/core': https://codeload.github.com/strata-game-library/core/tar.gz/f0b9ee21d314ae1504abc8a5e86c4f0acd188d2c(@react-three/drei@10.7.7(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@types/react@19.2.7)(@types/three@0.182.0)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/rapier@2.2.0(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(react@19.0.0-rc.1)(three@0.182.0))(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(@types/three@0.182.0)(postprocessing@6.38.2(three@0.182.0))(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)(yuka@0.7.8)(zustand@5.0.9(@types/react@19.2.7)(immer@11.1.0)(react@19.0.0-rc.1)(use-sync-external-store@1.6.0(react@19.0.0-rc.1)))
-      react: 19.0.0-rc.1
-      three: 0.182.0
-      yuka: 0.7.8
-
-  '@strata-game-library/shaders@https://codeload.github.com/strata-game-library/shaders/tar.gz/01af623fd27e37249d4bf0847b7beed247dbfc79(three@0.182.0)':
-    dependencies:
-      three: 0.182.0
 
   '@testing-library/dom@10.4.1':
     dependencies:

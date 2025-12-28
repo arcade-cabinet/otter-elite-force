@@ -1,19 +1,10 @@
 /**
  * Audio Engine
- * Legacy wrapper around strata audio-synth for backwards compatibility.
- * New code should use strata AudioSynthProvider and hooks directly.
- *
- * @deprecated Use @strata-game-library/audio-synth directly
+ * Handles all game audio synthesis using @strata-game-library/audio-synth
  */
 
-import { createSynthManager, type ISynthManager } from "../lib/strata/audio-synth";
+import { createSynthManager, type ISynthManager } from "@strata-game-library/audio-synth";
 
-/**
- * Legacy AudioEngine class that wraps strata SynthManager.
- * Provides the same API as the original implementation for backwards compatibility.
- *
- * @deprecated Use AudioSynthProvider and useAudioSynth hook instead
- */
 export class AudioEngine {
 	private manager: ISynthManager;
 
@@ -23,7 +14,7 @@ export class AudioEngine {
 
 	/**
 	 * Initialize Tone.js via strata SynthManager.
-	 * MUST be called after user gesture (click/touch).
+	 * MUST be called after user gesture (click/touch)
 	 */
 	async init(): Promise<void> {
 		await this.manager.init();
@@ -31,7 +22,7 @@ export class AudioEngine {
 	}
 
 	/**
-	 * Play a sound effect using strata presets.
+	 * Play a sound effect using strata presets
 	 */
 	playSFX(type: "shoot" | "hit" | "pickup" | "explode"): void {
 		// Map legacy types to strata preset IDs
@@ -46,40 +37,40 @@ export class AudioEngine {
 	}
 
 	/**
-	 * Play background music using strata patterns.
+	 * Play background music using strata patterns
 	 */
 	playMusic(type: "menu" | "combat"): void {
 		this.manager.playMusic(type);
 	}
 
 	/**
-	 * Stop background music.
+	 * Stop background music
 	 */
 	stopMusic(): void {
 		this.manager.stopMusic();
 	}
 
 	/**
-	 * Stop all sounds and reset state.
+	 * Stop all sounds and reset state
 	 */
 	stopAll(): void {
 		this.manager.stopAll();
 	}
 
 	/**
-	 * Check if audio is ready.
+	 * Check if audio is ready
 	 */
 	isReady(): boolean {
 		return this.manager.isReady();
 	}
 
 	/**
-	 * Cleanup.
+	 * Cleanup
 	 */
 	dispose(): void {
 		this.manager.dispose();
 	}
 }
 
-// Singleton instance for backwards compatibility
+// Singleton instance
 export const audioEngine = new AudioEngine();
