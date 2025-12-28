@@ -16,11 +16,13 @@ updates:
     open-pull-requests-limit: 15
     versioning-strategy: "increase"
     groups:
-      # Group React ecosystem updates
+      # Group React ecosystem updates (highest priority - defined first)
       react:
         patterns:
-          - "react*"
-          - "@types/react*"
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
         update-types:
           - "minor"
           - "patch"
@@ -29,19 +31,31 @@ updates:
         patterns:
           - "three"
           - "@types/three"
-          - "@react-three/*"
+          - "@react-three/fiber"
+          - "@react-three/drei"
         update-types:
           - "minor"
           - "patch"
-      # Group all dev dependencies
-      dev-dependencies:
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-      # Group testing tools
+      # Group testing tools (specific patterns to avoid overlap)
       testing:
         patterns:
+          - "vitest"
+          - "@vitest/coverage-v8"
+          - "@vitest/ui"
+          - "playwright"
+          - "@playwright/test"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group remaining dev dependencies (excludes already grouped packages)
+      dev-dependencies:
+        dependency-type: "development"
+        exclude-patterns:
+          - "react*"
+          - "@types/react*"
+          - "three"
+          - "@types/three"
+          - "@react-three/*"
           - "vitest*"
           - "@vitest/*"
           - "playwright*"
@@ -67,21 +81,12 @@ updates:
       interval: "daily"
     open-pull-requests-limit: 10
     groups:
-      # Group all GitHub official actions
-      github-actions:
-        patterns:
-          - "actions/*"
-        update-types:
-          - "major"
-          - "minor"
-          - "patch"
-      # Group third-party actions
-      third-party-actions:
+      # Group all actions together for simpler management
+      all-actions:
         patterns:
           - "*"
-        exclude-patterns:
-          - "actions/*"
         update-types:
+          - "major"
           - "minor"
           - "patch"
     labels:
