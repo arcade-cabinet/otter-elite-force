@@ -132,6 +132,28 @@ export const migrateSchema = (data: Record<string, unknown>): Record<string, unk
 		}
 	}
 
+	// Migrate chunks to include new persistence fields (v8+)
+	if (data.discoveredChunks) {
+		const chunks = data.discoveredChunks as Record<string, unknown>;
+		for (const [id, chunk] of Object.entries(chunks)) {
+			const chunkData = chunk as Record<string, unknown>;
+			// Add territoryState if missing
+			if (!chunkData.territoryState) {
+				chunkData.territoryState = chunkData.secured ? "SECURED" : "NEUTRAL";
+			}
+			// Add lastVisited if missing
+			if (!chunkData.lastVisited) {
+				chunkData.lastVisited = Date.now();
+			}
+			// Add hibernated if missing
+			if (chunkData.hibernated === undefined) {
+				chunkData.hibernated = false;
+			}
+			chunks[id] = chunkData;
+		}
+		data.discoveredChunks = chunks;
+	}
+
 	data.version = 8;
 	return data;
 };

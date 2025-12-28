@@ -263,6 +263,9 @@ describe("gameStore - Territory Control", () => {
 						seed: 123,
 						terrainType: "RIVER",
 						secured: false,
+						territoryState: "NEUTRAL",
+						lastVisited: Date.now(),
+						hibernated: false,
 						entities: [{ id: "hut-1", type: "HUT", position: [0, 0, 0] }],
 						decorations: [],
 					},
@@ -520,5 +523,172 @@ describe("gameStore - Economy", () => {
 
 		expect(useGameStore.getState().saveData.upgrades.speedBoost).toBe(1);
 		expect(useGameStore.getState().saveData.coins).toBe(300);
+	});
+});
+
+describe("gameStore - Entity State Persistence", () => {
+	beforeEach(() => {
+		localStorageMock.clear();
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				discoveredChunks: {},
+			},
+		});
+	});
+
+	it("should update entity state in a chunk", () => {
+		const store = useGameStore.getState();
+
+		// Discover a chunk
+		store.discoverChunk(2, 2);
+		const chunk = useGameStore.getState().saveData.discoveredChunks["2,2"];
+		const firstEntity = chunk.entities[0];
+
+		// Update entity state
+		store.updateChunkEntity("2,2", firstEntity.id, { hp: 5 });
+
+		const updatedChunk = useGameStore.getState().saveData.discoveredChunks["2,2"];
+		const updatedEntity = updatedChunk.entities.find((e) => e.id === firstEntity.id);
+
+		expect(updatedEntity?.hp).toBe(5);
+	});
+
+	it("should persist entity state across chunk revisits", () => {
+		const store = useGameStore.getState();
+
+		// Discover chunk first time
+		const chunk1 = store.discoverChunk(3, 3);
+		const entityId = chunk1.entities[0]?.id;
+
+		if (entityId) {
+			// Update entity
+			store.updateChunkEntity("3,3", entityId, { hp: 1 });
+
+			// "Revisit" chunk - should return cached data
+			const chunk2 = store.discoverChunk(3, 3);
+			const entity = chunk2.entities.find((e) => e.id === entityId);
+
+			expect(entity?.hp).toBe(1);
+		}
+	});
+});
+
+describe("gameStore - Territory State System", () => {
+	beforeEach(() => {
+		localStorageMock.clear();
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				discoveredChunks: {},
+			},
+		});
+	});
+
+	it("should create chunks with NEUTRAL territory state", () => {
+		const store = useGameStore.getState();
+		const chunk = store.discoverChunk(4, 4);
+
+		expect(chunk.territoryState).toBe("NEUTRAL");
+	});
+
+	it("should change territory state to SECURED when securing chunk", () => {
+		const store = useGameStore.getState();
+
+		store.discoverChunk(5, 5);
+		store.secureChunk("5,5");
+
+		const chunk = useGameStore.getState().saveData.discoveredChunks["5,5"];
+		expect(chunk.territoryState).toBe("SECURED");
+	});
+
+	it("should add URA flag entity when chunk is secured", () => {
+		const store = useGameStore.getState();
+
+		store.discoverChunk(6, 6);
+		const entityCountBefore =
+			useGameStore.getState().saveData.discoveredChunks["6,6"].entities.length;
+
+		store.secureChunk("6,6");
+
+		const chunk = useGameStore.getState().saveData.discoveredChunks["6,6"];
+		const entityCountAfter = chunk.entities.length;
+		const hasFlag = chunk.entities.some((e) => e.id.startsWith("flag-"));
+
+		expect(entityCountAfter).toBe(entityCountBefore + 1);
+		expect(hasFlag).toBe(true);
+	});
+});
+
+describe("gameStore - Chunk Hibernation", () => {
+	beforeEach(() => {
+		localStorageMock.clear();
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				discoveredChunks: {},
+			},
+		});
+	});
+
+	it("should track lastVisited timestamp when visiting chunk", () => {
+		const store = useGameStore.getState();
+		const beforeTime = Date.now();
+
+		store.discoverChunk(7, 7);
+		store.visitChunk("7,7");
+
+		const chunk = useGameStore.getState().saveData.discoveredChunks["7,7"];
+		expect(chunk.lastVisited).toBeGreaterThanOrEqual(beforeTime);
+	});
+
+	it("should hibernate distant chunks", () => {
+		const store = useGameStore.getState();
+
+		// Discover several chunks
+		store.discoverChunk(0, 0); // Center
+		store.discoverChunk(1, 0); // Adjacent
+		store.discoverChunk(5, 0); // Distant
+
+		// Hibernate chunks distant from (0, 0) with distance threshold 2
+		store.hibernateDistantChunks(0, 0, 2);
+
+		const chunks = useGameStore.getState().saveData.discoveredChunks;
+
+		expect(chunks["0,0"].hibernated).toBe(false); // Center - not hibernated
+		expect(chunks["1,0"].hibernated).toBe(false); // Within distance
+		expect(chunks["5,0"].hibernated).toBe(true); // Beyond distance
+	});
+
+	it("should get only active (non-hibernated) chunks", () => {
+		const store = useGameStore.getState();
+
+		store.discoverChunk(0, 0);
+		store.discoverChunk(1, 0);
+		store.discoverChunk(10, 10);
+
+		store.hibernateDistantChunks(0, 0, 2);
+
+		const activeChunks = store.getActiveChunks();
+		const activeIds = activeChunks.map((c) => c.id);
+
+		expect(activeIds).toContain("0,0");
+		expect(activeIds).toContain("1,0");
+		expect(activeIds).not.toContain("10,10");
+	});
+
+	it("should awaken chunks when player moves closer", () => {
+		const store = useGameStore.getState();
+
+		store.discoverChunk(0, 0);
+		store.discoverChunk(5, 0);
+
+		// Hibernate all chunks from (0, 0)
+		store.hibernateDistantChunks(0, 0, 2);
+		expect(useGameStore.getState().saveData.discoveredChunks["5,0"].hibernated).toBe(true);
+
+		// Player moves to (5, 0) - should awaken that chunk
+		store.hibernateDistantChunks(5, 0, 2);
+		expect(useGameStore.getState().saveData.discoveredChunks["5,0"].hibernated).toBe(false);
 	});
 });

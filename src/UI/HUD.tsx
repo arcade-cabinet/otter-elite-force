@@ -207,6 +207,24 @@ export function HUD() {
 					<div className="hud-coords">
 						COORD: {Math.floor(playerPos[0])}, {Math.floor(playerPos[2])}
 					</div>
+					{(() => {
+						const chunkX = Math.floor(playerPos[0] / 100);
+						const chunkZ = Math.floor(playerPos[2] / 100);
+						const chunkId = `${chunkX},${chunkZ}`;
+						const currentChunk = saveData.discoveredChunks[chunkId];
+						const territoryState = currentChunk?.territoryState || "NEUTRAL";
+						const statusColor =
+							territoryState === "SECURED"
+								? "#00ff00"
+								: territoryState === "HOSTILE"
+									? "#ff0000"
+									: "#ffaa00";
+						return (
+							<div className="hud-chunk-status" style={{ color: statusColor }}>
+								CHUNK: [{chunkX}, {chunkZ}] • {territoryState}
+							</div>
+						);
+					})()}
 					{saveData.territoryScore > 0 && (
 						<div className="hud-territory">
 							TERRITORY: {saveData.territoryScore} / {Object.keys(saveData.discoveredChunks).length}
