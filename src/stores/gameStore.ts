@@ -15,16 +15,23 @@ import type { GameStore } from "./game/types";
 
 // Re-export constants/types for backward compatibility
 export { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS } from "./gameData";
-export type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData, TerrainType } from "./types";
+export type {
+	ChunkData,
+	DifficultyMode,
+	GameMode,
+	PlacedComponent,
+	SaveData,
+	TerrainType,
+} from "./types";
 export const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
-export { type CharacterGear, type CharacterTraits, type WeaponData } from "./types";
+export type { CharacterGear, CharacterTraits, WeaponData } from "./types";
 
 export const useGameStore = create<GameStore>((set, get, ...args) => ({
 	...INITIAL_STATE,
 
 	// Mode management
 	setMode: (mode) => set({ mode }),
-	
+
 	setDifficulty: (difficulty) => {
 		const current = get().saveData.difficultyMode;
 		if (DIFFICULTY_ORDER.indexOf(difficulty) > DIFFICULTY_ORDER.indexOf(current)) {

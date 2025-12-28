@@ -1,10 +1,7 @@
 import type { StateCreator } from "zustand";
 import type { GameStore, PlayerActions } from "../types";
 
-export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerActions> = (
-	set,
-	get,
-) => ({
+export const createPlayerSlice: StateCreator<GameStore, [], [], PlayerActions> = (set, get) => ({
 	takeDamage: (amount, direction) => {
 		const { health, saveData, resetData, triggerFall, setMode } = get();
 		const newHealth = Math.max(0, health - amount);

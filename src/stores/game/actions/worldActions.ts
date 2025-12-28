@@ -3,10 +3,7 @@ import type { ChunkData } from "../../types";
 import { generateChunk } from "../chunkGenerator";
 import type { GameStore, WorldActions } from "../types";
 
-export const createWorldSlice: StateCreator<GameStore, [], [], WorldActions> = (
-	set,
-	get,
-) => ({
+export const createWorldSlice: StateCreator<GameStore, [], [], WorldActions> = (set, get) => ({
 	setBuildMode: (active) => set({ isBuildMode: active }),
 
 	discoverChunk: (x, z) => {

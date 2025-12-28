@@ -1,19 +1,20 @@
 import type { StateCreator } from "zustand";
 import type { EconomyActions, GameStore } from "../types";
 
-export const createEconomySlice: StateCreator<GameStore, [], [], EconomyActions> = (
-	set,
-	get,
-) => ({
+export const createEconomySlice: StateCreator<GameStore, [], [], EconomyActions> = (set, get) => ({
 	addCoins: (amount) => {
-		set((state: GameStore) => ({ saveData: { ...state.saveData, coins: state.saveData.coins + amount } }));
+		set((state: GameStore) => ({
+			saveData: { ...state.saveData, coins: state.saveData.coins + amount },
+		}));
 		get().saveGame();
 	},
 
 	spendCoins: (amount) => {
 		const { saveData } = get();
 		if (saveData.coins >= amount) {
-			set((state: GameStore) => ({ saveData: { ...state.saveData, coins: state.saveData.coins - amount } }));
+			set((state: GameStore) => ({
+				saveData: { ...state.saveData, coins: state.saveData.coins - amount },
+			}));
 			get().saveGame();
 			return true;
 		}
