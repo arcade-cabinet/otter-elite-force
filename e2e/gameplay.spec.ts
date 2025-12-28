@@ -18,8 +18,12 @@ import { expect, type Page, test } from "@playwright/test";
 const hasMcpSupport = process.env.PLAYWRIGHT_MCP === "true";
 
 // Helper to wait for game to stabilize after transitions
+// Uses networkidle for deterministic waits (recommended by gemini-code-assist)
 const waitForStable = async (page: Page, ms = 1500) => {
-	await page.waitForTimeout(ms);
+	await page.waitForLoadState("networkidle");
+	if (ms > 0) {
+		await page.waitForTimeout(ms);
+	}
 };
 
 // Helper to inject game state for testing specific scenarios

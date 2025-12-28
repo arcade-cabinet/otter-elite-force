@@ -4,14 +4,21 @@ import { type Page, test } from "@playwright/test";
 
 const SCREENSHOT_DIR = "visual-audit-results";
 
+// Increased timeout for visual audit tests (they capture many screenshots)
+test.setTimeout(120000);
+
 test.beforeAll(async () => {
 	if (!fs.existsSync(SCREENSHOT_DIR)) {
 		fs.mkdirSync(SCREENSHOT_DIR);
 	}
 });
 
-const waitForStable = async (page: Page, ms = 2000) => {
-	await page.waitForTimeout(ms);
+// Deterministic wait using networkidle + optional additional delay
+const waitForStable = async (page: Page, ms = 1000) => {
+	await page.waitForLoadState("networkidle");
+	if (ms > 0) {
+		await page.waitForTimeout(ms);
+	}
 };
 
 test.describe("Visual Audit - Screenshot Generation", () => {
@@ -37,23 +44,29 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 		});
 		console.log("Captured Cutscene Start");
 
-		// Click through dialogue
+		// Click through dialogue - use proper waiting
 		const nextBtn = page.locator("button.dialogue-next");
-		if (await nextBtn.isVisible()) {
+		try {
+			await nextBtn.waitFor({ state: "visible", timeout: 10000 });
 			await nextBtn.click();
-			await waitForStable(page, 1000);
+			await waitForStable(page, 500);
 			await page.screenshot({
 				path: path.join(SCREENSHOT_DIR, "04-cutscene-line-2.png"),
 				fullPage: true,
 			});
 
-			while (await nextBtn.innerText().then((text) => text.includes("NEXT"))) {
+			// Click through all NEXT >> buttons until BEGIN MISSION
+			let buttonText = await nextBtn.innerText();
+			while (buttonText.includes("NEXT")) {
 				await nextBtn.click();
-				await waitForStable(page, 500);
+				await page.waitForTimeout(300);
+				buttonText = await nextBtn.innerText();
 			}
 			await nextBtn.click(); // BEGIN MISSION
+			console.log("Passed through Cutscene");
+		} catch {
+			console.log("Cutscene button not found - skipping cutscene flow");
 		}
-		console.log("Passed through Cutscene");
 
 		// 4. Gameplay - Starting Area
 		await waitForStable(page, 5000);

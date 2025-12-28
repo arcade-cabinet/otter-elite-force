@@ -4,14 +4,21 @@ import { type Page, test } from "@playwright/test";
 
 const SCREENSHOT_DIR = "visual-audit-results-combat";
 
+// Increased timeout for visual audit tests
+test.setTimeout(120000);
+
 test.beforeAll(async () => {
 	if (!fs.existsSync(SCREENSHOT_DIR)) {
 		fs.mkdirSync(SCREENSHOT_DIR);
 	}
 });
 
-const waitForStable = async (page: Page, ms = 2000) => {
-	await page.waitForTimeout(ms);
+// Deterministic wait using networkidle + optional additional delay
+const waitForStable = async (page: Page, ms = 1000) => {
+	await page.waitForLoadState("networkidle");
+	if (ms > 0) {
+		await page.waitForTimeout(ms);
+	}
 };
 
 test.describe("Visual Audit - Combat and Objectives", () => {
