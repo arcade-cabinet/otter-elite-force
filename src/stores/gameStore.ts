@@ -24,7 +24,7 @@ export type {
 	TerrainType,
 } from "./types";
 export const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
-export { type CharacterGear, type CharacterTraits, type WeaponData } from "./types";
+export type { CharacterGear, CharacterTraits, WeaponData } from "./types";
 
 export const useGameStore = create<GameStore>((set, get, ...args) => ({
 	...INITIAL_STATE,
@@ -45,7 +45,7 @@ export const useGameStore = create<GameStore>((set, get, ...args) => ({
 		}
 	},
 
-		// Slices
+	// Slices
 	...(createPlayerSlice(set, get, ...args) as any),
 	...(createWorldSlice(set, get, ...args) as any),
 	...(createEconomySlice(set, get, ...args) as any),

@@ -173,7 +173,8 @@ describe("Canteen - Character Shop", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
 		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
-		fireEvent.click(whiskersCard!);
+		if (!whiskersCard) throw new Error("Whiskers card not found");
+		fireEvent.click(whiskersCard);
 
 		// Modal should be visible with character details
 		expect(screen.getByRole("heading", { level: 3, name: "GEN. WHISKERS" })).toBeInTheDocument();
@@ -184,7 +185,8 @@ describe("Canteen - Character Shop", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
 		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
-		fireEvent.click(whiskersCard!);
+		if (!whiskersCard) throw new Error("Whiskers card not found");
+		fireEvent.click(whiskersCard);
 
 		// Now click the purchase button in modal
 		const purchaseButton = screen.getByRole("button", { name: /REQUISITION:/i });
@@ -197,7 +199,8 @@ describe("Canteen - Character Shop", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
 		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
-		fireEvent.click(whiskersCard!);
+		if (!whiskersCard) throw new Error("Whiskers card not found");
+		fireEvent.click(whiskersCard);
 
 		// Modal should be open
 		expect(screen.getByRole("heading", { level: 3, name: "GEN. WHISKERS" })).toBeInTheDocument();
@@ -207,7 +210,46 @@ describe("Canteen - Character Shop", () => {
 		fireEvent.click(cancelButton);
 
 		// Modal should be closed (no h3 visible)
-		expect(screen.queryByRole("heading", { level: 3, name: "GEN. WHISKERS" })).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("heading", { level: 3, name: "GEN. WHISKERS" }),
+		).not.toBeInTheDocument();
+	});
+
+	it("should close modal when Escape key is pressed", () => {
+		render(<Canteen />);
+		// Click on Whiskers card to open modal
+		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
+		if (!whiskersCard) throw new Error("Whiskers card not found");
+		fireEvent.click(whiskersCard);
+
+		// Modal should be open
+		expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+		// Press Escape key
+		fireEvent.keyDown(window, { key: "Escape" });
+
+		// Modal should be closed
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+	});
+
+	it("should auto-close modal after successful purchase", () => {
+		render(<Canteen />);
+		// Click on Whiskers card to open modal
+		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
+		if (!whiskersCard) throw new Error("Whiskers card not found");
+		fireEvent.click(whiskersCard);
+
+		// Modal should be open
+		expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+		// Click purchase button
+		const purchaseButton = screen.getByRole("button", { name: /REQUISITION:/i });
+		fireEvent.click(purchaseButton);
+
+		// Modal should auto-close after successful purchase
+		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+		// And character should be unlocked
+		expect(useGameStore.getState().saveData.unlockedCharacters).toContain("whiskers");
 	});
 });
 
