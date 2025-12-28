@@ -32,7 +32,7 @@ export function Mangroves({ count = 30, seed = 0 }) {
 
 	return (
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<cylinderGeometry args={[0.4, 0.8, 1, 8]} />
+			<cylinderGeometry args={[0.4, 0.8, 1, 32]} />
 			<meshStandardMaterial color="#2d3d19" roughness={1} />
 		</instancedMesh>
 	);

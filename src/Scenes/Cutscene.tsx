@@ -38,7 +38,7 @@ function CinematicCamera() {
 		const t = state.clock.elapsedTime;
 		state.camera.position.x = Math.sin(t * 0.2) * 10;
 		state.camera.position.z = Math.cos(t * 0.2) * 10 + 15;
-		state.camera.lookAt(0, 2, 0);
+		state.camera.lookAt(0, 0.5, 0);
 	});
 	return null;
 }

@@ -141,68 +141,92 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 
 	const scale = data.isHeavy ? 1.6 : 1.1;
 	const bodyColor = data.isHeavy ? "#1a241a" : "#2d3d2d";
-	const mudColor = "#3d3329";
 	const strapColor = "#1a1a1a";
 
 	return (
 		<group ref={groupRef}>
 			<group ref={bodyRef}>
-				{/* Head / Chest */}
-				<group position={[0, 0.1, 1.2 * scale]} name="segment-0">
+				{/* Head / Jaws */}
+				<group position={[0, 0.15 * scale, 1.2 * scale]} name="segment-0">
+					{/* Skull */}
 					<mesh castShadow receiveShadow>
-						<boxGeometry args={[0.6 * scale, 0.3 * scale, 1.1 * scale]} />
+						<sphereGeometry args={[0.35 * scale, 32, 24]} />
 						<meshStandardMaterial color={bodyColor} roughness={0.9} />
 					</mesh>
-					<mesh position={[0, 0.2 * scale, 0]}>
-						<boxGeometry args={[0.7 * scale, 0.15 * scale, 0.8 * scale]} />
-						<meshStandardMaterial color="#444" metalness={0.6} roughness={0.4} />
+					{/* Snout */}
+					<mesh position={[0, -0.05 * scale, 0.4 * scale]} castShadow>
+						<capsuleGeometry args={[0.25 * scale, 0.6 * scale, 16, 24]} />
+						<meshStandardMaterial color={bodyColor} roughness={0.9} />
 					</mesh>
-					<mesh position={[0, 0.3 * scale, 0.2 * scale]}>
-						<boxGeometry args={[0.4 * scale, 0.02, 0.6 * scale]} />
-						<meshStandardMaterial color={mudColor} />
-					</mesh>
+					{/* Eyes - raised on skull */}
 					{[-1, 1].map((side) => (
 						<mesh
 							key={`${data.id}-eye-${side}`}
-							position={[side * 0.22 * scale, 0.12 * scale, 0.35 * scale]}
+							position={[side * 0.18 * scale, 0.22 * scale, 0.1 * scale]}
 						>
-							<sphereGeometry args={[0.05 * scale, 8, 8]} />
+							<sphereGeometry args={[0.06 * scale, 16, 12]} />
 							<meshBasicMaterial color="#ffaa00" />
 						</mesh>
 					))}
 
-					<group position={[0, 0.4 * scale, 0.2 * scale]} scale={isAmbushing ? 1 : 0}>
+					{/* Armor Plate on head */}
+					<mesh position={[0, 0.22 * scale, 0]}>
+						<cylinderGeometry args={[0.3 * scale, 0.35 * scale, 0.1 * scale, 32]} />
+						<meshStandardMaterial color="#333" metalness={0.6} roughness={0.4} />
+					</mesh>
+
+					<group position={[0, 0.35 * scale, 0.1 * scale]} scale={isAmbushing ? 1 : 0}>
 						<Weapon weaponId="fish-cannon" />
 					</group>
 				</group>
 
+				{/* Body Segments - Tapered capsule segments */}
 				{[...Array(5)].map((_, i) => (
 					<group
 						key={`${data.id}-segment-${i}`}
-						position={[0, 0.1, (0.4 - i * 0.75) * scale]}
+						position={[0, 0.15 * scale, (0.4 - i * 0.75) * scale]}
 						name={`segment-${i + 1}`}
 					>
 						<mesh castShadow receiveShadow>
-							<boxGeometry args={[(0.85 - i * 0.1) * scale, 0.5 * scale, 0.85 * scale]} />
+							<sphereGeometry args={[(0.45 - i * 0.05) * scale, 32, 24]} />
 							<meshStandardMaterial color={bodyColor} roughness={0.9} />
 						</mesh>
-						<mesh position={[0, 0.3 * scale, 0]}>
-							<boxGeometry args={[(0.75 - i * 0.1) * scale, 0.1 * scale, 0.6 * scale]} />
-							<meshStandardMaterial color="#333" metalness={0.5} />
+						{/* Back Scales/Scutes */}
+						<mesh position={[0, (0.35 - i * 0.05) * scale, 0]}>
+							<boxGeometry args={[(0.2 - i * 0.02) * scale, 0.1 * scale, 0.4 * scale]} />
+							<meshStandardMaterial color="#111" roughness={1} />
 						</mesh>
-						<mesh position={[0, 0.2 * scale, 0]}>
-							<boxGeometry args={[(0.9 - i * 0.1) * scale, 0.12 * scale, 0.15 * scale]} />
-							<meshStandardMaterial color={strapColor} roughness={1} />
+						{/* Gear Straps */}
+						<mesh position={[0, 0, 0]} rotation-x={Math.PI / 2}>
+							<torusGeometry args={[(0.47 - i * 0.05) * scale, 0.03 * scale, 12, 32]} />
+							<meshStandardMaterial color={strapColor} />
 						</mesh>
 					</group>
 				))}
 
-				<group position={[0, 0.1, -3.2 * scale]} name="segment-6">
+				{/* Long Tapered Tail */}
+				<group position={[0, 0.1 * scale, -3.2 * scale]} name="segment-6">
 					<mesh castShadow>
-						<boxGeometry args={[0.2 * scale, 0.2 * scale, 1.5 * scale]} />
+						<capsuleGeometry args={[0.15 * scale, 2 * scale, 16, 24]} />
 						<meshStandardMaterial color={bodyColor} />
 					</mesh>
 				</group>
+
+				{/* Legs - 4 short crocodilian legs */}
+				{[-1, 1].map((side) => (
+					<group key={`legs-${side}`}>
+						{/* Front Leg */}
+						<mesh position={[side * 0.4 * scale, 0, 0.8 * scale]} rotation-z={side * 0.5}>
+							<capsuleGeometry args={[0.12 * scale, 0.3 * scale, 12, 16]} />
+							<meshStandardMaterial color={bodyColor} />
+						</mesh>
+						{/* Back Leg */}
+						<mesh position={[side * 0.4 * scale, 0, -1 * scale]} rotation-z={side * 0.5}>
+							<capsuleGeometry args={[0.12 * scale, 0.3 * scale, 12, 16]} />
+							<meshStandardMaterial color={bodyColor} />
+						</mesh>
+					</group>
+				))}
 			</group>
 
 			<group position={[0, 2 * scale, 0]}>

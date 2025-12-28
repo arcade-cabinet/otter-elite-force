@@ -34,7 +34,7 @@ export function Lilypads({ count = 20, seed = 0 }) {
 
 	return (
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} receiveShadow>
-			<cylinderGeometry args={[1, 1, 1, 12]} />
+			<cylinderGeometry args={[1, 1, 1, 32]} />
 			<meshStandardMaterial color="#2a4d1a" roughness={0.9} />
 		</instancedMesh>
 	);

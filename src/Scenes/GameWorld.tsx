@@ -89,7 +89,7 @@ export function GameWorld() {
 				isMoving={isPlayerMoving}
 				isClimbing={isClimbing}
 			>
-				{isCarryingClam && <Clam position={new THREE.Vector3(0, 1.5, 0)} isCarried />}
+				{isCarryingClam && <Clam position={new THREE.Vector3(0, 0.8, 0)} isCarried />}
 				{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
 			</PlayerRig>
 			{saveData.baseComponents.map((comp) => {

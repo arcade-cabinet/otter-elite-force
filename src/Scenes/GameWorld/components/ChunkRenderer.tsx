@@ -35,7 +35,7 @@ export function GasStockpile({
 				[0, 0, 0.5],
 			].map((pos, i) => (
 				<mesh key={i} position={pos as [number, number, number]} castShadow receiveShadow>
-					<cylinderGeometry args={[0.4, 0.4, 1.2, 8]} />
+					<cylinderGeometry args={[0.4, 0.4, 1.2, 32]} />
 					<meshStandardMaterial color={secured ? "#2d3d19" : "#d32f2f"} metalness={0.5} />
 				</mesh>
 			))}
@@ -51,7 +51,7 @@ export function ClamBasket({ position, isTrap = false }: { position: THREE.Vecto
 	return (
 		<group position={position}>
 			<mesh castShadow receiveShadow>
-				<cylinderGeometry args={[0.6, 0.5, 0.5, 8]} />
+				<cylinderGeometry args={[0.6, 0.5, 0.5, 32]} />
 				<meshStandardMaterial color="#5d4037" />
 			</mesh>
 			{isTrap && <pointLight color="#ff0000" intensity={0.2} distance={2} />}
@@ -169,7 +169,7 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 				if (entity.type === "CLIMBABLE")
 					return (
 						<mesh key={entity.id} position={worldPos} castShadow receiveShadow>
-							<cylinderGeometry args={[0.8, 1, 10, 8]} />
+							<cylinderGeometry args={[0.8, 1, 10, 32]} />
 							<meshStandardMaterial color="#2d1f15" />
 						</mesh>
 					);
