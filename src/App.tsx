@@ -19,6 +19,11 @@ export function App() {
 
 	// Initialize on mount
 	useEffect(() => {
+		// Expose store to window for E2E testing
+		if (typeof window !== "undefined") {
+			(window as any).__gameStore = useGameStore;
+		}
+
 		// Load save data
 		loadData();
 
