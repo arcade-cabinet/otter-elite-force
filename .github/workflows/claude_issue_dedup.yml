@@ -27,6 +27,7 @@ jobs:
         uses: anthropics/claude-code-action@161409cbadcdd475a4ec92d96b7a52498ffc743f # v1.0.27
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
           prompt: |
             Check if issue #${{ github.event.issue.number }} is a duplicate.

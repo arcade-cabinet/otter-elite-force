@@ -18,11 +18,6 @@ jobs:
       github.event.workflow_run.head_repository.full_name == github.repository &&
       !startsWith(github.event.workflow_run.head_branch, 'claude/')
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      actions: read
-      id-token: write
 
     steps:
       - name: Checkout repository
@@ -171,6 +166,7 @@ jobs:
         uses: anthropics/claude-code-action@161409cbadcdd475a4ec92d96b7a52498ffc743f # v1.0.27
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           additional_permissions: |
             actions: read
 
