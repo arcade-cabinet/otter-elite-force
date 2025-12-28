@@ -54,7 +54,9 @@ export class InputSystem {
 	private setupJoysticks(): void {
 		// Movement joystick (left side)
 		const moveZone = document.getElementById("joystick-move");
-		if (moveZone) {
+		if (!moveZone) {
+			console.warn("InputSystem: joystick-move zone not found");
+		} else {
 			this.moveJoystick = nipplejs.create({
 				zone: moveZone,
 				mode: "static",
@@ -80,7 +82,9 @@ export class InputSystem {
 
 		// Touch drag for looking (right side)
 		this.lookZone = document.getElementById("joystick-look"); // Reusing ID for now
-		if (this.lookZone) {
+		if (!this.lookZone) {
+			console.warn("InputSystem: joystick-look zone not found");
+		} else {
 			let lastX = 0;
 			let lastY = 0;
 
