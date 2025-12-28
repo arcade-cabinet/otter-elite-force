@@ -27,10 +27,12 @@ export function Minimap() {
 					// Only show if reasonably close
 					if (Math.abs(dx) > 100 || Math.abs(dz) > 100) return null;
 
+					const territoryClass = chunk.territoryState?.toLowerCase() || "neutral";
+
 					return (
 						<div
 							key={chunk.id}
-							className={`chunk-marker ${chunk.secured ? "secured" : ""}`}
+							className={`chunk-marker ${chunk.secured ? "secured" : ""} territory-${territoryClass}`}
 							style={{
 								transform: `translate(${dx}px, ${dz}px)`,
 							}}

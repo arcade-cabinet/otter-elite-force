@@ -189,21 +189,39 @@ export type ChunkEntity = {
 
 export type TerrainType = "RIVER" | "MARSH" | "DENSE_JUNGLE";
 
+/**
+ * Territory ownership state for chunk control.
+ * - HOSTILE: Enemy controlled, full AI activity
+ * - NEUTRAL: Unclaimed, normal AI activity
+ * - SECURED: URA controlled, reduced enemy spawns
+ */
+export type TerritoryState = "HOSTILE" | "NEUTRAL" | "SECURED";
+
 export interface ChunkDecoration {
 	id: string;
 	type: DecorationType;
 	count: number;
 }
 
+/**
+ * Chunk data structure for open world persistence.
+ * Once discovered, chunks are FIXED and never regenerated.
+ * Entity states persist across sessions.
+ */
 export interface ChunkData {
 	id: string; // "x,z"
 	x: number;
 	z: number;
 	seed: number;
 	terrainType: TerrainType;
-	secured: boolean;
+	secured: boolean; // Legacy - kept for backward compatibility
+	territoryState: TerritoryState;
 	entities: ChunkEntity[];
 	decorations: ChunkDecoration[];
+	/** Timestamp of last visit (for hibernation logic) */
+	lastVisited?: number;
+	/** Whether chunk is currently hibernated (AI suspended) */
+	hibernated?: boolean;
 }
 
 // =============================================================================

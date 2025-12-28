@@ -117,6 +117,18 @@ interface GameState {
 	getNearbyChunks: (x: number, z: number) => ChunkData[];
 	/** Mark a chunk as secured (URA territory) */
 	secureChunk: (chunkId: string) => void;
+	/** Update a specific entity in a chunk (for state persistence) */
+	updateChunkEntity: (
+		chunkId: string,
+		entityId: string,
+		updates: Partial<ChunkData["entities"][0]>,
+	) => void;
+	/** Mark chunk as visited (updates lastVisited timestamp) */
+	visitChunk: (chunkId: string) => void;
+	/** Hibernate distant chunks (suspend AI processing) */
+	hibernateDistantChunks: (centerX: number, centerZ: number, distance?: number) => void;
+	/** Get list of currently active (non-hibernated) chunks */
+	getActiveChunks: () => ChunkData[];
 
 	// =========================================================================
 	// CHARACTER MANAGEMENT
@@ -408,6 +420,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 			seed,
 			terrainType,
 			secured: false,
+			territoryState: "NEUTRAL",
+			lastVisited: Date.now(),
+			hibernated: false,
 			entities,
 			decorations: [
 				{ id: `${id}-dec-0`, type: "REED", count: Math.floor(rand() * 20) + 10 },
@@ -457,6 +472,16 @@ export const useGameStore = create<GameState>((set, get) => ({
 				peacekeepingGain += 20;
 			}
 
+			// Add URA flag at chunk center as visual indicator
+			const updatedEntities = [
+				...chunk.entities,
+				{
+					id: `flag-${chunkId}`,
+					type: "EXTRACTION_POINT" as const, // Reuse extraction point visual for flag
+					position: [0, 0, 0] as [number, number, number],
+				},
+			];
+
 			return {
 				saveData: {
 					...state.saveData,
@@ -465,12 +490,91 @@ export const useGameStore = create<GameState>((set, get) => ({
 					strategicObjectives: newStrategic,
 					discoveredChunks: {
 						...state.saveData.discoveredChunks,
-						[chunkId]: { ...chunk, secured: true },
+						[chunkId]: {
+							...chunk,
+							secured: true,
+							territoryState: "SECURED",
+							entities: updatedEntities,
+						},
 					},
 				},
 			};
 		});
 		get().saveGame();
+	},
+
+	updateChunkEntity: (chunkId, entityId, updates) => {
+		set((state) => {
+			const chunk = state.saveData.discoveredChunks[chunkId];
+			if (!chunk) return state;
+
+			const updatedEntities = chunk.entities.map((entity) =>
+				entity.id === entityId ? { ...entity, ...updates } : entity,
+			);
+
+			return {
+				saveData: {
+					...state.saveData,
+					discoveredChunks: {
+						...state.saveData.discoveredChunks,
+						[chunkId]: { ...chunk, entities: updatedEntities },
+					},
+				},
+			};
+		});
+		get().saveGame();
+	},
+
+	visitChunk: (chunkId) => {
+		set((state) => {
+			const chunk = state.saveData.discoveredChunks[chunkId];
+			if (!chunk) return state;
+
+			return {
+				saveData: {
+					...state.saveData,
+					discoveredChunks: {
+						...state.saveData.discoveredChunks,
+						[chunkId]: {
+							...chunk,
+							lastVisited: Date.now(),
+							hibernated: false,
+						},
+					},
+				},
+			};
+		});
+	},
+
+	hibernateDistantChunks: (centerX, centerZ, distance = 2) => {
+		set((state) => {
+			const updatedChunks = { ...state.saveData.discoveredChunks };
+
+			for (const [chunkId, chunk] of Object.entries(updatedChunks)) {
+				const dx = Math.abs(chunk.x - centerX);
+				const dz = Math.abs(chunk.z - centerZ);
+				const chunkDistance = Math.max(dx, dz);
+
+				// Hibernate chunks beyond the distance threshold
+				if (chunkDistance > distance) {
+					updatedChunks[chunkId] = { ...chunk, hibernated: true };
+				} else {
+					updatedChunks[chunkId] = { ...chunk, hibernated: false };
+				}
+			}
+
+			return {
+				saveData: {
+					...state.saveData,
+					discoveredChunks: updatedChunks,
+				},
+			};
+		});
+	},
+
+	getActiveChunks: () => {
+		const { saveData } = get();
+		return Object.values(saveData.discoveredChunks).filter((chunk) => !chunk.hibernated);
 	},
 
 	selectCharacter: (id) => set({ selectedCharacterId: id }),

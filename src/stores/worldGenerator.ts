@@ -587,6 +587,9 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 		seed,
 		terrainType,
 		secured: false,
+		territoryState: "NEUTRAL",
+		lastVisited: Date.now(),
+		hibernated: false,
 		entities,
 		decorations: [
 			{
