@@ -1,5 +1,5 @@
 /**
- * Level Scene
+ * GameWorld Scene
  * Main gameplay scene with 3D world
  */
 
@@ -390,7 +390,7 @@ function GameLogic({
 				projectilesRef.current?.spawn(muzzlePos, shootDir);
 				audioEngine.playSFX("shoot");
 				lastFireTime.current = state.clock.elapsedTime;
-				playerRef.current.rotation.y += (Math.random() - 0.5) * 0.05;
+				playerRef.current.rotation.y += (Math.random() - 0.5) * 0.05; // NOSONAR: Game visual randomness
 			}
 		} else if (moveVec.lengthSq() > 0.01) {
 			const targetAngle = Math.atan2(moveVec.x, moveVec.z);
@@ -421,7 +421,7 @@ function GameLogic({
 	return null;
 }
 
-export function Level() {
+export function GameWorld() {
 	const { selectedCharacterId, saveData, isCarryingClam, isPilotingRaft } = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 	const [playerPos] = useState(() => new THREE.Vector3(0, 0, 0));
@@ -437,14 +437,14 @@ export function Level() {
 	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell") => {
 		audioEngine.playSFX("hit");
 		const newParticles = [...Array(5)].map(() => ({
-			id: `${type}-${Math.random()}`,
+			id: `${type}-${Math.random()}`, // NOSONAR: Non-critical visual ID
 			position: pos.clone(),
 			velocity: new THREE.Vector3(
-				(Math.random() - 0.5) * 5,
-				Math.random() * 5,
-				(Math.random() - 0.5) * 5,
+				(Math.random() - 0.5) * 5, // NOSONAR: Visual randomness
+				Math.random() * 5, // NOSONAR: Visual randomness
+				(Math.random() - 0.5) * 5, // NOSONAR: Visual randomness
 			),
-			lifetime: 0.5 + Math.random() * 0.5,
+			lifetime: 0.5 + Math.random() * 0.5, // NOSONAR: Visual randomness
 			type,
 		}));
 		setParticles((prev) => [...prev, ...newParticles]);
