@@ -1,36 +1,97 @@
 version: 2
+
+registries:
+  npm-registry:
+    type: npm-registry
+    url: https://registry.npmjs.org
+
 updates:
-  # Enable version updates for npm
+  # NPM dependencies - update to latest versions
   - package-ecosystem: "npm"
     directory: "/"
+    registries:
+      - npm-registry
     schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 10
+      interval: "daily"
+    open-pull-requests-limit: 15
+    versioning-strategy: "increase"
     groups:
+      # Group React ecosystem updates (highest priority - defined first)
       react:
         patterns:
-          - "react*"
-          - "@types/react*"
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group Three.js ecosystem updates
       three:
         patterns:
           - "three"
           - "@types/three"
-          - "@react-three/*"
+          - "@react-three/fiber"
+          - "@react-three/drei"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group testing tools (specific patterns to avoid overlap)
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/coverage-v8"
+          - "@vitest/ui"
+          - "playwright"
+          - "@playwright/test"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group remaining dev dependencies (excludes already grouped packages)
       dev-dependencies:
         dependency-type: "development"
-        patterns:
-          - "*"
+        exclude-patterns:
+          - "react*"
+          - "@types/react*"
+          - "three"
+          - "@types/three"
+          - "@react-three/*"
+          - "vitest*"
+          - "@vitest/*"
+          - "playwright*"
+          - "@playwright/*"
+        update-types:
+          - "minor"
+          - "patch"
     labels:
       - "dependencies"
       - "automated"
+      - "automerge"
+    commit-message:
+      prefix: "chore(deps)"
+    # Ignore major updates for stability - review manually
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
-  # Enable version updates for GitHub Actions
+  # GitHub Actions - update to latest with SHA pinning
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "daily"
+    open-pull-requests-limit: 10
+    groups:
+      # Group all actions together for simpler management
+      all-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
     labels:
       - "github-actions"
       - "automated"
+      - "automerge"
+    commit-message:
+      prefix: "chore(actions)"
