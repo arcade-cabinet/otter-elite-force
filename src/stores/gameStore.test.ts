@@ -55,9 +55,18 @@ describe("gameStore - Basic Operations", () => {
 	it("should initialize with default values", () => {
 		const state = useGameStore.getState();
 		expect(state.mode).toBe("MENU");
+		expect(state.hudReady).toBe(false);
 		expect(state.health).toBe(100);
 		expect(state.kills).toBe(0);
 		expect(state.currentChunkId).toBe("0,0");
+	});
+
+	it("should update hudReady state", () => {
+		const store = useGameStore.getState();
+		store.setHudReady(true);
+		expect(useGameStore.getState().hudReady).toBe(true);
+		store.setHudReady(false);
+		expect(useGameStore.getState().hudReady).toBe(false);
 	});
 
 	it("should update mode", () => {
