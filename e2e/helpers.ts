@@ -66,7 +66,7 @@ export const injectGameState = async (page: Page, stateOverrides: Record<string,
 		const current = existing ? JSON.parse(existing) : baseState;
 
 		// Deep merge helper for evaluate block
-		const merge = (
+		const deepMerge = (
 			target: Record<string, unknown>,
 			source: Record<string, unknown>,
 		): Record<string, unknown> => {
@@ -75,11 +75,20 @@ export const injectGameState = async (page: Page, stateOverrides: Record<string,
 				if (key === "__proto__" || key === "constructor" || key === "prototype") {
 					continue;
 				}
-				if (source[key] instanceof Object && !Array.isArray(source[key])) {
-					if (!target[key] || typeof target[key] !== "object" || Array.isArray(target[key])) {
+				// Fixed: check typeof instead of falsy check to handle truthy primitives
+				if (
+					source[key] !== null &&
+					typeof source[key] === "object" &&
+					!Array.isArray(source[key])
+				) {
+					if (
+						target[key] === null ||
+						typeof target[key] !== "object" ||
+						Array.isArray(target[key])
+					) {
 						target[key] = {};
 					}
-					merge(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>);
+					deepMerge(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>);
 				} else {
 					target[key] = source[key];
 				}
@@ -87,7 +96,7 @@ export const injectGameState = async (page: Page, stateOverrides: Record<string,
 			return target;
 		};
 
-		const merged = merge({ ...current }, overrides);
+		const merged = deepMerge({ ...current }, overrides);
 		// NOSONAR: localStorage is used to inject game state for E2E testing
 		localStorage.setItem(key, JSON.stringify(merged));
 	}, stateOverrides);
@@ -108,14 +117,43 @@ export const getSaveData = async (page: Page) => {
 };
 
 /**
- * Helper to update specific save data fields
+ * Helper to update specific save data fields with deep merge
  */
 export const updateSaveData = async (page: Page, updates: Record<string, unknown>) => {
 	await page.evaluate((updates) => {
+		// Deep merge helper (same logic as injectGameState)
+		const deepMerge = (
+			target: Record<string, unknown>,
+			source: Record<string, unknown>,
+		): Record<string, unknown> => {
+			for (const key of Object.keys(source)) {
+				if (key === "__proto__" || key === "constructor" || key === "prototype") {
+					continue;
+				}
+				if (
+					source[key] !== null &&
+					typeof source[key] === "object" &&
+					!Array.isArray(source[key])
+				) {
+					if (
+						target[key] === null ||
+						typeof target[key] !== "object" ||
+						Array.isArray(target[key])
+					) {
+						target[key] = {};
+					}
+					deepMerge(target[key] as Record<string, unknown>, source[key] as Record<string, unknown>);
+				} else {
+					target[key] = source[key];
+				}
+			}
+			return target;
+		};
+
 		// NOSONAR: localStorage is used to update game state for E2E testing
 		const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
-		Object.assign(data, updates);
-		localStorage.setItem("otter_v8", JSON.stringify(data));
+		const merged = deepMerge(data, updates);
+		localStorage.setItem("otter_v8", JSON.stringify(merged));
 	}, updates);
 };
 
