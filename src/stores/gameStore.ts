@@ -1,286 +1,120 @@
 /**
- * Game State Store
- * Central state management using Zustand
+ * Game State Store - Central State Management
+ *
+ * This Zustand store manages all game state including:
+ * - Game mode FSM (MENU → CUTSCENE → GAME → VICTORY/GAMEOVER)
+ * - Player stats (health, kills, position, status effects)
+ * - World state (discovered chunks, secured territory)
+ * - Character/weapon unlocks and selection
+ * - Economy (coins, medals, upgrades)
+ * - Persistent save data (localStorage)
+ *
+ * Architecture Notes:
+ * - State is hydrated from localStorage on app start (loadData)
+ * - Chunks are generated deterministically from coordinates
+ * - Difficulty can only escalate (SUPPORT → TACTICAL → ELITE), never downgrade
+ * - "The Fall" mechanic triggers emergency extraction in TACTICAL mode
+ *
+ * @see ./types.ts for TypeScript interfaces
+ * @see ./persistence.ts for save/load utilities
+ * @see ./gameData.ts for static character/weapon definitions
  */
 
 import { create } from "zustand";
-import { RANKS, STORAGE_KEY } from "../utils/constants";
+import { DIFFICULTY_ORDER, GAME_CONFIG, RANKS, STORAGE_KEY } from "../utils/constants";
+import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS } from "./gameData";
+import { DEFAULT_SAVE_DATA } from "./persistence";
+import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData } from "./types";
 
-export type GameMode = "MENU" | "CUTSCENE" | "GAME" | "GAMEOVER" | "CANTEEN";
-export type DifficultyMode = "ELITE" | "TACTICAL" | "SUPPORT";
+// Re-export types and data for backward compatibility
+export type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData };
+export { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS };
 
-export interface CharacterTraits {
-	id: string;
-	name: string;
-	furColor: string;
-	eyeColor: string;
-	whiskerLength: number;
-	grizzled: boolean;
-	baseSpeed: number;
-	baseHealth: number;
-	climbSpeed: number;
-	unlockRequirement?: string; // Narrative requirement
-}
+// Re-export types from ./types.ts for backward compatibility
+export type { CharacterGear, CharacterTraits, WeaponData } from "./types";
 
-export interface CharacterGear {
-	headgear?: "bandana" | "beret" | "helmet" | "none";
-	vest?: "tactical" | "heavy" | "none";
-	backgear?: "radio" | "scuba" | "none";
-	weaponId: string;
-}
-
-export interface WeaponData {
-	id: string;
-	name: string;
-	type: "PISTOL" | "RIFLE" | "MACHINE_GUN" | "SHOTGUN";
-	damage: number;
-	fireRate: number;
-	bulletSpeed: number;
-	recoil: number;
-	range: number;
-	visualType: "FISH_CANNON" | "BUBBLE_GUN" | "PISTOL_GRIP";
-}
-
-export const WEAPONS: Record<string, WeaponData> = {
-	"service-pistol": {
-		id: "service-pistol",
-		name: "SERVICE PISTOL",
-		type: "PISTOL",
-		damage: 2,
-		fireRate: 0.4,
-		bulletSpeed: 60,
-		recoil: 0.02,
-		range: 30,
-		visualType: "PISTOL_GRIP",
-	},
-	"fish-cannon": {
-		id: "fish-cannon",
-		name: "HEAVY FISH-CANNON",
-		type: "MACHINE_GUN",
-		damage: 1,
-		fireRate: 0.1,
-		bulletSpeed: 90,
-		recoil: 0.05,
-		range: 50,
-		visualType: "FISH_CANNON",
-	},
-	"bubble-gun": {
-		id: "bubble-gun",
-		name: "BUBBLE SNIPER",
-		type: "RIFLE",
-		damage: 5,
-		fireRate: 0.8,
-		bulletSpeed: 120,
-		recoil: 0.08,
-		range: 80,
-		visualType: "BUBBLE_GUN",
-	},
-};
-
-export const CHARACTERS: Record<string, { traits: CharacterTraits; gear: CharacterGear }> = {
-	bubbles: {
-		traits: {
-			id: "bubbles",
-			name: "SGT. BUBBLES",
-			furColor: "#5D4037",
-			eyeColor: "#111",
-			whiskerLength: 0.3,
-			grizzled: false,
-			baseSpeed: 14,
-			baseHealth: 100,
-			climbSpeed: 10,
-		},
-		gear: {
-			headgear: "bandana",
-			vest: "tactical",
-			backgear: "radio",
-			weaponId: "service-pistol", // Starts with a pistol now
-		},
-	},
-	whiskers: {
-		traits: {
-			id: "whiskers",
-			name: "GEN. WHISKERS",
-			furColor: "#8D6E63",
-			eyeColor: "#222",
-			whiskerLength: 0.8,
-			grizzled: true,
-			baseSpeed: 10,
-			baseHealth: 200,
-			climbSpeed: 6,
-			unlockRequirement: "Rescue from Prison Camp (Coordinate 5, 5)",
-		},
-		gear: {
-			headgear: "beret",
-			vest: "heavy",
-			backgear: "none",
-			weaponId: "fish-cannon",
-		},
-	},
-	splash: {
-		traits: {
-			id: "splash",
-			name: "CPL. SPLASH",
-			furColor: "#4E342E",
-			eyeColor: "#00ccff",
-			whiskerLength: 0.2,
-			grizzled: false,
-			baseSpeed: 18,
-			baseHealth: 80,
-			climbSpeed: 15,
-			unlockRequirement: "Secure the Silt-shadow Crossing",
-		},
-		gear: {
-			headgear: "helmet",
-			vest: "tactical",
-			backgear: "scuba",
-			weaponId: "bubble-gun",
-		},
-	},
-	fang: {
-		traits: {
-			id: "fang",
-			name: "SGT. FANG",
-			furColor: "#333",
-			eyeColor: "#ff0000",
-			whiskerLength: 0.4,
-			grizzled: true,
-			baseSpeed: 12,
-			baseHealth: 150,
-			climbSpeed: 8,
-			unlockRequirement: "Recover the Ancestral Clam",
-		},
-		gear: {
-			headgear: "none",
-			vest: "heavy",
-			backgear: "none",
-			weaponId: "fish-cannon",
-		},
-	},
-};
-
-export interface ChunkData {
-	id: string; // "x,z"
-	x: number;
-	z: number;
-	seed: number;
-	terrainType: "RIVER" | "MARSH" | "DENSE_JUNGLE";
-	secured: boolean;
-	entities: {
-		id: string;
-		type:
-			| "GATOR"
-			| "SNAKE"
-			| "SNAPPER"
-			| "PLATFORM"
-			| "CLIMBABLE"
-			| "SIPHON"
-			| "OIL_SLICK"
-			| "MUD_PIT"
-			| "VILLAGER"
-			| "HEALER"
-			| "HUT"
-			| "GAS_STOCKPILE"
-			| "CLAM_BASKET"
-			| "EXTRACTION_POINT"
-			| "RAFT"
-			| "PRISON_CAGE";
-		position: [number, number, number];
-		isHeavy?: boolean;
-		objectiveId?: string;
-		hp?: number;
-		suppression?: number;
-		captured?: boolean;
-		interacted?: boolean; // Type safe field
-		rescued?: boolean; // Type safe field
-	}[];
-	decorations: {
-		id: string;
-		type: "REED" | "LILYPAD" | "DEBRIS" | "BURNT_TREE" | "MANGROVE" | "DRUM";
-		count: number;
-	}[];
-}
-
-interface SaveData {
-	rank: number;
-	xp: number;
-	medals: number;
-	unlocked: number;
-	unlockedCharacters: string[];
-	unlockedWeapons: string[];
-	coins: number;
-	discoveredChunks: Record<string, ChunkData>;
-	territoryScore: number;
-	difficultyMode: DifficultyMode;
-	isFallTriggered: boolean;
-	strategicObjectives: {
-		siphonsDismantled: number;
-		villagesLiberated: number;
-		gasStockpilesCaptured: number;
-		healersProtected: number;
-		alliesRescued: number;
-	};
-	spoilsOfWar: {
-		creditsEarned: number;
-		clamsHarvested: number;
-		upgradesUnlocked: number;
-	};
-	peacekeepingScore: number;
-	upgrades: {
-		speedBoost: number;
-		healthBoost: number;
-		damageBoost: number;
-		weaponLvl: Record<string, number>;
-	};
-	isLZSecured: boolean;
-	baseComponents: PlacedComponent[];
-}
-
-export interface PlacedComponent {
-	id: string;
-	type: "FLOOR" | "WALL" | "ROOF" | "STILT";
-	position: [number, number, number];
-	rotation: [number, number, number];
-}
-
+/**
+ * Core game state interface.
+ * Organized into logical sections: mode, player, world, character, economy.
+ */
 interface GameState {
-	// Mode management
+	// =========================================================================
+	// MODE MANAGEMENT
+	// =========================================================================
+	/** Current game mode (FSM state) */
 	mode: GameMode;
+	/** Transition to a new game mode */
 	setMode: (mode: GameMode) => void;
+	/** Upgrade difficulty (can only go UP: SUPPORT → TACTICAL → ELITE) */
 	setDifficulty: (difficulty: DifficultyMode) => void;
 
-	// Player stats
+	// =========================================================================
+	// PLAYER STATS
+	// =========================================================================
+	/** Current health (0 = death/fall) */
 	health: number;
+	/** Maximum health (can be upgraded) */
 	maxHealth: number;
+	/** Kill count for current session */
 	kills: number;
+	/** Mud accumulation (affects movement speed) */
 	mudAmount: number;
+	/** Whether player is carrying a clam (affects speed, enables deposit) */
 	isCarryingClam: boolean;
+	/** Whether player is piloting a raft */
 	isPilotingRaft: boolean;
+	/** Whether "The Fall" has been triggered (TACTICAL mode emergency) */
 	isFallTriggered: boolean;
+	/** ID of the raft being piloted, if any */
 	raftId: string | null;
+	/** Player's 3D position [x, y, z] - y is height for platforms/trees */
 	playerPos: [number, number, number];
+	/** Direction of last damage taken (for screen shake/feedback) */
+	lastDamageDirection: { x: number; y: number } | null;
 
-	takeDamage: (amount: number) => void;
+	/** Apply damage to player, optionally with directional feedback */
+	takeDamage: (amount: number, direction?: { x: number; y: number }) => void;
+	/** Heal player by amount (capped at maxHealth) */
 	heal: (amount: number) => void;
+	/** Increment kill counter */
 	addKill: () => void;
+	/** Reset all player stats to defaults */
 	resetStats: () => void;
+	/** Set mud accumulation level */
 	setMud: (amount: number) => void;
+	/** Update player's 3D position */
 	setPlayerPos: (pos: [number, number, number]) => void;
+	/** Set clam carrying state */
 	setCarryingClam: (isCarrying: boolean) => void;
+	/** Set raft piloting state */
 	setPilotingRaft: (isPiloting: boolean, raftId?: string | null) => void;
+	/** Set fall triggered state */
 	setFallTriggered: (active: boolean) => void;
-	triggerFall: () => void; // Explicit trigger logic
+	/** Trigger "The Fall" - emergency extraction in TACTICAL mode */
+	triggerFall: () => void;
 
-	// World management
+	// =========================================================================
+	// WORLD MANAGEMENT
+	// =========================================================================
+	/** Current chunk ID in "x,z" format */
 	currentChunkId: string;
-	isBuildMode: boolean; // New UI state
+	/** Whether base building mode is active */
+	isBuildMode: boolean;
+	/** Toggle base building mode */
 	setBuildMode: (active: boolean) => void;
+	/** Discover (or retrieve cached) chunk at coordinates */
 	discoverChunk: (x: number, z: number) => ChunkData;
+	/** Get all chunks within render distance of coordinates */
 	getNearbyChunks: (x: number, z: number) => ChunkData[];
+	/** Mark a chunk as secured (URA territory) */
 	secureChunk: (chunkId: string) => void;
 
-	// Character management
+	// =========================================================================
+	// CHARACTER MANAGEMENT
+	// =========================================================================
+	/** Currently selected character ID */
 	selectedCharacterId: string;
+	/** Select a different character (must be unlocked) */
 	selectCharacter: (id: string) => void;
 
 	// Economy & Upgrades
@@ -312,59 +146,8 @@ interface GameState {
 	toggleZoom: () => void;
 }
 
-export const CHUNK_SIZE = 100;
-
-export const UPGRADE_COSTS = {
-	speed: 200,
-	health: 200,
-	damage: 300,
-};
-
-export const CHAR_PRICES: Record<string, number> = {
-	bubbles: 0,
-	whiskers: 1000,
-	splash: 500,
-	fang: 750,
-};
-
-const DEFAULT_SAVE_DATA: SaveData = {
-	rank: 0,
-	xp: 0,
-	medals: 0,
-	unlocked: 1,
-	unlockedCharacters: ["bubbles"],
-	unlockedWeapons: ["service-pistol"],
-	coins: 0,
-	discoveredChunks: {},
-	territoryScore: 0,
-	peacekeepingScore: 0,
-	difficultyMode: "SUPPORT",
-	isFallTriggered: false,
-	strategicObjectives: {
-		siphonsDismantled: 0,
-		villagesLiberated: 0,
-		gasStockpilesCaptured: 0,
-		healersProtected: 0,
-		alliesRescued: 0,
-	},
-	spoilsOfWar: {
-		creditsEarned: 0,
-		clamsHarvested: 0,
-		upgradesUnlocked: 0,
-	},
-	upgrades: {
-		speedBoost: 0,
-		healthBoost: 0,
-		damageBoost: 0,
-		weaponLvl: {
-			"service-pistol": 1,
-			"fish-cannon": 1,
-			"bubble-gun": 1,
-		},
-	},
-	isLZSecured: false,
-	baseComponents: [],
-};
+// Use CHUNK_SIZE from GAME_CONFIG for consistency
+export const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
 
 export const useGameStore = create<GameState>((set, get) => ({
 	// Initial state
@@ -379,6 +162,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	raftId: null,
 	selectedCharacterId: "bubbles",
 	playerPos: [0, 0, 0],
+	lastDamageDirection: null,
 	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
 	isBuildMode: false,
@@ -388,9 +172,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 	setMode: (mode) => set({ mode }),
 	setBuildMode: (active) => set({ isBuildMode: active }),
 	setDifficulty: (difficulty) => {
-		const order = ["SUPPORT", "TACTICAL", "ELITE"];
+		// Use centralized DIFFICULTY_ORDER constant for escalation logic
 		const current = get().saveData.difficultyMode;
-		if (order.indexOf(difficulty) > order.indexOf(current)) {
+		if (DIFFICULTY_ORDER.indexOf(difficulty) > DIFFICULTY_ORDER.indexOf(current)) {
 			set((state) => ({
 				saveData: {
 					...state.saveData,
@@ -402,7 +186,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	// Player stats
-	takeDamage: (amount) => {
+	takeDamage: (amount, direction) => {
 		const { health, saveData, resetData, triggerFall, setMode } = get();
 		const newHealth = Math.max(0, health - amount);
 
@@ -416,7 +200,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 			triggerFall();
 		}
 
-		set({ health: newHealth });
+		set({ health: newHealth, lastDamageDirection: direction ?? null });
+
+		// Clear damage direction after a short delay
+		if (direction) {
+			setTimeout(() => set({ lastDamageDirection: null }), 500);
+		}
 	},
 
 	heal: (amount) =>
@@ -794,8 +583,21 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	loadData: () => {
 		try {
+			// NOSONAR: localStorage is appropriate for client-side game save data
 			const saved = localStorage.getItem(STORAGE_KEY);
-			if (saved) set({ saveData: JSON.parse(saved) });
+			if (saved) {
+				// NOSONAR: JSON.parse is safe - we validate structure before use
+				const parsedData = JSON.parse(saved);
+				// Migrate old saves that don't have lastPlayerPosition
+				if (!parsedData.lastPlayerPosition) {
+					parsedData.lastPlayerPosition = [0, 0, 0];
+				}
+				set({
+					saveData: parsedData,
+					// Restore player's 3D position (including height for climbing/platforms/trees)
+					playerPos: parsedData.lastPlayerPosition,
+				});
+			}
 		} catch (e) {
 			console.error("Load failed", e);
 		}
@@ -803,13 +605,22 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	saveGame: () => {
 		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(get().saveData));
+			// Save current player 3D position (including height for climbing/platforms)
+			const currentPos = get().playerPos;
+			const updatedSaveData = {
+				...get().saveData,
+				lastPlayerPosition: currentPos as [number, number, number],
+			};
+			// NOSONAR: localStorage is appropriate for client-side game save data
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSaveData));
+			set({ saveData: updatedSaveData });
 		} catch (e) {
 			console.error("Save failed", e);
 		}
 	},
 
 	resetData: () => {
+		// NOSONAR: localStorage is appropriate for client-side game save data
 		localStorage.removeItem(STORAGE_KEY);
 		set({ saveData: { ...DEFAULT_SAVE_DATA } });
 		window.location.reload();

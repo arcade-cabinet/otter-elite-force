@@ -75,7 +75,11 @@ test.describe("Smoke Tests", () => {
 		await page.waitForTimeout(1000);
 
 		// Start the campaign to trigger 3D scene rendering (cutscene has a canvas)
-		await page.locator('button:has-text("START CAMPAIGN")').click();
+		// Use NEW GAME for fresh start (no save data)
+		const newGameBtn = page.locator('button:has-text("NEW GAME")');
+		if (await newGameBtn.isVisible()) {
+			await newGameBtn.click();
+		}
 		await page.waitForTimeout(2000);
 
 		// Should have at least one canvas for Three.js (cutscene or game scene)

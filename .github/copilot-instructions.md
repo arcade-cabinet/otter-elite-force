@@ -2,20 +2,42 @@
 
 ## Project Overview
 
-OTTER: ELITE FORCE is a mobile-first 3D tactical shooter built with React 19, Three.js (via React Three Fiber), and TypeScript. The game features procedural generation, real-time audio synthesis, and sophisticated AI using Yuka.
+OTTER: ELITE FORCE is a mobile-first 3D tactical shooter built with React 19, Three.js (via React Three Fiber), and TypeScript. The game features a **persistent open world** with procedural generation, real-time audio synthesis, and sophisticated AI using Yuka.
+
+## CRITICAL DESIGN PRINCIPLE: Open World, Not Levels
+
+**THE GAME HAS NO LEVELS. It is a single persistent open world.**
+
+- ❌ NO level select screens
+- ❌ NO "Mission 1, 2, 3" structure
+- ❌ NO terrain regeneration on revisit
+
+Instead:
+- ✅ One continuous world generated chunk-by-chunk
+- ✅ Chunks are FIXED once discovered (stored in Zustand)
+- ✅ Returning to chunk (x:5, z:3) shows the exact same layout
+- ✅ Changes persist: destroyed objectives stay destroyed
+
+### Main Menu = Game Loader
+
+```
+[ NEW GAME ]     - Fresh campaign with difficulty selection
+[ CONTINUE ]     - Resume persistent world from save
+[ CANTEEN ]      - Meta-progression shop for permanent upgrades
+```
 
 ## Technology Stack
 
-- **Frontend Framework**: React 19 RC
+- **Frontend Framework**: React 19 (Stable)
 - **3D Engine**: Three.js r160 via @react-three/fiber
 - **Game AI**: Yuka (steering behaviors, state machines)
-- **State Management**: Zustand
-- **Animation**: GSAP
+- **State Management**: Zustand (with persistence)
+- **Audio**: Tone.js (procedural synthesis)
 - **Build Tool**: Vite
 - **Package Manager**: pnpm
 - **Language**: TypeScript (strict mode)
 - **Linting/Formatting**: Biome
-- **Testing**: Vitest (unit/component) + Playwright (E2E)
+- **Testing**: Vitest (unit) + Playwright (E2E)
 
 ## Architecture Principles
 
@@ -24,33 +46,83 @@ OTTER: ELITE FORCE is a mobile-first 3D tactical shooter built with React 19, Th
 ```
 src/
 ├── Core/           # Engine systems (GameLoop, InputSystem, AudioEngine)
-├── Entities/       # Game objects (PlayerRig, Enemies, Particles)
-├── Scenes/         # Level management (MainMenu, Level)
-├── UI/             # React components (HUD, Menus)
-└── stores/         # Zustand state stores
+├── Entities/       # Game objects (PlayerRig, Enemies, Environment)
+│   ├── Enemies/    # Gator, Snake, Snapper with YUKA AI
+│   └── Environment/# Hazards, Decorations, Objectives
+├── Scenes/         # Application states (Menu, Level, Canteen, Victory)
+├── stores/         # Zustand state stores
+│   ├── gameStore.ts      # Main FSM and game state
+│   ├── worldGenerator.ts # Chunk generation
+│   └── persistence.ts    # Save/Load logic
+└── UI/             # React components (HUD, Menus)
 ```
 
 ### 2. Procedural Generation First
 
 - **NO external asset files** (models, textures, audio files)
 - All 3D models built with Three.js primitives (CapsuleGeometry, CylinderGeometry, etc.)
-- All audio synthesized via Web Audio API
-- All terrain/environments generated at runtime
+- All audio synthesized via Tone.js / Web Audio API
+- All terrain/environments generated at runtime with deterministic seeds
 
-### 3. React + Three.js Integration
+### 3. Open World Chunk Persistence
 
-- Use `@react-three/fiber` for declarative Three.js
-- Use `@react-three/drei` for helpers (OrbitControls, Sky, etc.)
-- Use `@react-three/postprocessing` for visual effects
-- React components for UI, R3F Canvas for 3D scene
+```typescript
+// Chunk generation is coordinate-based and deterministic
+function generateChunk(x: number, z: number): ChunkData {
+  const seed = hashCoords(x, z);
+  const rng = seededRandom(seed);
+  return {
+    id: `${x},${z}`,
+    x,
+    z,
+    seed,
+    terrainType: generateTerrainType(rng),
+    entities: generateEntities(rng),
+    decorations: generateDecorations(rng),
+    secured: false,
+  };
+}
+
+// RULE: Once discovered, chunks are NEVER regenerated
+// They are loaded from the Zustand store
+// Discovery is implicit - chunk exists in discoveredChunks map or not
+```
 
 ### 4. Mobile-First Design
 
 - Touch controls are PRIMARY input method
 - Virtual joysticks for movement and aiming
 - Gyroscope support for fine-tuned aiming
-- Responsive UI that works on phones and tablets
+- Responsive UI for phones and tablets
 - Target 60fps on mobile devices
+
+## Game Design Context
+
+### Three Difficulty Modes (Escalation Only)
+
+| Mode | Key Mechanic |
+|------|--------------|
+| SUPPORT | Supply drops anywhere, extract anywhere |
+| TACTICAL | "The Fall" at 30% HP - must return to LZ |
+| ELITE | Permadeath - one death ends campaign |
+
+**Rule**: Difficulty can go UP but NEVER DOWN.
+
+### Three Victory Verticals
+
+1. **Platoon Rescues**: Find characters at specific coordinates (not store purchases)
+2. **Arsenal Upgrades**: Spend credits at Canteen for permanent gear
+3. **Intel Rewards**: High peacekeeping scores reveal map POIs
+
+### Base Building at LZ (0, 0)
+
+First objective is securing the Landing Zone with modular construction.
+
+### Three-Faction Conflict
+
+- **URA Peacekeepers** (Player): Liberation mission
+- **Scale-Guard Militia** (Enemy): Industrial predator cult
+- **Native Inhabitants** (Neutral): Villagers awaiting rescue
 
 ## Coding Guidelines
 
@@ -80,9 +152,10 @@ const data: any = {}; // Bad
 interface HUDProps {
 	health: number;
 	kills: number;
+	territoryScore: number;
 }
 
-export function HUD({ health, kills }: HUDProps) {
+export function HUD({ health, kills, territoryScore }: HUDProps) {
 	return <div>...</div>;
 }
 
@@ -90,13 +163,17 @@ export function HUD({ health, kills }: HUDProps) {
 import { create } from "zustand";
 
 interface GameState {
-	health: number;
-	setHealth: (hp: number) => void;
+	mode: 'MENU' | 'GAME' | 'CANTEEN' | 'VICTORY';
+	difficulty: 'SUPPORT' | 'TACTICAL' | 'ELITE';
+	discoveredChunks: Map<string, ChunkData>;
+	setMode: (mode: GameState['mode']) => void;
 }
 
 export const useGameStore = create<GameState>((set) => ({
-	health: 100,
-	setHealth: (hp) => set({ health: hp }),
+	mode: 'MENU',
+	difficulty: 'SUPPORT',
+	discoveredChunks: new Map(),
+	setMode: (mode) => set({ mode }),
 }));
 ```
 
@@ -150,28 +227,21 @@ class EnemyAI {
 }
 ```
 
-### Audio Synthesis
+### Audio Synthesis (Tone.js)
 
 ```typescript
-// ✅ DO: Initialize AudioContext on user gesture
-let audioContext: AudioContext | null = null;
+// ✅ DO: Initialize audio on user gesture
+import * as Tone from "tone";
 
-export function initAudio() {
-	if (!audioContext) {
-		audioContext = new AudioContext();
-	}
-	if (audioContext.state === "suspended") {
-		audioContext.resume();
-	}
+export async function initAudio() {
+	await Tone.start();
 }
 
-// ✅ DO: Create reusable sound effects
-export function playSFX(type: "shoot" | "hit" | "pickup") {
-	if (!audioContext) return;
+// ✅ DO: Use synth pools for efficient SFX
+const sfxSynth = new Tone.Synth().toDestination();
 
-	const osc = audioContext.createOscillator();
-	const gain = audioContext.createGain();
-	// ... configure oscillator
+export function playSFX(type: "shoot" | "hit" | "pickup") {
+	sfxSynth.triggerAttackRelease("C4", "16n");
 }
 ```
 
@@ -180,117 +250,51 @@ export function playSFX(type: "shoot" | "hit" | "pickup") {
 ```typescript
 // ✅ DO: Write unit tests for game logic
 import { describe, it, expect } from "vitest";
-import { calculateDamage } from "./combat";
+import { useGameStore } from "./gameStore";
 
-describe("Combat System", () => {
-	it("should calculate correct damage", () => {
-		expect(calculateDamage(10, 0.5)).toBe(5);
+describe("Game Store", () => {
+	it("should track territory score", () => {
+		const store = useGameStore.getState();
+		// secureChunk takes a string ID in "x,z" format
+		store.secureChunk("5,3");
+		expect(store.saveData.territoryScore).toBe(1);
 	});
 });
 
 // ✅ DO: Write E2E tests for user flows
 import { test, expect } from "@playwright/test";
 
-test("can start game from menu", async ({ page }) => {
+test("can start new game from menu", async ({ page }) => {
 	await page.goto("/");
-	await page.click('button:has-text("Campaign")');
-	await expect(page.locator("#game-canvas")).toBeVisible();
+	await page.click('button:has-text("New Game")');
+	await expect(page.locator(".difficulty-selector")).toBeVisible();
 });
-```
-
-## Common Patterns
-
-### State Management Pattern
-
-```typescript
-// stores/gameStore.ts
-import { create } from "zustand";
-
-interface GameState {
-	mode: "MENU" | "CUTSCENE" | "GAME";
-	health: number;
-	kills: number;
-	level: number;
-	setMode: (mode: GameState["mode"]) => void;
-	takeDamage: (amount: number) => void;
-	addKill: () => void;
-}
-
-export const useGameStore = create<GameState>((set) => ({
-	mode: "MENU",
-	health: 100,
-	kills: 0,
-	level: 0,
-	setMode: (mode) => set({ mode }),
-	takeDamage: (amount) =>
-		set((state) => ({ health: Math.max(0, state.health - amount) })),
-	addKill: () => set((state) => ({ kills: state.kills + 1 })),
-}));
-```
-
-### Animation Pattern
-
-```typescript
-import gsap from "gsap";
-
-// Smooth camera transitions
-export function transitionCamera(
-	camera: THREE.Camera,
-	target: THREE.Vector3,
-	duration = 1,
-) {
-	gsap.to(camera.position, {
-		x: target.x,
-		y: target.y,
-		z: target.z,
-		duration,
-		ease: "power2.inOut",
-	});
-}
-```
-
-### Input Handling Pattern
-
-```typescript
-// Use React state for input
-import { useState, useEffect } from "react";
-
-export function useJoystick(side: "left" | "right") {
-	const [input, setInput] = useState({ x: 0, y: 0, active: false });
-
-	useEffect(() => {
-		const handleTouch = (e: TouchEvent) => {
-			// Process touch input
-			setInput({ x: normalizedX, y: normalizedY, active: true });
-		};
-
-		window.addEventListener("touchstart", handleTouch);
-		return () => window.removeEventListener("touchstart", handleTouch);
-	}, []);
-
-	return input;
-}
 ```
 
 ## What NOT to Do
 
 ❌ Don't add external asset files (models, textures, audio)  
+❌ Don't create "level select" screens (use game loader pattern)  
+❌ Don't allow chunks to regenerate on revisit  
 ❌ Don't use class components (use functional components)  
 ❌ Don't mutate Three.js objects directly (use R3F refs and state)  
 ❌ Don't ignore mobile performance (always test on mobile)  
 ❌ Don't skip type definitions (use TypeScript strictly)  
-❌ Don't bypass Biome formatting (run `pnpm format` before committing)  
-❌ Don't mix direct Three.js and R3F patterns (choose R3F when possible)
+❌ Don't bypass Biome formatting  
+❌ Don't add cyborg/sci-fi aesthetics (keep Vietnam-era grit)  
+❌ Don't make characters purchasable (they must be rescued)  
+❌ Don't allow difficulty downgrade  
 
 ## Performance Guidelines
 
 1. **Use `useMemo` and `useCallback`** for expensive calculations
-2. **Limit draw calls** - merge geometries when possible
-3. **Use instancing** for repeated objects (enemies, particles)
+2. **Use `InstancedMesh`** for repeated objects (enemies, vegetation)
+3. **Limit draw calls** - merge geometries when possible
 4. **Optimize shadows** - limit shadow-casting lights
-5. **Use level-of-detail (LOD)** for distant objects
+5. **Use LOD** for distant objects
 6. **Debounce/throttle** input handlers
 7. **Use `useFrame`** instead of setInterval/setTimeout
+8. **Implement chunk hibernation** for distant AI
 
 ## Development Workflow
 
@@ -301,12 +305,6 @@ pnpm dev
 # Run linter
 pnpm lint
 
-# Fix linting issues
-pnpm lint:fix
-
-# Format code
-pnpm format
-
 # Run unit tests
 pnpm test
 
@@ -315,9 +313,6 @@ pnpm test:e2e
 
 # Build for production
 pnpm build
-
-# Preview production build
-pnpm preview
 ```
 
 ## Git Commit Convention
@@ -338,11 +333,12 @@ When making changes, consider:
 
 1. Does this maintain mobile-first performance?
 2. Is this procedurally generated (no external assets)?
-3. Are types properly defined?
-4. Does this follow the modular architecture?
-5. Are there tests for this functionality?
-6. Does this work with touch input?
-7. Is the audio system respecting user gesture requirements?
+3. Does this respect open world persistence (chunks never regenerate)?
+4. Are types properly defined?
+5. Does this follow the modular architecture?
+6. Are there tests for this functionality?
+7. Does this work with touch input?
+8. Does this maintain the "Vietnam-era grit" aesthetic?
 
 ## Claude AI Automation
 
@@ -350,39 +346,20 @@ This repository has extensive Claude Code integration for automated development 
 
 ### Interactive Mode
 
-Mention `@claude` in any issue or PR comment to trigger Claude assistance. Available to repo collaborators only.
+Mention `@claude` in any issue or PR comment to trigger Claude assistance.
 
 **Examples:**
-- `@claude please review this PR for performance issues`
+- `@claude please review this PR for open world persistence issues`
 - `@claude fix the linting errors`
-- `@claude add unit tests for this component`
+- `@claude add unit tests for chunk generation`
 
 ### Automatic Workflows
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| PR Review | PR opened/updated | Automatic code review with checklist |
-| Issue Triage | Issue opened | Auto-labeling and categorization |
-| CI Auto-Fix | CI failure on PR | Automatically fix failing tests/lint |
-| Flaky Test Detection | CI failure | Detect and report flaky tests |
-| Weekly Maintenance | Sunday midnight | Dependency audit, issue hygiene |
-
-### Manual Triggers
-
-Go to Actions → Claude Code → Run workflow:
-
-- **maintenance**: Weekly health check
-- **security-audit**: Deep security review
-- **dependency-update**: Safe dependency updates with PR
-
-### Custom Commands
-
-Located in `.claude/commands/`:
-
-- `/label-issue` - Triage and label issues
-- `/review-pr` - Comprehensive PR review
-- `/fix-tests` - Debug and fix failing tests
-- `/add-feature` - Add feature following conventions
+| PR Review | PR opened/updated | Automatic code review |
+| Issue Triage | Issue opened | Auto-labeling |
+| CI Auto-Fix | CI failure on PR | Fix failing tests/lint |
 
 ### Specialized Review Agents
 
@@ -394,12 +371,23 @@ Located in `.claude/agents/`:
 - **testing-reviewer** - Test quality
 - **zustand-reviewer** - State management
 
+## Memory Bank
+
+For comprehensive project context, see `/memory-bank/`:
+
+- `projectbrief.md` - Core requirements and open world design
+- `productContext.md` - UX goals and game loader interface
+- `systemPatterns.md` - Architecture and chunk persistence
+- `activeContext.md` - Current work focus
+- `progress.md` - Feature checklist and known issues
+- `techContext.md` - Technology stack details
+
 ## Resources
 
 - [Three.js Docs](https://threejs.org/docs/)
 - [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
 - [Yuka Docs](https://mugen87.github.io/yuka/docs/)
 - [Zustand Guide](https://docs.pmnd.rs/zustand)
+- [Tone.js](https://tonejs.github.io/)
 - [Biome](https://biomejs.dev/)
 - [Playwright](https://playwright.dev/)
-- [Claude Code Action](https://github.com/anthropics/claude-code-action)

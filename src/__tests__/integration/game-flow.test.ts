@@ -28,6 +28,7 @@ describe("Integration - Complete Game Loop", () => {
 			selectedCharacterId: "bubbles",
 			playerPos: [0, 0, 0],
 			saveData: {
+				version: 8,
 				rank: 0,
 				xp: 0,
 				medals: 0,
@@ -64,6 +65,7 @@ describe("Integration - Complete Game Loop", () => {
 				},
 				isLZSecured: false,
 				baseComponents: [],
+				lastPlayerPosition: [0, 0, 0],
 			},
 		});
 	});
@@ -147,6 +149,7 @@ describe("Integration - Character Progression", () => {
 			mode: "MENU",
 			selectedCharacterId: "bubbles",
 			saveData: {
+				version: 8,
 				rank: 0,
 				xp: 0,
 				medals: 0,
@@ -183,6 +186,7 @@ describe("Integration - Character Progression", () => {
 				},
 				isLZSecured: false,
 				baseComponents: [],
+				lastPlayerPosition: [0, 0, 0],
 			},
 		});
 	});
@@ -230,6 +234,7 @@ describe("Integration - World Exploration", () => {
 		useGameStore.setState({
 			mode: "GAME",
 			saveData: {
+				version: 8,
 				rank: 0,
 				xp: 0,
 				medals: 0,
@@ -266,6 +271,7 @@ describe("Integration - World Exploration", () => {
 				},
 				isLZSecured: false,
 				baseComponents: [],
+				lastPlayerPosition: [0, 0, 0],
 			},
 		});
 	});
@@ -320,6 +326,7 @@ describe("Integration - Economy Loop", () => {
 		useGameStore.setState({
 			mode: "GAME",
 			saveData: {
+				version: 8,
 				rank: 0,
 				xp: 0,
 				medals: 0,
@@ -356,6 +363,7 @@ describe("Integration - Economy Loop", () => {
 				},
 				isLZSecured: false,
 				baseComponents: [],
+				lastPlayerPosition: [0, 0, 0],
 			},
 		});
 	});
@@ -407,6 +415,7 @@ describe("Integration - Base Building", () => {
 		useGameStore.setState({
 			mode: "GAME",
 			saveData: {
+				version: 8,
 				rank: 0,
 				xp: 0,
 				medals: 0,
@@ -443,6 +452,7 @@ describe("Integration - Base Building", () => {
 				},
 				isLZSecured: false,
 				baseComponents: [],
+				lastPlayerPosition: [0, 0, 0],
 			},
 		});
 	});

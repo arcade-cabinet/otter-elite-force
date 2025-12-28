@@ -37,11 +37,17 @@ export default defineConfig({
 				".github/",
 			],
 			all: true,
-			lines: 25,
-			functions: 25,
-			branches: 25,
-			statements: 25,
 			reportsDirectory: "./coverage",
+			// Coverage thresholds - CI will fail if below these values
+			// Current coverage: ~57% lines, ~46% branches, ~63% functions, ~57% statements
+			// Set thresholds slightly below current to prevent regression while we improve
+			// TODO: Gradually increase to 75% as more tests are added
+			thresholds: {
+				lines: 55,
+				functions: 60,
+				branches: 45,
+				statements: 55,
+			},
 		},
 		include: ["src/**/*.{test,spec}.{ts,tsx}"],
 		exclude: ["node_modules", "dist", "e2e"],

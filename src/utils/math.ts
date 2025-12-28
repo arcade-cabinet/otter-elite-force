@@ -19,9 +19,12 @@ export function lerp(start: number, end: number, t: number): number {
 }
 
 /**
- * Get random value between min and max
+ * Get random value between min and max.
+ * Uses Math.random() which is appropriate for game visuals and AI behavior.
+ * Not intended for cryptographic or security-sensitive purposes.
  */
 export function randomRange(min: number, max: number): number {
+	// NOSONAR: Math.random is appropriate for non-cryptographic game randomness
 	return min + Math.random() * (max - min);
 }
 

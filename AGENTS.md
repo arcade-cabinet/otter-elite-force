@@ -2,144 +2,253 @@
 
 ## 1. Project Identity & Directive
 
-**Project Name**: OTTER: ELITE FORCE (formerly River Doom, Operation: Clam Thunder)  
-**Core Aesthetic**: "Full Metal Jacket" meets "Wind in the Willows."  
-**Technical Constraint**: Single-File HTML5 (No external assets, bundlers, or local servers required).  
-**Primary Goal**: Create a mobile-first, procedurally generated 3rd-person tactical shooter with persistent progression.
+**Project Name**: OTTER: ELITE FORCE (The Copper-Silt Reach)
+**Core Aesthetic**: "Full Metal Jacket" meets "Wind in the Willows"
+**Technical Constraint**: Procedural Supremacy (No external assets)
+**Primary Goal**: Create a mobile-first, procedurally generated 3rd-person tactical shooter with an open world, persistent progression, and base building.
 
-## 2. Architecture Overview
+## 2. Critical Design Philosophy
 
-### The "Single-File" Mandate
+### Open World, NOT Levels
 
-To maintain portability and zero-setup execution, the entire game engine was originally contained within index.html.
+**THIS IS THE MOST IMPORTANT DESIGN DECISION.**
 
-- **Libraries**: Three.js is imported via ES Modules from unpkg.
-- **Assets**: No .obj, .gltf, or .mp3 files are used. All 3D models are constructed procedurally using THREE.Group composition of primitives. All audio is synthesized in real-time using the Web Audio API.
+The game is a single, persistent open world — NOT a collection of discrete levels:
+
+- ❌ NO level select screen
+- ❌ NO "Mission 1, Mission 2, Mission 3" structure
+- ❌ NO terrain regeneration on revisit
+
+Instead:
+
+- ✅ One continuous world generated chunk-by-chunk
+- ✅ Chunks are FIXED once discovered (stored in Zustand)
+- ✅ Returning to chunk (x:5, z:3) shows the exact same layout
+- ✅ Changes persist: destroyed siphons stay destroyed
+
+### Main Menu = Game Loader
+
+The main menu is a **Campaign Command Interface**:
+
+```
+┌─────────────────────────────────────┐
+│        OTTER: ELITE FORCE           │
+│      Defend The Copper-Silt Reach   │
+├─────────────────────────────────────┤
+│                                     │
+│     [ NEW GAME ]                    │
+│     Start fresh deployment          │
+│     Select difficulty mode          │
+│                                     │
+│     [ CONTINUE ]                    │
+│     Resume saved campaign           │
+│     (greyed if no save exists)      │
+│                                     │
+│     [ CANTEEN ]                     │
+│     Visit Forward Operating Base    │
+│     Purchase permanent upgrades     │
+│                                     │
+│     [ RESET DATA ]                  │
+│                                     │
+└─────────────────────────────────────┘
+```
+
+### Three Difficulty Modes (Escalation Only)
+
+| Mode | Description | Key Mechanic |
+|------|-------------|--------------|
+| SUPPORT | Training wheels | Supply drops anywhere, extract anywhere |
+| TACTICAL | Standard combat | "The Fall" at 30% HP, must return to LZ |
+| ELITE | Permadeath | One death = campaign over, save purged |
+
+**Critical Rule**: Difficulty can go UP but NEVER DOWN. Once you commit to TACTICAL, you cannot return to SUPPORT. This creates meaningful weight to difficulty decisions.
+
+### Three Victory Verticals
+
+To prevent gameplay monotony:
+
+1. **Platoon Rescues**: Find and rescue characters at specific world coordinates
+2. **Arsenal Upgrades**: Spend credits at Canteen for permanent gear improvements
+3. **Intel Rewards**: High Peacekeeping scores reveal map POIs
+
+### Base Building at LZ (0, 0)
+
+The first objective is **securing your Landing Zone**:
+
+- Modular construction: stilts, floors, walls, roofs
+- Components snap together algorithmically
+- Base state persists across sessions
+- Expansion as resources are gathered
+
+## 3. Architecture Overview
+
+### The "Procedural Supremacy" Mandate
+
+The entire game engine relies on runtime generation:
+
+- **Libraries**: Three.js via ES Modules (R3F wrapper)
+- **Assets**: No .obj, .gltf, .mp3 files — ALL procedural
+- **Models**: Constructed from THREE.Group composition of primitives
+- **Audio**: Synthesized in real-time using Tone.js (Web Audio API)
 
 ### Modern Modular Architecture
 
-The project is now being refactored into a modular TypeScript structure:
-
 ```
 src/
-├── Core/           # Core engine systems (GameLoop, InputSystem, AudioEngine)
-├── Entities/       # Game objects (PlayerRig, Enemies, Particles)
-├── Scenes/         # Level management (MainMenu, Level)
-└── UI/             # User interface (HUD)
+├── Core/       # Engine foundations (Audio, Input, GameLoop)
+├── Entities/   # Game objects (Player, Enemies, Environment)
+│   ├── Enemies/     # Gator, Snake, Snapper with YUKA AI
+│   ├── Environment/ # Hazards, Decorations, Objectives
+│   └── ...
+├── Scenes/     # Application states (Menu, Level, Canteen, Victory)
+├── stores/     # Zustand state management
+│   ├── gameStore.ts      # Main FSM and game state
+│   ├── worldGenerator.ts # Chunk generation
+│   └── persistence.ts    # Save/Load logic
+└── UI/         # HUD and overlay components
 ```
 
-### State Management
+### State Management: Zustand with Persistence
 
-The game loop uses a strict finite state machine (FSM) controlled by the global mode variable:
+The `gameStore` is the global FSM tracking:
 
-- **MENU**: 
-  - Input: Native DOM clicks enabled. Joystick logic disabled.
-  - Render: Cinematic camera drift, "Golden Hour" lighting.
-  
-- **CUTSCENE**: 
-  - Input: Limited to "Next Dialogue" button.
-  - Render: Fixed camera angles, scripted actor animations.
-  
-- **GAME**: 
-  - Input: Virtual Joysticks enabled via Touch Events. Native clicks disabled on canvas area (prevent default).
-  - Render: Chase camera, physics updates, collision detection.
+- **Game Mode**: MENU, CUTSCENE, GAME, VICTORY, GAMEOVER, CANTEEN
+- **Open World State**: discoveredChunks, securedChunks, baseState
+- **Player Progress**: health, position, kills, credits, territory score
+- **Save Data**: v8 schema with localStorage persistence
 
-### Input System (The "Tactical Router")
+## 4. Open World Chunk System
 
-A major challenge during development was the conflict between Touch Events (for joysticks) and Mouse Events (for UI buttons).
+### Generation Rules
 
-**Solution**: The ui-layer listens for touchstart.
+```typescript
+// Coordinate-based deterministic seeding
+function generateChunk(x: number, z: number): ChunkData {
+  const seed = hashCoords(x, z);
+  const rng = seededRandom(seed);
 
-**Logic**:
-- Check mode. If not GAME, return immediately (allows native button clicks).
-- Check event target. If target is a `<button>`, return (allows click).
-- Else, call `e.preventDefault()` and map touch coordinates to virtual stick logic.
+  return {
+    id: `${x},${z}`,
+    x,
+    z,
+    seed,
+    terrainType: generateTerrainType(rng),
+    entities: generateEntities(rng),
+    decorations: generateDecorations(rng),
+    secured: false,
+  };
+}
+```
 
-## 3. Procedural Systems
+### Persistence Rules
 
-### The "Rig" (Sgt. Bubbles)
+1. **First Visit**: Chunk generated, stored in `discoveredChunks` Map
+2. **Return Visit**: Chunk loaded from store — NEVER regenerated
+3. **Modifications**: Destroyed objectives, rescued villagers persist
+4. **Cache Limit**: Old chunks may be unloaded from memory but remain in storage
 
-The player character is not a mesh, but a hierarchy of primitives:
+## 5. Three-Faction Conflict
 
-- **Torso**: Cylinder (Vest/Body).
-- **Limbs**: CapsuleGeometry (requires Three.js r137+).
-- **Accessories**: Torus (Bandana), Boxes (Radio Pack).
-- **Animation**: Sine-wave rotation applied to limb groups (joints) based on movement velocity.
+### URA Peacekeepers (Player)
+- Liberation and occupation mission
+- Build base, rescue allies, secure territory
+- Plant URA flags at captured siphon sites
 
-### The Audio Engine
+### Scale-Guard Militia (Enemy)
+- Industrial pollution cult of apex predators
+- Guard siphons and gas stockpiles
+- Hunt player with pack coordination
 
-A custom MusicEngine class uses AudioContext to sequence 16th notes.
+### Native Inhabitants (Neutral)
+- Mustelid villagers caught in crossfire
+- Await rescue and liberation
+- Provide credits and intel when saved
 
-- **Instruments**: Oscillators (Sawtooth for Bass/Leads, Noise Buffer for Snare/HiHats).
-- **Filters**: BiquadFilters used for "wah" effects on bass and low-pass muffling.
-- **Safety**: The engine waits for the first user interaction (click or touchstart) before resuming the context to bypass browser autoplay policies.
+## 6. Input System (The "Tactical Router")
 
-### Save Data
+Touch input routing separates UI from gameplay:
 
-Uses localStorage key `otter_v8`.
+1. Check mode — if not GAME, allow native button clicks
+2. Check target — if `<button>`, allow click propagation
+3. Otherwise — map touch to virtual joystick logic
 
-- **Schema**: `{ rank: int, xp: int, medals: int, unlocked: int }`
-- **Versioning**: Keys are versioned (e.g., `_v8`) to prevent conflicts between iterations.
+**Controls**:
+- Left stick: Movement
+- Right stick: Aim/Look
+- GRIP button: Climbing (hold + right stick up/down)
+- SCOPE button: Zoom toggle
+- JUMP button: Vertical movement
 
-## 4. Known Constraints & Hacks
-
-- **Shadow Mapping**: Shadow map size is set to 2048 for sharp shadows, but bias tweaking is minimal. Artifacts may appear at extreme angles.
-- **Fog/Skybox**: The sky is a simple THREE.Color background synced with a THREE.FogExp2 or linear Fog. The "Sun" is a DirectionalLight.
-- **Water**: A Vertex Shader displaces a high-segment plane. It does not have real reflections/refractions (too expensive for this context), relying on specular highlights for the "wet" look.
-
-## 5. Future Expansion Paths
-
-To scale this project further:
-
-- **Boss Battles**: Implement a Boss class inheriting from Enemy with multi-stage logic.
-- **Terrain**: Replace PlaneGeometry with a Heightmap-based terrain chunk system for uneven ground.
-- **Weapons**: Abstract the shooting logic to support different projectile types (Spread, Explosive, Beam).
-
-## 6. Development Guidelines
+## 7. Development Guidelines
 
 ### Code Style
 
-- Use TypeScript with strict mode enabled
-- Follow Biome linting and formatting rules (tabs for indentation, double quotes)
-- Prefer functional composition over deep inheritance
+- TypeScript with strict mode enabled
+- Biome for linting and formatting (tabs, double quotes)
+- Functional composition over deep inheritance
 - Document complex procedural generation logic
 
 ### Testing
 
-- Run `pnpm dev` to test in development mode
-- Build with `pnpm build` to verify production builds
-- Test on mobile devices for touch input validation
+```bash
+pnpm dev       # Development mode
+pnpm build     # Production build verification
+pnpm test      # Unit tests (Vitest)
+pnpm test:e2e  # End-to-end tests (Playwright)
+pnpm lint      # Biome linting
+```
 
 ### Architecture Principles
 
-1. **Separation of Concerns**: Keep rendering, logic, and input separate
-2. **Minimal Dependencies**: Prefer native APIs over external libraries
+1. **Separation of Concerns**: Render, logic, and input are separate
+2. **Minimal Dependencies**: Native APIs over external libraries
 3. **Performance First**: Target 60fps on mobile devices
-4. **Procedural Everything**: Generate assets at runtime when possible
+4. **Procedural Everything**: Generate assets at runtime
+5. **Open World First**: Every feature must respect chunk persistence
 
-## 7. AI Agent Instructions
+## 8. AI Agent Instructions
 
 When working on this codebase:
 
-1. **Preserve the Procedural Nature**: Never add external asset files. Everything must be generated via code.
-2. **Maintain Single-File Compatibility**: While we're refactoring to modules, keep the spirit of minimal external dependencies.
-3. **Mobile-First**: Always consider touch input and mobile performance.
-4. **Test Audio**: Remember that Web Audio requires user interaction to start.
-5. **Respect the FSM**: Mode transitions should be explicit and well-defined.
+### DO:
+1. **Preserve Procedural Nature**: Never add external asset files
+2. **Respect Open World**: Chunks must be fixed-on-discovery
+3. **Mobile-First**: Always consider touch input and mobile performance
+4. **Test Audio**: Web Audio requires user interaction to start
+5. **Honor FSM**: Mode transitions must be explicit
+6. **Maintain Grit**: Vietnam-era Mekong aesthetic, NOT sci-fi
 
-### Refactoring Strategy
-
-When extracting code from the monolithic POC:
-
-1. Identify logical boundaries (e.g., all input handling, all audio synthesis)
-2. Create TypeScript classes with clear interfaces
-3. Maintain backward compatibility with existing save data
-4. Test each module independently before integration
-5. Document dependencies between modules
+### DON'T:
+1. ❌ Add level select screens or level-based progression
+2. ❌ Allow chunks to regenerate on revisit
+3. ❌ Add cyborgs, time travel, or chrome aesthetics
+4. ❌ Make characters purchasable (they must be rescued)
+5. ❌ Allow difficulty downgrade
+6. ❌ Break localStorage save schema without migration
 
 ### Common Pitfalls
 
-- Don't break the audio context initialization (it MUST wait for user gesture)
+- Don't break audio context initialization (MUST wait for user gesture)
 - Don't interfere with touch event propagation for UI buttons
-- Don't change the localStorage key structure without migration logic
-- Don't add Three.js types that conflict with the runtime version (r160)
+- Don't change localStorage key structure without migration logic
+- Don't add Three.js types that conflict with runtime version (r160)
+- Don't forget to persist world state changes to store
+
+## 9. Immediate Implementation Priorities
+
+1. **Main Menu Redesign**: Transform into New Game / Continue / Canteen loader
+2. **Difficulty Selection**: Three modes with escalation lock
+3. **Chunk Persistence**: Ensure discovered chunks never regenerate
+4. **Territory Tracking**: HUD displays secured vs. total territory
+5. **Base Building v1**: Simple modular construction at LZ
+
+## 10. Reference Coordinates
+
+| Coordinate (x, z) | Name | Purpose |
+|-------------------|------|---------|
+| (0, 0) | Landing Zone | Base, extraction point |
+| (5, 5) | Prison Camp | Gen. Whiskers rescue |
+| (10, -10) | Great Siphon | Boss encounter |
+| (-15, 20) | Healer's Grove | Peacekeeping hub |
+| (-10, 15) | Underwater Cache | Cpl. Splash rescue |
+| (8, 8) | Gas Depot | Strategic cluster |
