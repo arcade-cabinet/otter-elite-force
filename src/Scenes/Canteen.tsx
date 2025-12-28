@@ -10,7 +10,7 @@
 
 import { Environment } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Group } from "three";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, useGameStore } from "../stores/gameStore";
@@ -50,7 +50,7 @@ function RotatingCharacterDisplay({
 }
 
 /** Modal for previewing and confirming character/gear selection */
-function PreviewModal({
+const PreviewModal = memo(function PreviewModal({
 	char,
 	isUnlocked,
 	price,
@@ -151,10 +151,12 @@ function PreviewModal({
 			</div>
 		</div>
 	);
-}
+});
 
 export function Canteen() {
-	const saveData = useGameStore((state) => state.saveData);
+	const coins = useGameStore((state) => state.saveData.coins);
+	const unlockedCharacters = useGameStore((state) => state.saveData.unlockedCharacters);
+	const upgrades = useGameStore((state) => state.saveData.upgrades);
 	const unlockCharacter = useGameStore((state) => state.unlockCharacter);
 	const spendCoins = useGameStore((state) => state.spendCoins);
 	const setMode = useGameStore((state) => state.setMode);
@@ -169,10 +171,10 @@ export function Canteen() {
 		}
 		return {
 			previewChar: CHARACTERS[previewCharId],
-			isPreviewUnlocked: saveData.unlockedCharacters.includes(previewCharId),
+			isPreviewUnlocked: unlockedCharacters.includes(previewCharId),
 			previewPrice: CHAR_PRICES[previewCharId] || 0,
 		};
-	}, [previewCharId, saveData.unlockedCharacters]);
+	}, [previewCharId, unlockedCharacters]);
 
 	const handlePurchase = useCallback(() => {
 		if (previewCharId && spendCoins(previewPrice)) {
@@ -191,7 +193,7 @@ export function Canteen() {
 			<div className="canteen-ui-full">
 				<div className="canteen-header">
 					<h2>FORWARD OPERATING BASE</h2>
-					<div className="coin-display">SUPPLY CREDITS: {saveData.coins}</div>
+					<div className="coin-display">SUPPLY CREDITS: {coins}</div>
 				</div>
 
 				<div className="canteen-tabs">
@@ -215,7 +217,7 @@ export function Canteen() {
 					{view === "PLATOON" ? (
 						<div className="platoon-grid">
 							{Object.values(CHARACTERS).map((char) => {
-								const unlocked = saveData.unlockedCharacters.includes(char.traits.id);
+								const unlocked = unlockedCharacters.includes(char.traits.id);
 								const price = CHAR_PRICES[char.traits.id];
 								return (
 									<button
@@ -242,12 +244,12 @@ export function Canteen() {
 								<div className="upgrade-item" key={upgrade.id}>
 									<div className="upgrade-info">
 										<span className="upgrade-name">{upgrade.name}</span>
-										<span className="upgrade-level">Level {saveData.upgrades[upgrade.key]}</span>
+										<span className="upgrade-level">Level {upgrades[upgrade.key]}</span>
 									</div>
 									<button
 										type="button"
 										onClick={() => buyUpgrade(upgrade.id, UPGRADE_COSTS[upgrade.id])}
-										disabled={saveData.coins < UPGRADE_COSTS[upgrade.id]}
+										disabled={coins < UPGRADE_COSTS[upgrade.id]}
 									>
 										{UPGRADE_COSTS[upgrade.id]} CR
 									</button>
@@ -268,7 +270,7 @@ export function Canteen() {
 					char={previewChar}
 					isUnlocked={isPreviewUnlocked}
 					price={previewPrice}
-					coins={saveData.coins}
+					coins={coins}
 					onConfirm={handlePurchase}
 					onCancel={handleCancel}
 				/>
