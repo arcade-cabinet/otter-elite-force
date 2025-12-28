@@ -4,7 +4,8 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
+import type { Points } from "three";
 import * as THREE from "three";
 
 export interface ParticleData {
@@ -12,120 +13,125 @@ export interface ParticleData {
 	position: THREE.Vector3;
 	velocity: THREE.Vector3;
 	lifetime: number;
-	maxLifetime: number;
-	type: "shell" | "blood" | "explosion" | "oil";
+	type: "shell" | "blood" | "explosion";
 }
 
-export interface ParticlesHandle {
-	spawn: (config: Omit<ParticleData, "id" | "lifetime">) => void;
+interface ParticlesProps {
+	particles: ParticleData[];
+	onExpire?: (id: string) => void;
 }
 
-const MAX_PARTICLES = 1000;
+// Pre-computed particle colors to avoid recreation
+const PARTICLE_COLORS = {
+	shell: new THREE.Color("#FFD700"),
+	blood: new THREE.Color("#8B0000"),
+	explosion: new THREE.Color("#FF4500"),
+};
 
-export const Particles = forwardRef<ParticlesHandle, { onExpire?: (id: string) => void }>(
-	({ onExpire }, ref) => {
-		const pointsRef = useRef<THREE.Points>(null);
-		const internalParticles = useRef<ParticleData[]>([]);
+export function Particles({ particles, onExpire }: ParticlesProps) {
+	const pointsRef = useRef<Points>(null);
+	// Track internal state for particles to avoid mutating props
+	const particleStateRef = useRef<
+		Map<string, { lifetime: number; position: THREE.Vector3; velocity: THREE.Vector3 }>
+	>(new Map());
 
-		const [positions, colors, sizes] = useMemo(() => {
-			return [
-				new Float32Array(MAX_PARTICLES * 3),
-				new Float32Array(MAX_PARTICLES * 3),
-				new Float32Array(MAX_PARTICLES),
-			];
-		}, []);
-
-		useImperativeHandle(ref, () => ({
-			spawn: (config) => {
-				if (internalParticles.current.length >= MAX_PARTICLES) return;
-				internalParticles.current.push({
-					...config,
-					id: crypto.randomUUID(),
-					lifetime: config.maxLifetime,
-					position: config.position.clone(),
-					velocity: config.velocity.clone(),
+	// Sync internal state with new particles
+	useEffect(() => {
+		const currentIds = new Set(particles.map((p) => p.id));
+		// Remove particles no longer in props
+		for (const id of particleStateRef.current.keys()) {
+			if (!currentIds.has(id)) {
+				particleStateRef.current.delete(id);
+			}
+		}
+		// Add new particles
+		for (const particle of particles) {
+			if (!particleStateRef.current.has(particle.id)) {
+				particleStateRef.current.set(particle.id, {
+					lifetime: particle.lifetime,
+					position: particle.position.clone(),
+					velocity: particle.velocity.clone(),
 				});
-			},
-		}));
+			}
+		}
+	}, [particles]);
 
-		useFrame((_state, delta) => {
-			if (!pointsRef.current) return;
+	// Update particles
+	useFrame((_state, delta) => {
+		if (!pointsRef.current || particleStateRef.current.size === 0) return;
 
-			const particles = internalParticles.current;
-			let activeCount = 0;
+		const geometry = pointsRef.current.geometry as THREE.BufferGeometry;
+		const count = particleStateRef.current.size;
 
-			for (let i = particles.length - 1; i >= 0; i--) {
-				const p = particles[i];
-				p.lifetime -= delta;
+		const positions = new Float32Array(count * 3);
+		const colors = new Float32Array(count * 3);
+		const sizes = new Float32Array(count);
 
-				if (p.lifetime <= 0) {
-					onExpire?.(p.id);
-					particles.splice(i, 1);
-					continue;
-				}
+		const toRemove: string[] = [];
+		let i = 0;
 
-				p.position.add(p.velocity.clone().multiplyScalar(delta));
-				if (p.type !== "oil") {
-					p.velocity.y -= 9.8 * delta; // Gravity
-				}
+		for (const [id, state] of particleStateRef.current) {
+			// Update lifetime
+			state.lifetime -= delta;
 
-				const idx3 = activeCount * 3;
-				positions[idx3] = p.position.x;
-				positions[idx3 + 1] = p.position.y;
-				positions[idx3 + 2] = p.position.z;
-
-				let r = 1,
-					g = 1,
-					b = 1;
-				switch (p.type) {
-					case "shell":
-						[r, g, b] = [1, 0.84, 0]; // #FFD700
-						break;
-					case "blood":
-						[r, g, b] = [0.55, 0, 0]; // #8B0000
-						break;
-					case "explosion":
-						[r, g, b] = [1, 0.27, 0]; // #FF4500
-						break;
-					case "oil":
-						[r, g, b] = [0.1, 0.1, 0.1]; // #1a1a1a
-						break;
-				}
-				colors[idx3] = r;
-				colors[idx3 + 1] = g;
-				colors[idx3 + 2] = b;
-
-				sizes[activeCount] = (p.lifetime / p.maxLifetime) * 0.3;
-				activeCount++;
+			if (state.lifetime <= 0) {
+				toRemove.push(id);
+				continue;
 			}
 
-			const geometry = pointsRef.current.geometry;
-			geometry.setAttribute(
-				"position",
-				new THREE.BufferAttribute(positions.subarray(0, activeCount * 3), 3),
-			);
-			geometry.setAttribute(
-				"color",
-				new THREE.BufferAttribute(colors.subarray(0, activeCount * 3), 3),
-			);
-			geometry.setAttribute("size", new THREE.BufferAttribute(sizes.subarray(0, activeCount), 1));
+			// Update position (using internal cloned state, not props)
+			state.position.x += state.velocity.x * delta;
+			state.position.y += state.velocity.y * delta;
+			state.position.z += state.velocity.z * delta;
 
-			// Use setDrawRange to only render active particles
-			geometry.setDrawRange(0, activeCount);
-		});
+			// Apply gravity
+			state.velocity.y -= 9.8 * delta;
 
-		return (
-			<points ref={pointsRef}>
-				<bufferGeometry />
-				<pointsMaterial
-					size={1}
-					vertexColors
-					sizeAttenuation
-					transparent
-					opacity={0.8}
-					depthWrite={false}
-				/>
-			</points>
+			// Add to buffers
+			positions[i * 3] = state.position.x;
+			positions[i * 3 + 1] = state.position.y;
+			positions[i * 3 + 2] = state.position.z;
+
+			// Color based on type (find particle type from props)
+			const particle = particles.find((p) => p.id === id);
+			const color = PARTICLE_COLORS[particle?.type ?? "shell"];
+			colors[i * 3] = color.r;
+			colors[i * 3 + 1] = color.g;
+			colors[i * 3 + 2] = color.b;
+
+			// Size fades with lifetime
+			sizes[i] = state.lifetime * 0.5;
+			i++;
+		}
+
+		// Remove expired particles
+		for (const id of toRemove) {
+			particleStateRef.current.delete(id);
+			onExpire?.(id);
+		}
+
+		// Update geometry with pre-allocated typed arrays
+		geometry.setAttribute(
+			"position",
+			new THREE.Float32BufferAttribute(positions.slice(0, i * 3), 3),
 		);
-	},
-);
+		geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors.slice(0, i * 3), 3));
+		geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes.slice(0, i), 1));
+	});
+
+	if (particles.length === 0) return null;
+
+	return (
+		<points ref={pointsRef}>
+			<bufferGeometry />
+			<pointsMaterial
+				size={0.2}
+				vertexColors
+				sizeAttenuation
+				transparent
+				opacity={0.8}
+				depthWrite={false}
+			/>
+		</points>
+	);
+}

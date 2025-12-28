@@ -4,100 +4,110 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import * as YUKA from "yuka";
 import { Weapon } from "../Weapon";
-import { GatorAI } from "./GatorAI";
 import type { EnemyProps, GatorData } from "./types";
+
+const AMBUSH_TRIGGER_DISTANCE = 15;
+const AMBUSH_DURATION_S = 3;
+const AMBUSH_COOLDOWN_MIN_S = 5;
+const AMBUSH_COOLDOWN_RANDOM_S = 5;
 
 export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) {
 	const groupRef = useRef<Group>(null);
 	const bodyRef = useRef<Group>(null);
-	const segmentsRef = useRef<THREE.Object3D[]>([]);
 	const vehicleRef = useRef<YUKA.Vehicle | null>(null);
-	const aiRef = useRef<GatorAI | null>(null);
-	const [isAmbushing, setIsAmbushing] = useState(false);
+	const targetRef = useRef<YUKA.Vector3 | null>(null);
 
-	// Memoize materials
-	const scale = data.isHeavy ? 1.6 : 1.1;
-	const bodyColor = data.isHeavy ? "#1a241a" : "#2d3d2d";
-	const matBody = useMemo(
-		() => new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.9 }),
-		[bodyColor],
-	);
-	const matHead = useMemo(
-		() => new THREE.MeshStandardMaterial({ color: "#444", metalness: 0.6, roughness: 0.4 }),
-		[],
-	);
-	const matMud = useMemo(() => new THREE.MeshStandardMaterial({ color: "#3d3329" }), []);
-	const matStrap = useMemo(
-		() => new THREE.MeshStandardMaterial({ color: "#1a1a1a", roughness: 1 }),
-		[],
-	);
+	// Ambush state
+	const [isAmbushing, setIsAmbushing] = useState(false);
+	const ambushCooldown = useRef(0);
+	const ambushTimer = useRef(0);
 
 	// Setup Yuka AI
 	useEffect(() => {
 		const vehicle = new YUKA.Vehicle();
 		vehicle.position.set(data.position.x, data.position.y, data.position.z);
+		vehicle.maxSpeed = data.isHeavy ? 4 : 7;
 
-		const entityManager = new YUKA.EntityManager();
-		aiRef.current = new GatorAI(vehicle);
+		const seekBehavior = new YUKA.SeekBehavior();
+		targetRef.current = new YUKA.Vector3();
+		seekBehavior.target = targetRef.current;
+
+		vehicle.steering.add(seekBehavior);
 		vehicleRef.current = vehicle;
 
 		return () => {
 			vehicle.steering.clear();
-			entityManager.clear();
 		};
-	}, [data.position.x, data.position.y, data.position.z]);
-
-	// Cache segments for performance
-	useEffect(() => {
-		if (bodyRef.current) {
-			const segments: THREE.Object3D[] = [];
-			bodyRef.current.traverse((child) => {
-				if (child.name.startsWith("segment")) {
-					segments.push(child);
-				}
-			});
-			segmentsRef.current = segments.sort((a, b) => {
-				const numA = parseInt(a.name.split("-")[1], 10);
-				const numB = parseInt(b.name.split("-")[1], 10);
-				return numA - numB;
-			});
-		}
-	}, []);
+	}, [data.position.x, data.position.y, data.position.z, data.isHeavy]);
 
 	// Update AI and sync with Three.js mesh
 	useFrame((_state, delta) => {
-		if (!vehicleRef.current || !groupRef.current || !bodyRef.current || !aiRef.current) return;
+		if (!vehicleRef.current || !groupRef.current || !bodyRef.current) return;
 
-		aiRef.current.update(delta, targetPosition, data.hp, data.suppression);
-		const currentState = aiRef.current.getState();
-		const currentlyAmbushing = currentState === "AMBUSH";
+		const distanceToPlayer = groupRef.current.position.distanceTo(targetPosition);
+		const baseSpeed = data.isHeavy ? 4 : 7;
 
-		if (isAmbushing !== currentlyAmbushing) {
-			setIsAmbushing(currentlyAmbushing);
+		// Ambush logic: Pop up when close, or at random
+		ambushCooldown.current -= delta;
+		if (!isAmbushing && distanceToPlayer < AMBUSH_TRIGGER_DISTANCE && ambushCooldown.current <= 0) {
+			setIsAmbushing(true);
+			ambushCooldown.current = AMBUSH_COOLDOWN_MIN_S + Math.random() * AMBUSH_COOLDOWN_RANDOM_S;
+			ambushTimer.current = AMBUSH_DURATION_S;
 		}
 
-		// Animate rising/submerging based on state
-		const targetY = currentlyAmbushing ? 0.8 : currentState === "SUPPRESSED" ? -0.2 : 0.15;
+		if (isAmbushing) {
+			ambushTimer.current -= delta;
+			if (ambushTimer.current <= 0) {
+				setIsAmbushing(false);
+			}
+		}
+
+		// Calculate target speed and Y position based on state
+		let targetY = 0.15;
+		let targetSpeed = baseSpeed;
+
+		if (isAmbushing) {
+			targetY = 0.8;
+			targetSpeed = 0;
+		}
+
+		// Handle Suppression (overrides normal behavior, but speed 0 if ambushing)
+		if (data.suppression > 0.1) {
+			targetY = -0.2;
+			targetSpeed = baseSpeed * (1 - data.suppression * 0.5);
+			if (isAmbushing) targetSpeed = 0;
+		}
+
+		// Apply movement and animation
+		vehicleRef.current.maxSpeed = targetSpeed;
 		bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, targetY, 0.1);
 
 		// Tilt body up when ambushing
-		const targetRotationX = currentlyAmbushing ? -0.4 : 0;
+		const targetRotationX = isAmbushing ? -0.4 : 0;
 		bodyRef.current.rotation.x = THREE.MathUtils.lerp(
 			bodyRef.current.rotation.x,
 			targetRotationX,
 			0.1,
 		);
 
+		// Update target position
+		if (targetRef.current) {
+			targetRef.current.set(targetPosition.x, targetPosition.y, targetPosition.z);
+		}
+
+		// Update Yuka AI
+		vehicleRef.current.update(delta);
+
 		// Sync Three.js mesh with Yuka vehicle
 		groupRef.current.position.set(vehicleRef.current.position.x, 0, vehicleRef.current.position.z);
 
 		// Face direction of movement (or player if ambushing)
-		if (currentlyAmbushing) {
+		if (isAmbushing) {
 			const lookDir = targetPosition.clone().sub(groupRef.current.position);
 			const targetAngle = Math.atan2(lookDir.x, lookDir.z);
 			groupRef.current.rotation.y = THREE.MathUtils.lerp(
@@ -112,12 +122,13 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 
 		// Procedural swimming animation
 		const time = _state.clock.elapsedTime;
-		const swimSpeed =
-			currentState === "RETREAT" ? 10 : currentlyAmbushing ? 2 : data.isHeavy ? 4 : 6;
-		const swimAmount = currentlyAmbushing ? 0.05 : data.isHeavy ? 0.15 : 0.25;
+		const swimSpeed = isAmbushing ? 2 : data.isHeavy ? 4 : 6;
+		const swimAmount = isAmbushing ? 0.05 : data.isHeavy ? 0.15 : 0.25;
 
-		segmentsRef.current.forEach((seg, i) => {
-			seg.rotation.y = Math.sin(time * swimSpeed - i * 0.4) * swimAmount;
+		bodyRef.current.children.forEach((child, i) => {
+			if (child.name.startsWith("segment")) {
+				child.rotation.y = Math.sin(time * swimSpeed - i * 0.4) * swimAmount;
+			}
 		});
 	});
 
@@ -128,21 +139,27 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 		}
 	}, [data.hp, data.id, onDeath]);
 
-	const healthBarY = data.healthBarOffset ?? 2 * scale;
+	const scale = data.isHeavy ? 1.6 : 1.1;
+	const bodyColor = data.isHeavy ? "#1a241a" : "#2d3d2d";
+	const mudColor = "#3d3329";
+	const strapColor = "#1a1a1a";
 
 	return (
 		<group ref={groupRef}>
 			<group ref={bodyRef}>
 				{/* Head / Chest */}
 				<group position={[0, 0.1, 1.2 * scale]} name="segment-0">
-					<mesh castShadow receiveShadow material={matBody}>
+					<mesh castShadow receiveShadow>
 						<boxGeometry args={[0.6 * scale, 0.3 * scale, 1.1 * scale]} />
+						<meshStandardMaterial color={bodyColor} roughness={0.9} />
 					</mesh>
-					<mesh position={[0, 0.2 * scale, 0]} material={matHead}>
+					<mesh position={[0, 0.2 * scale, 0]}>
 						<boxGeometry args={[0.7 * scale, 0.15 * scale, 0.8 * scale]} />
+						<meshStandardMaterial color="#444" metalness={0.6} roughness={0.4} />
 					</mesh>
-					<mesh position={[0, 0.3 * scale, 0.2 * scale]} material={matMud}>
+					<mesh position={[0, 0.3 * scale, 0.2 * scale]}>
 						<boxGeometry args={[0.4 * scale, 0.02, 0.6 * scale]} />
+						<meshStandardMaterial color={mudColor} />
 					</mesh>
 					{[-1, 1].map((side) => (
 						<mesh
@@ -165,26 +182,30 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 						position={[0, 0.1, (0.4 - i * 0.75) * scale]}
 						name={`segment-${i + 1}`}
 					>
-						<mesh castShadow receiveShadow material={matBody}>
+						<mesh castShadow receiveShadow>
 							<boxGeometry args={[(0.85 - i * 0.1) * scale, 0.5 * scale, 0.85 * scale]} />
+							<meshStandardMaterial color={bodyColor} roughness={0.9} />
 						</mesh>
-						<mesh position={[0, 0.3 * scale, 0]} material={matHead}>
+						<mesh position={[0, 0.3 * scale, 0]}>
 							<boxGeometry args={[(0.75 - i * 0.1) * scale, 0.1 * scale, 0.6 * scale]} />
+							<meshStandardMaterial color="#333" metalness={0.5} />
 						</mesh>
-						<mesh position={[0, 0.2 * scale, 0]} material={matStrap}>
+						<mesh position={[0, 0.2 * scale, 0]}>
 							<boxGeometry args={[(0.9 - i * 0.1) * scale, 0.12 * scale, 0.15 * scale]} />
+							<meshStandardMaterial color={strapColor} roughness={1} />
 						</mesh>
 					</group>
 				))}
 
 				<group position={[0, 0.1, -3.2 * scale]} name="segment-6">
-					<mesh castShadow material={matBody}>
+					<mesh castShadow>
 						<boxGeometry args={[0.2 * scale, 0.2 * scale, 1.5 * scale]} />
+						<meshStandardMaterial color={bodyColor} />
 					</mesh>
 				</group>
 			</group>
 
-			<group position={[0, healthBarY, 0]}>
+			<group position={[0, 2 * scale, 0]}>
 				<mesh position={[0, 0, 0]}>
 					<planeGeometry args={[1.4, 0.08]} />
 					<meshBasicMaterial color="#000" transparent opacity={0.5} side={THREE.DoubleSide} />

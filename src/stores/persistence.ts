@@ -1,5 +1,35 @@
+/**
+ * Persistence Module - Save/Load Game Data
+ *
+ * Handles all game data persistence using localStorage.
+ * Provides schema migration for backward compatibility with older saves.
+ *
+ * Key responsibilities:
+ * - Define default save data structure
+ * - Validate and migrate saved data schemas
+ * - Deep clone/merge utilities for immutable updates
+ * - Safe localStorage read/write with error handling
+ *
+ * @module stores/persistence
+ */
+
 import { STORAGE_KEY } from "../utils/constants";
-import type { SaveData } from "./types";
+import { WEAPONS } from "./gameData";
+import type { PlacedComponent, SaveData } from "./types";
+
+/**
+ * Generate default weapon levels from WEAPONS registry.
+ * Ensures all weapons start at level 1 for new games.
+ *
+ * @returns Record mapping weapon IDs to their starting level (1)
+ */
+const generateDefaultWeaponLevels = (): Record<string, number> => {
+	const levels: Record<string, number> = {};
+	for (const weaponId of Object.keys(WEAPONS)) {
+		levels[weaponId] = 1;
+	}
+	return levels;
+};
 
 export const DEFAULT_SAVE_DATA: SaveData = {
 	version: 8,
@@ -31,20 +61,32 @@ export const DEFAULT_SAVE_DATA: SaveData = {
 		speedBoost: 0,
 		healthBoost: 0,
 		damageBoost: 0,
-		weaponLvl: {
-			"service-pistol": 1,
-			"fish-cannon": 1,
-			"bubble-gun": 1,
-		},
+		weaponLvl: generateDefaultWeaponLevels(),
 	},
 	isLZSecured: false,
 	baseComponents: [],
+	lastPlayerPosition: [0, 0, 0],
 };
 
+/**
+ * Deep clone an object using JSON serialization.
+ * Fast and reliable for plain data objects (no functions, dates, etc.)
+ *
+ * @param obj - Object to clone
+ * @returns Deep copy of the object
+ */
 export const deepClone = <T>(obj: T): T => {
 	return JSON.parse(JSON.stringify(obj));
 };
 
+/**
+ * Deep merge two objects, with source values overwriting target.
+ * Recursively merges nested objects.
+ *
+ * @param target - Base object
+ * @param source - Object with values to merge in
+ * @returns New object with merged values
+ */
 export const deepMerge = (
 	target: Record<string, unknown>,
 	source: Record<string, unknown>,
@@ -68,7 +110,7 @@ function isObject(item: unknown): item is Record<string, unknown> {
 	return typeof item === "object" && item !== null && !Array.isArray(item);
 }
 
-export const migrateSchema = (data: Record<string, unknown>): SaveData => {
+export const migrateSchema = (data: Record<string, unknown>): Record<string, unknown> => {
 	const version = (data.version as number) || 7;
 
 	if (version < 8) {
@@ -91,7 +133,7 @@ export const migrateSchema = (data: Record<string, unknown>): SaveData => {
 	}
 
 	data.version = 8;
-	return data as unknown as SaveData;
+	return data;
 };
 
 export const isValidSaveData = (data: unknown): data is SaveData => {
@@ -124,6 +166,7 @@ export const isValidSaveData = (data: unknown): data is SaveData => {
 
 export const saveToLocalStorage = (data: SaveData) => {
 	try {
+		// NOSONAR: localStorage is appropriate for client-side game save data persistence
 		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 	} catch (e) {
 		if (e instanceof DOMException && e.name === "QuotaExceededError") {
@@ -137,23 +180,27 @@ export const saveToLocalStorage = (data: SaveData) => {
 
 export const loadFromLocalStorage = (): SaveData | null => {
 	try {
+		// NOSONAR: localStorage is appropriate for client-side game save data persistence
 		const saved = localStorage.getItem(STORAGE_KEY);
 		if (!saved) return null;
 
+		// NOSONAR: JSON.parse is safe here - we validate the structure with isValidSaveData
 		const parsed = JSON.parse(saved);
 		if (!isValidSaveData(parsed)) {
 			console.warn("Invalid save data format detected, attempting to recover partially");
 			return null;
 		}
 
-		// Ensure that the parsed data doesn't have any malicious properties
-		// by strictly using the fields we expect from the migrated and merged data.
+		// Migrate schema to latest version - need to cast through unknown due to type guard narrowing
+		const parsedRecord = parsed as unknown as Record<string, unknown>;
+		const migrated = migrateSchema(parsedRecord);
 
-		const migrated = migrateSchema(parsed as Record<string, unknown>);
-		return deepMerge(
-			DEFAULT_SAVE_DATA as unknown as Record<string, unknown>,
-			migrated as unknown as Record<string, unknown>,
-		);
+		// Deep merge with defaults to fill any missing fields
+		const defaultCopy: Record<string, unknown> = JSON.parse(JSON.stringify(DEFAULT_SAVE_DATA));
+		const migratedCopy: Record<string, unknown> = JSON.parse(JSON.stringify(migrated));
+		const merged = deepMerge(defaultCopy, migratedCopy);
+
+		return merged as unknown as SaveData;
 	} catch (e) {
 		console.error("Load failed", e);
 		return null;

@@ -58,4 +58,78 @@ describe("InputSystem", () => {
 		window.dispatchEvent(new KeyboardEvent("keydown", { key: "F" }));
 		expect(inputSystem.getState().zoom).toBe(true);
 	});
+
+	it("should handle left movement (a key)", () => {
+		inputSystem.init();
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "a" }));
+		expect(inputSystem.getState().move.x).toBeLessThan(0);
+		expect(inputSystem.getState().move.active).toBe(true);
+	});
+
+	it("should handle right movement (d key)", () => {
+		inputSystem.init();
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+		expect(inputSystem.getState().move.x).toBeGreaterThan(0);
+		expect(inputSystem.getState().move.active).toBe(true);
+	});
+
+	it("should handle backward movement (s key)", () => {
+		inputSystem.init();
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "s" }));
+		expect(inputSystem.getState().move.y).toBeGreaterThan(0);
+		expect(inputSystem.getState().move.active).toBe(true);
+	});
+
+	it("should toggle zoom with f key", () => {
+		inputSystem.init();
+		expect(inputSystem.getState().zoom).toBe(false);
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "f" }));
+		expect(inputSystem.getState().zoom).toBe(true);
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "f" }));
+		expect(inputSystem.getState().zoom).toBe(false);
+	});
+
+	it("should handle jump with spacebar", () => {
+		inputSystem.init();
+		expect(inputSystem.getState().jump).toBe(false);
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+		expect(inputSystem.getState().jump).toBe(true);
+		window.dispatchEvent(new KeyboardEvent("keyup", { key: " " }));
+		expect(inputSystem.getState().jump).toBe(false);
+	});
+
+	it("should handle grip with g key", () => {
+		inputSystem.init();
+		expect(inputSystem.getState().grip).toBe(false);
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "g" }));
+		expect(inputSystem.getState().grip).toBe(true);
+		window.dispatchEvent(new KeyboardEvent("keyup", { key: "g" }));
+		expect(inputSystem.getState().grip).toBe(false);
+	});
+
+	it("should toggle zoom via toggleZoom method", () => {
+		inputSystem.init();
+		expect(inputSystem.getState().zoom).toBe(false);
+		inputSystem.toggleZoom();
+		expect(inputSystem.getState().zoom).toBe(true);
+		inputSystem.toggleZoom();
+		expect(inputSystem.getState().zoom).toBe(false);
+	});
+
+	it("should handle multiple key releases", () => {
+		inputSystem.init();
+
+		// Press W and D
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "w" }));
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "d" }));
+
+		// Release W, D should still be active
+		window.dispatchEvent(new KeyboardEvent("keyup", { key: "w" }));
+		expect(inputSystem.getState().move.x).toBeGreaterThan(0);
+		expect(inputSystem.getState().move.active).toBe(true);
+
+		// Release D
+		window.dispatchEvent(new KeyboardEvent("keyup", { key: "d" }));
+		expect(inputSystem.getState().move.active).toBe(false);
+	});
 });

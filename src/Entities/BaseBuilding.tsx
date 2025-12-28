@@ -3,14 +3,13 @@
  * Reusable pieces for constructing the URA Forward Operating Base
  */
 
-import type * as THREE from "three";
-
-interface BaseComponentProps {
-	position: [number, number, number] | THREE.Vector3;
+export function BaseFloor({
+	position,
+	rotation = [0, 0, 0],
+}: {
+	position: [number, number, number];
 	rotation?: [number, number, number];
-}
-
-export function BaseFloor({ position, rotation = [0, 0, 0] }: BaseComponentProps) {
+}) {
 	return (
 		<mesh position={position} rotation={rotation} receiveShadow>
 			<boxGeometry args={[4, 0.2, 4]} />
@@ -19,7 +18,13 @@ export function BaseFloor({ position, rotation = [0, 0, 0] }: BaseComponentProps
 	);
 }
 
-export function BaseWall({ position, rotation = [0, 0, 0] }: BaseComponentProps) {
+export function BaseWall({
+	position,
+	rotation = [0, 0, 0],
+}: {
+	position: [number, number, number];
+	rotation?: [number, number, number];
+}) {
 	return (
 		<mesh position={position} rotation={rotation} castShadow receiveShadow>
 			<boxGeometry args={[4, 2, 0.1]} />
@@ -28,7 +33,13 @@ export function BaseWall({ position, rotation = [0, 0, 0] }: BaseComponentProps)
 	);
 }
 
-export function BaseRoof({ position, rotation = [0, 0, 0] }: BaseComponentProps) {
+export function BaseRoof({
+	position,
+	rotation = [0, 0, 0],
+}: {
+	position: [number, number, number];
+	rotation?: [number, number, number];
+}) {
 	return (
 		<mesh position={position} rotation={rotation} castShadow>
 			<cylinderGeometry args={[0, 3, 1.5, 4]} />
@@ -37,9 +48,9 @@ export function BaseRoof({ position, rotation = [0, 0, 0] }: BaseComponentProps)
 	);
 }
 
-export function BaseStilt({ position }: Pick<BaseComponentProps, "position">) {
+export function BaseStilt({ position }: { position: [number, number, number] }) {
 	return (
-		<mesh position={position} castShadow receiveShadow>
+		<mesh position={position} castShadow>
 			<cylinderGeometry args={[0.1, 0.1, 2]} />
 			<meshStandardMaterial color="#2d1f15" />
 		</mesh>

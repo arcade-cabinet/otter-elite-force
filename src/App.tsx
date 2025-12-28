@@ -10,7 +10,6 @@ import { Canteen } from "./Scenes/Canteen";
 import { Cutscene } from "./Scenes/Cutscene";
 import { Level } from "./Scenes/Level";
 import { MainMenu } from "./Scenes/MainMenu";
-import { Victory } from "./Scenes/Victory";
 import { useGameStore } from "./stores/gameStore";
 import { HUD } from "./UI/HUD";
 
@@ -25,7 +24,6 @@ export function App() {
 		// Initialize audio on first user interaction
 		const initAudio = async () => {
 			await audioEngine.init();
-			console.log("Audio initialized");
 			audioEngine.playMusic("menu");
 		};
 
@@ -66,7 +64,6 @@ export function App() {
 			{mode === "MENU" && <MainMenu />}
 			{mode === "CUTSCENE" && <Cutscene />}
 			{mode === "CANTEEN" && <Canteen />}
-			{mode === "VICTORY" && <Victory />}
 
 			{mode === "GAME" && (
 				<>

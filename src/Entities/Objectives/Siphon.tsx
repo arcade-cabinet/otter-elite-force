@@ -1,81 +1,103 @@
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
-import type * as THREE from "three";
+import * as THREE from "three";
 
-const SIPHON_CONFIG = {
-	smokeSpeed: 0.05,
-	smokeGrowth: 0.01,
-	smokeMaxHeight: 5,
-	smokeInitialScale: 0.2,
-	baseColor: "#111",
-	securedColor: "#2d3d19",
-	pipeColor: "#222",
-	securedPipeColor: "#334422",
-} as const;
-
-export function Siphon({
-	position,
-	secured = false,
-}: {
-	position: [number, number, number] | THREE.Vector3;
+interface SiphonProps {
+	position: THREE.Vector3;
 	secured?: boolean;
-}) {
-	const smokeRef = useRef<THREE.Group>(null);
+}
 
-	useFrame((_state) => {
-		if (smokeRef.current && !secured) {
-			const children = smokeRef.current.children;
-			for (let i = 0; i < children.length; i++) {
-				const child = children[i];
-				child.position.y += SIPHON_CONFIG.smokeSpeed;
-				const newScale = child.scale.x + SIPHON_CONFIG.smokeGrowth;
-				child.scale.set(newScale, newScale, newScale);
-				if (child.position.y > SIPHON_CONFIG.smokeMaxHeight) {
+/**
+ * Siphon - Scale-Guard Militia oil extraction point
+ * When active: Pumps pollutants into the river, emits smoke, red warning light
+ * When secured: Destroyed/disabled, no smoke, green "cleared" light
+ */
+export function Siphon({ position, secured = false }: SiphonProps) {
+	const smokeRef = useRef<THREE.Group>(null);
+	const structureRef = useRef<THREE.Mesh>(null);
+
+	useFrame((_state, delta) => {
+		// Only animate smoke when siphon is active (not secured)
+		if (!secured && smokeRef.current) {
+			smokeRef.current.children.forEach((child) => {
+				child.position.y += 0.05;
+				child.scale.setScalar(child.scale.x + 0.01);
+				if (child.position.y > 5) {
 					child.position.y = 0;
-					child.scale.setScalar(SIPHON_CONFIG.smokeInitialScale);
+					child.scale.setScalar(0.2);
 				}
-			}
+			});
+		}
+
+		// Secured siphons slowly sink/tilt to show destruction
+		if (secured && structureRef.current) {
+			structureRef.current.rotation.z = THREE.MathUtils.lerp(
+				structureRef.current.rotation.z,
+				0.3,
+				delta * 0.5,
+			);
+			structureRef.current.position.y = THREE.MathUtils.lerp(
+				structureRef.current.position.y,
+				-1,
+				delta * 0.5,
+			);
 		}
 	});
 
 	return (
 		<group position={position}>
 			{/* Main Siphon Structure */}
-			<mesh castShadow receiveShadow>
+			<mesh ref={structureRef} castShadow receiveShadow>
 				<cylinderGeometry args={[1.5, 2, 4, 8]} />
 				<meshStandardMaterial
-					color={secured ? SIPHON_CONFIG.securedColor : SIPHON_CONFIG.baseColor}
+					color={secured ? "#1a1a1a" : "#111"}
 					metalness={0.8}
+					roughness={secured ? 0.9 : 0.3}
 				/>
 			</mesh>
+
 			{/* Pumping Pipes */}
 			{[0, 1, 2].map((i) => (
 				<mesh key={`pipe-${i}`} rotation-y={(i * Math.PI * 2) / 3} position={[0, -1, 0]}>
-					<mesh rotation-z={Math.PI / 2.5}>
-						<cylinderGeometry args={[0.3, 0.3, 5]} />
-						<meshStandardMaterial
-							color={secured ? SIPHON_CONFIG.securedPipeColor : SIPHON_CONFIG.pipeColor}
-						/>
-					</mesh>
+					<cylinderGeometry args={[0.3, 0.3, 5]} />
+					<meshStandardMaterial color={secured ? "#333" : "#222"} />
 				</mesh>
 			))}
-			{/* Dirty Smoke Effect */}
+
+			{/* Dirty Smoke Effect - only when active */}
 			{!secured && (
 				<group ref={smokeRef} position={[0, 2, 0]}>
 					{[...Array(5)].map((_, i) => (
-						<mesh
-							key={`smoke-${i}`}
-							position={[0, i * 1, 0]}
-							scale={SIPHON_CONFIG.smokeInitialScale}
-						>
+						<mesh key={`smoke-${i}`} position={[0, i * 1, 0]} scale={0.2}>
 							<sphereGeometry args={[0.5, 8, 8]} />
 							<meshBasicMaterial color="#333" transparent opacity={0.4} />
 						</mesh>
 					))}
 				</group>
 			)}
-			{/* Objective Light */}
-			<pointLight color={secured ? "#00ff00" : "#ff0000"} intensity={2} distance={10} />
+
+			{/* Secured: Show wreckage debris */}
+			{secured && (
+				<group position={[0, 0.5, 0]}>
+					{[...Array(4)].map((_, i) => (
+						<mesh
+							key={`debris-${i}`}
+							position={[Math.cos(i * 1.5) * 2, Math.random() * 0.5, Math.sin(i * 1.5) * 2]}
+							rotation={[Math.random(), Math.random(), Math.random()]}
+						>
+							<boxGeometry args={[0.4, 0.2, 0.3]} />
+							<meshStandardMaterial color="#222" />
+						</mesh>
+					))}
+				</group>
+			)}
+
+			{/* Status Light: Red = active threat, Green = secured */}
+			<pointLight
+				color={secured ? "#00ff00" : "#ff0000"}
+				intensity={secured ? 0.5 : 2}
+				distance={secured ? 5 : 10}
+			/>
 		</group>
 	);
 }

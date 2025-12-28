@@ -4,7 +4,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import { randomRange } from "../../utils/math";
@@ -16,7 +16,7 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 
 	const [isStriking, setIsStriking] = useState(false);
 	const strikeTimer = useRef(0);
-	const initialY = useMemo(() => data.position.y + randomRange(4, 7), [data.position.y]);
+	const initialY = data.position.y + randomRange(4, 7);
 
 	useEffect(() => {
 		for (let i = 0; i < 12; i++) {
@@ -30,12 +30,12 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 		if (!groupRef.current) return;
 
 		const t = state.clock.elapsedTime;
-		const dx = groupRef.current.position.x - targetPosition.x;
-		const dz = groupRef.current.position.z - targetPosition.z;
-		const distanceSq = dx * dx + dz * dz;
+		const distanceToPlayer = new THREE.Vector2(
+			groupRef.current.position.x,
+			groupRef.current.position.z,
+		).distanceTo(new THREE.Vector2(targetPosition.x, targetPosition.z));
 
-		if (distanceSq < 64 && strikeTimer.current <= 0) {
-			// 8^2 = 64
+		if (distanceToPlayer < 8 && strikeTimer.current <= 0) {
 			setIsStriking(true);
 			strikeTimer.current = 4;
 		}
@@ -48,15 +48,6 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 		const swayX = Math.sin(t * 0.5) * 0.2;
 		const swayZ = Math.cos(t * 0.7) * 0.2;
 
-		// Calculate look direction once for the whole snake if striking
-		let strikeRotation = 0;
-		if (isStriking) {
-			strikeRotation = Math.atan2(
-				targetPosition.x - groupRef.current.position.x,
-				targetPosition.z - groupRef.current.position.z,
-			);
-		}
-
 		segmentsRef.current.forEach((seg, i) => {
 			const targetSegY = isStriking ? initialY - i * 0.8 : initialY - i * 0.35;
 
@@ -65,22 +56,22 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 			seg.position.z = swayZ * (i * 0.5);
 
 			if (isStriking) {
-				seg.rotation.y = strikeRotation;
+				const lookDir = targetPosition
+					.clone()
+					.sub(groupRef.current!.position.clone().add(seg.position));
+				seg.rotation.y = Math.atan2(lookDir.x, lookDir.z);
 			}
 		});
+
+		if (data.hp <= 0 && onDeath) {
+			onDeath(data.id);
+		}
 
 		// Suppression logic for snakes
 		if (data.suppression > 0.5) {
 			setIsStriking(false); // Can't strike if suppressed
 		}
 	});
-
-	// Death logic
-	useEffect(() => {
-		if (data.hp <= 0 && onDeath) {
-			onDeath(data.id);
-		}
-	}, [data.hp, data.id, onDeath]);
 
 	const bodyColor = "#1a331a";
 	const patternColor = "#3d4d29";

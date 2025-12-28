@@ -1,93 +1,140 @@
 /**
- * Game State Store
- * Central state management using Zustand
+ * Game State Store - Central State Management
+ *
+ * This Zustand store manages all game state including:
+ * - Game mode FSM (MENU → CUTSCENE → GAME → VICTORY/GAMEOVER)
+ * - Player stats (health, kills, position, status effects)
+ * - World state (discovered chunks, secured territory)
+ * - Character/weapon unlocks and selection
+ * - Economy (coins, medals, upgrades)
+ * - Persistent save data (localStorage)
+ *
+ * Architecture Notes:
+ * - State is hydrated from localStorage on app start (loadData)
+ * - Chunks are generated deterministically from coordinates
+ * - Difficulty can only escalate (SUPPORT → TACTICAL → ELITE), never downgrade
+ * - "The Fall" mechanic triggers emergency extraction in TACTICAL mode
+ *
+ * @see ./types.ts for TypeScript interfaces
+ * @see ./persistence.ts for save/load utilities
+ * @see ./gameData.ts for static character/weapon definitions
  */
 
-import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
-import { RANKS } from "../utils/constants";
-import {
-	DEFAULT_SAVE_DATA,
-	deepClone,
-	loadFromLocalStorage,
-	saveToLocalStorage,
-} from "./persistence";
+import { DIFFICULTY_ORDER, GAME_CONFIG, RANKS, STORAGE_KEY } from "../utils/constants";
+import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS } from "./gameData";
+import { DEFAULT_SAVE_DATA } from "./persistence";
 import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData } from "./types";
-import { CHUNK_SIZE, generateChunk } from "./worldGenerator";
+
+// Re-export types and data for backward compatibility
+export type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData };
+export { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS };
+
+// Re-export types from ./types.ts for backward compatibility
+export type { CharacterGear, CharacterTraits, WeaponData } from "./types";
 
 /**
- * Constants for game balance and limits
+ * Core game state interface.
+ * Organized into logical sections: mode, player, world, character, economy.
  */
-const MAX_CHUNK_CACHE = 50;
-const MAX_UPGRADE_LEVEL = 10;
-const HEALTH_LOW_THRESHOLD = 30;
-const SAVE_DEBOUNCE_MS = 1000;
-
-const WORLD_BOUNDS = 10000; // Example max coordinate
-
 interface GameState {
-	// Mode management
+	// =========================================================================
+	// MODE MANAGEMENT
+	// =========================================================================
+	/** Current game mode (FSM state) */
 	mode: GameMode;
+	/** Transition to a new game mode */
 	setMode: (mode: GameMode) => void;
+	/** Upgrade difficulty (can only go UP: SUPPORT → TACTICAL → ELITE) */
 	setDifficulty: (difficulty: DifficultyMode) => void;
 
-	// Player stats
+	// =========================================================================
+	// PLAYER STATS
+	// =========================================================================
+	/** Current health (0 = death/fall) */
 	health: number;
+	/** Maximum health (can be upgraded) */
 	maxHealth: number;
+	/** Kill count for current session */
 	kills: number;
+	/** Mud accumulation (affects movement speed) */
 	mudAmount: number;
+	/** Whether player is carrying a clam (affects speed, enables deposit) */
 	isCarryingClam: boolean;
+	/** Whether player is piloting a raft */
 	isPilotingRaft: boolean;
-	isEscortingVillager: boolean;
+	/** Whether "The Fall" has been triggered (TACTICAL mode emergency) */
 	isFallTriggered: boolean;
+	/** ID of the raft being piloted, if any */
 	raftId: string | null;
+	/** Player's 3D position [x, y, z] - y is height for platforms/trees */
 	playerPos: [number, number, number];
+	/** Direction of last damage taken (for screen shake/feedback) */
+	lastDamageDirection: { x: number; y: number } | null;
 
-	takeDamage: (amount: number) => void;
+	/** Apply damage to player, optionally with directional feedback */
+	takeDamage: (amount: number, direction?: { x: number; y: number }) => void;
+	/** Heal player by amount (capped at maxHealth) */
 	heal: (amount: number) => void;
+	/** Increment kill counter */
 	addKill: () => void;
+	/** Reset all player stats to defaults */
 	resetStats: () => void;
+	/** Set mud accumulation level */
 	setMud: (amount: number) => void;
+	/** Update player's 3D position */
 	setPlayerPos: (pos: [number, number, number]) => void;
+	/** Set clam carrying state */
 	setCarryingClam: (isCarrying: boolean) => void;
-	setEscortingVillager: (isEscorting: boolean) => void;
+	/** Set raft piloting state */
 	setPilotingRaft: (isPiloting: boolean, raftId?: string | null) => void;
+	/** Set fall triggered state */
 	setFallTriggered: (active: boolean) => void;
-	triggerFall: () => void; // Explicit trigger logic
+	/** Trigger "The Fall" - emergency extraction in TACTICAL mode */
+	triggerFall: () => void;
 
-	// World management
+	// =========================================================================
+	// WORLD MANAGEMENT
+	// =========================================================================
+	/** Current chunk ID in "x,z" format */
 	currentChunkId: string;
-	isBuildMode: boolean; // New UI state
+	/** Whether base building mode is active */
+	isBuildMode: boolean;
+	/** Toggle base building mode */
 	setBuildMode: (active: boolean) => void;
+	/** Discover (or retrieve cached) chunk at coordinates */
 	discoverChunk: (x: number, z: number) => ChunkData;
+	/** Get all chunks within render distance of coordinates */
 	getNearbyChunks: (x: number, z: number) => ChunkData[];
+	/** Mark a chunk as secured (URA territory) */
 	secureChunk: (chunkId: string) => void;
 
-	// Character management
+	// =========================================================================
+	// CHARACTER MANAGEMENT
+	// =========================================================================
+	/** Currently selected character ID */
 	selectedCharacterId: string;
+	/** Select a different character (must be unlocked) */
 	selectCharacter: (id: string) => void;
 
 	// Economy & Upgrades
 	addCoins: (amount: number) => void;
 	spendCoins: (amount: number) => boolean;
 	buyUpgrade: (type: "speed" | "health" | "damage", cost: number) => void;
+	collectSpoils: (type: "credit" | "clam") => void;
+	completeStrategic: (type: "peacekeeping") => void;
+	setLevel: (levelId: number) => void;
 
 	// Save data
 	saveData: SaveData;
 	loadData: () => void;
-	saveGame: (immediate?: boolean) => void;
+	saveGame: () => void;
 	resetData: () => void;
 	gainXP: (amount: number) => void;
 	unlockCharacter: (id: string) => void;
 	rescueCharacter: (id: string) => void;
 	unlockWeapon: (id: string) => void;
 	upgradeWeapon: (id: string, cost: number) => void;
-	collectSpoils: (type: "credit" | "clam") => void;
-	completeStrategic: (type: "gas") => void;
-	setLevel: (levelId: number) => void;
-
-	// Save status
-	saveTimeout: ReturnType<typeof setTimeout> | null;
 
 	// Base Building
 	secureLZ: () => void;
@@ -99,6 +146,9 @@ interface GameState {
 	toggleZoom: () => void;
 }
 
+// Use CHUNK_SIZE from GAME_CONFIG for consistency
+export const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
+
 export const useGameStore = create<GameState>((set, get) => ({
 	// Initial state
 	mode: "MENU",
@@ -108,40 +158,35 @@ export const useGameStore = create<GameState>((set, get) => ({
 	mudAmount: 0,
 	isCarryingClam: false,
 	isPilotingRaft: false,
-	isEscortingVillager: false,
 	isFallTriggered: false,
 	raftId: null,
 	selectedCharacterId: "bubbles",
 	playerPos: [0, 0, 0],
-	saveData: deepClone(DEFAULT_SAVE_DATA),
+	lastDamageDirection: null,
+	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
 	isBuildMode: false,
 	currentChunkId: "0,0",
-	saveTimeout: null,
 
-	/**
-	 * Mode Management
-	 */
+	// Mode management
 	setMode: (mode) => set({ mode }),
 	setBuildMode: (active) => set({ isBuildMode: active }),
 	setDifficulty: (difficulty) => {
-		const order: DifficultyMode[] = ["SUPPORT", "TACTICAL", "ELITE"];
+		// Use centralized DIFFICULTY_ORDER constant for escalation logic
 		const current = get().saveData.difficultyMode;
-		if (order.indexOf(difficulty) > order.indexOf(current)) {
+		if (DIFFICULTY_ORDER.indexOf(difficulty) > DIFFICULTY_ORDER.indexOf(current)) {
 			set((state) => ({
 				saveData: {
 					...state.saveData,
 					difficultyMode: difficulty,
 				},
 			}));
-			get().saveGame(true); // Save immediate for difficulty change
+			get().saveGame();
 		}
 	},
 
-	/**
-	 * Player Stats
-	 */
-	takeDamage: (amount) => {
+	// Player stats
+	takeDamage: (amount, direction) => {
 		const { health, saveData, resetData, triggerFall, setMode } = get();
 		const newHealth = Math.max(0, health - amount);
 
@@ -150,14 +195,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 				resetData(); // Permadeath
 				return;
 			}
-			set({ health: 0 });
 			setMode("GAMEOVER");
-			return;
-		} else if (newHealth < HEALTH_LOW_THRESHOLD) {
+		} else if (newHealth < 30) {
 			triggerFall();
 		}
 
-		set({ health: newHealth });
+		set({ health: newHealth, lastDamageDirection: direction ?? null });
+
+		// Clear damage direction after a short delay
+		if (direction) {
+			setTimeout(() => set({ lastDamageDirection: null }), 500);
+		}
 	},
 
 	heal: (amount) =>
@@ -173,32 +221,19 @@ export const useGameStore = create<GameState>((set, get) => ({
 			kills: 0,
 			mudAmount: 0,
 			isCarryingClam: false,
-			isFallTriggered: false,
 			saveData: { ...state.saveData, isFallTriggered: false }, // Reset fall state on new run
 		})),
 
 	setMud: (amount) => set({ mudAmount: amount }),
 
-	setPlayerPos: (pos) => {
-		const [xPos, yPos, zPos] = pos;
-		const clampedX = Math.max(-WORLD_BOUNDS, Math.min(WORLD_BOUNDS, xPos));
-		const clampedZ = Math.max(-WORLD_BOUNDS, Math.min(WORLD_BOUNDS, zPos));
-
-		const x = Math.floor(clampedX / CHUNK_SIZE);
-		const z = Math.floor(clampedZ / CHUNK_SIZE);
-		const currentChunkId = `${x},${z}`;
-		set({ playerPos: [clampedX, yPos, clampedZ], currentChunkId });
-	},
+	setPlayerPos: (pos) => set({ playerPos: pos }),
 
 	setCarryingClam: (isCarrying) => set({ isCarryingClam: isCarrying }),
-
-	setEscortingVillager: (isEscorting) => set({ isEscortingVillager: isEscorting }),
 
 	setPilotingRaft: (isPiloting, raftId = null) => set({ isPilotingRaft: isPiloting, raftId }),
 
 	setFallTriggered: (active) =>
 		set((state) => ({
-			isFallTriggered: active,
 			saveData: { ...state.saveData, isFallTriggered: active },
 		})),
 
@@ -206,16 +241,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 		const { saveData } = get();
 		if (saveData.difficultyMode === "TACTICAL" && !saveData.isFallTriggered) {
 			set((state) => ({
-				isFallTriggered: true,
 				saveData: { ...state.saveData, isFallTriggered: true },
 			}));
-			get().saveGame(true);
+			get().saveGame();
 		}
 	},
 
-	/**
-	 * World Management
-	 */
+	// World management
 	discoverChunk: (x, z) => {
 		const id = `${x},${z}`;
 		const { saveData } = get();
@@ -224,39 +256,160 @@ export const useGameStore = create<GameState>((set, get) => ({
 			return saveData.discoveredChunks[id];
 		}
 
-		const newChunk = generateChunk(x, z);
-
-		set((state) => {
-			const newDiscoveredChunks = {
-				...state.saveData.discoveredChunks,
-				[id]: newChunk,
+		// Generate new chunk
+		const seed = Math.abs(x * 31 + z * 17);
+		const pseudoRandom = () => {
+			let s = seed;
+			return () => {
+				s = (s * 9301 + 49297) % 233280;
+				return s / 233280;
 			};
+		};
+		const rand = pseudoRandom();
 
-			// Chunk unloading: Keep only up to MAX_CHUNK_CACHE chunks
-			const keys = Object.keys(newDiscoveredChunks);
-			if (keys.length > MAX_CHUNK_CACHE) {
-				const currentId = state.currentChunkId;
-				const keysToRemove = keys.filter(
-					(k) => k !== "0,0" && k !== id && k !== currentId && !newDiscoveredChunks[k].secured,
-				);
+		const terrainTypes: ChunkData["terrainType"][] = ["RIVER", "MARSH", "DENSE_JUNGLE"];
+		const terrainType = terrainTypes[Math.floor(rand() * terrainTypes.length)];
 
-				const excessCount = keys.length - MAX_CHUNK_CACHE;
-				for (let i = 0; i < Math.min(excessCount, keysToRemove.length); i++) {
-					delete newDiscoveredChunks[keysToRemove[i]];
-				}
-			}
+		const entities: ChunkData["entities"] = [];
 
-			return {
-				saveData: {
-					...state.saveData,
-					discoveredChunks: newDiscoveredChunks,
-				},
-			};
-		});
+		// Add Predators
+		const entityCount = Math.floor(rand() * 5) + 2;
+		for (let i = 0; i < entityCount; i++) {
+			const type = rand() > 0.7 ? (rand() > 0.5 ? "SNAPPER" : "SNAKE") : "GATOR";
+			entities.push({
+				id: `e-${id}-${i}`,
+				type,
+				position: [
+					(rand() - 0.5) * CHUNK_SIZE,
+					type === "SNAKE" ? 5 : 0,
+					(rand() - 0.5) * CHUNK_SIZE,
+				],
+				isHeavy: rand() > 0.8,
+				hp: type === "SNAPPER" ? 20 : type === "GATOR" ? 10 : 2,
+				suppression: 0,
+			});
+		}
 
-		// Debounced save for discovery
+		// Add Platforms
+		const platformCount = Math.floor(rand() * 3) + 1;
+		for (let i = 0; i < platformCount; i++) {
+			entities.push({
+				id: `p-${id}-${i}`,
+				type: "PLATFORM",
+				position: [(rand() - 0.5) * (CHUNK_SIZE - 20), 0.5, (rand() - 0.5) * (CHUNK_SIZE - 20)],
+			});
+		}
+
+		// Add Climbables
+		const climbableCount = Math.floor(rand() * 2) + 1;
+		for (let i = 0; i < climbableCount; i++) {
+			entities.push({
+				id: `c-${id}-${i}`,
+				type: "CLIMBABLE",
+				position: [(rand() - 0.5) * (CHUNK_SIZE - 30), 5, (rand() - 0.5) * (CHUNK_SIZE - 30)],
+			});
+		}
+
+		// Add Siphons
+		if (rand() > 0.8) {
+			entities.push({
+				id: `siphon-${id}`,
+				type: "SIPHON",
+				position: [(rand() - 0.5) * 40, 0, (rand() - 0.5) * 40],
+				hp: 50,
+			});
+		}
+
+		// Add Gas Stockpiles (Strategic Objectives)
+		if (rand() > 0.85) {
+			entities.push({
+				id: `gas-${id}`,
+				type: "GAS_STOCKPILE",
+				position: [(rand() - 0.5) * 40, 0.5, (rand() - 0.5) * 40],
+				hp: 30,
+			});
+		}
+
+		// Add Clam Baskets (Spoils / Booby Traps)
+		if (rand() > 0.75) {
+			entities.push({
+				id: `basket-${id}`,
+				type: "CLAM_BASKET",
+				position: [(rand() - 0.5) * 35, 0.2, (rand() - 0.5) * 35],
+				isHeavy: rand() > 0.5, // 50% chance to be a booby trap
+			});
+		}
+
+		// Add Villagers/Huts
+		if (rand() > 0.7) {
+			const isHealerVillage = rand() > 0.8;
+			const villageX = (rand() - 0.5) * 30;
+			const villageZ = (rand() - 0.5) * 30;
+			entities.push({ id: `hut-${id}`, type: "HUT", position: [villageX, 0, villageZ] });
+			entities.push({
+				id: `vil-${id}`,
+				type: isHealerVillage ? "HEALER" : "VILLAGER",
+				position: [villageX + 3, 0, villageZ + 2],
+			});
+		}
+
+		// Add Hazards
+		const hazardCount = Math.floor(rand() * 2) + 1;
+		for (let i = 0; i < hazardCount; i++) {
+			entities.push({
+				id: `h-${id}-${i}`,
+				type: rand() > 0.5 ? "OIL_SLICK" : "MUD_PIT",
+				position: [(rand() - 0.5) * (CHUNK_SIZE - 20), 0.05, (rand() - 0.5) * (CHUNK_SIZE - 20)],
+			});
+		}
+
+		// Extraction Point at 0,0 or rare
+		if (id === "0,0" || rand() > 0.98) {
+			entities.push({ id: `extract-${id}`, type: "EXTRACTION_POINT", position: [0, 0, 0] });
+		}
+
+		// Add Prison Cages (Character Unlocks)
+		if (x === 5 && z === 5) {
+			entities.push({
+				id: "cage-whiskers",
+				type: "PRISON_CAGE",
+				position: [0, 0, 0],
+				objectiveId: "whiskers",
+			});
+		}
+		if (terrainType === "RIVER" && rand() > 0.8) {
+			entities.push({
+				id: `raft-${id}`,
+				type: "RAFT",
+				position: [(rand() - 0.5) * 40, 0.2, (rand() - 0.5) * 40],
+			});
+		}
+
+		const newChunk: ChunkData = {
+			id,
+			x,
+			z,
+			seed,
+			terrainType,
+			secured: false,
+			entities,
+			decorations: [
+				{ id: `${id}-dec-0`, type: "REED", count: Math.floor(rand() * 20) + 10 },
+				{ id: `${id}-dec-1`, type: "LILYPAD", count: Math.floor(rand() * 15) + 5 },
+				{ id: `${id}-dec-2`, type: "DEBRIS", count: Math.floor(rand() * 5) },
+				{ id: `${id}-dec-3`, type: "BURNT_TREE", count: terrainType === "DENSE_JUNGLE" ? 15 : 5 },
+				{ id: `${id}-dec-4`, type: "MANGROVE", count: terrainType === "DENSE_JUNGLE" ? 20 : 10 },
+				{ id: `${id}-dec-5`, type: "DRUM", count: Math.floor(rand() * 3) },
+			],
+		};
+
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				discoveredChunks: { ...state.saveData.discoveredChunks, [id]: newChunk },
+			},
+		}));
 		get().saveGame();
-
 		return newChunk;
 	},
 
@@ -301,12 +454,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 				},
 			};
 		});
-		get().saveGame(true);
+		get().saveGame();
 	},
 
-	/**
-	 * Character Management
-	 */
 	selectCharacter: (id) => set({ selectedCharacterId: id }),
 
 	unlockCharacter: (id) => {
@@ -318,7 +468,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 					: [...state.saveData.unlockedCharacters, id],
 			},
 		}));
-		get().saveGame(true);
+		get().saveGame();
 	},
 
 	rescueCharacter: (id) => {
@@ -346,7 +496,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 					: [...state.saveData.unlockedWeapons, id],
 			},
 		}));
-		get().saveGame(true);
+		get().saveGame();
 	},
 
 	upgradeWeapon: (id, cost) => {
@@ -363,60 +513,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 					},
 				},
 			}));
-			get().saveGame(true);
+			get().saveGame();
 		}
-	},
-
-	/**
-	 * Economy & Upgrades
-	 */
-	completeStrategic: (type) => {
-		set((state) => {
-			const newObjectives = { ...state.saveData.strategicObjectives };
-			switch (type) {
-				case "gas":
-					newObjectives.gasStockpilesCaptured++;
-					break;
-			}
-			return {
-				saveData: {
-					...state.saveData,
-					strategicObjectives: newObjectives,
-				},
-			};
-		});
-		get().saveGame(true);
-	},
-
-	collectSpoils: (type) => {
-		set((state) => {
-			const newSpoils = { ...state.saveData.spoilsOfWar };
-			switch (type) {
-				case "credit":
-					newSpoils.creditsEarned += 100;
-					break;
-				case "clam":
-					newSpoils.clamsHarvested += 1;
-					break;
-			}
-			return {
-				saveData: {
-					...state.saveData,
-					spoilsOfWar: newSpoils,
-				},
-			};
-		});
-		get().saveGame(true);
-	},
-
-	setLevel: (levelId) => {
-		const levelCoords = [
-			[0, 0],
-			[10, 10],
-			[-20, 20],
-		];
-		const [x, z] = levelCoords[levelId] || [0, 0];
-		get().setPlayerPos([x * CHUNK_SIZE, 0, z * CHUNK_SIZE]);
 	},
 
 	secureLZ: () => {
@@ -426,14 +524,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 				isLZSecured: true,
 			},
 		}));
-		get().saveGame(true);
+		get().saveGame();
 	},
 
 	placeComponent: (comp) => {
 		set((state) => ({
 			saveData: {
 				...state.saveData,
-				baseComponents: [...state.saveData.baseComponents, { ...comp, id: `base-${uuidv4()}` }],
+				baseComponents: [
+					...state.saveData.baseComponents,
+					{ ...comp, id: `base-${crypto.randomUUID()}` },
+				],
 			},
 		}));
 		get().saveGame();
@@ -446,109 +547,83 @@ export const useGameStore = create<GameState>((set, get) => ({
 				baseComponents: state.saveData.baseComponents.filter((c) => c.id !== id),
 			},
 		}));
-		get().saveGame(true);
+		get().saveGame();
 	},
 
 	addCoins: (amount) => {
-		set((state) => ({
-			saveData: { ...state.saveData, coins: state.saveData.coins + amount },
-		}));
+		set((state) => ({ saveData: { ...state.saveData, coins: state.saveData.coins + amount } }));
 		get().saveGame();
 	},
 
 	spendCoins: (amount) => {
 		const { saveData } = get();
 		if (saveData.coins >= amount) {
-			set((state) => ({
-				saveData: { ...state.saveData, coins: state.saveData.coins - amount },
-			}));
+			set((state) => ({ saveData: { ...state.saveData, coins: state.saveData.coins - amount } }));
+			get().saveGame();
 			return true;
 		}
 		return false;
 	},
 
 	buyUpgrade: (type, cost) => {
-		const { saveData } = get();
-		const boostMap = {
-			speed: "speedBoost",
-			health: "healthBoost",
-			damage: "damageBoost",
-		} as const;
-
-		const boostKey = boostMap[type];
-		const currentBoost = saveData.upgrades[boostKey];
-
-		// Validation before spending coins
-		if (typeof currentBoost !== "number") return;
-		if (currentBoost >= MAX_UPGRADE_LEVEL) return;
-
 		if (get().spendCoins(cost)) {
+			const upgradeKey = `${type}Boost` as "speedBoost" | "healthBoost" | "damageBoost";
 			set((state) => ({
 				saveData: {
 					...state.saveData,
 					upgrades: {
 						...state.saveData.upgrades,
-						[boostKey]: currentBoost + 1,
+						[upgradeKey]: state.saveData.upgrades[upgradeKey] + 1,
 					},
 				},
 			}));
-			get().saveGame(true);
+			get().saveGame();
 		}
 	},
 
-	/**
-	 * Persistence Layer
-	 */
 	loadData: () => {
-		const data = loadFromLocalStorage();
-		if (data) set({ saveData: data });
+		try {
+			// NOSONAR: localStorage is appropriate for client-side game save data
+			const saved = localStorage.getItem(STORAGE_KEY);
+			if (saved) {
+				// NOSONAR: JSON.parse is safe - we validate structure before use
+				const parsedData = JSON.parse(saved);
+				// Migrate old saves that don't have lastPlayerPosition
+				if (!parsedData.lastPlayerPosition) {
+					parsedData.lastPlayerPosition = [0, 0, 0];
+				}
+				set({
+					saveData: parsedData,
+					// Restore player's 3D position (including height for climbing/platforms/trees)
+					playerPos: parsedData.lastPlayerPosition,
+				});
+			}
+		} catch (e) {
+			console.error("Load failed", e);
+		}
 	},
 
-	saveGame: (immediate = false) => {
-		const { saveTimeout } = get();
-		if (saveTimeout) {
-			clearTimeout(saveTimeout);
-		}
-
-		const performSave = () => {
-			saveToLocalStorage(get().saveData);
-			set({ saveTimeout: null });
-		};
-
-		if (immediate) {
-			performSave();
-		} else {
-			const timeout = setTimeout(performSave, SAVE_DEBOUNCE_MS);
-			set({ saveTimeout: timeout });
+	saveGame: () => {
+		try {
+			// Save current player 3D position (including height for climbing/platforms)
+			const currentPos = get().playerPos;
+			const updatedSaveData = {
+				...get().saveData,
+				lastPlayerPosition: currentPos as [number, number, number],
+			};
+			// NOSONAR: localStorage is appropriate for client-side game save data
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSaveData));
+			set({ saveData: updatedSaveData });
+		} catch (e) {
+			console.error("Save failed", e);
 		}
 	},
 
 	resetData: () => {
-		const { saveTimeout } = get();
-		if (saveTimeout) {
-			clearTimeout(saveTimeout);
-		}
-		const freshData = deepClone(DEFAULT_SAVE_DATA);
-		saveToLocalStorage(freshData);
-		set({
-			saveData: freshData,
-			health: 100,
-			maxHealth: 100,
-			kills: 0,
-			mudAmount: 0,
-			isCarryingClam: false,
-			isPilotingRaft: false,
-			isEscortingVillager: false,
-			isFallTriggered: false,
-			raftId: null,
-			mode: "MENU",
-			selectedCharacterId: "bubbles",
-			playerPos: [0, 0, 0],
-			isZoomed: false,
-			isBuildMode: false,
-			currentChunkId: "0,0",
-			saveTimeout: null,
-		});
+		// NOSONAR: localStorage is appropriate for client-side game save data
+		localStorage.removeItem(STORAGE_KEY);
+		set({ saveData: { ...DEFAULT_SAVE_DATA } });
+		window.location.reload();
 	},
 
 	gainXP: (amount) => {
@@ -565,6 +640,33 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	toggleZoom: () => set((state) => ({ isZoomed: !state.isZoomed })),
-}));
 
-export * from "./gameData";
+	collectSpoils: (type: "credit" | "clam") => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				spoilsOfWar: {
+					...state.saveData.spoilsOfWar,
+					creditsEarned: state.saveData.spoilsOfWar.creditsEarned + (type === "credit" ? 1 : 0),
+					clamsHarvested: state.saveData.spoilsOfWar.clamsHarvested + (type === "clam" ? 1 : 0),
+				},
+			},
+		}));
+		get().saveGame();
+	},
+
+	completeStrategic: (_type: "peacekeeping") => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				peacekeepingScore: state.saveData.peacekeepingScore + 10,
+			},
+		}));
+		get().saveGame();
+	},
+
+	setLevel: (levelId: number) => {
+		// Store level selection for cutscene/game transition
+		set({ currentChunkId: `${levelId},0` });
+	},
+}));

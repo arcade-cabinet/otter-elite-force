@@ -1,0 +1,15 @@
+{
+	"hooks": {
+		"PostToolUse": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "pnpm biome format --write"
+					}
+				],
+				"matcher": "Edit|Write|MultiEdit"
+			}
+		]
+	}
+}

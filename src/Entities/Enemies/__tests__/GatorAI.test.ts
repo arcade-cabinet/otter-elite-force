@@ -1,27 +1,38 @@
 import * as THREE from "three";
-import * as YUKA from "yuka";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Vehicle as VehicleType } from "yuka";
 import { GatorAI } from "../GatorAI";
 
 // Mock YUKA
 vi.mock("yuka", () => {
 	class Vector3 {
-		x = 0; y = 0; z = 0;
+		x = 0;
+		y = 0;
+		z = 0;
 		constructor(x = 0, y = 0, z = 0) {
-			this.x = x; this.y = y; this.z = z;
+			this.x = x;
+			this.y = y;
+			this.z = z;
 		}
-		set(x, y, z) {
-			this.x = x; this.y = y; this.z = z;
+		set(x: number, y: number, z: number) {
+			this.x = x;
+			this.y = y;
+			this.z = z;
 			return this;
 		}
-		copy(v) {
-			this.x = v.x; this.y = v.y; this.z = v.z;
+		copy(v: { x: number; y: number; z: number }) {
+			this.x = v.x;
+			this.y = v.y;
+			this.z = v.z;
 			return this;
 		}
-		add(v) {
-			this.x += v.x; this.y += v.y; this.z += v.z;
+		add(v: { x: number; y: number; z: number }) {
+			this.x += v.x;
+			this.y += v.y;
+			this.z += v.z;
 			return this;
 		}
-		distanceTo(v) {
+		distanceTo(v: { x: number; y: number; z: number }) {
 			const dx = this.x - v.x;
 			const dy = this.y - v.y;
 			const dz = this.z - v.z;
@@ -57,10 +68,11 @@ vi.mock("yuka", () => {
 });
 
 describe("GatorAI", () => {
-	let vehicle: YUKA.Vehicle;
+	let vehicle: VehicleType;
 	let gatorAI: GatorAI;
 
-	beforeEach(() => {
+	beforeEach(async () => {
+		const YUKA = await import("yuka");
 		vehicle = new YUKA.Vehicle();
 		gatorAI = new GatorAI(vehicle);
 	});
@@ -72,7 +84,7 @@ describe("GatorAI", () => {
 	it("should transition from IDLE to STALK when player is within range", () => {
 		const playerPos = new THREE.Vector3(12, 0, 0);
 		vehicle.position.set(0, 0, 0);
-		
+
 		gatorAI.update(0.1, playerPos, 10, 0);
 		expect(gatorAI.getState()).toBe("STALK");
 	});
@@ -80,7 +92,7 @@ describe("GatorAI", () => {
 	it("should transition to AMBUSH when player is very close", () => {
 		const playerPos = new THREE.Vector3(5, 0, 0);
 		vehicle.position.set(0, 0, 0);
-		
+
 		// First transition to STALK
 		gatorAI.update(0.1, playerPos, 10, 0);
 		// Then transition to AMBUSH

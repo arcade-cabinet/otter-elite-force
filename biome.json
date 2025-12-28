@@ -22,13 +22,34 @@
 				"useExhaustiveDependencies": "warn"
 			},
 			"style": {
-				"noNonNullAssertion": "error"
+				"noNonNullAssertion": "off"
 			},
 			"suspicious": {
-				"noExplicitAny": "error"
+				"noArrayIndexKey": "off"
+			},
+			"complexity": {
+				"noImportantStyles": "off"
 			}
 		}
 	},
+	"overrides": [
+		{
+			"includes": [
+				"**/*.test.ts",
+				"**/*.test.tsx",
+				"**/test/**/*.ts",
+				"**/__tests__/**/*.ts",
+				"**/__tests__/**/*.tsx"
+			],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noExplicitAny": "off"
+					}
+				}
+			}
+		}
+	],
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double",

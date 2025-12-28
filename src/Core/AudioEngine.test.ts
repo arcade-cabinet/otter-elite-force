@@ -78,4 +78,41 @@ describe("AudioEngine", () => {
 		await audioEngine.init();
 		expect(audioEngine.isReady()).toBe(true);
 	});
+
+	it("should play shoot SFX after initialization", async () => {
+		await audioEngine.init();
+		// Should not throw
+		expect(() => audioEngine.playSFX("shoot")).not.toThrow();
+	});
+
+	it("should play hit SFX after initialization", async () => {
+		await audioEngine.init();
+		expect(() => audioEngine.playSFX("hit")).not.toThrow();
+	});
+
+	it("should play pickup SFX after initialization", async () => {
+		await audioEngine.init();
+		expect(() => audioEngine.playSFX("pickup")).not.toThrow();
+	});
+
+	it("should play explode SFX after initialization", async () => {
+		await audioEngine.init();
+		expect(() => audioEngine.playSFX("explode")).not.toThrow();
+	});
+
+	it("should handle multiple init calls gracefully", async () => {
+		await audioEngine.init();
+		await audioEngine.init();
+		await audioEngine.init();
+		expect(audioEngine.isReady()).toBe(true);
+		expect(Tone.start).toHaveBeenCalledTimes(1);
+	});
+
+	it("should handle dispose when not initialized", () => {
+		expect(() => audioEngine.dispose()).not.toThrow();
+	});
+
+	it("should handle stopAll when not initialized", () => {
+		expect(() => audioEngine.stopAll()).not.toThrow();
+	});
 });

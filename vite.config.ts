@@ -1,4 +1,3 @@
-/// <reference types="vitest" />
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
@@ -10,17 +9,6 @@ export default defineConfig({
 		outDir: "dist",
 		assetsDir: "assets",
 		sourcemap: true,
-		rollupOptions: {
-			output: {
-				manualChunks: {
-					"react-vendor": ["react", "react-dom"],
-					"three-vendor": ["three", "@react-three/fiber", "@react-three/drei"],
-					"audio-vendor": ["tone"],
-					"ai-vendor": ["yuka"],
-					"animation-vendor": ["gsap"],
-				},
-			},
-		},
 	},
 	test: {
 		globals: true,
@@ -29,8 +17,7 @@ export default defineConfig({
 		coverage: {
 			provider: "v8",
 			reporter: ["text", "json", "html"],
-			exclude: ["node_modules/", "src/test/", "e2e/"],
+			exclude: ["node_modules/", "src/test/"],
 		},
-		exclude: ["node_modules/", "e2e/"],
 	},
 });

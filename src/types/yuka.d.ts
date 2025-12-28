@@ -7,7 +7,12 @@ declare module "yuka" {
 		constructor(x?: number, y?: number, z?: number);
 		set(x: number, y: number, z: number): this;
 		copy(v: Vector3): this;
+		add(v: Vector3): this;
+		sub(v: Vector3): this;
+		clone(): Vector3;
 		length(): number;
+		distanceTo(v: Vector3): number;
+		normalize(): this;
 	}
 
 	export class Quaternion {
@@ -18,6 +23,7 @@ declare module "yuka" {
 		constructor(x?: number, y?: number, z?: number, w?: number);
 		set(x: number, y: number, z: number, w: number): this;
 		copy(q: Quaternion): this;
+		clone(): Quaternion;
 	}
 
 	export class Vehicle {
@@ -42,11 +48,10 @@ declare module "yuka" {
 		constructor(target?: Vector3);
 	}
 
-	export class ArriveBehavior extends SteeringBehavior {
+	export class FleeBehavior extends SteeringBehavior {
 		target: Vector3;
-		deceleration: number;
-		tolerance: number;
-		constructor(target?: Vector3, deceleration?: number, tolerance?: number);
+		panicDistance: number;
+		constructor(target?: Vector3, panicDistance?: number);
 	}
 
 	export class WanderBehavior extends SteeringBehavior {
@@ -56,45 +61,11 @@ declare module "yuka" {
 		constructor(radius?: number, distance?: number, jitter?: number);
 	}
 
-	export class ObstacleAvoidanceBehavior extends SteeringBehavior {
-		constructor();
-	}
-
-	export class StateMachine<T> {
-		owner: T;
-		currentState: State<T>;
-		previousState: State<T>;
-		globalState: State<T>;
-		constructor(owner: T);
-		update(): this;
-		changeTo(state: State<T>): this;
-		revert(): this;
-		inState(state: State<T>): boolean;
-	}
-
-	export class State<T> {
-		enter(entity: T): void;
-		execute(entity: T): void;
-		exit(entity: T): void;
-	}
-
-	export class Path {
-		loop: boolean;
-		constructor();
-		add(waypoint: Vector3): this;
-		clear(): this;
-	}
-
-	export class NavMesh {
-		constructor();
-		fromJSON(json: object): this;
-		findPath(start: Vector3, end: Vector3): Vector3[];
-	}
-
 	export class EntityManager {
 		entities: Vehicle[];
 		add(entity: Vehicle): this;
 		remove(entity: Vehicle): this;
+		clear(): this;
 		update(delta: number): this;
 	}
 }
