@@ -13,7 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
-import { useGameStore } from "../stores/gameStore";
+import { CHUNK_SIZE, useGameStore } from "../stores/gameStore";
 
 export function HUD() {
 	const {
