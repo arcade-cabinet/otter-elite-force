@@ -52,17 +52,11 @@ const setHudReady = useGameStore((state) => state.setHudReady);
 	const isNearLZ = useGameStore((state) => state.isNearLZ);
 	const secureLZ = useGameStore((state) => state.secureLZ);
 
-<<<<<<< HEAD
-	const [_selectedBuildItem, setSelectedBuildItem] = useState<BuildableTemplate | null>(null);
-
-	// Signal HUD mount/unmount for input system initialization
+// Signal HUD mount/unmount for input system initialization
 	useEffect(() => {
 		setHudReady(true);
 		return () => setHudReady(false);
 	}, [setHudReady]);
-
-=======
->>>>>>> 26bd894 (feat: implement chunk-based building persistence and ghost preview placement)
 	// Track damage flash for directional indicator
 	const [showDamageFlash, setShowDamageFlash] = useState(false);
 	const [prevHealth, setPrevHealth] = useState(health);

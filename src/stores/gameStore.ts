@@ -185,13 +185,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	// Mode management
 	setMode: (mode) => set({ mode }),
-<<<<<<< HEAD
 	setHudReady: (ready) => set({ hudReady: ready }),
-	setBuildMode: (active) => set({ isBuildMode: active }),
-=======
 	setBuildMode: (active) => set({ isBuildMode: active, selectedBuildItem: null }),
 	setSelectedBuildItem: (item) => set({ selectedBuildItem: item }),
->>>>>>> 26bd894 (feat: implement chunk-based building persistence and ghost preview placement)
 	setDifficulty: (difficulty) => {
 		// Use centralized DIFFICULTY_ORDER constant for escalation logic
 		const current = get().saveData.difficultyMode;
