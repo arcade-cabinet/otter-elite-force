@@ -622,7 +622,7 @@ button.secondary {
 	border: 1px solid #555;
 }
 
-/* Modal Overlay */
+/* Modal Overlay with animation */
 .canteen-modal-overlay {
 	position: fixed;
 	top: 0;
@@ -635,6 +635,16 @@ button.secondary {
 	align-items: center;
 	justify-content: center;
 	padding: 20px;
+	animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
 }
 
 .canteen-modal {
@@ -647,6 +657,19 @@ button.secondary {
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
+	animation: modalSlideIn 0.25s ease-out;
+	transform-origin: center center;
+}
+
+@keyframes modalSlideIn {
+	from {
+		opacity: 0;
+		transform: scale(0.9) translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
 }
 
 /* Modal 3D Preview - Fixed camera, no user control */

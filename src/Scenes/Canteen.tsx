@@ -18,6 +18,13 @@ import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, useGameStore } from "../stores/
 // Color constants for theming
 const GROUND_PLANE_COLOR = "#332211";
 
+// Upgrade configuration for DRY rendering
+const UPGRADE_CONFIG = [
+	{ key: "speed", name: "SPEED BOOST", storeKey: "speedBoost" as const, cost: UPGRADE_COSTS.speed },
+	{ key: "health", name: "HEALTH BOOST", storeKey: "healthBoost" as const, cost: UPGRADE_COSTS.health },
+	{ key: "damage", name: "DAMAGE BOOST", storeKey: "damageBoost" as const, cost: UPGRADE_COSTS.damage },
+] as const;
+
 /** Slowly rotating character display for modal preview */
 function RotatingCharacterDisplay({
 	traits,
@@ -58,14 +65,38 @@ function PreviewModal({
 	onCancel: () => void;
 }) {
 	const canAfford = coins >= price;
+	const modalRef = useRef<HTMLDivElement>(null);
+	const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-	// Handle Escape key to close modal (accessibility)
+	// Focus trap and keyboard handling
 	useEffect(() => {
+		// Focus the close button when modal opens
+		closeButtonRef.current?.focus();
+
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.key === "Escape") {
 				onCancel();
+				return;
+			}
+
+			// Focus trapping with Tab key
+			if (event.key === "Tab" && modalRef.current) {
+				const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+					'button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+				);
+				const firstElement = focusableElements[0];
+				const lastElement = focusableElements[focusableElements.length - 1];
+
+				if (event.shiftKey && document.activeElement === firstElement) {
+					event.preventDefault();
+					lastElement?.focus();
+				} else if (!event.shiftKey && document.activeElement === lastElement) {
+					event.preventDefault();
+					firstElement?.focus();
+				}
 			}
 		};
+
 		window.addEventListener("keydown", handleKeyDown);
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, [onCancel]);
@@ -76,6 +107,7 @@ function PreviewModal({
 		<div className="canteen-modal-overlay" onClick={onCancel}>
 			{/* biome-ignore lint/a11y/useKeyWithClickEvents: onClick only used to stop propagation, not for interaction */}
 			<div
+				ref={modalRef}
 				className="canteen-modal"
 				onClick={(e) => e.stopPropagation()}
 				role="dialog"
@@ -135,7 +167,12 @@ function PreviewModal({
 								{canAfford ? `REQUISITION: ${price} CREDITS` : `NEED ${price - coins} MORE`}
 							</button>
 						)}
-						<button type="button" className="cancel-btn" onClick={onCancel}>
+						<button
+							ref={closeButtonRef}
+							type="button"
+							className="cancel-btn"
+							onClick={onCancel}
+						>
 							{isUnlocked ? "CLOSE" : "CANCEL"}
 						</button>
 					</div>
@@ -216,45 +253,23 @@ export function Canteen() {
 						</div>
 					) : (
 						<div className="upgrades-list">
-							<div className="upgrade-item">
-								<div className="upgrade-info">
-									<span className="upgrade-name">SPEED BOOST</span>
-									<span className="upgrade-level">Level {saveData.upgrades.speedBoost}</span>
+							{UPGRADE_CONFIG.map((upgrade) => (
+								<div key={upgrade.key} className="upgrade-item">
+									<div className="upgrade-info">
+										<span className="upgrade-name">{upgrade.name}</span>
+										<span className="upgrade-level">
+											Level {saveData.upgrades[upgrade.storeKey]}
+										</span>
+									</div>
+									<button
+										type="button"
+										onClick={() => buyUpgrade(upgrade.key, upgrade.cost)}
+										disabled={saveData.coins < upgrade.cost}
+									>
+										{upgrade.cost} CR
+									</button>
 								</div>
-								<button
-									type="button"
-									onClick={() => buyUpgrade("speed", UPGRADE_COSTS.speed)}
-									disabled={saveData.coins < UPGRADE_COSTS.speed}
-								>
-									{UPGRADE_COSTS.speed} CR
-								</button>
-							</div>
-							<div className="upgrade-item">
-								<div className="upgrade-info">
-									<span className="upgrade-name">HEALTH BOOST</span>
-									<span className="upgrade-level">Level {saveData.upgrades.healthBoost}</span>
-								</div>
-								<button
-									type="button"
-									onClick={() => buyUpgrade("health", UPGRADE_COSTS.health)}
-									disabled={saveData.coins < UPGRADE_COSTS.health}
-								>
-									{UPGRADE_COSTS.health} CR
-								</button>
-							</div>
-							<div className="upgrade-item">
-								<div className="upgrade-info">
-									<span className="upgrade-name">DAMAGE BOOST</span>
-									<span className="upgrade-level">Level {saveData.upgrades.damageBoost}</span>
-								</div>
-								<button
-									type="button"
-									onClick={() => buyUpgrade("damage", UPGRADE_COSTS.damage)}
-									disabled={saveData.coins < UPGRADE_COSTS.damage}
-								>
-									{UPGRADE_COSTS.damage} CR
-								</button>
-							</div>
+							))}
 						</div>
 					)}
 				</div>
