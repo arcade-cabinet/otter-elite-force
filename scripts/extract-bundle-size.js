@@ -78,9 +78,13 @@ function analyzeBundleSize() {
 	console.log("\n📦 Bundle Size Report");
 	console.log("═".repeat(50));
 	console.log(`Total Size: ${report.total.formatted}`);
-	console.log(`JavaScript: ${report.breakdown.javascript.formatted} (${report.breakdown.javascript.files} files)`);
+	console.log(
+		`JavaScript: ${report.breakdown.javascript.formatted} (${report.breakdown.javascript.files} files)`,
+	);
 	console.log(`CSS: ${report.breakdown.css.formatted} (${report.breakdown.css.files} files)`);
-	console.log(`Assets: ${report.breakdown.assets.formatted} (${report.breakdown.assets.files} files)`);
+	console.log(
+		`Assets: ${report.breakdown.assets.formatted} (${report.breakdown.assets.files} files)`,
+	);
 	console.log("\n📊 Largest Files:");
 
 	for (const file of report.largestFiles.slice(0, 5)) {
