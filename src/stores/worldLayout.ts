@@ -7,11 +7,11 @@ import { poissonDiscSample } from "./game/world/poisson";
 import { SeededRandom } from "./game/world/random";
 import { generateRiverPaths } from "./game/world/rivers";
 import { determineTerrainType } from "./game/world/terrain";
-import type {
+import type { 
 	PointOfInterestType,
 	WorldLayout,
 	WorldLayoutConfig,
-	WorldPoint,
+	WorldPoint
 } from "./game/world/types";
 import type { TerrainType } from "./types";
 

@@ -1,4 +1,4 @@
-import type { ChunkData, DifficultyMode, GameMode, PlacedComponent } from "../types";
+import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData, TerrainType } from "../types";
 
 export interface ModeActions {
 	setMode: (mode: GameMode) => void;
@@ -59,14 +59,15 @@ export interface UIActions {
 	toggleZoom: () => void;
 }
 
-export interface GameStateActions
-	extends ModeActions,
-		PlayerActions,
-		WorldActions,
-		CharacterActions,
-		EconomyActions,
-		SaveActions,
-		BaseActions,
-		UIActions {}
+export interface GameStateActions extends 
+	ModeActions, 
+	PlayerActions, 
+	WorldActions, 
+	CharacterActions, 
+	EconomyActions, 
+	SaveActions, 
+	BaseActions, 
+	UIActions {}
 
 export type GameStore = import("./initialState").GameStateProperties & GameStateActions;
+export type { SaveData, TerrainType };

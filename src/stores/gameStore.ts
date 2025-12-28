@@ -24,7 +24,7 @@ export type {
 	TerrainType,
 } from "./types";
 export const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
-export type { CharacterGear, CharacterTraits, WeaponData } from "./types";
+export { type CharacterGear, type CharacterTraits, type WeaponData } from "./types";
 
 export const useGameStore = create<GameStore>((set, get, ...args) => ({
 	...INITIAL_STATE,
@@ -35,7 +35,7 @@ export const useGameStore = create<GameStore>((set, get, ...args) => ({
 	setDifficulty: (difficulty) => {
 		const current = get().saveData.difficultyMode;
 		if (DIFFICULTY_ORDER.indexOf(difficulty) > DIFFICULTY_ORDER.indexOf(current)) {
-			set((state) => ({
+			set((state: GameStore) => ({
 				saveData: {
 					...state.saveData,
 					difficultyMode: difficulty,
@@ -45,14 +45,14 @@ export const useGameStore = create<GameStore>((set, get, ...args) => ({
 		}
 	},
 
-	// Slices
-	...createPlayerSlice(set, get, ...args),
-	...createWorldSlice(set, get, ...args),
-	...createEconomySlice(set, get, ...args),
-	...createCharacterSlice(set, get, ...args),
-	...createSaveSlice(set, get, ...args),
-	...createBaseSlice(set, get, ...args),
+		// Slices
+	...(createPlayerSlice(set, get, ...args) as any),
+	...(createWorldSlice(set, get, ...args) as any),
+	...(createEconomySlice(set, get, ...args) as any),
+	...(createCharacterSlice(set, get, ...args) as any),
+	...(createSaveSlice(set, get, ...args) as any),
+	...(createBaseSlice(set, get, ...args) as any),
 
 	// UI actions
-	toggleZoom: () => set((state) => ({ isZoomed: !state.isZoomed })),
+	toggleZoom: () => set((state: GameStore) => ({ isZoomed: !state.isZoomed })),
 }));

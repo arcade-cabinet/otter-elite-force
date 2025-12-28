@@ -1,4 +1,4 @@
-import type { TerrainType } from "../../types";
+import type { TerrainType } from "../types";
 
 export type PointOfInterestType =
 	| "LZ" // Landing zone / player spawn
