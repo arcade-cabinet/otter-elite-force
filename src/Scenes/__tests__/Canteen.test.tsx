@@ -173,6 +173,7 @@ describe("Canteen - Character Shop", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
 		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
+		expect(whiskersCard).toBeTruthy();
 		fireEvent.click(whiskersCard!);
 
 		// Modal should be visible with character details
@@ -184,6 +185,7 @@ describe("Canteen - Character Shop", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
 		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
+		expect(whiskersCard).toBeTruthy();
 		fireEvent.click(whiskersCard!);
 
 		// Now click the purchase button in modal
@@ -197,6 +199,7 @@ describe("Canteen - Character Shop", () => {
 		render(<Canteen />);
 		// Click on Whiskers card to open modal
 		const whiskersCard = screen.getByText("GEN. WHISKERS").closest("button");
+		expect(whiskersCard).toBeTruthy();
 		fireEvent.click(whiskersCard!);
 
 		// Modal should be open
@@ -207,7 +210,9 @@ describe("Canteen - Character Shop", () => {
 		fireEvent.click(cancelButton);
 
 		// Modal should be closed (no h3 visible)
-		expect(screen.queryByRole("heading", { level: 3, name: "GEN. WHISKERS" })).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole("heading", { level: 3, name: "GEN. WHISKERS" }),
+		).not.toBeInTheDocument();
 	});
 });
 

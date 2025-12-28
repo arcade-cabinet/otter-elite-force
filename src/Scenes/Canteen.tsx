@@ -10,10 +10,13 @@
 
 import { Environment } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Group } from "three";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, useGameStore } from "../stores/gameStore";
+
+// Color constants for theming
+const GROUND_PLANE_COLOR = "#332211";
 
 /** Slowly rotating character display for modal preview */
 function RotatingCharacterDisplay({
@@ -56,9 +59,35 @@ function PreviewModal({
 }) {
 	const canAfford = coins >= price;
 
+	// Handle Escape key to close modal (accessibility)
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				onCancel();
+			}
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [onCancel]);
+
 	return (
-		<div className="canteen-modal-overlay" onClick={onCancel}>
-			<div className="canteen-modal" onClick={(e) => e.stopPropagation()}>
+		<div
+			className="canteen-modal-overlay"
+			onClick={onCancel}
+			onKeyDown={(e) => {
+				if (e.key === "Escape") onCancel();
+			}}
+			role="button"
+			tabIndex={-1}
+			aria-label="Close modal"
+		>
+			<div
+				className="canteen-modal"
+				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
+				role="dialog"
+				aria-modal="true"
+			>
 				<div className="canteen-modal-3d">
 					<Canvas shadows camera={{ position: [0, 1.5, 4], fov: 35 }}>
 						<ambientLight intensity={0.6} />
@@ -71,7 +100,7 @@ function PreviewModal({
 						{/* Ground plane */}
 						<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
 							<circleGeometry args={[2, 32]} />
-							<meshStandardMaterial color="#332211" />
+							<meshStandardMaterial color={GROUND_PLANE_COLOR} />
 						</mesh>
 					</Canvas>
 				</div>
@@ -136,6 +165,7 @@ export function Canteen() {
 	const handlePurchase = () => {
 		if (previewCharId && spendCoins(previewPrice)) {
 			unlockCharacter(previewCharId);
+			setPreviewCharId(null); // Auto-close modal after successful purchase
 		}
 	};
 

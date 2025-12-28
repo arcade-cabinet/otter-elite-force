@@ -1,6 +1,10 @@
 import type { ChunkData } from "../../../types";
-import { getSeededRandom, generateChunkEntities } from "./entityGenerator";
-import { getWorldLayout, getKeyCoordinateForChunk, getTerrainForChunk } from "../../../worldGenerator";
+import {
+	getKeyCoordinateForChunk,
+	getTerrainForChunk,
+	getWorldLayout,
+} from "../../../worldGenerator";
+import { generateChunkEntities, getSeededRandom } from "./entityGenerator";
 
 /**
  * Procedural chunk generation logic
@@ -8,7 +12,7 @@ import { getWorldLayout, getKeyCoordinateForChunk, getTerrainForChunk } from "..
 export const generateChunk = (x: number, z: number): ChunkData => {
 	const id = `${x},${z}`;
 	const seed = Math.abs(x * 31 + z * 17);
-	
+
 	// Get world layout for intelligent placement
 	const layout = getWorldLayout();
 	const keyCoord = getKeyCoordinateForChunk(layout, x, z);
@@ -28,7 +32,11 @@ export const generateChunk = (x: number, z: number): ChunkData => {
 		entities,
 		decorations: [
 			{ id: `${id}-dec-0`, type: "REED", count: Math.floor(getSeededRandom(x, z, 100) * 20) + 10 },
-			{ id: `${id}-dec-1`, type: "LILYPAD", count: Math.floor(getSeededRandom(x, z, 101) * 15) + 5 },
+			{
+				id: `${id}-dec-1`,
+				type: "LILYPAD",
+				count: Math.floor(getSeededRandom(x, z, 101) * 15) + 5,
+			},
 			{ id: `${id}-dec-2`, type: "DEBRIS", count: Math.floor(getSeededRandom(x, z, 102) * 5) },
 			{ id: `${id}-dec-3`, type: "BURNT_TREE", count: terrainType === "DENSE_JUNGLE" ? 15 : 5 },
 			{ id: `${id}-dec-4`, type: "MANGROVE", count: terrainType === "DENSE_JUNGLE" ? 20 : 10 },
