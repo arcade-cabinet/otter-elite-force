@@ -132,9 +132,8 @@ export function GameLogic({
 				}
 				if (entity.type === "EXTRACTION_POINT" && dist < 3) {
 					const isLZ = chunk.x === 0 && chunk.z === 0;
-					const canExtract =
-						saveData.difficultyMode === "SUPPORT" ||
-						(saveData.difficultyMode !== "SUPPORT" && isLZ);
+					// In SUPPORT mode, can extract anywhere. In TACTICAL/ELITE, must be at LZ.
+					const canExtract = saveData.difficultyMode === "SUPPORT" || isLZ;
 
 					if (canExtract) {
 						if (!saveData.isLZSecured && isLZ) {

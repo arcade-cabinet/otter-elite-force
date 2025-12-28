@@ -179,6 +179,8 @@ export type ChunkEntity = {
 	captured?: boolean;
 	interacted?: boolean;
 	rescued?: boolean;
+	/** Pack identifier for coordinated enemy AI behavior */
+	packId?: string;
 };
 
 // =============================================================================
