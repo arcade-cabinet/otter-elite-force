@@ -3,7 +3,7 @@
  * Root component that manages game state and renders appropriate screens
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { audioEngine } from "./Core/AudioEngine";
 import { inputSystem } from "./Core/InputSystem";
 import { Canteen } from "./Scenes/Canteen";
@@ -15,6 +15,7 @@ import { HUD } from "./UI/HUD";
 
 export function App() {
 	const { mode, loadData } = useGameStore();
+	const inputInitialized = useRef(false);
 
 	// Initialize on mount
 	useEffect(() => {
@@ -26,9 +27,6 @@ export function App() {
 			await audioEngine.init();
 			audioEngine.playMusic("menu");
 		};
-
-		// Initialize input system
-		inputSystem.init();
 
 		// Setup audio initialization on first interaction
 		const handleInteraction = () => {
@@ -46,6 +44,22 @@ export function App() {
 			inputSystem.destroy();
 		};
 	}, [loadData]);
+
+	// Initialize input system when entering GAME mode (after HUD mounts with joystick zones)
+	useEffect(() => {
+		if (mode === "GAME" && !inputInitialized.current) {
+			// Small delay to ensure HUD's joystick zones are in DOM
+			const timer = setTimeout(() => {
+				inputSystem.destroy(); // Clean up any previous instance
+				inputSystem.init();
+				inputInitialized.current = true;
+			}, 100);
+			return () => clearTimeout(timer);
+		}
+		if (mode !== "GAME") {
+			inputInitialized.current = false;
+		}
+	}, [mode]);
 
 	useEffect(() => {
 		if (mode === "GAME") {
