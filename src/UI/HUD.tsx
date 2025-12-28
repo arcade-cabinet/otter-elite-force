@@ -157,13 +157,15 @@ export function HUD() {
 						top: "25%",
 						left: "50%",
 						transform: "translate(-50%, -50%)",
-						background: "rgba(150, 0, 0, 0.85)",
+						background: "rgba(100, 0, 0, 0.6)",
+						backdropFilter: "blur(4px)",
 						border: "2px solid #ff0000",
 						borderRadius: "8px",
 						padding: "15px 25px",
 						textAlign: "center",
 						zIndex: 55,
-						animation: "blink 1s infinite",
+						boxShadow: "0 0 20px rgba(255, 0, 0, 0.4)",
+						animation: "pulse 1s infinite",
 					}}
 				>
 					<div

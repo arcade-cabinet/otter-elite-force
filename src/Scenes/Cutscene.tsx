@@ -72,13 +72,13 @@ export function Cutscene() {
 					<PlayerRig
 						traits={CHARACTERS.whiskers.traits}
 						gear={CHARACTERS.whiskers.gear}
-						position={[-2, 0, 0]}
+						position={[-2, 0.45, 0]}
 						rotation={0.5}
 					/>
 					<PlayerRig
 						traits={character.traits}
 						gear={character.gear}
-						position={[2, 0, 0]}
+						position={[2, 0.45, 0]}
 						rotation={-0.5}
 					/>
 
