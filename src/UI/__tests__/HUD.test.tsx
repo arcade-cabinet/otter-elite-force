@@ -161,9 +161,15 @@ describe("HUD Component", () => {
 
 	describe("Territory and Peacekeeping Scores", () => {
 		it("displays territory score when greater than 0", () => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					territoryScore: 10,
+					discoveredChunks: { "0,0": { id: "0,0" } as any },
+				},
+			});
 			render(<HUD />);
-			// HUD uses shorter label "TERRITORY:" instead of "TERRITORY SECURED:"
-			expect(screen.getByText("TERRITORY: 10")).toBeInTheDocument();
+			expect(screen.getByText(/TERRITORY: 10 \/ 1/)).toBeInTheDocument();
 		});
 
 		it("hides territory score when 0", () => {
@@ -171,6 +177,7 @@ describe("HUD Component", () => {
 				saveData: {
 					...useGameStore.getState().saveData,
 					territoryScore: 0,
+					discoveredChunks: {},
 				},
 			});
 
@@ -190,11 +197,12 @@ describe("HUD Component", () => {
 				saveData: {
 					...useGameStore.getState().saveData,
 					territoryScore: 25,
+					discoveredChunks: { "0,0": {} as any },
 				},
 			});
 
 			rerender(<HUD />);
-			expect(screen.getByText("TERRITORY: 25")).toBeInTheDocument();
+			expect(screen.getByText(/TERRITORY: 25 \/ 1/)).toBeInTheDocument();
 		});
 	});
 
@@ -282,18 +290,19 @@ describe("HUD Component", () => {
 			useGameStore.setState({ isBuildMode: true });
 			render(<HUD />);
 
-			expect(screen.getByRole("button", { name: "+FLOOR" })).toBeInTheDocument();
-			expect(screen.getByRole("button", { name: "+WALL" })).toBeInTheDocument();
-			expect(screen.getByRole("button", { name: "+ROOF" })).toBeInTheDocument();
-			expect(screen.getByRole("button", { name: "+STILT" })).toBeInTheDocument();
+			expect(screen.getByRole("button", { name: "FLOOR" })).toBeInTheDocument();
+			expect(screen.getByRole("button", { name: "WALL" })).toBeInTheDocument();
+			expect(screen.getByRole("button", { name: "ROOF" })).toBeInTheDocument();
+			expect(screen.getByRole("button", { name: "STILT" })).toBeInTheDocument();
+			expect(screen.getByText(/PLACE/)).toBeInTheDocument();
 		});
 
 		it("hides build options when not in build mode", () => {
 			useGameStore.setState({ isBuildMode: false });
 			render(<HUD />);
 
-			expect(screen.queryByRole("button", { name: "+FLOOR" })).not.toBeInTheDocument();
-			expect(screen.queryByRole("button", { name: "+WALL" })).not.toBeInTheDocument();
+			expect(screen.queryByRole("button", { name: "FLOOR" })).not.toBeInTheDocument();
+			expect(screen.queryByRole("button", { name: "WALL" })).not.toBeInTheDocument();
 		});
 
 		it("BUILD button has active class when build mode is on", () => {
@@ -332,8 +341,21 @@ describe("HUD Component", () => {
 			expect(audioEngine.playSFX).toHaveBeenCalledWith("pickup");
 		});
 
-		it("hides DROP button in TACTICAL mode", () => {
+		it("shows DROP button in TACTICAL mode when at LZ", () => {
 			useGameStore.setState({
+				playerPos: [0, 0, 0],
+				saveData: {
+					...useGameStore.getState().saveData,
+					difficultyMode: "TACTICAL",
+				},
+			});
+			render(<HUD />);
+			expect(screen.getByRole("button", { name: "DROP" })).toBeInTheDocument();
+		});
+
+		it("hides DROP button in TACTICAL mode when away from LZ", () => {
+			useGameStore.setState({
+				playerPos: [100, 0, 100],
 				saveData: {
 					...useGameStore.getState().saveData,
 					difficultyMode: "TACTICAL",
@@ -343,8 +365,9 @@ describe("HUD Component", () => {
 			expect(screen.queryByRole("button", { name: "DROP" })).not.toBeInTheDocument();
 		});
 
-		it("hides DROP button in ELITE mode", () => {
+		it("hides DROP button in ELITE mode when away from LZ", () => {
 			useGameStore.setState({
+				playerPos: [100, 0, 100],
 				saveData: {
 					...useGameStore.getState().saveData,
 					difficultyMode: "ELITE",
@@ -360,33 +383,27 @@ describe("HUD Component", () => {
 			useGameStore.setState({ isBuildMode: true });
 		});
 
-		it("clicking +FLOOR button calls handlePlace", () => {
+		it("clicking FLOOR button selects it", () => {
 			render(<HUD />);
-			const floorBtn = screen.getByRole("button", { name: "+FLOOR" });
+			const floorBtn = screen.getByRole("button", { name: "FLOOR" });
 			fireEvent.click(floorBtn);
-			// handlePlace logs to console but doesn't change state yet
-			expect(floorBtn).toBeInTheDocument();
+			expect(useGameStore.getState().selectedComponentType).toBe("FLOOR");
 		});
 
-		it("clicking +WALL button calls handlePlace", () => {
+		it("clicking WALL button selects it", () => {
 			render(<HUD />);
-			const wallBtn = screen.getByRole("button", { name: "+WALL" });
+			const wallBtn = screen.getByRole("button", { name: "WALL" });
 			fireEvent.click(wallBtn);
-			expect(wallBtn).toBeInTheDocument();
+			expect(useGameStore.getState().selectedComponentType).toBe("WALL");
 		});
 
-		it("clicking +ROOF button calls handlePlace", () => {
+		it("clicking PLACE button calls placeComponent", () => {
+			useGameStore.setState({ selectedComponentType: "FLOOR" });
+			const spy = vi.spyOn(useGameStore.getState(), "placeComponent");
 			render(<HUD />);
-			const roofBtn = screen.getByRole("button", { name: "+ROOF" });
-			fireEvent.click(roofBtn);
-			expect(roofBtn).toBeInTheDocument();
-		});
-
-		it("clicking +STILT button calls handlePlace", () => {
-			render(<HUD />);
-			const stiltBtn = screen.getByRole("button", { name: "+STILT" });
-			fireEvent.click(stiltBtn);
-			expect(stiltBtn).toBeInTheDocument();
+			const placeBtn = screen.getByText(/PLACE FLOOR/);
+			fireEvent.click(placeBtn);
+			expect(spy).toHaveBeenCalled();
 		});
 	});
 

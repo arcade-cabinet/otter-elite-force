@@ -28,7 +28,14 @@ import { ChunkRenderer } from "./GameWorld/components/ChunkRenderer";
 import { GameLogic } from "./GameWorld/components/GameLogic";
 
 export function GameWorld() {
-	const { selectedCharacterId, saveData, isCarryingClam, isPilotingRaft } = useGameStore();
+	const {
+		selectedCharacterId,
+		saveData,
+		isCarryingClam,
+		isPilotingRaft,
+		isBuildMode,
+		selectedComponentType,
+	} = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 	const [playerPos] = useState(() => new THREE.Vector3(0, 0, 0));
 	const [, setPlayerVelY] = useState(0);
@@ -55,6 +62,20 @@ export function GameWorld() {
 		}));
 		setParticles((prev) => [...prev, ...newParticles]);
 	}, []);
+
+	// Ghost preview position logic
+	const ghostPos: [number, number, number] | null = isBuildMode
+		? [
+				Math.round(saveData.lastPlayerPosition[0] / 4) * 4,
+				Math.round(saveData.lastPlayerPosition[1]),
+				Math.round(saveData.lastPlayerPosition[2] / 4) * 4,
+			]
+		: null;
+
+	if (ghostPos) {
+		if (selectedComponentType === "ROOF") ghostPos[1] += 2.5;
+		if (selectedComponentType === "WALL") ghostPos[1] += 1;
+	}
 
 	return (
 		<Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
@@ -88,6 +109,17 @@ export function GameWorld() {
 				{isCarryingClam && <Clam position={new THREE.Vector3(0, 0.8, 0)} isCarried />}
 				{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
 			</PlayerRig>
+
+			{/* Render Ghost Preview */}
+			{isBuildMode && ghostPos && (
+				<>
+					{selectedComponentType === "FLOOR" && <BaseFloor position={ghostPos} ghost />}
+					{selectedComponentType === "WALL" && <BaseWall position={ghostPos} ghost />}
+					{selectedComponentType === "ROOF" && <BaseRoof position={ghostPos} ghost />}
+					{selectedComponentType === "STILT" && <BaseStilt position={ghostPos} ghost />}
+				</>
+			)}
+
 			{saveData.baseComponents.map((comp) => {
 				if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
 				if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;

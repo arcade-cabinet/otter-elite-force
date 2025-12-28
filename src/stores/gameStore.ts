@@ -21,6 +21,7 @@
  */
 
 import { create } from "zustand";
+import { audioEngine } from "../Core/AudioEngine";
 import { DIFFICULTY_ORDER, GAME_CONFIG, RANKS, STORAGE_KEY } from "../utils/constants";
 import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS } from "./gameData";
 import { DEFAULT_SAVE_DATA } from "./persistence";
@@ -100,6 +101,10 @@ interface GameState {
 	currentChunkId: string;
 	/** Whether base building mode is active */
 	isBuildMode: boolean;
+	/** Currently selected component type for building */
+	selectedComponentType: "FLOOR" | "WALL" | "ROOF" | "STILT";
+	/** Set the selected component type */
+	setSelectedComponentType: (type: "FLOOR" | "WALL" | "ROOF" | "STILT") => void;
 	/** Toggle base building mode */
 	setBuildMode: (active: boolean) => void;
 	/** Discover (or retrieve cached) chunk at coordinates */
@@ -144,6 +149,7 @@ interface GameState {
 	// UI state
 	isZoomed: boolean;
 	toggleZoom: () => void;
+	requestSupplyDrop: () => void;
 }
 
 // Use CHUNK_SIZE from GAME_CONFIG for consistency
@@ -166,11 +172,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
 	isBuildMode: false,
+	selectedComponentType: "FLOOR",
 	currentChunkId: "0,0",
 
 	// Mode management
 	setMode: (mode) => set({ mode }),
 	setBuildMode: (active) => set({ isBuildMode: active }),
+	setSelectedComponentType: (type) => set({ selectedComponentType: type }),
 	setDifficulty: (difficulty) => {
 		// Use centralized DIFFICULTY_ORDER constant for escalation logic
 		const current = get().saveData.difficultyMode;
@@ -274,6 +282,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 		// Add Predators
 		const entityCount = Math.floor(rand() * 5) + 2;
+		const packId = `pack-${id}`;
 		for (let i = 0; i < entityCount; i++) {
 			const type = rand() > 0.7 ? (rand() > 0.5 ? "SNAPPER" : "SNAKE") : "GATOR";
 			entities.push({
@@ -287,6 +296,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 				isHeavy: rand() > 0.8,
 				hp: type === "SNAPPER" ? 20 : type === "GATOR" ? 10 : 2,
 				suppression: 0,
+				packId: type !== "SNAKE" ? packId : undefined,
 			});
 		}
 
@@ -640,6 +650,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	toggleZoom: () => set((state) => ({ isZoomed: !state.isZoomed })),
+
+	requestSupplyDrop: () => {
+		const { saveData, heal, playerPos } = get();
+		const isAtLZ =
+			Math.abs(playerPos[0]) < CHUNK_SIZE / 2 && Math.abs(playerPos[2]) < CHUNK_SIZE / 2;
+
+		if (saveData.difficultyMode === "SUPPORT" || isAtLZ) {
+			heal(50);
+			audioEngine.playSFX("pickup");
+		}
+	},
 
 	collectSpoils: (type: "credit" | "clam") => {
 		set((state) => ({
