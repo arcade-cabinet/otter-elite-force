@@ -47,7 +47,13 @@ export function GasStockpile({
 	);
 }
 
-export function ClamBasket({ position, isTrap = false }: { position: THREE.Vector3; isTrap?: boolean }) {
+export function ClamBasket({
+	position,
+	isTrap = false,
+}: {
+	position: THREE.Vector3;
+	isTrap?: boolean;
+}) {
 	return (
 		<group position={position}>
 			<mesh castShadow receiveShadow>
@@ -59,7 +65,13 @@ export function ClamBasket({ position, isTrap = false }: { position: THREE.Vecto
 	);
 }
 
-export function PrisonCage({ position, rescued = false }: { position: THREE.Vector3; rescued?: boolean }) {
+export function PrisonCage({
+	position,
+	rescued = false,
+}: {
+	position: THREE.Vector3;
+	rescued?: boolean;
+}) {
 	return (
 		<group position={position}>
 			{!rescued && (

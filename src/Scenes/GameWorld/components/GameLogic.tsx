@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import * as THREE from "three";
 import { audioEngine } from "../../../Core/AudioEngine";
 import { inputSystem } from "../../../Core/InputSystem";
-import { ProjectilesHandle } from "../../../Entities/Projectiles";
+import type { ProjectilesHandle } from "../../../Entities/Projectiles";
 import {
 	CHUNK_SIZE,
 	type CharacterGear,
