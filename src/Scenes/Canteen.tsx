@@ -36,9 +36,12 @@ export function Canteen() {
 					<PlayerRig
 						traits={selectedChar.traits}
 						gear={selectedChar.gear}
-						position={[0, 0, 0]}
+						position={[0, 0.45, 0]}
 						rotation={0}
 					/>
+
+					<pointLight position={[2, 2, 2]} intensity={0.5} color="#fff" />
+					<pointLight position={[-2, 1, 2]} intensity={0.3} color="#ffa" />
 
 					<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
 						<planeGeometry args={[10, 10]} />
