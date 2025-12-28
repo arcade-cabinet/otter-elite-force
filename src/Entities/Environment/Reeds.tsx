@@ -32,7 +32,7 @@ export function Reeds({ count = 40, seed = 0 }) {
 
 	return (
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<cylinderGeometry args={[0.5, 0.5, 1, 8]} />
+			<cylinderGeometry args={[0.5, 0.5, 1, 16]} />
 			<meshStandardMaterial color="#4d7a2b" roughness={0.9} />
 		</instancedMesh>
 	);

@@ -49,7 +49,7 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 	return (
 		<group ref={groupRef} position={[data.position.x, 0.2, data.position.z]}>
 			<mesh castShadow receiveShadow>
-				<sphereGeometry args={[1.5, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
+				<sphereGeometry args={[1.5, 40, 32, 0, Math.PI * 2, 0, Math.PI / 2]} />
 				<meshStandardMaterial color={shellColor} roughness={1} />
 			</mesh>
 
@@ -63,23 +63,23 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 					]}
 					rotation-x={-0.5}
 				>
-					<boxGeometry args={[0.3, 0.4, 0.3]} />
+					<sphereGeometry args={[0.2, 16, 16]} />
 					<meshStandardMaterial color={shellColor} />
 				</mesh>
 			))}
 
 			<group ref={turretRef} position={[0, 0.8, 0]}>
 				<mesh castShadow>
-					<boxGeometry args={[0.4, 0.4, 1.2]} />
+					<capsuleGeometry args={[0.2, 0.8, 12, 24]} />
 					<meshStandardMaterial color="#111" metalness={0.8} />
 				</mesh>
 				<mesh position={[0, 0, 0.8]} rotation-x={Math.PI / 2}>
-					<cylinderGeometry args={[0.1, 0.1, 1.5, 8]} />
+					<cylinderGeometry args={[0.1, 0.1, 1.5, 32]} />
 					<meshStandardMaterial color="#222" metalness={0.9} />
 				</mesh>
 				{isFiring && (
 					<mesh position={[0, 0, 1.6]}>
-						<sphereGeometry args={[0.3, 8, 8]} />
+						<sphereGeometry args={[0.3, 24, 24]} />
 						<meshBasicMaterial color="#ffaa00" transparent opacity={0.8} />
 						<pointLight distance={5} intensity={2} color="#ffaa00" />
 					</mesh>
@@ -87,7 +87,7 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 			</group>
 
 			<mesh position={[0, 0.3, 1.4]} rotation-x={0.2} scale={[1, 0.8, 1.2]}>
-				<sphereGeometry args={[0.4, 12, 12]} />
+				<sphereGeometry args={[0.4, 24, 24]} />
 				<meshStandardMaterial color={bodyColor} />
 			</mesh>
 

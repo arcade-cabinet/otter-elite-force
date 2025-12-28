@@ -63,6 +63,9 @@ export function HUD() {
 	const showFirstObjective =
 		!saveData.isLZSecured && Object.keys(saveData.discoveredChunks).length < 3;
 
+	// The Fall mechanic for TACTICAL mode
+	const showTheFall = saveData.difficultyMode === "TACTICAL" && saveData.isFallTriggered;
+
 	const handlePlace = useCallback(
 		(type: "FLOOR" | "WALL" | "ROOF" | "STILT") => {
 			const pos: [number, number, number] = [
@@ -141,6 +144,42 @@ export function HUD() {
 					<div style={{ color: "#fff", fontSize: "1rem" }}>SECURE YOUR LZ</div>
 					<div style={{ color: "#888", fontSize: "0.8rem", marginTop: "8px" }}>
 						Return to coordinates (0, 0) and establish your base
+					</div>
+				</div>
+			)}
+
+			{/* The Fall Warning (TACTICAL mode) */}
+			{showTheFall && (
+				<div
+					className="fall-warning"
+					style={{
+						position: "absolute",
+						top: "25%",
+						left: "50%",
+						transform: "translate(-50%, -50%)",
+						background: "rgba(100, 0, 0, 0.6)",
+						backdropFilter: "blur(4px)",
+						border: "2px solid #ff0000",
+						borderRadius: "8px",
+						padding: "15px 25px",
+						textAlign: "center",
+						zIndex: 55,
+						boxShadow: "0 0 20px rgba(255, 0, 0, 0.4)",
+						animation: "pulse 1s infinite",
+					}}
+				>
+					<div
+						style={{
+							color: "#fff",
+							fontSize: "1.4rem",
+							fontWeight: "bold",
+							letterSpacing: "2px",
+						}}
+					>
+						THE FALL
+					</div>
+					<div style={{ color: "#fff", fontSize: "0.9rem", marginTop: "5px" }}>
+						CRITICAL INTEGRITY - RETURN TO LZ (0, 0)
 					</div>
 				</div>
 			)}

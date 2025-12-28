@@ -27,7 +27,7 @@ export function Canteen() {
 	return (
 		<div className="screen active canteen-screen">
 			<div className="canteen-3d">
-				<Canvas shadows camera={{ position: [0, 2, 5], fov: 45 }}>
+				<Canvas shadows camera={{ position: [2, 1.5, 4], fov: 40 }}>
 					<ambientLight intensity={0.5} />
 					<directionalLight position={[5, 5, 5]} intensity={1} castShadow />
 					<Sky sunPosition={[100, 10, 100]} />
@@ -36,9 +36,12 @@ export function Canteen() {
 					<PlayerRig
 						traits={selectedChar.traits}
 						gear={selectedChar.gear}
-						position={[0, 0, 0]}
+						position={[0, 0.45, 0]}
 						rotation={0}
 					/>
+
+					<pointLight position={[2, 2, 2]} intensity={0.5} color="#fff" />
+					<pointLight position={[-2, 1, 2]} intensity={0.3} color="#ffa" />
 
 					<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
 						<planeGeometry args={[10, 10]} />
@@ -47,8 +50,9 @@ export function Canteen() {
 
 					<OrbitControls
 						enableZoom={false}
-						minPolarAngle={Math.PI / 3}
+						minPolarAngle={Math.PI / 4}
 						maxPolarAngle={Math.PI / 2}
+						target={[0, 0.5, 0]}
 					/>
 				</Canvas>
 			</div>

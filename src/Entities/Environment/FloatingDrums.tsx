@@ -32,7 +32,7 @@ export function FloatingDrums({ count = 10, seed = 0 }) {
 
 	return (
 		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<cylinderGeometry args={[0.5, 0.5, 1, 12]} />
+			<cylinderGeometry args={[0.5, 0.5, 1, 32]} />
 			<meshStandardMaterial color="#555" metalness={0.7} roughness={0.3} />
 		</instancedMesh>
 	);

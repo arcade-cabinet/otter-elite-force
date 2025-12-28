@@ -6,7 +6,7 @@
  */
 
 import fs from "node:fs";
-import { formatBytes, formatDiff } from "./bundle-utils.js";
+import { formatDiff } from "./bundle-utils.js";
 
 const PR_BUNDLE_PATH = "pr-bundle-size.json";
 const BASE_BUNDLE_PATH = "base-bundle-size.json";
@@ -33,12 +33,7 @@ function compareBundleSizes() {
 
 	// Determine status
 	const emoji = diff > 0 ? "📈" : diff < 0 ? "📉" : "✅";
-	const status =
-		Math.abs(diff) < 10000
-			? "acceptable"
-			: diff > 0
-				? "increased"
-				: "decreased";
+	const status = Math.abs(diff) < 10000 ? "acceptable" : diff > 0 ? "increased" : "decreased";
 
 	// Build markdown comment
 	let comment = `## ${emoji} Bundle Size Report\n\n`;
@@ -60,8 +55,7 @@ function compareBundleSizes() {
 		comment += `- \`${file.path}\` - ${file.formatted}\n`;
 	}
 
-	comment +=
-		"\n*Bundle size tracking helps monitor application performance and load times.*";
+	comment += "\n*Bundle size tracking helps monitor application performance and load times.*";
 
 	// Write comment to file
 	fs.writeFileSync(OUTPUT_PATH, comment);

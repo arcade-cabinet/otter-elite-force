@@ -104,26 +104,30 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 
 			// Tail always has subtle movement - otters use it for balance
 			if (tailRef.current) {
-				tailRef.current.rotation.x = -0.3 + Math.sin(time * 2) * 0.1;
-				tailRef.current.rotation.z = Math.sin(time * 3) * 0.15;
+				// Smooth serpentine tail movement
+				tailRef.current.children.forEach((segment, i) => {
+					segment.rotation.y = Math.sin(time * 3 - i * 0.5) * 0.1;
+					segment.rotation.x = Math.sin(time * 2 - i * 0.3) * 0.05;
+				});
 			}
 
 			if (isClimbing) {
-				if (legLRef.current && legRRef.current) {
-					legLRef.current.rotation.x = -Math.PI / 4 + Math.sin(time * 10) * 0.3;
-					legRRef.current.rotation.x = -Math.PI / 4 + Math.sin(time * 10 + Math.PI) * 0.3;
-				}
+				// Climbing gait
+				const speed = time * 10;
+				if (legLRef.current) legLRef.current.rotation.x = -Math.PI / 4 + Math.sin(speed) * 0.4;
+				if (legRRef.current)
+					legRRef.current.rotation.x = -Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
 				if (armLRef.current)
-					armLRef.current.rotation.x = Math.PI / 4 + Math.sin(time * 10 + Math.PI) * 0.3;
-				if (armRRef.current) armRRef.current.rotation.x = Math.PI / 4 + Math.sin(time * 10) * 0.3;
+					armLRef.current.rotation.x = Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
+				if (armRRef.current) armRRef.current.rotation.x = Math.PI / 4 + Math.sin(speed) * 0.4;
 				return;
 			}
 
 			if (headRef.current) {
 				// Subtle breathing/idle head bob
-				headRef.current.position.y = 1.5 + Math.sin(time * 2.5) * 0.015;
+				headRef.current.position.y = 0.55 + Math.sin(time * 2.5) * 0.01;
 				if (isMoving) {
-					headRef.current.rotation.z = Math.sin(time * 12) * 0.04;
+					headRef.current.rotation.z = Math.sin(time * 12) * 0.03;
 					headRef.current.rotation.x = Math.sin(time * 6) * 0.02;
 				} else {
 					headRef.current.rotation.z = THREE.MathUtils.lerp(headRef.current.rotation.z, 0, 0.1);
@@ -131,53 +135,49 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 				}
 			}
 
-			if (legLRef.current && legRRef.current) {
-				if (isMoving) {
-					// Natural quadruped-like gait
-					legLRef.current.rotation.x = Math.sin(time * 14) * 0.7;
-					legRRef.current.rotation.x = Math.sin(time * 14 + Math.PI) * 0.7;
-				} else {
-					legLRef.current.rotation.x = THREE.MathUtils.lerp(legLRef.current.rotation.x, 0, 0.1);
-					legRRef.current.rotation.x = THREE.MathUtils.lerp(legRRef.current.rotation.x, 0, 0.1);
-				}
-			}
+			if (isMoving) {
+				// Natural quadruped gait - diagonal pairs move together
+				const walkSpeed = time * 14;
+				if (legLRef.current) legLRef.current.rotation.x = Math.sin(walkSpeed) * 0.6;
+				if (armRRef.current) armRRef.current.rotation.x = Math.sin(walkSpeed) * 0.6;
 
-			if (armLRef.current) {
-				if (isMoving) {
-					armLRef.current.rotation.x = Math.sin(time * 14 + Math.PI) * 0.4;
-				} else {
-					armLRef.current.rotation.x = THREE.MathUtils.lerp(armLRef.current.rotation.x, 0, 0.1);
-				}
+				if (legRRef.current) legRRef.current.rotation.x = Math.sin(walkSpeed + Math.PI) * 0.6;
+				if (armLRef.current) armLRef.current.rotation.x = Math.sin(walkSpeed + Math.PI) * 0.6;
+			} else {
+				[legLRef, legRRef, armLRef, armRRef].forEach((ref) => {
+					if (ref.current)
+						ref.current.rotation.x = THREE.MathUtils.lerp(ref.current.rotation.x, 0, 0.1);
+				});
 			}
 
 			// Tail swishes more when moving
 			if (tailRef.current && isMoving) {
-				tailRef.current.rotation.z = Math.sin(time * 8) * 0.25;
+				tailRef.current.rotation.z = Math.sin(time * 8) * 0.15;
 			}
 		});
 
-		// Webbed paw component - realistic otter foot with webbing
+		// Webbed paw component - high detail realistic otter foot
 		const WebbedPaw = ({ scale = 1 }: { scale?: number }) => (
 			<group scale={scale}>
 				{/* Main paw pad */}
-				<mesh position={[0, -0.15, 0.05]} material={materials.snout}>
-					<sphereGeometry args={[0.12, 8, 8]} />
+				<mesh position={[0, -0.1, 0.02]} material={materials.snout}>
+					<sphereGeometry args={[0.1, 16, 16]} />
 				</mesh>
 				{/* Toes with webbing */}
-				{[-0.08, -0.03, 0.03, 0.08].map((x, i) => (
+				{[-0.07, -0.025, 0.025, 0.07].map((x, i) => (
 					<group key={`toe-${i}`}>
 						{/* Individual toe */}
-						<mesh position={[x, -0.2, 0.12]} material={materials.fur}>
-							<sphereGeometry args={[0.04, 6, 6]} />
+						<mesh position={[x, -0.12, 0.08]} material={materials.fur}>
+							<sphereGeometry args={[0.035, 12, 12]} />
 						</mesh>
 						{/* Webbing between toes */}
 						{i < 3 && (
 							<mesh
-								position={[(x + (x + 0.05)) / 2, -0.18, 0.1]}
-								rotation-x={-0.3}
+								position={[(x + (x + 0.05)) / 2, -0.11, 0.06]}
+								rotation-x={-0.2}
 								material={materials.webbing}
 							>
-								<planeGeometry args={[0.05, 0.08]} />
+								<planeGeometry args={[0.04, 0.06]} />
 							</mesh>
 						)}
 					</group>
@@ -189,287 +189,188 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 			<group ref={ref} position={position} rotation-y={rotation}>
 				{children}
 
-				{/* === BODY - Sleek elongated otter torso === */}
-				{/* Upper torso - slightly compressed for streamlined look */}
-				<mesh position={[0, 1.05, 0]} castShadow receiveShadow material={materials.fur}>
-					<sphereGeometry args={[0.48, 16, 16]} />
-				</mesh>
-				{/* Mid torso - elongated core */}
-				<mesh position={[0, 0.7, 0]} castShadow receiveShadow material={materials.fur}>
-					<capsuleGeometry args={[0.4, 0.4, 8, 16]} />
-				</mesh>
-				{/* Lower torso connecting to tail */}
-				<mesh position={[0, 0.4, -0.1]} castShadow receiveShadow material={materials.fur}>
-					<sphereGeometry args={[0.35, 12, 12]} />
-				</mesh>
-				{/* Underbelly - lighter coloration */}
-				<mesh position={[0, 0.7, 0.2]} material={materials.underFur}>
-					<sphereGeometry args={[0.32, 12, 12]} />
-				</mesh>
-
-				{/* === THICK RUDDER TAIL - Otter's iconic feature === */}
-				<group ref={tailRef} position={[0, 0.35, -0.4]} rotation-x={-0.3}>
-					{/* Tail base - thick and muscular */}
-					<mesh position={[0, 0, 0]} rotation-x={Math.PI / 2} castShadow material={materials.fur}>
-						<capsuleGeometry args={[0.18, 0.5, 8, 12]} />
+				{/* === QUADRUPEDAL BODY - Horizontal streamlined otter torso === */}
+				<group position={[0, 0.45, 0]}>
+					{/* Lower torso / Hips */}
+					<mesh position={[0, 0, -0.4]} castShadow receiveShadow material={materials.fur}>
+						<sphereGeometry args={[0.35, 32, 32]} />
 					</mesh>
-					{/* Tail mid - tapered */}
+
+					{/* Main elongated body capsule */}
 					<mesh
-						position={[0, 0, -0.5]}
+						position={[0, 0, 0]}
 						rotation-x={Math.PI / 2}
 						castShadow
+						receiveShadow
 						material={materials.fur}
 					>
-						<capsuleGeometry args={[0.14, 0.4, 8, 12]} />
+						<capsuleGeometry args={[0.32, 0.8, 24, 32]} />
 					</mesh>
-					{/* Tail tip - slightly flattened like a rudder */}
-					<mesh
-						position={[0, 0, -0.9]}
-						rotation-x={Math.PI / 2}
-						castShadow
-						material={materials.fur}
-					>
-						<capsuleGeometry args={[0.08, 0.3, 8, 12]} />
-					</mesh>
-				</group>
 
-				{/* === GEAR: TACTICAL VEST === */}
-				{gear.vest === "tactical" && (
-					<group position={[0, 0.85, 0]}>
-						<mesh>
-							<cylinderGeometry args={[0.52, 0.48, 0.6, 12]} />
-							<meshStandardMaterial color="#2a3a4a" roughness={0.7} />
-						</mesh>
-						{/* Vest pockets/pouches */}
-						{[-0.35, 0.35].map((x) => (
-							<mesh key={`pouch-${x}`} position={[x, -0.1, 0.35]}>
-								<boxGeometry args={[0.15, 0.2, 0.1]} />
-								<meshStandardMaterial color="#1a2a3a" />
+					{/* Upper torso / Shoulders */}
+					<mesh position={[0, 0.05, 0.4]} castShadow receiveShadow material={materials.fur}>
+						<sphereGeometry args={[0.36, 32, 32]} />
+					</mesh>
+
+					{/* Underbelly - lighter coloration */}
+					<mesh position={[0, -0.15, 0]} rotation-x={Math.PI / 2} material={materials.underFur}>
+						<capsuleGeometry args={[0.25, 0.7, 16, 24]} />
+					</mesh>
+
+					{/* === TACTICAL GEAR === */}
+					{gear.vest === "tactical" && (
+						<group position={[0, 0.1, 0]}>
+							<mesh rotation-x={Math.PI / 2}>
+								<cylinderGeometry args={[0.38, 0.38, 0.6, 32]} />
+								<meshStandardMaterial color="#2a3a4a" roughness={0.7} />
+							</mesh>
+							{/* Side pouches */}
+							{[-0.35, 0.35].map((x) => (
+								<mesh key={`pouch-${x}`} position={[x, 0.15, 0]}>
+									<boxGeometry args={[0.1, 0.2, 0.3]} />
+									<meshStandardMaterial color="#1a2a3a" />
+								</mesh>
+							))}
+						</group>
+					)}
+
+					{/* === TAIL - Iconically thick and tapered === */}
+					<group ref={tailRef} position={[0, -0.05, -0.65]} rotation-x={-0.1}>
+						{[0.2, 0.15, 0.1, 0.05].map((radius, i) => (
+							<mesh
+								key={`tail-seg-${i}`}
+								position={[0, 0, -i * 0.4]}
+								rotation-x={Math.PI / 2}
+								castShadow
+								material={materials.fur}
+							>
+								<capsuleGeometry args={[radius, 0.4, 16, 24]} />
 							</mesh>
 						))}
 					</group>
-				)}
-				{gear.vest === "heavy" && (
-					<group position={[0, 0.85, 0]}>
-						<mesh>
-							<cylinderGeometry args={[0.56, 0.52, 0.7, 12]} />
-							<meshStandardMaterial color="#3a4a2a" metalness={0.2} roughness={0.5} />
+
+					{/* === LEGS - Quadrupedal arrangement === */}
+					{/* Back Legs */}
+					<group ref={legLRef} position={[-0.25, -0.1, -0.4]}>
+						<mesh position={[0, -0.15, 0]} material={materials.fur} castShadow>
+							<capsuleGeometry args={[0.12, 0.3, 12, 16]} />
 						</mesh>
-						{/* Armor plates */}
-						<mesh position={[0, 0, 0.4]}>
-							<boxGeometry args={[0.4, 0.5, 0.08]} />
-							<meshStandardMaterial color="#4a5a3a" metalness={0.4} />
-						</mesh>
+						<group position={[0, -0.3, 0.05]}>
+							<WebbedPaw scale={0.9} />
+						</group>
 					</group>
-				)}
-
-				{/* === HEAD - Realistic otter head === */}
-				<group ref={headRef} position={[0, 1.5, 0]}>
-					{/* Main skull - slightly flattened */}
-					<mesh castShadow material={materials.fur}>
-						<sphereGeometry args={[0.38, 24, 24]} />
-					</mesh>
-					{/* Forehead ridge */}
-					<mesh position={[0, 0.15, 0.1]} material={materials.fur}>
-						<sphereGeometry args={[0.25, 12, 12]} />
-					</mesh>
-
-					{/* === SNOUT === */}
-					<group position={[0, -0.08, 0.28]}>
-						{/* Main snout - broad and flat like otter */}
-						<mesh material={materials.snout}>
-							<sphereGeometry args={[0.22, 16, 16]} />
+					<group ref={legRRef} position={[0.25, -0.1, -0.4]}>
+						<mesh position={[0, -0.15, 0]} material={materials.fur} castShadow>
+							<capsuleGeometry args={[0.12, 0.3, 12, 16]} />
 						</mesh>
-						{/* Nose pad - wet look */}
-						<mesh position={[0, 0.05, 0.2]}>
-							<sphereGeometry args={[0.08, 12, 12]} />
-							<meshStandardMaterial color="#1a1a1a" roughness={0.2} metalness={0.3} />
+						<group position={[0, -0.3, 0.05]}>
+							<WebbedPaw scale={0.9} />
+						</group>
+					</group>
+
+					{/* Front Legs */}
+					<group ref={armLRef} position={[-0.25, -0.1, 0.4]}>
+						<mesh position={[0, -0.15, 0]} material={materials.fur} castShadow>
+							<capsuleGeometry args={[0.11, 0.28, 12, 16]} />
 						</mesh>
-						{/* Nostrils */}
-						{[-0.03, 0.03].map((x) => (
-							<mesh key={`nostril-${x}`} position={[x, 0.05, 0.25]}>
-								<sphereGeometry args={[0.015, 6, 6]} />
-								<meshBasicMaterial color="#000" />
+						<group position={[0, -0.3, 0.05]}>
+							<WebbedPaw scale={0.8} />
+						</group>
+					</group>
+					<group ref={armRRef} position={[0.25, -0.1, 0.4]}>
+						<mesh position={[0, -0.15, 0]} material={materials.fur} castShadow>
+							<capsuleGeometry args={[0.11, 0.28, 12, 16]} />
+						</mesh>
+						<group position={[0, -0.3, 0.05]}>
+							<WebbedPaw scale={0.8} />
+						</group>
+						{/* Weapon remains attached to front right leg area for now */}
+						<group position={[0.1, 0, 0.1]}>
+							<Weapon weaponId={gear.weaponId} muzzleRef={muzzleRef} />
+						</group>
+					</group>
+
+					{/* === NECK & HEAD === */}
+					<group ref={headRef} position={[0, 0.1, 0.55]}>
+						{/* Neck */}
+						<mesh
+							position={[0, 0.15, 0.1]}
+							rotation-x={-Math.PI / 4}
+							material={materials.fur}
+							castShadow
+						>
+							<capsuleGeometry args={[0.18, 0.3, 16, 24]} />
+						</mesh>
+
+						{/* Head Group */}
+						<group position={[0, 0.45, 0.2]}>
+							{/* Skull */}
+							<mesh castShadow material={materials.fur}>
+								<sphereGeometry args={[0.3, 32, 32]} />
 							</mesh>
-						))}
 
-						{/* === WHISKERS - 3 rows on each side === */}
-						{[-1, 1].map((side) => (
-							<group key={`whiskers-${side}`} position={[side * 0.15, 0, 0.1]}>
-								{[0, 1, 2].map((row) => (
-									<mesh
-										key={`whisker-${side}-${row}`}
-										position={[side * 0.03, -0.02 + row * 0.04, 0]}
-										rotation-z={side * (0.15 + row * 0.1)}
-										rotation-y={side * 0.3}
-									>
-										<cylinderGeometry args={[0.003, 0.001, traits.whiskerLength + row * 0.05, 4]} />
-										<meshBasicMaterial color="#ddd" transparent opacity={0.7} />
-									</mesh>
+							{/* Snout */}
+							<group position={[0, -0.1, 0.22]}>
+								<mesh material={materials.snout}>
+									<sphereGeometry args={[0.18, 24, 24]} />
+								</mesh>
+								{/* Nose */}
+								<mesh position={[0, 0.05, 0.15]}>
+									<sphereGeometry args={[0.06, 16, 16]} />
+									<meshStandardMaterial color="#111" roughness={0.2} />
+								</mesh>
+								{/* Whiskers */}
+								{[-1, 1].map((side) => (
+									<group key={`whiskers-${side}`} position={[side * 0.12, 0, 0.1]}>
+										{[0, 1, 2].map((row) => (
+											<mesh
+												key={`whisker-${side}-${row}`}
+												position={[side * 0.02, -0.02 + row * 0.03, 0]}
+												rotation-z={side * (0.2 + row * 0.1)}
+												rotation-y={side * 0.3}
+											>
+												<cylinderGeometry
+													args={[0.002, 0.0005, traits.whiskerLength + row * 0.04, 8]}
+												/>
+												<meshBasicMaterial color="#ddd" transparent opacity={0.6} />
+											</mesh>
+										))}
+									</group>
 								))}
 							</group>
-						))}
-					</group>
 
-					{/* === EYES - Bright, intelligent === */}
-					{[-1, 1].map((side) => (
-						<group key={`eye-${side}`} position={[side * 0.18, 0.08, 0.28]}>
-							{/* Eye socket/brow */}
-							<mesh position={[0, 0.06, -0.02]} rotation-z={side * 0.15} material={materials.fur}>
-								<sphereGeometry args={[0.08, 8, 8]} />
-							</mesh>
-							{/* Eyeball */}
-							<mesh material={materials.eye}>
-								<sphereGeometry args={[0.055, 12, 12]} />
-							</mesh>
-							{/* Pupil */}
-							<mesh position={[0, 0, 0.04]}>
-								<sphereGeometry args={[0.03, 8, 8]} />
-								<meshBasicMaterial color="#000" />
-							</mesh>
-							{/* Eye highlight/glint */}
-							<mesh position={[side * 0.02, 0.02, 0.05]} material={materials.eyeHighlight}>
-								<sphereGeometry args={[0.012, 6, 6]} />
-							</mesh>
+							{/* Eyes */}
+							{[-1, 1].map((side) => (
+								<group key={`eye-${side}`} position={[side * 0.15, 0.1, 0.22]}>
+									<mesh material={materials.eye}>
+										<sphereGeometry args={[0.045, 16, 16]} />
+									</mesh>
+									<mesh position={[0, 0, 0.035]} material={materials.eyeHighlight}>
+										<sphereGeometry args={[0.01, 8, 8]} />
+									</mesh>
+								</group>
+							))}
+
+							{/* Ears */}
+							{[-1, 1].map((side) => (
+								<mesh
+									key={`ear-${side}`}
+									position={[side * 0.28, 0.2, -0.05]}
+									rotation-z={side * 0.3}
+									material={materials.fur}
+								>
+									<sphereGeometry args={[0.08, 16, 16]} />
+								</mesh>
+							))}
+
+							{/* Headgear */}
+							{gear.headgear === "helmet" && (
+								<mesh position={[0, 0.2, 0]} rotation-x={0.1}>
+									<sphereGeometry args={[0.35, 32, 24, 0, Math.PI * 2, 0, Math.PI / 2]} />
+									<meshStandardMaterial color="#3d4d29" roughness={0.7} />
+								</mesh>
+							)}
 						</group>
-					))}
-
-					{/* === EARS - Small, rounded, close to head === */}
-					{[-1, 1].map((side) => (
-						<group key={`ear-${side}`} position={[side * 0.32, 0.25, -0.05]}>
-							{/* Outer ear */}
-							<mesh rotation-z={side * 0.4} material={materials.fur}>
-								<sphereGeometry args={[0.1, 10, 10]} />
-							</mesh>
-							{/* Inner ear (pink) */}
-							<mesh position={[side * 0.02, 0, 0.03]} rotation-z={side * 0.4}>
-								<sphereGeometry args={[0.06, 8, 8]} />
-								<meshStandardMaterial color="#c4a088" roughness={0.8} />
-							</mesh>
-						</group>
-					))}
-
-					{/* Scar for grizzled veterans */}
-					{traits.grizzled && (
-						<mesh position={[0.15, 0.2, 0.3]} rotation-z={0.6}>
-							<boxGeometry args={[0.015, 0.12, 0.01]} />
-							<meshBasicMaterial color="#8a6060" />
-						</mesh>
-					)}
-
-					{/* === HEADGEAR === */}
-					{gear.headgear === "bandana" && (
-						<mesh position={[0, 0.2, 0]} rotation-x={Math.PI / 2}>
-							<torusGeometry args={[0.36, 0.06, 8, 24]} />
-							<meshStandardMaterial color="#cc8800" roughness={0.8} />
-						</mesh>
-					)}
-					{gear.headgear === "beret" && (
-						<group position={[0.1, 0.32, 0]} rotation-z={-0.25}>
-							<mesh>
-								<cylinderGeometry args={[0.35, 0.4, 0.12, 16]} />
-								<meshStandardMaterial color="#8b0000" roughness={0.9} />
-							</mesh>
-							{/* Beret badge */}
-							<mesh position={[-0.15, 0.02, 0.3]}>
-								<circleGeometry args={[0.06, 8]} />
-								<meshStandardMaterial color="#d4af37" metalness={0.7} />
-							</mesh>
-						</group>
-					)}
-					{gear.headgear === "helmet" && (
-						<mesh position={[0, 0.28, 0]} rotation-x={0.15}>
-							<sphereGeometry args={[0.42, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-							<meshStandardMaterial color="#3d4d29" roughness={0.7} metalness={0.1} />
-						</mesh>
-					)}
-				</group>
-
-				{/* === BACKGEAR === */}
-				{gear.backgear === "radio" && (
-					<group position={[0, 0.95, -0.4]}>
-						<mesh>
-							<boxGeometry args={[0.5, 0.7, 0.25]} />
-							<meshStandardMaterial color="#2a2a1a" roughness={0.8} />
-						</mesh>
-						{/* Antenna */}
-						<mesh position={[0.15, 0.5, 0]}>
-							<cylinderGeometry args={[0.015, 0.01, 0.7, 6]} />
-							<meshStandardMaterial color="#111" metalness={0.5} />
-						</mesh>
-					</group>
-				)}
-				{gear.backgear === "scuba" && (
-					<group position={[0, 0.9, -0.4]}>
-						<mesh rotation-x={Math.PI / 2}>
-							<cylinderGeometry args={[0.15, 0.15, 0.6, 12]} />
-							<meshStandardMaterial color="#ffdd00" metalness={0.6} roughness={0.3} />
-						</mesh>
-						{/* Regulator hose */}
-						<mesh position={[0.1, 0.3, 0.2]} rotation-z={0.5}>
-							<cylinderGeometry args={[0.02, 0.02, 0.4, 6]} />
-							<meshStandardMaterial color="#333" />
-						</mesh>
-					</group>
-				)}
-
-				{/* === ARMS with webbed paws === */}
-				<group ref={armLRef} position={[-0.55, 1.0, 0.1]}>
-					{/* Upper arm */}
-					<mesh rotation-z={0.3} castShadow material={materials.fur}>
-						<capsuleGeometry args={[0.12, 0.35, 6, 12]} />
-					</mesh>
-					{/* Forearm */}
-					<mesh position={[-0.1, -0.35, 0.1]} rotation-z={0.1} castShadow material={materials.fur}>
-						<capsuleGeometry args={[0.1, 0.3, 6, 12]} />
-					</mesh>
-					{/* Webbed paw */}
-					<group position={[-0.1, -0.55, 0.15]}>
-						<WebbedPaw scale={0.8} />
-					</group>
-				</group>
-
-				<group ref={armRRef} position={[0.55, 1.0, 0.1]}>
-					{/* Weapon arm - posed for holding */}
-					<mesh
-						rotation-x={-Math.PI / 3}
-						position={[0, -0.1, 0.25]}
-						castShadow
-						material={materials.fur}
-					>
-						<capsuleGeometry args={[0.12, 0.5, 6, 12]} />
-					</mesh>
-					<Weapon weaponId={gear.weaponId} muzzleRef={muzzleRef} />
-				</group>
-
-				{/* === LEGS with webbed feet === */}
-				<group ref={legLRef} position={[-0.28, 0.3, 0]}>
-					{/* Thigh */}
-					<mesh castShadow material={materials.fur}>
-						<capsuleGeometry args={[0.14, 0.35, 6, 12]} />
-					</mesh>
-					{/* Lower leg */}
-					<mesh position={[0, -0.35, 0.05]} castShadow material={materials.fur}>
-						<capsuleGeometry args={[0.11, 0.25, 6, 12]} />
-					</mesh>
-					{/* Webbed foot */}
-					<group position={[0, -0.55, 0.1]}>
-						<WebbedPaw scale={1} />
-					</group>
-				</group>
-
-				<group ref={legRRef} position={[0.28, 0.3, 0]}>
-					{/* Thigh */}
-					<mesh castShadow material={materials.fur}>
-						<capsuleGeometry args={[0.14, 0.35, 6, 12]} />
-					</mesh>
-					{/* Lower leg */}
-					<mesh position={[0, -0.35, 0.05]} castShadow material={materials.fur}>
-						<capsuleGeometry args={[0.11, 0.25, 6, 12]} />
-					</mesh>
-					{/* Webbed foot */}
-					<group position={[0, -0.55, 0.1]}>
-						<WebbedPaw scale={1} />
 					</group>
 				</group>
 			</group>
