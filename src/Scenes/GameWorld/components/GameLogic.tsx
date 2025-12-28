@@ -131,13 +131,26 @@ export function GameLogic({
 					}
 				}
 				if (entity.type === "EXTRACTION_POINT" && dist < 3) {
-					if (!saveData.isLZSecured && chunk.x === 0 && chunk.z === 0) {
-						secureLZ();
-						audioEngine.playSFX("pickup");
-					} else if (isCarryingClam) {
-						setCarryingClam(false);
-						addCoins(500);
-						collectSpoils("clam");
+					const isLZ = chunk.x === 0 && chunk.z === 0;
+					// In SUPPORT mode, can extract anywhere. In TACTICAL/ELITE, must be at LZ.
+					const canExtract = saveData.difficultyMode === "SUPPORT" || isLZ;
+
+					if (canExtract) {
+						if (!saveData.isLZSecured && isLZ) {
+							secureLZ();
+							audioEngine.playSFX("pickup");
+						} else if (isCarryingClam) {
+							setCarryingClam(false);
+							addCoins(500);
+							collectSpoils("clam");
+						}
+
+						// If in "The Fall" state and reached LZ, clear it
+						if (saveData.isFallTriggered && isLZ) {
+							useGameStore.getState().setFallTriggered(false);
+							useGameStore.getState().heal(50);
+							audioEngine.playSFX("pickup");
+						}
 					}
 				}
 				if (entity.type === "PRISON_CAGE" && dist < 2 && !entity.rescued) {

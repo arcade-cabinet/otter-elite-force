@@ -24,6 +24,7 @@ export function HUD() {
 		playerPos,
 		saveData,
 		isBuildMode,
+		selectedComponentType,
 		lastDamageDirection,
 	} = useGameStore(
 		useShallow((state) => ({
@@ -34,12 +35,15 @@ export function HUD() {
 			playerPos: state.playerPos,
 			saveData: state.saveData,
 			isBuildMode: state.isBuildMode,
+			selectedComponentType: state.selectedComponentType,
 			lastDamageDirection: state.lastDamageDirection,
 		})),
 	);
 
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
+	const requestSupplyDrop = useGameStore((state) => state.requestSupplyDrop);
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
+	const setSelectedComponentType = useGameStore((state) => state.setSelectedComponentType);
 	const placeComponent = useGameStore((state) => state.placeComponent);
 	const setHudReady = useGameStore((state) => state.setHudReady);
 
@@ -204,7 +208,9 @@ export function HUD() {
 						COORD: {Math.floor(playerPos[0])}, {Math.floor(playerPos[2])}
 					</div>
 					{saveData.territoryScore > 0 && (
-						<div className="hud-territory">TERRITORY: {saveData.territoryScore}</div>
+						<div className="hud-territory">
+							TERRITORY: {saveData.territoryScore} / {Object.keys(saveData.discoveredChunks).length}
+						</div>
 					)}
 					{saveData.peacekeepingScore > 0 && (
 						<div className="hud-peacekeeping">PEACEKEEPING: {saveData.peacekeepingScore}</div>
@@ -248,12 +254,9 @@ export function HUD() {
 						BUILD
 					</button>
 				)}
-				{saveData.difficultyMode === "SUPPORT" && (
-					<button
-						type="button"
-						className="action-btn support"
-						onClick={() => audioEngine.playSFX("pickup")}
-					>
+				{(saveData.difficultyMode === "SUPPORT" ||
+					(Math.abs(playerPos[0]) < 20 && Math.abs(playerPos[2]) < 20)) && (
+					<button type="button" className="action-btn support" onClick={requestSupplyDrop}>
 						DROP
 					</button>
 				)}
@@ -262,17 +265,24 @@ export function HUD() {
 			{/* BUILD UI (Bottom Center) */}
 			{isBuildMode && (
 				<div className="build-ui">
-					<button type="button" onClick={() => handlePlace("FLOOR")}>
-						+FLOOR
-					</button>
-					<button type="button" onClick={() => handlePlace("WALL")}>
-						+WALL
-					</button>
-					<button type="button" onClick={() => handlePlace("ROOF")}>
-						+ROOF
-					</button>
-					<button type="button" onClick={() => handlePlace("STILT")}>
-						+STILT
+					<div className="build-palette">
+						{(["FLOOR", "WALL", "ROOF", "STILT"] as const).map((type) => (
+							<button
+								key={type}
+								type="button"
+								className={selectedComponentType === type ? "selected" : ""}
+								onClick={() => setSelectedComponentType(type)}
+							>
+								{type}
+							</button>
+						))}
+					</div>
+					<button
+						type="button"
+						className="place-btn"
+						onClick={() => handlePlace(selectedComponentType)}
+					>
+						PLACE {selectedComponentType}
 					</button>
 				</div>
 			)}

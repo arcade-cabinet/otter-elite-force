@@ -39,14 +39,23 @@ export const updateAI = (delta: number): void => {
 	const playerPos = getPlayerPosition();
 	if (!playerPos) return;
 
+	// Optimization: Hibernation distance (entities further than this don't process AI)
+	const HIBERNATION_DISTANCE = 50;
+
 	for (const entity of enemies) {
 		if (!entity.aiBrain || !entity.transform) continue;
 
-		// Update state time
-		entity.aiBrain.stateTime += delta;
-
 		// Calculate distance to player
 		const distanceToPlayer = entity.transform.position.distanceTo(playerPos);
+
+		// Hibernation check: Only update AI if close to player
+		if (distanceToPlayer > HIBERNATION_DISTANCE) {
+			// Optional: Slow update or idle state for distant entities
+			continue;
+		}
+
+		// Update state time
+		entity.aiBrain.stateTime += delta;
 
 		// Update alert level based on distance
 		if (distanceToPlayer < 30) {
