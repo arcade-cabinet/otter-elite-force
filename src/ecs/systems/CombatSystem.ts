@@ -27,9 +27,10 @@ export const applyDamage = (
 	entity.health.current = Math.max(0, entity.health.current - damage);
 	entity.health.lastDamageTime = Date.now();
 
-	// Apply suppression if entity has it
+	// Apply suppression if entity has it (0-100 scale)
 	if (entity.suppression) {
-		entity.suppression.amount = Math.min(1, entity.suppression.amount + damage * 0.05);
+		entity.suppression.amount = Math.min(100, entity.suppression.amount + damage * 5);
+		entity.suppression.lastIncrementTime = Date.now();
 	}
 
 	// Check for death

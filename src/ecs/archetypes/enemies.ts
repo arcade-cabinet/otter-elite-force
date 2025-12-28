@@ -61,9 +61,9 @@ export const createGator = (options: CreateGatorOptions): Entity => {
 		},
 
 		suppression: {
-			amount: 0,
-			decayRate: 0.1,
-			threshold: 0.5,
+			amount: 0, // 0-100 scale
+			decayRate: 10, // Decay 10 points per second
+			lastIncrementTime: 0,
 		},
 
 		aiBrain: {

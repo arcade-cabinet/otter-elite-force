@@ -147,15 +147,16 @@ describe("CombatSystem", () => {
 					isInvulnerable: false,
 				},
 				suppression: {
-					amount: 0,
-					decayRate: 0.1,
-					threshold: 0.5,
+					amount: 0, // 0-100 scale
+					decayRate: 10,
+					lastIncrementTime: 0,
 				},
 			});
 
 			applyDamage("test-entity", 20);
 
 			expect(entity.suppression?.amount).toBeGreaterThan(0);
+			expect(entity.suppression?.amount).toBeLessThanOrEqual(100);
 		});
 
 		it("should handle non-existent entity gracefully", () => {
@@ -229,16 +230,16 @@ describe("CombatSystem", () => {
 					patrolRadius: 10,
 				},
 				suppression: {
-					amount: 0.5,
-					decayRate: 0.1,
-					threshold: 0.5,
+					amount: 50, // 0-100 scale
+					decayRate: 10, // Decay 10 points per second
+					lastIncrementTime: 0,
 				},
 				isEnemy: { __tag: "IsEnemy" },
 			});
 
 			updateSuppression(1); // 1 second
 
-			expect(entity.suppression?.amount).toBeLessThan(0.5);
+			expect(entity.suppression?.amount).toBeLessThan(50);
 		});
 
 		it("should not reduce suppression below 0", () => {
@@ -266,9 +267,9 @@ describe("CombatSystem", () => {
 					patrolRadius: 10,
 				},
 				suppression: {
-					amount: 0.05,
-					decayRate: 1.0, // High decay rate
-					threshold: 0.5,
+					amount: 5, // 0-100 scale
+					decayRate: 100, // High decay rate
+					lastIncrementTime: 0,
 				},
 				isEnemy: { __tag: "IsEnemy" },
 			});

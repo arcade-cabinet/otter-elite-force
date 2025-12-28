@@ -69,7 +69,7 @@ const createGatorEntity = (position = new THREE.Vector3()): Entity =>
 			alignmentWeight: 0.5,
 		},
 		health: { current: 100, max: 100, regenRate: 0, lastDamageTime: 0, isInvulnerable: false },
-		suppression: { amount: 0, decayRate: 0.1, threshold: 0.5 },
+		suppression: { amount: 0, decayRate: 10, lastIncrementTime: 0 },
 	});
 
 const createSnakeEntity = (position = new THREE.Vector3()): Entity =>
@@ -97,7 +97,7 @@ const createSnakeEntity = (position = new THREE.Vector3()): Entity =>
 			lastKnownPlayerPos: null,
 		},
 		health: { current: 50, max: 50, regenRate: 0, lastDamageTime: 0, isInvulnerable: false },
-		suppression: { amount: 0, decayRate: 0.1, threshold: 0.5 },
+		suppression: { amount: 0, decayRate: 10, lastIncrementTime: 0 },
 	});
 
 const createSnapperEntity = (position = new THREE.Vector3()): Entity =>
@@ -136,7 +136,7 @@ const createSnapperEntity = (position = new THREE.Vector3()): Entity =>
 			lastKnownPlayerPos: null,
 		},
 		health: { current: 80, max: 80, regenRate: 0, lastDamageTime: 0, isInvulnerable: false },
-		suppression: { amount: 0, decayRate: 0.1, threshold: 0.5 },
+		suppression: { amount: 0, decayRate: 10, lastIncrementTime: 0 },
 	});
 
 const createScoutEntity = (position = new THREE.Vector3()): Entity =>
@@ -177,7 +177,7 @@ const createScoutEntity = (position = new THREE.Vector3()): Entity =>
 			alignmentWeight: 0.5,
 		},
 		health: { current: 40, max: 40, regenRate: 0, lastDamageTime: 0, isInvulnerable: false },
-		suppression: { amount: 0, decayRate: 0.1, threshold: 0.5 },
+		suppression: { amount: 0, decayRate: 10, lastIncrementTime: 0 },
 	});
 
 describe("AISystem", () => {
@@ -402,18 +402,71 @@ describe("AISystem", () => {
 	describe("Suppression Effects", () => {
 		it("should detect when entity is suppressed", () => {
 			const gator = createGatorEntity();
-			gator.suppression!.amount = 0.8;
+			gator.suppression!.amount = 80; // 0-100 scale
 
-			const isSuppressed = gator.suppression!.amount > gator.suppression!.threshold;
+			const isSuppressed = gator.suppression!.amount >= 75;
 			expect(isSuppressed).toBe(true);
 		});
 
 		it("should detect when entity is not suppressed", () => {
 			const gator = createGatorEntity();
-			gator.suppression!.amount = 0.3;
+			gator.suppression!.amount = 30; // 0-100 scale
 
-			const isSuppressed = gator.suppression!.amount > gator.suppression!.threshold;
+			const isSuppressed = gator.suppression!.amount >= 75;
 			expect(isSuppressed).toBe(false);
+		});
+
+		it("should detect reduced accuracy threshold", () => {
+			const gator = createGatorEntity();
+			gator.suppression!.amount = 30; // 0-100 scale
+
+			const hasReducedAccuracy = gator.suppression!.amount >= 25;
+			expect(hasReducedAccuracy).toBe(true);
+		});
+
+		it("should detect reduced movement threshold", () => {
+			const gator = createGatorEntity();
+			gator.suppression!.amount = 60; // 0-100 scale
+
+			const hasReducedMovement = gator.suppression!.amount >= 50;
+			expect(hasReducedMovement).toBe(true);
+		});
+
+		it("should detect full panic threshold", () => {
+			const gator = createGatorEntity();
+			gator.suppression!.amount = 100; // 0-100 scale
+
+			const isFullyPanicked = gator.suppression!.amount >= 100;
+			expect(isFullyPanicked).toBe(true);
+		});
+	});
+
+	describe("getSuppressionSpeedModifier", () => {
+		it("should return 1.0 for no suppression", async () => {
+			const { getSuppressionSpeedModifier } = await import("../AISystem");
+			expect(getSuppressionSpeedModifier(0)).toBe(1.0);
+		});
+
+		it("should return 1.0 for low suppression", async () => {
+			const { getSuppressionSpeedModifier } = await import("../AISystem");
+			expect(getSuppressionSpeedModifier(25)).toBe(1.0);
+		});
+
+		it("should return reduced speed at 50% suppression", async () => {
+			const { getSuppressionSpeedModifier } = await import("../AISystem");
+			const modifier = getSuppressionSpeedModifier(50);
+			expect(modifier).toBeLessThan(1.0);
+			expect(modifier).toBeGreaterThan(0.4);
+		});
+
+		it("should return 0.4 at 100% suppression", async () => {
+			const { getSuppressionSpeedModifier } = await import("../AISystem");
+			expect(getSuppressionSpeedModifier(100)).toBeCloseTo(0.4, 2);
+		});
+
+		it("should never go below 0.4", async () => {
+			const { getSuppressionSpeedModifier } = await import("../AISystem");
+			expect(getSuppressionSpeedModifier(150)).toBe(0.4);
 		});
 	});
 

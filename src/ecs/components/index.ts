@@ -76,9 +76,9 @@ export interface Weapon {
 }
 
 export interface Suppression {
-	amount: number; // 0-1, how suppressed the entity is
-	decayRate: number;
-	threshold: number; // At what level behavior changes
+	amount: number; // 0-100, how suppressed the entity is
+	decayRate: number; // Amount per second to decay
+	lastIncrementTime: number; // Timestamp of last suppression increase
 }
 
 // =============================================================================
