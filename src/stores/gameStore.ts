@@ -43,6 +43,10 @@ interface GameState {
 	// =========================================================================
 	/** Current game mode (FSM state) */
 	mode: GameMode;
+	/** Whether the HUD is ready (for input system init) */
+	hudReady: boolean;
+	/** Set HUD ready state */
+	setHudReady: (ready: boolean) => void;
 	/** Transition to a new game mode */
 	setMode: (mode: GameMode) => void;
 	/** Upgrade difficulty (can only go UP: SUPPORT → TACTICAL → ELITE) */
@@ -152,6 +156,7 @@ export const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
 export const useGameStore = create<GameState>((set, get) => ({
 	// Initial state
 	mode: "MENU",
+	hudReady: false,
 	health: 100,
 	maxHealth: 100,
 	kills: 0,
@@ -170,6 +175,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	// Mode management
 	setMode: (mode) => set({ mode }),
+	setHudReady: (ready) => set({ hudReady: ready }),
 	setBuildMode: (active) => set({ isBuildMode: active }),
 	setDifficulty: (difficulty) => {
 		// Use centralized DIFFICULTY_ORDER constant for escalation logic

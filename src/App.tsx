@@ -3,7 +3,7 @@
  * Root component that manages game state and renders appropriate screens
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { audioEngine } from "./Core/AudioEngine";
 import { inputSystem } from "./Core/InputSystem";
 import { Canteen } from "./Scenes/Canteen";
@@ -14,7 +14,8 @@ import { useGameStore } from "./stores/gameStore";
 import { HUD } from "./UI/HUD";
 
 export function App() {
-	const { mode, loadData } = useGameStore();
+	const { mode, loadData, hudReady } = useGameStore();
+	const inputInitialized = useRef(false);
 
 	// Initialize on mount
 	useEffect(() => {
@@ -26,9 +27,6 @@ export function App() {
 			await audioEngine.init();
 			audioEngine.playMusic("menu");
 		};
-
-		// Initialize input system
-		inputSystem.init();
 
 		// Setup audio initialization on first interaction
 		const handleInteraction = () => {
@@ -43,9 +41,21 @@ export function App() {
 		return () => {
 			document.removeEventListener("click", handleInteraction);
 			document.removeEventListener("touchstart", handleInteraction);
-			inputSystem.destroy();
 		};
 	}, [loadData]);
+
+	// Initialize input system when entering GAME mode and HUD is ready (deterministic)
+	useEffect(() => {
+		if (mode === "GAME" && hudReady && !inputInitialized.current) {
+			inputSystem.init();
+			inputInitialized.current = true;
+		}
+		// Destroy input system when exiting GAME mode
+		if (mode !== "GAME" && inputInitialized.current) {
+			inputSystem.destroy();
+			inputInitialized.current = false;
+		}
+	}, [mode, hudReady]);
 
 	useEffect(() => {
 		if (mode === "GAME") {
