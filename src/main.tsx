@@ -1,7 +1,13 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { useGameStore } from "./stores/gameStore";
 import "./styles/main.css";
+
+// Expose game store for E2E testing
+if (typeof window !== "undefined") {
+	(window as any).useGameStore = useGameStore;
+}
 
 const rootElement = document.getElementById("root");
 

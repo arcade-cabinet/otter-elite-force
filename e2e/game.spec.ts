@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { skipCutscene } from "./helpers";
 
 /**
  * E2E Tests for OTTER: ELITE FORCE
@@ -197,19 +198,7 @@ test.describe("OTTER: ELITE FORCE - Game Flow", () => {
 		await expect(page.locator(".dialogue-box")).toBeVisible();
 
 		// Click through ALL cutscene dialogue until BEGIN MISSION
-		const nextBtn = page.locator("button.dialogue-next");
-		await expect(nextBtn).toBeVisible({ timeout: 10000 });
-
-		// Loop through NEXT >> buttons until we reach BEGIN MISSION
-		let buttonText = await nextBtn.innerText();
-		while (buttonText.includes("NEXT")) {
-			await nextBtn.click();
-			await page.waitForTimeout(300); // Brief pause between clicks
-			buttonText = await nextBtn.innerText();
-		}
-
-		// Final click on BEGIN MISSION
-		await nextBtn.click();
+		await skipCutscene(page);
 
 		// CRITICAL: Verify we actually transitioned to gameplay
 		const canvas = page.locator("canvas");

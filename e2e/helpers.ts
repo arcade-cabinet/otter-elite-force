@@ -114,6 +114,23 @@ export const updateSaveData = async (page: Page, updates: Record<string, unknown
 };
 
 /**
+ * Helper to skip cutscene by clicking NEXT until BEGIN MISSION
+ */
+export const skipCutscene = async (page: Page) => {
+	const nextBtn = page.locator("button.dialogue-next");
+	await nextBtn.waitFor({ state: "visible", timeout: 10000 });
+
+	let buttonText = await nextBtn.innerText();
+	while (buttonText.includes("NEXT")) {
+		await nextBtn.click();
+		await page.waitForTimeout(500); // Wait for dialogue to update
+		buttonText = await nextBtn.innerText();
+	}
+	await nextBtn.click(); // Final click on BEGIN MISSION
+	await waitForStable(page, 2000); // Give time for game world to initialize
+};
+
+/**
  * Helper for robust button clicking with retry logic
  * Addresses flaky button click timeouts in Canteen UI
  */

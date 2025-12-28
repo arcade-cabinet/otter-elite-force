@@ -8,74 +8,22 @@
 import * as THREE from "three";
 import type {
 	AssemblyConfig,
-	InteractionPoint,
 	PlatformSection,
-	SnapPoint,
 	StructureComponent,
 	StructureTemplate,
 } from "./types";
+import { AssemblyRandom } from "./assemblyUtils";
+import { DEFAULT_ASSEMBLY_CONFIG } from "./assemblyConstants";
+import {
+	calculateStiltPositions,
+	getWallPosition,
+	getLadderPosition,
+	generateHutSnapPoints,
+	generateHutInteractionPoints,
+} from "./structureUtils";
 
-// =============================================================================
-// SEEDED RANDOM HELPER
-// =============================================================================
-
-class AssemblyRandom {
-	private seed: number;
-
-	constructor(seed: number) {
-		this.seed = seed;
-	}
-
-	next(): number {
-		this.seed = (this.seed * 1103515245 + 12345) & 0x7fffffff;
-		return this.seed / 0x7fffffff;
-	}
-
-	range(min: number, max: number): number {
-		return min + this.next() * (max - min);
-	}
-
-	int(min: number, max: number): number {
-		return Math.floor(this.range(min, max + 1));
-	}
-
-	pick<T>(array: T[]): T {
-		return array[this.int(0, array.length - 1)];
-	}
-
-	chance(probability: number): boolean {
-		return this.next() < probability;
-	}
-}
-
-// =============================================================================
-// DEFAULT ASSEMBLY CONFIG
-// =============================================================================
-
-export const DEFAULT_ASSEMBLY_CONFIG: AssemblyConfig = {
-	hut: {
-		minStilts: 4,
-		maxStilts: 9,
-		floorHeight: { min: 0.5, max: 2.5 },
-		roomSize: { min: 2.5, max: 5 },
-		roofPitch: { min: 0.3, max: 0.6 },
-		wearVariation: 0.3,
-	},
-	village: {
-		minHuts: 3,
-		maxHuts: 8,
-		centralFeature: "FIRE_PIT",
-		hasHealer: true,
-		pathDensity: 0.7,
-	},
-	platforms: {
-		minHeight: 1.5,
-		maxHeight: 4,
-		sectionSize: 3,
-		connectRadius: 8,
-		requiresLadderAccess: true,
-	},
-};
+// Re-exports for convenience
+export { DEFAULT_ASSEMBLY_CONFIG };
 
 // =============================================================================
 // HUT ASSEMBLY
@@ -83,14 +31,6 @@ export const DEFAULT_ASSEMBLY_CONFIG: AssemblyConfig = {
 
 /**
  * Generates a procedural hut structure
- *
- * Assembly Rules:
- * 1. Stilts placed at corners and optionally mid-edges
- * 2. Floor planks laid across stilts
- * 3. Wall frames on 3-4 sides (one may be open or have door)
- * 4. Roof beams span width, thatch laid on top
- * 5. Ladder on one side if elevated
- * 6. Decorative elements based on wear
  */
 export function assembleHut(
 	seed: number,
@@ -417,10 +357,6 @@ export function assemblePlatformNetwork(
 	return platforms;
 }
 
-// =============================================================================
-// WATCHTOWER ASSEMBLY
-// =============================================================================
-
 /**
  * Generates a watchtower structure
  */
@@ -551,171 +487,4 @@ export function assembleWatchtower(seed: number): StructureTemplate {
 			},
 		],
 	};
-}
-
-// =============================================================================
-// HELPER FUNCTIONS
-// =============================================================================
-
-function calculateStiltPositions(
-	width: number,
-	depth: number,
-	config: AssemblyConfig["hut"],
-	random: AssemblyRandom,
-): { x: number; z: number }[] {
-	const positions: { x: number; z: number }[] = [];
-
-	// Corner stilts (always present)
-	positions.push({ x: -width / 2, z: -depth / 2 });
-	positions.push({ x: width / 2, z: -depth / 2 });
-	positions.push({ x: -width / 2, z: depth / 2 });
-	positions.push({ x: width / 2, z: depth / 2 });
-
-	// Additional stilts based on size
-	const targetCount = random.int(config.minStilts, config.maxStilts);
-
-	if (targetCount > 4 && width > 3) {
-		// Mid-edge stilts on long sides
-		positions.push({ x: 0, z: -depth / 2 });
-		positions.push({ x: 0, z: depth / 2 });
-	}
-
-	if (targetCount > 6 && depth > 3) {
-		// Mid-edge stilts on short sides
-		positions.push({ x: -width / 2, z: 0 });
-		positions.push({ x: width / 2, z: 0 });
-	}
-
-	if (targetCount > 8) {
-		// Center stilt
-		positions.push({ x: 0, z: 0 });
-	}
-
-	return positions.slice(0, targetCount);
-}
-
-function getWallPosition(
-	side: "NORTH" | "SOUTH" | "EAST" | "WEST",
-	width: number,
-	depth: number,
-	floorHeight: number,
-	wallHeight: number,
-): { position: THREE.Vector3; rotation: THREE.Euler; scale: THREE.Vector3 } {
-	const halfWall = wallHeight / 2;
-	const y = floorHeight + halfWall;
-
-	switch (side) {
-		case "NORTH":
-			return {
-				position: new THREE.Vector3(0, y, -depth / 2),
-				rotation: new THREE.Euler(0, 0, 0),
-				scale: new THREE.Vector3(width, wallHeight, 0.08),
-			};
-		case "SOUTH":
-			return {
-				position: new THREE.Vector3(0, y, depth / 2),
-				rotation: new THREE.Euler(0, Math.PI, 0),
-				scale: new THREE.Vector3(width, wallHeight, 0.08),
-			};
-		case "EAST":
-			return {
-				position: new THREE.Vector3(width / 2, y, 0),
-				rotation: new THREE.Euler(0, Math.PI / 2, 0),
-				scale: new THREE.Vector3(depth, wallHeight, 0.08),
-			};
-		case "WEST":
-			return {
-				position: new THREE.Vector3(-width / 2, y, 0),
-				rotation: new THREE.Euler(0, -Math.PI / 2, 0),
-				scale: new THREE.Vector3(depth, wallHeight, 0.08),
-			};
-	}
-}
-
-function getLadderPosition(
-	side: "NORTH" | "SOUTH" | "EAST" | "WEST",
-	width: number,
-	depth: number,
-	floorHeight: number,
-): { position: THREE.Vector3; rotation: THREE.Euler } {
-	const offset = 0.3;
-
-	switch (side) {
-		case "NORTH":
-			return {
-				position: new THREE.Vector3(0, floorHeight / 2, -depth / 2 - offset),
-				rotation: new THREE.Euler(-0.1, 0, 0),
-			};
-		case "SOUTH":
-			return {
-				position: new THREE.Vector3(0, floorHeight / 2, depth / 2 + offset),
-				rotation: new THREE.Euler(0.1, Math.PI, 0),
-			};
-		case "EAST":
-			return {
-				position: new THREE.Vector3(width / 2 + offset, floorHeight / 2, 0),
-				rotation: new THREE.Euler(0, Math.PI / 2, 0.1),
-			};
-		case "WEST":
-			return {
-				position: new THREE.Vector3(-width / 2 - offset, floorHeight / 2, 0),
-				rotation: new THREE.Euler(0, -Math.PI / 2, -0.1),
-			};
-	}
-}
-
-function generateHutSnapPoints(
-	width: number,
-	depth: number,
-	floorHeight: number,
-	openSide: "NORTH" | "SOUTH" | "EAST" | "WEST",
-): SnapPoint[] {
-	const snapPoints: SnapPoint[] = [];
-	const sides: ("NORTH" | "SOUTH" | "EAST" | "WEST")[] = ["NORTH", "SOUTH", "EAST", "WEST"];
-
-	for (const side of sides) {
-		if (side === openSide) continue; // Open side is entrance, not snap point
-
-		const pos = getWallPosition(side, width, depth, floorHeight, 0);
-		// Convert rotation to direction vector
-		const direction = new THREE.Vector3(0, 0, 1).applyEuler(pos.rotation);
-		snapPoints.push({
-			id: `snap-${side}`,
-			localPosition: pos.position.clone().setY(floorHeight),
-			direction,
-			acceptsTypes: ["BASIC_HUT", "LONGHOUSE", "STORAGE_SHED", "BRIDGE_SECTION"],
-			occupied: false,
-		});
-	}
-
-	return snapPoints;
-}
-
-function generateHutInteractionPoints(
-	width: number,
-	depth: number,
-	floorHeight: number,
-	openSide: "NORTH" | "SOUTH" | "EAST" | "WEST",
-): InteractionPoint[] {
-	const ladderPos = getLadderPosition(openSide, width, depth, floorHeight);
-
-	const points: InteractionPoint[] = [
-		{
-			id: "enter",
-			localPosition: ladderPos.position.clone().setY(0),
-			type: "ENTER",
-			radius: 1.5,
-		},
-	];
-
-	if (floorHeight > 0.8) {
-		points.push({
-			id: "climb",
-			localPosition: ladderPos.position.clone(),
-			type: "CLIMB",
-			radius: 1,
-		});
-	}
-
-	return points;
 }

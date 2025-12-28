@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { hasMcpSupport, injectGameState, robustClick, waitForStable } from "./helpers";
+import {
+	hasMcpSupport,
+	injectGameState,
+	robustClick,
+	skipCutscene,
+	waitForStable,
+} from "./helpers";
 
 /**
  * E2E Tests: Core Gameplay Flow
@@ -46,21 +52,7 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		await expect(dialogueText).toBeVisible();
 
 		// Click through cutscene
-		const nextBtn = page.locator("button.dialogue-next");
-		await expect(nextBtn).toBeVisible({ timeout: 10000 });
-
-		// Click NEXT >> until we reach BEGIN MISSION
-		// Add small delays between clicks to allow dialogue state to update
-		let buttonText = await nextBtn.innerText();
-		while (buttonText.includes("NEXT")) {
-			await nextBtn.click();
-			await page.waitForTimeout(500); // Wait for dialogue to update
-			buttonText = await nextBtn.innerText();
-		}
-
-		// Final click on BEGIN MISSION
-		await nextBtn.click();
-		await waitForStable(page, 2000); // Give time for game world to initialize
+		await skipCutscene(page);
 
 		// Should transition to gameplay (canvas visible if WebGL supported)
 		if (hasMcpSupport) {

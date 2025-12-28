@@ -148,28 +148,29 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		const initialSaveData = await getSaveData(page);
 		expect(initialSaveData.territoryScore).toBe(0);
 
-		// Start game and interact with game world to secure the chunk
+		// Start game
 		await robustClick(page, 'button:has-text("CONTINUE CAMPAIGN")');
 		await waitForStable(page, 3000);
 
-		// Note: In a real E2E test, we would interact with the game to secure the chunk
-		// (e.g., eliminate all enemies, complete objectives). However, without full
-		// game simulation capabilities, we verify the state structure is correct
-		// and that the scoring system is properly initialized.
+		// Verify we are in game
+		await expect(page.locator("canvas")).toBeVisible();
 
-		// Verify the chunk data structure is complete and scoring system is ready
-		const currentSaveData = await getSaveData(page);
-		const chunk = currentSaveData.discoveredChunks["0,0"];
+		// Secure the chunk using game logic (store method)
+		await page.evaluate(() => {
+			(window as any).useGameStore.getState().secureChunk("0,0");
+		});
 
-		const hasRequiredFields =
-			chunk &&
-			typeof chunk.seed === "number" &&
-			typeof chunk.terrainType === "string" &&
-			Array.isArray(chunk.entities) &&
-			Array.isArray(chunk.decorations);
+		// Verify score increased in the store
+		const newScore = await page.evaluate(() => {
+			return (window as any).useGameStore.getState().saveData.territoryScore;
+		});
+		expect(newScore).toBe(1);
 
-		expect(hasRequiredFields).toBe(true);
-		expect(typeof currentSaveData.territoryScore).toBe("number");
+		// Verify chunk is marked as secured in store
+		const isSecured = await page.evaluate(() => {
+			return (window as any).useGameStore.getState().saveData.discoveredChunks["0,0"].secured;
+		});
+		expect(isSecured).toBe(true);
 	});
 
 	test("peacekeeping score tracking with rescue mission objectives", async ({ page }) => {
@@ -215,27 +216,20 @@ test.describe("Advanced Gameplay Mechanics", () => {
 		expect(initialSaveData.peacekeepingScore).toBe(0);
 		expect(initialSaveData.strategicObjectives.alliesRescued).toBe(0);
 
-		// Start game - this loads the world with the prison cage objective
+		// Start game
 		await robustClick(page, 'button:has-text("CONTINUE CAMPAIGN")');
 		await waitForStable(page, 3000);
 
-		// Note: In a real E2E test, we would interact with the prison cage to rescue
-		// the ally and verify the peacekeeping score increases. Without full game
-		// simulation, we verify the objective structure is properly initialized.
+		// Complete strategic objective using game logic (store method)
+		// This simulates rescuing an ally
+		await page.evaluate(() => {
+			(window as any).useGameStore.getState().rescueCharacter("whiskers");
+		});
 
-		// Verify the rescue objective is properly structured and tracking is initialized
+		// Verify peacekeeping score or objective tracking updated
 		const currentSaveData = await getSaveData(page);
-		const chunk = currentSaveData.discoveredChunks["5,5"];
-		const cageEntity = chunk?.entities?.[0];
-
-		const hasRescueObjective =
-			cageEntity &&
-			cageEntity.type === "PRISON_CAGE" &&
-			typeof cageEntity.objectiveId === "string";
-
-		expect(hasRescueObjective).toBe(true);
-		expect(typeof currentSaveData.peacekeepingScore).toBe("number");
-		expect(!!currentSaveData.strategicObjectives).toBe(true);
+		expect(currentSaveData.strategicObjectives.alliesRescued).toBe(1);
+		expect(currentSaveData.unlockedCharacters).toContain("whiskers");
 	});
 
 	test("permadeath in ELITE mode - death purges save data", async ({ page }) => {

@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { type Page, test } from "@playwright/test";
+import { skipCutscene } from "./helpers";
 
 const SCREENSHOT_DIR = "visual-audit-results";
 
@@ -47,7 +48,7 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 		// Click through dialogue - use proper waiting
 		const nextBtn = page.locator("button.dialogue-next");
 		try {
-			await nextBtn.waitFor({ state: "visible", timeout: 10000 });
+			// Take screenshot of second line if possible
 			await nextBtn.click();
 			await waitForStable(page, 500);
 			await page.screenshot({
@@ -55,15 +56,8 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 				fullPage: true,
 			});
 
-			// Click through all NEXT >> buttons until BEGIN MISSION
-			let buttonText = await nextBtn.innerText();
-			while (buttonText.includes("NEXT")) {
-				await nextBtn.click();
-				await page.waitForTimeout(500); // Wait for dialogue state to update
-				buttonText = await nextBtn.innerText();
-			}
-			await nextBtn.click(); // BEGIN MISSION
-			await waitForStable(page, 2000); // Wait for game world to initialize
+			// Pass through the rest of the cutscene
+			await skipCutscene(page);
 			console.log("Passed through Cutscene");
 		} catch {
 			console.log("Cutscene button not found - skipping cutscene flow");
