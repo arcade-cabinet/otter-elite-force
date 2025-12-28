@@ -71,22 +71,16 @@ function PreviewModal({
 	}, [onCancel]);
 
 	return (
-		<div
-			className="canteen-modal-overlay"
-			onClick={onCancel}
-			onKeyDown={(e) => {
-				if (e.key === "Escape") onCancel();
-			}}
-			role="button"
-			tabIndex={-1}
-			aria-label="Close modal"
-		>
+		/* biome-ignore lint/a11y/useKeyWithClickEvents: Escape key handled via useEffect */
+		/* biome-ignore lint/a11y/noStaticElementInteractions: Backdrop needs click handler for modal UX */
+		<div className="canteen-modal-overlay" onClick={onCancel}>
 			<div
 				className="canteen-modal"
 				onClick={(e) => e.stopPropagation()}
 				onKeyDown={(e) => e.stopPropagation()}
 				role="dialog"
 				aria-modal="true"
+				aria-labelledby="canteen-modal-title"
 			>
 				<div className="canteen-modal-3d">
 					<Canvas shadows camera={{ position: [0, 1.5, 4], fov: 35 }}>
@@ -106,7 +100,7 @@ function PreviewModal({
 				</div>
 
 				<div className="canteen-modal-content">
-					<h3>{char.traits.name}</h3>
+					<h3 id="canteen-modal-title">{char.traits.name}</h3>
 					<p className="char-bio">
 						{char.traits.grizzled
 							? "A battle-hardened veteran of the early campaigns."
