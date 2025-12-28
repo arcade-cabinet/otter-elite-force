@@ -144,6 +144,8 @@ interface GameState {
 	// UI state
 	isZoomed: boolean;
 	toggleZoom: () => void;
+	hudReady: boolean;
+	setHudReady: (ready: boolean) => void;
 }
 
 // Use CHUNK_SIZE from GAME_CONFIG for consistency
@@ -167,6 +169,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	isZoomed: false,
 	isBuildMode: false,
 	currentChunkId: "0,0",
+	hudReady: false,
 
 	// Mode management
 	setMode: (mode) => set({ mode }),
@@ -640,6 +643,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	toggleZoom: () => set((state) => ({ isZoomed: !state.isZoomed })),
+	setHudReady: (ready: boolean) => set({ hudReady: ready }),
 
 	collectSpoils: (type: "credit" | "clam") => {
 		set((state) => ({

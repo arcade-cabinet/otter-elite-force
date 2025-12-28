@@ -261,32 +261,55 @@ export class InputSystem {
 	}
 
 	/**
-	 * Cleanup
+	 * Cleanup - safe to call even when not initialized
 	 */
 	destroy(): void {
+		// Destroy joysticks (optional chaining handles null case)
 		this.moveJoystick?.destroy();
+		this.moveJoystick = null;
 		this.lookJoystick?.destroy();
+		this.lookJoystick = null;
 
+		// Remove event listeners (guards ensure safety when not initialized)
 		if (this.handleDeviceOrientation) {
 			window.removeEventListener("deviceorientation", this.handleDeviceOrientation);
+			this.handleDeviceOrientation = null;
 		}
 		if (this.handleKeyDown) {
 			window.removeEventListener("keydown", this.handleKeyDown);
+			this.handleKeyDown = null;
 		}
 		if (this.handleKeyUp) {
 			window.removeEventListener("keyup", this.handleKeyUp);
+			this.handleKeyUp = null;
 		}
 		if (this.lookZone) {
 			if (this.handleTouchStart) {
 				this.lookZone.removeEventListener("touchstart", this.handleTouchStart);
+				this.handleTouchStart = null;
 			}
 			if (this.handleTouchMove) {
 				this.lookZone.removeEventListener("touchmove", this.handleTouchMove);
+				this.handleTouchMove = null;
 			}
 			if (this.handleTouchEnd) {
 				this.lookZone.removeEventListener("touchend", this.handleTouchEnd);
+				this.handleTouchEnd = null;
 			}
+			this.lookZone = null;
 		}
+
+		// Reset input state
+		this.state = {
+			move: { x: 0, y: 0, active: false },
+			look: { x: 0, y: 0, active: false },
+			drag: { x: 0, y: 0, active: false },
+			gyro: { x: 0, y: 0 },
+			zoom: false,
+			jump: false,
+			grip: false,
+		};
+		this.gyroEnabled = false;
 	}
 }
 
