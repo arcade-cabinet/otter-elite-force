@@ -47,12 +47,12 @@ export function HUD() {
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
 	const setSelectedBuildItem = useGameStore((state) => state.setSelectedBuildItem);
 	const placeComponent = useGameStore((state) => state.placeComponent);
-const setHudReady = useGameStore((state) => state.setHudReady);
+	const setHudReady = useGameStore((state) => state.setHudReady);
 	const spendResources = useGameStore((state) => state.spendResources);
 	const isNearLZ = useGameStore((state) => state.isNearLZ);
 	const secureLZ = useGameStore((state) => state.secureLZ);
 
-// Signal HUD mount/unmount for input system initialization
+	// Signal HUD mount/unmount for input system initialization
 	useEffect(() => {
 		setHudReady(true);
 		return () => setHudReady(false);
