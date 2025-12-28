@@ -1,6 +1,8 @@
 /**
  * Shared utility functions for bundle size analysis
  */
+import fs from "node:fs";
+import path from "node:path";
 
 /**
  * Format bytes to human readable format
@@ -37,7 +39,6 @@ export function formatDiff(bytes) {
  * @returns {number} File size in bytes
  */
 export function getFileSize(filePath) {
-	const fs = require("node:fs");
 	const stats = fs.statSync(filePath);
 	return stats.size;
 }
@@ -49,9 +50,6 @@ export function getFileSize(filePath) {
  * @returns {string[]} Array of file paths
  */
 export function getAllFiles(dirPath, arrayOfFiles = []) {
-	const fs = require("node:fs");
-	const path = require("node:path");
-
 	const files = fs.readdirSync(dirPath);
 
 	for (const file of files) {
