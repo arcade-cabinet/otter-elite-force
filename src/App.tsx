@@ -8,7 +8,7 @@ import { audioEngine } from "./Core/AudioEngine";
 import { inputSystem } from "./Core/InputSystem";
 import { Canteen } from "./Scenes/Canteen";
 import { Cutscene } from "./Scenes/Cutscene";
-import { Level } from "./Scenes/Level";
+import { GameWorld } from "./Scenes/GameWorld";
 import { MainMenu } from "./Scenes/MainMenu";
 import { useGameStore } from "./stores/gameStore";
 import { HUD } from "./UI/HUD";
@@ -67,7 +67,7 @@ export function App() {
 
 			{mode === "GAME" && (
 				<>
-					<Level />
+					<GameWorld />
 					<HUD />
 				</>
 			)}

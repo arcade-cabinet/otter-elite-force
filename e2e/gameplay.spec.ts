@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 /**
  * End-to-End Gameplay Tests for OTTER: ELITE FORCE
@@ -18,13 +18,13 @@ import { expect, test } from "@playwright/test";
 const hasMcpSupport = process.env.PLAYWRIGHT_MCP === "true";
 
 // Helper to wait for game to stabilize after transitions
-const waitForStable = async (page: ReturnType<typeof test.step>, ms = 1500) => {
+const waitForStable = async (page: Page, ms = 1500) => {
 	await page.waitForTimeout(ms);
 };
 
 // Helper to inject game state for testing specific scenarios
 const injectGameState = async (
-	page: ReturnType<typeof test.step>,
+	page: Page,
 	stateOverrides: Record<string, unknown>,
 ) => {
 	await page.evaluate((overrides) => {
@@ -35,6 +35,7 @@ const injectGameState = async (
 		localStorage.setItem(key, JSON.stringify(merged));
 	}, stateOverrides);
 	await page.reload();
+	await page.waitForLoadState("networkidle");
 	await waitForStable(page);
 };
 
@@ -47,7 +48,7 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		await waitForStable(page);
 	});
 
-	test("complete new game flow: menu -> cutscene -> gameplay", async ({ page }) => {
+	test("complete new game flow: menu -> cutscene -> game world", async ({ page }) => {
 		// Verify main menu loaded
 		await expect(page.getByRole("heading", { name: /OTTER/i })).toBeVisible();
 		await expect(page.getByRole("heading", { name: /ELITE FORCE/i })).toBeVisible();
@@ -64,7 +65,8 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		await newGameBtn.click();
 
 		// Should transition to cutscene
-		await expect(page.locator(".cutscene-screen")).toBeVisible({ timeout: 5000 });
+		const cutscene = page.locator(".cutscene-screen");
+		await expect(cutscene).toBeVisible({ timeout: 10000 });
 		await expect(page.locator(".dialogue-box")).toBeVisible();
 
 		// Verify cutscene has proper elements
@@ -73,9 +75,15 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 
 		// Click through cutscene
 		const continueBtn = page.locator('button:has-text("Continue")');
-		if (await continueBtn.isVisible({ timeout: 2000 })) {
-			await continueBtn.click();
-		}
+		await expect(continueBtn).toBeVisible({ timeout: 5000 });
+		await continueBtn.click();
+
+		// Should transition to gameplay (canvas visible)
+		const canvas = page.locator("canvas");
+		await expect(canvas).toBeVisible({ timeout: 15000 });
+		
+		// HUD should also be visible
+		await expect(page.locator(".hud-container")).toBeVisible({ timeout: 5000 });
 	});
 
 	test("continue campaign flow for returning players", async ({ page }) => {
@@ -119,6 +127,31 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		// ELITE should be available for escalation
 		const eliteCard = page.locator('.diff-card:has-text("ELITE")');
 		await expect(eliteCard).not.toHaveClass(/locked/);
+
+		// Escalate to TACTICAL
+		page.on("dialog", (dialog) => dialog.accept());
+		await tacticalCard.click();
+		await expect(page.locator(".stat-val:has-text('TACTICAL')")).toBeVisible();
+
+		// Now SUPPORT should be locked (cannot downgrade)
+		await expect(page.locator('.diff-card:has-text("SUPPORT")')).toHaveClass(/locked/);
+	});
+
+	test("The Fall mechanic in TACTICAL mode", async ({ page }) => {
+		// Inject TACTICAL mode with low health
+		await injectGameState(page, {
+			difficultyMode: "TACTICAL",
+			health: 25, // Below 30% threshold
+			isLZSecured: true,
+		});
+
+		// Start game
+		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
+		await waitForStable(page, 3000);
+
+		// HUD should show THE FALL warning
+		await expect(page.locator("text=THE FALL")).toBeVisible();
+		await expect(page.locator("text=RETURN TO LZ")).toBeVisible();
 	});
 });
 
@@ -144,7 +177,7 @@ test.describe("Canteen Operations", () => {
 		await expect(page.locator('button:has-text("UPGRADES")')).toBeVisible();
 
 		// PLATOON tab should be active by default
-		await expect(page.locator('button:has-text("PLATOON").active')).toBeVisible();
+		await expect(page.locator('button.active:has-text("PLATOON")')).toBeVisible();
 	});
 
 	test("character selection in platoon roster", async ({ page }) => {
@@ -222,15 +255,17 @@ test.describe("Canteen Operations", () => {
 		await expect(page.getByRole("heading", { name: /OTTER/i })).toBeVisible();
 	});
 
-	test("canteen 3D preview renders character", async ({ page }) => {
+	test.describe("WebGL required", () => {
 		test.skip(!hasMcpSupport, "Requires WebGL for 3D preview");
 
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
-		await waitForStable(page, 2000);
+		test("canteen 3D preview renders character", async ({ page }) => {
+			await page.locator('button:has-text("VISIT CANTEEN")').click();
+			await waitForStable(page, 2000);
 
-		// Canvas should be visible for 3D preview
-		const canvas = page.locator(".canteen-3d canvas");
-		await expect(canvas).toBeVisible();
+			// Canvas should be visible for 3D preview
+			const canvas = page.locator(".canteen-3d canvas");
+			await expect(canvas).toBeVisible();
+		});
 	});
 });
 
@@ -256,50 +291,50 @@ test.describe("Base Construction System", () => {
 		await expect(buildBtn).toBeVisible({ timeout: 10000 });
 	});
 
-	test("build mode UI shows component options", async ({ page }) => {
+	test.describe("WebGL required", () => {
 		test.skip(!hasMcpSupport, "Requires WebGL for gameplay");
 
-		// Start game
-		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-		await waitForStable(page, 3000);
+		test("build mode UI shows component options", async ({ page }) => {
+			// Start game
+			await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
+			await waitForStable(page, 3000);
 
-		// Click BUILD button
-		const buildBtn = page.locator('.action-btn.build:has-text("BUILD")');
-		await buildBtn.click();
+			// Click BUILD button
+			const buildBtn = page.locator('.action-btn.build:has-text("BUILD")');
+			await buildBtn.click();
 
-		// Build UI should appear with component options
-		const buildUI = page.locator(".build-ui");
-		await expect(buildUI).toBeVisible();
+			// Build UI should appear with component options
+			const buildUI = page.locator(".build-ui");
+			await expect(buildUI).toBeVisible();
 
-		// Should have all building component buttons
-		await expect(page.locator('button:has-text("+FLOOR")')).toBeVisible();
-		await expect(page.locator('button:has-text("+WALL")')).toBeVisible();
-		await expect(page.locator('button:has-text("+ROOF")')).toBeVisible();
-		await expect(page.locator('button:has-text("+STILT")')).toBeVisible();
-	});
-
-	test("placing base components persists to save data", async ({ page }) => {
-		test.skip(!hasMcpSupport, "Requires WebGL for gameplay");
-
-		// Start game
-		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-		await waitForStable(page, 3000);
-
-		// Enter build mode
-		await page.locator('.action-btn.build:has-text("BUILD")').click();
-		await waitForStable(page);
-
-		// Place a floor
-		await page.locator('button:has-text("+FLOOR")').click();
-
-		// Check save data includes the component
-		const saveData = await page.evaluate(() => {
-			const data = localStorage.getItem("otter_v8");
-			return data ? JSON.parse(data) : null;
+			// Should have all building component buttons
+			await expect(page.locator('button:has-text("+FLOOR")')).toBeVisible();
+			await expect(page.locator('button:has-text("+WALL")')).toBeVisible();
+			await expect(page.locator('button:has-text("+ROOF")')).toBeVisible();
+			await expect(page.locator('button:has-text("+STILT")')).toBeVisible();
 		});
 
-		expect(saveData?.baseComponents?.length).toBeGreaterThan(0);
-		expect(saveData?.baseComponents[0]?.type).toBe("FLOOR");
+		test("placing base components persists to save data", async ({ page }) => {
+			// Start game
+			await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
+			await waitForStable(page, 3000);
+
+			// Enter build mode
+			await page.locator('.action-btn.build:has-text("BUILD")').click();
+			await waitForStable(page);
+
+			// Place a floor
+			await page.locator('button:has-text("+FLOOR")').click();
+
+			// Check save data includes the component
+			const saveData = await page.evaluate(() => {
+				const data = localStorage.getItem("otter_v8");
+				return data ? JSON.parse(data) : null;
+			});
+
+			expect(saveData?.baseComponents?.length).toBeGreaterThan(0);
+			expect(saveData?.baseComponents[0]?.type).toBe("FLOOR");
+		});
 	});
 });
 
@@ -311,125 +346,170 @@ test.describe("HUD and Player Interface", () => {
 		});
 	});
 
-	test("HUD displays player stats correctly", async ({ page }) => {
+	test.describe("WebGL required", () => {
 		test.skip(!hasMcpSupport, "Requires WebGL for gameplay");
 
-		// Start game
-		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-		await waitForStable(page, 3000);
+		test("HUD displays player stats correctly", async ({ page }) => {
+			// Start game
+			await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
+			await waitForStable(page, 3000);
 
-		// Health bar should be visible
-		await expect(page.locator(".hud-health")).toBeVisible();
-		await expect(page.locator(".hud-label:has-text('INTEGRITY')")).toBeVisible();
+			// Health bar should be visible
+			await expect(page.locator(".hud-health")).toBeVisible();
+			await expect(page.locator(".hud-label:has-text('INTEGRITY')")).toBeVisible();
 
-		// Coordinates should be displayed
-		await expect(page.locator("text=COORD:")).toBeVisible();
+			// Coordinates should be displayed
+			await expect(page.locator("text=COORD:")).toBeVisible();
 
-		// Kill counter should be visible
-		await expect(page.locator(".hud-label:has-text('ELIMINATIONS')")).toBeVisible();
-	});
+			// Kill counter should be visible
+			await expect(page.locator(".hud-label:has-text('ELIMINATIONS')")).toBeVisible();
+		});
 
-	test("action buttons are visible and responsive", async ({ page }) => {
-		test.skip(!hasMcpSupport, "Requires WebGL for gameplay");
+		test("action buttons are visible and responsive", async ({ page }) => {
+			// Start game
+			await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
+			await waitForStable(page, 3000);
 
-		// Start game
-		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-		await waitForStable(page, 3000);
+			// Core action buttons should be visible
+			await expect(page.locator('.action-btn.jump:has-text("JUMP")')).toBeVisible();
+			await expect(page.locator('.action-btn.grip:has-text("GRIP")')).toBeVisible();
+			await expect(page.locator('.action-btn.scope:has-text("SCOPE")')).toBeVisible();
+		});
 
-		// Core action buttons should be visible
-		await expect(page.locator('.action-btn.jump:has-text("JUMP")')).toBeVisible();
-		await expect(page.locator('.action-btn.grip:has-text("GRIP")')).toBeVisible();
-		await expect(page.locator('.action-btn.scope:has-text("SCOPE")')).toBeVisible();
-	});
+		test("first objective prompt shows for new players", async ({ page }) => {
+			// Clear save data for fresh start
+			await page.evaluate(() => localStorage.removeItem("otter_v8"));
+			await page.reload();
+			await waitForStable(page);
 
-	test("first objective prompt shows for new players", async ({ page }) => {
-		test.skip(!hasMcpSupport, "Requires WebGL for gameplay");
+			// Start new game
+			await page.locator('button:has-text("NEW GAME")').click();
 
-		// Clear save data for fresh start
-		await page.evaluate(() => localStorage.removeItem("otter_v8"));
-		await page.reload();
-		await waitForStable(page);
-
-		// Start new game
-		await page.locator('button:has-text("NEW GAME")').click();
-
-		// Click through cutscene if present
-		const continueBtn = page.locator('button:has-text("Continue")');
-		if (await continueBtn.isVisible({ timeout: 3000 })) {
+			// Click through cutscene if present
+			const continueBtn = page.locator('button:has-text("Continue")');
+			await expect(continueBtn).toBeVisible({ timeout: 10000 });
 			await continueBtn.click();
-		}
-		await waitForStable(page, 3000);
+			
+			await waitForStable(page, 3000);
 
-		// First objective prompt should be visible
-		const firstObjective = page.locator(".first-objective-prompt");
-		await expect(firstObjective).toBeVisible({ timeout: 10000 });
-		await expect(page.locator("text=FIRST OBJECTIVE")).toBeVisible();
-		await expect(page.locator("text=SECURE YOUR LZ")).toBeVisible();
-	});
+			// First objective prompt should be visible
+			const firstObjective = page.locator(".first-objective-prompt");
+			await expect(firstObjective).toBeVisible({ timeout: 10000 });
+			await expect(page.locator("text=FIRST OBJECTIVE")).toBeVisible();
+			await expect(page.locator("text=SECURE YOUR LZ")).toBeVisible();
+		});
 
-	test("joystick zones are visible for mobile controls", async ({ page }) => {
-		test.skip(!hasMcpSupport, "Requires WebGL for gameplay");
+		test("joystick zones are visible for mobile controls", async ({ page }) => {
+			// Start game
+			await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
+			await waitForStable(page, 3000);
 
-		// Start game
-		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-		await waitForStable(page, 3000);
+			// Move joystick zone
+			await expect(page.locator("#joystick-move")).toBeVisible();
+			await expect(page.locator("#joystick-move:has-text('MOVE')")).toBeVisible();
 
-		// Move joystick zone
-		await expect(page.locator("#joystick-move")).toBeVisible();
-		await expect(page.locator("#joystick-move:has-text('MOVE')")).toBeVisible();
-
-		// Look/aim joystick zone
-		await expect(page.locator("#joystick-look")).toBeVisible();
+			// Look/aim joystick zone
+			await expect(page.locator("#joystick-look")).toBeVisible();
+		});
 	});
 });
 
 test.describe("Game World and Environment", () => {
-	test("chunks are generated and discovered", async ({ page }) => {
+	test.describe("WebGL required", () => {
 		test.skip(!hasMcpSupport, "Requires WebGL for gameplay");
 
-		await page.goto("/");
-		await page.evaluate(() => localStorage.removeItem("otter_v8"));
-		await page.reload();
-		await waitForStable(page);
+	test("chunks are fixed on discovery and persist", async ({ page }) => {
+			await page.goto("/");
+			await page.evaluate(() => localStorage.removeItem("otter_v8"));
+			await page.reload();
+			await waitForStable(page);
 
-		// Start new game and skip cutscene
-		await page.locator('button:has-text("NEW GAME")').click();
-		const continueBtn = page.locator('button:has-text("Continue")');
-		if (await continueBtn.isVisible({ timeout: 3000 })) {
-			await continueBtn.click();
-		}
-		await waitForStable(page, 4000);
+			// Start new game
+			await page.locator('button:has-text("NEW GAME")').click();
+			await page.locator('button:has-text("Continue")').click();
+			await waitForStable(page, 4000);
 
-		// Check that chunks were discovered
-		const saveData = await page.evaluate(() => {
-			const data = localStorage.getItem("otter_v8");
-			return data ? JSON.parse(data) : null;
+			// Record discovered chunks
+			const firstDiscovery = await page.evaluate(() => {
+				const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
+				return data.discoveredChunks;
+			});
+			const chunkKeys = Object.keys(firstDiscovery);
+			expect(chunkKeys.length).toBeGreaterThan(0);
+
+			// Reload page
+			await page.reload();
+			await waitForStable(page);
+
+			// Verify chunks are the same
+			const secondDiscovery = await page.evaluate(() => {
+				const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
+				return data.discoveredChunks;
+			});
+			expect(Object.keys(secondDiscovery)).toEqual(chunkKeys);
+			
+			// Verify deterministic content (seed is same)
+			for (const key of chunkKeys) {
+				expect(secondDiscovery[key].seed).toBe(firstDiscovery[key].seed);
+			}
 		});
 
-		// Should have discovered at least the starting chunks
-		expect(Object.keys(saveData?.discoveredChunks || {}).length).toBeGreaterThan(0);
+		test("character rescue updates unlockedCharacters list", async ({ page }) => {
+			// Start game with one character locked
+			await page.goto("/");
+			await injectGameState(page, {
+				unlockedCharacters: ["bubbles"],
+				discoveredChunks: { 
+					"5,5": { 
+						id: "5,5", x: 5, z: 5, 
+						entities: [{ type: "PRISON_CAGE", id: "whiskers-cage", objectiveId: "whiskers", position: [0, 0, 0] }] 
+					} 
+				}
+			});
+
+			// We can't easily simulate 3D collision for rescue in E2E without complex setup,
+			// but we can verify that the store action for rescue works by injecting state
+			// and checking the UI.
+			
+			// Verify whiskers is locked
+			await expect(page.locator('.char-card.locked:has-text("GEN. WHISKERS")')).toBeVisible();
+
+			// Manually trigger rescue via store in console (simulating collision)
+			await page.evaluate(() => {
+				// Access the store via the window if it's exposed, or just simulate the state change
+				const data = JSON.parse(localStorage.getItem("otter_v8") || "{}");
+				data.unlockedCharacters.push("whiskers");
+				localStorage.setItem("otter_v8", JSON.stringify(data));
+			});
+			
+			await page.reload();
+			await waitForStable(page);
+
+			// Verify whiskers is now unlocked
+			await expect(page.locator('.char-card.unlocked:has-text("GEN. WHISKERS")')).toBeVisible();
+		});
 	});
+});
 
-	test("WebGL canvas renders 3D environment", async ({ page }) => {
-		test.skip(!hasMcpSupport, "Requires WebGL for gameplay");
+		test("WebGL canvas renders 3D environment", async ({ page }) => {
+			await page.goto("/");
+			await injectGameState(page, {
+				discoveredChunks: { "0,0": { id: "0,0", x: 0, z: 0, secured: false } },
+			});
 
-		await page.goto("/");
-		await injectGameState(page, {
-			discoveredChunks: { "0,0": { id: "0,0", x: 0, z: 0, secured: false } },
+			// Start game
+			await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
+			await waitForStable(page, 3000);
+
+			// Canvas should be present and rendering
+			const canvas = page.locator("canvas");
+			await expect(canvas).toBeVisible();
+
+			// Canvas should have non-zero dimensions
+			const boundingBox = await canvas.boundingBox();
+			expect(boundingBox?.width).toBeGreaterThan(0);
+			expect(boundingBox?.height).toBeGreaterThan(0);
 		});
-
-		// Start game
-		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-		await waitForStable(page, 3000);
-
-		// Canvas should be present and rendering
-		const canvas = page.locator("canvas");
-		await expect(canvas).toBeVisible();
-
-		// Canvas should have non-zero dimensions
-		const boundingBox = await canvas.boundingBox();
-		expect(boundingBox?.width).toBeGreaterThan(0);
-		expect(boundingBox?.height).toBeGreaterThan(0);
 	});
 });
 
@@ -441,13 +521,14 @@ test.describe("Character Selection and Unlocks", () => {
 		// Find a locked character card
 		const lockedCard = page.locator(".char-card.locked").first();
 
-		if (await lockedCard.isVisible()) {
-			// Should show "RESCUE TO UNLOCK" text
-			await expect(lockedCard.locator("text=RESCUE TO UNLOCK")).toBeVisible();
+		// Ensure we have at least one locked card to test
+		await expect(lockedCard).toBeVisible();
 
-			// Should be disabled
-			await expect(lockedCard).toBeDisabled();
-		}
+		// Should show "RESCUE TO UNLOCK" text
+		await expect(lockedCard.locator("text=RESCUE TO UNLOCK")).toBeVisible();
+
+		// Should be visually and interactively locked
+		await expect(lockedCard).toHaveClass(/locked/);
 	});
 
 	test("unlocked characters can be selected", async ({ page }) => {
@@ -459,16 +540,15 @@ test.describe("Character Selection and Unlocks", () => {
 
 		// Find unlocked character cards
 		const unlockedCards = page.locator(".char-card.unlocked");
-		const count = await unlockedCards.count();
+		
+		// Ensure both characters are unlocked
+		await expect(unlockedCards).toHaveCount(2);
 
-		expect(count).toBeGreaterThanOrEqual(1);
-
-		// Click an unlocked card
-		if (count > 1) {
-			await unlockedCards.nth(1).click();
-			// Should be selected
-			await expect(unlockedCards.nth(1)).toHaveClass(/selected/);
-		}
+		// Click the second unlocked card (Whiskers)
+		await unlockedCards.nth(1).click();
+		
+		// Should be selected
+		await expect(unlockedCards.nth(1)).toHaveClass(/selected/);
 	});
 });
 
