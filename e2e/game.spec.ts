@@ -194,15 +194,32 @@ test.describe("OTTER: ELITE FORCE - Game Flow", () => {
 
 		// Should show cutscene
 		await expect(page.locator(".cutscene-screen")).toBeVisible();
+		await expect(page.locator(".dialogue-box")).toBeVisible();
 
-		// Click through dialogue
-		const continueBtn = page.locator('button:has-text("Continue")');
-		if (await continueBtn.isVisible()) {
-			await continueBtn.click();
+		// Click through ALL cutscene dialogue until BEGIN MISSION
+		const nextBtn = page.locator("button.dialogue-next");
+		await expect(nextBtn).toBeVisible({ timeout: 10000 });
+
+		// Loop through NEXT >> buttons until we reach BEGIN MISSION
+		let buttonText = await nextBtn.innerText();
+		while (buttonText.includes("NEXT")) {
+			await nextBtn.click();
+			await page.waitForTimeout(300); // Brief pause between clicks
+			buttonText = await nextBtn.innerText();
 		}
 
-		// Wait for game mode
-		await page.waitForTimeout(2000);
+		// Final click on BEGIN MISSION
+		await nextBtn.click();
+
+		// CRITICAL: Verify we actually transitioned to gameplay
+		const canvas = page.locator("canvas");
+		await expect(canvas).toBeVisible({ timeout: 15000 });
+
+		// HUD should be visible, confirming gameplay mode
+		await expect(page.locator(".hud-container")).toBeVisible({ timeout: 5000 });
+
+		// Cutscene should no longer be visible
+		await expect(page.locator(".cutscene-screen")).not.toBeVisible();
 	});
 
 	test("should maintain game state in localStorage", async ({ page }) => {
