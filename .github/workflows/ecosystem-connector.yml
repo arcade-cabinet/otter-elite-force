@@ -1,0 +1,110 @@
+name: Ecosystem Connector
+
+# This workflow initiates the 'closed loop' by talking to the centralized 
+# control center workflows. This keeps our public repos lean and uses
+# the robust, enterprise-grade AI pipelines in jbcom/control-center.
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  actions: write
+
+jobs:
+  # ============================================
+  # PR REVIEW LOOP
+  # ============================================
+  initiate-review:
+    name: Initiate Ecosystem Review
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Control Center Review
+        env:
+          GH_TOKEN: ${{ secrets.JBCOM_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run ecosystem-reviewer.yml \
+            --repo jbcom/control-center \
+            -f pr_number=${{ github.event.pull_request.number }} \
+            -f repository=${{ github.repository }} \
+            -f model_tier=ollama
+
+  # ============================================
+  # CI AUTO-FIX LOOP
+  # ============================================
+  initiate-fix:
+    name: Initiate Ecosystem CI Fix
+    if: |
+      github.event_name == 'workflow_run' && 
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Control Center Fixer
+        env:
+          GH_TOKEN: ${{ secrets.JBCOM_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run ecosystem-fixer.yml \
+            --repo jbcom/control-center \
+            -f run_id=${{ github.event.workflow_run.id }} \
+            -f repository=${{ github.repository }} \
+            -f branch=${{ github.event.workflow_run.head_branch }}
+
+  # ============================================
+  # ON-CALL / DELEGATION LOOP
+  # ============================================
+  initiate-delegation:
+    name: Initiate Ecosystem Delegation
+    if: |
+      github.event_name == 'issue_comment' && (
+        contains(github.event.comment.body, '/jules') || 
+        contains(github.event.comment.body, '/cursor') || 
+        contains(github.event.comment.body, '@claude') ||
+        contains(github.event.comment.body, '@sage') ||
+        contains(github.event.comment.body, '/sage')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Route Delegation
+        env:
+          GH_TOKEN: ${{ secrets.JBCOM_TOKEN || secrets.GITHUB_TOKEN }}
+          COMMENT: ${{ github.event.comment.body }}
+        run: |
+          if [[ "$COMMENT" == *"@sage"* ]] || [[ "$COMMENT" == *"/sage"* ]]; then
+            WORKFLOW="ecosystem-sage.yml"
+            ARGS="-f query=\"$COMMENT\" -f context_repo=${{ github.repository }} -f context_issue=${{ github.event.issue.number || github.event.pull_request.number }}"
+          else
+            WORKFLOW="ecosystem-delegator.yml"
+            ARGS="-f comment_body=\"$COMMENT\" -f issue_number=${{ github.event.issue.number || github.event.pull_request.number }} -f repository=${{ github.repository }}"
+          fi
+          
+          gh workflow run "$WORKFLOW" --repo jbcom/control-center $ARGS
+
+  # ============================================
+  # ISSUE TRIAGE LOOP
+  # ============================================
+  initiate-triage:
+    name: Initiate Ecosystem Triage
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Control Center Sage for Triage
+        env:
+          GH_TOKEN: ${{ secrets.JBCOM_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run ecosystem-sage.yml \
+            --repo jbcom/control-center \
+            -f query="Please triage and label this new issue" \
+            -f context_repo=${{ github.repository }} \
+            -f context_issue=${{ github.event.issue.number }}
