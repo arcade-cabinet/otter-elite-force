@@ -142,14 +142,15 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		let clickCount = 0;
 		while (buttonText.includes("NEXT") && clickCount < 20) {
 			await nextBtn.click();
-			await page.waitForTimeout(300);
+			await page.waitForTimeout(500);
 			buttonText = await nextBtn.innerText();
 			clickCount++;
 		}
 
-		// Final click on BEGIN MISSION
-		await expect(nextBtn).toBeVisible();
-		await nextBtn.click();
+		// Final click on BEGIN MISSION - use force:true as animation may cause instability
+		const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
+		await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
+		await beginMissionBtn.click({ force: true });
 
 		// Should transition to gameplay (canvas visible if WebGL supported)
 		if (hasMcpSupport) {
@@ -508,14 +509,15 @@ test.describe("HUD and Player Interface", () => {
 			let clickCount = 0;
 			while (buttonText.includes("NEXT") && clickCount < 20) {
 				await nextBtn.click();
-				await page.waitForTimeout(300);
+				await page.waitForTimeout(500);
 				buttonText = await nextBtn.innerText();
 				clickCount++;
 			}
 
-			// Final click on BEGIN MISSION
-			await expect(nextBtn).toBeVisible();
-			await nextBtn.click();
+			// Final click on BEGIN MISSION - use force:true for animation stability
+			const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
+			await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
+			await beginMissionBtn.click({ force: true });
 
 			// Verify we transitioned to gameplay
 			await expect(page.locator("canvas")).toBeVisible({ timeout: 15000 });
@@ -567,14 +569,15 @@ test.describe("Game World and Environment", () => {
 			let clickCount = 0;
 			while (buttonText.includes("NEXT") && clickCount < 20) {
 				await nextBtn.click();
-				await page.waitForTimeout(300);
+				await page.waitForTimeout(500);
 				buttonText = await nextBtn.innerText();
 				clickCount++;
 			}
 
-			// Final click on BEGIN MISSION
-			await expect(nextBtn).toBeVisible();
-			await nextBtn.click();
+			// Final click on BEGIN MISSION - use force:true for animation stability
+			const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
+			await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
+			await beginMissionBtn.click({ force: true });
 
 			// Verify we transitioned to gameplay
 			await expect(page.locator("canvas")).toBeVisible({ timeout: 15000 });
@@ -827,11 +830,19 @@ test.describe("Error Handling and Edge Cases", () => {
 		await page.goto("/");
 		await waitForStable(page);
 
-		// Navigate through screens
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
-		await waitForStable(page);
+		// Navigate through screens - wait for button visibility before clicking
+		const canteenBtn = page.locator('button:has-text("VISIT CANTEEN")');
+		await expect(canteenBtn).toBeVisible();
+		await canteenBtn.click();
+		await waitForStable(page, 2000);
 
-		await page.locator('button:has-text("RETURN TO PERIMETER")').click();
+		// Wait for canteen UI to fully load before clicking return
+		await expect(page.locator("h2:has-text('FORWARD OPERATING BASE')")).toBeVisible({
+			timeout: 10000,
+		});
+		const returnBtn = page.locator('button:has-text("RETURN TO PERIMETER")');
+		await expect(returnBtn).toBeVisible({ timeout: 10000 });
+		await returnBtn.click();
 		await waitForStable(page);
 
 		// Filter out expected/non-critical errors

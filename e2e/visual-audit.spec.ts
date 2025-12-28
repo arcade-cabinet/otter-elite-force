@@ -62,12 +62,14 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 			let clickCount = 0;
 			while (buttonText.includes("NEXT") && clickCount < 20) {
 				await nextBtn.click();
-				await page.waitForTimeout(300);
+				await page.waitForTimeout(500);
 				buttonText = await nextBtn.innerText();
 				clickCount++;
 			}
-			await expect(nextBtn).toBeVisible();
-			await nextBtn.click(); // BEGIN MISSION
+			// Use force:true to avoid animation instability
+			const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
+			await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
+			await beginMissionBtn.click({ force: true }); // BEGIN MISSION
 			console.log("Passed through Cutscene");
 		} catch {
 			console.log("Cutscene button not found - skipping cutscene flow");

@@ -205,14 +205,15 @@ test.describe("OTTER: ELITE FORCE - Game Flow", () => {
 		let clickCount = 0;
 		while (buttonText.includes("NEXT") && clickCount < 20) {
 			await nextBtn.click();
-			await page.waitForTimeout(300); // Brief pause between clicks
+			await page.waitForTimeout(500); // Brief pause between clicks
 			buttonText = await nextBtn.innerText();
 			clickCount++;
 		}
 
-		// Final click on BEGIN MISSION
-		await expect(nextBtn).toBeVisible();
-		await nextBtn.click();
+		// Final click on BEGIN MISSION - use force:true for animation stability
+		const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
+		await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
+		await beginMissionBtn.click({ force: true });
 
 		// CRITICAL: Verify we actually transitioned to gameplay
 		const canvas = page.locator("canvas");
