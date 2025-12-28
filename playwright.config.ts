@@ -34,8 +34,8 @@ export default defineConfig({
 		baseURL: "http://localhost:4173",
 		// Collect trace when retrying the failed test
 		trace: "on-first-retry",
-		// Take screenshot on failure
-		screenshot: "only-on-failure",
+		// Take screenshot on failure (always capture for visual analysis)
+		screenshot: "on",
 		// Headed mode when MCP is available
 		headless: !hasMcpSupport,
 		// Video recording with MCP for debugging
