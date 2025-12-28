@@ -66,10 +66,14 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 				buttonText = await nextBtn.innerText();
 				clickCount++;
 			}
-			// Use force:true to avoid animation instability
+			// Use JS click to bypass animation instability
 			const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
 			await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
-			await beginMissionBtn.click({ force: true }); // BEGIN MISSION
+			await page.evaluate(() => {
+				const btn = document.querySelector("button.dialogue-next") as HTMLButtonElement;
+				if (btn) btn.click();
+			});
+			await page.waitForTimeout(500);
 			console.log("Passed through Cutscene");
 		} catch {
 			console.log("Cutscene button not found - skipping cutscene flow");

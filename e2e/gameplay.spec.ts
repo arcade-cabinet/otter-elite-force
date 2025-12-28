@@ -147,10 +147,16 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 			clickCount++;
 		}
 
-		// Final click on BEGIN MISSION - use force:true as animation may cause instability
+		// Final click on BEGIN MISSION - use JS click to bypass animation issues
 		const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
 		await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
-		await beginMissionBtn.click({ force: true });
+		await page.evaluate(() => {
+			const btn = document.querySelector("button.dialogue-next") as HTMLButtonElement;
+			if (btn) btn.click();
+		});
+
+		// Wait for transition to start
+		await page.waitForTimeout(500);
 
 		// Should transition to gameplay (canvas visible if WebGL supported)
 		if (hasMcpSupport) {
@@ -517,7 +523,11 @@ test.describe("HUD and Player Interface", () => {
 			// Final click on BEGIN MISSION - use force:true for animation stability
 			const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
 			await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
-			await beginMissionBtn.click({ force: true });
+			await page.evaluate(() => {
+				const btn = document.querySelector("button.dialogue-next") as HTMLButtonElement;
+				if (btn) btn.click();
+			});
+			await page.waitForTimeout(500);
 
 			// Verify we transitioned to gameplay
 			await expect(page.locator("canvas")).toBeVisible({ timeout: 15000 });
@@ -577,7 +587,11 @@ test.describe("Game World and Environment", () => {
 			// Final click on BEGIN MISSION - use force:true for animation stability
 			const beginMissionBtn = page.locator('button.dialogue-next:has-text("BEGIN MISSION")');
 			await expect(beginMissionBtn).toBeVisible({ timeout: 5000 });
-			await beginMissionBtn.click({ force: true });
+			await page.evaluate(() => {
+				const btn = document.querySelector("button.dialogue-next") as HTMLButtonElement;
+				if (btn) btn.click();
+			});
+			await page.waitForTimeout(500);
 
 			// Verify we transitioned to gameplay
 			await expect(page.locator("canvas")).toBeVisible({ timeout: 15000 });
