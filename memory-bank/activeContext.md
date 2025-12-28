@@ -1,6 +1,31 @@
 # Active Context: OTTER: ELITE FORCE
 
-## Current State
+## Current State (2025-12-28)
+
+PR #33 (comprehensive E2E tests) has merged to main. The project is now in a **clean extraction phase** where conflicting branches are being replaced with cleanly rebased PRs.
+
+### Merge Queue Status
+
+| Position | PR | Title | Status |
+|----------|-----|-------|--------|
+| 1 | #53 | Canteen modal redesign | 🔄 Ready for review |
+| 2 | #54 | Input lifecycle fix | 🔄 Ready for review |
+| 3 | #47 | Chunk persistence | ⏳ Needs rebase |
+| 4 | #48 | Character rescue | ⏳ Needs rebase |
+| 5 | #49 | Enemy health bars | ⏳ Needs rebase |
+| 6 | #46 | Base building | ⏳ Needs rebase |
+| 7 | #45 | Tactical features | ⏳ Later |
+
+### Stacked PRs
+- #55 stacked on #53 (Copilot additions)
+- #56 stacked on #54 (Copilot additions)
+
+### Agent Coordination
+All PRs have been commented with merge order and rebase instructions. Agents (@cursor, @copilot, @claude) are coordinating via PR comments.
+
+---
+
+## Historical Context
 
 The project has successfully transitioned through a complex integration phase. The monolithic POC refactor has been decomposed into domain-specific modules and reassembled into a cohesive foundation. We are now focused on the **1.0 Milestone: Tactical Simulation** with emphasis on completing the open world architecture.
 
