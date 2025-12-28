@@ -224,13 +224,17 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 			discoveredChunks: { "0,0": { id: "0,0", x: 0, z: 0, secured: true } },
 		});
 
-		// Start game
-		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-		await waitForStable(page, 3000);
+		// Start game - wait for button to be ready before clicking
+		const continueBtn = page.locator('button:has-text("CONTINUE CAMPAIGN")');
+		await expect(continueBtn).toBeVisible();
+		await continueBtn.click();
 
-		// HUD should show THE FALL warning
-		await expect(page.locator("text=THE FALL")).toBeVisible();
-		await expect(page.locator("text=RETURN TO LZ")).toBeVisible();
+		// Wait for game to load (longer on mobile/CI)
+		await waitForStable(page, 5000);
+
+		// HUD should show THE FALL warning with extended timeout for mobile
+		await expect(page.locator("text=THE FALL")).toBeVisible({ timeout: 15000 });
+		await expect(page.locator("text=RETURN TO LZ")).toBeVisible({ timeout: 10000 });
 	});
 });
 
@@ -279,21 +283,29 @@ test.describe("Canteen Operations", () => {
 	});
 
 	test("upgrades tab shows boost options", async ({ page }) => {
-		// Navigate to canteen
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
-		await waitForStable(page);
+		// Navigate to canteen - wait for button visibility first
+		const canteenBtn = page.locator('button:has-text("VISIT CANTEEN")');
+		await expect(canteenBtn).toBeVisible();
+		await canteenBtn.click();
+		await waitForStable(page, 2000);
 
-		// Switch to UPGRADES tab
-		await page.locator('button:has-text("UPGRADES")').click();
+		// Wait for canteen to load
+		await expect(page.locator("h2:has-text('FORWARD OPERATING BASE')")).toBeVisible();
 
-		// Should show upgrade options
-		await expect(page.locator("text=SPEED BOOST")).toBeVisible();
-		await expect(page.locator("text=HEALTH BOOST")).toBeVisible();
-		await expect(page.locator("text=DAMAGE BOOST")).toBeVisible();
+		// Switch to UPGRADES tab - wait for button visibility
+		const upgradesTab = page.locator('button:has-text("UPGRADES")');
+		await expect(upgradesTab).toBeVisible();
+		await upgradesTab.click();
+		await waitForStable(page, 500);
+
+		// Should show upgrade options with extended timeout for mobile
+		await expect(page.locator("text=SPEED BOOST")).toBeVisible({ timeout: 10000 });
+		await expect(page.locator("text=HEALTH BOOST")).toBeVisible({ timeout: 10000 });
+		await expect(page.locator("text=DAMAGE BOOST")).toBeVisible({ timeout: 10000 });
 
 		// Each upgrade should have a BUY button
 		const buyButtons = page.locator('.upgrade-item button:has-text("BUY")');
-		await expect(buyButtons.first()).toBeVisible();
+		await expect(buyButtons.first()).toBeVisible({ timeout: 10000 });
 	});
 
 	test("purchase upgrade with sufficient coins", async ({ page }) => {
@@ -303,35 +315,52 @@ test.describe("Canteen Operations", () => {
 			upgrades: { speedBoost: 1, healthBoost: 1, damageBoost: 1, weaponLvl: {} },
 		});
 
-		// Navigate to canteen upgrades
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
-		await waitForStable(page);
-		await page.locator('button:has-text("UPGRADES")').click();
+		// Navigate to canteen upgrades - wait for visibility first
+		const canteenBtn = page.locator('button:has-text("VISIT CANTEEN")');
+		await expect(canteenBtn).toBeVisible();
+		await canteenBtn.click();
+		await waitForStable(page, 2000);
 
-		// Initial speed boost level should be 1
-		await expect(page.locator("text=SPEED BOOST (Lvl 1)")).toBeVisible();
+		// Wait for canteen to fully load
+		await expect(page.locator("h2:has-text('FORWARD OPERATING BASE')")).toBeVisible();
 
-		// Click buy on speed boost
+		// Switch to UPGRADES tab
+		const upgradesTab = page.locator('button:has-text("UPGRADES")');
+		await expect(upgradesTab).toBeVisible();
+		await upgradesTab.click();
+		await waitForStable(page, 500);
+
+		// Initial speed boost level should be 1 (with extended timeout for mobile)
+		await expect(page.locator("text=SPEED BOOST (Lvl 1)")).toBeVisible({ timeout: 10000 });
+
+		// Click buy on speed boost - wait for button visibility
 		const speedBuyBtn = page
 			.locator('.upgrade-item:has-text("SPEED BOOST")')
 			.locator('button:has-text("BUY")');
+		await expect(speedBuyBtn).toBeVisible({ timeout: 10000 });
 		await speedBuyBtn.click();
 
-		// Should now show level 2
-		await expect(page.locator("text=SPEED BOOST (Lvl 2)")).toBeVisible();
+		// Should now show level 2 (with extended timeout for UI update)
+		await expect(page.locator("text=SPEED BOOST (Lvl 2)")).toBeVisible({ timeout: 10000 });
 	});
 
 	test("return to menu from canteen", async ({ page }) => {
-		// Navigate to canteen
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
-		await waitForStable(page);
+		// Navigate to canteen - wait for button visibility first
+		const canteenBtn = page.locator('button:has-text("VISIT CANTEEN")');
+		await expect(canteenBtn).toBeVisible();
+		await canteenBtn.click();
+		await waitForStable(page, 2000);
 
-		// Click return button
+		// Wait for canteen to fully load
+		await expect(page.locator("h2:has-text('FORWARD OPERATING BASE')")).toBeVisible();
+
+		// Click return button - wait for visibility first
 		const returnBtn = page.locator('button:has-text("RETURN TO PERIMETER")');
+		await expect(returnBtn).toBeVisible({ timeout: 10000 });
 		await returnBtn.click();
 
-		// Should be back at main menu
-		await expect(page.getByRole("heading", { name: /OTTER/i })).toBeVisible();
+		// Should be back at main menu (with extended timeout for transition)
+		await expect(page.getByRole("heading", { name: /OTTER/i })).toBeVisible({ timeout: 10000 });
 	});
 
 	test.describe("WebGL required", () => {

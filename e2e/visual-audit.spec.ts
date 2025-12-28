@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const SCREENSHOT_DIR = "visual-audit-results";
 
@@ -35,9 +35,11 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 		await bubblesCard.screenshot({ path: path.join(SCREENSHOT_DIR, "02-character-card.png") });
 		console.log("Captured Character Card");
 
-		// 3. Start New Game -> Cutscene
-		await page.locator('button:has-text("NEW GAME")').click();
-		await waitForStable(page, 3000);
+		// 3. Start New Game -> Cutscene - wait for visibility first
+		const newGameBtn = page.locator('button:has-text("NEW GAME")');
+		await expect(newGameBtn).toBeVisible({ timeout: 10000 });
+		await newGameBtn.click();
+		await waitForStable(page, 4000);
 		await page.screenshot({
 			path: path.join(SCREENSHOT_DIR, "03-cutscene-start.png"),
 			fullPage: true,
@@ -100,9 +102,13 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 
 		// 7. Canteen
 		await page.goto("/");
-		await waitForStable(page);
-		await page.locator('button:has-text("VISIT CANTEEN")').click();
-		await waitForStable(page, 3000);
+		await page.waitForLoadState("networkidle");
+		await waitForStable(page, 2000);
+
+		const canteenBtn = page.locator('button:has-text("VISIT CANTEEN")');
+		await expect(canteenBtn).toBeVisible({ timeout: 10000 });
+		await canteenBtn.click();
+		await waitForStable(page, 4000);
 		await page.screenshot({
 			path: path.join(SCREENSHOT_DIR, "08-canteen-platoon.png"),
 			fullPage: true,
@@ -110,8 +116,10 @@ test.describe("Visual Audit - Screenshot Generation", () => {
 		console.log("Captured Canteen Platoon");
 
 		// 8. Canteen Upgrades
-		await page.locator('button:has-text("UPGRADES")').click();
-		await waitForStable(page, 1000);
+		const upgradesTab = page.locator('button:has-text("UPGRADES")');
+		await expect(upgradesTab).toBeVisible({ timeout: 10000 });
+		await upgradesTab.click();
+		await waitForStable(page, 2000);
 		await page.screenshot({
 			path: path.join(SCREENSHOT_DIR, "09-canteen-upgrades.png"),
 			fullPage: true,

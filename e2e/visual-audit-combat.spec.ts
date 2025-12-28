@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 const SCREENSHOT_DIR = "visual-audit-results-combat";
 
@@ -81,14 +81,17 @@ test.describe("Visual Audit - Combat and Objectives", () => {
 		});
 
 		await page.reload();
-		await waitForStable(page);
+		await page.waitForLoadState("networkidle");
+		await waitForStable(page, 2000);
 
-		// 1. Continue Campaign
-		await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
-		await waitForStable(page, 5000);
+		// 1. Continue Campaign - wait for button visibility first
+		const continueBtn = page.locator('button:has-text("CONTINUE CAMPAIGN")');
+		await expect(continueBtn).toBeVisible({ timeout: 10000 });
+		await continueBtn.click();
+		await waitForStable(page, 6000);
 
 		const canvas = page.locator("canvas");
-		if (await canvas.isVisible()) {
+		if (await canvas.isVisible({ timeout: 10000 })) {
 			// Look around to find entities
 			// We injected them at specific local positions
 
@@ -115,9 +118,13 @@ test.describe("Visual Audit - Combat and Objectives", () => {
 				localStorage.setItem("otter_v8", JSON.stringify(data));
 			});
 			await page.reload();
-			await waitForStable(page, 5000);
-			await page.locator('button:has-text("CONTINUE CAMPAIGN")').click();
+			await page.waitForLoadState("networkidle");
 			await waitForStable(page, 3000);
+
+			const continueBtn2 = page.locator('button:has-text("CONTINUE CAMPAIGN")');
+			await expect(continueBtn2).toBeVisible({ timeout: 10000 });
+			await continueBtn2.click();
+			await waitForStable(page, 5000);
 			await page.screenshot({
 				path: path.join(SCREENSHOT_DIR, "03-fall-warning-overlay.png"),
 				fullPage: true,
