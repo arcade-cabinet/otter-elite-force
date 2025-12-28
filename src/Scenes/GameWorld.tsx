@@ -1,6 +1,7 @@
 /**
  * GameWorld Scene
- * Main gameplay scene with 3D world
+ * Main gameplay scene with 3D world.
+ * Uses strata components for camera, weather, and effects.
  */
 
 import { Environment, Sky } from "@react-three/drei";
@@ -15,7 +16,8 @@ import {
 } from "@react-three/postprocessing";
 import { useCallback, useRef, useState } from "react";
 import * as THREE from "three";
-import { audioEngine } from "../Core/AudioEngine";
+import { FollowCamera, WeatherSystem } from "../lib/strata/core";
+import { usePlaySFX } from "../lib/strata/audio-synth";
 import { GameLoop } from "../Core/GameLoop";
 import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
 import { Clam } from "../Entities/Objectives/Clam";
@@ -47,21 +49,27 @@ export function GameWorld() {
 	const playerRef = useRef<THREE.Group | null>(null);
 	const projectilesRef = useRef<ProjectilesHandle | null>(null);
 
-	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell") => {
-		audioEngine.playSFX("hit");
-		const newParticles = [...Array(5)].map(() => ({
-			id: `${type}-${Math.random()}`, // NOSONAR: Non-critical visual ID
-			position: pos.clone(),
-			velocity: new THREE.Vector3(
-				(Math.random() - 0.5) * 5, // NOSONAR: Visual randomness
-				Math.random() * 5, // NOSONAR: Visual randomness
-				(Math.random() - 0.5) * 5, // NOSONAR: Visual randomness
-			),
-			lifetime: 0.5 + Math.random() * 0.5, // NOSONAR: Visual randomness
-			type,
-		}));
-		setParticles((prev) => [...prev, ...newParticles]);
-	}, []);
+	// Use strata audio-synth hook
+	const playSFX = usePlaySFX();
+
+	const handleImpact = useCallback(
+		(pos: THREE.Vector3, type: "blood" | "shell") => {
+			playSFX("hit");
+			const newParticles = [...Array(5)].map(() => ({
+				id: `${type}-${Math.random()}`, // NOSONAR: Non-critical visual ID
+				position: pos.clone(),
+				velocity: new THREE.Vector3(
+					(Math.random() - 0.5) * 5, // NOSONAR: Visual randomness
+					Math.random() * 5, // NOSONAR: Visual randomness
+					(Math.random() - 0.5) * 5, // NOSONAR: Visual randomness
+				),
+				lifetime: 0.5 + Math.random() * 0.5, // NOSONAR: Visual randomness
+				type,
+			}));
+			setParticles((prev) => [...prev, ...newParticles]);
+		},
+		[playSFX],
+	);
 
 	// Ghost preview position logic
 	const ghostPos: [number, number, number] | null = isBuildMode
@@ -77,8 +85,21 @@ export function GameWorld() {
 		if (selectedComponentType === "WALL") ghostPos[1] += 1;
 	}
 
+	// Weather state based on game conditions
+	const weatherState = {
+		type: "clear" as const,
+		intensity: 0.3,
+		windDirection: new THREE.Vector3(1, 0, 0.5).normalize(),
+		windIntensity: 0.2,
+		temperature: 25,
+		visibility: 1,
+		cloudCoverage: 0.3,
+		precipitationRate: 0,
+	};
+
 	return (
 		<Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
+			{/* Game Logic */}
 			<GameLogic
 				playerRef={playerRef}
 				projectilesRef={projectilesRef}
@@ -89,14 +110,43 @@ export function GameWorld() {
 				character={character}
 				handleImpact={handleImpact}
 			/>
+
+			{/* Strata FollowCamera */}
+			<FollowCamera
+				target={playerRef}
+				offset={[0, 5, 10]}
+				smoothTime={0.3}
+				lookAheadDistance={2}
+				lookAheadSmoothing={0.5}
+				fov={50}
+				makeDefault
+			/>
+
+			{/* Lighting */}
 			<ambientLight intensity={0.3} />
 			<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
+
+			{/* Sky and Environment */}
 			<Sky sunPosition={[100, 20, 100]} />
 			<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
 			<Environment preset="sunset" />
+
+			{/* Strata Weather System */}
+			<WeatherSystem
+				weather={weatherState}
+				rainCount={5000}
+				snowCount={0}
+				areaSize={50}
+				height={20}
+				enableLightning={false}
+			/>
+
+			{/* Chunk Rendering */}
 			{activeChunks.map((chunk) => (
 				<ChunkRenderer key={chunk.id} data={chunk} playerPos={playerPos} />
 			))}
+
+			{/* Player */}
 			<PlayerRig
 				ref={playerRef}
 				traits={character.traits}
@@ -110,7 +160,7 @@ export function GameWorld() {
 				{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
 			</PlayerRig>
 
-			{/* Render Ghost Preview */}
+			{/* Build Mode Ghost Preview */}
 			{isBuildMode && ghostPos && (
 				<>
 					{selectedComponentType === "FLOOR" && <BaseFloor position={ghostPos} ghost />}
@@ -120,6 +170,7 @@ export function GameWorld() {
 				</>
 			)}
 
+			{/* Placed Base Components */}
 			{saveData.baseComponents.map((comp) => {
 				if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
 				if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
@@ -127,6 +178,8 @@ export function GameWorld() {
 				if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
 				return null;
 			})}
+
+			{/* Projectiles and Particles */}
 			<Projectiles ref={projectilesRef} />
 			<Particles
 				particles={particles}
@@ -135,7 +188,11 @@ export function GameWorld() {
 					[],
 				)}
 			/>
+
+			{/* Game Loop */}
 			<GameLoop />
+
+			{/* Post Processing */}
 			<EffectComposer>
 				<Bloom intensity={0.5} />
 				<Noise opacity={0.05} />

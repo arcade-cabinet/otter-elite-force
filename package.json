@@ -57,6 +57,7 @@
 		"@react-three/fiber": "^9.4.2",
 		"@react-three/postprocessing": "^3.0.4",
 		"@react-three/rapier": "^2.2.0",
+		"@strata-game-library/audio-synth": "github:strata-game-library/audio-synth#main",
 		"@strata-game-library/core": "github:strata-game-library/core#main",
 		"@strata-game-library/presets": "github:strata-game-library/presets#main",
 		"@strata-game-library/shaders": "github:strata-game-library/shaders#main",

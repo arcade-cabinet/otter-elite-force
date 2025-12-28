@@ -1,34 +1,46 @@
 /**
  * Enemy Health Bars
- * HTML overlay showing enemy health with:
+ * 3D health bars using strata HealthBar component.
+ *
+ * Features:
+ * - 3D positioning above enemies
  * - Color coding: Green > Yellow > Red
  * - Fade after 3 seconds of no damage
- * - Optional numeric HP display
+ * - Distance-based fading
  */
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import * as THREE from "three";
+import { HealthBar } from "../lib/strata/core";
 import { enemies } from "../ecs/world";
 
 interface HealthBarData {
 	entityId: string;
-	position: THREE.Vector3;
+	position: [number, number, number];
 	health: number;
 	maxHealth: number;
 	lastDamageTime: number;
-	visible: boolean;
 }
 
 interface EnemyHealthBarsProps {
 	showNumericHP?: boolean;
 }
 
+/**
+ * Get health bar color based on percentage.
+ */
+function getHealthColor(healthPercent: number): string {
+	if (healthPercent > 0.6) return "#4caf50"; // Green
+	if (healthPercent > 0.3) return "#ffeb3b"; // Yellow
+	return "#f44336"; // Red
+}
+
+/**
+ * Component that renders health bars for all enemies using strata HealthBar.
+ */
 export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps) {
-	const { camera, size } = useThree();
 	const [healthBars, setHealthBars] = useState<Map<string, HealthBarData>>(new Map());
-	const tempVector = useRef(new THREE.Vector3());
-	const tempVector2 = useRef(new THREE.Vector3());
 
 	// Update health bar data from ECS
 	useFrame(() => {
@@ -44,18 +56,16 @@ export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps)
 
 			// Only show if recently damaged
 			if (wasRecentlyDamaged) {
-				// Calculate position above enemy
-				const worldPos = tempVector.current;
-				worldPos.copy(entity.transform.position);
-				worldPos.y += 2; // Position above enemy
-
 				newHealthBars.set(entity.id, {
 					entityId: entity.id,
-					position: worldPos.clone(),
+					position: [
+						entity.transform.position.x,
+						entity.transform.position.y + 2, // Above enemy
+						entity.transform.position.z,
+					],
 					health: entity.health.current,
 					maxHealth: entity.health.max,
 					lastDamageTime: entity.health.lastDamageTime,
-					visible: true,
 				});
 			}
 		}
@@ -63,28 +73,74 @@ export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps)
 		setHealthBars(newHealthBars);
 	});
 
-	// Convert 3D position to 2D screen position
-	const get2DPosition = (worldPos: THREE.Vector3): { x: number; y: number; visible: boolean } => {
-		const screenPos = tempVector2.current.copy(worldPos);
-		screenPos.project(camera);
+	return (
+		<>
+			{Array.from(healthBars.values()).map((data) => {
+				const healthPercent = data.health / data.maxHealth;
+				const color = getHealthColor(healthPercent);
 
-		// Check if behind camera
-		if (screenPos.z > 1) {
-			return { x: 0, y: 0, visible: false };
+				return (
+					<HealthBar
+						key={data.entityId}
+						position={data.position}
+						value={data.health}
+						maxValue={data.maxHealth}
+						width={50}
+						height={6}
+						fillColor={color}
+						backgroundColor="rgba(0, 0, 0, 0.6)"
+						borderColor="rgba(255, 255, 255, 0.3)"
+						borderWidth={1}
+						borderRadius={3}
+						showText={showNumericHP}
+						textFormat="value"
+						animationDuration={200}
+						glowColor={color}
+						glowIntensity={0.3}
+						distanceFade={{
+							start: 15,
+							end: 30,
+						}}
+					/>
+				);
+			})}
+		</>
+	);
+}
+
+/**
+ * Fallback 2D overlay version for when 3D rendering isn't suitable.
+ * Uses HTML overlay instead of strata 3D HealthBar.
+ */
+export function EnemyHealthBars2D({ showNumericHP = false }: EnemyHealthBarsProps) {
+	const { camera, size } = useThree();
+	const [healthBars, setHealthBars] = useState<Map<string, HealthBarData>>(new Map());
+
+	useFrame(() => {
+		const now = Date.now();
+		const newHealthBars = new Map<string, HealthBarData>();
+
+		for (const entity of enemies) {
+			if (!entity.health || !entity.transform) continue;
+			if (entity.isDead) continue;
+
+			const timeSinceDamage = (now - entity.health.lastDamageTime) / 1000;
+			if (timeSinceDamage < 3) {
+				newHealthBars.set(entity.id, {
+					entityId: entity.id,
+					position: [
+						entity.transform.position.x,
+						entity.transform.position.y + 2,
+						entity.transform.position.z,
+					],
+					health: entity.health.current,
+					maxHealth: entity.health.max,
+					lastDamageTime: entity.health.lastDamageTime,
+				});
+			}
 		}
-
-		const x = (screenPos.x * 0.5 + 0.5) * size.width;
-		const y = (screenPos.y * -0.5 + 0.5) * size.height;
-
-		return { x, y, visible: true };
-	};
-
-	// Get color based on health percentage
-	const getHealthColor = (healthPercent: number): string => {
-		if (healthPercent > 0.6) return "#4caf50"; // Green
-		if (healthPercent > 0.3) return "#ffeb3b"; // Yellow
-		return "#f44336"; // Red
-	};
+		setHealthBars(newHealthBars);
+	});
 
 	return (
 		<div
@@ -99,27 +155,30 @@ export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps)
 			}}
 		>
 			{Array.from(healthBars.values()).map((data) => {
-				const screenPos = get2DPosition(data.position);
-				if (!screenPos.visible) return null;
-
 				const healthPercent = data.health / data.maxHealth;
 				const color = getHealthColor(healthPercent);
 				const timeSinceDamage = (Date.now() - data.lastDamageTime) / 1000;
-				const opacity = Math.max(0, 1 - timeSinceDamage / 3); // Fade over 3 seconds
+				const opacity = Math.max(0, 1 - timeSinceDamage / 3);
+
+				// Project to screen
+				const vec = new THREE.Vector3(...data.position);
+				vec.project(camera);
+				if (vec.z > 1) return null;
+
+				const x = (vec.x * 0.5 + 0.5) * size.width;
+				const y = (vec.y * -0.5 + 0.5) * size.height;
 
 				return (
 					<div
 						key={data.entityId}
 						style={{
 							position: "absolute",
-							left: screenPos.x - 25,
-							top: screenPos.y - 20,
+							left: x - 25,
+							top: y - 20,
 							width: "50px",
 							opacity,
-							transition: "opacity 0.3s ease-out",
 						}}
 					>
-						{/* Health bar background */}
 						<div
 							style={{
 								width: "100%",
@@ -130,19 +189,15 @@ export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps)
 								border: "1px solid rgba(255, 255, 255, 0.3)",
 							}}
 						>
-							{/* Health bar fill */}
 							<div
 								style={{
 									width: `${healthPercent * 100}%`,
 									height: "100%",
 									backgroundColor: color,
-									transition: "width 0.2s ease-out",
 									boxShadow: `0 0 3px ${color}`,
 								}}
 							/>
 						</div>
-
-						{/* Optional numeric HP display */}
 						{showNumericHP && (
 							<div
 								style={{
@@ -150,7 +205,7 @@ export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps)
 									color: "#fff",
 									textAlign: "center",
 									marginTop: "2px",
-									textShadow: "0 0 3px #000, 0 0 5px #000",
+									textShadow: "0 0 3px #000",
 									fontWeight: "bold",
 								}}
 							>

@@ -26,6 +26,9 @@ importers:
       '@react-three/rapier':
         specifier: ^2.2.0
         version: 2.2.0(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(react@19.0.0-rc.1)(three@0.182.0)
+      '@strata-game-library/audio-synth':
+        specifier: github:strata-game-library/audio-synth#main
+        version: https://codeload.github.com/strata-game-library/audio-synth/tar.gz/73b20ed6ee84836393536363fac364f08bd052cc(react@19.0.0-rc.1)(tone@15.1.22)
       '@strata-game-library/core':
         specifier: github:strata-game-library/core#main
         version: https://codeload.github.com/strata-game-library/core/tar.gz/f0b9ee21d314ae1504abc8a5e86c4f0acd188d2c(@react-three/drei@10.7.7(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@types/react@19.2.7)(@types/three@0.182.0)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/rapier@2.2.0(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(react@19.0.0-rc.1)(three@0.182.0))(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(@types/three@0.182.0)(postprocessing@6.38.2(three@0.182.0))(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)(yuka@0.7.8)(zustand@5.0.9(@types/react@19.2.7)(immer@11.1.0)(react@19.0.0-rc.1)(use-sync-external-store@1.6.0(react@19.0.0-rc.1)))
@@ -1020,6 +1023,13 @@ packages:
     resolution: {integrity: sha512-9g9dWI4gsSVe8bNLlb+lMkBYsnIKCZTmvqvDG+Avnn69XfmHZKiaMrx7cgTaddq7aTPPmXiTsbFcUy0xgI4+wA==}
     peerDependencies:
       react: '>= 16.3.0'
+
+  '@strata-game-library/audio-synth@https://codeload.github.com/strata-game-library/audio-synth/tar.gz/73b20ed6ee84836393536363fac364f08bd052cc':
+    resolution: {tarball: https://codeload.github.com/strata-game-library/audio-synth/tar.gz/73b20ed6ee84836393536363fac364f08bd052cc}
+    version: 1.0.0
+    peerDependencies:
+      react: '>=18.0.0'
+      tone: '>=14.0.0'
 
   '@strata-game-library/core@https://codeload.github.com/strata-game-library/core/tar.gz/f0b9ee21d314ae1504abc8a5e86c4f0acd188d2c':
     resolution: {tarball: https://codeload.github.com/strata-game-library/core/tar.gz/f0b9ee21d314ae1504abc8a5e86c4f0acd188d2c}
@@ -3010,6 +3020,11 @@ snapshots:
   '@stitches/react@1.2.8(react@19.0.0-rc.1)':
     dependencies:
       react: 19.0.0-rc.1
+
+  '@strata-game-library/audio-synth@https://codeload.github.com/strata-game-library/audio-synth/tar.gz/73b20ed6ee84836393536363fac364f08bd052cc(react@19.0.0-rc.1)(tone@15.1.22)':
+    dependencies:
+      react: 19.0.0-rc.1
+      tone: 15.1.22
 
   ? '@strata-game-library/core@https://codeload.github.com/strata-game-library/core/tar.gz/f0b9ee21d314ae1504abc8a5e86c4f0acd188d2c(@react-three/drei@10.7.7(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@types/react@19.2.7)(@types/three@0.182.0)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(@react-three/rapier@2.2.0(@react-three/fiber@9.4.2(@types/react@19.2.7)(immer@11.1.0)(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0))(react@19.0.0-rc.1)(three@0.182.0))(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(@types/three@0.182.0)(postprocessing@6.38.2(three@0.182.0))(react-dom@19.0.0-rc.1(react@19.0.0-rc.1))(react@19.0.0-rc.1)(three@0.182.0)(yuka@0.7.8)(zustand@5.0.9(@types/react@19.2.7)(immer@11.1.0)(react@19.0.0-rc.1)(use-sync-external-store@1.6.0(react@19.0.0-rc.1)))'
   : dependencies:

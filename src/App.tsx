@@ -1,10 +1,11 @@
 /**
  * Main App Component
- * Root component that manages game state and renders appropriate screens
+ * Root component that manages game state and renders appropriate screens.
+ * Uses strata AudioSynthProvider for procedural audio.
  */
 
 import { useEffect, useRef } from "react";
-import { audioEngine } from "./Core/AudioEngine";
+import { AudioSynthProvider, useAudioSynth } from "./lib/strata/audio-synth";
 import { inputSystem } from "./Core/InputSystem";
 import { Canteen } from "./Scenes/Canteen";
 import { Cutscene } from "./Scenes/Cutscene";
@@ -15,43 +16,26 @@ import { DamageFeedback } from "./UI/DamageFeedback";
 import { EnemyHealthBars } from "./UI/EnemyHealthBars";
 import { HUD } from "./UI/HUD";
 
-export function App() {
+/**
+ * Inner app component that has access to audio context.
+ */
+function AppContent() {
 	const { mode, loadData, hudReady } = useGameStore();
+	const { playMusic, isReady: audioReady } = useAudioSynth();
 	const inputInitialized = useRef(false);
 
 	// Initialize on mount
 	useEffect(() => {
 		// Expose store to window for E2E testing
 		if (typeof window !== "undefined") {
-			(window as any).__gameStore = useGameStore;
+			(window as unknown as { __gameStore: typeof useGameStore }).__gameStore = useGameStore;
 		}
 
 		// Load save data
 		loadData();
-
-		// Initialize audio on first user interaction
-		const initAudio = async () => {
-			await audioEngine.init();
-			audioEngine.playMusic("menu");
-		};
-
-		// Setup audio initialization on first interaction
-		const handleInteraction = () => {
-			initAudio();
-			document.removeEventListener("click", handleInteraction);
-			document.removeEventListener("touchstart", handleInteraction);
-		};
-
-		document.addEventListener("click", handleInteraction);
-		document.addEventListener("touchstart", handleInteraction);
-
-		return () => {
-			document.removeEventListener("click", handleInteraction);
-			document.removeEventListener("touchstart", handleInteraction);
-		};
 	}, [loadData]);
 
-	// Initialize input system when entering GAME mode and HUD is ready (deterministic)
+	// Initialize input system when entering GAME mode and HUD is ready
 	useEffect(() => {
 		const shouldBeInitialized = mode === "GAME" && hudReady;
 
@@ -63,7 +47,6 @@ export function App() {
 			inputInitialized.current = false;
 		}
 
-		// Handle unmount - if we are still initialized, destroy
 		return () => {
 			if (inputInitialized.current) {
 				inputSystem.destroy();
@@ -72,13 +55,20 @@ export function App() {
 		};
 	}, [mode, hudReady]);
 
+	// Play appropriate music based on game mode
 	useEffect(() => {
+		if (!audioReady) return;
+
 		if (mode === "GAME") {
-			audioEngine.playMusic("combat");
+			playMusic("combat");
 		} else if (mode === "MENU") {
-			audioEngine.playMusic("menu");
+			playMusic("menu");
+		} else if (mode === "CANTEEN") {
+			playMusic("shop");
+		} else if (mode === "VICTORY") {
+			playMusic("victory");
 		}
-	}, [mode]);
+	}, [mode, audioReady, playMusic]);
 
 	return (
 		<div className="app">
@@ -103,5 +93,16 @@ export function App() {
 			<div id="flash" />
 			<div id="damage" />
 		</div>
+	);
+}
+
+/**
+ * Main App with AudioSynthProvider wrapper.
+ */
+export function App() {
+	return (
+		<AudioSynthProvider masterVolume={0.8} autoInit={true}>
+			<AppContent />
+		</AudioSynthProvider>
 	);
 }
