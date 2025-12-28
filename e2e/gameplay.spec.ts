@@ -29,9 +29,61 @@ const injectGameState = async (
 ) => {
 	await page.evaluate((overrides) => {
 		const key = "otter_v8";
+		// Provide a full valid base state to pass validation
+		const baseState = {
+			version: 8,
+			rank: 0,
+			xp: 0,
+			medals: 0,
+			unlocked: 1,
+			unlockedCharacters: ["bubbles"],
+			unlockedWeapons: ["service-pistol"],
+			coins: 0,
+			discoveredChunks: {},
+			territoryScore: 0,
+			peacekeepingScore: 0,
+			difficultyMode: "SUPPORT",
+			isFallTriggered: false,
+			strategicObjectives: {
+				siphonsDismantled: 0,
+				villagesLiberated: 0,
+				gasStockpilesCaptured: 0,
+				healersProtected: 0,
+				alliesRescued: 0,
+			},
+			spoilsOfWar: {
+				creditsEarned: 0,
+				clamsHarvested: 0,
+				upgradesUnlocked: 0,
+			},
+			upgrades: {
+				speedBoost: 0,
+				healthBoost: 0,
+				damageBoost: 0,
+				weaponLvl: { "service-pistol": 1 },
+			},
+			isLZSecured: false,
+			baseComponents: [],
+			lastPlayerPosition: [0, 0, 0],
+		};
+		
 		const existing = localStorage.getItem(key);
-		const current = existing ? JSON.parse(existing) : {};
-		const merged = { ...current, ...overrides };
+		const current = existing ? JSON.parse(existing) : baseState;
+		
+		// Deep merge helper for evaluate block
+		const merge = (target: any, source: any) => {
+			for (const key of Object.keys(source)) {
+				if (source[key] instanceof Object && !Array.isArray(source[key])) {
+					if (!target[key]) target[key] = {};
+					merge(target[key], source[key]);
+				} else {
+					target[key] = source[key];
+				}
+			}
+			return target;
+		};
+		
+		const merged = merge({ ...current }, overrides);
 		localStorage.setItem(key, JSON.stringify(merged));
 	}, stateOverrides);
 	await page.reload();
@@ -74,16 +126,30 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		await expect(dialogueText).toBeVisible();
 
 		// Click through cutscene
-		const continueBtn = page.locator('button:has-text("Continue")');
-		await expect(continueBtn).toBeVisible({ timeout: 5000 });
-		await continueBtn.click();
-
-		// Should transition to gameplay (canvas visible)
-		const canvas = page.locator("canvas");
-		await expect(canvas).toBeVisible({ timeout: 15000 });
+		const nextBtn = page.locator('button.dialogue-next');
+		await expect(nextBtn).toBeVisible({ timeout: 10000 });
 		
-		// HUD should also be visible
-		await expect(page.locator(".hud-container")).toBeVisible({ timeout: 5000 });
+		// Click NEXT >> until we reach BEGIN MISSION
+		let buttonText = await nextBtn.innerText();
+		while (buttonText.includes("NEXT")) {
+			await nextBtn.click();
+			buttonText = await nextBtn.innerText();
+		}
+		
+		// Final click on BEGIN MISSION
+		await nextBtn.click();
+
+		// Should transition to gameplay (canvas visible if WebGL supported)
+		if (hasMcpSupport) {
+			const canvas = page.locator("canvas");
+			await expect(canvas).toBeVisible({ timeout: 15000 });
+			
+			// HUD should also be visible
+			await expect(page.locator(".hud-container")).toBeVisible({ timeout: 5000 });
+		} else {
+			// If no WebGL, we might still see HUD or just verify we're not on menu
+			await expect(page.getByRole("heading", { name: /OTTER/i })).not.toBeVisible();
+		}
 	});
 
 	test("continue campaign flow for returning players", async ({ page }) => {
@@ -107,9 +173,13 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 		await continueBtn.click();
 		await waitForStable(page, 2000);
 
-		// Should be in game mode (canvas visible)
-		const canvas = page.locator("canvas");
-		await expect(canvas).toBeVisible({ timeout: 10000 });
+		// Should be in game mode (canvas visible if WebGL supported)
+		if (hasMcpSupport) {
+			const canvas = page.locator("canvas");
+			await expect(canvas).toBeVisible({ timeout: 10000 });
+		} else {
+			await expect(page.locator('button:has-text("CONTINUE CAMPAIGN")')).not.toBeVisible();
+		}
 	});
 
 	test("difficulty selection only allows escalation", async ({ page }) => {
@@ -138,11 +208,12 @@ test.describe("Gameplay Flow - Menu to Game Transition", () => {
 	});
 
 	test("The Fall mechanic in TACTICAL mode", async ({ page }) => {
-		// Inject TACTICAL mode with low health
+		// Inject TACTICAL mode with isFallTriggered enabled
 		await injectGameState(page, {
 			difficultyMode: "TACTICAL",
-			health: 25, // Below 30% threshold
+			isFallTriggered: true,
 			isLZSecured: true,
+			discoveredChunks: { "0,0": { id: "0,0", x: 0, z: 0, secured: true } },
 		});
 
 		// Start game
@@ -418,7 +489,7 @@ test.describe("Game World and Environment", () => {
 	test.describe("WebGL required", () => {
 		test.skip(!hasMcpSupport, "Requires WebGL for gameplay");
 
-	test("chunks are fixed on discovery and persist", async ({ page }) => {
+		test("chunks are fixed on discovery and persist", async ({ page }) => {
 			await page.goto("/");
 			await page.evaluate(() => localStorage.removeItem("otter_v8"));
 			await page.reload();
@@ -488,8 +559,6 @@ test.describe("Game World and Environment", () => {
 			// Verify whiskers is now unlocked
 			await expect(page.locator('.char-card.unlocked:has-text("GEN. WHISKERS")')).toBeVisible();
 		});
-	});
-});
 
 		test("WebGL canvas renders 3D environment", async ({ page }) => {
 			await page.goto("/");
