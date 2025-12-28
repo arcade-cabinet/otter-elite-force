@@ -67,6 +67,16 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Extract Bundle Size
+        run: pnpm bundle-size
+
+      - name: Upload bundle size report
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: bundle-size-report
+          path: bundle-size.json
+          retention-days: 90
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
