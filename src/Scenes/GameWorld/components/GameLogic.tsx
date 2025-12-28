@@ -188,13 +188,16 @@ export function GameLogic({
 
 		// Over-the-shoulder camera: positioned BEHIND the player (-Z), looking forward
 		const targetDist = isZoomed ? 6 : 12;
+		// Look-ahead distance scales with camera distance (25% of targetDist)
+		const LOOK_AHEAD_RATIO = 0.25;
+		const lookAheadDist = targetDist * LOOK_AHEAD_RATIO;
 		const cameraOffset = new THREE.Vector3(1.5, 4, -targetDist).applyAxisAngle(
 			new THREE.Vector3(0, 1, 0),
 			playerRef.current.rotation.y,
 		);
 		state.camera.position.lerp(playerRef.current.position.clone().add(cameraOffset), 0.08);
 		// Look ahead of the player, not at the player
-		const lookTarget = new THREE.Vector3(0, 0.8, 3).applyAxisAngle(
+		const lookTarget = new THREE.Vector3(0, 0.8, lookAheadDist).applyAxisAngle(
 			new THREE.Vector3(0, 1, 0),
 			playerRef.current.rotation.y,
 		);

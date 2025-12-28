@@ -41,6 +41,13 @@ export function HUD() {
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
 	const placeComponent = useGameStore((state) => state.placeComponent);
+	const setHudReady = useGameStore((state) => state.setHudReady);
+
+	// Signal HUD mount/unmount for input system initialization
+	useEffect(() => {
+		setHudReady(true);
+		return () => setHudReady(false);
+	}, [setHudReady]);
 
 	// Track damage flash for directional indicator
 	const [showDamageFlash, setShowDamageFlash] = useState(false);

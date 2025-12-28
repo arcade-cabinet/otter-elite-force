@@ -14,7 +14,7 @@ import { useGameStore } from "./stores/gameStore";
 import { HUD } from "./UI/HUD";
 
 export function App() {
-	const { mode, loadData } = useGameStore();
+	const { mode, loadData, hudReady } = useGameStore();
 	const inputInitialized = useRef(false);
 
 	// Initialize on mount
@@ -45,21 +45,18 @@ export function App() {
 		};
 	}, [loadData]);
 
-	// Initialize input system when entering GAME mode (after HUD mounts with joystick zones)
+	// Initialize input system when entering GAME mode and HUD is ready (deterministic)
 	useEffect(() => {
-		if (mode === "GAME" && !inputInitialized.current) {
-			// Small delay to ensure HUD's joystick zones are in DOM
-			const timer = setTimeout(() => {
-				inputSystem.destroy(); // Clean up any previous instance
-				inputSystem.init();
-				inputInitialized.current = true;
-			}, 100);
-			return () => clearTimeout(timer);
+		if (mode === "GAME" && hudReady && !inputInitialized.current) {
+			inputSystem.init();
+			inputInitialized.current = true;
 		}
-		if (mode !== "GAME") {
+		// Destroy input system when exiting GAME mode
+		if (mode !== "GAME" && inputInitialized.current) {
+			inputSystem.destroy();
 			inputInitialized.current = false;
 		}
-	}, [mode]);
+	}, [mode, hudReady]);
 
 	useEffect(() => {
 		if (mode === "GAME") {

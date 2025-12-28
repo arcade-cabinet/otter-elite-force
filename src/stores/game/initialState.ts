@@ -18,6 +18,7 @@ export interface GameStateProperties {
 	isZoomed: boolean;
 	isBuildMode: boolean;
 	currentChunkId: string;
+	hudReady: boolean;
 }
 
 export const INITIAL_STATE: GameStateProperties = {
@@ -37,4 +38,5 @@ export const INITIAL_STATE: GameStateProperties = {
 	isZoomed: false,
 	isBuildMode: false,
 	currentChunkId: "0,0",
+	hudReady: false,
 };

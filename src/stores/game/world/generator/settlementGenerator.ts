@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { spawnSettlement } from "../../../../ecs/integration/assemblyBridge";
+import { CHUNK_SIZE } from "../../../../stores/gameStore";
 import type { Faction } from "../../../../systems/assembly/componentLibrary";
 import type { SettlementType } from "../../../../systems/assembly/types";
-import { CHUNK_SIZE } from "../../../../stores/gameStore";
 import type { WorldPoint } from "../../../worldLayout";
 
 /**
