@@ -7,6 +7,41 @@ import { expect, test } from "@playwright/test";
  * set once discovered and entity states persist across sessions.
  */
 
+// Type declaration for window with game store
+declare global {
+	interface Window {
+		__gameStore?: {
+			getState: () => {
+				discoverChunk: (x: number, z: number) => { entities: Array<{ id: string; hp?: number }> };
+				saveGame: () => void;
+				loadData: () => void;
+				updateChunkEntity: (chunkId: string, entityId: string, updates: { hp?: number }) => void;
+				secureChunk: (chunkId: string) => void;
+				hibernateDistantChunks: (x: number, z: number, radius: number) => void;
+				visitChunk: (chunkId: string) => void;
+				saveData: {
+					discoveredChunks: Record<
+						string,
+						{
+							id: string;
+							x: number;
+							z: number;
+							seed: number;
+							terrainType: string;
+							secured: boolean;
+							territoryState?: string;
+							lastVisited?: number;
+							hibernated?: boolean;
+							entities: Array<{ id: string; hp?: number }>;
+							decorations: unknown[];
+						}
+					>;
+				};
+			};
+		};
+	}
+}
+
 test.describe("Chunk Persistence", () => {
 	test.beforeEach(async ({ page }) => {
 		// Clear localStorage to start fresh
@@ -18,7 +53,7 @@ test.describe("Chunk Persistence", () => {
 	test("should persist discovered chunks across sessions", async ({ page }) => {
 		// Discover some chunks by navigating the game
 		await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (store) {
 				// Discover a few chunks
 				store.getState().discoverChunk(0, 0);
@@ -56,7 +91,7 @@ test.describe("Chunk Persistence", () => {
 
 	test("should preserve entity states in chunks", async ({ page }) => {
 		await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (store) {
 				// Discover a chunk
 				const chunk = store.getState().discoverChunk(2, 2);
@@ -89,7 +124,7 @@ test.describe("Chunk Persistence", () => {
 
 	test("should track territory state for chunks", async ({ page }) => {
 		await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (store) {
 				// Discover and secure a chunk
 				store.getState().discoverChunk(3, 3);
@@ -109,13 +144,13 @@ test.describe("Chunk Persistence", () => {
 		expect(chunkState.secured).toBe(true);
 
 		// Check for URA flag entity
-		const hasFlag = chunkState.entities.some((e: any) => e.id.startsWith("flag-"));
+		const hasFlag = chunkState.entities.some((e: { id: string }) => e.id.startsWith("flag-"));
 		expect(hasFlag).toBe(true);
 	});
 
 	test("should support chunk hibernation", async ({ page }) => {
 		await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (store) {
 				// Discover multiple chunks at different distances
 				store.getState().discoverChunk(0, 0);
@@ -128,7 +163,7 @@ test.describe("Chunk Persistence", () => {
 		});
 
 		const hibernationState = await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (!store) return null;
 			const chunks = store.getState().saveData.discoveredChunks;
 			return {
@@ -148,7 +183,7 @@ test.describe("Chunk Persistence", () => {
 		const beforeTime = Date.now();
 
 		await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (store) {
 				store.getState().discoverChunk(4, 4);
 				store.getState().visitChunk("4,4");
@@ -156,7 +191,7 @@ test.describe("Chunk Persistence", () => {
 		});
 
 		const visitTime = await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (!store) return null;
 			const chunk = store.getState().saveData.discoveredChunks["4,4"];
 			return chunk?.lastVisited;
@@ -226,14 +261,14 @@ test.describe("Chunk Persistence", () => {
 
 		// Load data and check migration
 		await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (store) {
 				store.getState().loadData();
 			}
 		});
 
 		const migratedChunk = await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (!store) return null;
 			return store.getState().saveData.discoveredChunks["5,5"];
 		});
@@ -246,7 +281,7 @@ test.describe("Chunk Persistence", () => {
 
 	test("should handle 50+ discovered chunks efficiently", async ({ page }) => {
 		await page.evaluate(() => {
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (store) {
 				// Discover 50+ chunks in a grid pattern
 				for (let x = -5; x <= 5; x++) {
@@ -270,7 +305,7 @@ test.describe("Chunk Persistence", () => {
 		// Test hibernation performance with many chunks
 		const hibernationTime = await page.evaluate(() => {
 			const startTime = performance.now();
-			const store = (window as any).__gameStore;
+			const store = window.__gameStore;
 			if (store) {
 				store.getState().hibernateDistantChunks(0, 0, 3);
 			}

@@ -4,6 +4,15 @@
  */
 
 import { useEffect, useRef } from "react";
+import type { useGameStore as GameStoreType } from "./stores/gameStore";
+
+// Extend Window for E2E testing
+declare global {
+	interface Window {
+		__gameStore?: typeof GameStoreType;
+	}
+}
+
 import { audioEngine } from "./Core/AudioEngine";
 import { inputSystem } from "./Core/InputSystem";
 import { Canteen } from "./Scenes/Canteen";
@@ -23,7 +32,7 @@ export function App() {
 	useEffect(() => {
 		// Expose store to window for E2E testing
 		if (typeof window !== "undefined") {
-			(window as any).__gameStore = useGameStore;
+			window.__gameStore = useGameStore;
 		}
 
 		// Load save data
