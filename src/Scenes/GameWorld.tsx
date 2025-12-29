@@ -139,7 +139,7 @@ export function GameWorld() {
 			<EffectComposer>
 				<Bloom intensity={0.5} />
 				<Noise opacity={0.05} />
-				<Vignette darkness={1.2} />
+				<Vignette darkness={0.4} offset={0.3} />
 				<BrightnessContrast brightness={0.05} contrast={0.2} />
 				<HueSaturation saturation={-0.2} />
 			</EffectComposer>
