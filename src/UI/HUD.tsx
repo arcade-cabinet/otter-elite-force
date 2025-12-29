@@ -103,6 +103,9 @@ export function HUD() {
 			{/* Mud Overlay */}
 			<div className="mud-overlay" style={{ opacity: mudAmount }} />
 
+			{/* Crosshair */}
+			<div className="crosshair" />
+
 			{/* Directional Damage Indicator */}
 			{showDamageFlash && lastDamageDirection && (
 				<div

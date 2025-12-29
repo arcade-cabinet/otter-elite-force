@@ -153,6 +153,51 @@ const PreviewModal = memo(function PreviewModal({
 	);
 });
 
+/** Background scene showing the squad hanging out */
+function CanteenBackground() {
+	const unlockedCharacters = useGameStore((state) => state.saveData.unlockedCharacters);
+
+	return (
+		<div className="canteen-background-view">
+			<Canvas shadows camera={{ position: [0, 1, 6], fov: 40 }}>
+				<ambientLight intensity={0.4} />
+				<directionalLight position={[5, 5, 5]} intensity={1} castShadow />
+				<pointLight position={[-5, 2, -5]} intensity={0.5} color="#4466ff" />
+				<Environment preset="park" />
+
+				<group position={[0, -0.5, 0]}>
+					{/* Floor */}
+					<mesh rotation={[-Math.PI/2, 0, 0]} receiveShadow>
+						<circleGeometry args={[15, 32]} />
+						<meshStandardMaterial color="#222" roughness={0.8} />
+					</mesh>
+
+					{/* Squad Lineup */}
+					{Object.values(CHARACTERS).map((char, index) => {
+						const isUnlocked = unlockedCharacters.includes(char.traits.id);
+						if (!isUnlocked) return null;
+
+						// Arrange in a V-formation or line
+						const offset = index - 2.5;
+						const x = offset * 1.2;
+						const z = Math.abs(offset) * 0.5 - 2;
+
+						return (
+							<PlayerRig
+								key={char.traits.id}
+								traits={char.traits}
+								gear={char.gear}
+								position={[x, 0, z]}
+								rotation={-offset * 0.1} // Look slightly inward
+							/>
+						);
+					})}
+				</group>
+			</Canvas>
+		</div>
+	);
+}
+
 export function Canteen() {
 	const coins = useGameStore((state) => state.saveData.coins);
 	const unlockedCharacters = useGameStore((state) => state.saveData.unlockedCharacters);
@@ -189,6 +234,8 @@ export function Canteen() {
 
 	return (
 		<div className="screen active canteen-screen">
+			<CanteenBackground />
+
 			{/* Scrollable UI container - full screen now */}
 			<div className="canteen-ui-full">
 				<div className="canteen-header">
