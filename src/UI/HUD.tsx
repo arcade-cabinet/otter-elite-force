@@ -1,16 +1,16 @@
 /**
  * HUD (Heads-Up Display)
- * In-game UI overlay
+ * In-game UI overlay using strata components
  *
  * Mobile-first design with:
- * - 48px minimum touch targets
- * - Visible joystick zones
+ * - Strata VirtualJoystick for touch controls
  * - First-objective prompts
  * - Directional damage indicators
  */
 
 import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { VirtualJoystick } from "@strata-game-library/core/components";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
 import { useGameStore } from "../stores/gameStore";
@@ -97,6 +97,15 @@ export function HUD() {
 		},
 		[playerPos, placeComponent],
 	);
+
+	// Strata joystick handlers
+	const handleMoveJoystick = useCallback((x: number, y: number) => {
+		inputSystem.setMove(x, -y); // Invert Y for world space
+	}, []);
+
+	const handleLookJoystick = useCallback((x: number, y: number) => {
+		inputSystem.setLook(x, y);
+	}, []);
 
 	return (
 		<div className="hud-container">
@@ -308,67 +317,40 @@ export function HUD() {
 				</div>
 			)}
 
-			{/* Joystick zones - visible indicators for mobile players */}
-			<div
-				id="joystick-move"
-				className="joystick-zone left"
-				style={{
-					position: "absolute",
+			{/* Strata VirtualJoystick for Movement (Left Side) */}
+			<VirtualJoystick
+				onMove={handleMoveJoystick}
+				size={120}
+				color="rgba(255, 170, 0, 0.6)"
+				opacity={0.3}
+				containerStyle={{
+					position: "fixed",
 					left: "20px",
 					bottom: "20px",
 					width: "150px",
 					height: "150px",
-					borderRadius: "50%",
-					border: "2px dashed rgba(255, 170, 0, 0.3)",
-					background: "radial-gradient(circle, rgba(255, 170, 0, 0.1) 0%, transparent 70%)",
+					zIndex: 999,
 				}}
-			>
-				<div
-					style={{
-						position: "absolute",
-						top: "50%",
-						left: "50%",
-						transform: "translate(-50%, -50%)",
-						color: "rgba(255, 170, 0, 0.4)",
-						fontSize: "0.7rem",
-						textAlign: "center",
-						pointerEvents: "none",
-					}}
-				>
-					MOVE
-				</div>
-			</div>
-			<div
-				id="joystick-look"
-				className="joystick-zone drag-area"
-				style={{
-					position: "absolute",
+			/>
+
+			{/* Strata VirtualJoystick for Look/Aim (Right Side) */}
+			<VirtualJoystick
+				onMove={handleLookJoystick}
+				size={120}
+				color="rgba(255, 170, 0, 0.4)"
+				opacity={0.2}
+				containerStyle={{
+					position: "fixed",
 					right: "20px",
 					bottom: "180px",
 					width: "150px",
 					height: "150px",
+					zIndex: 999,
 					borderRadius: "8px",
 					border: "2px dashed rgba(255, 170, 0, 0.4)",
 					background: "rgba(255, 170, 0, 0.1)",
 				}}
-			>
-				<div
-					style={{
-						position: "absolute",
-						top: "50%",
-						left: "50%",
-						transform: "translate(-50%, -50%)",
-						color: "rgba(255, 170, 0, 0.3)",
-						fontSize: "0.7rem",
-						textAlign: "center",
-						pointerEvents: "none",
-					}}
-				>
-					DRAG TO
-					<br />
-					AIM
-				</div>
-			</div>
+			/>
 		</div>
 	);
 }
