@@ -58,7 +58,7 @@
 		"@react-three/postprocessing": "^3.0.4",
 		"@react-three/rapier": "^2.2.0",
 		"@strata-game-library/audio-synth": "1.0.2",
-		"@strata-game-library/core": "1.4.11",
+		"@strata-game-library/core": "1.4.12",
 		"gsap": "^3.14.2",
 		"miniplex": "^2.0.0",
 		"nipplejs": "^0.10.2",
