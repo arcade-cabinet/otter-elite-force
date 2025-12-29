@@ -8,17 +8,22 @@ PR #33 (comprehensive E2E tests) has merged to main. The project is now in a **c
 
 | Position | PR | Title | Status |
 |----------|-----|-------|--------|
-| 1 | #53 | Canteen modal redesign | 🔄 Ready for review |
-| 2 | #54 | Input lifecycle fix | 🔄 Ready for review |
-| 3 | #47 | Chunk persistence | ⏳ Needs rebase |
-| 4 | #48 | Character rescue | ⏳ Needs rebase |
-| 5 | #49 | Enemy health bars | ⏳ Needs rebase |
-| 6 | #46 | Base building | ⏳ Needs rebase |
-| 7 | #45 | Tactical features | ⏳ Later |
+| 1 | #68 | Sentinel: Add CSP | 🔄 Auto-merge enabled |
+| 2 | #72 | fix: Vignette darkness | 🔄 Auto-merge enabled |
+| 3 | #71 | Bolt: Vector optimization | 🔄 Auto-merge enabled |
+| 4 | #70 | Strata: API integration | 🔄 Auto-merge enabled |
+| 5 | #69 | Visual: Main menu fix | 🔄 Auto-merge enabled |
+| 6 | #67 | Palette: A11y fix | 🔄 Auto-merge enabled |
 
-### Stacked PRs
-- #55 stacked on #53 (Copilot additions)
-- #56 stacked on #54 (Copilot additions)
+### Latest Features in Main
+- **Enemy Health Bars**: Visual feedback for enemy damage
+- **Suppression Mechanics**: Tactical suppression system
+- **Damage Feedback UI**: Visual damage indicators
+- **Territory State Display**: Chunk status (HOSTILE/NEUTRAL/SECURED) in HUD
+- **Chunk Hibernation**: Performance optimization for distant chunks
+- **Workflow Standardization**: Node.js 22, pnpm 10 across all workflows
+- **CSP Integration**: Content Security Policy added to index.html
+- **Mobile UX Polish**: Improved joystick zones and labels
 
 ### Agent Coordination
 All PRs have been commented with merge order and rebase instructions. Agents (@cursor, @copilot, @claude) are coordinating via PR comments.
