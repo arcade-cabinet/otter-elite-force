@@ -140,6 +140,7 @@ export function MainMenu() {
 						if (isLocked) ariaLabel += ". Locked - Difficulty can only be increased.";
 
 						return (
+							// biome-ignore lint/a11y/useSemanticElements: Custom styled radio group using buttons
 							<button
 								type="button"
 								role="radio"
