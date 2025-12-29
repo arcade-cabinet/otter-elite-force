@@ -24,6 +24,7 @@ import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
 import { Raft } from "../Entities/Raft";
 import { CHARACTERS, type ChunkData, useGameStore } from "../stores/gameStore";
+import { EnemyHealthBars } from "../UI/EnemyHealthBars";
 import { ChunkRenderer } from "./GameWorld/components/ChunkRenderer";
 import { GameLogic } from "./GameWorld/components/GameLogic";
 
@@ -136,6 +137,7 @@ export function GameWorld() {
 				)}
 			/>
 			<GameLoop />
+			<EnemyHealthBars showNumericHP={false} />
 			<EffectComposer>
 				<Bloom intensity={0.5} />
 				<Noise opacity={0.05} />

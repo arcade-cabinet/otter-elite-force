@@ -12,7 +12,6 @@ import { GameWorld } from "./Scenes/GameWorld";
 import { MainMenu } from "./Scenes/MainMenu";
 import { useGameStore } from "./stores/gameStore";
 import { DamageFeedback } from "./UI/DamageFeedback";
-import { EnemyHealthBars } from "./UI/EnemyHealthBars";
 import { HUD } from "./UI/HUD";
 
 export function App() {
@@ -94,7 +93,6 @@ export function App() {
 				<>
 					<GameWorld />
 					<HUD />
-					<EnemyHealthBars showNumericHP={false} />
 					<DamageFeedback />
 				</>
 			)}
