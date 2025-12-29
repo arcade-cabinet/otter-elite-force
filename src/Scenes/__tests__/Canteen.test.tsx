@@ -138,6 +138,67 @@ describe("Canteen", () => {
 		const upgradeItems = container.querySelectorAll(".upgrade-item button");
 		expect(upgradeItems[0]).toBeDisabled();
 	});
+
+	it("switches to Upgrades view and shows accessible buttons", () => {
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				coins: 50, // Start with limited coins
+				upgrades: {
+					speedBoost: 1,
+					healthBoost: 1,
+					damageBoost: 1,
+				},
+			},
+		});
+
+		render(<Canteen />);
+
+		// Switch to UPGRADES tab
+		fireEvent.click(screen.getByText("UPGRADES"));
+
+		// Check for Upgrade buttons
+		// UPGRADE_COSTS: speed: 200, health: 200, damage: 300
+		// Coins: 50
+		// All should be disabled
+
+		const healthBtn = screen.getByRole("button", { name: /Purchase HEALTH BOOST/i });
+		expect(healthBtn).toBeInTheDocument();
+		expect(healthBtn).toBeDisabled();
+		expect(healthBtn).toHaveAttribute(
+			"aria-label",
+			expect.stringContaining("Insufficient credits"),
+		);
+		expect(healthBtn).toHaveAttribute("title", expect.stringContaining("Insufficient credits"));
+
+		// Let's give enough coins for Health (200) but not Damage (300)
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				coins: 250,
+			},
+		});
+
+		// Cleanup and re-render to reflect new store state
+		cleanup();
+		render(<Canteen />);
+		fireEvent.click(screen.getByText("UPGRADES"));
+
+		const healthBtn2 = screen.getByRole("button", { name: /Purchase HEALTH BOOST/i });
+		expect(healthBtn2).not.toBeDisabled();
+		expect(healthBtn2).toHaveAttribute(
+			"aria-label",
+			expect.not.stringContaining("Insufficient credits"),
+		);
+		expect(healthBtn2).toHaveAttribute("title", "Purchase HEALTH BOOST");
+
+		const damageBtn = screen.getByRole("button", { name: /Purchase DAMAGE BOOST/i });
+		expect(damageBtn).toBeDisabled();
+		expect(damageBtn).toHaveAttribute(
+			"aria-label",
+			expect.stringContaining("Insufficient credits"),
+		);
+	});
 });
 
 describe("Canteen - Character Shop", () => {

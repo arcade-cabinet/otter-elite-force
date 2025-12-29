@@ -240,21 +240,34 @@ export function Canteen() {
 						</div>
 					) : (
 						<div className="upgrades-list">
-							{UPGRADES_CONFIG.map((upgrade) => (
-								<div className="upgrade-item" key={upgrade.id}>
-									<div className="upgrade-info">
-										<span className="upgrade-name">{upgrade.name}</span>
-										<span className="upgrade-level">Level {upgrades[upgrade.key]}</span>
+							{UPGRADES_CONFIG.map((upgrade) => {
+								const cost = UPGRADE_COSTS[upgrade.id];
+								const canAfford = coins >= cost;
+								const ariaLabel = canAfford
+									? `Purchase ${upgrade.name} for ${cost} credits`
+									: `Purchase ${upgrade.name} for ${cost} credits. Insufficient credits.`;
+								const title = canAfford
+									? `Purchase ${upgrade.name}`
+									: `Insufficient credits (Cost: ${cost})`;
+
+								return (
+									<div className="upgrade-item" key={upgrade.id}>
+										<div className="upgrade-info">
+											<span className="upgrade-name">{upgrade.name}</span>
+											<span className="upgrade-level">Level {upgrades[upgrade.key]}</span>
+										</div>
+										<button
+											type="button"
+											onClick={() => buyUpgrade(upgrade.id, cost)}
+											disabled={!canAfford}
+											aria-label={ariaLabel}
+											title={title}
+										>
+											{cost} CR
+										</button>
 									</div>
-									<button
-										type="button"
-										onClick={() => buyUpgrade(upgrade.id, UPGRADE_COSTS[upgrade.id])}
-										disabled={coins < UPGRADE_COSTS[upgrade.id]}
-									>
-										{UPGRADE_COSTS[upgrade.id]} CR
-									</button>
-								</div>
-							))}
+								);
+							})}
 						</div>
 					)}
 				</div>
