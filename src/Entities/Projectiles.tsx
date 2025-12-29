@@ -25,6 +25,7 @@ export const Projectiles = forwardRef<ProjectilesHandle, object>((_, ref) => {
 	const projectiles = useRef<Projectile[]>([]);
 	const meshRef = useRef<THREE.InstancedMesh>(null);
 	const dummy = useMemo(() => new THREE.Object3D(), []);
+	const tempVec = useMemo(() => new THREE.Vector3(), []);
 
 	useImperativeHandle(ref, () => ({
 		spawn: (position, direction) => {
@@ -48,7 +49,9 @@ export const Projectiles = forwardRef<ProjectilesHandle, object>((_, ref) => {
 		// Update positions
 		for (let i = projectiles.current.length - 1; i >= 0; i--) {
 			const p = projectiles.current[i];
-			p.position.add(p.velocity.clone().multiplyScalar(delta));
+			// Optimization: Use reusable vector for velocity * delta calculation
+			tempVec.copy(p.velocity).multiplyScalar(delta);
+			p.position.add(tempVec);
 			p.lifetime -= delta;
 
 			if (p.lifetime <= 0) {
@@ -63,7 +66,9 @@ export const Projectiles = forwardRef<ProjectilesHandle, object>((_, ref) => {
 		for (let i = 0; i < count; i++) {
 			const p = projectiles.current[i];
 			dummy.position.copy(p.position);
-			dummy.lookAt(p.position.clone().add(p.velocity));
+			// Optimization: Avoid clone() by using tempVec
+			tempVec.copy(p.position).add(p.velocity);
+			dummy.lookAt(tempVec);
 			dummy.updateMatrix();
 			meshRef.current.setMatrixAt(i, dummy.matrix);
 		}
