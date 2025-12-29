@@ -24,7 +24,7 @@ import { create } from "zustand";
 import { audioEngine } from "../Core/AudioEngine";
 import { DIFFICULTY_ORDER, GAME_CONFIG, RANKS, STORAGE_KEY } from "../utils/constants";
 import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS } from "./gameData";
-import { DEFAULT_SAVE_DATA } from "./persistence";
+import { DEFAULT_SAVE_DATA, loadFromLocalStorage, saveToLocalStorage } from "./persistence";
 import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData } from "./types";
 
 // Re-export types and data for backward compatibility
@@ -761,41 +761,24 @@ export const useGameStore = create<GameState>((set, get) => ({
 	},
 
 	loadData: () => {
-		try {
-			// NOSONAR: localStorage is appropriate for client-side game save data
-			const saved = localStorage.getItem(STORAGE_KEY);
-			if (saved) {
-				// NOSONAR: JSON.parse is safe - we validate structure before use
-				const parsedData = JSON.parse(saved);
-				// Migrate old saves that don't have lastPlayerPosition
-				if (!parsedData.lastPlayerPosition) {
-					parsedData.lastPlayerPosition = [0, 0, 0];
-				}
-				set({
-					saveData: parsedData,
-					// Restore player's 3D position (including height for climbing/platforms/trees)
-					playerPos: parsedData.lastPlayerPosition,
-				});
-			}
-		} catch (e) {
-			console.error("Load failed", e);
+		const loaded = loadFromLocalStorage();
+		if (loaded) {
+			set({
+				saveData: loaded,
+				playerPos: loaded.lastPlayerPosition,
+			});
 		}
 	},
 
 	saveGame: () => {
-		try {
-			// Save current player 3D position (including height for climbing/platforms)
-			const currentPos = get().playerPos;
-			const updatedSaveData = {
-				...get().saveData,
-				lastPlayerPosition: currentPos as [number, number, number],
-			};
-			// NOSONAR: localStorage is appropriate for client-side game save data
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSaveData));
-			set({ saveData: updatedSaveData });
-		} catch (e) {
-			console.error("Save failed", e);
-		}
+		// Save current player 3D position (including height for climbing/platforms)
+		const currentPos = get().playerPos;
+		const updatedSaveData = {
+			...get().saveData,
+			lastPlayerPosition: currentPos as [number, number, number],
+		};
+		saveToLocalStorage(updatedSaveData);
+		set({ saveData: updatedSaveData });
 	},
 
 	resetData: () => {

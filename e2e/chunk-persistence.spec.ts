@@ -32,7 +32,7 @@ test.describe("Chunk Persistence", () => {
 
 		// Check that chunks are in localStorage
 		const savedData = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			return saved ? JSON.parse(saved) : null;
 		});
 
@@ -45,7 +45,7 @@ test.describe("Chunk Persistence", () => {
 
 		// Verify chunks are still there
 		const reloadedData = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			return saved ? JSON.parse(saved) : null;
 		});
 
@@ -76,7 +76,7 @@ test.describe("Chunk Persistence", () => {
 
 		// Check entity state persisted
 		const entityState = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			if (!saved) return null;
 			const data = JSON.parse(saved);
 			const chunk = data.discoveredChunks["2,2"];
@@ -98,7 +98,7 @@ test.describe("Chunk Persistence", () => {
 		});
 
 		const chunkState = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			if (!saved) return null;
 			const data = JSON.parse(saved);
 			return data.discoveredChunks["3,3"];
@@ -168,10 +168,17 @@ test.describe("Chunk Persistence", () => {
 	});
 
 	test("should maintain chunk data structure after migration", async ({ page }) => {
-		// Simulate an old save without new fields
+		// Simulate an old save (v7) without new persistence fields
 		await page.evaluate(() => {
 			const oldSave = {
 				version: 7,
+				rank: 0,
+				xp: 0,
+				medals: 0,
+				unlocked: 1,
+				unlockedCharacters: ["bubbles"],
+				unlockedWeapons: ["service-pistol"],
+				coins: 0,
 				discoveredChunks: {
 					"5,5": {
 						id: "5,5",
@@ -184,14 +191,6 @@ test.describe("Chunk Persistence", () => {
 						decorations: [],
 					},
 				},
-				// ... other required fields
-				rank: 0,
-				xp: 0,
-				medals: 0,
-				unlocked: 1,
-				unlockedCharacters: ["bubbles"],
-				unlockedWeapons: ["service-pistol"],
-				coins: 0,
 				territoryScore: 0,
 				peacekeepingScore: 0,
 				difficultyMode: "SUPPORT",
@@ -212,29 +211,23 @@ test.describe("Chunk Persistence", () => {
 					speedBoost: 0,
 					healthBoost: 0,
 					damageBoost: 0,
-					weaponLvl: {},
+					weaponLvl: { "service-pistol": 1 },
 				},
 				isLZSecured: false,
 				baseComponents: [],
 				lastPlayerPosition: [0, 0, 0],
 			};
-			localStorage.setItem("otter-elite-force-save", JSON.stringify(oldSave));
+			localStorage.setItem("otter_v8", JSON.stringify(oldSave));
 		});
 
-		// Reload to trigger migration
+		// Reload to trigger automatic migration via App -> loadData -> loadFromLocalStorage
 		await page.reload();
-
-		// Load data and check migration
-		await page.evaluate(() => {
-			const store = (window as any).__gameStore;
-			if (store) {
-				store.getState().loadData();
-			}
-		});
+		await page.waitForLoadState("networkidle");
 
 		const migratedChunk = await page.evaluate(() => {
 			const store = (window as any).__gameStore;
 			if (!store) return null;
+			// Ensure we have the latest state from the store
 			return store.getState().saveData.discoveredChunks["5,5"];
 		});
 
@@ -259,7 +252,7 @@ test.describe("Chunk Persistence", () => {
 		});
 
 		const chunkCount = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			if (!saved) return 0;
 			const data = JSON.parse(saved);
 			return Object.keys(data.discoveredChunks || {}).length;

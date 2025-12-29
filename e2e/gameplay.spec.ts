@@ -280,15 +280,15 @@ test.describe("Canteen Operations", () => {
 		await waitForStable(page);
 
 		// Platoon list should show characters
-		const platoonList = page.locator(".platoon-list");
+		const platoonList = page.locator(".platoon-grid");
 		await expect(platoonList).toBeVisible();
 
 		// Default character (bubbles) should be unlocked
-		const bubblesItem = page.locator('.platoon-item:has-text("SGT. BUBBLES")');
+		const bubblesItem = page.locator('.platoon-card:has-text("SGT. BUBBLES")');
 		await expect(bubblesItem).toHaveClass(/unlocked/);
 
 		// Select different character if available
-		const characterItems = page.locator(".platoon-item");
+		const characterItems = page.locator(".platoon-card");
 		const count = await characterItems.count();
 		expect(count).toBeGreaterThan(0);
 	});
@@ -315,7 +315,7 @@ test.describe("Canteen Operations", () => {
 		await expect(page.locator("text=DAMAGE BOOST")).toBeVisible({ timeout: 10000 });
 
 		// Each upgrade should have a BUY button
-		const buyButtons = page.locator('.upgrade-item button:has-text("BUY")');
+		const buyButtons = page.locator('.upgrade-item button:has-text("CR")');
 		await expect(buyButtons.first()).toBeVisible({ timeout: 10000 });
 	});
 
@@ -341,18 +341,18 @@ test.describe("Canteen Operations", () => {
 		await upgradesTab.click();
 		await waitForStable(page, 500);
 
-		// Initial speed boost level should be 1 (with extended timeout for mobile)
-		await expect(page.locator("text=SPEED BOOST (Lvl 1)")).toBeVisible({ timeout: 10000 });
+		// Initial speed boost level should be 1
+		await expect(page.locator(".upgrade-item:has-text('SPEED BOOST')")).toContainText("Level 1");
 
-		// Click buy on speed boost - wait for button visibility
+		// Click buy on speed boost
 		const speedBuyBtn = page
 			.locator('.upgrade-item:has-text("SPEED BOOST")')
-			.locator('button:has-text("BUY")');
+			.locator('button:has-text("CR")');
 		await expect(speedBuyBtn).toBeVisible({ timeout: 10000 });
 		await speedBuyBtn.click();
 
-		// Should now show level 2 (with extended timeout for UI update)
-		await expect(page.locator("text=SPEED BOOST (Lvl 2)")).toBeVisible({ timeout: 10000 });
+		// Should now show level 2
+		await expect(page.locator(".upgrade-item:has-text('SPEED BOOST')")).toContainText("Level 2");
 	});
 
 	test("return to menu from canteen", async ({ page }) => {
@@ -798,7 +798,7 @@ test.describe("Responsive Layout", () => {
 
 		// All UI elements should be visible
 		await expect(page.locator("h2:has-text('FORWARD OPERATING BASE')")).toBeVisible();
-		await expect(page.locator(".platoon-list")).toBeVisible();
+		await expect(page.locator(".platoon-grid")).toBeVisible();
 	});
 });
 
