@@ -1,2 +1,6 @@
 onlyBuiltDependencies:
   - esbuild
+  - "@strata-game-library/core"
+  - "@strata-game-library/presets"
+  - "@strata-game-library/shaders"
+  - "@strata-game-library/audio-synth"
