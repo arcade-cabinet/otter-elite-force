@@ -127,17 +127,25 @@ export function MainMenu() {
 				<p style={{ fontSize: "0.7rem", color: "#888", marginBottom: "10px" }}>
 					Difficulty can be increased but never decreased
 				</p>
-				<div className="difficulty-grid">
+				<div className="difficulty-grid" role="radiogroup" aria-label="Select Campaign Difficulty">
 					{(["SUPPORT", "TACTICAL", "ELITE"] as const).map((mode) => {
 						const config = DIFFICULTY_CONFIGS[mode];
 						const isCurrent = saveData.difficultyMode === mode;
 						const canUpgrade = canUpgradeDifficulty(mode);
+						const isLocked = !canUpgrade && !isCurrent;
+
+						// Build a descriptive label for screen readers
+						let ariaLabel = `${config.displayName}: ${config.description}`;
+						if (isCurrent) ariaLabel += ". Currently Active.";
+						if (isLocked) ariaLabel += ". Locked - Difficulty can only be increased.";
 
 						return (
 							<button
 								type="button"
+								role="radio"
+								aria-checked={isCurrent}
 								key={mode}
-								className={`diff-card ${isCurrent ? "selected" : ""} ${!canUpgrade && !isCurrent ? "locked" : ""}`}
+								className={`diff-card ${isCurrent ? "selected" : ""} ${isLocked ? "locked" : ""}`}
 								onClick={() => {
 									if (canUpgrade) {
 										const warning = getDifficultyWarning(mode);
@@ -147,7 +155,8 @@ export function MainMenu() {
 										setDifficulty(mode);
 									}
 								}}
-								disabled={!canUpgrade && !isCurrent}
+								disabled={isLocked}
+								aria-label={ariaLabel}
 								title={config.description}
 							>
 								<div className="diff-name">{config.displayName}</div>
