@@ -58,6 +58,7 @@ export default defineConfig({
 					"@react-three/fiber",
 					"@react-three/drei",
 					"@react-three/postprocessing",
+					"@strata-game-library/core",
 					"three",
 					"yuka",
 				],
