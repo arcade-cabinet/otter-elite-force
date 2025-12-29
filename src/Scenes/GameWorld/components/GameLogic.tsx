@@ -51,6 +51,18 @@ export function GameLogic({
 	const [isGrounded, setIsGrounded] = useState(true);
 	const lastFireTime = useRef(0);
 
+	// Reusable vectors to avoid garbage collection in the render loop
+	const vecCache = useRef({
+		camDir: new THREE.Vector3(),
+		camSide: new THREE.Vector3(),
+		up: new THREE.Vector3(0, 1, 0),
+		moveVec: new THREE.Vector3(),
+		worldPos: new THREE.Vector3(),
+		shootDir: new THREE.Vector3(),
+		muzzlePos: new THREE.Vector3(),
+		offset: new THREE.Vector3(),
+	}).current;
+
 	useFrame((state, delta) => {
 		if (!playerRef.current) return;
 		const cx = Math.floor(playerRef.current.position.x / CHUNK_SIZE);
@@ -61,14 +73,25 @@ export function GameLogic({
 
 		const input = inputSystem.getState();
 		const cam = state.camera;
-		const camDir = new THREE.Vector3();
+
+		// Use cached vectors
+		const { camDir, camSide, up, moveVec, worldPos, shootDir, muzzlePos, offset } = vecCache;
+
 		cam.getWorldDirection(camDir);
 		camDir.y = 0;
 		camDir.normalize();
-		const camSide = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0, 1, 0));
-		const moveVec = new THREE.Vector3();
-		if (Math.abs(input.move.y) > 0.1) moveVec.add(camDir.clone().multiplyScalar(-input.move.y));
-		if (Math.abs(input.move.x) > 0.1) moveVec.add(camSide.clone().multiplyScalar(input.move.x));
+		camSide.crossVectors(camDir, up);
+
+		moveVec.set(0, 0, 0);
+		if (Math.abs(input.move.y) > 0.1) {
+			// Instead of creating new vectors with clone(), use copy and add
+			offset.copy(camDir).multiplyScalar(-input.move.y);
+			moveVec.add(offset);
+		}
+		if (Math.abs(input.move.x) > 0.1) {
+			offset.copy(camSide).multiplyScalar(input.move.x);
+			moveVec.add(offset);
+		}
 
 		const isAiming = input.look.active;
 		let moveSpeed = isAiming ? character.traits.baseSpeed * 0.6 : character.traits.baseSpeed;
@@ -96,11 +119,13 @@ export function GameLogic({
 
 		activeChunks.forEach((chunk) => {
 			chunk.entities.forEach((entity) => {
-				const worldPos = new THREE.Vector3(
+				// Reuse worldPos vector
+				worldPos.set(
 					chunk.x * CHUNK_SIZE + entity.position[0],
 					entity.position[1],
 					chunk.z * CHUNK_SIZE + entity.position[2],
 				);
+
 				const dist = playerRef.current!.position.distanceTo(worldPos);
 				if (
 					entity.type === "PLATFORM" &&
@@ -172,11 +197,15 @@ export function GameLogic({
 			if (moveVec.lengthSq() > 0.01)
 				playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
 			if (state.clock.elapsedTime - lastFireTime.current > GAME_CONFIG.FIRE_RATE) {
-				const shootDir = new THREE.Vector3(0, 0, 1).applyQuaternion(playerRef.current.quaternion);
-				const muzzlePos = playerRef.current.position
-					.clone()
-					.add(new THREE.Vector3(0, 0.45, 0))
-					.add(shootDir.clone().multiplyScalar(1.5));
+				// Reuse shootDir
+				shootDir.set(0, 0, 1).applyQuaternion(playerRef.current.quaternion);
+
+				// Reuse muzzlePos
+				muzzlePos
+					.copy(playerRef.current.position)
+					.add(offset.set(0, 0.45, 0))
+					.add(offset.copy(shootDir).multiplyScalar(1.5));
+
 				projectilesRef.current?.spawn(muzzlePos, shootDir);
 				audioEngine.playSFX("shoot");
 				lastFireTime.current = state.clock.elapsedTime;
@@ -200,12 +229,20 @@ export function GameLogic({
 		]);
 
 		const targetDist = isZoomed ? 6 : 12;
-		const cameraOffset = new THREE.Vector3(1.5, 4, targetDist).applyAxisAngle(
-			new THREE.Vector3(0, 1, 0),
-			playerRef.current.rotation.y,
-		);
-		state.camera.position.lerp(playerRef.current.position.clone().add(cameraOffset), 0.08);
-		state.camera.lookAt(playerRef.current.position.clone().add(new THREE.Vector3(0, 0.8, 0)));
+		// Reuse offset for camera offset calculation
+		offset
+			.set(1.5, 4, targetDist)
+			.applyAxisAngle(vecCache.up, playerRef.current.rotation.y);
+
+		// Reuse worldPos for target camera position (player position + offset)
+		worldPos.copy(playerRef.current.position).add(offset);
+
+		state.camera.position.lerp(worldPos, 0.08);
+
+		// Reuse offset for lookAt target (player position + 0.8y)
+		offset.set(0, 0.8, 0);
+		worldPos.copy(playerRef.current.position).add(offset);
+		state.camera.lookAt(worldPos);
 	});
 
 	return null;
