@@ -54,12 +54,13 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/strata-game-library/audio-synth.git"
+		"url": "git+https://github.com/arcade-cabinet/otter-elite-force.git",
+		"directory": "packages/strata-audio-synth"
 	},
 	"bugs": {
-		"url": "https://github.com/strata-game-library/audio-synth/issues"
+		"url": "https://github.com/arcade-cabinet/otter-elite-force/issues"
 	},
-	"homepage": "https://github.com/strata-game-library/audio-synth#readme",
+	"homepage": "https://github.com/arcade-cabinet/otter-elite-force/tree/main/packages/strata-audio-synth#readme",
 	"publishConfig": {
 		"access": "public"
 	},

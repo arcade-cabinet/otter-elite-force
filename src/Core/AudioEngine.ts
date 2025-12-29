@@ -33,7 +33,7 @@ export class AudioEngine {
 			explode: "explosion",
 		};
 
-		this.manager.playSFX(presetMap[type] || type);
+		this.manager.playSFX(presetMap[type]);
 	}
 
 	/**
