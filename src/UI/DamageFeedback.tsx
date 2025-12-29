@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { useGameStore } from "../stores/gameStore";
 
 interface HitMarker {
@@ -27,11 +28,13 @@ interface KillNotification {
 }
 
 export function DamageFeedback() {
-	const { comboCount, comboTimer, lastHit } = useGameStore((state) => ({
-		comboCount: state.comboCount,
-		comboTimer: state.comboTimer,
-		lastHit: state.lastHit,
-	}));
+	const { comboCount, comboTimer, lastHit } = useGameStore(
+		useShallow((state) => ({
+			comboCount: state.comboCount,
+			comboTimer: state.comboTimer,
+			lastHit: state.lastHit,
+		})),
+	);
 
 	const [hitMarkers, setHitMarkers] = useState<HitMarker[]>([]);
 	const [killNotifications, setKillNotifications] = useState<KillNotification[]>([]);

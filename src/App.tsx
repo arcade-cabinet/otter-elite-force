@@ -12,7 +12,6 @@ import { GameWorld } from "./Scenes/GameWorld";
 import { MainMenu } from "./Scenes/MainMenu";
 import { useGameStore } from "./stores/gameStore";
 import { DamageFeedback } from "./UI/DamageFeedback";
-import { EnemyHealthBars } from "./UI/EnemyHealthBars";
 import { HUD } from "./UI/HUD";
 
 export function App() {
@@ -23,6 +22,7 @@ export function App() {
 	useEffect(() => {
 		// Expose store to window for E2E testing
 		if (typeof window !== "undefined") {
+			// biome-ignore lint/suspicious/noExplicitAny: needed for E2E store access
 			(window as any).__gameStore = useGameStore;
 		}
 
@@ -94,7 +94,6 @@ export function App() {
 				<>
 					<GameWorld />
 					<HUD />
-					<EnemyHealthBars showNumericHP={false} />
 					<DamageFeedback />
 				</>
 			)}

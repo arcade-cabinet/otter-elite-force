@@ -70,10 +70,10 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 		// Memoize materials to prevent recreation every render
 		const materials = useMemo(
 			() => ({
-				fur: new THREE.MeshStandardMaterial({ color: traits.furColor, roughness: 0.95 }),
-				underFur: new THREE.MeshStandardMaterial({ color: "#a08060", roughness: 0.9 }), // Lighter underbelly
-				snout: new THREE.MeshStandardMaterial({ color: "#9D7E63", roughness: 0.85 }),
-				nose: new THREE.MeshStandardMaterial({ color: "#222", roughness: 0.3 }),
+				fur: new THREE.MeshStandardMaterial({ color: traits.furColor, roughness: 1.0 }),
+				underFur: new THREE.MeshStandardMaterial({ color: "#a08060", roughness: 1.0 }), // Lighter underbelly
+				snout: new THREE.MeshStandardMaterial({ color: "#9D7E63", roughness: 0.9 }),
+				nose: new THREE.MeshStandardMaterial({ color: "#111", roughness: 0.4, metalness: 0.2 }),
 				eye: new THREE.MeshStandardMaterial({
 					color: traits.eyeColor,
 					roughness: 0.1,
@@ -220,31 +220,36 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 					{/* === TACTICAL GEAR === */}
 					{gear.vest === "tactical" && (
 						<group position={[0, 0.1, 0]}>
-							<mesh rotation-x={Math.PI / 2}>
-								<cylinderGeometry args={[0.38, 0.38, 0.6, 32]} />
-								<meshStandardMaterial color="#2a3a4a" roughness={0.7} />
+							<mesh rotation-x={Math.PI / 2} castShadow>
+								<cylinderGeometry args={[0.39, 0.39, 0.55, 32]} />
+								<meshStandardMaterial color="#2a3a4a" roughness={0.8} />
+							</mesh>
+							{/* Straps/Details */}
+							<mesh position={[0, 0.05, 0.25]} rotation-x={0.2} castShadow>
+								<boxGeometry args={[0.45, 0.1, 0.05]} />
+								<meshStandardMaterial color="#1a2a3a" />
 							</mesh>
 							{/* Side pouches */}
-							{[-0.35, 0.35].map((x) => (
-								<mesh key={`pouch-${x}`} position={[x, 0.15, 0]}>
-									<boxGeometry args={[0.1, 0.2, 0.3]} />
-									<meshStandardMaterial color="#1a2a3a" />
+							{[-0.36, 0.36].map((x) => (
+								<mesh key={`pouch-${x}`} position={[x, 0.05, 0]}>
+									<boxGeometry args={[0.12, 0.25, 0.3]} />
+									<meshStandardMaterial color="#152535" />
 								</mesh>
 							))}
 						</group>
 					)}
 
 					{/* === TAIL - Iconically thick and tapered === */}
-					<group ref={tailRef} position={[0, -0.05, -0.65]} rotation-x={-0.1}>
-						{[0.2, 0.15, 0.1, 0.05].map((radius, i) => (
+					<group ref={tailRef} position={[0, -0.05, -0.6]} rotation-x={-0.1}>
+						{[0.2, 0.16, 0.12, 0.06].map((radius, i) => (
 							<mesh
 								key={`tail-seg-${i}`}
-								position={[0, 0, -i * 0.4]}
+								position={[0, 0, -i * 0.3]}
 								rotation-x={Math.PI / 2}
 								castShadow
 								material={materials.fur}
 							>
-								<capsuleGeometry args={[radius, 0.4, 16, 24]} />
+								<capsuleGeometry args={[radius, 0.5, 16, 24]} />
 							</mesh>
 						))}
 					</group>
@@ -304,9 +309,17 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 
 						{/* Head Group */}
 						<group position={[0, 0.45, 0.2]}>
-							{/* Skull */}
+							{/* Skull Main */}
 							<mesh castShadow material={materials.fur}>
-								<sphereGeometry args={[0.3, 32, 32]} />
+								<sphereGeometry args={[0.28, 32, 32]} />
+							</mesh>
+
+							{/* Cheeks for fluffiness */}
+							<mesh position={[-0.18, -0.08, 0.05]} material={materials.fur} castShadow>
+								<sphereGeometry args={[0.16, 24, 24]} />
+							</mesh>
+							<mesh position={[0.18, -0.08, 0.05]} material={materials.fur} castShadow>
+								<sphereGeometry args={[0.16, 24, 24]} />
 							</mesh>
 
 							{/* Snout */}

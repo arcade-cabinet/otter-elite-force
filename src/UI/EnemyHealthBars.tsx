@@ -6,6 +6,7 @@
  * - Optional numeric HP display
  */
 
+import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import * as THREE from "three";
@@ -87,17 +88,7 @@ export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps)
 	};
 
 	return (
-		<div
-			style={{
-				position: "absolute",
-				top: 0,
-				left: 0,
-				width: "100%",
-				height: "100%",
-				pointerEvents: "none",
-				zIndex: 10,
-			}}
-		>
+		<Html fullscreen style={{ pointerEvents: "none", zIndex: 10 }}>
 			{Array.from(healthBars.values()).map((data) => {
 				const screenPos = get2DPosition(data.position);
 				if (!screenPos.visible) return null;
@@ -160,6 +151,6 @@ export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps)
 					</div>
 				);
 			})}
-		</div>
+		</Html>
 	);
 }
