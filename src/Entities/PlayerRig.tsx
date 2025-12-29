@@ -224,11 +224,11 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 								<cylinderGeometry args={[0.39, 0.39, 0.55, 32]} />
 								<meshStandardMaterial color="#2a3a4a" roughness={0.8} />
 							</mesh>
-                            {/* Straps/Details */}
-                            <mesh position={[0, 0.05, 0.25]} rotation-x={0.2} castShadow>
-                                <boxGeometry args={[0.45, 0.1, 0.05]} />
-                                <meshStandardMaterial color="#1a2a3a" />
-                            </mesh>
+							{/* Straps/Details */}
+							<mesh position={[0, 0.05, 0.25]} rotation-x={0.2} castShadow>
+								<boxGeometry args={[0.45, 0.1, 0.05]} />
+								<meshStandardMaterial color="#1a2a3a" />
+							</mesh>
 							{/* Side pouches */}
 							{[-0.36, 0.36].map((x) => (
 								<mesh key={`pouch-${x}`} position={[x, 0.05, 0]}>
@@ -314,13 +314,13 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 								<sphereGeometry args={[0.28, 32, 32]} />
 							</mesh>
 
-                            {/* Cheeks for fluffiness */}
-                            <mesh position={[-0.18, -0.08, 0.05]} material={materials.fur} castShadow>
-                                <sphereGeometry args={[0.16, 24, 24]} />
-                            </mesh>
-                            <mesh position={[0.18, -0.08, 0.05]} material={materials.fur} castShadow>
-                                <sphereGeometry args={[0.16, 24, 24]} />
-                            </mesh>
+							{/* Cheeks for fluffiness */}
+							<mesh position={[-0.18, -0.08, 0.05]} material={materials.fur} castShadow>
+								<sphereGeometry args={[0.16, 24, 24]} />
+							</mesh>
+							<mesh position={[0.18, -0.08, 0.05]} material={materials.fur} castShadow>
+								<sphereGeometry args={[0.16, 24, 24]} />
+							</mesh>
 
 							{/* Snout */}
 							<group position={[0, -0.1, 0.22]}>

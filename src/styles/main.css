@@ -401,7 +401,7 @@ button.secondary {
 	font-family: "Carter One", cursive;
 	font-size: 1.1rem;
 	border-radius: 6px;
-	box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .dialogue-text {
@@ -754,7 +754,12 @@ button.secondary {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(15,12,8,0.9) 35%, var(--ui-bg) 100%);
+	background: linear-gradient(
+		180deg,
+		rgba(0, 0, 0, 0.2) 0%,
+		rgba(15, 12, 8, 0.9) 35%,
+		var(--ui-bg) 100%
+	);
 	padding: 20px;
 	display: flex;
 	flex-direction: column;

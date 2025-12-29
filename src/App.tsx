@@ -22,6 +22,7 @@ export function App() {
 	useEffect(() => {
 		// Expose store to window for E2E testing
 		if (typeof window !== "undefined") {
+			// biome-ignore lint/suspicious/noExplicitAny: needed for E2E store access
 			(window as any).__gameStore = useGameStore;
 		}
 

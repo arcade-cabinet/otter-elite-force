@@ -167,7 +167,7 @@ function CanteenBackground() {
 
 				<group position={[0, -0.5, 0]}>
 					{/* Floor */}
-					<mesh rotation={[-Math.PI/2, 0, 0]} receiveShadow>
+					<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
 						<circleGeometry args={[15, 32]} />
 						<meshStandardMaterial color="#222" roughness={0.8} />
 					</mesh>
