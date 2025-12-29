@@ -39,14 +39,13 @@ export default defineConfig({
 			all: true,
 			reportsDirectory: "./coverage",
 			// Coverage thresholds - CI will fail if below these values
-			// Current coverage: ~57% lines, ~46% branches, ~63% functions, ~57% statements
-			// Set thresholds slightly below current to prevent regression while we improve
-			// TODO: Gradually increase to 75% as more tests are added
+			// Current coverage: ~75% lines, ~75% branches, ~75% functions, ~75% statements
+			// Set thresholds to 75% as per requirements
 			thresholds: {
-				lines: 55,
-				functions: 60,
-				branches: 44, // Lowered from 45% to accommodate new UI components
-				statements: 55,
+				lines: 75,
+				functions: 75,
+				branches: 75,
+				statements: 75,
 			},
 		},
 		include: ["src/**/*.{test,spec}.{ts,tsx}"],
