@@ -4,9 +4,9 @@
  * Handles shell casings, blood splatters, explosions.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { ParticleEmitter, type ParticleEmitterRef } from "@strata-game-library/core/components";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
 export interface ParticleData {

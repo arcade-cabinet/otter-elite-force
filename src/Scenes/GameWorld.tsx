@@ -14,9 +14,13 @@ import {
 	Noise,
 	Vignette,
 } from "@react-three/postprocessing";
+import {
+	FollowCamera,
+	WeatherSystem,
+	YukaEntityManager,
+} from "@strata-game-library/core/components";
 import { useCallback, useRef, useState } from "react";
 import * as THREE from "three";
-import { FollowCamera, WeatherSystem, YukaEntityManager } from "@strata-game-library/core/components";
 import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
 import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
@@ -25,7 +29,6 @@ import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
 import { Raft } from "../Entities/Raft";
-import { EnemyHealthBars } from "../UI/EnemyHealthBars";
 import { CHARACTERS, type ChunkData, useGameStore } from "../stores/gameStore";
 import { EnemyHealthBars } from "../UI/EnemyHealthBars";
 import { ChunkRenderer } from "./GameWorld/components/ChunkRenderer";
@@ -89,102 +92,101 @@ export function GameWorld() {
 		<Canvas shadows>
 			{/* Strata YukaEntityManager for AI coordination */}
 			<YukaEntityManager>
-			{/* Strata FollowCamera for smooth third-person tracking */}
-			<FollowCamera
-				target={playerRef}
-				offset={[0, 5, 10]}
-				smoothTime={0.3}
-				lookAheadDistance={2}
-				lookAheadSmoothing={0.5}
-				fov={50}
-				makeDefault
-			/>
+				{/* Strata FollowCamera for smooth third-person tracking */}
+				<FollowCamera
+					target={playerRef}
+					offset={[0, 5, 10]}
+					smoothTime={0.3}
+					lookAheadDistance={2}
+					lookAheadSmoothing={0.5}
+					fov={50}
+					makeDefault
+				/>
 
-			<GameLogic
-				playerRef={playerRef}
-				projectilesRef={projectilesRef}
-				setPlayerVelY={setPlayerVelY}
-				setIsPlayerMoving={setIsPlayerMoving}
-				setActiveChunks={setActiveChunks}
-				activeChunks={activeChunks}
-				character={character}
-				handleImpact={handleImpact}
-			/>
+				<GameLogic
+					playerRef={playerRef}
+					projectilesRef={projectilesRef}
+					setPlayerVelY={setPlayerVelY}
+					setIsPlayerMoving={setIsPlayerMoving}
+					setActiveChunks={setActiveChunks}
+					activeChunks={activeChunks}
+					character={character}
+					handleImpact={handleImpact}
+				/>
 
-			<ambientLight intensity={0.3} />
-			<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
-			<Sky sunPosition={[100, 20, 100]} />
-			<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
-			<Environment preset="sunset" />
+				<ambientLight intensity={0.3} />
+				<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
+				<Sky sunPosition={[100, 20, 100]} />
+				<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
+				<Environment preset="sunset" />
 
-			{/* Strata WeatherSystem for atmospheric effects */}
-			<WeatherSystem
-				weather={{
-					type: isHostileTerritory ? "storm" : "clear",
-					intensity: isHostileTerritory ? 0.6 : 0,
-				}}
-				rainCount={5000}
-				areaSize={100}
-				height={30}
-				enableLightning={isHostileTerritory}
-			/>
+				{/* Strata WeatherSystem for atmospheric effects */}
+				<WeatherSystem
+					weather={{
+						type: isHostileTerritory ? "storm" : "clear",
+						intensity: isHostileTerritory ? 0.6 : 0,
+					}}
+					rainCount={5000}
+					areaSize={100}
+					height={30}
+					enableLightning={isHostileTerritory}
+				/>
 
-			{activeChunks.map((chunk) => (
-				<ChunkRenderer key={chunk.id} data={chunk} playerPos={playerPos} />
-			))}
+				{activeChunks.map((chunk) => (
+					<ChunkRenderer key={chunk.id} data={chunk} playerPos={playerPos} />
+				))}
 
-			<PlayerRig
-				ref={playerRef}
-				traits={character.traits}
-				gear={character.gear}
-				position={[0, 0, 0]}
-				rotation={playerRot}
-				isMoving={isPlayerMoving}
-				isClimbing={isClimbing}
-			>
-				{isCarryingClam && <Clam position={new THREE.Vector3(0, 0.8, 0)} isCarried />}
-				{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
-			</PlayerRig>
+				<PlayerRig
+					ref={playerRef}
+					traits={character.traits}
+					gear={character.gear}
+					position={[0, 0, 0]}
+					rotation={playerRot}
+					isMoving={isPlayerMoving}
+					isClimbing={isClimbing}
+				>
+					{isCarryingClam && <Clam position={new THREE.Vector3(0, 0.8, 0)} isCarried />}
+					{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
+				</PlayerRig>
 
-			{/* Render Ghost Preview */}
-			{isBuildMode && ghostPos && (
-				<>
-					{selectedComponentType === "FLOOR" && <BaseFloor position={ghostPos} ghost />}
-					{selectedComponentType === "WALL" && <BaseWall position={ghostPos} ghost />}
-					{selectedComponentType === "ROOF" && <BaseRoof position={ghostPos} ghost />}
-					{selectedComponentType === "STILT" && <BaseStilt position={ghostPos} ghost />}
-				</>
-			)}
-
-			{saveData.baseComponents.map((comp) => {
-				if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
-				if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
-				if (comp.type === "ROOF") return <BaseRoof key={comp.id} position={comp.position} />;
-				if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
-				return null;
-			})}
-
-			<Projectiles ref={projectilesRef} />
-			<Particles
-				particles={particles}
-				onExpire={useCallback(
-					(id: string) => setParticles((prev) => prev.filter((p) => p.id !== id)),
-					[],
+				{/* Render Ghost Preview */}
+				{isBuildMode && ghostPos && (
+					<>
+						{selectedComponentType === "FLOOR" && <BaseFloor position={ghostPos} ghost />}
+						{selectedComponentType === "WALL" && <BaseWall position={ghostPos} ghost />}
+						{selectedComponentType === "ROOF" && <BaseRoof position={ghostPos} ghost />}
+						{selectedComponentType === "STILT" && <BaseStilt position={ghostPos} ghost />}
+					</>
 				)}
-			/>
 
-			{/* Strata HealthBar for enemy health display */}
-			<EnemyHealthBars />
+				{saveData.baseComponents.map((comp) => {
+					if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
+					if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
+					if (comp.type === "ROOF") return <BaseRoof key={comp.id} position={comp.position} />;
+					if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
+					return null;
+				})}
 
-			<GameLoop />
-			<EnemyHealthBars showNumericHP={false} />
-			<EffectComposer>
-				<Bloom intensity={0.5} />
-				<Noise opacity={0.05} />
-				<Vignette darkness={0.4} offset={0.3} />
-				<BrightnessContrast brightness={0.05} contrast={0.2} />
-				<HueSaturation saturation={-0.2} />
-			</EffectComposer>
+				<Projectiles ref={projectilesRef} />
+				<Particles
+					particles={particles}
+					onExpire={useCallback(
+						(id: string) => setParticles((prev) => prev.filter((p) => p.id !== id)),
+						[],
+					)}
+				/>
+
+				{/* Strata HealthBar for enemy health display */}
+				<EnemyHealthBars />
+
+				<GameLoop />
+				<EffectComposer>
+					<Bloom intensity={0.5} />
+					<Noise opacity={0.05} />
+					<Vignette darkness={0.4} offset={0.3} />
+					<BrightnessContrast brightness={0.05} contrast={0.2} />
+					<HueSaturation saturation={-0.2} />
+				</EffectComposer>
 			</YukaEntityManager>
 		</Canvas>
 	);

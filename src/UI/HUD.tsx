@@ -8,9 +8,9 @@
  * - Directional damage indicators
  */
 
+import { VirtualJoystick } from "@strata-game-library/core/components";
 import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { VirtualJoystick } from "@strata-game-library/core/components";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
 import { useGameStore } from "../stores/gameStore";

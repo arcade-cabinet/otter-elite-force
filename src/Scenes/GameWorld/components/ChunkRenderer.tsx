@@ -4,8 +4,8 @@
  * Uses strata Water component for water rendering.
  */
 
-import * as THREE from "three";
 import { Water } from "@strata-game-library/core/components";
+import * as THREE from "three";
 import { Gator } from "../../../Entities/Enemies/Gator";
 import { Snake } from "../../../Entities/Enemies/Snake";
 import { Snapper } from "../../../Entities/Enemies/Snapper";

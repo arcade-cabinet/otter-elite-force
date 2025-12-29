@@ -127,11 +127,7 @@ export function MainMenu() {
 				<p style={{ fontSize: "0.7rem", color: "#888", marginBottom: "10px" }}>
 					Difficulty can be increased but never decreased
 				</p>
-				<div
-					className="difficulty-grid"
-					role="radiogroup"
-					aria-label="Select Campaign Difficulty"
-				>
+				<div className="difficulty-grid" role="radiogroup" aria-label="Select Campaign Difficulty">
 					{(["SUPPORT", "TACTICAL", "ELITE"] as const).map((mode) => {
 						const config = DIFFICULTY_CONFIGS[mode];
 						const isCurrent = saveData.difficultyMode === mode;
@@ -144,6 +140,7 @@ export function MainMenu() {
 						if (isLocked) ariaLabel += ". Locked - Difficulty can only be increased.";
 
 						return (
+							/* biome-ignore lint/a11y/useSemanticElements: button with role="radio" is intentional for this UI component */
 							<button
 								type="button"
 								role="radio"

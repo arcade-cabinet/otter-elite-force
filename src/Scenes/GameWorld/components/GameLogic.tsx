@@ -230,9 +230,7 @@ export function GameLogic({
 
 		const targetDist = isZoomed ? 6 : 12;
 		// Reuse offset for camera offset calculation
-		offset
-			.set(1.5, 4, targetDist)
-			.applyAxisAngle(vecCache.up, playerRef.current.rotation.y);
+		offset.set(1.5, 4, targetDist).applyAxisAngle(vecCache.up, playerRef.current.rotation.y);
 
 		// Reuse worldPos for target camera position (player position + offset)
 		worldPos.copy(playerRef.current.position).add(offset);

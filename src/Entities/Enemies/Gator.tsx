@@ -5,11 +5,11 @@
  */
 
 import { useFrame } from "@react-three/fiber";
+import { YukaVehicle, type YukaVehicleRef } from "@strata-game-library/core/components";
 import { useEffect, useRef, useState } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import * as YUKA from "yuka";
-import { YukaVehicle, type YukaVehicleRef } from "@strata-game-library/core/components";
 import { Weapon } from "../Weapon";
 import type { EnemyProps, GatorData } from "./types";
 
