@@ -1,7 +1,6 @@
 /**
  * GameWorld Scene
- * Main gameplay scene with 3D world.
- * Uses strata FollowCamera for smooth camera tracking.
+ * Main gameplay scene with 3D world
  */
 
 import { Environment, Sky } from "@react-three/drei";
@@ -16,7 +15,6 @@ import {
 } from "@react-three/postprocessing";
 import { useCallback, useRef, useState } from "react";
 import * as THREE from "three";
-import { FollowCamera, WeatherSystem, YukaEntityManager } from "@strata-game-library/core/components";
 import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
 import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
@@ -25,7 +23,6 @@ import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
 import { Raft } from "../Entities/Raft";
-import { EnemyHealthBars } from "../UI/EnemyHealthBars";
 import { CHARACTERS, type ChunkData, useGameStore } from "../stores/gameStore";
 import { ChunkRenderer } from "./GameWorld/components/ChunkRenderer";
 import { GameLogic } from "./GameWorld/components/GameLogic";
@@ -47,7 +44,7 @@ export function GameWorld() {
 	const [isPlayerMoving, setIsPlayerMoving] = useState(false);
 	const [activeChunks, setActiveChunks] = useState<ChunkData[]>([]);
 	const [particles, setParticles] = useState<ParticleData[]>([]);
-	const playerRef = useRef<THREE.Group>(null!);
+	const playerRef = useRef<THREE.Group | null>(null);
 	const projectilesRef = useRef<ProjectilesHandle | null>(null);
 
 	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell") => {
@@ -80,25 +77,8 @@ export function GameWorld() {
 		if (selectedComponentType === "WALL") ghostPos[1] += 1;
 	}
 
-	// Weather state based on chunk territory
-	const currentChunk = activeChunks[0];
-	const isHostileTerritory = currentChunk?.territoryState === "HOSTILE";
-
 	return (
-		<Canvas shadows>
-			{/* Strata YukaEntityManager for AI coordination */}
-			<YukaEntityManager>
-			{/* Strata FollowCamera for smooth third-person tracking */}
-			<FollowCamera
-				target={playerRef}
-				offset={[0, 5, 10]}
-				smoothTime={0.3}
-				lookAheadDistance={2}
-				lookAheadSmoothing={0.5}
-				fov={50}
-				makeDefault
-			/>
-
+		<Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
 			<GameLogic
 				playerRef={playerRef}
 				projectilesRef={projectilesRef}
@@ -109,29 +89,14 @@ export function GameWorld() {
 				character={character}
 				handleImpact={handleImpact}
 			/>
-
 			<ambientLight intensity={0.3} />
 			<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
 			<Sky sunPosition={[100, 20, 100]} />
 			<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
 			<Environment preset="sunset" />
-
-			{/* Strata WeatherSystem for atmospheric effects */}
-			<WeatherSystem
-				weather={{
-					type: isHostileTerritory ? "storm" : "clear",
-					intensity: isHostileTerritory ? 0.6 : 0,
-				}}
-				rainCount={5000}
-				areaSize={100}
-				height={30}
-				enableLightning={isHostileTerritory}
-			/>
-
 			{activeChunks.map((chunk) => (
 				<ChunkRenderer key={chunk.id} data={chunk} playerPos={playerPos} />
 			))}
-
 			<PlayerRig
 				ref={playerRef}
 				traits={character.traits}
@@ -162,7 +127,6 @@ export function GameWorld() {
 				if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
 				return null;
 			})}
-
 			<Projectiles ref={projectilesRef} />
 			<Particles
 				particles={particles}
@@ -171,10 +135,6 @@ export function GameWorld() {
 					[],
 				)}
 			/>
-
-			{/* Strata HealthBar for enemy health display */}
-			<EnemyHealthBars />
-
 			<GameLoop />
 			<EffectComposer>
 				<Bloom intensity={0.5} />
@@ -183,7 +143,6 @@ export function GameWorld() {
 				<BrightnessContrast brightness={0.05} contrast={0.2} />
 				<HueSaturation saturation={-0.2} />
 			</EffectComposer>
-			</YukaEntityManager>
 		</Canvas>
 	);
 }

@@ -61,6 +61,7 @@
 		"@strata-game-library/core": "1.4.11",
 		"gsap": "^3.14.2",
 		"miniplex": "^2.0.0",
+		"nipplejs": "^0.10.2",
 		"react": "19.0.0-rc.1",
 		"react-device-detect": "^2.2.3",
 		"react-dom": "19.0.0-rc.1",

@@ -24,8 +24,6 @@ vi.mock("../../Core/InputSystem", () => ({
 	inputSystem: {
 		setJump: vi.fn(),
 		setGrip: vi.fn(),
-		setMove: vi.fn(),
-		setLook: vi.fn(),
 		init: vi.fn(),
 		destroy: vi.fn(),
 		getState: () => ({ move: { x: 0, y: 0, active: false } }),
@@ -79,12 +77,10 @@ describe("HUD Component", () => {
 			expect(screen.getByText("ELIMINATIONS")).toBeInTheDocument();
 		});
 
-		it("renders strata VirtualJoystick components for mobile controls", () => {
-			// VirtualJoystick components are rendered by strata
-			// They create touch-sensitive areas for movement and look controls
+		it("renders joystick zones for mobile controls", () => {
 			const { container } = render(<HUD />);
-			// The container should have the HUD elements
-			expect(container.querySelector(".hud-container")).toBeInTheDocument();
+			expect(container.querySelector("#joystick-move")).toBeInTheDocument();
+			expect(container.querySelector("#joystick-look")).toBeInTheDocument();
 		});
 	});
 
