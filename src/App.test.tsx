@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 import { useGameStore } from "./stores/gameStore";
@@ -8,11 +8,13 @@ vi.mock("./styles/main.css", () => ({}));
 
 describe("App", () => {
 	beforeEach(() => {
-		useGameStore.setState({
-			mode: "MENU",
-			health: 100,
-			maxHealth: 100,
-			selectedCharacterId: "bubbles",
+		act(() => {
+			useGameStore.setState({
+				mode: "MENU",
+				health: 100,
+				maxHealth: 100,
+				selectedCharacterId: "bubbles",
+			});
 		});
 	});
 
@@ -32,7 +34,9 @@ describe("App", () => {
 	});
 
 	it("should render canteen when mode is CANTEEN", () => {
-		useGameStore.setState({ mode: "CANTEEN" });
+		act(() => {
+			useGameStore.setState({ mode: "CANTEEN" });
+		});
 		render(<App />);
 		// Canteen has "FORWARD OPERATING BASE" header
 		expect(screen.getByText("FORWARD OPERATING BASE")).toBeInTheDocument();
@@ -64,9 +68,11 @@ describe("App", () => {
 
 describe("App - State Integration", () => {
 	beforeEach(() => {
-		useGameStore.setState({
-			mode: "MENU",
-			selectedCharacterId: "bubbles",
+		act(() => {
+			useGameStore.setState({
+				mode: "MENU",
+				selectedCharacterId: "bubbles",
+			});
 		});
 	});
 
@@ -78,7 +84,9 @@ describe("App - State Integration", () => {
 		const { rerender } = render(<App />);
 		expect(screen.getByRole("heading", { name: /OTTER/i })).toBeInTheDocument();
 
-		useGameStore.setState({ mode: "CANTEEN" });
+		act(() => {
+			useGameStore.setState({ mode: "CANTEEN" });
+		});
 		rerender(<App />);
 		expect(screen.getByText("FORWARD OPERATING BASE")).toBeInTheDocument();
 	});

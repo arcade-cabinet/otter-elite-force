@@ -5,7 +5,7 @@
  * Focus on user-visible behavior and interactions
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameStore } from "../../stores/gameStore";
 import { HUD } from "../HUD";
@@ -33,26 +33,28 @@ vi.mock("../../Core/InputSystem", () => ({
 describe("HUD Component", () => {
 	beforeEach(() => {
 		// Reset store to known state
-		useGameStore.setState({
-			mode: "GAME",
-			health: 100,
-			maxHealth: 100,
-			kills: 0,
-			mudAmount: 0,
-			isCarryingClam: false,
-			isBuildMode: false,
-			isZoomed: false,
-			playerPos: [0, 0, 0],
-			selectedCharacterId: "bubbles",
-			saveData: {
-				...useGameStore.getState().saveData,
-				rank: 2,
-				coins: 1500,
-				isLZSecured: true,
-				difficultyMode: "SUPPORT",
-				territoryScore: 10,
-				peacekeepingScore: 5,
-			},
+		act(() => {
+			useGameStore.setState({
+				mode: "GAME",
+				health: 100,
+				maxHealth: 100,
+				kills: 0,
+				mudAmount: 0,
+				isCarryingClam: false,
+				isBuildMode: false,
+				isZoomed: false,
+				playerPos: [0, 0, 0],
+				selectedCharacterId: "bubbles",
+				saveData: {
+					...useGameStore.getState().saveData,
+					rank: 2,
+					coins: 1500,
+					isLZSecured: true,
+					difficultyMode: "SUPPORT",
+					territoryScore: 10,
+					peacekeepingScore: 5,
+				},
+			});
 		});
 	});
 
@@ -193,12 +195,14 @@ describe("HUD Component", () => {
 		it("updates territory score when changed", () => {
 			const { rerender } = render(<HUD />);
 
-			useGameStore.setState({
-				saveData: {
-					...useGameStore.getState().saveData,
-					territoryScore: 25,
-					discoveredChunks: { "0,0": {} as any },
-				},
+			act(() => {
+				useGameStore.setState({
+					saveData: {
+						...useGameStore.getState().saveData,
+						territoryScore: 25,
+						discoveredChunks: { "0,0": {} as any },
+					},
+				});
 			});
 
 			rerender(<HUD />);

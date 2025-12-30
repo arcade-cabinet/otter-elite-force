@@ -2,7 +2,7 @@
  * Cutscene Component Tests
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameStore } from "../../stores/gameStore";
 
@@ -37,9 +37,11 @@ vi.mock("../../Entities/PlayerRig", () => ({
 
 describe("Cutscene", () => {
 	beforeEach(() => {
-		useGameStore.setState({
-			mode: "CUTSCENE",
-			selectedCharacterId: "bubbles",
+		act(() => {
+			useGameStore.setState({
+				mode: "CUTSCENE",
+				selectedCharacterId: "bubbles",
+			});
 		});
 	});
 

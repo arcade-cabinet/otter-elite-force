@@ -9,7 +9,7 @@
  * - State management integration
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type ChunkData, useGameStore } from "../../stores/gameStore";
 import { MainMenu } from "../MainMenu";
@@ -39,20 +39,22 @@ vi.stubGlobal("confirm", mockConfirm);
 describe("MainMenu - Game Loader Interface", () => {
 	beforeEach(() => {
 		// Reset store to clean state (no save data = new game)
-		useGameStore.setState({
-			mode: "MENU",
-			selectedCharacterId: "bubbles",
-			saveData: {
-				...useGameStore.getState().saveData,
-				rank: 0,
-				xp: 0,
-				coins: 500,
-				unlockedCharacters: ["bubbles"],
-				difficultyMode: "SUPPORT",
-				discoveredChunks: {}, // No chunks = new game
-				territoryScore: 0,
-				peacekeepingScore: 0,
-			},
+		act(() => {
+			useGameStore.setState({
+				mode: "MENU",
+				selectedCharacterId: "bubbles",
+				saveData: {
+					...useGameStore.getState().saveData,
+					rank: 0,
+					xp: 0,
+					coins: 500,
+					unlockedCharacters: ["bubbles"],
+					difficultyMode: "SUPPORT",
+					discoveredChunks: {}, // No chunks = new game
+					territoryScore: 0,
+					peacekeepingScore: 0,
+				},
+			});
 		});
 		mockConfirm.mockClear();
 	});
@@ -81,25 +83,27 @@ describe("MainMenu - Game Loader Interface", () => {
 
 	it("should show CONTINUE CAMPAIGN button when save data exists", () => {
 		// Add some discovered chunks to simulate a saved game
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				discoveredChunks: {
-					"0,0": {
-						id: "0,0",
-						x: 0,
-						z: 0,
-						seed: 0,
-						terrainType: "RIVER",
-						secured: false,
-						territoryState: "NEUTRAL",
-						lastVisited: Date.now(),
-						hibernated: false,
-						entities: [],
-						decorations: [],
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					discoveredChunks: {
+						"0,0": {
+							id: "0,0",
+							x: 0,
+							z: 0,
+							seed: 0,
+							terrainType: "RIVER",
+							secured: false,
+							territoryState: "NEUTRAL",
+							lastVisited: Date.now(),
+							hibernated: false,
+							entities: [],
+							decorations: [],
+						},
 					},
 				},
-			},
+			});
 		});
 
 		render(<MainMenu />);
@@ -142,25 +146,27 @@ describe("MainMenu - Game Loader Interface", () => {
 
 	it("should navigate directly to GAME when CONTINUE clicked", () => {
 		// Set up save data
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				discoveredChunks: {
-					"0,0": {
-						id: "0,0",
-						x: 0,
-						z: 0,
-						seed: 0,
-						terrainType: "RIVER",
-						secured: false,
-						territoryState: "NEUTRAL",
-						lastVisited: Date.now(),
-						hibernated: false,
-						entities: [],
-						decorations: [],
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					discoveredChunks: {
+						"0,0": {
+							id: "0,0",
+							x: 0,
+							z: 0,
+							seed: 0,
+							terrainType: "RIVER",
+							secured: false,
+							territoryState: "NEUTRAL",
+							lastVisited: Date.now(),
+							hibernated: false,
+							entities: [],
+							decorations: [],
+						},
 					},
 				},
-			},
+			});
 		});
 
 		render(<MainMenu />);
@@ -207,11 +213,13 @@ describe("MainMenu - Game Loader Interface", () => {
 
 	it("should select character when clicked", () => {
 		// Unlock whiskers first
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				unlockedCharacters: ["bubbles", "whiskers"],
-			},
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					unlockedCharacters: ["bubbles", "whiskers"],
+				},
+			});
 		});
 
 		render(<MainMenu />);
@@ -241,11 +249,13 @@ describe("MainMenu - Game Loader Interface", () => {
 	});
 
 	it("should NOT downgrade difficulty (escalation only)", () => {
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				difficultyMode: "TACTICAL",
-			},
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					difficultyMode: "TACTICAL",
+				},
+			});
 		});
 
 		render(<MainMenu />);
@@ -271,11 +281,13 @@ describe("MainMenu - Game Loader Interface", () => {
 	});
 
 	it("should show warning when upgrading to ELITE", () => {
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				difficultyMode: "TACTICAL",
-			},
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					difficultyMode: "TACTICAL",
+				},
+			});
 		});
 
 		render(<MainMenu />);
@@ -289,12 +301,14 @@ describe("MainMenu - Game Loader Interface", () => {
 	// ============================================
 
 	it("should display territory score when greater than 0 and has save data", () => {
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				discoveredChunks: { "0,0": createMockChunk(0, 0) }, // Must have save data
-				territoryScore: 5,
-			},
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					discoveredChunks: { "0,0": createMockChunk(0, 0) }, // Must have save data
+					territoryScore: 5,
+				},
+			});
 		});
 
 		render(<MainMenu />);
@@ -303,12 +317,14 @@ describe("MainMenu - Game Loader Interface", () => {
 	});
 
 	it("should display peacekeeping score when greater than 0 and has save data", () => {
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				discoveredChunks: { "0,0": createMockChunk(0, 0) }, // Must have save data
-				peacekeepingScore: 100,
-			},
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					discoveredChunks: { "0,0": createMockChunk(0, 0) }, // Must have save data
+					peacekeepingScore: 100,
+				},
+			});
 		});
 
 		render(<MainMenu />);
@@ -318,11 +334,13 @@ describe("MainMenu - Game Loader Interface", () => {
 
 	it("should display player rank when save data exists", () => {
 		// RANK only shows when there's save data (discovered chunks)
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				discoveredChunks: { "0,0": createMockChunk(0, 0) },
-			},
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					discoveredChunks: { "0,0": createMockChunk(0, 0) },
+				},
+			});
 		});
 
 		render(<MainMenu />);
@@ -332,13 +350,15 @@ describe("MainMenu - Game Loader Interface", () => {
 
 	it("should hide rank and empty stats for new players", () => {
 		// New players (no discovered chunks) should not see empty stats
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				discoveredChunks: {},
-				territoryScore: 0,
-				peacekeepingScore: 0,
-			},
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					discoveredChunks: {},
+					territoryScore: 0,
+					peacekeepingScore: 0,
+				},
+			});
 		});
 
 		render(<MainMenu />);
@@ -351,12 +371,14 @@ describe("MainMenu - Game Loader Interface", () => {
 	// ============================================
 
 	it("should show LZ secured status when base is established", () => {
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				isLZSecured: true,
-				baseComponents: [{ id: "test", type: "FLOOR", position: [0, 0, 0], rotation: [0, 0, 0] }],
-			},
+		act(() => {
+			useGameStore.setState({
+				saveData: {
+					...useGameStore.getState().saveData,
+					isLZSecured: true,
+					baseComponents: [{ id: "test", type: "FLOOR", position: [0, 0, 0], rotation: [0, 0, 0] }],
+				},
+			});
 		});
 
 		render(<MainMenu />);
@@ -376,14 +398,16 @@ describe("MainMenu - Game Loader Interface", () => {
 
 describe("MainMenu - Open World Design Compliance", () => {
 	beforeEach(() => {
-		useGameStore.setState({
-			mode: "MENU",
-			selectedCharacterId: "bubbles",
-			saveData: {
-				...useGameStore.getState().saveData,
-				difficultyMode: "SUPPORT",
-				discoveredChunks: {},
-			},
+		act(() => {
+			useGameStore.setState({
+				mode: "MENU",
+				selectedCharacterId: "bubbles",
+				saveData: {
+					...useGameStore.getState().saveData,
+					difficultyMode: "SUPPORT",
+					discoveredChunks: {},
+				},
+			});
 		});
 	});
 
