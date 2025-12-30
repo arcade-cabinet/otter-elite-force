@@ -67,7 +67,7 @@ test.describe("Chunk Persistence", () => {
 
 		// Check that chunks are in localStorage
 		const savedData = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			return saved ? JSON.parse(saved) : null;
 		});
 
@@ -80,7 +80,7 @@ test.describe("Chunk Persistence", () => {
 
 		// Verify chunks are still there
 		const reloadedData = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			return saved ? JSON.parse(saved) : null;
 		});
 
@@ -111,7 +111,7 @@ test.describe("Chunk Persistence", () => {
 
 		// Check entity state persisted
 		const entityState = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			if (!saved) return null;
 			const data = JSON.parse(saved);
 			const chunk = data.discoveredChunks["2,2"];
@@ -133,7 +133,7 @@ test.describe("Chunk Persistence", () => {
 		});
 
 		const chunkState = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			if (!saved) return null;
 			const data = JSON.parse(saved);
 			return data.discoveredChunks["3,3"];
@@ -253,7 +253,7 @@ test.describe("Chunk Persistence", () => {
 				baseComponents: [],
 				lastPlayerPosition: [0, 0, 0],
 			};
-			localStorage.setItem("otter-elite-force-save", JSON.stringify(oldSave));
+			localStorage.setItem("otter_v8", JSON.stringify(oldSave));
 		});
 
 		// Reload to trigger migration
@@ -294,7 +294,7 @@ test.describe("Chunk Persistence", () => {
 		});
 
 		const chunkCount = await page.evaluate(() => {
-			const saved = localStorage.getItem("otter-elite-force-save");
+			const saved = localStorage.getItem("otter_v8");
 			if (!saved) return 0;
 			const data = JSON.parse(saved);
 			return Object.keys(data.discoveredChunks || {}).length;
