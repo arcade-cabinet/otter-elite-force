@@ -29,8 +29,6 @@ jobs:
       # Setup pnpm - pinned to v4.0.0
       - name: Setup pnpm
         uses: pnpm/action-setup@0c17529a66aca453f9227af23103ed11469b1e47 # v4.0.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       # Setup Node.js with pnpm cache - pinned to v4.4.0
       - name: Setup Node.js
@@ -72,8 +70,6 @@ jobs:
       # Setup pnpm - pinned to v4.0.0
       - name: Setup pnpm
         uses: pnpm/action-setup@0c17529a66aca453f9227af23103ed11469b1e47 # v4.0.0
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       # Setup Node.js with pnpm cache - pinned to v4.4.0
       - name: Setup Node.js
