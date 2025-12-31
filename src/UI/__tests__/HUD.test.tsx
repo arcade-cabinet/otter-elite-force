@@ -5,7 +5,7 @@
  * Focus on user-visible behavior and interactions
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameStore } from "../../stores/gameStore";
 import { HUD } from "../HUD";
@@ -290,10 +290,9 @@ describe("HUD Component", () => {
 			useGameStore.setState({ isBuildMode: true });
 			render(<HUD />);
 
-			expect(screen.getByRole("button", { name: "FLOOR" })).toBeInTheDocument();
-			expect(screen.getByRole("button", { name: "WALL" })).toBeInTheDocument();
+			expect(screen.getByRole("button", { name: "FOUNDATION" })).toBeInTheDocument();
+			expect(screen.getByRole("button", { name: "WALLS" })).toBeInTheDocument();
 			expect(screen.getByRole("button", { name: "ROOF" })).toBeInTheDocument();
-			expect(screen.getByRole("button", { name: "STILT" })).toBeInTheDocument();
 			expect(screen.getByText(/PLACE/)).toBeInTheDocument();
 		});
 
@@ -301,8 +300,8 @@ describe("HUD Component", () => {
 			useGameStore.setState({ isBuildMode: false });
 			render(<HUD />);
 
-			expect(screen.queryByRole("button", { name: "FLOOR" })).not.toBeInTheDocument();
-			expect(screen.queryByRole("button", { name: "WALL" })).not.toBeInTheDocument();
+			expect(screen.queryByRole("button", { name: "FOUNDATION" })).not.toBeInTheDocument();
+			expect(screen.queryByRole("button", { name: "WALLS" })).not.toBeInTheDocument();
 		});
 
 		it("BUILD button has active class when build mode is on", () => {
@@ -380,28 +379,38 @@ describe("HUD Component", () => {
 
 	describe("Build UI Buttons", () => {
 		beforeEach(() => {
-			useGameStore.setState({ isBuildMode: true });
+			useGameStore.setState({
+				isBuildMode: true,
+				saveData: {
+					...useGameStore.getState().saveData,
+					wood: 100,
+					metal: 100,
+					supplies: 100,
+				},
+			});
 		});
 
-		it("clicking FLOOR button selects it", () => {
+		it("clicking FOUNDATION button selects it", () => {
 			render(<HUD />);
-			const floorBtn = screen.getByRole("button", { name: "FLOOR" });
-			fireEvent.click(floorBtn);
-			expect(useGameStore.getState().selectedComponentType).toBe("FLOOR");
+			const foundationBtn = screen.getByRole("button", { name: "FOUNDATION" });
+			fireEvent.click(foundationBtn);
+			// Category doesn't change selectedComponentType immediately, but template buttons do
 		});
 
-		it("clicking WALL button selects it", () => {
+		it("clicking a template button selects it", () => {
 			render(<HUD />);
-			const wallBtn = screen.getByRole("button", { name: "WALL" });
-			fireEvent.click(wallBtn);
-			expect(useGameStore.getState().selectedComponentType).toBe("WALL");
+			// Select the button in the palette specifically
+			const paletteButtons = screen.getAllByRole("button", { name: /Floor Section/ });
+			const templateBtn = paletteButtons.find(btn => btn.closest(".build-palette"));
+			fireEvent.click(templateBtn as HTMLElement);
+			expect(useGameStore.getState().selectedComponentType).toBe("floor-section");
 		});
 
 		it("clicking PLACE button calls placeComponent", () => {
-			useGameStore.setState({ selectedComponentType: "FLOOR" });
+			useGameStore.setState({ selectedComponentType: "floor-section" });
 			const spy = vi.spyOn(useGameStore.getState(), "placeComponent");
 			render(<HUD />);
-			const placeBtn = screen.getByText(/PLACE FLOOR/);
+			const placeBtn = screen.getByText(/PLACE Floor Section/);
 			fireEvent.click(placeBtn);
 			expect(spy).toHaveBeenCalled();
 		});

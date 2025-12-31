@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
+import { BUILDABLE_TEMPLATES } from "../ecs/data/buildableTemplates";
 import { useGameStore } from "../stores/gameStore";
 
 export function HUD() {
@@ -45,7 +46,12 @@ export function HUD() {
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
 	const setSelectedComponentType = useGameStore((state) => state.setSelectedComponentType);
 	const placeComponent = useGameStore((state) => state.placeComponent);
+	const spendResources = useGameStore((state) => state.spendResources);
 	const setHudReady = useGameStore((state) => state.setHudReady);
+
+	const [buildCategory, setBuildCategory] = useState<
+		"FOUNDATION" | "WALLS" | "ROOF" | "DEFENSE" | "UTILITY" | "COMFORT"
+	>("FOUNDATION");
 
 	// Signal HUD mount/unmount for input system initialization
 	useEffect(() => {
@@ -78,24 +84,40 @@ export function HUD() {
 	const showTheFall = saveData.difficultyMode === "TACTICAL" && saveData.isFallTriggered;
 
 	const handlePlace = useCallback(
-		(type: "FLOOR" | "WALL" | "ROOF" | "STILT") => {
+		(templateId: string) => {
+			const template = BUILDABLE_TEMPLATES.find((t) => t.id === templateId);
+			if (!template) return;
+
+			// Check if player has enough resources
+			if (
+				saveData.wood < template.cost.wood ||
+				saveData.metal < template.cost.metal ||
+				saveData.supplies < template.cost.supplies
+			) {
+				audioEngine.playSFX("hit");
+				return;
+			}
+
 			const pos: [number, number, number] = [
 				Math.round(playerPos[0] / 4) * 4,
 				Math.round(playerPos[1]),
 				Math.round(playerPos[2] / 4) * 4,
 			];
 
-			if (type === "ROOF") pos[1] += 2.5;
-			if (type === "WALL") pos[1] += 1;
+			// Simple vertical offsets based on category
+			if (template.category === "ROOF") pos[1] += 2.5;
+			if (template.category === "WALLS") pos[1] += 1;
 
-			placeComponent({
-				type,
-				position: pos,
-				rotation: [0, 0, 0],
-			});
-			audioEngine.playSFX("pickup");
+			if (spendResources(template.cost.wood, template.cost.metal, template.cost.supplies)) {
+				placeComponent({
+					type: templateId,
+					position: pos,
+					rotation: [0, 0, 0],
+				});
+				audioEngine.playSFX("pickup");
+			}
 		},
-		[playerPos, placeComponent],
+		[playerPos, placeComponent, spendResources, saveData.wood, saveData.metal, saveData.supplies],
 	);
 
 	return (
@@ -280,27 +302,83 @@ export function HUD() {
 				)}
 			</div>
 
+			{/* Resources Display (Top Right) */}
+			<div
+				className="hud-resources"
+				style={{
+					position: "absolute",
+					top: "20px",
+					right: "20px",
+					textAlign: "right",
+					color: "#fff",
+					fontSize: "0.8rem",
+					textShadow: "1px 1px 2px #000",
+				}}
+			>
+				<div style={{ color: "#8b4" }}>WOOD: {saveData.wood}</div>
+				<div style={{ color: "#888" }}>METAL: {saveData.metal}</div>
+				<div style={{ color: "#48b" }}>SUPPLIES: {saveData.supplies}</div>
+				<div style={{ color: "#da0", marginTop: "5px", fontSize: "1rem" }}>
+					CREDITS: {saveData.coins}
+				</div>
+			</div>
+
 			{/* BUILD UI (Bottom Center) */}
 			{isBuildMode && (
 				<div className="build-ui">
-					<div className="build-palette">
-						{(["FLOOR", "WALL", "ROOF", "STILT"] as const).map((type) => (
-							<button
-								key={type}
-								type="button"
-								className={selectedComponentType === type ? "selected" : ""}
-								onClick={() => setSelectedComponentType(type)}
-							>
-								{type}
-							</button>
-						))}
+					<div
+						className="build-categories"
+						style={{ display: "flex", gap: "5px", marginBottom: "10px" }}
+					>
+						{(["FOUNDATION", "WALLS", "ROOF", "DEFENSE", "UTILITY", "COMFORT"] as const).map(
+							(cat) => (
+								<button
+									key={cat}
+									type="button"
+									className={buildCategory === cat ? "selected" : ""}
+									onClick={() => setBuildCategory(cat)}
+									style={{ fontSize: "0.6rem", padding: "5px" }}
+								>
+									{cat}
+								</button>
+							),
+						)}
+					</div>
+					<div className="build-palette" style={{ maxHeight: "150px", overflowY: "auto" }}>
+						{BUILDABLE_TEMPLATES.filter((t) => t.category === buildCategory).map((template) => {
+							const canAfford =
+								saveData.wood >= template.cost.wood &&
+								saveData.metal >= template.cost.metal &&
+								saveData.supplies >= template.cost.supplies;
+							return (
+								<button
+									key={template.id}
+									type="button"
+									className={selectedComponentType === template.id ? "selected" : ""}
+									onClick={() => setSelectedComponentType(template.id)}
+									disabled={!canAfford}
+									title={`${template.name} - Wood: ${template.cost.wood}, Metal: ${template.cost.metal}, Supplies: ${template.cost.supplies}`}
+									style={{ opacity: canAfford ? 1 : 0.5 }}
+								>
+									<div style={{ fontSize: "0.7rem" }}>{template.name}</div>
+									<div style={{ fontSize: "0.5rem" }}>
+										{template.cost.wood > 0 && `W:${template.cost.wood} `}
+										{template.cost.metal > 0 && `M:${template.cost.metal} `}
+										{template.cost.supplies > 0 && `S:${template.cost.supplies}`}
+									</div>
+								</button>
+							);
+						})}
 					</div>
 					<button
 						type="button"
 						className="place-btn"
 						onClick={() => handlePlace(selectedComponentType)}
+						style={{ marginTop: "10px" }}
 					>
-						PLACE {selectedComponentType}
+						PLACE{" "}
+						{BUILDABLE_TEMPLATES.find((t) => t.id === selectedComponentType)?.name ||
+							selectedComponentType}
 					</button>
 				</div>
 			)}

@@ -48,6 +48,14 @@ export const applyDamage = (
 		const xp = isKill ? entity.enemy?.xpValue || 0 : 0;
 		const credits = isKill ? Math.floor(Math.random() * 10) + 5 : 0; // Random credits 5-15
 
+		// Add resource drops on kill
+		if (isKill) {
+			const wood = Math.floor(Math.random() * 5);
+			const metal = Math.floor(Math.random() * 2);
+			const supplies = Math.random() > 0.8 ? 1 : 0;
+			useGameStore.getState().addResources(wood, metal, supplies);
+		}
+
 		useGameStore.getState().registerHit(isCritical, isKill, enemyType, xp, credits);
 	}
 };

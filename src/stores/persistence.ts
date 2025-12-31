@@ -40,6 +40,9 @@ export const DEFAULT_SAVE_DATA: SaveData = {
 	unlockedCharacters: ["bubbles"],
 	unlockedWeapons: ["service-pistol"],
 	coins: 0,
+	wood: 50,
+	metal: 20,
+	supplies: 10,
 	discoveredChunks: {},
 	territoryScore: 0,
 	peacekeepingScore: 0,
@@ -154,7 +157,13 @@ export const migrateSchema = (data: Record<string, unknown>): Record<string, unk
 		data.discoveredChunks = chunks;
 	}
 
-	data.version = 8;
+	if (version < 9) {
+		data.wood = (data.wood as number) || 50;
+		data.metal = (data.metal as number) || 20;
+		data.supplies = (data.supplies as number) || 10;
+	}
+
+	data.version = 9;
 	return data;
 };
 
@@ -167,6 +176,9 @@ export const isValidSaveData = (data: unknown): data is SaveData => {
 		"unlockedCharacters",
 		"unlockedWeapons",
 		"coins",
+		"wood",
+		"metal",
+		"supplies",
 		"discoveredChunks",
 		"upgrades",
 	];

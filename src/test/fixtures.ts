@@ -13,7 +13,7 @@ import type { ChunkData, SaveData } from "../stores/types";
  */
 export function createMockSaveData(overrides?: Partial<SaveData>): SaveData {
 	return {
-		version: 8,
+		version: 9,
 		rank: 0,
 		xp: 0,
 		medals: 0,
@@ -21,6 +21,9 @@ export function createMockSaveData(overrides?: Partial<SaveData>): SaveData {
 		unlockedCharacters: ["bubbles"],
 		unlockedWeapons: ["service-pistol"],
 		coins: 0,
+		wood: 0,
+		metal: 0,
+		supplies: 0,
 		discoveredChunks: {},
 		territoryScore: 0,
 		peacekeepingScore: 0,

@@ -228,7 +228,7 @@ export interface ChunkData {
 // BASE BUILDING TYPES
 // =============================================================================
 
-export type BaseComponentType = "FLOOR" | "WALL" | "ROOF" | "STILT";
+export type BaseComponentType = string;
 
 export interface PlacedComponent {
 	id: string;
@@ -280,6 +280,9 @@ export interface SaveData {
 	unlockedCharacters: string[];
 	unlockedWeapons: string[];
 	coins: number;
+	wood: number;
+	metal: number;
+	supplies: number;
 	discoveredChunks: Record<string, ChunkData>;
 	territoryScore: number;
 	difficultyMode: DifficultyMode;

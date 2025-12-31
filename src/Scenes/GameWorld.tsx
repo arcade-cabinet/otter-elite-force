@@ -23,9 +23,34 @@ import { type ParticleData, Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
 import { Raft } from "../Entities/Raft";
+import { BUILDABLE_TEMPLATES } from "../ecs/data/buildableTemplates";
 import { CHARACTERS, type ChunkData, useGameStore } from "../stores/gameStore";
 import { ChunkRenderer } from "./GameWorld/components/ChunkRenderer";
 import { GameLogic } from "./GameWorld/components/GameLogic";
+
+// Mapping template IDs to components
+const ComponentRenderer = ({
+	type,
+	position,
+	ghost = false,
+}: {
+	type: string;
+	position: [number, number, number];
+	ghost?: boolean;
+}) => {
+	// Base primitive mapping for existing components
+	if (type === "floor-section" || type === "FLOOR")
+		return <BaseFloor position={position} ghost={ghost} />;
+	if (type === "bamboo-wall" || type === "thatch-wall" || type === "WALL")
+		return <BaseWall position={position} ghost={ghost} />;
+	if (type === "thatch-roof" || type === "tin-roof" || type === "ROOF")
+		return <BaseRoof position={position} ghost={ghost} />;
+	if (type === "stilt-support" || type === "STILT")
+		return <BaseStilt position={position} ghost={ghost} />;
+
+	// Fallback to floor if unknown
+	return <BaseFloor position={position} ghost={ghost} />;
+};
 
 export function GameWorld() {
 	const {
@@ -73,8 +98,9 @@ export function GameWorld() {
 		: null;
 
 	if (ghostPos) {
-		if (selectedComponentType === "ROOF") ghostPos[1] += 2.5;
-		if (selectedComponentType === "WALL") ghostPos[1] += 1;
+		const template = BUILDABLE_TEMPLATES.find((t) => t.id === selectedComponentType);
+		if (template?.category === "ROOF") ghostPos[1] += 2.5;
+		if (template?.category === "WALLS") ghostPos[1] += 1;
 	}
 
 	return (
@@ -111,21 +137,12 @@ export function GameWorld() {
 
 			{/* Render Ghost Preview */}
 			{isBuildMode && ghostPos && (
-				<>
-					{selectedComponentType === "FLOOR" && <BaseFloor position={ghostPos} ghost />}
-					{selectedComponentType === "WALL" && <BaseWall position={ghostPos} ghost />}
-					{selectedComponentType === "ROOF" && <BaseRoof position={ghostPos} ghost />}
-					{selectedComponentType === "STILT" && <BaseStilt position={ghostPos} ghost />}
-				</>
+				<ComponentRenderer type={selectedComponentType} position={ghostPos} ghost />
 			)}
 
-			{saveData.baseComponents.map((comp) => {
-				if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
-				if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
-				if (comp.type === "ROOF") return <BaseRoof key={comp.id} position={comp.position} />;
-				if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
-				return null;
-			})}
+			{saveData.baseComponents.map((comp) => (
+				<ComponentRenderer key={comp.id} type={comp.type} position={comp.position} />
+			))}
 			<Projectiles ref={projectilesRef} />
 			<Particles
 				particles={particles}

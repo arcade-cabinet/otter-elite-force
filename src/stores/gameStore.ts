@@ -127,10 +127,10 @@ interface GameState {
 	currentChunkId: string;
 	/** Whether base building mode is active */
 	isBuildMode: boolean;
-	/** Currently selected component type for building */
-	selectedComponentType: "FLOOR" | "WALL" | "ROOF" | "STILT";
+	/** Currently selected component type for building (template ID) */
+	selectedComponentType: string;
 	/** Set the selected component type */
-	setSelectedComponentType: (type: "FLOOR" | "WALL" | "ROOF" | "STILT") => void;
+	setSelectedComponentType: (type: string) => void;
 	/** Toggle base building mode */
 	setBuildMode: (active: boolean) => void;
 	/** Discover (or retrieve cached) chunk at coordinates */
@@ -163,6 +163,8 @@ interface GameState {
 	// Economy & Upgrades
 	addCoins: (amount: number) => void;
 	spendCoins: (amount: number) => boolean;
+	addResources: (wood: number, metal: number, supplies: number) => void;
+	spendResources: (wood: number, metal: number, supplies: number) => boolean;
 	buyUpgrade: (type: "speed" | "health" | "damage", cost: number) => void;
 	collectSpoils: (type: "credit" | "clam") => void;
 	completeStrategic: (type: "peacekeeping") => void;
@@ -214,7 +216,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	saveData: { ...DEFAULT_SAVE_DATA },
 	isZoomed: false,
 	isBuildMode: false,
-	selectedComponentType: "FLOOR",
+	selectedComponentType: "floor-section",
 	currentChunkId: "0,0",
 
 	// Mode management
@@ -738,6 +740,35 @@ export const useGameStore = create<GameState>((set, get) => ({
 		const { saveData } = get();
 		if (saveData.coins >= amount) {
 			set((state) => ({ saveData: { ...state.saveData, coins: state.saveData.coins - amount } }));
+			get().saveGame();
+			return true;
+		}
+		return false;
+	},
+
+	addResources: (wood, metal, supplies) => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				wood: state.saveData.wood + wood,
+				metal: state.saveData.metal + metal,
+				supplies: state.saveData.supplies + supplies,
+			},
+		}));
+		get().saveGame();
+	},
+
+	spendResources: (wood, metal, supplies) => {
+		const { saveData } = get();
+		if (saveData.wood >= wood && saveData.metal >= metal && saveData.supplies >= supplies) {
+			set((state) => ({
+				saveData: {
+					...state.saveData,
+					wood: state.saveData.wood - wood,
+					metal: state.saveData.metal - metal,
+					supplies: state.saveData.supplies - supplies,
+				},
+			}));
 			get().saveGame();
 			return true;
 		}
