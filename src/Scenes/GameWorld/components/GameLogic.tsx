@@ -46,6 +46,7 @@ export function GameLogic({
 		takeDamage,
 		saveData,
 		secureLZ,
+		updateChunkEntity,
 	} = useGameStore();
 	const [playerVelY, setPlayerVelYLocal] = useState(0);
 	const [isGrounded, setIsGrounded] = useState(true);
@@ -144,7 +145,7 @@ export function GameLogic({
 					}
 				}
 				if (entity.type === "CLAM_BASKET" && dist < 2 && !entity.interacted) {
-					entity.interacted = true;
+					updateChunkEntity(chunk.id, entity.id, { interacted: true });
 					if (entity.isHeavy) {
 						takeDamage(30);
 						audioEngine.playSFX("explode");
@@ -179,7 +180,7 @@ export function GameLogic({
 					}
 				}
 				if (entity.type === "PRISON_CAGE" && dist < 2 && !entity.rescued) {
-					entity.rescued = true;
+					updateChunkEntity(chunk.id, entity.id, { rescued: true });
 					if (entity.objectiveId) {
 						rescueCharacter(entity.objectiveId);
 						audioEngine.playSFX("pickup");
