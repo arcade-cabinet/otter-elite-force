@@ -138,6 +138,62 @@ describe("Canteen", () => {
 		const upgradeItems = container.querySelectorAll(".upgrade-item button");
 		expect(upgradeItems[0]).toBeDisabled();
 	});
+
+	it("shows accessible disabled buttons when upgrades are unaffordable", () => {
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				coins: 50, // Not enough for any upgrade
+				upgrades: {
+					speedBoost: 1,
+					healthBoost: 1,
+					damageBoost: 1,
+				},
+			},
+		});
+
+		render(<Canteen />);
+
+		// Switch to UPGRADES tab
+		fireEvent.click(screen.getByText("UPGRADES"));
+
+		// UPGRADE_COSTS: speed: 200, health: 200, damage: 300
+		const healthBtn = screen.getByRole("button", { name: /Purchase HEALTH BOOST/i });
+		expect(healthBtn).toBeInTheDocument();
+		expect(healthBtn).toBeDisabled();
+		expect(healthBtn).toHaveAttribute(
+			"aria-label",
+			expect.stringContaining("Insufficient credits"),
+		);
+		expect(healthBtn).toHaveAttribute("title", expect.stringContaining("Insufficient credits"));
+	});
+
+	it("shows accessible enabled buttons when upgrades are affordable", () => {
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				coins: 250, // Enough for Health (200) but not Damage (300)
+			},
+		});
+
+		render(<Canteen />);
+		fireEvent.click(screen.getByText("UPGRADES"));
+
+		const healthBtn = screen.getByRole("button", { name: /Purchase HEALTH BOOST/i });
+		expect(healthBtn).not.toBeDisabled();
+		expect(healthBtn).toHaveAttribute(
+			"aria-label",
+			expect.not.stringContaining("Insufficient credits"),
+		);
+		expect(healthBtn).toHaveAttribute("title", "Purchase HEALTH BOOST");
+
+		const damageBtn = screen.getByRole("button", { name: /Purchase DAMAGE BOOST/i });
+		expect(damageBtn).toBeDisabled();
+		expect(damageBtn).toHaveAttribute(
+			"aria-label",
+			expect.stringContaining("Insufficient credits"),
+		);
+	});
 });
 
 describe("Canteen - Character Shop", () => {
