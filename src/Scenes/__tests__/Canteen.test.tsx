@@ -139,11 +139,11 @@ describe("Canteen", () => {
 		expect(upgradeItems[0]).toBeDisabled();
 	});
 
-	it("switches to Upgrades view and shows accessible buttons", () => {
+	it("shows accessible disabled buttons when upgrades are unaffordable", () => {
 		useGameStore.setState({
 			saveData: {
 				...useGameStore.getState().saveData,
-				coins: 50, // Start with limited coins
+				coins: 50, // Not enough for any upgrade
 				upgrades: {
 					speedBoost: 1,
 					healthBoost: 1,
@@ -157,11 +157,7 @@ describe("Canteen", () => {
 		// Switch to UPGRADES tab
 		fireEvent.click(screen.getByText("UPGRADES"));
 
-		// Check for Upgrade buttons
 		// UPGRADE_COSTS: speed: 200, health: 200, damage: 300
-		// Coins: 50
-		// All should be disabled
-
 		const healthBtn = screen.getByRole("button", { name: /Purchase HEALTH BOOST/i });
 		expect(healthBtn).toBeInTheDocument();
 		expect(healthBtn).toBeDisabled();
@@ -170,27 +166,26 @@ describe("Canteen", () => {
 			expect.stringContaining("Insufficient credits"),
 		);
 		expect(healthBtn).toHaveAttribute("title", expect.stringContaining("Insufficient credits"));
+	});
 
-		// Let's give enough coins for Health (200) but not Damage (300)
+	it("shows accessible enabled buttons when upgrades are affordable", () => {
 		useGameStore.setState({
 			saveData: {
 				...useGameStore.getState().saveData,
-				coins: 250,
+				coins: 250, // Enough for Health (200) but not Damage (300)
 			},
 		});
 
-		// Cleanup and re-render to reflect new store state
-		cleanup();
 		render(<Canteen />);
 		fireEvent.click(screen.getByText("UPGRADES"));
 
-		const healthBtn2 = screen.getByRole("button", { name: /Purchase HEALTH BOOST/i });
-		expect(healthBtn2).not.toBeDisabled();
-		expect(healthBtn2).toHaveAttribute(
+		const healthBtn = screen.getByRole("button", { name: /Purchase HEALTH BOOST/i });
+		expect(healthBtn).not.toBeDisabled();
+		expect(healthBtn).toHaveAttribute(
 			"aria-label",
 			expect.not.stringContaining("Insufficient credits"),
 		);
-		expect(healthBtn2).toHaveAttribute("title", "Purchase HEALTH BOOST");
+		expect(healthBtn).toHaveAttribute("title", "Purchase HEALTH BOOST");
 
 		const damageBtn = screen.getByRole("button", { name: /Purchase DAMAGE BOOST/i });
 		expect(damageBtn).toBeDisabled();

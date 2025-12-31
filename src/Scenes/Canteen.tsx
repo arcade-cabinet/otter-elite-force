@@ -26,6 +26,16 @@ const UPGRADES_CONFIG = [
 	{ id: "damage", name: "DAMAGE BOOST", key: "damageBoost" },
 ] as const;
 
+/** Helper to generate accessibility props for upgrade buttons */
+function getUpgradeButtonProps(name: string, cost: number, canAfford: boolean) {
+	return {
+		"aria-label": canAfford
+			? `Purchase ${name} for ${cost} credits`
+			: `Purchase ${name} for ${cost} credits. Insufficient credits.`,
+		title: canAfford ? `Purchase ${name}` : `Insufficient credits (Cost: ${cost})`,
+	};
+}
+
 /** Slowly rotating character display for modal preview */
 function RotatingCharacterDisplay({
 	traits,
@@ -243,12 +253,7 @@ export function Canteen() {
 							{UPGRADES_CONFIG.map((upgrade) => {
 								const cost = UPGRADE_COSTS[upgrade.id];
 								const canAfford = coins >= cost;
-								const ariaLabel = canAfford
-									? `Purchase ${upgrade.name} for ${cost} credits`
-									: `Purchase ${upgrade.name} for ${cost} credits. Insufficient credits.`;
-								const title = canAfford
-									? `Purchase ${upgrade.name}`
-									: `Insufficient credits (Cost: ${cost})`;
+								const a11yProps = getUpgradeButtonProps(upgrade.name, cost, canAfford);
 
 								return (
 									<div className="upgrade-item" key={upgrade.id}>
@@ -260,8 +265,7 @@ export function Canteen() {
 											type="button"
 											onClick={() => buyUpgrade(upgrade.id, cost)}
 											disabled={!canAfford}
-											aria-label={ariaLabel}
-											title={title}
+											{...a11yProps}
 										>
 											{cost} CR
 										</button>

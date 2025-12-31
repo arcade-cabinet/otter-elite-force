@@ -46,9 +46,6 @@ export function GameLogic({
 		takeDamage,
 		saveData,
 		secureLZ,
-		updateChunkEntity,
-		secureChunk,
-		addKill,
 	} = useGameStore();
 	const [playerVelY, setPlayerVelYLocal] = useState(0);
 	const [isGrounded, setIsGrounded] = useState(true);
@@ -147,7 +144,7 @@ export function GameLogic({
 					}
 				}
 				if (entity.type === "CLAM_BASKET" && dist < 2 && !entity.interacted) {
-					updateChunkEntity(chunk.id, entity.id, { interacted: true });
+					entity.interacted = true;
 					if (entity.isHeavy) {
 						takeDamage(30);
 						audioEngine.playSFX("explode");
@@ -182,7 +179,7 @@ export function GameLogic({
 					}
 				}
 				if (entity.type === "PRISON_CAGE" && dist < 2 && !entity.rescued) {
-					updateChunkEntity(chunk.id, entity.id, { rescued: true });
+					entity.rescued = true;
 					if (entity.objectiveId) {
 						rescueCharacter(entity.objectiveId);
 						audioEngine.playSFX("pickup");
@@ -192,52 +189,6 @@ export function GameLogic({
 					setPilotingRaft(true, entity.id);
 					audioEngine.playSFX("pickup");
 				}
-			});
-
-			// Check Projectile Collisions with Chunk Entities
-			const bullets = projectilesRef.current?.getProjectiles() || [];
-			bullets.forEach((bullet) => {
-				chunk.entities.forEach((entity) => {
-					if (entity.hp !== undefined && entity.hp > 0) {
-						// Entity world position
-						worldPos.set(
-							chunk.x * CHUNK_SIZE + entity.position[0],
-							entity.position[1],
-							chunk.z * CHUNK_SIZE + entity.position[2],
-						);
-
-						const hitDist = bullet.position.distanceTo(worldPos);
-						const hitRadius = entity.type === "SIPHON" || entity.type === "GAS_STOCKPILE" ? 3 : 1.5;
-
-						if (hitDist < hitRadius) {
-							// Hit!
-							const newHp = Math.max(0, (entity.hp || 0) - 10);
-							updateChunkEntity(chunk.id, entity.id, { hp: newHp });
-							projectilesRef.current?.remove(bullet.id);
-							handleImpact(bullet.position, "shell");
-
-							if (newHp <= 0) {
-								if (
-									entity.type === "GATOR" ||
-									entity.type === "SNAPPER" ||
-									entity.type === "SNAKE"
-								) {
-									addKill();
-								}
-
-								// Check if chunk should be secured
-								// If all siphons are destroyed, secure chunk
-								const remainingSiphons = chunk.entities.filter(
-									(e) => e.type === "SIPHON" && (e.hp === undefined || e.hp > 0) && e.id !== entity.id,
-								);
-								if (entity.type === "SIPHON" && remainingSiphons.length === 0) {
-									secureChunk(chunk.id);
-									audioEngine.playSFX("pickup");
-								}
-							}
-						}
-					}
-				});
 			});
 		});
 
