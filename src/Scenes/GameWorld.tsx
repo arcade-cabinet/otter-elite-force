@@ -3,7 +3,7 @@
  * Main gameplay scene with 3D world
  */
 
-import { Environment, Sky } from "@react-three/drei";
+import { Sky } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import {
 	Bloom,
@@ -93,7 +93,6 @@ export function GameWorld() {
 			<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
 			<Sky sunPosition={[100, 20, 100]} />
 			<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
-			<Environment preset="sunset" />
 			{activeChunks.map((chunk) => (
 				<ChunkRenderer key={chunk.id} data={chunk} playerPos={playerPos} />
 			))}

@@ -4,7 +4,7 @@
  * Spectacular celebration with multi-stage fireworks
  */
 
-import { Environment, Sky } from "@react-three/drei";
+import { Sky } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -266,7 +266,6 @@ export function Victory() {
 					<ambientLight intensity={0.4} />
 					<directionalLight position={[5, 5, 5]} intensity={1.2} castShadow />
 					<Sky sunPosition={[100, 5, 100]} /> {/* Lower sun for dramatic lighting */}
-					<Environment preset="sunset" />
 					{/* Victorious otter */}
 					<PlayerRig
 						traits={character.traits}

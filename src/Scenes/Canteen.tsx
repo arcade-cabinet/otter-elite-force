@@ -8,7 +8,6 @@
  * - Proper touch handling for scrollable content
  */
 
-import { Environment } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Group } from "three";
@@ -95,7 +94,6 @@ const PreviewModal = memo(function PreviewModal({
 						<ambientLight intensity={0.6} />
 						<directionalLight position={[3, 5, 3]} intensity={1.2} castShadow />
 						<pointLight position={[-2, 2, 2]} intensity={0.4} color="#ffa" />
-						<Environment preset="sunset" />
 
 						<RotatingCharacterDisplay traits={char.traits} gear={char.gear} />
 

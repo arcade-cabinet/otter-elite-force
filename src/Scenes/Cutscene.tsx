@@ -3,7 +3,7 @@
  * Handles introductory dialogue and story beats
  */
 
-import { Environment, Sky } from "@react-three/drei";
+import { Sky } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useState } from "react";
 import { PlayerRig } from "../Entities/PlayerRig";
@@ -67,7 +67,6 @@ export function Cutscene() {
 					<ambientLight intensity={0.5} />
 					<directionalLight position={[10, 10, 5]} intensity={1} castShadow />
 					<Sky sunPosition={[100, 10, 100]} />
-					<Environment preset="sunset" />
 
 					<PlayerRig
 						traits={CHARACTERS.whiskers.traits}
