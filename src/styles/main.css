@@ -789,10 +789,20 @@ button.secondary {
 	border-radius: 50%;
 }
 
-.entity-dot.gator { background: #ff4400; }
-.entity-dot.snapper { background: #ff0000; }
-.entity-dot.snake { background: #ffff00; }
-.entity-dot.siphon { background: #00ccff; width: 6px; height: 6px; }
+.entity-dot.gator {
+	background: #ff4400;
+}
+.entity-dot.snapper {
+	background: #ff0000;
+}
+.entity-dot.snake {
+	background: #ffff00;
+}
+.entity-dot.siphon {
+	background: #00ccff;
+	width: 6px;
+	height: 6px;
+}
 
 .minimap-coords {
 	position: absolute;
