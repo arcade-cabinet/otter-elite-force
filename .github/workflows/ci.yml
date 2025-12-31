@@ -14,7 +14,7 @@ concurrency:
 
 env:
   NODE_VERSION: 20
-  PNPM_VERSION: 9
+  PNPM_VERSION: 10
 
 jobs:
   # Build job - runs lint, typecheck, and build, then uploads artifacts
