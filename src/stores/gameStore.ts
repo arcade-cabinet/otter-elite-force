@@ -25,8 +25,8 @@ import { audioEngine } from "../Core/AudioEngine";
 import { DIFFICULTY_ORDER, GAME_CONFIG, RANKS, STORAGE_KEY } from "../utils/constants";
 import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS } from "./gameData";
 import { DEFAULT_SAVE_DATA } from "./persistence";
-import { generateChunk } from "./worldGenerator";
 import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData } from "./types";
+import { generateChunk } from "./worldGenerator";
 
 // Re-export types and data for backward compatibility
 export type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData };

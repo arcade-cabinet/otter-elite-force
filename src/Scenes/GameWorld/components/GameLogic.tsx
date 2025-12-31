@@ -228,7 +228,8 @@ export function GameLogic({
 								// Check if chunk should be secured
 								// If all siphons are destroyed, secure chunk
 								const remainingSiphons = chunk.entities.filter(
-									(e) => e.type === "SIPHON" && (e.hp === undefined || e.hp > 0) && e.id !== entity.id,
+									(e) =>
+										e.type === "SIPHON" && (e.hp === undefined || e.hp > 0) && e.id !== entity.id,
 								);
 								if (entity.type === "SIPHON" && remainingSiphons.length === 0) {
 									secureChunk(chunk.id);
