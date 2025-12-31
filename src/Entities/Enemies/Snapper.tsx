@@ -4,7 +4,7 @@
  */
 
 import { useFrame } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Group } from "three";
 import * as THREE from "three";
 import type { EnemyProps, SnapperData } from "./types";
@@ -13,6 +13,13 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 	const groupRef = useRef<Group>(null);
 	const turretRef = useRef<Group>(null);
 	const [isFiring, setIsFiring] = useState(false);
+
+	// Check if dead
+	useEffect(() => {
+		if (data.hp <= 0 && onDeath) {
+			onDeath(data.id);
+		}
+	}, [data.hp, data.id, onDeath]);
 
 	useFrame((state, _delta) => {
 		if (!groupRef.current || !turretRef.current) return;
@@ -31,10 +38,6 @@ export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperDat
 			setIsFiring(Math.sin(state.clock.elapsedTime * 10) > 0.8);
 		} else {
 			setIsFiring(false);
-		}
-
-		if (data.hp <= 0 && onDeath) {
-			onDeath(data.id);
 		}
 
 		// Suppression logic for snappers

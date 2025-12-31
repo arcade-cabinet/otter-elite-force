@@ -98,6 +98,7 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 	});
 	const chunkX = data.x * CHUNK_SIZE;
 	const chunkZ = data.z * CHUNK_SIZE;
+	const addResources = useGameStore((state) => state.addResources);
 
 	return (
 		<group position={[chunkX, 0, chunkZ]}>
@@ -153,6 +154,10 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 								isHeavy: entity.isHeavy ?? false,
 							}}
 							targetPosition={playerPos}
+							onDeath={() => {
+								addResources({ wood: 5, metal: 2, supplies: 1 });
+								useGameStore.getState().addKill();
+							}}
 						/>
 					);
 				if (entity.type === "SNAKE")
@@ -161,6 +166,10 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 							key={entity.id}
 							data={{ id: entity.id, position: worldPos, hp: 2, maxHp: 2, suppression: 0 }}
 							targetPosition={playerPos}
+							onDeath={() => {
+								addResources({ wood: 2, metal: 0, supplies: 1 });
+								useGameStore.getState().addKill();
+							}}
 						/>
 					);
 				if (entity.type === "SNAPPER")
@@ -169,6 +178,10 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 							key={entity.id}
 							data={{ id: entity.id, position: worldPos, hp: 20, maxHp: 20, suppression: 0 }}
 							targetPosition={playerPos}
+							onDeath={() => {
+								addResources({ wood: 10, metal: 5, supplies: 3 });
+								useGameStore.getState().addKill();
+							}}
 						/>
 					);
 				if (entity.type === "PLATFORM")

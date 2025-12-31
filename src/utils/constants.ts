@@ -43,6 +43,7 @@ export const DIFFICULTY_CONFIGS = {
 		fallThreshold: 0, // No fall mechanic
 		permadeath: false,
 		enemyDamageMultiplier: 0.75,
+		enemyDensityMultiplier: 0.6,
 		xpMultiplier: 0.75,
 	},
 	TACTICAL: {
@@ -54,6 +55,7 @@ export const DIFFICULTY_CONFIGS = {
 		fallThreshold: 30, // Fall triggers at 30% HP
 		permadeath: false,
 		enemyDamageMultiplier: 1.0,
+		enemyDensityMultiplier: 1.0,
 		xpMultiplier: 1.0,
 	},
 	ELITE: {
@@ -65,6 +67,7 @@ export const DIFFICULTY_CONFIGS = {
 		fallThreshold: 0, // No fall, just death
 		permadeath: true,
 		enemyDamageMultiplier: 1.25,
+		enemyDensityMultiplier: 1.5,
 		xpMultiplier: 1.5,
 	},
 } as const;

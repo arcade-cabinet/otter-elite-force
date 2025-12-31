@@ -46,6 +46,7 @@ export function GameLogic({
 		takeDamage,
 		saveData,
 		secureLZ,
+		removeComponent,
 	} = useGameStore();
 	const [playerVelY, setPlayerVelYLocal] = useState(0);
 	const [isGrounded, setIsGrounded] = useState(true);
@@ -97,6 +98,19 @@ export function GameLogic({
 		let moveSpeed = isAiming ? character.traits.baseSpeed * 0.6 : character.traits.baseSpeed;
 		if (isCarryingClam) moveSpeed *= 0.7;
 		if (isPilotingRaft) moveSpeed *= 2.0;
+		if (saveData.isFallTriggered) moveSpeed *= 0.5; // "The Fall" penalty: 50% speed reduction
+
+		// Base damage logic during The Fall (Tactical mode penalty)
+		if (
+			saveData.isFallTriggered &&
+			Math.random() < delta * 0.05 &&
+			saveData.baseComponents.length > 0
+		) {
+			const randomIndex = Math.floor(Math.random() * saveData.baseComponents.length);
+			const componentToDestroy = saveData.baseComponents[randomIndex];
+			removeComponent(componentToDestroy.id);
+			audioEngine.playSFX("explode");
+		}
 
 		let newVelY = playerVelY;
 		if (!isGrounded) newVelY -= 30 * delta;
@@ -127,6 +141,18 @@ export function GameLogic({
 				);
 
 				const dist = playerRef.current!.position.distanceTo(worldPos);
+
+				// Predator contact damage to player
+				if (["GATOR", "SNAKE", "SNAPPER"].includes(entity.type) && dist < 2.5) {
+					const baseDamage =
+						entity.type === "SNAPPER" ? 1.5 : entity.type === "GATOR" ? 1.0 : 0.5;
+					// Apply base damage normalized by frame rate (multiplier is applied in takeDamage)
+					takeDamage(baseDamage * delta * 15, {
+						x: playerRef.current!.position.x - worldPos.x,
+						y: playerRef.current!.position.z - worldPos.z,
+					});
+				}
+
 				if (
 					entity.type === "PLATFORM" &&
 					Math.abs(playerRef.current!.position.x - worldPos.x) < 2.5 &&
@@ -209,7 +235,8 @@ export function GameLogic({
 				projectilesRef.current?.spawn(muzzlePos, shootDir);
 				audioEngine.playSFX("shoot");
 				lastFireTime.current = state.clock.elapsedTime;
-				playerRef.current.rotation.y += (Math.random() - 0.5) * 0.05; // NOSONAR: Game visual randomness
+				const swayMultiplier = saveData.isFallTriggered ? 3.0 : 1.0;
+				playerRef.current.rotation.y += (Math.random() - 0.5) * 0.05 * swayMultiplier; // NOSONAR: Game visual randomness
 			}
 		} else if (moveVec.lengthSq() > 0.01) {
 			const targetAngle = Math.atan2(moveVec.x, moveVec.z);

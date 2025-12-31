@@ -40,10 +40,16 @@ export const DEFAULT_SAVE_DATA: SaveData = {
 	unlockedCharacters: ["bubbles"],
 	unlockedWeapons: ["service-pistol"],
 	coins: 0,
+	resources: {
+		wood: 50, // Starting resources
+		metal: 20,
+		supplies: 10,
+	},
 	discoveredChunks: {},
 	territoryScore: 0,
 	peacekeepingScore: 0,
 	difficultyMode: "SUPPORT",
+	highestDifficulty: "SUPPORT",
 	isFallTriggered: false,
 	strategicObjectives: {
 		siphonsDismantled: 0,
@@ -120,6 +126,8 @@ export const migrateSchema = (data: Record<string, unknown>): Record<string, unk
 			deepClone(DEFAULT_SAVE_DATA.strategicObjectives);
 		data.spoilsOfWar =
 			(data.spoilsOfWar as SaveData["spoilsOfWar"]) || deepClone(DEFAULT_SAVE_DATA.spoilsOfWar);
+		data.resources = (data.resources as SaveData["resources"]) || deepClone(DEFAULT_SAVE_DATA.resources);
+		data.highestDifficulty = (data.highestDifficulty as DifficultyMode) || data.difficultyMode || "SUPPORT";
 	}
 
 	// Ensure weaponLvl exists for all base weapons

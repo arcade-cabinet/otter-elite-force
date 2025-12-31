@@ -24,12 +24,16 @@ describe("gameStore - Player Stats", () => {
 	beforeEach(() => {
 		const store = useGameStore.getState();
 		store.resetStats();
-		// Reset to clean state
+		// Reset to clean state with TACTICAL difficulty for standard damage calculations
 		useGameStore.setState({
 			health: 100,
 			maxHealth: 100,
 			kills: 0,
 			mode: "MENU",
+			saveData: {
+				...useGameStore.getState().saveData,
+				difficultyMode: "TACTICAL",
+			},
 		});
 	});
 
