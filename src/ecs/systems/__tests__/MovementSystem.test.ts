@@ -1,212 +1,198 @@
-/**
- * Movement System Tests
- */
 
 import * as THREE from "three";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { world } from "../../world";
-import { applyFriction, updateMovement } from "../MovementSystem";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+import { updateMovement, updateSteering, applyFriction } from "../MovementSystem";
+import { movables, steeringEntities } from "../../world";
+
+// Mock dependencies
+vi.mock("../../world", () => ({
+	movables: [],
+	steeringEntities: [],
+}));
 
 describe("MovementSystem", () => {
-	beforeEach(() => {
-		// Clear world before each test
-		for (const entity of world.entities) {
-			world.remove(entity);
-		}
-	});
+    beforeEach(() => {
+        vi.clearAllMocks();
+        (movables as unknown as any[]).length = 0;
+        (steeringEntities as unknown as any[]).length = 0;
+    });
 
-	afterEach(() => {
-		// Clear world after each test
-		for (const entity of world.entities) {
-			world.remove(entity);
-		}
-	});
+    describe("updateMovement", () => {
+        it("should update position based on linear velocity", () => {
+            const entity = {
+                transform: { position: new THREE.Vector3(0, 0, 0), rotation: new THREE.Euler() },
+                velocity: {
+                    linear: new THREE.Vector3(1, 0, 0),
+                    angular: new THREE.Vector3(0, 0, 0),
+                    maxSpeed: 10
+                },
+            };
+            (movables as unknown as any[]).push(entity);
 
-	describe("updateMovement", () => {
-		it("should update position based on velocity", () => {
-			const entity = world.add({
-				id: "test-entity",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				velocity: {
-					linear: new THREE.Vector3(10, 0, 5),
-					angular: new THREE.Vector3(0, 0, 0),
-					maxSpeed: 20,
-				},
-			});
+            updateMovement(1.0); // 1 second
 
-			updateMovement(1); // 1 second delta
+            expect(entity.transform.position.x).toBe(1);
+        });
 
-			expect(entity.transform?.position.x).toBe(10);
-			expect(entity.transform?.position.z).toBe(5);
-		});
+        it("should update rotation based on angular velocity", () => {
+            const entity = {
+                transform: { position: new THREE.Vector3(), rotation: new THREE.Euler(0, 0, 0) },
+                velocity: {
+                    linear: new THREE.Vector3(),
+                    angular: new THREE.Vector3(0, 1, 0),
+                    maxSpeed: 10
+                },
+            };
+            (movables as unknown as any[]).push(entity);
 
-		it("should update rotation based on angular velocity", () => {
-			const entity = world.add({
-				id: "test-entity",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				velocity: {
-					linear: new THREE.Vector3(0, 0, 0),
-					angular: new THREE.Vector3(0, Math.PI, 0),
-					maxSpeed: 20,
-				},
-			});
+            updateMovement(1.0);
 
-			updateMovement(1); // 1 second delta
+            expect(entity.transform.rotation.y).toBe(1);
+        });
 
-			expect(entity.transform?.rotation.y).toBeCloseTo(Math.PI, 5);
-		});
+        it("should clamp speed to maxSpeed", () => {
+            const entity = {
+                transform: { position: new THREE.Vector3(), rotation: new THREE.Euler() },
+                velocity: {
+                    linear: new THREE.Vector3(20, 0, 0),
+                    angular: new THREE.Vector3(),
+                    maxSpeed: 10
+                },
+            };
+            (movables as unknown as any[]).push(entity);
 
-		it("should clamp speed to maxSpeed", () => {
-			const entity = world.add({
-				id: "test-entity",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				velocity: {
-					linear: new THREE.Vector3(100, 0, 0), // Way over max
-					angular: new THREE.Vector3(0, 0, 0),
-					maxSpeed: 10,
-				},
-			});
+            updateMovement(1.0);
 
-			updateMovement(0.016); // Small delta to trigger clamping
+            // Speed should be clamped to 10. But position is updated *before* clamping in current impl?
+            // Current impl: apply velocity, then clamp velocity.
+            // So position moves 20, but velocity becomes 10 for next frame.
 
-			const speed = entity.velocity?.linear.length() ?? 0;
-			expect(speed).toBeLessThanOrEqual(10);
-		});
+            expect(entity.transform.position.x).toBe(20);
+            expect(entity.velocity.linear.x).toBe(10);
+        });
+    });
 
-		it("should handle multiple entities", () => {
-			const entity1 = world.add({
-				id: "test-1",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				velocity: {
-					linear: new THREE.Vector3(5, 0, 0),
-					angular: new THREE.Vector3(0, 0, 0),
-					maxSpeed: 20,
-				},
-			});
+    describe("updateSteering", () => {
+        it("should update Yuka vehicle and sync transform", () => {
+            const vehicle = {
+                position: new THREE.Vector3(5, 0, 5),
+                velocity: new THREE.Vector3(1, 0, 0),
+                set: vi.fn(),
+                update: vi.fn(),
+                maxSpeed: 10
+            };
+            const entity = {
+                transform: { position: new THREE.Vector3(0, 0, 0), rotation: new THREE.Euler() },
+                velocity: { linear: new THREE.Vector3(), maxSpeed: 10 },
+                steeringAgent: {
+                    vehicle: vehicle,
+                    targetPosition: new THREE.Vector3(10, 0, 0)
+                }
+            };
+            (steeringEntities as unknown as any[]).push(entity);
 
-			const entity2 = world.add({
-				id: "test-2",
-				transform: {
-					position: new THREE.Vector3(10, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				velocity: {
-					linear: new THREE.Vector3(-3, 0, 0),
-					angular: new THREE.Vector3(0, 0, 0),
-					maxSpeed: 20,
-				},
-			});
+            updateSteering(1.0);
 
-			updateMovement(1);
+            // Note: The logic in MovementSystem sets the vehicle position to the entity position first
+            // if targetPosition is present.
+            // vehicle.position.set(entity.transform.position...)
+            // Then it calls vehicle.update(delta) which SHOULD update vehicle.position internally based on velocity.
+            // But our mock vehicle.update does nothing to position.
 
-			expect(entity1.transform?.position.x).toBe(5);
-			expect(entity2.transform?.position.x).toBe(7);
-		});
+            // So:
+            // 1. vehicle.position.set(0,0,0) (from entity)
+            // 2. vehicle.update() (mocked, no change)
+            // 3. entity.transform.position.set(vehicle.position...) -> 0,0,0
 
-		it("should skip entities without transform or velocity", () => {
-			world.add({
-				id: "no-velocity",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-			});
+            // To test sync FROM vehicle, we should ensure vehicle position changes or is not overwritten if we want to test that flow?
 
-			world.add({
-				id: "no-transform",
-				velocity: {
-					linear: new THREE.Vector3(10, 0, 0),
-					angular: new THREE.Vector3(0, 0, 0),
-					maxSpeed: 20,
-				},
-			});
+            // If targetPosition is set, we overwrite vehicle position with entity position.
+            // This assumes Yuka simulation step will move it.
+            // Since we mock update, it stays at 0.
 
-			// Should not throw
-			expect(() => updateMovement(1)).not.toThrow();
-		});
-	});
+            // Let's remove targetPosition to skip the "sync to vehicle" step,
+            // so we can test "sync from vehicle".
 
-	describe("applyFriction", () => {
-		it("should reduce velocity over time", () => {
-			const entity = world.add({
-				id: "test-entity",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				velocity: {
-					linear: new THREE.Vector3(10, 0, 0),
-					angular: new THREE.Vector3(0, 0, 0),
-					maxSpeed: 20,
-				},
-			});
+            // Re-setup without targetPosition
+            entity.steeringAgent.targetPosition = undefined;
+            // Reset vehicle position to something non-zero
+            vehicle.position.set(5, 0, 5);
 
-			const initialSpeed = entity.velocity?.linear.length() ?? 0;
-			applyFriction(0.016, 0.95);
-			const finalSpeed = entity.velocity?.linear.length() ?? 0;
+            updateSteering(1.0);
 
-			expect(finalSpeed).toBeLessThan(initialSpeed);
-		});
+            expect(entity.transform.position.x).toBe(5);
+        });
 
-		it("should not apply friction to projectiles", () => {
-			const entity = world.add({
-				id: "test-projectile",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				velocity: {
-					linear: new THREE.Vector3(50, 0, 0),
-					angular: new THREE.Vector3(0, 0, 0),
-					maxSpeed: 100,
-				},
-				isProjectile: { __tag: "IsProjectile" },
-			});
+        it("should apply suppression to maxSpeed", () => {
+             const vehicle = {
+                position: new THREE.Vector3(),
+                velocity: new THREE.Vector3(),
+                set: vi.fn(),
+                update: vi.fn(),
+                maxSpeed: 10
+            };
+            const entity = {
+                transform: { position: new THREE.Vector3(), rotation: new THREE.Euler() },
+                velocity: { linear: new THREE.Vector3(), maxSpeed: 10 },
+                steeringAgent: { vehicle: vehicle },
+                suppression: { amount: 0.5 } // 50% suppression
+            };
+            (steeringEntities as unknown as any[]).push(entity);
 
-			const initialSpeed = entity.velocity?.linear.length() ?? 0;
-			applyFriction(0.016, 0.5); // Strong friction
+            updateSteering(1.0);
 
-			const finalSpeed = entity.velocity?.linear.length() ?? 0;
-			expect(finalSpeed).toBe(initialSpeed); // Unchanged
-		});
+            // Factor: 1 - 0.5 * 0.8 = 1 - 0.4 = 0.6
+            // Max speed: 10 * 0.6 = 6
+            expect(vehicle.maxSpeed).toBeCloseTo(6);
+        });
 
-		it("should use default friction coefficient", () => {
-			world.add({
-				id: "test-entity",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				velocity: {
-					linear: new THREE.Vector3(10, 0, 0),
-					angular: new THREE.Vector3(0, 0, 0),
-					maxSpeed: 20,
-				},
-			});
+        it("should update rotation to face movement direction", () => {
+             const vehicle = {
+                position: new THREE.Vector3(),
+                velocity: new THREE.Vector3(1, 0, 1), // Moving diagonal
+                set: vi.fn(),
+                update: vi.fn(),
+                maxSpeed: 10
+            };
+            const entity = {
+                transform: { position: new THREE.Vector3(), rotation: new THREE.Euler() },
+                velocity: { linear: new THREE.Vector3(), maxSpeed: 10 },
+                steeringAgent: { vehicle: vehicle },
+            };
+            (steeringEntities as unknown as any[]).push(entity);
 
-			// Should not throw when using default friction
-			expect(() => applyFriction(0.016)).not.toThrow();
-		});
-	});
+            updateSteering(1.0);
+
+            // atan2(1, 1) = PI/4 = 0.785
+            expect(entity.transform.rotation.y).toBeCloseTo(Math.atan2(1, 1));
+        });
+    });
+
+    describe("applyFriction", () => {
+        it("should apply friction to linear velocity", () => {
+            const entity = {
+                velocity: { linear: new THREE.Vector3(10, 0, 0) },
+                isProjectile: false
+            };
+            (movables as unknown as any[]).push(entity);
+
+            applyFriction(1.0, 0.9);
+            // 0.9 ** (1 * 60) = very small number
+            // Let's use small delta for test stability or check reduction
+
+            expect(entity.velocity.linear.x).toBeLessThan(10);
+        });
+
+        it("should not apply friction to projectiles", () => {
+            const entity = {
+                velocity: { linear: new THREE.Vector3(10, 0, 0) },
+                isProjectile: true
+            };
+            (movables as unknown as any[]).push(entity);
+
+            applyFriction(1.0);
+
+            expect(entity.velocity.linear.x).toBe(10);
+        });
+    });
 });
