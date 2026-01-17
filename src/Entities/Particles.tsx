@@ -28,12 +28,29 @@ const PARTICLE_COLORS = {
 	explosion: new THREE.Color("#FF4500"),
 };
 
+const INITIAL_CAPACITY = 1000;
+
 export function Particles({ particles, onExpire }: ParticlesProps) {
 	const pointsRef = useRef<Points>(null);
 	// Track internal state for particles to avoid mutating props
 	const particleStateRef = useRef<
-		Map<string, { lifetime: number; position: THREE.Vector3; velocity: THREE.Vector3 }>
+		Map<
+			string,
+			{
+				lifetime: number;
+				position: THREE.Vector3;
+				velocity: THREE.Vector3;
+				type: "shell" | "blood" | "explosion";
+			}
+		>
 	>(new Map());
+
+	// Reusable buffers to avoid allocation every frame
+	const buffersRef = useRef({
+		positions: new Float32Array(INITIAL_CAPACITY * 3),
+		colors: new Float32Array(INITIAL_CAPACITY * 3),
+		sizes: new Float32Array(INITIAL_CAPACITY),
+	});
 
 	// Sync internal state with new particles
 	useEffect(() => {
@@ -51,6 +68,7 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 					lifetime: particle.lifetime,
 					position: particle.position.clone(),
 					velocity: particle.velocity.clone(),
+					type: particle.type, // Store type to avoid O(N) lookup in useFrame
 				});
 			}
 		}
@@ -62,11 +80,18 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 
 		const geometry = pointsRef.current.geometry as THREE.BufferGeometry;
 		const count = particleStateRef.current.size;
+		let resized = false;
 
-		const positions = new Float32Array(count * 3);
-		const colors = new Float32Array(count * 3);
-		const sizes = new Float32Array(count);
+		// Resize buffers if needed
+		if (buffersRef.current.sizes.length < count) {
+			const newCapacity = count * 2; // Double capacity
+			buffersRef.current.positions = new Float32Array(newCapacity * 3);
+			buffersRef.current.colors = new Float32Array(newCapacity * 3);
+			buffersRef.current.sizes = new Float32Array(newCapacity);
+			resized = true;
+		}
 
+		const { positions, colors, sizes } = buffersRef.current;
 		const toRemove: string[] = [];
 		let i = 0;
 
@@ -92,9 +117,8 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 			positions[i * 3 + 1] = state.position.y;
 			positions[i * 3 + 2] = state.position.z;
 
-			// Color based on type (find particle type from props)
-			const particle = particles.find((p) => p.id === id);
-			const color = PARTICLE_COLORS[particle?.type ?? "shell"];
+			// Color based on type (using stored type, O(1) lookup)
+			const color = PARTICLE_COLORS[state.type];
 			colors[i * 3] = color.r;
 			colors[i * 3 + 1] = color.g;
 			colors[i * 3 + 2] = color.b;
@@ -110,13 +134,23 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 			onExpire?.(id);
 		}
 
-		// Update geometry with pre-allocated typed arrays
-		geometry.setAttribute(
-			"position",
-			new THREE.Float32BufferAttribute(positions.slice(0, i * 3), 3),
-		);
-		geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors.slice(0, i * 3), 3));
-		geometry.setAttribute("size", new THREE.Float32BufferAttribute(sizes.slice(0, i), 1));
+		// Optimized geometry update:
+		// Only create new BufferAttributes when the array instance changes (resize).
+		// Otherwise, just rely on the existing connection to the TypedArray.
+		// NOTE: Three.js BufferAttribute holds a reference to the array passed in constructor.
+		if (resized || !geometry.attributes.position) {
+			geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+			geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+			geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+		}
+
+		// Set draw range to only render active particles
+		geometry.setDrawRange(0, i);
+
+		// Signal to Three.js that data has changed
+		if (geometry.attributes.position) geometry.attributes.position.needsUpdate = true;
+		if (geometry.attributes.color) geometry.attributes.color.needsUpdate = true;
+		if (geometry.attributes.size) geometry.attributes.size.needsUpdate = true;
 	});
 
 	if (particles.length === 0) return null;

@@ -14,7 +14,6 @@ import { useShallow } from "zustand/shallow";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
 import { useGameStore } from "../stores/gameStore";
-import { Minimap } from "./Minimap";
 
 export function HUD() {
 	const {
@@ -241,9 +240,6 @@ export function HUD() {
 					<br />
 					<span className="hud-value">{kills}</span>
 				</div>
-
-				{/* Tactical Minimap */}
-				<Minimap />
 			</div>
 
 			{/* Action Cluster (Right Side) */}
