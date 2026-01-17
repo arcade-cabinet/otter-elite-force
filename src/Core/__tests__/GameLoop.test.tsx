@@ -1,7 +1,7 @@
 
 import { render } from "@testing-library/react";
 import React from "react";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { GameLoop } from "../GameLoop";
 import { useGameStore } from "../../stores/gameStore";
 
