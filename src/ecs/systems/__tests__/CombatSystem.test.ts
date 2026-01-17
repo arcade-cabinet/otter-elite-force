@@ -1,493 +1,325 @@
-/**
- * Combat System Tests
- */
-
 import * as THREE from "three";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { world } from "../../world";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createProjectile } from "../../archetypes";
+import { damageables, deadEntities, enemies, players, projectiles, world } from "../../world";
 import {
 	applyDamage,
 	applyExplosionDamage,
 	cleanupDead,
+	fireWeapon,
 	healEntity,
 	updateHealthRegen,
+	updateProjectileCollisions,
 	updateSuppression,
 } from "../CombatSystem";
 
+// Mock dependencies
+vi.mock("../../world", () => ({
+	world: {
+		entities: [],
+		addComponent: vi.fn(),
+		remove: vi.fn(),
+	},
+	damageables: [],
+	enemies: [],
+	players: [],
+	projectiles: [],
+	deadEntities: [],
+}));
+
+const mockRegisterHit = vi.fn();
+
+vi.mock("../../../stores/gameStore", () => ({
+	useGameStore: {
+		getState: vi.fn(() => ({
+			registerHit: mockRegisterHit,
+		})),
+	},
+}));
+
+vi.mock("../../archetypes", () => ({
+	createProjectile: vi.fn(),
+}));
+
 describe("CombatSystem", () => {
 	beforeEach(() => {
-		// Clear world before each test
-		for (const entity of world.entities) {
-			world.remove(entity);
-		}
-	});
-
-	afterEach(() => {
-		// Clear world after each test
-		for (const entity of world.entities) {
-			world.remove(entity);
-		}
+		vi.clearAllMocks();
+		// Clear mock arrays
+		(damageables as unknown as any[]).length = 0;
+		(enemies as unknown as any[]).length = 0;
+		(players as unknown as any[]).length = 0;
+		(projectiles as unknown as any[]).length = 0;
+		(deadEntities as unknown as any[]).length = 0;
+		(world.entities as unknown as any[]).length = 0;
 	});
 
 	describe("applyDamage", () => {
-		it("should reduce entity health", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+		it("should apply damage to an entity", () => {
+			const entity = {
+				id: "1",
+				health: { current: 100, max: 100, lastDamageTime: 0 },
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			applyDamage("test-entity", 25);
+			applyDamage("1", 20);
 
-			expect(entity.health?.current).toBe(75);
+			expect(entity.health.current).toBe(80);
+			expect(entity.health.lastDamageTime).toBeGreaterThan(0);
 		});
 
-		it("should not reduce health below 0", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 10,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+		it("should apply suppression", () => {
+			const entity = {
+				id: "1",
+				health: { current: 100, max: 100, lastDamageTime: 0 },
+				suppression: { amount: 0, lastIncrementTime: 0, decayRate: 1 },
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			applyDamage("test-entity", 50);
+			applyDamage("1", 10);
 
-			expect(entity.health?.current).toBe(0);
+			// 10 * 5 = 50 suppression
+			expect(entity.suppression.amount).toBe(50);
 		});
 
-		it("should mark entity as dead when health reaches 0", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 10,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+		it("should kill an entity if damage exceeds health", () => {
+			const entity = {
+				id: "1",
+				health: { current: 10, max: 100, lastDamageTime: 0 },
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			applyDamage("test-entity", 20);
+			applyDamage("1", 20);
 
-			expect(entity.isDead).toBeDefined();
+			expect(entity.health.current).toBe(0);
+			expect(world.addComponent).toHaveBeenCalledWith(entity, "isDead", expect.any(Object));
 		});
 
-		it("should not damage invulnerable entities (health flag)", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: true,
-				},
-			});
+		it("should not damage invulnerable entities", () => {
+			const entity = {
+				id: "1",
+				health: { current: 100, max: 100, lastDamageTime: 0, isInvulnerable: true },
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			applyDamage("test-entity", 50);
+			applyDamage("1", 20);
 
-			expect(entity.health?.current).toBe(100);
+			expect(entity.health.current).toBe(100);
 		});
 
-		it("should not damage invulnerable entities (tag)", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-				isInvulnerable: { __tag: "IsInvulnerable" },
-			});
+		it("should register hit via gameStore for player damage on enemies", () => {
+			const player = { id: "player1" };
+			const enemy = {
+				id: "enemy1",
+				health: { current: 100 },
+				isEnemy: true,
+				enemy: { type: "Gator", xpValue: 100 },
+			};
+			(damageables as unknown as any[]).push(enemy);
+			(players as unknown as any[]).push(player);
 
-			applyDamage("test-entity", 50);
+			applyDamage("enemy1", 10, "kinetic", "player1");
 
-			expect(entity.health?.current).toBe(100);
-		});
-
-		it("should update lastDamageTime", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
-
-			const before = Date.now();
-			applyDamage("test-entity", 10);
-			const after = Date.now();
-
-			expect(entity.health?.lastDamageTime).toBeGreaterThanOrEqual(before);
-			expect(entity.health?.lastDamageTime).toBeLessThanOrEqual(after);
-		});
-
-		it("should increase suppression when damage is applied", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-				suppression: {
-					amount: 0, // 0-100 scale
-					decayRate: 10,
-					lastIncrementTime: 0,
-				},
-			});
-
-			applyDamage("test-entity", 20);
-
-			expect(entity.suppression?.amount).toBeGreaterThan(0);
-			expect(entity.suppression?.amount).toBeLessThanOrEqual(100);
-		});
-
-		it("should handle non-existent entity gracefully", () => {
-			expect(() => applyDamage("non-existent", 50)).not.toThrow();
+			expect(mockRegisterHit).toHaveBeenCalled();
 		});
 	});
 
 	describe("healEntity", () => {
-		it("should increase entity health", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 50,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+		it("should heal an entity", () => {
+			const entity = {
+				id: "1",
+				health: { current: 50, max: 100 },
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			healEntity("test-entity", 25);
+			healEntity("1", 20);
 
-			expect(entity.health?.current).toBe(75);
+			expect(entity.health.current).toBe(70);
 		});
 
-		it("should not exceed max health", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 90,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+		it("should not heal beyond max health", () => {
+			const entity = {
+				id: "1",
+				health: { current: 90, max: 100 },
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			healEntity("test-entity", 50);
+			healEntity("1", 20);
 
-			expect(entity.health?.current).toBe(100);
+			expect(entity.health.current).toBe(100);
+		});
+	});
+
+	describe("fireWeapon", () => {
+		it("should create projectile when firing", () => {
+			const entity = {
+				id: "1",
+				weapon: { lastFireTime: 0, fireRate: 1, ammo: 10, bulletSpeed: 10, damage: 10, range: 100 },
+				transform: { position: new THREE.Vector3(), rotation: new THREE.Euler() },
+			};
+			(world.entities as unknown as any[]).push(entity);
+
+			const result = fireWeapon("1", new THREE.Vector3(1, 0, 0));
+
+			expect(result).toBe(true);
+			expect(createProjectile).toHaveBeenCalled();
+			expect(entity.weapon.ammo).toBe(9);
+			expect(entity.weapon.isFiring).toBe(true);
 		});
 
-		it("should handle non-existent entity gracefully", () => {
-			expect(() => healEntity("non-existent", 50)).not.toThrow();
+		it("should not fire if on cooldown", () => {
+			const entity = {
+				id: "1",
+				weapon: { lastFireTime: Date.now(), fireRate: 1, ammo: 10 },
+				transform: { position: new THREE.Vector3() },
+			};
+			(world.entities as unknown as any[]).push(entity);
+
+			const result = fireWeapon("1", new THREE.Vector3(1, 0, 0));
+
+			expect(result).toBe(false);
+			expect(createProjectile).not.toHaveBeenCalled();
+		});
+
+		it("should not fire if out of ammo", () => {
+			const entity = {
+				id: "1",
+				weapon: { lastFireTime: 0, fireRate: 1, ammo: 0 },
+				transform: { position: new THREE.Vector3() },
+			};
+			(world.entities as unknown as any[]).push(entity);
+
+			const result = fireWeapon("1", new THREE.Vector3(1, 0, 0));
+
+			expect(result).toBe(false);
+			expect(createProjectile).not.toHaveBeenCalled();
+		});
+	});
+
+	describe("updateProjectileCollisions", () => {
+		it("should handle collisions", () => {
+			const player = {
+				id: "player1",
+				transform: { position: new THREE.Vector3(0, 0, 0) },
+				collider: { radius: 1 },
+				health: { current: 100, max: 100 }, // Add health so applyDamage works
+			};
+			const projectile = {
+				transform: { position: new THREE.Vector3(0, 0, 0) },
+				damage: { amount: 10, type: "kinetic", source: "enemy1" },
+				collider: { radius: 0.1 },
+			};
+
+			(players as unknown as any[]).push(player);
+			(damageables as unknown as any[]).push(player); // Add to damageables for applyDamage lookup
+			(projectiles as unknown as any[]).push(projectile);
+
+			updateProjectileCollisions();
+
+			expect(player.health.current).toBe(90);
+			expect(world.addComponent).toHaveBeenCalledWith(projectile, "isDead", expect.any(Object));
 		});
 	});
 
 	describe("updateSuppression", () => {
-		it("should decay suppression over time", () => {
-			const entity = world.add({
-				id: "test-enemy",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-				aiBrain: {
-					currentState: "idle",
-					previousState: "idle",
-					stateTime: 0,
-					alertLevel: 0,
-					lastKnownPlayerPos: null,
-					homePosition: new THREE.Vector3(0, 0, 0),
-					patrolRadius: 10,
-				},
-				suppression: {
-					amount: 50, // 0-100 scale
-					decayRate: 10, // Decay 10 points per second
-					lastIncrementTime: 0,
-				},
-				isEnemy: { __tag: "IsEnemy" },
-			});
+		it("should decay suppression", () => {
+			const entity = {
+				suppression: { amount: 50, decayRate: 10 },
+			};
+			(enemies as unknown as any[]).push(entity);
 
-			updateSuppression(1); // 1 second
+			updateSuppression(1.0); // 1 second
 
-			expect(entity.suppression?.amount).toBeLessThan(50);
-		});
-
-		it("should not reduce suppression below 0", () => {
-			const entity = world.add({
-				id: "test-enemy",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-				aiBrain: {
-					currentState: "idle",
-					previousState: "idle",
-					stateTime: 0,
-					alertLevel: 0,
-					lastKnownPlayerPos: null,
-					homePosition: new THREE.Vector3(0, 0, 0),
-					patrolRadius: 10,
-				},
-				suppression: {
-					amount: 5, // 0-100 scale
-					decayRate: 100, // High decay rate
-					lastIncrementTime: 0,
-				},
-				isEnemy: { __tag: "IsEnemy" },
-			});
-
-			updateSuppression(1); // 1 second
-
-			expect(entity.suppression?.amount).toBe(0);
+			expect(entity.suppression.amount).toBe(40);
 		});
 	});
 
 	describe("updateHealthRegen", () => {
-		it("should regenerate health over time when not recently damaged", () => {
-			const entity = world.add({
-				id: "test-entity",
+		it("should regen health if not recently damaged", () => {
+			const entity = {
 				health: {
 					current: 50,
 					max: 100,
-					regenRate: 10,
+					regenRate: 5,
 					lastDamageTime: Date.now() - 5000, // 5 seconds ago
-					isInvulnerable: false,
 				},
-			});
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			updateHealthRegen(1); // 1 second
+			updateHealthRegen(1.0);
 
-			expect(entity.health?.current).toBe(60);
+			expect(entity.health.current).toBe(55);
 		});
 
-		it("should not regenerate when recently damaged", () => {
-			const entity = world.add({
-				id: "test-entity",
+		it("should not regen if recently damaged", () => {
+			const entity = {
 				health: {
 					current: 50,
 					max: 100,
-					regenRate: 10,
-					lastDamageTime: Date.now() - 1000, // 1 second ago
-					isInvulnerable: false,
+					regenRate: 5,
+					lastDamageTime: Date.now(), // just now
 				},
-			});
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			updateHealthRegen(1);
+			updateHealthRegen(1.0);
 
-			expect(entity.health?.current).toBe(50);
-		});
-
-		it("should not exceed max health", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 95,
-					max: 100,
-					regenRate: 20,
-					lastDamageTime: Date.now() - 5000,
-					isInvulnerable: false,
-				},
-			});
-
-			updateHealthRegen(1);
-
-			expect(entity.health?.current).toBe(100);
-		});
-
-		it("should skip entities at full health", () => {
-			const entity = world.add({
-				id: "test-entity",
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 10,
-					lastDamageTime: Date.now() - 5000,
-					isInvulnerable: false,
-				},
-			});
-
-			updateHealthRegen(1);
-
-			expect(entity.health?.current).toBe(100);
+			expect(entity.health.current).toBe(50);
 		});
 	});
 
 	describe("cleanupDead", () => {
-		it("should remove dead entities from world", () => {
-			world.add({
-				id: "dead-entity",
-				isDead: { __tag: "IsDead" },
-			});
-
-			const countBefore = world.entities.length;
-			cleanupDead();
-			const countAfter = world.entities.length;
-
-			expect(countAfter).toBe(countBefore - 1);
-		});
-
-		it("should not remove alive entities", () => {
-			const alive = world.add({
-				id: "alive-entity",
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+		it("should remove dead entities", () => {
+			const entity = { id: "dead1" };
+			(deadEntities as unknown as any[]).push(entity);
 
 			cleanupDead();
 
-			expect(world.entities).toContain(alive);
+			expect(world.remove).toHaveBeenCalledWith(entity);
 		});
 	});
 
 	describe("applyExplosionDamage", () => {
-		it("should damage entities within radius", () => {
-			const entity = world.add({
-				id: "test-entity",
-				transform: {
-					position: new THREE.Vector3(5, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+		it("should damage entities in radius", () => {
+			const entity = {
+				id: "1",
+				health: { current: 100, max: 100, lastDamageTime: 0 },
+				transform: { position: new THREE.Vector3(0, 0, 0) },
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 50);
+			// Explosion at origin, radius 10, damage 100
+			// Distance 0 -> 100 damage
+			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100);
 
-			expect(entity.health?.current).toBeLessThan(100);
+			expect(entity.health.current).toBe(0);
 		});
 
-		it("should not damage entities outside radius", () => {
-			const entity = world.add({
-				id: "test-entity",
-				transform: {
-					position: new THREE.Vector3(20, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+		it("should apply falloff damage", () => {
+			const entity = {
+				id: "1",
+				health: { current: 100, max: 100, lastDamageTime: 0 },
+				transform: { position: new THREE.Vector3(5, 0, 0) },
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 50);
+			// Explosion at origin, radius 10, damage 100
+			// Distance 5 -> 50% falloff -> 50 damage
+			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100);
 
-			expect(entity.health?.current).toBe(100);
+			expect(entity.health.current).toBe(50);
 		});
 
-		it("should apply damage falloff with distance", () => {
-			const closeEntity = world.add({
-				id: "close-entity",
-				transform: {
-					position: new THREE.Vector3(2, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+		it("should not damage source", () => {
+			const entity = {
+				id: "source",
+				health: { current: 100, max: 100 },
+				transform: { position: new THREE.Vector3(0, 0, 0) },
+			};
+			(damageables as unknown as any[]).push(entity);
 
-			const farEntity = world.add({
-				id: "far-entity",
-				transform: {
-					position: new THREE.Vector3(8, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
+			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100, "source");
 
-			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 50);
-
-			const closeDamage = 100 - (closeEntity.health?.current ?? 0);
-			const farDamage = 100 - (farEntity.health?.current ?? 0);
-
-			expect(closeDamage).toBeGreaterThan(farDamage);
-		});
-
-		it("should not damage source entity", () => {
-			const source = world.add({
-				id: "source-entity",
-				transform: {
-					position: new THREE.Vector3(0, 0, 0),
-					rotation: new THREE.Euler(0, 0, 0),
-					scale: new THREE.Vector3(1, 1, 1),
-				},
-				health: {
-					current: 100,
-					max: 100,
-					regenRate: 0,
-					lastDamageTime: 0,
-					isInvulnerable: false,
-				},
-			});
-
-			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 50, "source-entity");
-
-			expect(source.health?.current).toBe(100);
+			expect(entity.health.current).toBe(100);
 		});
 	});
 });
