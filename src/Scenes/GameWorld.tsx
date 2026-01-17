@@ -35,7 +35,6 @@ export function GameWorld() {
 		isPilotingRaft,
 		isBuildMode,
 		selectedComponentType,
-		isFallTriggered,
 	} = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
 	const [playerPos] = useState(() => new THREE.Vector3(0, 0, 0));

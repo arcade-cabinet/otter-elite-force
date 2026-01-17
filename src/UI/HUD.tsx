@@ -31,7 +31,6 @@ export function HUD() {
 		resources,
 		spendResources,
 	} = useGameStore(
-	const chunkRadius = typeof CHUNK_SIZE === "number" ? CHUNK_SIZE * 2 : 0;
 		useShallow((state) => ({
 			health: state.health,
 			maxHealth: state.maxHealth,
@@ -46,6 +45,8 @@ export function HUD() {
 			spendResources: state.spendResources,
 		})),
 	);
+
+	const chunkRadius = typeof CHUNK_SIZE === "number" ? CHUNK_SIZE * 2 : 0;
 
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
 	const requestSupplyDrop = useGameStore((state) => state.requestSupplyDrop);
