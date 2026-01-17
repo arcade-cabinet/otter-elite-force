@@ -1,5 +1,7 @@
 # CI Workflow - Optimized Pipeline for OTTER: ELITE FORCE
 name: CI
+permissions:
+  contents: read
 
 on:
   push:
