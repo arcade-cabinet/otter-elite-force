@@ -706,5 +706,24 @@ console.warn = (...args: unknown[]) => {
 	originalWarn.apply(console, args);
 };
 
+// Suppress console errors for React Three Fiber intrinsic elements in tests
+const originalError = console.error;
+console.error = (...args: unknown[]) => {
+	const message = args[0]?.toString() || "";
+	if (
+		message.includes("The tag <") &&
+		message.includes("is unrecognized in this browser")
+	) {
+		return;
+	}
+	if (message.includes("is using incorrect casing")) {
+		return;
+	}
+	if (message.includes("React does not recognize the")) {
+		return;
+	}
+	originalError.apply(console, args);
+};
+
 // Export mocks for use in individual tests
 export { localStorageMock };
