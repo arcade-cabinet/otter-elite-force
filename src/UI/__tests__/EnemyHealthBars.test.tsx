@@ -83,7 +83,11 @@ describe("EnemyHealthBars", () => {
         rerender(<EnemyHealthBars />);
 
         // Should have a health bar (width 50%)
-        expect(container.querySelectorAll('div > div[style*="position: absolute"]').length).toBeGreaterThan(0);
+        // Using getByStyle-ish query by checking computed styles or structure
+        // Since we can't use getByTestId without modifying source, we use querySelector but more specific
+        // The health bar container has a specific width style
+        const healthBar = container.querySelector('div[style*="width: 50px"]');
+        expect(healthBar).not.toBeNull();
     });
 
     it("should not show health bars for undamaged enemies (long ago)", () => {
@@ -113,51 +117,6 @@ describe("EnemyHealthBars", () => {
         rerender(<EnemyHealthBars />);
 
         // Should NOT be visible (wasRecentlyDamaged < 3s)
-        // Note: checking "wasRecentlyDamaged" logic relies on Date.now()
-        // If the mocked Date.now() in useFrame and in test matches, it should work.
-        // With fake timers, Date.now() is frozen at start unless advanced.
-
-        // Let's verify what happens.
-        // In the loop: timeSinceDamage = (now - lastDamageTime) / 1000
-        // lastDamageTime = now - 5000
-        // timeSinceDamage = 5000 / 1000 = 5
-        // wasRecentlyDamaged = 5 < 3 = false
-        // So newHealthBars should be empty.
-
-        // But render is not cleaning up previous state if we don't force it?
-        // No, setHealthBars(newHealthBars) replaces the map.
-
-        // Try clearing previous render artifacts or ensure fresh start?
-        // render() creates a new container.
-
-        // Maybe the query selector is matching something else?
-        // The container has the wrapper div (position absolute, top 0 left 0...)
-        // We query 'div > div[style*="position: absolute"]'
-        // The wrapper div is the first div.
-        // The inner health bars are also position absolute.
-        // Wait, the wrapper div is `position: absolute`.
-        // `div > div` matches direct children of some div.
-        // The container returned by render wraps the component in a div.
-        // So `container.innerHTML` is `<div><div style="position: absolute...">...</div></div>`
-        // `div > div` matches the wrapper div.
-
-        // Correct query for HEALTH BARS:
-        // The wrapper has zIndex: 10.
-        // The health bars are children of the wrapper.
-
-        // Let's query by opacity or just check the count of health bars specifically.
-        // The wrapper has 100% width/height.
-
-        // If we query all divs with position absolute, we get the wrapper + health bars.
-        // Expectation: 1 (wrapper) vs > 1 (wrapper + bars).
-
-        // In the previous test, we expected > 0.
-        // Here we expect 0 health bars.
-
-        // Let's refine the selector.
-        // Health bars have `left: ... top: ... width: 50px`.
-        // Wrapper has `width: 100%`.
-
         const bars = container.querySelectorAll('div[style*="width: 50px"]');
         expect(bars.length).toBe(0);
     });
@@ -223,11 +182,47 @@ describe("EnemyHealthBars", () => {
         });
         rerender(<EnemyHealthBars />);
 
-        // Check for colors
-        // We can inspect the style of inner divs
-        const html = container.innerHTML;
-        expect(html).toContain("background-color: #4caf50"); // Green
-        expect(html).toContain("background-color: #ffeb3b"); // Yellow
-        expect(html).toContain("background-color: #f44336"); // Red
+        // Check for colors using more robust selection logic instead of innerHTML
+        // We look for divs with background-color style
+
+        // Ideally we would use visual regression testing for colors, but for unit tests:
+        const greenBar = Array.from(container.querySelectorAll('div')).find(el => el.style.backgroundColor === 'rgb(76, 175, 80)'); // #4caf50
+        // Happy DOM might return hex or rgb. Let's match string loosely or hex.
+
+        const hasColor = (color: string) =>
+            Array.from(container.querySelectorAll('div')).some(el => el.style.backgroundColor.includes(color) || el.style.backgroundColor === color);
+
+        // hex to rgb conversion might be needed if jsdom normalizes it
+        // #4caf50 -> rgb(76, 175, 80)
+        // #ffeb3b -> rgb(255, 235, 59)
+        // #f44336 -> rgb(244, 67, 54)
+
+        // Since we are using happy-dom, it usually keeps style string as set if not normalized?
+        // Let's check for the hex strings as they are set in style prop.
+
+        // React might normalize styles.
+        // Let's verify via innerHTML in debug or trust that we set it as hex.
+        // But the requirement is to avoid innerHTML assertions.
+
+        // We can check style property of elements found.
+        // Structure:
+        // Container (absolute)
+        //   > Background (width: 100%, height: 6px)
+        //     > Fill (width: %, height: 100%, bg: color)
+
+        // Let's select the fill div specifically by its unique style property (box-shadow)
+        // The wrapper has height 100% too, causing 4 matches previously.
+        const bars = container.querySelectorAll('div[style*="box-shadow"]');
+
+        // There should be 3 bars
+        expect(bars.length).toBe(3);
+
+        const colors = Array.from(bars).map(bar => (bar as HTMLElement).style.backgroundColor);
+
+        // Check if our expected colors are present
+        // happy-dom returns colors as hex strings if set as hex
+        expect(colors).toContain('#4caf50'); // Green
+        expect(colors).toContain('#ffeb3b'); // Yellow
+        expect(colors).toContain('#f44336'); // Red
     });
 });

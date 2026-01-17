@@ -1,7 +1,7 @@
 
 import { render } from "@testing-library/react";
 import React from "react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { GameLoop } from "../GameLoop";
 import { useGameStore } from "../../stores/gameStore";
 
@@ -14,11 +14,10 @@ vi.mock("../../stores/gameStore", () => ({
     ),
 }));
 
-// Mock R3F
+// Capture the callback properly
+const mockUseFrame = vi.fn();
 vi.mock("@react-three/fiber", () => ({
-	useFrame: (callback: any) => {
-        (global as any).mockUseFrameCallback = callback;
-    },
+	useFrame: (cb: any) => mockUseFrame(cb),
 }));
 
 describe("GameLoop", () => {
@@ -44,9 +43,9 @@ describe("GameLoop", () => {
 
         render(<GameLoop onUpdate={onUpdate} />);
 
-        if ((global as any).mockUseFrameCallback) {
-            (global as any).mockUseFrameCallback({ clock: { elapsedTime: 10 } }, 0.1);
-        }
+        // Get the registered callback
+        const frameCallback = mockUseFrame.mock.calls[0][0];
+        frameCallback({ clock: { elapsedTime: 10 } }, 0.1);
 
         expect(onUpdate).not.toHaveBeenCalled();
     });
@@ -57,9 +56,8 @@ describe("GameLoop", () => {
 
         render(<GameLoop onUpdate={onUpdate} />);
 
-        if ((global as any).mockUseFrameCallback) {
-            (global as any).mockUseFrameCallback({ clock: { elapsedTime: 10 } }, 0.1);
-        }
+        const frameCallback = mockUseFrame.mock.calls[0][0];
+        frameCallback({ clock: { elapsedTime: 10 } }, 0.1);
 
         expect(onUpdate).toHaveBeenCalledWith(0.1, 10);
     });
@@ -69,9 +67,8 @@ describe("GameLoop", () => {
 
         render(<GameLoop />);
 
-        if ((global as any).mockUseFrameCallback) {
-            (global as any).mockUseFrameCallback({ clock: { elapsedTime: 10 } }, 0.1);
-        }
+        const frameCallback = mockUseFrame.mock.calls[0][0];
+        frameCallback({ clock: { elapsedTime: 10 } }, 0.1);
 
         expect(mockSetState).toHaveBeenCalledWith({ comboTimer: 1.9 });
     });
@@ -81,9 +78,8 @@ describe("GameLoop", () => {
 
         render(<GameLoop />);
 
-        if ((global as any).mockUseFrameCallback) {
-            (global as any).mockUseFrameCallback({ clock: { elapsedTime: 10 } }, 0.1);
-        }
+        const frameCallback = mockUseFrame.mock.calls[0][0];
+        frameCallback({ clock: { elapsedTime: 10 } }, 0.1);
 
         // Timer should become 0
         expect(mockSetState).toHaveBeenCalledWith({ comboTimer: 0 });
