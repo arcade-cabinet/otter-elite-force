@@ -1,15 +1,13 @@
-
 import * as THREE from "three";
 import { describe, expect, it, vi } from "vitest";
+import type { Entity } from "../../world";
+import { enemies, packMembers, players } from "../../world";
 import {
 	calculateFlankPositions,
 	getSuppressionSpeedModifier,
 	transitionState,
 	updateAI,
 } from "../AISystem";
-import { enemies, packMembers, players } from "../../world";
-
-import type { Entity } from "../../world";
 
 // Mock the world entities
 vi.mock("../../world", () => ({
@@ -20,10 +18,10 @@ vi.mock("../../world", () => ({
 
 // Helper to create typesafe mock entities
 const createMockEntity = (overrides: Partial<Entity> = {}): Entity => {
-    return {
-        id: "mock-entity",
-        ...overrides
-    } as Entity;
+	return {
+		id: "mock-entity",
+		...overrides,
+	} as Entity;
 };
 
 describe("AISystem", () => {
@@ -48,10 +46,10 @@ describe("AISystem", () => {
 					currentState: "idle",
 					previousState: "none",
 					stateTime: 10,
-                    alertLevel: 0,
-                    lastKnownPlayerPos: null,
-                    patrolRadius: 10,
-                    homePosition: new THREE.Vector3(),
+					alertLevel: 0,
+					lastKnownPlayerPos: null,
+					patrolRadius: 10,
+					homePosition: new THREE.Vector3(),
 				},
 			});
 			transitionState(entity, "chase");
@@ -66,10 +64,10 @@ describe("AISystem", () => {
 					currentState: "idle",
 					previousState: "none",
 					stateTime: 10,
-                    alertLevel: 0,
-                    lastKnownPlayerPos: null,
-                    patrolRadius: 10,
-                    homePosition: new THREE.Vector3(),
+					alertLevel: 0,
+					lastKnownPlayerPos: null,
+					patrolRadius: 10,
+					homePosition: new THREE.Vector3(),
 				},
 			});
 			transitionState(entity, "idle");
@@ -77,11 +75,11 @@ describe("AISystem", () => {
 			expect(entity.aiBrain?.stateTime).toBe(10);
 		});
 
-        it("should do nothing if aiBrain is missing", () => {
-            const entity = createMockEntity({});
-            transitionState(entity, "chase");
-            expect(entity.aiBrain).toBeUndefined();
-        });
+		it("should do nothing if aiBrain is missing", () => {
+			const entity = createMockEntity({});
+			transitionState(entity, "chase");
+			expect(entity.aiBrain).toBeUndefined();
+		});
 	});
 
 	describe("calculateFlankPositions", () => {
@@ -89,194 +87,274 @@ describe("AISystem", () => {
 			const target = new THREE.Vector3(0, 0, 0);
 			const positions = calculateFlankPositions(target, 4);
 			expect(positions.length).toBe(4);
-            // Verify positions are around the target
-            positions.forEach(pos => {
-                expect(pos.distanceTo(target)).toBeCloseTo(10);
-            });
+			// Verify positions are around the target
+			positions.forEach((pos) => {
+				expect(pos.distanceTo(target)).toBeCloseTo(10);
+			});
 		});
 	});
 
 	describe("updateAI", () => {
 		it("should update alert level when close to player", () => {
-            // Setup mocks
-            const player = createMockEntity({ transform: { position: new THREE.Vector3(0, 0, 0) } });
-            // @ts-ignore
-            players.push(player);
+			// Setup mocks
+			const player = createMockEntity({ transform: { position: new THREE.Vector3(0, 0, 0) } });
+			// @ts-expect-error
+			players.push(player);
 
-            const entity = createMockEntity({
-                id: "1",
-                transform: { position: new THREE.Vector3(5, 0, 0) },
-                aiBrain: {
-                    currentState: "idle",
-                    alertLevel: 0,
-                    stateTime: 0,
-                    lastKnownPlayerPos: null,
-                    patrolRadius: 10,
-                    homePosition: new THREE.Vector3(),
-                    previousState: "none"
-                },
-                gator: { isSubmerged: false, ambushCooldown: 0 },
-                steeringAgent: { vehicle: { position: new THREE.Vector3(), update: vi.fn(), velocity: new THREE.Vector3(), maxSpeed: 10 }, targetPosition: null },
-            });
-            // @ts-ignore
-            enemies.push(entity);
+			const entity = createMockEntity({
+				id: "1",
+				transform: { position: new THREE.Vector3(5, 0, 0) },
+				aiBrain: {
+					currentState: "idle",
+					alertLevel: 0,
+					stateTime: 0,
+					lastKnownPlayerPos: null,
+					patrolRadius: 10,
+					homePosition: new THREE.Vector3(),
+					previousState: "none",
+				},
+				gator: { isSubmerged: false, ambushCooldown: 0 },
+				steeringAgent: {
+					vehicle: {
+						position: new THREE.Vector3(),
+						update: vi.fn(),
+						velocity: new THREE.Vector3(),
+						maxSpeed: 10,
+					},
+					targetPosition: null,
+				},
+			});
+			// @ts-expect-error
+			enemies.push(entity);
 
-            updateAI(1);
+			updateAI(1);
 
-            expect(entity.aiBrain?.alertLevel).toBeGreaterThan(0);
+			expect(entity.aiBrain?.alertLevel).toBeGreaterThan(0);
 
-            // Cleanup
-            players.length = 0;
-            enemies.length = 0;
+			// Cleanup
+			players.length = 0;
+			enemies.length = 0;
 		});
 
-        it("should reduce alert level when far from player", () => {
-             // Setup mocks
-             const player = createMockEntity({ transform: { position: new THREE.Vector3(0, 0, 0) } });
-             // @ts-ignore
-             players.push(player);
+		it("should reduce alert level when far from player", () => {
+			// Setup mocks
+			const player = createMockEntity({ transform: { position: new THREE.Vector3(0, 0, 0) } });
+			// @ts-expect-error
+			players.push(player);
 
-             const entity = createMockEntity({
-                 id: "1",
-                 transform: { position: new THREE.Vector3(40, 0, 0) },
-                 aiBrain: {
-                     currentState: "idle",
-                     alertLevel: 0.5,
-                     stateTime: 0,
-                     lastKnownPlayerPos: null,
-                     patrolRadius: 10,
-                     homePosition: new THREE.Vector3(),
-                     previousState: "none"
-                 },
-                 gator: { isSubmerged: false, ambushCooldown: 0 },
-                 steeringAgent: { vehicle: { position: new THREE.Vector3(), update: vi.fn(), velocity: new THREE.Vector3(), maxSpeed: 10 }, targetPosition: null },
-             });
-             // @ts-ignore
-             enemies.push(entity);
+			const entity = createMockEntity({
+				id: "1",
+				transform: { position: new THREE.Vector3(40, 0, 0) },
+				aiBrain: {
+					currentState: "idle",
+					alertLevel: 0.5,
+					stateTime: 0,
+					lastKnownPlayerPos: null,
+					patrolRadius: 10,
+					homePosition: new THREE.Vector3(),
+					previousState: "none",
+				},
+				gator: { isSubmerged: false, ambushCooldown: 0 },
+				steeringAgent: {
+					vehicle: {
+						position: new THREE.Vector3(),
+						update: vi.fn(),
+						velocity: new THREE.Vector3(),
+						maxSpeed: 10,
+					},
+					targetPosition: null,
+				},
+			});
+			// @ts-expect-error
+			enemies.push(entity);
 
-             updateAI(1);
+			updateAI(1);
 
-             expect(entity.aiBrain?.alertLevel).toBeLessThan(0.5);
+			expect(entity.aiBrain?.alertLevel).toBeLessThan(0.5);
 
-             // Cleanup
-             players.length = 0;
-             enemies.length = 0;
-        });
+			// Cleanup
+			players.length = 0;
+			enemies.length = 0;
+		});
 
-        it("should not update distant entities (hibernation)", () => {
-            const player = createMockEntity({ transform: { position: new THREE.Vector3(0, 0, 0) } });
-            // @ts-ignore
-            players.push(player);
+		it("should not update distant entities (hibernation)", () => {
+			const player = createMockEntity({ transform: { position: new THREE.Vector3(0, 0, 0) } });
+			// @ts-expect-error
+			players.push(player);
 
-            const entity = createMockEntity({
-                id: "1",
-                transform: { position: new THREE.Vector3(100, 0, 0) },
-                aiBrain: { stateTime: 0, currentState: "idle", alertLevel: 0, lastKnownPlayerPos: null, patrolRadius: 10, homePosition: new THREE.Vector3(), previousState: "none" },
-            });
-            // @ts-ignore
-            enemies.push(entity);
+			const entity = createMockEntity({
+				id: "1",
+				transform: { position: new THREE.Vector3(100, 0, 0) },
+				aiBrain: {
+					stateTime: 0,
+					currentState: "idle",
+					alertLevel: 0,
+					lastKnownPlayerPos: null,
+					patrolRadius: 10,
+					homePosition: new THREE.Vector3(),
+					previousState: "none",
+				},
+			});
+			// @ts-expect-error
+			enemies.push(entity);
 
-            updateAI(1);
+			updateAI(1);
 
-            expect(entity.aiBrain?.stateTime).toBe(0); // Should not increase
+			expect(entity.aiBrain?.stateTime).toBe(0); // Should not increase
 
-            // Cleanup
-            players.length = 0;
-            enemies.length = 0;
-        });
+			// Cleanup
+			players.length = 0;
+			enemies.length = 0;
+		});
 	});
 
-    describe("Specific AI Logic", () => {
-        // Shared player mock
-        const player = createMockEntity({ transform: { position: new THREE.Vector3(0, 0, 0) } });
+	describe("Specific AI Logic", () => {
+		// Shared player mock
+		const player = createMockEntity({ transform: { position: new THREE.Vector3(0, 0, 0) } });
 
-        beforeEach(() => {
-             // @ts-ignore
-             players.push(player);
-        });
+		beforeEach(() => {
+			// @ts-expect-error
+			players.push(player);
+		});
 
-        afterEach(() => {
-            players.length = 0;
-            enemies.length = 0;
-        });
+		afterEach(() => {
+			players.length = 0;
+			enemies.length = 0;
+		});
 
-        it("Gator AI: should transition to chase when close", () => {
-            const entity = createMockEntity({
-                id: "1",
-                transform: { position: new THREE.Vector3(10, 0, 0) },
-                aiBrain: { currentState: "idle", stateTime: 0, alertLevel: 0, lastKnownPlayerPos: null, patrolRadius: 10, homePosition: new THREE.Vector3(), previousState: "none" },
-                gator: { isSubmerged: true, ambushCooldown: 0 },
-                steeringAgent: { vehicle: { position: new THREE.Vector3(), update: vi.fn(), velocity: new THREE.Vector3(), maxSpeed: 10 }, targetPosition: null },
-            });
-            // @ts-ignore
-            enemies.push(entity);
+		it("Gator AI: should transition to chase when close", () => {
+			const entity = createMockEntity({
+				id: "1",
+				transform: { position: new THREE.Vector3(10, 0, 0) },
+				aiBrain: {
+					currentState: "idle",
+					stateTime: 0,
+					alertLevel: 0,
+					lastKnownPlayerPos: null,
+					patrolRadius: 10,
+					homePosition: new THREE.Vector3(),
+					previousState: "none",
+				},
+				gator: { isSubmerged: true, ambushCooldown: 0 },
+				steeringAgent: {
+					vehicle: {
+						position: new THREE.Vector3(),
+						update: vi.fn(),
+						velocity: new THREE.Vector3(),
+						maxSpeed: 10,
+					},
+					targetPosition: null,
+				},
+			});
+			// @ts-expect-error
+			enemies.push(entity);
 
-            updateAI(1);
+			updateAI(1);
 
-            expect(entity.aiBrain?.currentState).toBe("chase");
-        });
+			expect(entity.aiBrain?.currentState).toBe("chase");
+		});
 
-        it("Snake AI: should strike when in range", () => {
-             const entity = createMockEntity({
-                id: "2",
-                transform: { position: new THREE.Vector3(5, 0, 0) },
-                aiBrain: { currentState: "idle", stateTime: 0, alertLevel: 0, lastKnownPlayerPos: null, patrolRadius: 10, homePosition: new THREE.Vector3(), previousState: "none" },
-                snake: { strikeCooldown: 0, isStriking: false },
-            });
-            // @ts-ignore
-            enemies.push(entity);
+		it("Snake AI: should strike when in range", () => {
+			const entity = createMockEntity({
+				id: "2",
+				transform: { position: new THREE.Vector3(5, 0, 0) },
+				aiBrain: {
+					currentState: "idle",
+					stateTime: 0,
+					alertLevel: 0,
+					lastKnownPlayerPos: null,
+					patrolRadius: 10,
+					homePosition: new THREE.Vector3(),
+					previousState: "none",
+				},
+				snake: { strikeCooldown: 0, isStriking: false },
+			});
+			// @ts-expect-error
+			enemies.push(entity);
 
-            updateAI(1);
+			updateAI(1);
 
-            expect(entity.aiBrain?.currentState).toBe("attack");
-        });
+			expect(entity.aiBrain?.currentState).toBe("attack");
+		});
 
-         it("Snapper AI: should aim and fire", () => {
-             const entity = createMockEntity({
-                id: "3",
-                transform: { position: new THREE.Vector3(10, 0, 0) },
-                aiBrain: { currentState: "idle", stateTime: 0, alertLevel: 0, lastKnownPlayerPos: null, patrolRadius: 10, homePosition: new THREE.Vector3(), previousState: "none" },
-                snapper: {
-                    heatLevel: 0,
-                    turretTargetRotation: 0,
-                    turretRotation: 0,
-                    isOverheated: false
-                },
-                weapon: { isFiring: false, lastFireTime: 0, fireRate: 1, ammo: 10, bulletSpeed: 10, damage: 10, range: 100 },
-            });
-            // @ts-ignore
-            enemies.push(entity);
+		it("Snapper AI: should aim and fire", () => {
+			const entity = createMockEntity({
+				id: "3",
+				transform: { position: new THREE.Vector3(10, 0, 0) },
+				aiBrain: {
+					currentState: "idle",
+					stateTime: 0,
+					alertLevel: 0,
+					lastKnownPlayerPos: null,
+					patrolRadius: 10,
+					homePosition: new THREE.Vector3(),
+					previousState: "none",
+				},
+				snapper: {
+					heatLevel: 0,
+					turretTargetRotation: 0,
+					turretRotation: 0,
+					isOverheated: false,
+				},
+				weapon: {
+					isFiring: false,
+					lastFireTime: 0,
+					fireRate: 1,
+					ammo: 10,
+					bulletSpeed: 10,
+					damage: 10,
+					range: 100,
+				},
+			});
+			// @ts-expect-error
+			enemies.push(entity);
 
-            // updateAI relies on delta to update heat.
-            // Also transition to attack happens if distance < SNAPPER_ENGAGE_RANGE (25)
-            // But if it was idle, it sets isFiring = false first.
-            // It needs two frames to start firing: 1. Idle -> Attack, 2. Attack -> Fire
+			// updateAI relies on delta to update heat.
+			// Also transition to attack happens if distance < SNAPPER_ENGAGE_RANGE (25)
+			// But if it was idle, it sets isFiring = false first.
+			// It needs two frames to start firing: 1. Idle -> Attack, 2. Attack -> Fire
 
-            updateAI(1);
-            expect(entity.aiBrain?.currentState).toBe("attack");
+			updateAI(1);
+			expect(entity.aiBrain?.currentState).toBe("attack");
 
-            updateAI(1);
-            expect(entity.weapon?.isFiring).toBe(true);
-        });
+			updateAI(1);
+			expect(entity.weapon?.isFiring).toBe(true);
+		});
 
-        it("Scout AI: should detect player and signal", () => {
-            const entity = createMockEntity({
-               id: "4",
-               transform: { position: new THREE.Vector3(10, 0, 0) },
-               aiBrain: { currentState: "patrol", stateTime: 0, homePosition: new THREE.Vector3(10, 0, 0), alertLevel: 0, lastKnownPlayerPos: null, patrolRadius: 10, previousState: "none" },
-               scout: { hasSpottedPlayer: false, isSignaling: false, signalCooldown: 0 },
-               steeringAgent: { targetPosition: null, vehicle: { position: new THREE.Vector3(), update: vi.fn(), velocity: new THREE.Vector3(), maxSpeed: 10 } },
-               packMember: { packId: 1, signalRange: 20 },
-           });
-           // @ts-ignore
-           enemies.push(entity);
-           // @ts-ignore
-           packMembers.push(entity);
+		it("Scout AI: should detect player and signal", () => {
+			const entity = createMockEntity({
+				id: "4",
+				transform: { position: new THREE.Vector3(10, 0, 0) },
+				aiBrain: {
+					currentState: "patrol",
+					stateTime: 0,
+					homePosition: new THREE.Vector3(10, 0, 0),
+					alertLevel: 0,
+					lastKnownPlayerPos: null,
+					patrolRadius: 10,
+					previousState: "none",
+				},
+				scout: { hasSpottedPlayer: false, isSignaling: false, signalCooldown: 0 },
+				steeringAgent: {
+					targetPosition: null,
+					vehicle: {
+						position: new THREE.Vector3(),
+						update: vi.fn(),
+						velocity: new THREE.Vector3(),
+						maxSpeed: 10,
+					},
+				},
+				packMember: { packId: 1, signalRange: 20 },
+			});
+			// @ts-expect-error
+			enemies.push(entity);
+			// @ts-expect-error
+			packMembers.push(entity);
 
-           updateAI(1);
+			updateAI(1);
 
-           expect(entity.scout?.hasSpottedPlayer).toBe(true);
-           expect(entity.aiBrain?.currentState).toBe("signal");
-       });
-    });
+			expect(entity.scout?.hasSpottedPlayer).toBe(true);
+			expect(entity.aiBrain?.currentState).toBe("signal");
+		});
+	});
 });

@@ -1,19 +1,17 @@
-
 import * as THREE from "three";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createProjectile } from "../../archetypes";
+import { damageables, deadEntities, enemies, players, projectiles, world } from "../../world";
 import {
 	applyDamage,
-	healEntity,
+	applyExplosionDamage,
+	cleanupDead,
 	fireWeapon,
+	healEntity,
+	updateHealthRegen,
 	updateProjectileCollisions,
 	updateSuppression,
-	updateHealthRegen,
-	cleanupDead,
-    applyExplosionDamage,
 } from "../CombatSystem";
-import { world, damageables, enemies, players, projectiles, deadEntities } from "../../world";
-import { useGameStore } from "../../../stores/gameStore";
-import { createProjectile } from "../../archetypes";
 
 // Mock dependencies
 vi.mock("../../world", () => ({
@@ -69,19 +67,19 @@ describe("CombatSystem", () => {
 			expect(entity.health.lastDamageTime).toBeGreaterThan(0);
 		});
 
-        it("should apply suppression", () => {
-            const entity = {
+		it("should apply suppression", () => {
+			const entity = {
 				id: "1",
 				health: { current: 100, max: 100, lastDamageTime: 0 },
-                suppression: { amount: 0, lastIncrementTime: 0, decayRate: 1 },
+				suppression: { amount: 0, lastIncrementTime: 0, decayRate: 1 },
 			};
 			(damageables as unknown as any[]).push(entity);
 
-            applyDamage("1", 10);
+			applyDamage("1", 10);
 
-            // 10 * 5 = 50 suppression
-            expect(entity.suppression.amount).toBe(50);
-        });
+			// 10 * 5 = 50 suppression
+			expect(entity.suppression.amount).toBe(50);
+		});
 
 		it("should kill an entity if damage exceeds health", () => {
 			const entity = {
@@ -108,21 +106,21 @@ describe("CombatSystem", () => {
 			expect(entity.health.current).toBe(100);
 		});
 
-        it("should register hit via gameStore for player damage on enemies", () => {
-            const player = { id: "player1" };
-            const enemy = {
-                id: "enemy1",
-                health: { current: 100 },
-                isEnemy: true,
-                enemy: { type: "Gator", xpValue: 100 }
-            };
-            (damageables as unknown as any[]).push(enemy);
-            (players as unknown as any[]).push(player);
+		it("should register hit via gameStore for player damage on enemies", () => {
+			const player = { id: "player1" };
+			const enemy = {
+				id: "enemy1",
+				health: { current: 100 },
+				isEnemy: true,
+				enemy: { type: "Gator", xpValue: 100 },
+			};
+			(damageables as unknown as any[]).push(enemy);
+			(players as unknown as any[]).push(player);
 
-            applyDamage("enemy1", 10, "kinetic", "player1");
+			applyDamage("enemy1", 10, "kinetic", "player1");
 
-            expect(mockRegisterHit).toHaveBeenCalled();
-        });
+			expect(mockRegisterHit).toHaveBeenCalled();
+		});
 	});
 
 	describe("healEntity", () => {
@@ -182,7 +180,7 @@ describe("CombatSystem", () => {
 			expect(createProjectile).not.toHaveBeenCalled();
 		});
 
-        it("should not fire if out of ammo", () => {
+		it("should not fire if out of ammo", () => {
 			const entity = {
 				id: "1",
 				weapon: { lastFireTime: 0, fireRate: 1, ammo: 0 },
@@ -194,134 +192,134 @@ describe("CombatSystem", () => {
 
 			expect(result).toBe(false);
 			expect(createProjectile).not.toHaveBeenCalled();
-        });
+		});
 	});
 
 	describe("updateProjectileCollisions", () => {
 		it("should handle collisions", () => {
-            const player = {
-                id: "player1",
-                transform: { position: new THREE.Vector3(0, 0, 0) },
-                collider: { radius: 1 },
-                health: { current: 100, max: 100 } // Add health so applyDamage works
-            };
-            const projectile = {
-                transform: { position: new THREE.Vector3(0, 0, 0) },
-                damage: { amount: 10, type: "kinetic", source: "enemy1" },
-                collider: { radius: 0.1 },
-            };
+			const player = {
+				id: "player1",
+				transform: { position: new THREE.Vector3(0, 0, 0) },
+				collider: { radius: 1 },
+				health: { current: 100, max: 100 }, // Add health so applyDamage works
+			};
+			const projectile = {
+				transform: { position: new THREE.Vector3(0, 0, 0) },
+				damage: { amount: 10, type: "kinetic", source: "enemy1" },
+				collider: { radius: 0.1 },
+			};
 
-            (players as unknown as any[]).push(player);
-            (damageables as unknown as any[]).push(player); // Add to damageables for applyDamage lookup
-            (projectiles as unknown as any[]).push(projectile);
+			(players as unknown as any[]).push(player);
+			(damageables as unknown as any[]).push(player); // Add to damageables for applyDamage lookup
+			(projectiles as unknown as any[]).push(projectile);
 
-            updateProjectileCollisions();
+			updateProjectileCollisions();
 
-            expect(player.health.current).toBe(90);
-            expect(world.addComponent).toHaveBeenCalledWith(projectile, "isDead", expect.any(Object));
+			expect(player.health.current).toBe(90);
+			expect(world.addComponent).toHaveBeenCalledWith(projectile, "isDead", expect.any(Object));
 		});
 	});
 
-    describe("updateSuppression", () => {
-        it("should decay suppression", () => {
-            const entity = {
-                suppression: { amount: 50, decayRate: 10 }
-            };
-            (enemies as unknown as any[]).push(entity);
+	describe("updateSuppression", () => {
+		it("should decay suppression", () => {
+			const entity = {
+				suppression: { amount: 50, decayRate: 10 },
+			};
+			(enemies as unknown as any[]).push(entity);
 
-            updateSuppression(1.0); // 1 second
+			updateSuppression(1.0); // 1 second
 
-            expect(entity.suppression.amount).toBe(40);
-        });
-    });
+			expect(entity.suppression.amount).toBe(40);
+		});
+	});
 
-    describe("updateHealthRegen", () => {
-        it("should regen health if not recently damaged", () => {
-             const entity = {
+	describe("updateHealthRegen", () => {
+		it("should regen health if not recently damaged", () => {
+			const entity = {
 				health: {
-                    current: 50,
-                    max: 100,
-                    regenRate: 5,
-                    lastDamageTime: Date.now() - 5000 // 5 seconds ago
-                },
+					current: 50,
+					max: 100,
+					regenRate: 5,
+					lastDamageTime: Date.now() - 5000, // 5 seconds ago
+				},
 			};
 			(damageables as unknown as any[]).push(entity);
 
-            updateHealthRegen(1.0);
+			updateHealthRegen(1.0);
 
-            expect(entity.health.current).toBe(55);
-        });
+			expect(entity.health.current).toBe(55);
+		});
 
-        it("should not regen if recently damaged", () => {
-             const entity = {
+		it("should not regen if recently damaged", () => {
+			const entity = {
 				health: {
-                    current: 50,
-                    max: 100,
-                    regenRate: 5,
-                    lastDamageTime: Date.now() // just now
-                },
+					current: 50,
+					max: 100,
+					regenRate: 5,
+					lastDamageTime: Date.now(), // just now
+				},
 			};
 			(damageables as unknown as any[]).push(entity);
 
-            updateHealthRegen(1.0);
+			updateHealthRegen(1.0);
 
-            expect(entity.health.current).toBe(50);
-        });
-    });
+			expect(entity.health.current).toBe(50);
+		});
+	});
 
-    describe("cleanupDead", () => {
-        it("should remove dead entities", () => {
-            const entity = { id: "dead1" };
-            (deadEntities as unknown as any[]).push(entity);
+	describe("cleanupDead", () => {
+		it("should remove dead entities", () => {
+			const entity = { id: "dead1" };
+			(deadEntities as unknown as any[]).push(entity);
 
-            cleanupDead();
+			cleanupDead();
 
-            expect(world.remove).toHaveBeenCalledWith(entity);
-        });
-    });
+			expect(world.remove).toHaveBeenCalledWith(entity);
+		});
+	});
 
-    describe("applyExplosionDamage", () => {
-        it("should damage entities in radius", () => {
-            const entity = {
+	describe("applyExplosionDamage", () => {
+		it("should damage entities in radius", () => {
+			const entity = {
 				id: "1",
 				health: { current: 100, max: 100, lastDamageTime: 0 },
-                transform: { position: new THREE.Vector3(0, 0, 0) }
+				transform: { position: new THREE.Vector3(0, 0, 0) },
 			};
 			(damageables as unknown as any[]).push(entity);
 
-            // Explosion at origin, radius 10, damage 100
-            // Distance 0 -> 100 damage
-            applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100);
+			// Explosion at origin, radius 10, damage 100
+			// Distance 0 -> 100 damage
+			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100);
 
-            expect(entity.health.current).toBe(0);
-        });
+			expect(entity.health.current).toBe(0);
+		});
 
-        it("should apply falloff damage", () => {
-             const entity = {
+		it("should apply falloff damage", () => {
+			const entity = {
 				id: "1",
 				health: { current: 100, max: 100, lastDamageTime: 0 },
-                transform: { position: new THREE.Vector3(5, 0, 0) }
+				transform: { position: new THREE.Vector3(5, 0, 0) },
 			};
 			(damageables as unknown as any[]).push(entity);
 
-            // Explosion at origin, radius 10, damage 100
-            // Distance 5 -> 50% falloff -> 50 damage
-            applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100);
+			// Explosion at origin, radius 10, damage 100
+			// Distance 5 -> 50% falloff -> 50 damage
+			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100);
 
-            expect(entity.health.current).toBe(50);
-        });
+			expect(entity.health.current).toBe(50);
+		});
 
-         it("should not damage source", () => {
-             const entity = {
+		it("should not damage source", () => {
+			const entity = {
 				id: "source",
 				health: { current: 100, max: 100 },
-                transform: { position: new THREE.Vector3(0, 0, 0) }
+				transform: { position: new THREE.Vector3(0, 0, 0) },
 			};
 			(damageables as unknown as any[]).push(entity);
 
-            applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100, "source");
+			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100, "source");
 
-            expect(entity.health.current).toBe(100);
-        });
-    });
+			expect(entity.health.current).toBe(100);
+		});
+	});
 });

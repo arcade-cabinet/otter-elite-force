@@ -1,4 +1,3 @@
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InputSystem } from "../InputSystem";
 
@@ -144,110 +143,110 @@ describe("InputSystem", () => {
 		expect(inputSystem.getState().move.active).toBe(false);
 	});
 
-    // New tests to cover gaps
+	// New tests to cover gaps
 
-    it("should handle arrow keys for looking", () => {
-        inputSystem.init();
+	it("should handle arrow keys for looking", () => {
+		inputSystem.init();
 
-        // Right arrow
-        window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
-        expect(inputSystem.getState().look.x).toBe(1);
-        expect(inputSystem.getState().look.active).toBe(true);
+		// Right arrow
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+		expect(inputSystem.getState().look.x).toBe(1);
+		expect(inputSystem.getState().look.active).toBe(true);
 
-        // Up arrow
-        window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
-        expect(inputSystem.getState().look.y).toBe(-1);
+		// Up arrow
+		window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp" }));
+		expect(inputSystem.getState().look.y).toBe(-1);
 
-        // Release
-        window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowRight" }));
-        window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowUp" }));
-        expect(inputSystem.getState().look.active).toBe(false);
-    });
+		// Release
+		window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowRight" }));
+		window.dispatchEvent(new KeyboardEvent("keyup", { key: "ArrowUp" }));
+		expect(inputSystem.getState().look.active).toBe(false);
+	});
 
-    it("should set jump state via method", () => {
-        inputSystem.init();
-        inputSystem.setJump(true);
-        expect(inputSystem.getState().jump).toBe(true);
-    });
+	it("should set jump state via method", () => {
+		inputSystem.init();
+		inputSystem.setJump(true);
+		expect(inputSystem.getState().jump).toBe(true);
+	});
 
-    it("should set grip state via method", () => {
-        inputSystem.init();
-        inputSystem.setGrip(true);
-        expect(inputSystem.getState().grip).toBe(true);
-    });
+	it("should set grip state via method", () => {
+		inputSystem.init();
+		inputSystem.setGrip(true);
+		expect(inputSystem.getState().grip).toBe(true);
+	});
 
-    it("should request gyro permission if needed", async () => {
-        // Mock DeviceOrientationEvent
-        (window as any).DeviceOrientationEvent = {
-            requestPermission: vi.fn().mockResolvedValue("granted")
-        };
+	it("should request gyro permission if needed", async () => {
+		// Mock DeviceOrientationEvent
+		(window as any).DeviceOrientationEvent = {
+			requestPermission: vi.fn().mockResolvedValue("granted"),
+		};
 
-        const result = await inputSystem.requestGyroPermission();
-        expect(result).toBe(true);
-        expect((window as any).DeviceOrientationEvent.requestPermission).toHaveBeenCalled();
-    });
+		const result = await inputSystem.requestGyroPermission();
+		expect(result).toBe(true);
+		expect((window as any).DeviceOrientationEvent.requestPermission).toHaveBeenCalled();
+	});
 
-    it("should handle gyro permission denial", async () => {
-        // Mock DeviceOrientationEvent
-        (window as any).DeviceOrientationEvent = {
-            requestPermission: vi.fn().mockRejectedValue("denied")
-        };
+	it("should handle gyro permission denial", async () => {
+		// Mock DeviceOrientationEvent
+		(window as any).DeviceOrientationEvent = {
+			requestPermission: vi.fn().mockRejectedValue("denied"),
+		};
 
-        const result = await inputSystem.requestGyroPermission();
-        expect(result).toBe(false);
-    });
+		const result = await inputSystem.requestGyroPermission();
+		expect(result).toBe(false);
+	});
 
-    it("should enable gyro directly if no permission needed", async () => {
-        // Mock DeviceOrientationEvent without requestPermission
-        (window as any).DeviceOrientationEvent = {};
+	it("should enable gyro directly if no permission needed", async () => {
+		// Mock DeviceOrientationEvent without requestPermission
+		(window as any).DeviceOrientationEvent = {};
 
-        const result = await inputSystem.requestGyroPermission();
-        expect(result).toBe(true);
-    });
+		const result = await inputSystem.requestGyroPermission();
+		expect(result).toBe(true);
+	});
 
-    it("should handle device orientation events", async () => {
-        inputSystem.init();
-        await inputSystem.requestGyroPermission(); // Enable gyro
+	it("should handle device orientation events", async () => {
+		inputSystem.init();
+		await inputSystem.requestGyroPermission(); // Enable gyro
 
-        // Trigger device orientation
-        const event = new Event("deviceorientation");
-        (event as any).beta = 90; // Tilted forward 45 deg relative to 45 base
-        (event as any).gamma = 45; // Tilted right 45 deg
+		// Trigger device orientation
+		const event = new Event("deviceorientation");
+		(event as any).beta = 90; // Tilted forward 45 deg relative to 45 base
+		(event as any).gamma = 45; // Tilted right 45 deg
 
-        window.dispatchEvent(event);
+		window.dispatchEvent(event);
 
-        // logic:
-        // x = gamma / 45 = 45/45 = 1
-        // y = (beta - 45) / 45 = (90-45)/45 = 1
+		// logic:
+		// x = gamma / 45 = 45/45 = 1
+		// y = (beta - 45) / 45 = (90-45)/45 = 1
 
-        expect(inputSystem.getState().gyro.x).toBeCloseTo(1);
-        expect(inputSystem.getState().gyro.y).toBeCloseTo(1);
-    });
+		expect(inputSystem.getState().gyro.x).toBeCloseTo(1);
+		expect(inputSystem.getState().gyro.y).toBeCloseTo(1);
+	});
 
-    it("should handle touch drag for looking", () => {
-        inputSystem.init();
-        const lookZone = document.getElementById("joystick-look");
+	it("should handle touch drag for looking", () => {
+		inputSystem.init();
+		const lookZone = document.getElementById("joystick-look");
 
-        // Touch start
-        const touchStart = new Event("touchstart");
-        (touchStart as any).touches = [{ clientX: 100, clientY: 100 }];
-        lookZone?.dispatchEvent(touchStart);
+		// Touch start
+		const touchStart = new Event("touchstart");
+		(touchStart as any).touches = [{ clientX: 100, clientY: 100 }];
+		lookZone?.dispatchEvent(touchStart);
 
-        expect(inputSystem.getState().drag.active).toBe(true);
+		expect(inputSystem.getState().drag.active).toBe(true);
 
-        // Touch move
-        const touchMove = new Event("touchmove");
-        (touchMove as any).touches = [{ clientX: 150, clientY: 150 }]; // Moved 50, 50
-        lookZone?.dispatchEvent(touchMove);
+		// Touch move
+		const touchMove = new Event("touchmove");
+		(touchMove as any).touches = [{ clientX: 150, clientY: 150 }]; // Moved 50, 50
+		lookZone?.dispatchEvent(touchMove);
 
-        // dx = 50, dy = 50
-        // state.x = dx * 0.01 = 0.5
-        expect(inputSystem.getState().drag.x).toBe(0.5);
+		// dx = 50, dy = 50
+		// state.x = dx * 0.01 = 0.5
+		expect(inputSystem.getState().drag.x).toBe(0.5);
 
-        // Touch end
-        const touchEnd = new Event("touchend");
-        lookZone?.dispatchEvent(touchEnd);
+		// Touch end
+		const touchEnd = new Event("touchend");
+		lookZone?.dispatchEvent(touchEnd);
 
-        expect(inputSystem.getState().drag.active).toBe(false);
-    });
+		expect(inputSystem.getState().drag.active).toBe(false);
+	});
 });

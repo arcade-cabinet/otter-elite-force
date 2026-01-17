@@ -1,6 +1,4 @@
-
 import { render } from "@testing-library/react";
-import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { PlayerRig } from "../PlayerRig";
 
@@ -44,17 +42,17 @@ describe("PlayerRig", () => {
 		expect(container).toBeDefined();
 	});
 
-    it("should render with tactical gear", () => {
-        const gear = {
-            headgear: "helmet",
-            vest: "tactical",
-            backgear: "backpack",
-            weaponId: "rifle",
-        };
-        // @ts-ignore
-        const { container } = render(<PlayerRig gear={gear} />);
-        expect(container).toBeDefined();
-    });
+	it("should render with tactical gear", () => {
+		const gear = {
+			headgear: "helmet",
+			vest: "tactical",
+			backgear: "backpack",
+			weaponId: "rifle",
+		};
+		// @ts-expect-error
+		const { container } = render(<PlayerRig gear={gear} />);
+		expect(container).toBeDefined();
+	});
 
 	it("should render when moving", () => {
 		const { container } = render(<PlayerRig isMoving={true} />);
