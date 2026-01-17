@@ -66,16 +66,18 @@ jobs:
 
       - name: Execute command
         if: steps.parse.outputs.command != ''
+        env:
+          COMMAND: ${{ steps.parse.outputs.command }}
+          ISSUE_NUM: ${{ steps.parse.outputs.issue_number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "Delegating command: ${{ steps.parse.outputs.command }}"
-          echo "Issue/PR: ${{ steps.parse.outputs.issue_number }}"
+          echo "Delegating command: $COMMAND"
+          echo "Issue/PR: $ISSUE_NUM"
           
           # In a real implementation, this would call Claude API
           # or control-center with Claude integration
           echo "Command execution delegated to Claude agent"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Acknowledge command
         if: steps.parse.outputs.command != ''
