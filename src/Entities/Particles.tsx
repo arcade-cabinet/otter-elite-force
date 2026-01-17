@@ -28,6 +28,8 @@ const PARTICLE_COLORS = {
 	explosion: new THREE.Color("#FF4500"),
 };
 
+const INITIAL_CAPACITY = 1000;
+
 export function Particles({ particles, onExpire }: ParticlesProps) {
 	const pointsRef = useRef<Points>(null);
 	// Track internal state for particles to avoid mutating props
@@ -45,9 +47,9 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 
 	// Reusable buffers to avoid allocation every frame
 	const buffersRef = useRef({
-		positions: new Float32Array(3000), // Start with capacity for 1000 particles
-		colors: new Float32Array(3000),
-		sizes: new Float32Array(1000),
+		positions: new Float32Array(INITIAL_CAPACITY * 3),
+		colors: new Float32Array(INITIAL_CAPACITY * 3),
+		sizes: new Float32Array(INITIAL_CAPACITY),
 	});
 
 	// Sync internal state with new particles
@@ -78,6 +80,7 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 
 		const geometry = pointsRef.current.geometry as THREE.BufferGeometry;
 		const count = particleStateRef.current.size;
+		let resized = false;
 
 		// Resize buffers if needed
 		if (buffersRef.current.sizes.length < count) {
@@ -85,6 +88,7 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 			buffersRef.current.positions = new Float32Array(newCapacity * 3);
 			buffersRef.current.colors = new Float32Array(newCapacity * 3);
 			buffersRef.current.sizes = new Float32Array(newCapacity);
+			resized = true;
 		}
 
 		const { positions, colors, sizes } = buffersRef.current;
@@ -130,26 +134,23 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 			onExpire?.(id);
 		}
 
-		// Update geometry with reused typed arrays
-		// We use setAttribute with new BufferAttribute because the underlying array might have changed (resizing)
-		// but usually it is the same array instance, just updated content.
-		// Note: BufferAttribute takes the array and length.
-		// If we didn't resize, we could technically just update the existing attribute's array content.
-		// However, for simplicity and safety against resizing, we set the attribute.
-		// Since we pass the SAME Float32Array instance (mostly), this is efficient enough.
-		// The key optimization is that we didn't create new Float32Array(count * 3) this frame.
-		// And we didn't use .slice().
-
-		geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-		geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-		geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+		// Optimized geometry update:
+		// Only create new BufferAttributes when the array instance changes (resize).
+		// Otherwise, just rely on the existing connection to the TypedArray.
+		// NOTE: Three.js BufferAttribute holds a reference to the array passed in constructor.
+		if (resized || !geometry.attributes.position) {
+			geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+			geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+			geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+		}
 
 		// Set draw range to only render active particles
 		geometry.setDrawRange(0, i);
 
-		geometry.attributes.position.needsUpdate = true;
-		geometry.attributes.color.needsUpdate = true;
-		geometry.attributes.size.needsUpdate = true;
+		// Signal to Three.js that data has changed
+		if (geometry.attributes.position) geometry.attributes.position.needsUpdate = true;
+		if (geometry.attributes.color) geometry.attributes.color.needsUpdate = true;
+		if (geometry.attributes.size) geometry.attributes.size.needsUpdate = true;
 	});
 
 	if (particles.length === 0) return null;
