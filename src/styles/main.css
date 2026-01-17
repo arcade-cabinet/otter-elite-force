@@ -733,3 +733,83 @@ button.secondary {
 		font-size: 1.2rem;
 	}
 }
+
+/* Minimap */
+.minimap-container {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	width: 150px;
+	height: 150px;
+	background: rgba(0, 0, 0, 0.6);
+	border: 2px solid var(--primary);
+	border-radius: 4px;
+	overflow: hidden;
+	pointer-events: none;
+	z-index: 100;
+}
+
+.minimap-radar {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.player-dot {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 6px;
+	height: 6px;
+	background: #fff;
+	border-radius: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 10;
+	box-shadow: 0 0 5px #fff;
+}
+
+.chunk-marker {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 50px;
+	height: 50px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chunk-marker.secured {
+	background: rgba(0, 255, 0, 0.05);
+	border-color: rgba(0, 255, 0, 0.2);
+}
+
+.entity-dot {
+	position: absolute;
+	width: 4px;
+	height: 4px;
+	border-radius: 50%;
+}
+
+.entity-dot.gator {
+	background: #ff4400;
+}
+.entity-dot.snapper {
+	background: #ff0000;
+}
+.entity-dot.snake {
+	background: #ffff00;
+}
+.entity-dot.siphon {
+	background: #00ccff;
+	width: 6px;
+	height: 6px;
+}
+
+.minimap-coords {
+	position: absolute;
+	bottom: 5px;
+	width: 100%;
+	text-align: center;
+	font-size: 0.6rem;
+	color: var(--primary);
+	font-family: monospace;
+}
