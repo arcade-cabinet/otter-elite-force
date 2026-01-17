@@ -710,10 +710,7 @@ console.warn = (...args: unknown[]) => {
 const originalError = console.error;
 console.error = (...args: unknown[]) => {
 	const message = args[0]?.toString() || "";
-	if (
-		message.includes("The tag <") &&
-		message.includes("is unrecognized in this browser")
-	) {
+	if (message.includes("The tag <") && message.includes("is unrecognized in this browser")) {
 		return;
 	}
 	if (message.includes("is using incorrect casing")) {
