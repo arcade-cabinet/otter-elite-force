@@ -31,6 +31,7 @@ export function HUD() {
 		resources,
 		spendResources,
 	} = useGameStore(
+	const chunkRadius = typeof CHUNK_SIZE === "number" ? CHUNK_SIZE * 2 : 0;
 		useShallow((state) => ({
 			health: state.health,
 			maxHealth: state.maxHealth,
@@ -313,8 +314,8 @@ export function HUD() {
 					SCOPE
 				</button>
 				{(saveData.isLZSecured ||
-					(Math.abs(playerPos[0]) < CHUNK_SIZE * 2 &&
-						Math.abs(playerPos[2]) < CHUNK_SIZE * 2)) && (
+					(Math.abs(playerPos[0]) < chunkRadius &&
+						Math.abs(playerPos[2]) < chunkRadius)) && (
 					<button
 						type="button"
 						className={`action-btn build ${isBuildMode ? "active" : ""}`}
