@@ -1,12 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InputSystem } from "../InputSystem";
 
-// Mock nipplejs
-vi.mock("nipplejs", () => ({
+// Mock nipplejs - must use __esModule: true so babel treats it as an ES module
+// and resolves the default import correctly
+jest.mock("nipplejs", () => ({
+	__esModule: true,
 	default: {
-		create: vi.fn(() => ({
-			on: vi.fn(),
-			destroy: vi.fn(),
+		create: jest.fn(() => ({
+			on: jest.fn(),
+			destroy: jest.fn(),
 		})),
 	},
 }));
@@ -20,7 +21,7 @@ describe("InputSystem", () => {
       <div id="joystick-move"></div>
       <div id="joystick-look"></div>
     `;
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		inputSystem = new InputSystem();
 	});
 
@@ -178,7 +179,7 @@ describe("InputSystem", () => {
 	it("should request gyro permission if needed", async () => {
 		// Mock DeviceOrientationEvent
 		(window as any).DeviceOrientationEvent = {
-			requestPermission: vi.fn().mockResolvedValue("granted"),
+			requestPermission: jest.fn().mockResolvedValue("granted"),
 		};
 
 		const result = await inputSystem.requestGyroPermission();
@@ -189,7 +190,7 @@ describe("InputSystem", () => {
 	it("should handle gyro permission denial", async () => {
 		// Mock DeviceOrientationEvent
 		(window as any).DeviceOrientationEvent = {
-			requestPermission: vi.fn().mockRejectedValue("denied"),
+			requestPermission: jest.fn().mockRejectedValue("denied"),
 		};
 
 		const result = await inputSystem.requestGyroPermission();

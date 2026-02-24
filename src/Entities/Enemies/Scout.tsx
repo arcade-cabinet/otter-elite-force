@@ -4,17 +4,15 @@
  * Vietnam-era aesthetic: radio-equipped, darting movements, creates "alert" state
  */
 
-import { useFrame } from "@react-three/fiber";
+import { Color3, Vector3 } from "@babylonjs/core";
 import { useEffect, useRef, useState } from "react";
-import type { Group } from "three";
-import * as THREE from "three";
-import * as YUKA from "yuka";
+import { useScene } from "reactylon";
 import type { EnemyProps, ScoutData } from "./types";
 
 /**
  * Behavior tuning constants for Scout predators.
  *
- * All distances are in world units (matching Three.js scene scale).
+ * All distances are in world units.
  * Time values are in seconds of simulation time.
  *
  * - DETECTION_RANGE: How far ahead the Scout can "see" the player to trigger
@@ -22,236 +20,310 @@ import type { EnemyProps, ScoutData } from "./types";
  *   range, giving heavies time to respond without feeling omniscient.
  * - SIGNAL_COOLDOWN: Minimum time between radio calls / alert signals.
  *   Prevents constant spam; 8s keeps tension without overwhelming the player.
- * - FLEE_DISTANCE: Panic radius used by Yuka's FleeBehavior. When the player
- *   gets inside this radius, the Scout prioritizes evasive movement to keep
- *   its "eyes on" role instead of trading damage.
+ * - FLEE_DISTANCE: Panic radius. When the player gets inside this radius, the
+ *   Scout prioritizes evasive movement to keep its "eyes on" role instead of
+ *   trading damage.
  */
 const DETECTION_RANGE = 30;
 const SIGNAL_COOLDOWN = 8;
 const FLEE_DISTANCE = 12;
 
 export function Scout({ data, targetPosition, onDeath, onSignal }: EnemyProps<ScoutData>) {
-	const groupRef = useRef<Group>(null);
-	const bodyRef = useRef<Group>(null);
-	const antennaRef = useRef<THREE.Mesh>(null);
-	const vehicleRef = useRef<YUKA.Vehicle | null>(null);
-	const targetRef = useRef<YUKA.Vector3 | null>(null);
+	const scene = useScene();
 
 	const [isSignaling, setIsSignaling] = useState(false);
 	const [hasSpottedPlayer, setHasSpottedPlayer] = useState(false);
 	const signalCooldown = useRef(0);
 	const signalTimer = useRef(0);
 
-	// Setup Yuka AI
+	const positionRef = useRef({ x: data.position.x, z: data.position.z });
+	const lastTimeRef = useRef<number | null>(null);
+
+	// Animation and AI loop
 	useEffect(() => {
-		const vehicle = new YUKA.Vehicle();
-		vehicle.position.set(data.position.x, data.position.y, data.position.z);
-		vehicle.maxSpeed = 10; // Fast, agile
+		if (!scene) return;
 
-		const fleeBehavior = new YUKA.FleeBehavior();
-		targetRef.current = new YUKA.Vector3();
-		fleeBehavior.target = targetRef.current;
-		fleeBehavior.panicDistance = FLEE_DISTANCE;
+		const obs = scene.onBeforeRenderObservable.add(() => {
+			const now = performance.now() / 1000;
+			if (lastTimeRef.current === null) {
+				lastTimeRef.current = now;
+				return;
+			}
+			const delta = now - lastTimeRef.current;
+			lastTimeRef.current = now;
 
-		vehicle.steering.add(fleeBehavior);
-		vehicleRef.current = vehicle;
+			const dx = positionRef.current.x - targetPosition.x;
+			const dz = positionRef.current.z - targetPosition.z;
+			const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
+
+			// Cooldown management
+			signalCooldown.current = Math.max(0, signalCooldown.current - delta);
+
+			// Detection logic
+			if (distanceToPlayer < DETECTION_RANGE && !hasSpottedPlayer) {
+				setHasSpottedPlayer(true);
+			}
+
+			// Signaling logic
+			if (hasSpottedPlayer && signalCooldown.current <= 0 && !isSignaling) {
+				setIsSignaling(true);
+				signalTimer.current = 2;
+				signalCooldown.current = SIGNAL_COOLDOWN;
+				onSignal?.(data.id, { x: positionRef.current.x, y: 0, z: positionRef.current.z });
+			}
+
+			// Signal timer
+			if (isSignaling) {
+				signalTimer.current -= delta;
+				if (signalTimer.current <= 0) {
+					setIsSignaling(false);
+				}
+			}
+
+			// Speed based on state
+			let speed: number;
+			if (distanceToPlayer < FLEE_DISTANCE) {
+				speed = 12;
+			} else {
+				speed = hasSpottedPlayer ? 8 : 3;
+			}
+			speed *= 1 - data.suppression * 0.8;
+
+			// Flee movement: move away from player
+			if (speed > 0 && distanceToPlayer > 0.001) {
+				const moveDist = speed * delta;
+				positionRef.current.x += (dx / distanceToPlayer) * moveDist;
+				positionRef.current.z += (dz / distanceToPlayer) * moveDist;
+			}
+		});
 
 		return () => {
-			vehicle.steering.clear();
+			scene.onBeforeRenderObservable.remove(obs);
 		};
-	}, [data.position.x, data.position.y, data.position.z]);
+	}, [scene, data.suppression, hasSpottedPlayer, isSignaling, targetPosition, onSignal, data.id]);
 
-	useFrame((state, delta) => {
-		if (!vehicleRef.current || !groupRef.current || !bodyRef.current) return;
-
-		const t = state.clock.elapsedTime;
-		const distanceToPlayer = groupRef.current.position.distanceTo(targetPosition);
-
-		// Cooldown management
-		signalCooldown.current = Math.max(0, signalCooldown.current - delta);
-
-		// Detection logic
-		if (distanceToPlayer < DETECTION_RANGE && !hasSpottedPlayer) {
-			setHasSpottedPlayer(true);
-		}
-
-		// Signaling logic
-		if (hasSpottedPlayer && signalCooldown.current <= 0 && !isSignaling) {
-			setIsSignaling(true);
-			signalTimer.current = 2; // Signal for 2 seconds
-			signalCooldown.current = SIGNAL_COOLDOWN;
-			onSignal?.(data.id, groupRef.current.position.clone());
-		}
-
-		// Signal animation timer
-		if (isSignaling) {
-			signalTimer.current -= delta;
-			if (signalTimer.current <= 0) {
-				setIsSignaling(false);
-			}
-		}
-
-		// Update flee target (run from player)
-		if (targetRef.current) {
-			targetRef.current.set(targetPosition.x, targetPosition.y, targetPosition.z);
-		}
-
-		// Update vehicle based on distance
-		if (distanceToPlayer < FLEE_DISTANCE) {
-			vehicleRef.current.maxSpeed = 12; // Panic speed
-		} else {
-			vehicleRef.current.maxSpeed = hasSpottedPlayer ? 8 : 3; // Patrol vs alert
-		}
-
-		// Suppression reduces speed significantly
-		vehicleRef.current.maxSpeed *= 1 - data.suppression * 0.8;
-
-		// Update Yuka AI
-		vehicleRef.current.update(delta);
-
-		// Sync position
-		groupRef.current.position.set(vehicleRef.current.position.x, 0, vehicleRef.current.position.z);
-
-		// Face movement direction
-		if (vehicleRef.current.velocity.length() > 0.1) {
-			const angle = Math.atan2(vehicleRef.current.velocity.x, vehicleRef.current.velocity.z);
-			groupRef.current.rotation.y = angle;
-		}
-
-		// Darting body animation - quick, nervous movements
-		bodyRef.current.position.y = Math.sin(t * 15) * 0.03 + 0.4;
-		bodyRef.current.rotation.z = Math.sin(t * 8) * 0.1;
-
-		// Antenna pulses when signaling
-		if (antennaRef.current) {
-			if (isSignaling) {
-				antennaRef.current.scale.y = 1 + Math.sin(t * 30) * 0.3;
-			} else {
-				antennaRef.current.scale.y = 1;
-			}
-		}
-	});
-
-	// Handle death callback - use useEffect to fire only once when hp changes
+	// Death callback
 	useEffect(() => {
 		if (data.hp <= 0 && onDeath) {
 			onDeath(data.id);
 		}
 	}, [data.hp, data.id, onDeath]);
 
-	const bodyColor = "#4a5a3a"; // Camouflage green
-	const underbellyColor = "#6a7a5a";
-	const radioColor = "#2a2a1a";
+	const bodyColor = new Color3(0.29, 0.353, 0.227);
+	const underbellyColor = new Color3(0.416, 0.478, 0.353);
+	const radioColor = new Color3(0.165, 0.165, 0.102);
+	const eyeColor = hasSpottedPlayer ? new Color3(1.0, 0.4, 0.0) : new Color3(1.0, 0.8, 0.0);
+	const antennaColor = isSignaling ? new Color3(1.0, 0.267, 0.0) : new Color3(0.2, 0.2, 0.2);
+	const antennaEmissive = isSignaling ? new Color3(1.0, 0.133, 0.0) : new Color3(0, 0, 0);
 
 	return (
-		<group ref={groupRef}>
-			<group ref={bodyRef}>
-				{/* Sleek, lizard-like body */}
-				<mesh position={[0, 0, 0]} castShadow receiveShadow>
-					<capsuleGeometry args={[0.25, 0.8, 8, 12]} />
-					<meshStandardMaterial color={bodyColor} roughness={0.85} />
-				</mesh>
+		<transformNode
+			name={`scout-${data.id}`}
+			position={new Vector3(data.position.x, 0, data.position.z)}
+		>
+			{/* Main body */}
+			<cylinder
+				name={`body-${data.id}`}
+				options={{ diameterTop: 0.5, diameterBottom: 0.5, height: 0.8, tessellation: 10 }}
+				positionY={0.4}
+			>
+				<standardMaterial name={`bodyMat-${data.id}`} diffuseColor={bodyColor} />
+			</cylinder>
 
-				{/* Underbelly */}
-				<mesh position={[0, -0.1, 0]}>
-					<capsuleGeometry args={[0.2, 0.6, 8, 12]} />
-					<meshStandardMaterial color={underbellyColor} roughness={0.9} />
-				</mesh>
+			{/* Underbelly */}
+			<cylinder
+				name={`belly-${data.id}`}
+				options={{ diameterTop: 0.4, diameterBottom: 0.4, height: 0.6, tessellation: 10 }}
+				positionY={0.35}
+			>
+				<standardMaterial name={`bellyMat-${data.id}`} diffuseColor={underbellyColor} />
+			</cylinder>
 
-				{/* Head - small, pointed */}
-				<group position={[0, 0.1, 0.6]}>
-					<mesh castShadow>
-						<sphereGeometry args={[0.18, 12, 12]} />
-						<meshStandardMaterial color={bodyColor} roughness={0.85} />
-					</mesh>
-					{/* Snout */}
-					<mesh position={[0, 0, 0.15]} rotation-x={0.2}>
-						<coneGeometry args={[0.1, 0.2, 8]} />
-						<meshStandardMaterial color={bodyColor} />
-					</mesh>
-					{/* Alert eyes */}
-					{[-1, 1].map((side) => (
-						<mesh key={`eye-${side}`} position={[side * 0.1, 0.08, 0.1]}>
-							<sphereGeometry args={[0.04, 8, 8]} />
-							<meshBasicMaterial color={hasSpottedPlayer ? "#ff6600" : "#ffcc00"} />
-						</mesh>
-					))}
-				</group>
+			{/* Head */}
+			<transformNode name={`head-${data.id}`} positionY={0.5} positionZ={0.6}>
+				<sphere name={`skull-${data.id}`} options={{ diameter: 0.36, segments: 12 }}>
+					<standardMaterial name={`skullMat-${data.id}`} diffuseColor={bodyColor} />
+				</sphere>
+				{/* Snout */}
+				<cylinder
+					name={`snout-${data.id}`}
+					options={{ diameterTop: 0.0, diameterBottom: 0.2, height: 0.2, tessellation: 8 }}
+					positionZ={0.15}
+					rotationX={-1.37}
+				>
+					<standardMaterial name={`snoutMat-${data.id}`} diffuseColor={bodyColor} />
+				</cylinder>
+				{/* Eyes */}
+				<sphere
+					name={`eye-l-${data.id}`}
+					options={{ diameter: 0.08, segments: 8 }}
+					positionX={-0.1}
+					positionY={0.08}
+					positionZ={0.1}
+				>
+					<standardMaterial name={`eyeLMat-${data.id}`} emissiveColor={eyeColor} />
+				</sphere>
+				<sphere
+					name={`eye-r-${data.id}`}
+					options={{ diameter: 0.08, segments: 8 }}
+					positionX={0.1}
+					positionY={0.08}
+					positionZ={0.1}
+				>
+					<standardMaterial name={`eyeRMat-${data.id}`} emissiveColor={eyeColor} />
+				</sphere>
+			</transformNode>
 
-				{/* Tail - long and whip-like */}
-				<group position={[0, 0, -0.5]} rotation-x={0.2}>
-					<mesh castShadow>
-						<coneGeometry args={[0.12, 0.8, 8]} />
-						<meshStandardMaterial color={bodyColor} />
-					</mesh>
-				</group>
+			{/* Tail */}
+			<cylinder
+				name={`tail-${data.id}`}
+				options={{ diameterTop: 0.0, diameterBottom: 0.24, height: 0.8, tessellation: 8 }}
+				positionY={0.35}
+				positionZ={-0.5}
+				rotationX={0.2}
+			>
+				<standardMaterial name={`tailMat-${data.id}`} diffuseColor={bodyColor} />
+			</cylinder>
 
-				{/* Radio Pack - tactical signaling equipment */}
-				<group position={[0, 0.25, -0.1]}>
-					<mesh castShadow>
-						<boxGeometry args={[0.25, 0.15, 0.2]} />
-						<meshStandardMaterial color={radioColor} roughness={0.7} />
-					</mesh>
-					{/* Antenna */}
-					<mesh ref={antennaRef} position={[0.08, 0.2, 0]}>
-						<cylinderGeometry args={[0.01, 0.008, 0.4, 6]} />
-						<meshStandardMaterial
-							color={isSignaling ? "#ff4400" : "#333"}
-							emissive={isSignaling ? "#ff2200" : "#000"}
-							emissiveIntensity={isSignaling ? 0.5 : 0}
-						/>
-					</mesh>
-				</group>
+			{/* Radio pack */}
+			<transformNode name={`radio-${data.id}`} positionY={0.65} positionZ={-0.1}>
+				<box name={`radioPack-${data.id}`} options={{ width: 0.25, height: 0.15, depth: 0.2 }}>
+					<standardMaterial name={`radioMat-${data.id}`} diffuseColor={radioColor} />
+				</box>
+				{/* Antenna */}
+				<cylinder
+					name={`antenna-${data.id}`}
+					options={{ diameterTop: 0.016, diameterBottom: 0.02, height: 0.4, tessellation: 6 }}
+					positionX={0.08}
+					positionY={0.2}
+				>
+					<standardMaterial
+						name={`antennaMat-${data.id}`}
+						diffuseColor={antennaColor}
+						emissiveColor={antennaEmissive}
+					/>
+				</cylinder>
+			</transformNode>
 
-				{/* Legs - quick, darting */}
-				{[-1, 1].map((side) => (
-					<group key={`legs-${side}`} position={[side * 0.2, -0.15, 0]}>
-						{/* Front leg */}
-						<mesh position={[0, 0, 0.3]} rotation-z={side * 0.5}>
-							<capsuleGeometry args={[0.05, 0.25, 4, 8]} />
-							<meshStandardMaterial color={bodyColor} />
-						</mesh>
-						{/* Back leg */}
-						<mesh position={[0, 0, -0.3]} rotation-z={side * 0.4}>
-							<capsuleGeometry args={[0.05, 0.3, 4, 8]} />
-							<meshStandardMaterial color={bodyColor} />
-						</mesh>
-					</group>
-				))}
-			</group>
+			{/* Legs */}
+			{/* Front-left */}
+			<cylinder
+				name={`leg-fl-${data.id}`}
+				options={{ diameterTop: 0.1, diameterBottom: 0.1, height: 0.25, tessellation: 6 }}
+				positionX={-0.2}
+				positionY={0.25}
+				positionZ={0.3}
+				rotationZ={-0.5}
+			>
+				<standardMaterial name={`legFLMat-${data.id}`} diffuseColor={bodyColor} />
+			</cylinder>
+			{/* Front-right */}
+			<cylinder
+				name={`leg-fr-${data.id}`}
+				options={{ diameterTop: 0.1, diameterBottom: 0.1, height: 0.25, tessellation: 6 }}
+				positionX={0.2}
+				positionY={0.25}
+				positionZ={0.3}
+				rotationZ={0.5}
+			>
+				<standardMaterial name={`legFRMat-${data.id}`} diffuseColor={bodyColor} />
+			</cylinder>
+			{/* Back-left */}
+			<cylinder
+				name={`leg-bl-${data.id}`}
+				options={{ diameterTop: 0.1, diameterBottom: 0.1, height: 0.3, tessellation: 6 }}
+				positionX={-0.2}
+				positionY={0.25}
+				positionZ={-0.3}
+				rotationZ={-0.4}
+			>
+				<standardMaterial name={`legBLMat-${data.id}`} diffuseColor={bodyColor} />
+			</cylinder>
+			{/* Back-right */}
+			<cylinder
+				name={`leg-br-${data.id}`}
+				options={{ diameterTop: 0.1, diameterBottom: 0.1, height: 0.3, tessellation: 6 }}
+				positionX={0.2}
+				positionY={0.25}
+				positionZ={-0.3}
+				rotationZ={0.4}
+			>
+				<standardMaterial name={`legBRMat-${data.id}`} diffuseColor={bodyColor} />
+			</cylinder>
 
-			{/* Signal effect - radio wave rings when signaling */}
+			{/* Signal rings when signaling */}
 			{isSignaling && (
-				<group position={[0, 0.6, 0]}>
-					{[0, 1, 2].map((i) => (
-						<mesh
-							key={`wave-${i}`}
-							rotation-x={-Math.PI / 2}
-							scale={1 + i * 0.5}
-							position={[0, i * 0.1, 0]}
-						>
-							<torusGeometry args={[0.3, 0.02, 8, 24]} />
-							<meshBasicMaterial color="#ff4400" transparent opacity={0.6 - i * 0.2} />
-						</mesh>
-					))}
-					<pointLight color="#ff4400" intensity={2} distance={8} />
-				</group>
+				<>
+					<cylinder
+						name={`wave0-${data.id}`}
+						options={{ diameterTop: 0.6, diameterBottom: 0.6, height: 0.04, tessellation: 24 }}
+						positionY={0.6}
+					>
+						<standardMaterial
+							name={`wave0Mat-${data.id}`}
+							diffuseColor={new Color3(1, 0.267, 0)}
+							emissiveColor={new Color3(1, 0.267, 0)}
+							alpha={0.6}
+						/>
+					</cylinder>
+					<cylinder
+						name={`wave1-${data.id}`}
+						options={{ diameterTop: 1.1, diameterBottom: 1.1, height: 0.04, tessellation: 24 }}
+						positionY={0.7}
+					>
+						<standardMaterial
+							name={`wave1Mat-${data.id}`}
+							diffuseColor={new Color3(1, 0.267, 0)}
+							emissiveColor={new Color3(1, 0.267, 0)}
+							alpha={0.4}
+						/>
+					</cylinder>
+					<cylinder
+						name={`wave2-${data.id}`}
+						options={{ diameterTop: 1.6, diameterBottom: 1.6, height: 0.04, tessellation: 24 }}
+						positionY={0.8}
+					>
+						<standardMaterial
+							name={`wave2Mat-${data.id}`}
+							diffuseColor={new Color3(1, 0.267, 0)}
+							emissiveColor={new Color3(1, 0.267, 0)}
+							alpha={0.2}
+						/>
+					</cylinder>
+					<pointLight
+						name={`signalLight-${data.id}`}
+						position={new Vector3(0, 0.6, 0)}
+						intensity={2}
+						diffuse={new Color3(1, 0.267, 0)}
+					/>
+				</>
 			)}
 
-			{/* Health bar */}
-			<group position={[0, 1.2, 0]}>
-				<mesh>
-					<planeGeometry args={[0.8, 0.06]} />
-					<meshBasicMaterial color="#000" transparent opacity={0.5} side={THREE.DoubleSide} />
-				</mesh>
-				<mesh
-					position={[-(1 - data.hp / data.maxHp) * 0.4, 0, 0.01]}
-					scale-x={data.hp / data.maxHp}
-				>
-					<planeGeometry args={[0.8, 0.06]} />
-					<meshBasicMaterial color="#88ff88" side={THREE.DoubleSide} />
-				</mesh>
-			</group>
-		</group>
+			{/* Health bar background */}
+			<box
+				name={`hpBg-${data.id}`}
+				options={{ width: 0.8, height: 0.06, depth: 0.01 }}
+				positionY={1.2}
+			>
+				<standardMaterial
+					name={`hpBgMat-${data.id}`}
+					diffuseColor={new Color3(0, 0, 0)}
+					alpha={0.5}
+				/>
+			</box>
+			{/* Health bar fill */}
+			<box
+				name={`hpFill-${data.id}`}
+				options={{ width: 0.8 * (data.hp / data.maxHp), height: 0.06, depth: 0.011 }}
+				positionY={1.2}
+				positionX={-(1 - data.hp / data.maxHp) * 0.4}
+			>
+				<standardMaterial
+					name={`hpFillMat-${data.id}`}
+					diffuseColor={new Color3(0.533, 1.0, 0.533)}
+					emissiveColor={new Color3(0.2, 0.5, 0.2)}
+				/>
+			</box>
+		</transformNode>
 	);
 }

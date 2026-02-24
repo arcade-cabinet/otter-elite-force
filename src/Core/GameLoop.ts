@@ -1,9 +1,10 @@
 /**
  * Game Loop
- * Main game update loop using React Three Fiber's useFrame
+ * Main game update loop using Babylon.js scene observation
  */
 
-import { useFrame } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import { useScene } from "reactylon";
 import { useGameStore } from "../stores/gameStore";
 
 interface GameLoopProps {
@@ -12,34 +13,54 @@ interface GameLoopProps {
 
 /**
  * Game Loop Component
- * Integrates with R3F's render loop
+ * Integrates with Babylon.js scene's onBeforeRenderObservable
  */
 export function GameLoop({ onUpdate }: GameLoopProps) {
+	const scene = useScene();
 	const mode = useGameStore((state) => state.mode);
+	// Reactive subscription ensures re-render when combo state changes
 	const comboTimer = useGameStore((state) => state.comboTimer);
+	// Ref holds latest value so the stable observer closure is always current
+	const comboTimerRef = useRef(comboTimer);
+	comboTimerRef.current = comboTimer;
 
-	useFrame((state, delta) => {
-		// Only run game updates when in GAME mode
-		if (mode !== "GAME") return;
+	useEffect(() => {
+		if (!scene) return;
 
-		// Cap delta time to prevent physics explosions from lag spikes
-		// (Adapted from otters.html - prevents runaway physics on frame drops)
-		const cappedDelta = Math.min(delta, 0.1);
+		let elapsedTime = 0;
+		let lastTime = performance.now();
 
-		// Update combo timer
-		if (comboTimer > 0) {
-			const newTimer = Math.max(0, comboTimer - cappedDelta);
-			useGameStore.setState({ comboTimer: newTimer });
+		const observer = scene.onBeforeRenderObservable.add(() => {
+			// Only run game updates when in GAME mode
+			if (mode !== "GAME") return;
 
-			// Reset combo when timer expires
-			if (newTimer === 0) {
-				useGameStore.setState({ comboCount: 0 });
+			const now = performance.now();
+			const rawDelta = (now - lastTime) / 1000;
+			lastTime = now;
+
+			// Cap delta time to prevent physics explosions from lag spikes
+			const cappedDelta = Math.min(rawDelta, 0.1);
+			elapsedTime += cappedDelta;
+
+			// Update combo timer using the ref for a fresh value without a stale closure
+			if (comboTimerRef.current > 0) {
+				const newTimer = Math.max(0, comboTimerRef.current - cappedDelta);
+				useGameStore.setState({ comboTimer: newTimer });
+
+				// Reset combo count when timer expires
+				if (newTimer === 0) {
+					useGameStore.setState({ comboCount: 0 });
+				}
 			}
-		}
 
-		// Call custom update handler with capped delta
-		onUpdate?.(cappedDelta, state.clock.elapsedTime);
-	});
+			// Call custom update handler with capped delta
+			onUpdate?.(cappedDelta, elapsedTime);
+		});
+
+		return () => {
+			scene.onBeforeRenderObservable.remove(observer);
+		};
+	}, [scene, mode, onUpdate]);
 
 	return null;
 }

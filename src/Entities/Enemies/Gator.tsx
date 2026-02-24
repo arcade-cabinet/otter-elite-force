@@ -3,12 +3,10 @@
  * Gritty biological crocodilians with mud camo and ambush mechanics
  */
 
-import { useFrame } from "@react-three/fiber";
+import { Color3, Vector3 } from "@babylonjs/core";
 import { useEffect, useRef, useState } from "react";
-import type { Group } from "three";
-import * as THREE from "three";
-import * as YUKA from "yuka";
-import { Weapon } from "../Weapon";
+import { useScene } from "reactylon";
+import { lerp } from "../../utils/math";
 import type { EnemyProps, GatorData } from "./types";
 
 const AMBUSH_TRIGGER_DISTANCE = 15;
@@ -17,122 +15,104 @@ const AMBUSH_COOLDOWN_MIN_S = 5;
 const AMBUSH_COOLDOWN_RANDOM_S = 5;
 
 export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) {
-	const groupRef = useRef<Group>(null);
-	const bodyRef = useRef<Group>(null);
-	const vehicleRef = useRef<YUKA.Vehicle | null>(null);
-	const targetRef = useRef<YUKA.Vector3 | null>(null);
+	const scene = useScene();
 
 	// Ambush state
 	const [isAmbushing, setIsAmbushing] = useState(false);
 	const ambushCooldown = useRef(0);
 	const ambushTimer = useRef(0);
 
-	// Setup Yuka AI
+	// Refs for animated values
+	const positionRef = useRef({ x: data.position.x, y: 0, z: data.position.z });
+	const rotationYRef = useRef(0);
+	const bodyYRef = useRef(0.15);
+	const bodyRotXRef = useRef(0);
+	const lastTimeRef = useRef<number | null>(null);
+
+	// Animation loop
 	useEffect(() => {
-		const vehicle = new YUKA.Vehicle();
-		vehicle.position.set(data.position.x, data.position.y, data.position.z);
-		vehicle.maxSpeed = data.isHeavy ? 4 : 7;
+		if (!scene) return;
 
-		const seekBehavior = new YUKA.SeekBehavior();
-		targetRef.current = new YUKA.Vector3();
-		seekBehavior.target = targetRef.current;
-
-		vehicle.steering.add(seekBehavior);
-		vehicleRef.current = vehicle;
-
-		return () => {
-			vehicle.steering.clear();
-		};
-	}, [data.position.x, data.position.y, data.position.z, data.isHeavy]);
-
-	// Update AI and sync with Three.js mesh
-	useFrame((_state, delta) => {
-		if (!vehicleRef.current || !groupRef.current || !bodyRef.current) return;
-
-		const distanceToPlayer = groupRef.current.position.distanceTo(targetPosition);
-		const baseSpeed = data.isHeavy ? 4 : 7;
-
-		// Ambush logic: Pop up when close, or at random
-		ambushCooldown.current -= delta;
-		if (!isAmbushing && distanceToPlayer < AMBUSH_TRIGGER_DISTANCE && ambushCooldown.current <= 0) {
-			setIsAmbushing(true);
-			ambushCooldown.current = AMBUSH_COOLDOWN_MIN_S + Math.random() * AMBUSH_COOLDOWN_RANDOM_S;
-			ambushTimer.current = AMBUSH_DURATION_S;
-		}
-
-		if (isAmbushing) {
-			ambushTimer.current -= delta;
-			if (ambushTimer.current <= 0) {
-				setIsAmbushing(false);
+		const obs = scene.onBeforeRenderObservable.add(() => {
+			const now = performance.now() / 1000;
+			if (lastTimeRef.current === null) {
+				lastTimeRef.current = now;
+				return;
 			}
-		}
+			const delta = now - lastTimeRef.current;
+			lastTimeRef.current = now;
 
-		// Calculate target speed and Y position based on state
-		let targetY = 0.15;
-		let targetSpeed = baseSpeed;
+			const baseSpeed = data.isHeavy ? 4 : 7;
 
-		if (isAmbushing) {
-			targetY = 0.8;
-			targetSpeed = 0;
-		}
+			const dx = positionRef.current.x - targetPosition.x;
+			const dz = positionRef.current.z - targetPosition.z;
+			const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
 
-		// Handle Suppression (overrides normal behavior, but speed 0 if ambushing)
-		if (data.suppression > 0.1) {
-			targetY = -0.2;
-			targetSpeed = baseSpeed * (1 - data.suppression * 0.5);
-			if (isAmbushing) targetSpeed = 0;
-		}
+			// Ambush cooldown
+			ambushCooldown.current -= delta;
 
-		// Apply movement and animation
-		vehicleRef.current.maxSpeed = targetSpeed;
-		bodyRef.current.position.y = THREE.MathUtils.lerp(bodyRef.current.position.y, targetY, 0.1);
+			if (
+				!isAmbushing &&
+				distanceToPlayer < AMBUSH_TRIGGER_DISTANCE &&
+				ambushCooldown.current <= 0
+			) {
+				setIsAmbushing(true);
+				ambushCooldown.current = AMBUSH_COOLDOWN_MIN_S + Math.random() * AMBUSH_COOLDOWN_RANDOM_S;
+				ambushTimer.current = AMBUSH_DURATION_S;
+			}
 
-		// Tilt body up when ambushing
-		const targetRotationX = isAmbushing ? -0.4 : 0;
-		bodyRef.current.rotation.x = THREE.MathUtils.lerp(
-			bodyRef.current.rotation.x,
-			targetRotationX,
-			0.1,
-		);
+			if (isAmbushing) {
+				ambushTimer.current -= delta;
+				if (ambushTimer.current <= 0) {
+					setIsAmbushing(false);
+				}
+			}
 
-		// Update target position
-		if (targetRef.current) {
-			targetRef.current.set(targetPosition.x, targetPosition.y, targetPosition.z);
-		}
+			// Target Y and speed based on state
+			let targetY = 0.15;
+			let targetSpeed = baseSpeed;
 
-		// Update Yuka AI
-		vehicleRef.current.update(delta);
+			if (isAmbushing) {
+				targetY = 0.8;
+				targetSpeed = 0;
+			}
 
-		// Sync Three.js mesh with Yuka vehicle
-		groupRef.current.position.set(vehicleRef.current.position.x, 0, vehicleRef.current.position.z);
+			if (data.suppression > 0.1) {
+				targetY = -0.2;
+				targetSpeed = baseSpeed * (1 - data.suppression * 0.5);
+				if (isAmbushing) targetSpeed = 0;
+			}
 
-		// Face direction of movement (or player if ambushing)
-		if (isAmbushing) {
-			const lookDir = targetPosition.clone().sub(groupRef.current.position);
-			const targetAngle = Math.atan2(lookDir.x, lookDir.z);
-			groupRef.current.rotation.y = THREE.MathUtils.lerp(
-				groupRef.current.rotation.y,
-				targetAngle,
-				0.1,
-			);
-		} else if (vehicleRef.current.velocity.length() > 0.1) {
-			const angle = Math.atan2(vehicleRef.current.velocity.x, vehicleRef.current.velocity.z);
-			groupRef.current.rotation.y = angle;
-		}
+			// Move toward target
+			if (!isAmbushing && targetSpeed > 0) {
+				const dist = Math.max(distanceToPlayer, 0.001);
+				const moveDist = Math.min(targetSpeed * delta, dist);
+				positionRef.current.x += (-dx / dist) * moveDist;
+				positionRef.current.z += (-dz / dist) * moveDist;
+			}
 
-		// Procedural swimming animation
-		const time = _state.clock.elapsedTime;
-		const swimSpeed = isAmbushing ? 2 : data.isHeavy ? 4 : 6;
-		const swimAmount = isAmbushing ? 0.05 : data.isHeavy ? 0.15 : 0.25;
+			// Smooth body Y and rotation
+			bodyYRef.current = lerp(bodyYRef.current, targetY, 0.1);
+			bodyRotXRef.current = lerp(bodyRotXRef.current, isAmbushing ? -0.4 : 0, 0.1);
 
-		bodyRef.current.children.forEach((child, i) => {
-			if (child.name.startsWith("segment")) {
-				child.rotation.y = Math.sin(time * swimSpeed - i * 0.4) * swimAmount;
+			// Facing direction
+			if (isAmbushing) {
+				const ldx = targetPosition.x - positionRef.current.x;
+				const ldz = targetPosition.z - positionRef.current.z;
+				const targetAngle = Math.atan2(ldx, ldz);
+				rotationYRef.current = lerp(rotationYRef.current, targetAngle, 0.1);
+			} else if (targetSpeed > 0 && distanceToPlayer > 0.1) {
+				const angle = Math.atan2(-dx, -dz);
+				rotationYRef.current = angle;
 			}
 		});
-	});
 
-	// Check if dead
+		return () => {
+			scene.onBeforeRenderObservable.remove(obs);
+		};
+	}, [scene, data.isHeavy, data.suppression, isAmbushing, targetPosition]);
+
+	// Death callback
 	useEffect(() => {
 		if (data.hp <= 0 && onDeath) {
 			onDeath(data.id);
@@ -140,108 +120,217 @@ export function Gator({ data, targetPosition, onDeath }: EnemyProps<GatorData>) 
 	}, [data.hp, data.id, onDeath]);
 
 	const scale = data.isHeavy ? 1.6 : 1.1;
-	const bodyColor = data.isHeavy ? "#1a241a" : "#2d3d2d";
-	const strapColor = "#1a1a1a";
+	const bodyColor = new Color3(
+		data.isHeavy ? 0.1 : 0.176,
+		data.isHeavy ? 0.141 : 0.239,
+		data.isHeavy ? 0.1 : 0.176,
+	);
+	const darkColor = new Color3(0.067, 0.067, 0.067);
+	const strapColor = new Color3(0.1, 0.1, 0.1);
+	const eyeColor = new Color3(1.0, 0.667, 0.0);
+	const armorColor = new Color3(0.2, 0.2, 0.2);
 
 	return (
-		<group ref={groupRef}>
-			<group ref={bodyRef}>
-				{/* Head / Jaws */}
-				<group position={[0, 0.15 * scale, 1.2 * scale]} name="segment-0">
-					{/* Skull */}
-					<mesh castShadow receiveShadow>
-						<sphereGeometry args={[0.35 * scale, 32, 24]} />
-						<meshStandardMaterial color={bodyColor} roughness={0.9} />
-					</mesh>
-					{/* Snout */}
-					<mesh position={[0, -0.05 * scale, 0.4 * scale]} castShadow>
-						<capsuleGeometry args={[0.25 * scale, 0.6 * scale, 16, 24]} />
-						<meshStandardMaterial color={bodyColor} roughness={0.9} />
-					</mesh>
-					{/* Eyes - raised on skull */}
-					{[-1, 1].map((side) => (
-						<mesh
-							key={`${data.id}-eye-${side}`}
-							position={[side * 0.18 * scale, 0.22 * scale, 0.1 * scale]}
-						>
-							<sphereGeometry args={[0.06 * scale, 16, 12]} />
-							<meshBasicMaterial color="#ffaa00" />
-						</mesh>
-					))}
-
-					{/* Armor Plate on head */}
-					<mesh position={[0, 0.22 * scale, 0]}>
-						<cylinderGeometry args={[0.3 * scale, 0.35 * scale, 0.1 * scale, 32]} />
-						<meshStandardMaterial color="#333" metalness={0.6} roughness={0.4} />
-					</mesh>
-
-					<group position={[0, 0.35 * scale, 0.1 * scale]} scale={isAmbushing ? 1 : 0}>
-						<Weapon weaponId="fish-cannon" />
-					</group>
-				</group>
-
-				{/* Body Segments - Tapered capsule segments */}
-				{[...Array(5)].map((_, i) => (
-					<group
-						key={`${data.id}-segment-${i}`}
-						position={[0, 0.15 * scale, (0.4 - i * 0.75) * scale]}
-						name={`segment-${i + 1}`}
-					>
-						<mesh castShadow receiveShadow>
-							<sphereGeometry args={[(0.45 - i * 0.05) * scale, 32, 24]} />
-							<meshStandardMaterial color={bodyColor} roughness={0.9} />
-						</mesh>
-						{/* Back Scales/Scutes */}
-						<mesh position={[0, (0.35 - i * 0.05) * scale, 0]}>
-							<boxGeometry args={[(0.2 - i * 0.02) * scale, 0.1 * scale, 0.4 * scale]} />
-							<meshStandardMaterial color="#111" roughness={1} />
-						</mesh>
-						{/* Gear Straps */}
-						<mesh position={[0, 0, 0]} rotation-x={Math.PI / 2}>
-							<torusGeometry args={[(0.47 - i * 0.05) * scale, 0.03 * scale, 12, 32]} />
-							<meshStandardMaterial color={strapColor} />
-						</mesh>
-					</group>
-				))}
-
-				{/* Long Tapered Tail */}
-				<group position={[0, 0.1 * scale, -3.2 * scale]} name="segment-6">
-					<mesh castShadow>
-						<capsuleGeometry args={[0.15 * scale, 2 * scale, 16, 24]} />
-						<meshStandardMaterial color={bodyColor} />
-					</mesh>
-				</group>
-
-				{/* Legs - 4 short crocodilian legs */}
-				{[-1, 1].map((side) => (
-					<group key={`legs-${side}`}>
-						{/* Front Leg */}
-						<mesh position={[side * 0.4 * scale, 0, 0.8 * scale]} rotation-z={side * 0.5}>
-							<capsuleGeometry args={[0.12 * scale, 0.3 * scale, 12, 16]} />
-							<meshStandardMaterial color={bodyColor} />
-						</mesh>
-						{/* Back Leg */}
-						<mesh position={[side * 0.4 * scale, 0, -1 * scale]} rotation-z={side * 0.5}>
-							<capsuleGeometry args={[0.12 * scale, 0.3 * scale, 12, 16]} />
-							<meshStandardMaterial color={bodyColor} />
-						</mesh>
-					</group>
-				))}
-			</group>
-
-			<group position={[0, 2 * scale, 0]}>
-				<mesh position={[0, 0, 0]}>
-					<planeGeometry args={[1.4, 0.08]} />
-					<meshBasicMaterial color="#000" transparent opacity={0.5} side={THREE.DoubleSide} />
-				</mesh>
-				<mesh
-					position={[-(1 - data.hp / data.maxHp) * 0.7, 0, 0.01]}
-					scale-x={data.hp / data.maxHp}
+		<transformNode
+			name={`gator-${data.id}`}
+			position={new Vector3(data.position.x, 0, data.position.z)}
+		>
+			{/* Body group */}
+			<transformNode name={`gator-body-${data.id}`} positionY={0.15}>
+				{/* Head */}
+				<transformNode
+					name={`gator-head-${data.id}`}
+					positionY={0.15 * scale}
+					positionZ={1.2 * scale}
 				>
-					<planeGeometry args={[1.4, 0.08]} />
-					<meshBasicMaterial color="#ff4400" side={THREE.DoubleSide} />
-				</mesh>
-			</group>
-		</group>
+					<sphere name={`skull-${data.id}`} options={{ diameter: 0.7 * scale, segments: 16 }}>
+						<standardMaterial name={`skullMat-${data.id}`} diffuseColor={bodyColor} />
+					</sphere>
+					<cylinder
+						name={`snout-${data.id}`}
+						options={{
+							diameterTop: 0.5 * scale,
+							diameterBottom: 0.5 * scale,
+							height: 0.6 * scale,
+							tessellation: 12,
+						}}
+						positionY={-0.05 * scale}
+						positionZ={0.4 * scale}
+					>
+						<standardMaterial name={`snoutMat-${data.id}`} diffuseColor={bodyColor} />
+					</cylinder>
+					{/* Eyes */}
+					<sphere
+						name={`eye-l-${data.id}`}
+						options={{ diameter: 0.12 * scale, segments: 10 }}
+						positionX={-0.18 * scale}
+						positionY={0.22 * scale}
+						positionZ={0.1 * scale}
+					>
+						<standardMaterial name={`eyeLMat-${data.id}`} emissiveColor={eyeColor} />
+					</sphere>
+					<sphere
+						name={`eye-r-${data.id}`}
+						options={{ diameter: 0.12 * scale, segments: 10 }}
+						positionX={0.18 * scale}
+						positionY={0.22 * scale}
+						positionZ={0.1 * scale}
+					>
+						<standardMaterial name={`eyeRMat-${data.id}`} emissiveColor={eyeColor} />
+					</sphere>
+					{/* Armor plate */}
+					<cylinder
+						name={`headArmor-${data.id}`}
+						options={{
+							diameterTop: 0.6 * scale,
+							diameterBottom: 0.7 * scale,
+							height: 0.1 * scale,
+							tessellation: 16,
+						}}
+						positionY={0.22 * scale}
+					>
+						<standardMaterial name={`headArmorMat-${data.id}`} diffuseColor={armorColor} />
+					</cylinder>
+				</transformNode>
+
+				{/* Body Segments */}
+				{[...Array(5)].map((_, i) => (
+					<transformNode
+						key={`seg-${data.id}-${i}`}
+						name={`segment-${i + 1}-${data.id}`}
+						positionY={0.15 * scale}
+						positionZ={(0.4 - i * 0.75) * scale}
+					>
+						<sphere
+							name={`segBody-${data.id}-${i}`}
+							options={{ diameter: (0.9 - i * 0.1) * scale, segments: 16 }}
+						>
+							<standardMaterial name={`segMat-${data.id}-${i}`} diffuseColor={bodyColor} />
+						</sphere>
+						{/* Back scutes */}
+						<box
+							name={`scute-${data.id}-${i}`}
+							options={{ width: (0.2 - i * 0.02) * scale, height: 0.1 * scale, depth: 0.4 * scale }}
+							positionY={(0.35 - i * 0.05) * scale}
+						>
+							<standardMaterial name={`scuteMat-${data.id}-${i}`} diffuseColor={darkColor} />
+						</box>
+						{/* Gear straps - represented as thin box ring */}
+						<box
+							name={`strap-${data.id}-${i}`}
+							options={{
+								width: (0.97 - i * 0.1) * scale,
+								height: 0.05 * scale,
+								depth: 0.05 * scale,
+							}}
+						>
+							<standardMaterial name={`strapMat-${data.id}-${i}`} diffuseColor={strapColor} />
+						</box>
+					</transformNode>
+				))}
+
+				{/* Tail */}
+				<transformNode name={`tail-${data.id}`} positionY={0.1 * scale} positionZ={-3.2 * scale}>
+					<cylinder
+						name={`tailMesh-${data.id}`}
+						options={{
+							diameterTop: 0.1 * scale,
+							diameterBottom: 0.3 * scale,
+							height: 2 * scale,
+							tessellation: 8,
+						}}
+					>
+						<standardMaterial name={`tailMat-${data.id}`} diffuseColor={bodyColor} />
+					</cylinder>
+				</transformNode>
+
+				{/* Front-left leg */}
+				<cylinder
+					name={`leg-fl-${data.id}`}
+					options={{
+						diameterTop: 0.24 * scale,
+						diameterBottom: 0.24 * scale,
+						height: 0.3 * scale,
+						tessellation: 8,
+					}}
+					positionX={-0.4 * scale}
+					positionZ={0.8 * scale}
+					rotationZ={-0.5}
+				>
+					<standardMaterial name={`legFLMat-${data.id}`} diffuseColor={bodyColor} />
+				</cylinder>
+				{/* Front-right leg */}
+				<cylinder
+					name={`leg-fr-${data.id}`}
+					options={{
+						diameterTop: 0.24 * scale,
+						diameterBottom: 0.24 * scale,
+						height: 0.3 * scale,
+						tessellation: 8,
+					}}
+					positionX={0.4 * scale}
+					positionZ={0.8 * scale}
+					rotationZ={0.5}
+				>
+					<standardMaterial name={`legFRMat-${data.id}`} diffuseColor={bodyColor} />
+				</cylinder>
+				{/* Back-left leg */}
+				<cylinder
+					name={`leg-bl-${data.id}`}
+					options={{
+						diameterTop: 0.24 * scale,
+						diameterBottom: 0.24 * scale,
+						height: 0.3 * scale,
+						tessellation: 8,
+					}}
+					positionX={-0.4 * scale}
+					positionZ={-1.0 * scale}
+					rotationZ={-0.5}
+				>
+					<standardMaterial name={`legBLMat-${data.id}`} diffuseColor={bodyColor} />
+				</cylinder>
+				{/* Back-right leg */}
+				<cylinder
+					name={`leg-br-${data.id}`}
+					options={{
+						diameterTop: 0.24 * scale,
+						diameterBottom: 0.24 * scale,
+						height: 0.3 * scale,
+						tessellation: 8,
+					}}
+					positionX={0.4 * scale}
+					positionZ={-1.0 * scale}
+					rotationZ={0.5}
+				>
+					<standardMaterial name={`legBRMat-${data.id}`} diffuseColor={bodyColor} />
+				</cylinder>
+			</transformNode>
+
+			{/* Health bar background */}
+			<box
+				name={`hpBg-${data.id}`}
+				options={{ width: 1.4, height: 0.08, depth: 0.01 }}
+				positionY={2 * scale}
+			>
+				<standardMaterial
+					name={`hpBgMat-${data.id}`}
+					diffuseColor={new Color3(0, 0, 0)}
+					alpha={0.5}
+				/>
+			</box>
+			{/* Health bar fill */}
+			<box
+				name={`hpFill-${data.id}`}
+				options={{ width: 1.4 * (data.hp / data.maxHp), height: 0.08, depth: 0.011 }}
+				positionY={2 * scale}
+				positionX={-(1 - data.hp / data.maxHp) * 0.7}
+			>
+				<standardMaterial
+					name={`hpFillMat-${data.id}`}
+					diffuseColor={new Color3(1, 0.267, 0)}
+					emissiveColor={new Color3(0.5, 0.1, 0)}
+				/>
+			</box>
+		</transformNode>
 	);
 }

@@ -1,12 +1,15 @@
 /**
  * Cutscene Scene
  * Handles introductory dialogue and story beats
- * USING REACTYLON
+ * Babylon.js / Reactylon + NativeWind UI overlay
  */
 
+import type { Scene as BabylonScene } from "@babylonjs/core";
+import { Color3, Color4, Vector3 } from "@babylonjs/core";
 import { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { Canvas } from "reactylon/web";
+import { Scene } from "reactylon";
+import { Engine } from "reactylon/web";
 import { CHARACTERS, useGameStore } from "../stores/gameStore";
 
 interface DialogueLine {
@@ -49,32 +52,73 @@ export function Cutscene() {
 	const currentLine = INTRO_DIALOGUE[index];
 	const isSgtBubbles = currentLine.name === "SGT. BUBBLES";
 
+	const onSceneReady = (scene: BabylonScene) => {
+		scene.clearColor = new Color4(0.4, 0.6, 0.9, 1);
+		// Subtle jungle-river atmosphere for the briefing
+		scene.fogMode = 3; // FOGMODE_EXP2
+		scene.fogColor = new Color3(0.4, 0.6, 0.9);
+		scene.fogDensity = 0.01;
+	};
+
 	return (
 		<View className="flex-1 bg-black">
+			{/* 3D scene backdrop */}
 			<View className="flex-1">
-				<Canvas>
-					<scene clearColor={[0.4, 0.6, 0.9, 1]}>
+				<Engine canvasId="cutscene-canvas">
+					<Scene onSceneReady={onSceneReady}>
 						<arcRotateCamera
 							name="camera"
 							alpha={0}
 							beta={Math.PI / 4}
 							radius={20}
-							target={[0, 0.5, 0]}
-							position={[0, 5, 20]}
+							target={new Vector3(0, 0.5, 0)}
 						/>
-						<hemisphericLight name="ambient" intensity={0.5} direction={[0, 1, 0]} />
-						<directionalLight name="sun" intensity={1} position={[10, 10, 5]} />
+						<hemisphericLight name="ambient" direction={new Vector3(0, 1, 0)} intensity={0.5} />
+						<directionalLight
+							name="sun"
+							direction={new Vector3(-1, -2, -1)}
+							position={new Vector3(10, 10, 5)}
+							intensity={1}
+						/>
 
 						{/* Ground plane */}
-						<ground name="ground" width={100} height={100}>
-							<standardMaterial name="groundMat" diffuseColor={[0.18, 0.31, 0.09]} />
+						<ground name="ground" options={{ width: 100, height: 100 }}>
+							<standardMaterial name="groundMat" diffuseColor={new Color3(0.18, 0.31, 0.09)} />
 						</ground>
 
-						{/* TODO: Add PlayerRig entities */}
-					</scene>
-				</Canvas>
+						{/* Briefing table stand-in */}
+						<box
+							name="table"
+							options={{ width: 3, height: 0.1, depth: 1.5 }}
+							position={new Vector3(0, 0.05, 0)}
+						>
+							<standardMaterial name="tableMat" diffuseColor={new Color3(0.35, 0.25, 0.12)} />
+						</box>
+
+						{/* Map marker left (General) */}
+						<cylinder
+							name="markerLeft"
+							options={{ diameter: 0.15, height: 0.4, tessellation: 8 }}
+							position={new Vector3(-1.5, 0.35, 0)}
+						>
+							<standardMaterial name="markerLeftMat" diffuseColor={new Color3(0.8, 0.2, 0.1)} />
+						</cylinder>
+
+						{/* Map marker right (Sgt. Bubbles) */}
+						<cylinder
+							name="markerRight"
+							options={{ diameter: 0.15, height: 0.4, tessellation: 8 }}
+							position={new Vector3(1.5, 0.35, 0)}
+						>
+							<standardMaterial name="markerRightMat" diffuseColor={new Color3(0.1, 0.4, 0.8)} />
+						</cylinder>
+
+						{/* TODO: Add PlayerRig entities for character portraits */}
+					</Scene>
+				</Engine>
 			</View>
 
+			{/* Dialogue UI overlay */}
 			<View className="absolute bottom-0 left-0 right-0 p-6">
 				<View className="bg-black/90 p-6 rounded-lg">
 					<Text className="text-otter-orange text-xl font-bold mb-2">

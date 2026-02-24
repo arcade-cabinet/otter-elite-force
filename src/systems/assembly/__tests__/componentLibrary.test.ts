@@ -4,8 +4,7 @@
  * Tests for DRY mesh definitions, faction palettes, and universal skeleton.
  */
 
-import * as THREE from "three";
-import { describe, expect, it } from "vitest";
+import { Vector3 } from "@babylonjs/core";
 import {
 	createGeometry,
 	createMaterial,
@@ -17,6 +16,16 @@ import {
 	type MeshDef,
 	type MeshId,
 	reskinnedMesh,
+	StubBoxGeometry,
+	StubCapsuleGeometry,
+	StubConeGeometry,
+	StubCylinderGeometry,
+	StubEuler,
+	StubGeometry,
+	StubMaterial,
+	StubMesh,
+	StubSphereGeometry,
+	StubTorusGeometry,
 	UNIVERSAL_SKELETON,
 } from "../componentLibrary";
 
@@ -162,7 +171,7 @@ describe("componentLibrary", () => {
 
 		it("should have all joints with Vector3 positions", () => {
 			for (const joint of UNIVERSAL_SKELETON) {
-				expect(joint.localPosition).toBeInstanceOf(THREE.Vector3);
+				expect(joint.localPosition).toBeInstanceOf(Vector3);
 			}
 		});
 	});
@@ -210,7 +219,7 @@ describe("componentLibrary", () => {
 		it("should define default scale for each mesh", () => {
 			for (const [_meshId, def] of Object.entries(MESH_LIBRARY)) {
 				expect(def.defaultScale).toBeDefined();
-				expect(def.defaultScale).toBeInstanceOf(THREE.Vector3);
+				expect(def.defaultScale).toBeInstanceOf(Vector3);
 			}
 		});
 	});
@@ -221,10 +230,10 @@ describe("componentLibrary", () => {
 				id: "STILT_ROUND",
 				geometryType: "BOX",
 				geometryParams: [1, 2, 3],
-				defaultScale: new THREE.Vector3(1, 1, 1),
+				defaultScale: new Vector3(1, 1, 1),
 			};
 			const geom = createGeometry(meshDef);
-			expect(geom).toBeInstanceOf(THREE.BoxGeometry);
+			expect(geom).toBeInstanceOf(StubBoxGeometry);
 		});
 
 		it("should create CylinderGeometry", () => {
@@ -232,10 +241,10 @@ describe("componentLibrary", () => {
 				id: "STILT_ROUND",
 				geometryType: "CYLINDER",
 				geometryParams: [0.5, 0.5, 2, 8],
-				defaultScale: new THREE.Vector3(1, 1, 1),
+				defaultScale: new Vector3(1, 1, 1),
 			};
 			const geom = createGeometry(meshDef);
-			expect(geom).toBeInstanceOf(THREE.CylinderGeometry);
+			expect(geom).toBeInstanceOf(StubCylinderGeometry);
 		});
 
 		it("should create SphereGeometry", () => {
@@ -243,10 +252,10 @@ describe("componentLibrary", () => {
 				id: "STILT_ROUND",
 				geometryType: "SPHERE",
 				geometryParams: [1, 16, 16],
-				defaultScale: new THREE.Vector3(1, 1, 1),
+				defaultScale: new Vector3(1, 1, 1),
 			};
 			const geom = createGeometry(meshDef);
-			expect(geom).toBeInstanceOf(THREE.SphereGeometry);
+			expect(geom).toBeInstanceOf(StubSphereGeometry);
 		});
 
 		it("should create CapsuleGeometry", () => {
@@ -254,10 +263,10 @@ describe("componentLibrary", () => {
 				id: "STILT_ROUND",
 				geometryType: "CAPSULE",
 				geometryParams: [0.3, 0.8, 4, 8],
-				defaultScale: new THREE.Vector3(1, 1, 1),
+				defaultScale: new Vector3(1, 1, 1),
 			};
 			const geom = createGeometry(meshDef);
-			expect(geom).toBeInstanceOf(THREE.CapsuleGeometry);
+			expect(geom).toBeInstanceOf(StubCapsuleGeometry);
 		});
 
 		it("should create ConeGeometry", () => {
@@ -265,10 +274,10 @@ describe("componentLibrary", () => {
 				id: "STILT_ROUND",
 				geometryType: "CONE",
 				geometryParams: [0.5, 1, 8],
-				defaultScale: new THREE.Vector3(1, 1, 1),
+				defaultScale: new Vector3(1, 1, 1),
 			};
 			const geom = createGeometry(meshDef);
-			expect(geom).toBeInstanceOf(THREE.ConeGeometry);
+			expect(geom).toBeInstanceOf(StubConeGeometry);
 		});
 
 		it("should create TorusGeometry", () => {
@@ -276,10 +285,10 @@ describe("componentLibrary", () => {
 				id: "STILT_ROUND",
 				geometryType: "TORUS",
 				geometryParams: [0.5, 0.1, 8, 16],
-				defaultScale: new THREE.Vector3(1, 1, 1),
+				defaultScale: new Vector3(1, 1, 1),
 			};
 			const geom = createGeometry(meshDef);
-			expect(geom).toBeInstanceOf(THREE.TorusGeometry);
+			expect(geom).toBeInstanceOf(StubTorusGeometry);
 		});
 
 		it("should default to BoxGeometry for unknown types", () => {
@@ -287,40 +296,40 @@ describe("componentLibrary", () => {
 				id: "STILT_ROUND",
 				geometryType: "CUSTOM",
 				geometryParams: [1, 1, 1],
-				defaultScale: new THREE.Vector3(1, 1, 1),
+				defaultScale: new Vector3(1, 1, 1),
 			};
 			const geom = createGeometry(meshDef);
-			expect(geom).toBeInstanceOf(THREE.BoxGeometry);
+			expect(geom).toBeInstanceOf(StubBoxGeometry);
 		});
 	});
 
 	describe("createMaterial", () => {
 		it("should create material with URA palette", () => {
 			const material = createMaterial("URA", "PRIMARY");
-			expect(material).toBeInstanceOf(THREE.MeshStandardMaterial);
+			expect(material).toBeInstanceOf(StubMaterial);
 		});
 
 		it("should create material with SCALE_GUARD palette", () => {
 			const material = createMaterial("SCALE_GUARD", "SECONDARY");
-			expect(material).toBeInstanceOf(THREE.MeshStandardMaterial);
+			expect(material).toBeInstanceOf(StubMaterial);
 		});
 
 		it("should apply roughness based on wear", () => {
-			const uraMaterial = createMaterial("URA", "WOOD") as THREE.MeshStandardMaterial;
+			const uraMaterial = createMaterial("URA", "WOOD") as StubMaterial;
 			const scaleGuardMaterial = createMaterial(
 				"SCALE_GUARD",
 				"WOOD",
-			) as THREE.MeshStandardMaterial;
+			) as StubMaterial;
 
 			// SCALE_GUARD has higher wear, should have higher roughness
 			expect(scaleGuardMaterial.roughness).toBeGreaterThan(uraMaterial.roughness);
 		});
 
 		it("should create different materials for each type", () => {
-			const primary = createMaterial("URA", "PRIMARY") as THREE.MeshStandardMaterial;
-			const secondary = createMaterial("URA", "SECONDARY") as THREE.MeshStandardMaterial;
-			const wood = createMaterial("URA", "WOOD") as THREE.MeshStandardMaterial;
-			const metal = createMaterial("URA", "METAL") as THREE.MeshStandardMaterial;
+			const primary = createMaterial("URA", "PRIMARY") as StubMaterial;
+			const secondary = createMaterial("URA", "SECONDARY") as StubMaterial;
+			const wood = createMaterial("URA", "WOOD") as StubMaterial;
+			const metal = createMaterial("URA", "METAL") as StubMaterial;
 
 			// Colors should be different
 			expect(primary.color.getHexString()).not.toBe(secondary.color.getHexString());
@@ -331,15 +340,15 @@ describe("componentLibrary", () => {
 	describe("instantiateMesh", () => {
 		it("should create mesh from library definition", () => {
 			const mesh = instantiateMesh("STILT_ROUND", "URA", "WOOD");
-			expect(mesh).toBeInstanceOf(THREE.Mesh);
+			expect(mesh).toBeInstanceOf(StubMesh);
 		});
 
 		it("should apply faction-specific material", () => {
 			const uraMesh = instantiateMesh("FLOOR_SECTION_2X2", "URA", "WOOD");
 			const nativeMesh = instantiateMesh("FLOOR_SECTION_2X2", "NATIVE", "WOOD");
 
-			const uraMat = uraMesh.material as THREE.MeshStandardMaterial;
-			const nativeMat = nativeMesh.material as THREE.MeshStandardMaterial;
+			const uraMat = uraMesh.material as StubMaterial;
+			const nativeMat = nativeMesh.material as StubMaterial;
 
 			// Materials should have different colors
 			expect(uraMat.color.getHexString()).not.toBe(nativeMat.color.getHexString());
@@ -358,7 +367,7 @@ describe("componentLibrary", () => {
 			const reskinned = reskinnedMesh(original, "SCALE_GUARD");
 
 			expect(reskinned).not.toBe(original);
-			expect(reskinned).toBeInstanceOf(THREE.Mesh);
+			expect(reskinned).toBeInstanceOf(StubMesh);
 		});
 
 		it("should preserve geometry", () => {
@@ -373,8 +382,8 @@ describe("componentLibrary", () => {
 			const original = instantiateMesh("GRIP_PISTOL", "URA", "WOOD");
 			const reskinned = reskinnedMesh(original, "NATIVE");
 
-			const originalMat = original.material as THREE.MeshStandardMaterial;
-			const reskinnedMat = reskinned.material as THREE.MeshStandardMaterial;
+			const originalMat = original.material as StubMaterial;
+			const reskinnedMat = reskinned.material as StubMaterial;
 
 			expect(reskinnedMat.color.getHexString()).not.toBe(originalMat.color.getHexString());
 		});
@@ -407,8 +416,8 @@ describe("componentLibrary", () => {
 
 					for (const point of def.attachmentPoints) {
 						expect(point.name).toBeDefined();
-						expect(point.position).toBeInstanceOf(THREE.Vector3);
-						expect(point.rotation).toBeInstanceOf(THREE.Euler);
+						expect(point.position).toBeInstanceOf(Vector3);
+						expect(point.rotation).toBeInstanceOf(Vector3);
 					}
 				}
 			}

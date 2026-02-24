@@ -1,39 +1,53 @@
-import { useEffect, useRef } from "react";
-import * as THREE from "three";
+import { Color3 } from "@babylonjs/core";
 
-export function Debris({ count = 10, color = "#444", seed = 0 }) {
-	const meshRef = useRef<THREE.InstancedMesh>(null);
+function pseudoRandom(seed: number) {
+	let s = seed;
+	return () => {
+		s = (s * 9301 + 49297) % 233280;
+		return s / 233280;
+	};
+}
 
-	useEffect(() => {
-		const mesh = meshRef.current;
-		if (!mesh) return;
-		const dummy = new THREE.Object3D();
+// Parse "#rrggbb" hex string to Color3
+function hexToColor3(hex: string): Color3 {
+	const r = parseInt(hex.slice(1, 3), 16) / 255;
+	const g = parseInt(hex.slice(3, 5), 16) / 255;
+	const b = parseInt(hex.slice(5, 7), 16) / 255;
+	return new Color3(r, g, b);
+}
 
-		const pseudoRandom = () => {
-			let s = seed + 5;
-			return () => {
-				s = (s * 9301 + 49297) % 233280;
-				return s / 233280;
-			};
-		};
-		const rand = pseudoRandom();
+export function Debris({ count = 10, color = "#444444", seed = 0 }) {
+	const rand = pseudoRandom(seed + 5);
+	const pieces = Array.from({ length: count }, () => ({
+		angle: rand() * Math.PI * 2,
+		dist: 10 + rand() * 60,
+		sx: 0.5 + rand() * 1.5,
+		sy: 0.5 + rand() * 0.5,
+		sz: 0.5 + rand() * 1.5,
+		ry: rand() * Math.PI * 2,
+	}));
 
-		for (let i = 0; i < count; i++) {
-			const angle = rand() * Math.PI * 2;
-			const dist = 10 + rand() * 60;
-			dummy.position.set(Math.cos(angle) * dist, 0.2, Math.sin(angle) * dist);
-			dummy.scale.set(0.5 + rand() * 1.5, 0.5 + rand() * 0.5, 0.5 + rand() * 1.5);
-			dummy.rotation.set(rand() * 0.2, rand() * Math.PI, rand() * 0.2);
-			dummy.updateMatrix();
-			mesh.setMatrixAt(i, dummy.matrix);
-		}
-		mesh.instanceMatrix.needsUpdate = true;
-	}, [count, seed]);
+	const col = hexToColor3(
+		color.length === 4
+			? `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`
+			: color,
+	);
 
 	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<boxGeometry args={[1, 1, 1]} />
-			<meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
-		</instancedMesh>
+		<transformNode name="debris">
+			{pieces.map((p, i) => (
+				<box
+					key={i}
+					name={`debris-${i}`}
+					options={{ width: p.sx, height: p.sy, depth: p.sz }}
+					positionX={Math.cos(p.angle) * p.dist}
+					positionY={0.2 + p.sy / 2}
+					positionZ={Math.sin(p.angle) * p.dist}
+					rotationY={p.ry}
+				>
+					<standardMaterial name={`debrisMat-${i}`} diffuseColor={col} />
+				</box>
+			))}
+		</transformNode>
 	);
 }

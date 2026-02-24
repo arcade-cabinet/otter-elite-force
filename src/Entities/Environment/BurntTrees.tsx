@@ -1,39 +1,41 @@
-import { useEffect, useRef } from "react";
-import * as THREE from "three";
+import { Color3 } from "@babylonjs/core";
+
+function pseudoRandom(seed: number) {
+	let s = seed;
+	return () => {
+		s = (s * 9301 + 49297) % 233280;
+		return s / 233280;
+	};
+}
 
 export function BurntTrees({ count = 15, seed = 0 }) {
-	const meshRef = useRef<THREE.InstancedMesh>(null);
-
-	useEffect(() => {
-		const mesh = meshRef.current;
-		if (!mesh) return;
-		const dummy = new THREE.Object3D();
-
-		const pseudoRandom = () => {
-			let s = seed + 3;
-			return () => {
-				s = (s * 9301 + 49297) % 233280;
-				return s / 233280;
-			};
-		};
-		const rand = pseudoRandom();
-
-		for (let i = 0; i < count; i++) {
-			const angle = rand() * Math.PI * 2;
-			const dist = 30 + rand() * 60;
-			dummy.position.set(Math.cos(angle) * dist, 0, Math.sin(angle) * dist);
-			dummy.scale.set(0.5 + rand() * 0.5, 4 + rand() * 6, 0.5 + rand() * 0.5);
-			dummy.rotation.set(rand() * 0.2, rand() * Math.PI, rand() * 0.2);
-			dummy.updateMatrix();
-			mesh.setMatrixAt(i, dummy.matrix);
-		}
-		mesh.instanceMatrix.needsUpdate = true;
-	}, [count, seed]);
+	const rand = pseudoRandom(seed + 3);
+	const trees = Array.from({ length: count }, () => ({
+		angle: rand() * Math.PI * 2,
+		dist: 30 + rand() * 60,
+		height: 4 + rand() * 6,
+		sx: 0.5 + rand() * 0.5,
+	}));
 
 	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-			<cylinderGeometry args={[0.3, 0.5, 1, 16]} />
-			<meshStandardMaterial color="#1a1a1a" roughness={1} />
-		</instancedMesh>
+		<transformNode name="burntTrees">
+			{trees.map((t, i) => (
+				<cylinder
+					key={i}
+					name={`burntTree-${i}`}
+					options={{
+						diameterTop: 0.3 * t.sx,
+						diameterBottom: 0.5 * t.sx,
+						height: t.height,
+						tessellation: 8,
+					}}
+					positionX={Math.cos(t.angle) * t.dist}
+					positionY={t.height / 2}
+					positionZ={Math.sin(t.angle) * t.dist}
+				>
+					<standardMaterial name={`burntTreeMat-${i}`} diffuseColor={new Color3(0.1, 0.1, 0.1)} />
+				</cylinder>
+			))}
+		</transformNode>
 	);
 }

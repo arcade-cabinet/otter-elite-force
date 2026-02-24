@@ -7,13 +7,12 @@
  * - Armored behavior
  */
 
-import * as THREE from "three";
-import { describe, expect, it, vi } from "vitest";
+import { Vector3 } from "@babylonjs/core";
 import type { SnapperData } from "../types";
 
 // Mock Yuka
-vi.mock("yuka", () => {
-	class Vector3 {
+jest.mock("yuka", () => {
+	class YukaVector3 {
 		x = 0;
 		y = 0;
 		z = 0;
@@ -28,33 +27,27 @@ vi.mock("yuka", () => {
 			this.z = z;
 			return this;
 		}
-		distanceTo(v: { x: number; y: number; z: number }) {
-			const dx = this.x - v.x;
-			const dy = this.y - v.y;
-			const dz = this.z - v.z;
-			return Math.sqrt(dx * dx + dy * dy + dz * dz);
-		}
 	}
 
 	class Vehicle {
-		position = new Vector3();
-		velocity = new Vector3();
+		position = new YukaVector3();
+		velocity = new YukaVector3();
 		maxSpeed = 0;
 		steering = {
-			add: vi.fn(),
-			clear: vi.fn(),
+			add: jest.fn(),
+			clear: jest.fn(),
 		};
-		update = vi.fn();
+		update = jest.fn();
 	}
 
 	class MockBehavior {
-		target = new Vector3();
+		target = new YukaVector3();
 		active = true;
 	}
 
 	return {
 		Vehicle,
-		Vector3,
+		Vector3: YukaVector3,
 		SeekBehavior: MockBehavior,
 		FleeBehavior: MockBehavior,
 	};
@@ -63,7 +56,7 @@ vi.mock("yuka", () => {
 describe("Snapper Component Logic", () => {
 	const createSnapperData = (overrides?: Partial<SnapperData>): SnapperData => ({
 		id: "snapper-1",
-		position: new THREE.Vector3(0, 0, 0),
+		position: new Vector3(0, 0, 0),
 		hp: 20,
 		maxHp: 20,
 		suppression: 0,
@@ -142,20 +135,21 @@ describe("Snapper Component Logic", () => {
 		});
 
 		it("should attack when player is within bite range", () => {
-			const snapperPos = new THREE.Vector3(0, 0, 0);
-			const playerPos = new THREE.Vector3(1.5, 0, 0);
+			const snapperPos = new Vector3(0, 0, 0);
+			const playerPos = new Vector3(1.5, 0, 0);
 			const BITE_RANGE = 2;
 
-			const distance = snapperPos.distanceTo(playerPos);
+			// Use Babylon.js static Distance method instead of Three.js distanceTo
+			const distance = Vector3.Distance(snapperPos, playerPos);
 			expect(distance).toBeLessThan(BITE_RANGE);
 		});
 
 		it("should not attack when player is beyond bite range", () => {
-			const snapperPos = new THREE.Vector3(0, 0, 0);
-			const playerPos = new THREE.Vector3(5, 0, 0);
+			const snapperPos = new Vector3(0, 0, 0);
+			const playerPos = new Vector3(5, 0, 0);
 			const BITE_RANGE = 2;
 
-			const distance = snapperPos.distanceTo(playerPos);
+			const distance = Vector3.Distance(snapperPos, playerPos);
 			expect(distance).toBeGreaterThan(BITE_RANGE);
 		});
 	});

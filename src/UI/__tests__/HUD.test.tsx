@@ -6,26 +6,25 @@
  */
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameStore } from "../../stores/gameStore";
 import { HUD } from "../HUD";
 
 // Mock audio engine - it requires user gesture to initialize
-vi.mock("../../Core/AudioEngine", () => ({
+jest.mock("../../Core/AudioEngine", () => ({
 	audioEngine: {
-		playSFX: vi.fn(),
-		init: vi.fn().mockResolvedValue(undefined),
+		playSFX: jest.fn(),
+		init: jest.fn().mockResolvedValue(undefined),
 		isReady: () => true,
 	},
 }));
 
 // Mock input system - it requires DOM elements
-vi.mock("../../Core/InputSystem", () => ({
+jest.mock("../../Core/InputSystem", () => ({
 	inputSystem: {
-		setJump: vi.fn(),
-		setGrip: vi.fn(),
-		init: vi.fn(),
-		destroy: vi.fn(),
+		setJump: jest.fn(),
+		setGrip: jest.fn(),
+		init: jest.fn(),
+		destroy: jest.fn(),
 		getState: () => ({ move: { x: 0, y: 0, active: false } }),
 	},
 }));
@@ -60,7 +59,7 @@ describe("HUD Component", () => {
 
 	afterEach(() => {
 		cleanup();
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
 
 	describe("Rendering", () => {
@@ -235,8 +234,9 @@ describe("HUD Component", () => {
 			expect(useGameStore.getState().isZoomed).toBe(false);
 		});
 
-		it("JUMP button calls inputSystem.setJump on pointer events", async () => {
-			const { inputSystem } = await import("../../Core/InputSystem");
+		it("JUMP button calls inputSystem.setJump on pointer events", () => {
+			// Use require() instead of dynamic import() to avoid --experimental-vm-modules
+			const { inputSystem } = require("../../Core/InputSystem");
 			render(<HUD />);
 			const jumpBtn = screen.getByRole("button", { name: "JUMP" });
 
@@ -247,8 +247,9 @@ describe("HUD Component", () => {
 			expect(inputSystem.setJump).toHaveBeenCalledWith(false);
 		});
 
-		it("GRIP button calls inputSystem.setGrip on pointer events", async () => {
-			const { inputSystem } = await import("../../Core/InputSystem");
+		it("GRIP button calls inputSystem.setGrip on pointer events", () => {
+			// Use require() instead of dynamic import() to avoid --experimental-vm-modules
+			const { inputSystem } = require("../../Core/InputSystem");
 			render(<HUD />);
 			const gripBtn = screen.getByRole("button", { name: "GRIP" });
 
@@ -266,8 +267,10 @@ describe("HUD Component", () => {
 			expect(screen.getByRole("button", { name: "BUILD" })).toBeInTheDocument();
 		});
 
-		it("hides BUILD button when LZ is not secured", () => {
+		it("hides BUILD button when LZ is not secured and player is away from origin", () => {
 			useGameStore.setState({
+				// Put player far from origin (outside 2x chunk radius of 200)
+				playerPos: [500, 0, 500] as [number, number, number],
 				saveData: {
 					...useGameStore.getState().saveData,
 					isLZSecured: false,
@@ -328,8 +331,9 @@ describe("HUD Component", () => {
 			expect(screen.getByRole("button", { name: "DROP" })).toBeInTheDocument();
 		});
 
-		it("DROP button calls audioEngine.playSFX on click", async () => {
-			const { audioEngine } = await import("../../Core/AudioEngine");
+		it("DROP button calls audioEngine.playSFX on click", () => {
+			// Use require() instead of dynamic import() to avoid --experimental-vm-modules
+			const { audioEngine } = require("../../Core/AudioEngine");
 			useGameStore.setState({
 				saveData: {
 					...useGameStore.getState().saveData,
@@ -386,7 +390,7 @@ describe("HUD Component", () => {
 		});
 
 		it("clicking Floor Section button calls placeComponent", () => {
-			const spy = vi.spyOn(useGameStore.getState(), "placeComponent");
+			const spy = jest.spyOn(useGameStore.getState(), "placeComponent");
 			render(<HUD />);
 			const floorBtn = screen.getByText("Floor Section");
 			fireEvent.click(floorBtn);

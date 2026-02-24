@@ -10,7 +10,6 @@
  * - Kill streak system
  */
 
-import { beforeEach, describe, expect, it } from "vitest";
 import { useGameStore } from "../../stores/gameStore";
 
 describe("Integration - Complete Game Loop", () => {

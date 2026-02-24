@@ -1,41 +1,45 @@
-import { useEffect, useRef } from "react";
-import * as THREE from "three";
+import { Color3 } from "@babylonjs/core";
+
+function pseudoRandom(seed: number) {
+	let s = seed;
+	return () => {
+		s = (s * 9301 + 49297) % 233280;
+		return s / 233280;
+	};
+}
 
 export function Lilypads({ count = 20, seed = 0 }) {
-	const meshRef = useRef<THREE.InstancedMesh>(null);
-
-	useEffect(() => {
-		const mesh = meshRef.current;
-		if (!mesh) return;
-		const dummy = new THREE.Object3D();
-
-		// Use deterministic seed for this chunk
-		const pseudoRandom = () => {
-			let s = seed;
-			return () => {
-				s = (s * 9301 + 49297) % 233280;
-				return s / 233280;
-			};
-		};
-		const rand = pseudoRandom();
-
-		for (let i = 0; i < count; i++) {
-			const angle = rand() * Math.PI * 2;
-			const dist = 10 + rand() * 50;
-			dummy.position.set(Math.cos(angle) * dist, 0.15, Math.sin(angle) * dist);
-			const size = 0.5 + rand() * 0.7;
-			dummy.scale.set(size, 0.05, size);
-			dummy.rotation.y = rand() * Math.PI;
-			dummy.updateMatrix();
-			mesh.setMatrixAt(i, dummy.matrix);
-		}
-		mesh.instanceMatrix.needsUpdate = true;
-	}, [count, seed]);
+	const rand = pseudoRandom(seed);
+	const pads = Array.from({ length: count }, () => ({
+		angle: rand() * Math.PI * 2,
+		dist: 10 + rand() * 50,
+		size: 0.5 + rand() * 0.7,
+		ry: rand() * Math.PI * 2,
+	}));
 
 	return (
-		<instancedMesh ref={meshRef} args={[undefined, undefined, count]} receiveShadow>
-			<cylinderGeometry args={[1, 1, 1, 32]} />
-			<meshStandardMaterial color="#2a4d1a" roughness={0.9} />
-		</instancedMesh>
+		<transformNode name="lilypads">
+			{pads.map((p, i) => (
+				<cylinder
+					key={i}
+					name={`lilypad-${i}`}
+					options={{
+						diameterTop: p.size * 2,
+						diameterBottom: p.size * 2,
+						height: 0.05,
+						tessellation: 16,
+					}}
+					positionX={Math.cos(p.angle) * p.dist}
+					positionY={0.15}
+					positionZ={Math.sin(p.angle) * p.dist}
+					rotationY={p.ry}
+				>
+					<standardMaterial
+						name={`lilypadMat-${i}`}
+						diffuseColor={new Color3(0.165, 0.302, 0.102)}
+					/>
+				</cylinder>
+			))}
+		</transformNode>
 	);
 }

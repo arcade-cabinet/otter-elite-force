@@ -28,7 +28,7 @@ export const updateMovement = (delta: number): void => {
 		// Clamp speed to max
 		const speed = entity.velocity.linear.length();
 		if (speed > entity.velocity.maxSpeed) {
-			entity.velocity.linear.normalize().multiplyScalar(entity.velocity.maxSpeed);
+			entity.velocity.linear.normalize().scaleInPlace(entity.velocity.maxSpeed);
 		}
 	}
 };
@@ -83,6 +83,6 @@ export const applyFriction = (delta: number, frictionCoeff: number = 0.95): void
 		if (entity.isProjectile) continue; // Projectiles don't have friction
 
 		// Apply friction
-		entity.velocity.linear.multiplyScalar(frictionCoeff ** (delta * 60));
+		entity.velocity.linear.scaleInPlace(frictionCoeff ** (delta * 60));
 	}
 };

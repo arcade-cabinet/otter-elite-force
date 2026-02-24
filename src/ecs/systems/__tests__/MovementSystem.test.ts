@@ -1,17 +1,16 @@
-import * as THREE from "three";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Vector3 } from "@babylonjs/core";
 import { movables, steeringEntities } from "../../world";
 import { applyFriction, updateMovement, updateSteering } from "../MovementSystem";
 
 // Mock dependencies
-vi.mock("../../world", () => ({
+jest.mock("../../world", () => ({
 	movables: [],
 	steeringEntities: [],
 }));
 
 describe("MovementSystem", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		(movables as unknown as any[]).length = 0;
 		(steeringEntities as unknown as any[]).length = 0;
 	});
@@ -19,10 +18,10 @@ describe("MovementSystem", () => {
 	describe("updateMovement", () => {
 		it("should update position based on linear velocity", () => {
 			const entity = {
-				transform: { position: new THREE.Vector3(0, 0, 0), rotation: new THREE.Euler() },
+				transform: { position: new Vector3(0, 0, 0), rotation: { x: 0, y: 0, z: 0 } },
 				velocity: {
-					linear: new THREE.Vector3(1, 0, 0),
-					angular: new THREE.Vector3(0, 0, 0),
+					linear: new Vector3(1, 0, 0),
+					angular: new Vector3(0, 0, 0),
 					maxSpeed: 10,
 				},
 			};
@@ -35,10 +34,10 @@ describe("MovementSystem", () => {
 
 		it("should update rotation based on angular velocity", () => {
 			const entity = {
-				transform: { position: new THREE.Vector3(), rotation: new THREE.Euler(0, 0, 0) },
+				transform: { position: new Vector3(), rotation: { x: 0, y: 0, z: 0 } },
 				velocity: {
-					linear: new THREE.Vector3(),
-					angular: new THREE.Vector3(0, 1, 0),
+					linear: new Vector3(),
+					angular: new Vector3(0, 1, 0),
 					maxSpeed: 10,
 				},
 			};
@@ -51,10 +50,10 @@ describe("MovementSystem", () => {
 
 		it("should clamp speed to maxSpeed", () => {
 			const entity = {
-				transform: { position: new THREE.Vector3(), rotation: new THREE.Euler() },
+				transform: { position: new Vector3(), rotation: { x: 0, y: 0, z: 0 } },
 				velocity: {
-					linear: new THREE.Vector3(20, 0, 0),
-					angular: new THREE.Vector3(),
+					linear: new Vector3(20, 0, 0),
+					angular: new Vector3(),
 					maxSpeed: 10,
 				},
 			};
@@ -74,18 +73,18 @@ describe("MovementSystem", () => {
 	describe("updateSteering", () => {
 		it("should update Yuka vehicle and sync transform", () => {
 			const vehicle = {
-				position: new THREE.Vector3(5, 0, 5),
-				velocity: new THREE.Vector3(1, 0, 0),
-				set: vi.fn(),
-				update: vi.fn(),
+				position: new Vector3(5, 0, 5),
+				velocity: new Vector3(1, 0, 0),
+				set: jest.fn(),
+				update: jest.fn(),
 				maxSpeed: 10,
 			};
 			const entity = {
-				transform: { position: new THREE.Vector3(0, 0, 0), rotation: new THREE.Euler() },
-				velocity: { linear: new THREE.Vector3(), maxSpeed: 10 },
+				transform: { position: new Vector3(0, 0, 0), rotation: { x: 0, y: 0, z: 0 } },
+				velocity: { linear: new Vector3(), maxSpeed: 10 },
 				steeringAgent: {
 					vehicle: vehicle,
-					targetPosition: new THREE.Vector3(10, 0, 0),
+					targetPosition: new Vector3(10, 0, 0),
 				},
 			};
 			(steeringEntities as unknown as any[]).push(entity);
@@ -124,15 +123,15 @@ describe("MovementSystem", () => {
 
 		it("should apply suppression to maxSpeed", () => {
 			const vehicle = {
-				position: new THREE.Vector3(),
-				velocity: new THREE.Vector3(),
-				set: vi.fn(),
-				update: vi.fn(),
+				position: new Vector3(),
+				velocity: new Vector3(),
+				set: jest.fn(),
+				update: jest.fn(),
 				maxSpeed: 10,
 			};
 			const entity = {
-				transform: { position: new THREE.Vector3(), rotation: new THREE.Euler() },
-				velocity: { linear: new THREE.Vector3(), maxSpeed: 10 },
+				transform: { position: new Vector3(), rotation: { x: 0, y: 0, z: 0 } },
+				velocity: { linear: new Vector3(), maxSpeed: 10 },
 				steeringAgent: { vehicle: vehicle },
 				suppression: { amount: 0.5 }, // 50% suppression
 			};
@@ -147,15 +146,15 @@ describe("MovementSystem", () => {
 
 		it("should update rotation to face movement direction", () => {
 			const vehicle = {
-				position: new THREE.Vector3(),
-				velocity: new THREE.Vector3(1, 0, 1), // Moving diagonal
-				set: vi.fn(),
-				update: vi.fn(),
+				position: new Vector3(),
+				velocity: new Vector3(1, 0, 1), // Moving diagonal
+				set: jest.fn(),
+				update: jest.fn(),
 				maxSpeed: 10,
 			};
 			const entity = {
-				transform: { position: new THREE.Vector3(), rotation: new THREE.Euler() },
-				velocity: { linear: new THREE.Vector3(), maxSpeed: 10 },
+				transform: { position: new Vector3(), rotation: { x: 0, y: 0, z: 0 } },
+				velocity: { linear: new Vector3(), maxSpeed: 10 },
 				steeringAgent: { vehicle: vehicle },
 			};
 			(steeringEntities as unknown as any[]).push(entity);
@@ -170,7 +169,7 @@ describe("MovementSystem", () => {
 	describe("applyFriction", () => {
 		it("should apply friction to linear velocity", () => {
 			const entity = {
-				velocity: { linear: new THREE.Vector3(10, 0, 0) },
+				velocity: { linear: new Vector3(10, 0, 0) },
 				isProjectile: false,
 			};
 			(movables as unknown as any[]).push(entity);
@@ -184,7 +183,7 @@ describe("MovementSystem", () => {
 
 		it("should not apply friction to projectiles", () => {
 			const entity = {
-				velocity: { linear: new THREE.Vector3(10, 0, 0) },
+				velocity: { linear: new Vector3(10, 0, 0) },
 				isProjectile: true,
 			};
 			(movables as unknown as any[]).push(entity);

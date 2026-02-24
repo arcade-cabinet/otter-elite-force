@@ -1,13 +1,13 @@
 /**
  * ECS React Hooks
  *
- * Integration layer between Miniplex ECS and React Three Fiber.
+ * Integration layer between Miniplex ECS and Babylon.js via Reactylon.
  * Provides hooks for querying entities and syncing with React components.
  */
 
-import { useFrame } from "@react-three/fiber";
-import { useCallback, useEffect, useState } from "react";
-import * as THREE from "three";
+import { Vector3 } from "@babylonjs/core";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useScene } from "reactylon";
 import {
 	createExtractionPoint,
 	createGator,
@@ -114,34 +114,53 @@ export const useDamageables = () => useArchetype(damageables);
 
 /**
  * Main ECS game loop hook - updates all systems each frame
+ * Uses Babylon.js scene.onBeforeRenderObservable instead of useFrame
  */
 export const useECSGameLoop = (isPaused: boolean = false) => {
-	useFrame((_, delta) => {
-		if (isPaused) return;
+	const scene = useScene();
+	const isPausedRef = useRef(isPaused);
+	isPausedRef.current = isPaused;
 
-		// Clamp delta to prevent physics explosions
-		const clampedDelta = Math.min(delta, 0.1);
+	useEffect(() => {
+		if (!scene) return;
 
-		// Update AI (decision making)
-		updateAI(clampedDelta);
+		let lastTime = performance.now();
 
-		// Update steering behaviors (Yuka)
-		updateSteering(clampedDelta);
+		const observer = scene.onBeforeRenderObservable.add(() => {
+			if (isPausedRef.current) return;
 
-		// Update movement
-		updateMovement(clampedDelta);
+			const now = performance.now();
+			const rawDelta = (now - lastTime) / 1000;
+			lastTime = now;
 
-		// Apply friction
-		applyFriction(clampedDelta);
+			// Clamp delta to prevent physics explosions
+			const clampedDelta = Math.min(rawDelta, 0.1);
 
-		// Update combat
-		updateProjectileCollisions();
-		updateSuppression(clampedDelta);
-		updateHealthRegen(clampedDelta);
+			// Update AI (decision making)
+			updateAI(clampedDelta);
 
-		// Cleanup dead entities
-		cleanupDead();
-	});
+			// Update steering behaviors (Yuka)
+			updateSteering(clampedDelta);
+
+			// Update movement
+			updateMovement(clampedDelta);
+
+			// Apply friction
+			applyFriction(clampedDelta);
+
+			// Update combat
+			updateProjectileCollisions();
+			updateSuppression(clampedDelta);
+			updateHealthRegen(clampedDelta);
+
+			// Cleanup dead entities
+			cleanupDead();
+		});
+
+		return () => {
+			scene.onBeforeRenderObservable.remove(observer);
+		};
+	}, [scene]);
 };
 
 // =============================================================================
@@ -166,7 +185,8 @@ export const useChunkEntitySpawner = () => {
 			const spawnedEntities: Entity[] = [];
 
 			for (const entityData of entities) {
-				const position = new THREE.Vector3(...entityData.position);
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const position = new Vector3(...entityData.position) as any;
 
 				let entity: Entity | null = null;
 
@@ -327,7 +347,8 @@ export const usePlayerEntity = (characterConfig: {
 		if (existingPlayer) return;
 
 		createPlayer({
-			position: new THREE.Vector3(0, 0, 0),
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			position: new Vector3(0, 0, 0) as any,
 			characterId: characterConfig.id,
 			...characterConfig,
 		});
@@ -351,27 +372,63 @@ export const usePlayerEntity = (characterConfig: {
 // =============================================================================
 
 /**
- * Hook to sync an ECS entity's transform with a Three.js object
+ * Hook to sync an ECS entity's transform with a Babylon.js TransformNode
+ * Uses scene.onBeforeRenderObservable instead of useFrame
  */
-export const useSyncTransform = (entity: Entity | null, ref: React.RefObject<THREE.Group>) => {
-	useFrame(() => {
-		if (!entity?.transform || !ref.current) return;
+export const useSyncTransform = (
+	entity: Entity | null,
+	nodeRef: React.RefObject<{
+		position: Vector3;
+		rotation: { x: number; y: number; z: number };
+		scaling: Vector3;
+	} | null>,
+) => {
+	const scene = useScene();
+	const entityRef = useRef(entity);
+	entityRef.current = entity;
 
-		ref.current.position.copy(entity.transform.position);
-		ref.current.rotation.copy(entity.transform.rotation);
-		ref.current.scale.copy(entity.transform.scale);
-	});
+	useEffect(() => {
+		if (!scene) return;
+
+		const observer = scene.onBeforeRenderObservable.add(() => {
+			const ent = entityRef.current;
+			if (!ent?.transform || !nodeRef.current) return;
+
+			nodeRef.current.position.copyFrom(ent.transform.position as unknown as Vector3);
+			nodeRef.current.scaling.copyFrom(ent.transform.scale as unknown as Vector3);
+		});
+
+		return () => {
+			scene.onBeforeRenderObservable.remove(observer);
+		};
+	}, [scene, nodeRef]);
 };
 
 /**
  * Hook to sync player input to entity velocity
+ * Uses scene.onBeforeRenderObservable instead of useFrame
  */
 export const usePlayerInput = (entity: Entity | null, input: { x: number; y: number }) => {
-	useFrame(() => {
-		if (!entity?.velocity || !entity?.characterStats) return;
+	const scene = useScene();
+	const entityRef = useRef(entity);
+	const inputRef = useRef(input);
+	entityRef.current = entity;
+	inputRef.current = input;
 
-		const speed = entity.characterStats.baseSpeed;
-		entity.velocity.linear.x = input.x * speed;
-		entity.velocity.linear.z = input.y * speed;
-	});
+	useEffect(() => {
+		if (!scene) return;
+
+		const observer = scene.onBeforeRenderObservable.add(() => {
+			const ent = entityRef.current;
+			if (!ent?.velocity || !ent?.characterStats) return;
+
+			const speed = ent.characterStats.baseSpeed;
+			ent.velocity.linear.x = inputRef.current.x * speed;
+			ent.velocity.linear.z = inputRef.current.y * speed;
+		});
+
+		return () => {
+			scene.onBeforeRenderObservable.remove(observer);
+		};
+	}, [scene]);
 };

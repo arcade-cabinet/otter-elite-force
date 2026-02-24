@@ -4,8 +4,7 @@
  * Tests procedural generation of settlements (villages, outposts, camps)
  */
 
-import * as THREE from "three";
-import { describe, expect, it } from "vitest";
+import { Vector3 } from "@babylonjs/core";
 import {
 	assembleElevatedNetwork,
 	assembleSettlement,
@@ -15,7 +14,7 @@ import {
 describe("Settlement Assembler", () => {
 	describe("assembleSettlement", () => {
 		it("should generate a native village", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 
 			expect(settlement.type).toBe("NATIVE_VILLAGE");
@@ -24,7 +23,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should generate a Scale-Guard outpost", () => {
-			const center = new THREE.Vector3(50, 0, 50);
+			const center = new Vector3(50, 0, 50);
 			const settlement = assembleSettlement(12345, "SCALE_GUARD_OUTPOST", center, "SCALE_GUARD");
 
 			expect(settlement.type).toBe("SCALE_GUARD_OUTPOST");
@@ -33,17 +32,17 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should place structures around the center", () => {
-			const center = new THREE.Vector3(100, 0, 100);
+			const center = new Vector3(100, 0, 100);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 
 			for (const structure of settlement.structures) {
-				const dist = structure.worldPosition.distanceTo(center);
+				const dist = Vector3.Distance(structure.worldPosition, center);
 				expect(dist).toBeLessThan(settlement.radius + 5);
 			}
 		});
 
 		it("should generate paths connecting structures", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 
 			if (settlement.structures.length > 1) {
@@ -52,14 +51,14 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should generate inhabitants for populated settlements", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 
 			expect(settlement.inhabitants.length).toBeGreaterThan(0);
 		});
 
 		it("should generate consistent settlements with same seed", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const s1 = assembleSettlement(42, "NATIVE_VILLAGE", center, "NATIVE");
 			const s2 = assembleSettlement(42, "NATIVE_VILLAGE", center, "NATIVE");
 
@@ -68,7 +67,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should generate different settlements with different seeds", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const s1 = assembleSettlement(111, "NATIVE_VILLAGE", center, "NATIVE");
 			const s2 = assembleSettlement(222, "NATIVE_VILLAGE", center, "NATIVE");
 
@@ -80,12 +79,12 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should calculate correct settlement radius", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 
 			// Radius should encompass all structures
 			for (const structure of settlement.structures) {
-				const dist = structure.worldPosition.distanceTo(center);
+				const dist = Vector3.Distance(structure.worldPosition, center);
 				expect(dist).toBeLessThanOrEqual(settlement.radius);
 			}
 		});
@@ -93,7 +92,7 @@ describe("Settlement Assembler", () => {
 
 	describe("Settlement Types", () => {
 		it("should generate a fishing camp with structures", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "FISHING_CAMP", center, "NATIVE");
 
 			// Fishing camp should have structures
@@ -104,12 +103,12 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should generate a prison compound with center buffer for cage", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "PRISON_COMPOUND", center, "SCALE_GUARD");
 
 			// Structures should be around perimeter, not in center
 			for (const structure of settlement.structures) {
-				const dist = structure.worldPosition.distanceTo(center);
+				const dist = Vector3.Distance(structure.worldPosition, center);
 				// Most structures should be at perimeter
 				if (dist < 3) {
 					// Command post might be in center
@@ -119,7 +118,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should generate a siphon facility with structures", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "SIPHON_FACILITY", center, "SCALE_GUARD");
 
 			// Siphon facility should have structures
@@ -130,7 +129,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should generate outpost with watchtowers", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "SCALE_GUARD_OUTPOST", center, "SCALE_GUARD");
 
 			const towers = settlement.structures.filter((s) => s.template.archetype === "WATCHTOWER");
@@ -138,7 +137,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should generate player base with minimal starting structures", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "PLAYER_BASE", center, "URA");
 
 			expect(settlement.structures.length).toBeGreaterThanOrEqual(1);
@@ -175,7 +174,7 @@ describe("Settlement Assembler", () => {
 
 	describe("Path Generation", () => {
 		it("should connect all structures with paths when configured", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 
 			if (settlement.structures.length > 1) {
@@ -185,7 +184,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should set path width according to config", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 			const config = SETTLEMENT_CONFIGS.NATIVE_VILLAGE;
 
@@ -195,7 +194,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should set path style according to config", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "FISHING_CAMP", center, "NATIVE");
 			const config = SETTLEMENT_CONFIGS.FISHING_CAMP;
 
@@ -207,7 +206,7 @@ describe("Settlement Assembler", () => {
 
 	describe("Inhabitants", () => {
 		it("should generate villagers for native village", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 
 			const villagers = settlement.inhabitants.filter((i) => i.type === "VILLAGER");
@@ -215,7 +214,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should generate guards for outpost", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "SCALE_GUARD_OUTPOST", center, "SCALE_GUARD");
 
 			const guards = settlement.inhabitants.filter((i) => i.type === "GUARD");
@@ -223,7 +222,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should generate prisoners for prison compound", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "PRISON_COMPOUND", center, "SCALE_GUARD");
 
 			const prisoners = settlement.inhabitants.filter((i) => i.type === "PRISONER");
@@ -232,7 +231,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should assign correct faction to inhabitants", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 
 			for (const inhabitant of settlement.inhabitants) {
@@ -245,14 +244,14 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should place inhabitants near structures", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "NATIVE_VILLAGE", center, "NATIVE");
 
 			for (const inhabitant of settlement.inhabitants) {
 				// Should be within reasonable distance of a structure
 				let nearStructure = false;
 				for (const structure of settlement.structures) {
-					const dist = inhabitant.position.distanceTo(structure.worldPosition);
+					const dist = Vector3.Distance(inhabitant.position, structure.worldPosition);
 					if (dist < 10) {
 						nearStructure = true;
 						break;
@@ -265,14 +264,14 @@ describe("Settlement Assembler", () => {
 
 	describe("assembleElevatedNetwork", () => {
 		it("should generate platforms and bridges", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const result = assembleElevatedNetwork(12345, center, 30, 4);
 
 			expect(result.platforms.length).toBeGreaterThan(0);
 		});
 
 		it("should connect nearby platforms with bridges", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const result = assembleElevatedNetwork(12345, center, 15, 3);
 
 			// With close spacing, should have at least one bridge
@@ -282,7 +281,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should offset platforms to world position", () => {
-			const center = new THREE.Vector3(100, 0, 100);
+			const center = new Vector3(100, 0, 100);
 			const result = assembleElevatedNetwork(12345, center, 20, 3);
 
 			for (const platform of result.platforms) {
@@ -294,7 +293,7 @@ describe("Settlement Assembler", () => {
 
 	describe("Structure Rotation", () => {
 		it("should rotate structures facing center for circular layouts", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "PRISON_COMPOUND", center, "SCALE_GUARD");
 
 			for (const structure of settlement.structures) {
@@ -305,7 +304,7 @@ describe("Settlement Assembler", () => {
 		});
 
 		it("should align structures for grid layouts", () => {
-			const center = new THREE.Vector3(0, 0, 0);
+			const center = new Vector3(0, 0, 0);
 			const settlement = assembleSettlement(12345, "SIPHON_FACILITY", center, "SCALE_GUARD");
 
 			// In grid layout with ALIGNED rotation, rotations should be 0

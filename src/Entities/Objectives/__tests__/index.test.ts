@@ -4,34 +4,33 @@
  * Smoke tests verifying components export correctly and types are valid.
  */
 
-import * as THREE from "three";
-import { describe, expect, it } from "vitest";
-
+import { Vector3 } from "@babylonjs/core";
 // We're testing the module exports, not the rendering
 describe("Objectives Entity Module", () => {
-	it("should export Clam component", async () => {
-		const { Clam } = await import("../Clam");
+	it("should export Clam component", () => {
+		const { Clam } = require("../Clam");
 		expect(Clam).toBeDefined();
 		expect(typeof Clam).toBe("function");
 	});
 
-	it("should export ExtractionPoint component", async () => {
-		const { ExtractionPoint } = await import("../Clam");
+	it("should export ExtractionPoint component", () => {
+		// ExtractionPoint lives in the top-level Entities folder
+		const { ExtractionPoint } = require("../../ExtractionPoint");
 		expect(ExtractionPoint).toBeDefined();
 		expect(typeof ExtractionPoint).toBe("function");
 	});
 
-	it("should export Siphon component", async () => {
-		const { Siphon } = await import("../Siphon");
+	it("should export Siphon component", () => {
+		const { Siphon } = require("../Siphon");
 		expect(Siphon).toBeDefined();
 		expect(typeof Siphon).toBe("function");
 	});
 
-	it("Clam should accept position prop", async () => {
-		const { Clam } = await import("../Clam");
+	it("Clam should accept position prop", () => {
+		const { Clam } = require("../Clam");
 		// Component function signature should accept these props
 		expect(Clam.length).toBeGreaterThanOrEqual(0); // Has params
-		const position = new THREE.Vector3(0, 0, 0);
+		const position = new Vector3(0, 0, 0);
 		// Just verify it's callable with the expected props (won't render in test env)
 		expect(() => {
 			// Type check - this verifies the component signature
@@ -40,10 +39,10 @@ describe("Objectives Entity Module", () => {
 		}).not.toThrow();
 	});
 
-	it("Siphon should accept position and health props", async () => {
-		const { Siphon } = await import("../Siphon");
+	it("Siphon should accept position and health props", () => {
+		const { Siphon } = require("../Siphon");
 		expect(Siphon.length).toBeGreaterThanOrEqual(0);
-		const position = new THREE.Vector3(5, 0, 10);
+		const position = new Vector3(5, 0, 10);
 		const props = { position, health: 50, maxHealth: 50 };
 		expect(props.position).toBeDefined();
 		expect(props.health).toBe(50);

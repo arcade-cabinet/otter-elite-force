@@ -8,13 +8,12 @@
  * - Death callback
  */
 
-import * as THREE from "three";
-import { describe, expect, it, vi } from "vitest";
+import { Vector3 } from "@babylonjs/core";
 import type { ScoutData } from "../types";
 
 // Mock Yuka before importing the component
-vi.mock("yuka", () => {
-	class Vector3 {
+jest.mock("yuka", () => {
+	class YukaVector3 {
 		x = 0;
 		y = 0;
 		z = 0;
@@ -41,51 +40,45 @@ vi.mock("yuka", () => {
 			this.z += v.z;
 			return this;
 		}
-		distanceTo(v: { x: number; y: number; z: number }) {
-			const dx = this.x - v.x;
-			const dy = this.y - v.y;
-			const dz = this.z - v.z;
-			return Math.sqrt(dx * dx + dy * dy + dz * dz);
-		}
 		length() {
 			return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
 		}
 	}
 
 	class Vehicle {
-		position = new Vector3();
-		velocity = new Vector3();
+		position = new YukaVector3();
+		velocity = new YukaVector3();
 		maxSpeed = 0;
 		steering = {
-			add: vi.fn(),
-			clear: vi.fn(),
+			add: jest.fn(),
+			clear: jest.fn(),
 		};
-		update = vi.fn();
+		update = jest.fn();
 	}
 
 	class MockBehavior {
-		target = new Vector3();
+		target = new YukaVector3();
 		active = true;
 	}
 
 	return {
 		Vehicle,
-		Vector3,
+		Vector3: YukaVector3,
 		SeekBehavior: MockBehavior,
 		FleeBehavior: MockBehavior,
-		WanderBehavior: vi.fn(),
+		WanderBehavior: jest.fn(),
 	};
 });
 
 // Mock React Three Fiber
-vi.mock("@react-three/fiber", () => ({
-	useFrame: vi.fn(),
+jest.mock("@react-three/fiber", () => ({
+	useFrame: jest.fn(),
 }));
 
 describe("Scout Component Logic", () => {
 	const createScoutData = (overrides?: Partial<ScoutData>): ScoutData => ({
 		id: "scout-1",
-		position: new THREE.Vector3(0, 0, 0),
+		position: new Vector3(0, 0, 0),
 		hp: 5,
 		maxHp: 5,
 		suppression: 0,
@@ -137,30 +130,31 @@ describe("Scout Component Logic", () => {
 
 	describe("Scout Behavior", () => {
 		it("should detect player within range", () => {
-			const scoutPos = new THREE.Vector3(0, 0, 0);
-			const playerPos = new THREE.Vector3(25, 0, 0);
+			const scoutPos = new Vector3(0, 0, 0);
+			const playerPos = new Vector3(25, 0, 0);
 
-			const distance = scoutPos.distanceTo(playerPos);
+			// Use Babylon.js static Distance method instead of Three.js distanceTo
+			const distance = Vector3.Distance(scoutPos, playerPos);
 			const DETECTION_RANGE = 30;
 
 			expect(distance).toBeLessThan(DETECTION_RANGE);
 		});
 
 		it("should not detect player beyond range", () => {
-			const scoutPos = new THREE.Vector3(0, 0, 0);
-			const playerPos = new THREE.Vector3(35, 0, 0);
+			const scoutPos = new Vector3(0, 0, 0);
+			const playerPos = new Vector3(35, 0, 0);
 
-			const distance = scoutPos.distanceTo(playerPos);
+			const distance = Vector3.Distance(scoutPos, playerPos);
 			const DETECTION_RANGE = 30;
 
 			expect(distance).toBeGreaterThan(DETECTION_RANGE);
 		});
 
 		it("should flee when player is within flee distance", () => {
-			const scoutPos = new THREE.Vector3(0, 0, 0);
-			const playerPos = new THREE.Vector3(10, 0, 0);
+			const scoutPos = new Vector3(0, 0, 0);
+			const playerPos = new Vector3(10, 0, 0);
 
-			const distance = scoutPos.distanceTo(playerPos);
+			const distance = Vector3.Distance(scoutPos, playerPos);
 			const FLEE_DISTANCE = 12;
 
 			expect(distance).toBeLessThan(FLEE_DISTANCE);

@@ -4,7 +4,7 @@
  * Tests for ECS-integrated buildable structure definitions
  */
 
-import { describe, expect, it } from "vitest";
+import { Vector3 } from "@babylonjs/core";
 import {
 	BUILDABLE_TEMPLATES,
 	canAffordBuildable,
@@ -169,14 +169,13 @@ describe("Buildable Templates", () => {
 	});
 
 	describe("getSnapPointsForTemplate", () => {
-		it("should return 4 snap points for standard template", async () => {
-			const THREE = await import("three");
-			const { getSnapPointsForTemplate } = await import("../buildableTemplates");
+		it("should return 4 snap points for standard template", () => {
+			const { getSnapPointsForTemplate } = require("../buildableTemplates");
 
 			const buildable = getBuildableTemplate("floor-section");
 			if (!buildable) return;
 
-			const worldPosition = new THREE.Vector3(10, 0, 20);
+			const worldPosition = new Vector3(10, 0, 20);
 			const rotation = 0;
 
 			const snapPoints = getSnapPointsForTemplate(buildable, worldPosition, rotation);
@@ -184,14 +183,13 @@ describe("Buildable Templates", () => {
 			expect(snapPoints).toHaveLength(4);
 		});
 
-		it("should calculate snap points relative to world position", async () => {
-			const THREE = await import("three");
-			const { getSnapPointsForTemplate } = await import("../buildableTemplates");
+		it("should calculate snap points relative to world position", () => {
+			const { getSnapPointsForTemplate } = require("../buildableTemplates");
 
 			const buildable = getBuildableTemplate("floor-section");
 			if (!buildable) return;
 
-			const worldPosition = new THREE.Vector3(10, 0, 20);
+			const worldPosition = new Vector3(10, 0, 20);
 			const rotation = 0;
 
 			const snapPoints = getSnapPointsForTemplate(buildable, worldPosition, rotation);
@@ -203,14 +201,13 @@ describe("Buildable Templates", () => {
 			}
 		});
 
-		it("should apply rotation to snap points", async () => {
-			const THREE = await import("three");
-			const { getSnapPointsForTemplate } = await import("../buildableTemplates");
+		it("should apply rotation to snap points", () => {
+			const { getSnapPointsForTemplate } = require("../buildableTemplates");
 
 			const buildable = getBuildableTemplate("floor-section");
 			if (!buildable) return;
 
-			const worldPosition = new THREE.Vector3(0, 0, 0);
+			const worldPosition = new Vector3(0, 0, 0);
 
 			// Compare 0 rotation vs 90 degree rotation
 			const points0 = getSnapPointsForTemplate(buildable, worldPosition, 0);
@@ -220,14 +217,13 @@ describe("Buildable Templates", () => {
 			expect(points0[0].worldPosition.x).not.toBeCloseTo(points90[0].worldPosition.x, 1);
 		});
 
-		it("should return accepted categories for each snap point", async () => {
-			const THREE = await import("three");
-			const { getSnapPointsForTemplate } = await import("../buildableTemplates");
+		it("should return accepted categories for each snap point", () => {
+			const { getSnapPointsForTemplate } = require("../buildableTemplates");
 
 			const buildable = getBuildableTemplate("floor-section");
 			if (!buildable) return;
 
-			const snapPoints = getSnapPointsForTemplate(buildable, new THREE.Vector3(), 0);
+			const snapPoints = getSnapPointsForTemplate(buildable, new Vector3(), 0);
 
 			for (const point of snapPoints) {
 				expect(point.acceptsCategories).toContain("FOUNDATION");
@@ -235,14 +231,13 @@ describe("Buildable Templates", () => {
 			}
 		});
 
-		it("should set direction vectors for snap points", async () => {
-			const THREE = await import("three");
-			const { getSnapPointsForTemplate } = await import("../buildableTemplates");
+		it("should set direction vectors for snap points", () => {
+			const { getSnapPointsForTemplate } = require("../buildableTemplates");
 
 			const buildable = getBuildableTemplate("floor-section");
 			if (!buildable) return;
 
-			const snapPoints = getSnapPointsForTemplate(buildable, new THREE.Vector3(), 0);
+			const snapPoints = getSnapPointsForTemplate(buildable, new Vector3(), 0);
 
 			for (const point of snapPoints) {
 				expect(point.direction).toBeDefined();

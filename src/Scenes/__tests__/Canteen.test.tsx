@@ -1,20 +1,24 @@
 /**
  * Canteen Component Tests
  *
- * Tests the canteen (shop) UI including:
- * - Character purchasing
- * - Weapon upgrades
- * - Stat upgrades
- * - Currency display
+ * Tests the Forward Operating Base (canteen) UI including:
+ * - Header and navigation
+ * - WEAPONS tab: arsenal display
+ * - EQUIPMENT tab: upgrades
+ * - INTEL tab: mission stats
+ * - Return to menu
  */
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { UPGRADE_COSTS, useGameStore } from "../../stores/gameStore";
+import { useGameStore } from "../../stores/gameStore";
 import { Canteen } from "../Canteen";
 
 // Mock CSS
-vi.mock("../../styles/main.css", () => ({}));
+jest.mock("../../styles/main.css", () => ({}));
+
+// Mock reactylon/web Engine and Scene (Babylon.js backdrop)
+jest.mock("reactylon/web");
+jest.mock("reactylon");
 
 describe("Canteen", () => {
 	beforeEach(() => {
@@ -25,15 +29,15 @@ describe("Canteen", () => {
 				...useGameStore.getState().saveData,
 				coins: 5000,
 				unlockedCharacters: ["bubbles"],
-				unlockedWeapons: ["service-pistol"],
 				upgrades: {
 					speedBoost: 0,
 					healthBoost: 0,
 					damageBoost: 0,
 					weaponLvl: {
-						"service-pistol": 1,
-						"fish-cannon": 1,
-						"bubble-gun": 1,
+						pistol: 1,
+						smg: 0,
+						rifle: 0,
+						shotgun: 0,
 					},
 				},
 			},
@@ -49,219 +53,67 @@ describe("Canteen", () => {
 		expect(screen.getByText("FORWARD OPERATING BASE")).toBeInTheDocument();
 	});
 
-	it("should display current coin balance", () => {
-		render(<Canteen />);
-		expect(screen.getByText(/SUPPLY CREDITS: 5000/)).toBeInTheDocument();
-	});
-
 	it("should show back to menu button", () => {
 		render(<Canteen />);
-		const backButton = screen.getByRole("button", { name: /RETURN TO PERIMETER/i });
-		expect(backButton).toBeInTheDocument();
+		// TouchableOpacity renders as div in tests, use getByText
+		expect(screen.getByText("RETURN TO COMMAND")).toBeInTheDocument();
 	});
 
 	it("should navigate back to menu when back clicked", () => {
 		render(<Canteen />);
-		const backButton = screen.getByRole("button", { name: /RETURN TO PERIMETER/i });
+		const backButton = screen.getByText("RETURN TO COMMAND");
 
 		fireEvent.click(backButton);
 
 		expect(useGameStore.getState().mode).toBe("MENU");
 	});
 
-	it("should display upgrade options", () => {
+	it("should show WEAPONS, EQUIPMENT, INTEL tabs", () => {
 		render(<Canteen />);
-		// Click on UPGRADES tab first
-		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
-		fireEvent.click(upgradesTab);
-
-		expect(screen.getByText(/SPEED BOOST/i)).toBeInTheDocument();
-		expect(screen.getByText(/HEALTH BOOST/i)).toBeInTheDocument();
-		expect(screen.getByText(/DAMAGE BOOST/i)).toBeInTheDocument();
+		// Tab labels rendered by TouchableOpacity (renders as div in tests)
+		expect(screen.getByText("WEAPONS")).toBeInTheDocument();
+		expect(screen.getByText("EQUIPMENT")).toBeInTheDocument();
+		expect(screen.getByText("INTEL")).toBeInTheDocument();
 	});
 
-	it("should show upgrade costs", () => {
-		const { container } = render(<Canteen />);
-		// Click on UPGRADES tab first
-		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
-		fireEvent.click(upgradesTab);
-
-		// Should display upgrade costs in upgrade items
-		const upgradeItems = container.querySelectorAll(".upgrade-item button");
-		expect(upgradeItems.length).toBe(3);
-		expect(upgradeItems[0].textContent).toContain(UPGRADE_COSTS.speed.toString());
+	it("should show WEAPONS tab content by default", () => {
+		render(<Canteen />);
+		expect(screen.getByText("ARSENAL")).toBeInTheDocument();
 	});
 
-	it("should buy speed upgrade when clicked", () => {
-		const { container } = render(<Canteen />);
-		// Click on UPGRADES tab first
-		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
-		fireEvent.click(upgradesTab);
-
-		// Get the first upgrade button (speed)
-		const upgradeItems = container.querySelectorAll(".upgrade-item button");
-		const speedButton = upgradeItems[0];
-		fireEvent.click(speedButton);
-
-		expect(useGameStore.getState().saveData.upgrades.speedBoost).toBe(1);
+	it("should display credit balance in weapons tab", () => {
+		render(<Canteen />);
+		expect(screen.getByText("Credits")).toBeInTheDocument();
+		expect(screen.getByText("5000c")).toBeInTheDocument();
 	});
 
-	it("should deduct coins after purchase", () => {
-		const initialCoins = useGameStore.getState().saveData.coins;
-		const { container } = render(<Canteen />);
-		// Click on UPGRADES tab first
-		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
-		fireEvent.click(upgradesTab);
-
-		// Get the first upgrade button (speed)
-		const upgradeItems = container.querySelectorAll(".upgrade-item button");
-		const speedButton = upgradeItems[0];
-		fireEvent.click(speedButton);
-
-		expect(useGameStore.getState().saveData.coins).toBeLessThan(initialCoins);
+	it("should display weapons list in weapons tab", () => {
+		render(<Canteen />);
+		expect(screen.getByText("PISTOL")).toBeInTheDocument();
+		expect(screen.getByText("SMG")).toBeInTheDocument();
+		expect(screen.getByText("RIFLE")).toBeInTheDocument();
+		expect(screen.getByText("SHOTGUN")).toBeInTheDocument();
 	});
 
-	it("should disable purchase when insufficient funds", () => {
-		useGameStore.setState({
-			saveData: {
-				...useGameStore.getState().saveData,
-				coins: 10, // Not enough for any upgrade
-			},
-		});
-
-		const { container } = render(<Canteen />);
-		// Click on UPGRADES tab first
-		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
-		fireEvent.click(upgradesTab);
-
-		// All upgrade buttons should be disabled
-		const upgradeItems = container.querySelectorAll(".upgrade-item button");
-		expect(upgradeItems[0]).toBeDisabled();
+	it("should show UNLOCKED status for owned weapons", () => {
+		render(<Canteen />);
+		expect(screen.getByText("UNLOCKED")).toBeInTheDocument();
 	});
 });
 
-describe("Canteen - Character Shop", () => {
-	beforeEach(() => {
-		useGameStore.setState({
-			mode: "CANTEEN",
-			saveData: {
-				...useGameStore.getState().saveData,
-				coins: 10000,
-				unlockedCharacters: ["bubbles"],
-			},
-		});
-	});
-
-	afterEach(() => {
-		cleanup();
-	});
-
-	it("should display available characters for purchase", () => {
-		render(<Canteen />);
-		// PLATOON tab is active by default, should show character cards
-		expect(screen.getByText("GEN. WHISKERS")).toBeInTheDocument();
-	});
-
-	it("should show character prices in cards", () => {
-		render(<Canteen />);
-		// Locked characters show their price in the card (multiple cards have prices)
-		const priceElements = screen.getAllByText(/\d+ CREDITS/);
-		expect(priceElements.length).toBeGreaterThan(0);
-	});
-
-	it("should open modal when character clicked", () => {
-		render(<Canteen />);
-		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
-		fireEvent.click(whiskersCard);
-
-		// Modal should be visible with character details
-		expect(screen.getByRole("heading", { level: 3, name: "GEN. WHISKERS" })).toBeInTheDocument();
-		expect(screen.getByText(/REQUISITION:/)).toBeInTheDocument();
-	});
-
-	it("should unlock character when purchased from modal", () => {
-		render(<Canteen />);
-		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
-		fireEvent.click(whiskersCard);
-
-		// Now click the purchase button in modal
-		const purchaseButton = screen.getByRole("button", { name: /REQUISITION:/i });
-		fireEvent.click(purchaseButton);
-
-		expect(useGameStore.getState().saveData.unlockedCharacters).toContain("whiskers");
-	});
-
-	it("should close modal when cancel clicked", () => {
-		render(<Canteen />);
-		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
-		fireEvent.click(whiskersCard);
-
-		// Modal should be open
-		expect(screen.getByRole("heading", { level: 3, name: "GEN. WHISKERS" })).toBeInTheDocument();
-
-		// Click cancel button
-		const cancelButton = screen.getByRole("button", { name: /CANCEL/i });
-		fireEvent.click(cancelButton);
-
-		// Modal should be closed (no h3 visible)
-		expect(
-			screen.queryByRole("heading", { level: 3, name: "GEN. WHISKERS" }),
-		).not.toBeInTheDocument();
-	});
-
-	it("should close modal when Escape key is pressed", () => {
-		render(<Canteen />);
-		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
-		fireEvent.click(whiskersCard);
-
-		// Modal should be open
-		expect(screen.getByRole("dialog")).toBeInTheDocument();
-
-		// Press Escape key
-		fireEvent.keyDown(window, { key: "Escape" });
-
-		// Modal should be closed
-		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-	});
-
-	it("should auto-close modal after successful purchase", () => {
-		render(<Canteen />);
-		// Click on Whiskers card to open modal
-		const whiskersCard = screen.getByRole("button", { name: /GEN. WHISKERS/ });
-		fireEvent.click(whiskersCard);
-
-		// Modal should be open
-		expect(screen.getByRole("dialog")).toBeInTheDocument();
-
-		// Click purchase button
-		const purchaseButton = screen.getByRole("button", { name: /REQUISITION:/i });
-		fireEvent.click(purchaseButton);
-
-		// Modal should auto-close after successful purchase
-		expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-		// And character should be unlocked
-		expect(useGameStore.getState().saveData.unlockedCharacters).toContain("whiskers");
-	});
-});
-
-describe("Canteen - Upgrade Levels", () => {
+describe("Canteen - Equipment Tab", () => {
 	beforeEach(() => {
 		useGameStore.setState({
 			mode: "CANTEEN",
 			saveData: {
 				...useGameStore.getState().saveData,
 				coins: 5000,
-				unlockedWeapons: ["service-pistol"],
 				upgrades: {
 					speedBoost: 2,
 					healthBoost: 1,
 					damageBoost: 0,
 					weaponLvl: {
-						"service-pistol": 1,
+						pistol: 1,
 					},
 				},
 			},
@@ -272,24 +124,80 @@ describe("Canteen - Upgrade Levels", () => {
 		cleanup();
 	});
 
-	it("should display upgrade levels", () => {
+	it("should display FIELD UPGRADES when EQUIPMENT tab clicked", () => {
 		render(<Canteen />);
-		// Click on UPGRADES tab first
-		const upgradesTab = screen.getByRole("button", { name: /UPGRADES/i });
-		fireEvent.click(upgradesTab);
+		const equipmentTab = screen.getByText("EQUIPMENT");
+		fireEvent.click(equipmentTab);
 
-		// Should show upgrade names and their levels
-		expect(screen.getByText("SPEED BOOST")).toBeInTheDocument();
-		expect(screen.getByText("Level 2")).toBeInTheDocument();
-		expect(screen.getByText("HEALTH BOOST")).toBeInTheDocument();
-		expect(screen.getByText("Level 1")).toBeInTheDocument();
-		expect(screen.getByText("DAMAGE BOOST")).toBeInTheDocument();
-		expect(screen.getByText("Level 0")).toBeInTheDocument();
+		expect(screen.getByText("FIELD UPGRADES")).toBeInTheDocument();
 	});
 
-	it("should show tabs for navigation", () => {
+	it("should display upgrade names in EQUIPMENT tab", () => {
 		render(<Canteen />);
-		expect(screen.getByRole("button", { name: "PLATOON" })).toBeInTheDocument();
-		expect(screen.getByRole("button", { name: "UPGRADES" })).toBeInTheDocument();
+		const equipmentTab = screen.getByText("EQUIPMENT");
+		fireEvent.click(equipmentTab);
+
+		expect(screen.getByText("Speed Boost")).toBeInTheDocument();
+		expect(screen.getByText("Health Boost")).toBeInTheDocument();
+		expect(screen.getByText("Damage Boost")).toBeInTheDocument();
+	});
+
+	it("should display upgrade levels as fraction in EQUIPMENT tab", () => {
+		render(<Canteen />);
+		const equipmentTab = screen.getByText("EQUIPMENT");
+		fireEvent.click(equipmentTab);
+
+		expect(screen.getByText("2 / 5")).toBeInTheDocument();
+		expect(screen.getByText("1 / 5")).toBeInTheDocument();
+		expect(screen.getByText("0 / 5")).toBeInTheDocument();
+	});
+});
+
+describe("Canteen - Intel Tab", () => {
+	beforeEach(() => {
+		useGameStore.setState({
+			mode: "CANTEEN",
+			saveData: {
+				...useGameStore.getState().saveData,
+				peacekeepingScore: 15,
+				territoryScore: 8,
+				strategicObjectives: {
+					siphonsDismantled: 2,
+					villagesLiberated: 0,
+					gasStockpilesCaptured: 0,
+					healersProtected: 0,
+					alliesRescued: 3,
+				},
+			},
+		});
+	});
+
+	afterEach(() => {
+		cleanup();
+	});
+
+	it("should show MISSION INTELLIGENCE in INTEL tab", () => {
+		render(<Canteen />);
+		const intelTab = screen.getByText("INTEL");
+		fireEvent.click(intelTab);
+
+		expect(screen.getByText("MISSION INTELLIGENCE")).toBeInTheDocument();
+	});
+
+	it("should display peacekeeping score in INTEL tab", () => {
+		render(<Canteen />);
+		const intelTab = screen.getByText("INTEL");
+		fireEvent.click(intelTab);
+
+		expect(screen.getByText("PEACEKEEPING SCORE")).toBeInTheDocument();
+		expect(screen.getByText("15")).toBeInTheDocument();
+	});
+
+	it("should display rank progression in INTEL tab", () => {
+		render(<Canteen />);
+		const intelTab = screen.getByText("INTEL");
+		fireEvent.click(intelTab);
+
+		expect(screen.getByText("RANK PROGRESSION")).toBeInTheDocument();
 	});
 });

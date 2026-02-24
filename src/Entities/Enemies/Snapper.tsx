@@ -3,107 +3,170 @@
  * Stationary, heavily armored turtles with mounted heavy weapons
  */
 
-import { useFrame } from "@react-three/fiber";
+import { Color3, Vector3 } from "@babylonjs/core";
 import { useEffect, useRef, useState } from "react";
-import type { Group } from "three";
-import * as THREE from "three";
+import { useScene } from "reactylon";
 import type { EnemyProps, SnapperData } from "./types";
 
 export function Snapper({ data, targetPosition, onDeath }: EnemyProps<SnapperData>) {
-	const groupRef = useRef<Group>(null);
-	const turretRef = useRef<Group>(null);
+	const scene = useScene();
 	const [isFiring, setIsFiring] = useState(false);
+	const lastTimeRef = useRef<number | null>(null);
 
-	// Check if dead
+	// Death callback
 	useEffect(() => {
 		if (data.hp <= 0 && onDeath) {
 			onDeath(data.id);
 		}
 	}, [data.hp, data.id, onDeath]);
 
-	useFrame((state, _delta) => {
-		if (!groupRef.current || !turretRef.current) return;
+	// Firing logic via observable
+	useEffect(() => {
+		if (!scene) return;
 
-		const distanceToPlayer = groupRef.current.position.distanceTo(targetPosition);
+		const obs = scene.onBeforeRenderObservable.add(() => {
+			const now = performance.now() / 1000;
+			if (lastTimeRef.current === null) {
+				lastTimeRef.current = now;
+				return;
+			}
+			lastTimeRef.current = now;
 
-		if (distanceToPlayer < 25) {
-			const lookDir = targetPosition.clone().sub(groupRef.current.position);
-			const targetAngle = Math.atan2(lookDir.x, lookDir.z);
-			turretRef.current.rotation.y = THREE.MathUtils.lerp(
-				turretRef.current.rotation.y,
-				targetAngle,
-				0.05,
-			);
+			const dx = data.position.x - targetPosition.x;
+			const dz = data.position.z - targetPosition.z;
+			const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
 
-			setIsFiring(Math.sin(state.clock.elapsedTime * 10) > 0.8);
-		} else {
-			setIsFiring(false);
-		}
+			if (distanceToPlayer < 25 && data.suppression <= 0.7) {
+				setIsFiring(Math.sin(now * 10) > 0.8);
+			} else {
+				setIsFiring(false);
+			}
+		});
 
-		// Suppression logic for snappers
-		if (data.suppression > 0.7) {
-			setIsFiring(false); // Overheated/Suppressed
-		}
-	});
+		return () => {
+			scene.onBeforeRenderObservable.remove(obs);
+		};
+	}, [scene, data.position.x, data.position.z, data.suppression, targetPosition]);
 
-	const shellColor = "#3d3329";
-	const bodyColor = "#2d3d19";
+	const shellColor = new Color3(0.239, 0.2, 0.161);
+	const bodyColor = new Color3(0.176, 0.239, 0.098);
+	const darkMetal = new Color3(0.067, 0.067, 0.067);
+	const muzzleColor = new Color3(1.0, 0.667, 0.0);
+
+	// Turret facing angle toward target
+	const dx = targetPosition.x - data.position.x;
+	const dz = targetPosition.z - data.position.z;
+	const turretAngle = Math.atan2(dx, dz);
 
 	return (
-		<group ref={groupRef} position={[data.position.x, 0.2, data.position.z]}>
-			<mesh castShadow receiveShadow>
-				<sphereGeometry args={[1.5, 40, 32, 0, Math.PI * 2, 0, Math.PI / 2]} />
-				<meshStandardMaterial color={shellColor} roughness={1} />
-			</mesh>
+		<transformNode
+			name={`snapper-${data.id}`}
+			position={new Vector3(data.position.x, 0.2, data.position.z)}
+		>
+			{/* Dome shell - upper hemisphere approximated as sphere with offset */}
+			<sphere name={`shell-${data.id}`} options={{ diameter: 3, segments: 20 }} positionY={0}>
+				<standardMaterial name={`shellMat-${data.id}`} diffuseColor={shellColor} />
+			</sphere>
 
-			{[...Array(8)].map((_, i) => (
-				<mesh
-					key={`spike-${data.id}-${i}`}
-					position={[
-						Math.cos((i / 8) * Math.PI * 2) * 1.2,
-						0.5,
-						Math.sin((i / 8) * Math.PI * 2) * 1.2,
-					]}
-					rotation-x={-0.5}
+			{/* Rim spikes around shell */}
+			{Array.from({ length: 8 }, (_, i) => {
+				const angle = (i / 8) * Math.PI * 2;
+				return (
+					<sphere
+						key={`spike-${data.id}-${i}`}
+						name={`spike-${data.id}-${i}`}
+						options={{ diameter: 0.4, segments: 10 }}
+						positionX={Math.cos(angle) * 1.2}
+						positionY={0.5}
+						positionZ={Math.sin(angle) * 1.2}
+					>
+						<standardMaterial name={`spikeMat-${data.id}-${i}`} diffuseColor={shellColor} />
+					</sphere>
+				);
+			})}
+
+			{/* Turret mount */}
+			<transformNode name={`turret-${data.id}`} positionY={0.8} rotationY={turretAngle}>
+				{/* Turret body */}
+				<cylinder
+					name={`turretBody-${data.id}`}
+					options={{ diameterTop: 0.4, diameterBottom: 0.4, height: 0.8, tessellation: 12 }}
 				>
-					<sphereGeometry args={[0.2, 16, 16]} />
-					<meshStandardMaterial color={shellColor} />
-				</mesh>
-			))}
+					<standardMaterial name={`turretBodyMat-${data.id}`} diffuseColor={darkMetal} />
+				</cylinder>
+				{/* Barrel */}
+				<cylinder
+					name={`barrel-${data.id}`}
+					options={{ diameterTop: 0.2, diameterBottom: 0.2, height: 1.5, tessellation: 16 }}
+					positionZ={0.8}
+					rotationX={Math.PI / 2}
+				>
+					<standardMaterial
+						name={`barrelMat-${data.id}`}
+						diffuseColor={new Color3(0.133, 0.133, 0.133)}
+					/>
+				</cylinder>
 
-			<group ref={turretRef} position={[0, 0.8, 0]}>
-				<mesh castShadow>
-					<capsuleGeometry args={[0.2, 0.8, 12, 24]} />
-					<meshStandardMaterial color="#111" metalness={0.8} />
-				</mesh>
-				<mesh position={[0, 0, 0.8]} rotation-x={Math.PI / 2}>
-					<cylinderGeometry args={[0.1, 0.1, 1.5, 32]} />
-					<meshStandardMaterial color="#222" metalness={0.9} />
-				</mesh>
+				{/* Muzzle flash when firing */}
 				{isFiring && (
-					<mesh position={[0, 0, 1.6]}>
-						<sphereGeometry args={[0.3, 24, 24]} />
-						<meshBasicMaterial color="#ffaa00" transparent opacity={0.8} />
-						<pointLight distance={5} intensity={2} color="#ffaa00" />
-					</mesh>
+					<>
+						<sphere
+							name={`flash-${data.id}`}
+							options={{ diameter: 0.6, segments: 12 }}
+							positionZ={1.6}
+						>
+							<standardMaterial
+								name={`flashMat-${data.id}`}
+								diffuseColor={muzzleColor}
+								emissiveColor={muzzleColor}
+								alpha={0.8}
+							/>
+						</sphere>
+						<pointLight
+							name={`muzzleLight-${data.id}`}
+							position={new Vector3(0, 0, 1.6)}
+							intensity={2}
+							diffuse={muzzleColor}
+						/>
+					</>
 				)}
-			</group>
+			</transformNode>
 
-			<mesh position={[0, 0.3, 1.4]} rotation-x={0.2} scale={[1, 0.8, 1.2]}>
-				<sphereGeometry args={[0.4, 24, 24]} />
-				<meshStandardMaterial color={bodyColor} />
-			</mesh>
+			{/* Head/Neck peeking out front */}
+			<sphere
+				name={`head-${data.id}`}
+				options={{ diameter: 0.8, segments: 12 }}
+				positionY={0.3}
+				positionZ={1.4}
+			>
+				<standardMaterial name={`headMat-${data.id}`} diffuseColor={bodyColor} />
+			</sphere>
 
-			<group position={[0, 2.5, 0]}>
-				<mesh>
-					<planeGeometry args={[2, 0.1]} />
-					<meshBasicMaterial color="#000" transparent opacity={0.5} />
-				</mesh>
-				<mesh position={[-(1 - data.hp / data.maxHp) * 1, 0, 0.01]} scale-x={data.hp / data.maxHp}>
-					<planeGeometry args={[2, 0.1]} />
-					<meshBasicMaterial color="#ffff00" />
-				</mesh>
-			</group>
-		</group>
+			{/* Health bar background */}
+			<box
+				name={`hpBg-${data.id}`}
+				options={{ width: 2.0, height: 0.1, depth: 0.01 }}
+				positionY={2.5}
+			>
+				<standardMaterial
+					name={`hpBgMat-${data.id}`}
+					diffuseColor={new Color3(0, 0, 0)}
+					alpha={0.5}
+				/>
+			</box>
+			{/* Health bar fill */}
+			<box
+				name={`hpFill-${data.id}`}
+				options={{ width: 2.0 * (data.hp / data.maxHp), height: 0.1, depth: 0.011 }}
+				positionY={2.5}
+				positionX={-(1 - data.hp / data.maxHp) * 1.0}
+			>
+				<standardMaterial
+					name={`hpFillMat-${data.id}`}
+					diffuseColor={new Color3(1.0, 1.0, 0.0)}
+					emissiveColor={new Color3(0.5, 0.5, 0)}
+				/>
+			</box>
+		</transformNode>
 	);
 }

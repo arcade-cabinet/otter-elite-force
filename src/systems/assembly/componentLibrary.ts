@@ -9,7 +9,112 @@
  * 5. Structural components are faction-agnostic with material variants
  */
 
-import * as THREE from "three";
+import { Vector3 } from "@babylonjs/core";
+
+// =============================================================================
+// STUB CLASSES (replace Three.js dependencies)
+// =============================================================================
+
+/**
+ * Parses a hex color string like '#RRGGBB' into { r, g, b } floats (0-1)
+ */
+function parseHexColor(hex: string): { r: number; g: number; b: number } {
+	const n = parseInt(hex.replace('#', ''), 16);
+	return { r: ((n >> 16) & 0xff) / 255, g: ((n >> 8) & 0xff) / 255, b: (n & 0xff) / 255 };
+}
+
+/** Minimal color helper that supports getHexString() for test compatibility */
+class StubColor {
+	r: number;
+	g: number;
+	b: number;
+	constructor(hex: string) {
+		const c = parseHexColor(hex);
+		this.r = c.r;
+		this.g = c.g;
+		this.b = c.b;
+	}
+	getHexString(): string {
+		const r = Math.round(this.r * 255).toString(16).padStart(2, '0');
+		const g = Math.round(this.g * 255).toString(16).padStart(2, '0');
+		const b = Math.round(this.b * 255).toString(16).padStart(2, '0');
+		return r + g + b;
+	}
+}
+
+/** Stub material - replaces THREE.MeshStandardMaterial */
+export class StubMaterial {
+	color: StubColor;
+	roughness: number;
+	metalness: number;
+	transparent: boolean;
+	opacity: number;
+	type = 'standard' as const;
+	constructor(params: { color: string; roughness: number; metalness: number; transparent: boolean; opacity: number }) {
+		this.color = new StubColor(params.color);
+		this.roughness = params.roughness;
+		this.metalness = params.metalness;
+		this.transparent = params.transparent;
+		this.opacity = params.opacity;
+	}
+}
+
+/** Stub geometry - replaces THREE.BufferGeometry and its subclasses */
+export class StubGeometry {
+	geometryType: string;
+	params: number[];
+	constructor(geometryType: string, params: number[]) {
+		this.geometryType = geometryType;
+		this.params = params;
+	}
+}
+
+export class StubBoxGeometry extends StubGeometry {
+	constructor(...params: number[]) { super('BOX', params); }
+}
+export class StubCylinderGeometry extends StubGeometry {
+	constructor(...params: number[]) { super('CYLINDER', params); }
+}
+export class StubSphereGeometry extends StubGeometry {
+	constructor(...params: number[]) { super('SPHERE', params); }
+}
+export class StubCapsuleGeometry extends StubGeometry {
+	constructor(...params: number[]) { super('CAPSULE', params); }
+}
+export class StubConeGeometry extends StubGeometry {
+	constructor(...params: number[]) { super('CONE', params); }
+}
+export class StubTorusGeometry extends StubGeometry {
+	constructor(...params: number[]) { super('TORUS', params); }
+}
+
+/** Stub mesh - replaces THREE.Mesh */
+export class StubMesh {
+	geometry: StubGeometry;
+	material: StubMaterial;
+	scale: Vector3;
+	castShadow = false;
+	receiveShadow = false;
+	userData: Record<string, unknown> = {};
+	constructor(geometry: StubGeometry, material: StubMaterial) {
+		this.geometry = geometry;
+		this.material = material;
+		this.scale = new Vector3(1, 1, 1);
+	}
+}
+
+/** Stub Euler - replaces THREE.Euler, used for rotation values */
+export class StubEuler {
+	x: number;
+	y: number;
+	z: number;
+	constructor(x = 0, y = 0, z = 0) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+}
+
 
 // =============================================================================
 // FACTION MATERIAL PALETTES
@@ -124,7 +229,7 @@ export type JointName =
 export interface JointDef {
 	name: JointName;
 	parent: JointName | null;
-	localPosition: THREE.Vector3;
+	localPosition: Vector3;
 	rotationLimits: {
 		x: { min: number; max: number };
 		y: { min: number; max: number };
@@ -141,7 +246,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "ROOT",
 		parent: null,
-		localPosition: new THREE.Vector3(0, 0, 0),
+		localPosition: new Vector3(0, 0, 0),
 		rotationLimits: {
 			x: { min: -Math.PI, max: Math.PI },
 			y: { min: -Math.PI, max: Math.PI },
@@ -151,7 +256,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "PELVIS",
 		parent: "ROOT",
-		localPosition: new THREE.Vector3(0, 0.4, 0),
+		localPosition: new Vector3(0, 0.4, 0),
 		rotationLimits: {
 			x: { min: -0.3, max: 0.3 },
 			y: { min: -0.5, max: 0.5 },
@@ -161,7 +266,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "SPINE_LOWER",
 		parent: "PELVIS",
-		localPosition: new THREE.Vector3(0, 0.15, 0),
+		localPosition: new Vector3(0, 0.15, 0),
 		rotationLimits: {
 			x: { min: -0.4, max: 0.4 },
 			y: { min: -0.3, max: 0.3 },
@@ -171,7 +276,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "SPINE_UPPER",
 		parent: "SPINE_LOWER",
-		localPosition: new THREE.Vector3(0, 0.2, 0),
+		localPosition: new Vector3(0, 0.2, 0),
 		rotationLimits: {
 			x: { min: -0.3, max: 0.5 },
 			y: { min: -0.4, max: 0.4 },
@@ -181,7 +286,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "NECK",
 		parent: "SPINE_UPPER",
-		localPosition: new THREE.Vector3(0, 0.15, 0),
+		localPosition: new Vector3(0, 0.15, 0),
 		rotationLimits: {
 			x: { min: -0.5, max: 0.5 },
 			y: { min: -0.8, max: 0.8 },
@@ -191,7 +296,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "HEAD",
 		parent: "NECK",
-		localPosition: new THREE.Vector3(0, 0.12, 0.02),
+		localPosition: new Vector3(0, 0.12, 0.02),
 		rotationLimits: {
 			x: { min: -0.6, max: 0.4 },
 			y: { min: -0.9, max: 0.9 },
@@ -203,7 +308,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "SHOULDER_L",
 		parent: "SPINE_UPPER",
-		localPosition: new THREE.Vector3(-0.12, 0.1, 0),
+		localPosition: new Vector3(-0.12, 0.1, 0),
 		rotationLimits: {
 			x: { min: -0.5, max: 0.5 },
 			y: { min: -0.3, max: 0.3 },
@@ -213,7 +318,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "UPPER_ARM_L",
 		parent: "SHOULDER_L",
-		localPosition: new THREE.Vector3(-0.08, 0, 0),
+		localPosition: new Vector3(-0.08, 0, 0),
 		rotationLimits: {
 			x: { min: -Math.PI, max: Math.PI },
 			y: { min: -0.3, max: Math.PI },
@@ -223,13 +328,13 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "ELBOW_L",
 		parent: "UPPER_ARM_L",
-		localPosition: new THREE.Vector3(-0.12, 0, 0),
+		localPosition: new Vector3(-0.12, 0, 0),
 		rotationLimits: { x: { min: 0, max: 0 }, y: { min: 0, max: 2.5 }, z: { min: 0, max: 0 } }, // Elbow only bends one way
 	},
 	{
 		name: "FOREARM_L",
 		parent: "ELBOW_L",
-		localPosition: new THREE.Vector3(-0.05, 0, 0),
+		localPosition: new Vector3(-0.05, 0, 0),
 		rotationLimits: {
 			x: { min: -Math.PI / 2, max: Math.PI / 2 },
 			y: { min: 0, max: 0 },
@@ -239,7 +344,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "WRIST_L",
 		parent: "FOREARM_L",
-		localPosition: new THREE.Vector3(-0.1, 0, 0),
+		localPosition: new Vector3(-0.1, 0, 0),
 		rotationLimits: {
 			x: { min: -0.8, max: 0.8 },
 			y: { min: -0.5, max: 0.5 },
@@ -249,7 +354,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "HAND_L",
 		parent: "WRIST_L",
-		localPosition: new THREE.Vector3(-0.05, 0, 0),
+		localPosition: new Vector3(-0.05, 0, 0),
 		rotationLimits: {
 			x: { min: -0.3, max: 0.3 },
 			y: { min: -0.2, max: 0.2 },
@@ -259,7 +364,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "GRIP_L",
 		parent: "HAND_L",
-		localPosition: new THREE.Vector3(-0.03, 0, 0.02),
+		localPosition: new Vector3(-0.03, 0, 0.02),
 		rotationLimits: { x: { min: 0, max: 0 }, y: { min: 0, max: 0 }, z: { min: 0, max: 0 } }, // Grip point doesn't rotate independently
 	},
 
@@ -267,7 +372,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "SHOULDER_R",
 		parent: "SPINE_UPPER",
-		localPosition: new THREE.Vector3(0.12, 0.1, 0),
+		localPosition: new Vector3(0.12, 0.1, 0),
 		rotationLimits: {
 			x: { min: -0.5, max: 0.5 },
 			y: { min: -0.3, max: 0.3 },
@@ -277,7 +382,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "UPPER_ARM_R",
 		parent: "SHOULDER_R",
-		localPosition: new THREE.Vector3(0.08, 0, 0),
+		localPosition: new Vector3(0.08, 0, 0),
 		rotationLimits: {
 			x: { min: -Math.PI, max: Math.PI },
 			y: { min: -Math.PI, max: 0.3 },
@@ -287,13 +392,13 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "ELBOW_R",
 		parent: "UPPER_ARM_R",
-		localPosition: new THREE.Vector3(0.12, 0, 0),
+		localPosition: new Vector3(0.12, 0, 0),
 		rotationLimits: { x: { min: 0, max: 0 }, y: { min: -2.5, max: 0 }, z: { min: 0, max: 0 } },
 	},
 	{
 		name: "FOREARM_R",
 		parent: "ELBOW_R",
-		localPosition: new THREE.Vector3(0.05, 0, 0),
+		localPosition: new Vector3(0.05, 0, 0),
 		rotationLimits: {
 			x: { min: -Math.PI / 2, max: Math.PI / 2 },
 			y: { min: 0, max: 0 },
@@ -303,7 +408,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "WRIST_R",
 		parent: "FOREARM_R",
-		localPosition: new THREE.Vector3(0.1, 0, 0),
+		localPosition: new Vector3(0.1, 0, 0),
 		rotationLimits: {
 			x: { min: -0.8, max: 0.8 },
 			y: { min: -0.5, max: 0.5 },
@@ -313,7 +418,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "HAND_R",
 		parent: "WRIST_R",
-		localPosition: new THREE.Vector3(0.05, 0, 0),
+		localPosition: new Vector3(0.05, 0, 0),
 		rotationLimits: {
 			x: { min: -0.3, max: 0.3 },
 			y: { min: -0.2, max: 0.2 },
@@ -323,7 +428,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "GRIP_R",
 		parent: "HAND_R",
-		localPosition: new THREE.Vector3(0.03, 0, 0.02),
+		localPosition: new Vector3(0.03, 0, 0.02),
 		rotationLimits: { x: { min: 0, max: 0 }, y: { min: 0, max: 0 }, z: { min: 0, max: 0 } },
 	},
 
@@ -331,7 +436,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "HIP_L",
 		parent: "PELVIS",
-		localPosition: new THREE.Vector3(-0.06, -0.05, 0),
+		localPosition: new Vector3(-0.06, -0.05, 0),
 		rotationLimits: {
 			x: { min: -0.2, max: 0.2 },
 			y: { min: -0.1, max: 0.1 },
@@ -341,7 +446,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "UPPER_LEG_L",
 		parent: "HIP_L",
-		localPosition: new THREE.Vector3(0, -0.02, 0),
+		localPosition: new Vector3(0, -0.02, 0),
 		rotationLimits: {
 			x: { min: -1.8, max: 0.5 },
 			y: { min: -0.3, max: 0.5 },
@@ -351,19 +456,19 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "KNEE_L",
 		parent: "UPPER_LEG_L",
-		localPosition: new THREE.Vector3(0, -0.15, 0),
+		localPosition: new Vector3(0, -0.15, 0),
 		rotationLimits: { x: { min: 0, max: 2.5 }, y: { min: 0, max: 0 }, z: { min: 0, max: 0 } }, // Knee only bends one way
 	},
 	{
 		name: "LOWER_LEG_L",
 		parent: "KNEE_L",
-		localPosition: new THREE.Vector3(0, -0.05, 0),
+		localPosition: new Vector3(0, -0.05, 0),
 		rotationLimits: { x: { min: 0, max: 0 }, y: { min: 0, max: 0 }, z: { min: 0, max: 0 } },
 	},
 	{
 		name: "ANKLE_L",
 		parent: "LOWER_LEG_L",
-		localPosition: new THREE.Vector3(0, -0.12, 0),
+		localPosition: new Vector3(0, -0.12, 0),
 		rotationLimits: {
 			x: { min: -0.5, max: 0.8 },
 			y: { min: -0.3, max: 0.3 },
@@ -373,7 +478,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "FOOT_L",
 		parent: "ANKLE_L",
-		localPosition: new THREE.Vector3(0, -0.03, 0.04),
+		localPosition: new Vector3(0, -0.03, 0.04),
 		rotationLimits: {
 			x: { min: -0.3, max: 0.3 },
 			y: { min: -0.2, max: 0.2 },
@@ -385,7 +490,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "HIP_R",
 		parent: "PELVIS",
-		localPosition: new THREE.Vector3(0.06, -0.05, 0),
+		localPosition: new Vector3(0.06, -0.05, 0),
 		rotationLimits: {
 			x: { min: -0.2, max: 0.2 },
 			y: { min: -0.1, max: 0.1 },
@@ -395,7 +500,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "UPPER_LEG_R",
 		parent: "HIP_R",
-		localPosition: new THREE.Vector3(0, -0.02, 0),
+		localPosition: new Vector3(0, -0.02, 0),
 		rotationLimits: {
 			x: { min: -1.8, max: 0.5 },
 			y: { min: -0.5, max: 0.3 },
@@ -405,19 +510,19 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "KNEE_R",
 		parent: "UPPER_LEG_R",
-		localPosition: new THREE.Vector3(0, -0.15, 0),
+		localPosition: new Vector3(0, -0.15, 0),
 		rotationLimits: { x: { min: 0, max: 2.5 }, y: { min: 0, max: 0 }, z: { min: 0, max: 0 } },
 	},
 	{
 		name: "LOWER_LEG_R",
 		parent: "KNEE_R",
-		localPosition: new THREE.Vector3(0, -0.05, 0),
+		localPosition: new Vector3(0, -0.05, 0),
 		rotationLimits: { x: { min: 0, max: 0 }, y: { min: 0, max: 0 }, z: { min: 0, max: 0 } },
 	},
 	{
 		name: "ANKLE_R",
 		parent: "LOWER_LEG_R",
-		localPosition: new THREE.Vector3(0, -0.12, 0),
+		localPosition: new Vector3(0, -0.12, 0),
 		rotationLimits: {
 			x: { min: -0.5, max: 0.8 },
 			y: { min: -0.3, max: 0.3 },
@@ -427,7 +532,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "FOOT_R",
 		parent: "ANKLE_R",
-		localPosition: new THREE.Vector3(0, -0.03, 0.04),
+		localPosition: new Vector3(0, -0.03, 0.04),
 		rotationLimits: {
 			x: { min: -0.3, max: 0.3 },
 			y: { min: -0.2, max: 0.2 },
@@ -439,7 +544,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "TAIL_BASE",
 		parent: "PELVIS",
-		localPosition: new THREE.Vector3(0, 0, -0.08),
+		localPosition: new Vector3(0, 0, -0.08),
 		rotationLimits: {
 			x: { min: -0.5, max: 0.8 },
 			y: { min: -0.6, max: 0.6 },
@@ -449,7 +554,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "TAIL_MID",
 		parent: "TAIL_BASE",
-		localPosition: new THREE.Vector3(0, 0, -0.12),
+		localPosition: new Vector3(0, 0, -0.12),
 		rotationLimits: {
 			x: { min: -0.6, max: 0.6 },
 			y: { min: -0.8, max: 0.8 },
@@ -459,7 +564,7 @@ export const UNIVERSAL_SKELETON: JointDef[] = [
 	{
 		name: "TAIL_TIP",
 		parent: "TAIL_MID",
-		localPosition: new THREE.Vector3(0, 0, -0.1),
+		localPosition: new Vector3(0, 0, -0.1),
 		rotationLimits: {
 			x: { min: -0.8, max: 0.8 },
 			y: { min: -1, max: 1 },
@@ -536,8 +641,8 @@ export interface MeshDef {
 	id: MeshId;
 	geometryType: "BOX" | "CYLINDER" | "SPHERE" | "CAPSULE" | "CONE" | "TORUS" | "CUSTOM";
 	geometryParams: number[]; // Parameters for THREE geometry constructor
-	defaultScale: THREE.Vector3;
-	attachmentPoints?: { name: string; position: THREE.Vector3; rotation: THREE.Euler }[];
+	defaultScale: Vector3;
+	attachmentPoints?: { name: string; position: Vector3; rotation: Vector3 }[];
 }
 
 /**
@@ -549,85 +654,85 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "STILT_ROUND",
 		geometryType: "CYLINDER",
 		geometryParams: [0.06, 0.06, 1, 8], // radiusTop, radiusBottom, height, segments
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	STILT_SQUARE: {
 		id: "STILT_SQUARE",
 		geometryType: "BOX",
 		geometryParams: [0.12, 1, 0.12],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	FLOOR_PLANK: {
 		id: "FLOOR_PLANK",
 		geometryType: "BOX",
 		geometryParams: [1, 0.04, 0.15],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	FLOOR_SECTION_2X2: {
 		id: "FLOOR_SECTION_2X2",
 		geometryType: "BOX",
 		geometryParams: [2, 0.08, 2],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	WALL_FRAME: {
 		id: "WALL_FRAME",
 		geometryType: "BOX",
 		geometryParams: [2, 1.8, 0.08],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	WALL_BAMBOO_SLATS: {
 		id: "WALL_BAMBOO_SLATS",
 		geometryType: "BOX",
 		geometryParams: [2, 1.8, 0.05],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	WALL_THATCH_PANEL: {
 		id: "WALL_THATCH_PANEL",
 		geometryType: "BOX",
 		geometryParams: [2, 1.8, 0.1],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	ROOF_BEAM: {
 		id: "ROOF_BEAM",
 		geometryType: "BOX",
 		geometryParams: [0.1, 0.1, 3],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	ROOF_THATCH_SECTION: {
 		id: "ROOF_THATCH_SECTION",
 		geometryType: "BOX",
 		geometryParams: [2, 0.15, 2],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	ROOF_TIN_SECTION: {
 		id: "ROOF_TIN_SECTION",
 		geometryType: "BOX",
 		geometryParams: [2, 0.02, 2],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	LADDER_SEGMENT: {
 		id: "LADDER_SEGMENT",
 		geometryType: "BOX",
 		geometryParams: [0.4, 1, 0.08],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	RAILING_SECTION: {
 		id: "RAILING_SECTION",
 		geometryType: "BOX",
 		geometryParams: [2, 0.8, 0.04],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	ROPE_COIL: {
 		id: "ROPE_COIL",
 		geometryType: "TORUS",
 		geometryParams: [0.15, 0.02, 8, 16],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	ROPE_BINDING: {
 		id: "ROPE_BINDING",
 		geometryType: "CYLINDER",
 		geometryParams: [0.08, 0.08, 0.1, 8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 
 	// Weapon Parts
@@ -635,12 +740,12 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "BARREL_SHORT",
 		geometryType: "CYLINDER",
 		geometryParams: [0.015, 0.015, 0.3, 8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 		attachmentPoints: [
 			{
 				name: "MUZZLE",
-				position: new THREE.Vector3(0, 0, 0.15),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, 0, 0.15),
+				rotation: new Vector3(0, 0, 0),
 			},
 		],
 	},
@@ -648,12 +753,12 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "BARREL_LONG",
 		geometryType: "CYLINDER",
 		geometryParams: [0.012, 0.012, 0.5, 8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 		attachmentPoints: [
 			{
 				name: "MUZZLE",
-				position: new THREE.Vector3(0, 0, 0.25),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, 0, 0.25),
+				rotation: new Vector3(0, 0, 0),
 			},
 		],
 	},
@@ -661,12 +766,12 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "BARREL_DOUBLE",
 		geometryType: "CYLINDER",
 		geometryParams: [0.025, 0.025, 0.4, 8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 		attachmentPoints: [
 			{
 				name: "MUZZLE",
-				position: new THREE.Vector3(0, 0, 0.2),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, 0, 0.2),
+				rotation: new Vector3(0, 0, 0),
 			},
 		],
 	},
@@ -674,22 +779,22 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "RECEIVER_PISTOL",
 		geometryType: "BOX",
 		geometryParams: [0.03, 0.08, 0.12],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 		attachmentPoints: [
 			{
 				name: "BARREL",
-				position: new THREE.Vector3(0, 0.02, 0.06),
-				rotation: new THREE.Euler(Math.PI / 2, 0, 0),
+				position: new Vector3(0, 0.02, 0.06),
+				rotation: new Vector3(Math.PI / 2, 0, 0),
 			},
 			{
 				name: "MAGAZINE",
-				position: new THREE.Vector3(0, -0.04, 0),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, -0.04, 0),
+				rotation: new Vector3(0, 0, 0),
 			},
 			{
 				name: "GRIP",
-				position: new THREE.Vector3(0, -0.04, -0.02),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, -0.04, -0.02),
+				rotation: new Vector3(0, 0, 0),
 			},
 		],
 	},
@@ -697,32 +802,32 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "RECEIVER_RIFLE",
 		geometryType: "BOX",
 		geometryParams: [0.04, 0.06, 0.2],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 		attachmentPoints: [
 			{
 				name: "BARREL",
-				position: new THREE.Vector3(0, 0.01, 0.1),
-				rotation: new THREE.Euler(Math.PI / 2, 0, 0),
+				position: new Vector3(0, 0.01, 0.1),
+				rotation: new Vector3(Math.PI / 2, 0, 0),
 			},
 			{
 				name: "MAGAZINE",
-				position: new THREE.Vector3(0, -0.03, 0.02),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, -0.03, 0.02),
+				rotation: new Vector3(0, 0, 0),
 			},
 			{
 				name: "STOCK",
-				position: new THREE.Vector3(0, 0, -0.1),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, 0, -0.1),
+				rotation: new Vector3(0, 0, 0),
 			},
 			{
 				name: "OPTIC",
-				position: new THREE.Vector3(0, 0.03, 0),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, 0.03, 0),
+				rotation: new Vector3(0, 0, 0),
 			},
 			{
 				name: "GRIP",
-				position: new THREE.Vector3(0, -0.03, -0.05),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, -0.03, -0.05),
+				rotation: new Vector3(0, 0, 0),
 			},
 		],
 	},
@@ -730,22 +835,22 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "RECEIVER_SHOTGUN",
 		geometryType: "BOX",
 		geometryParams: [0.05, 0.07, 0.18],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 		attachmentPoints: [
 			{
 				name: "BARREL",
-				position: new THREE.Vector3(0, 0.02, 0.09),
-				rotation: new THREE.Euler(Math.PI / 2, 0, 0),
+				position: new Vector3(0, 0.02, 0.09),
+				rotation: new Vector3(Math.PI / 2, 0, 0),
 			},
 			{
 				name: "STOCK",
-				position: new THREE.Vector3(0, 0, -0.09),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, 0, -0.09),
+				rotation: new Vector3(0, 0, 0),
 			},
 			{
 				name: "GRIP",
-				position: new THREE.Vector3(0, -0.035, -0.03),
-				rotation: new THREE.Euler(0, 0, 0),
+				position: new Vector3(0, -0.035, -0.03),
+				rotation: new Vector3(0, 0, 0),
 			},
 		],
 	},
@@ -753,49 +858,49 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "STOCK_WOOD",
 		geometryType: "BOX",
 		geometryParams: [0.03, 0.12, 0.2],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	STOCK_TACTICAL: {
 		id: "STOCK_TACTICAL",
 		geometryType: "BOX",
 		geometryParams: [0.025, 0.08, 0.18],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	GRIP_PISTOL: {
 		id: "GRIP_PISTOL",
 		geometryType: "BOX",
 		geometryParams: [0.025, 0.08, 0.03],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	GRIP_VERTICAL: {
 		id: "GRIP_VERTICAL",
 		geometryType: "CYLINDER",
 		geometryParams: [0.015, 0.015, 0.06, 8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	MAGAZINE_BOX: {
 		id: "MAGAZINE_BOX",
 		geometryType: "BOX",
 		geometryParams: [0.02, 0.08, 0.025],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	MAGAZINE_DRUM: {
 		id: "MAGAZINE_DRUM",
 		geometryType: "CYLINDER",
 		geometryParams: [0.04, 0.04, 0.03, 12],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	SCOPE_IRON: {
 		id: "SCOPE_IRON",
 		geometryType: "BOX",
 		geometryParams: [0.01, 0.02, 0.04],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	SCOPE_RED_DOT: {
 		id: "SCOPE_RED_DOT",
 		geometryType: "CYLINDER",
 		geometryParams: [0.015, 0.015, 0.04, 8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 
 	// Character Parts
@@ -803,73 +908,73 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "TORSO_OTTER",
 		geometryType: "CAPSULE",
 		geometryParams: [0.12, 0.25, 4, 8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	TORSO_GATOR: {
 		id: "TORSO_GATOR",
 		geometryType: "BOX",
 		geometryParams: [0.4, 0.25, 0.8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	TORSO_SNAKE: {
 		id: "TORSO_SNAKE",
 		geometryType: "CYLINDER",
 		geometryParams: [0.08, 0.06, 0.4, 8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	HEAD_OTTER: {
 		id: "HEAD_OTTER",
 		geometryType: "SPHERE",
 		geometryParams: [0.1, 12, 8],
-		defaultScale: new THREE.Vector3(1, 0.9, 1.1),
+		defaultScale: new Vector3(1, 0.9, 1.1),
 	},
 	HEAD_GATOR: {
 		id: "HEAD_GATOR",
 		geometryType: "BOX",
 		geometryParams: [0.2, 0.12, 0.35],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	HEAD_SNAKE: {
 		id: "HEAD_SNAKE",
 		geometryType: "SPHERE",
 		geometryParams: [0.06, 8, 6],
-		defaultScale: new THREE.Vector3(1, 0.8, 1.3),
+		defaultScale: new Vector3(1, 0.8, 1.3),
 	},
 	ARM_SEGMENT: {
 		id: "ARM_SEGMENT",
 		geometryType: "CAPSULE",
 		geometryParams: [0.03, 0.1, 4, 6],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	LEG_SEGMENT: {
 		id: "LEG_SEGMENT",
 		geometryType: "CAPSULE",
 		geometryParams: [0.04, 0.12, 4, 6],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	HAND_PAW: {
 		id: "HAND_PAW",
 		geometryType: "SPHERE",
 		geometryParams: [0.035, 8, 6],
-		defaultScale: new THREE.Vector3(1.2, 0.8, 1),
+		defaultScale: new Vector3(1.2, 0.8, 1),
 	},
 	FOOT_PAW: {
 		id: "FOOT_PAW",
 		geometryType: "BOX",
 		geometryParams: [0.05, 0.02, 0.08],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	TAIL_OTTER: {
 		id: "TAIL_OTTER",
 		geometryType: "CAPSULE",
 		geometryParams: [0.04, 0.2, 4, 6],
-		defaultScale: new THREE.Vector3(1, 0.6, 1),
+		defaultScale: new Vector3(1, 0.6, 1),
 	},
 	TAIL_GATOR: {
 		id: "TAIL_GATOR",
 		geometryType: "BOX",
 		geometryParams: [0.15, 0.1, 0.6],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 
 	// Equipment
@@ -877,43 +982,43 @@ export const MESH_LIBRARY: Record<MeshId, MeshDef> = {
 		id: "VEST_TACTICAL",
 		geometryType: "BOX",
 		geometryParams: [0.28, 0.22, 0.14],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	VEST_LIGHT: {
 		id: "VEST_LIGHT",
 		geometryType: "BOX",
 		geometryParams: [0.26, 0.2, 0.1],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	HELMET_STANDARD: {
 		id: "HELMET_STANDARD",
 		geometryType: "SPHERE",
 		geometryParams: [0.11, 12, 8],
-		defaultScale: new THREE.Vector3(1, 0.7, 1),
+		defaultScale: new Vector3(1, 0.7, 1),
 	},
 	HELMET_BANDANA: {
 		id: "HELMET_BANDANA",
 		geometryType: "TORUS",
 		geometryParams: [0.1, 0.02, 8, 16],
-		defaultScale: new THREE.Vector3(1, 0.3, 1),
+		defaultScale: new Vector3(1, 0.3, 1),
 	},
 	BACKPACK_RADIO: {
 		id: "BACKPACK_RADIO",
 		geometryType: "BOX",
 		geometryParams: [0.12, 0.18, 0.08],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	BACKPACK_MEDIC: {
 		id: "BACKPACK_MEDIC",
 		geometryType: "BOX",
 		geometryParams: [0.14, 0.16, 0.1],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 	BACKPACK_SCUBA: {
 		id: "BACKPACK_SCUBA",
 		geometryType: "CYLINDER",
 		geometryParams: [0.06, 0.06, 0.2, 8],
-		defaultScale: new THREE.Vector3(1, 1, 1),
+		defaultScale: new Vector3(1, 1, 1),
 	},
 };
 
@@ -928,7 +1033,7 @@ export function createMaterial(
 	faction: Faction,
 	materialType: "WOOD" | "METAL" | "FABRIC" | "SKIN" | "PRIMARY" | "SECONDARY",
 	options: { roughness?: number; metalness?: number; opacity?: number } = {},
-): THREE.MeshStandardMaterial {
+): StubMaterial {
 	const palette = FACTION_PALETTES[faction];
 	const { roughness = 0.7, metalness = 0.1, opacity = 1 } = options;
 
@@ -964,7 +1069,7 @@ export function createMaterial(
 			break;
 	}
 
-	return new THREE.MeshStandardMaterial({
+	return new StubMaterial({
 		color,
 		roughness: actualRoughness,
 		metalness: actualMetalness,
@@ -980,24 +1085,24 @@ export function createMaterial(
 /**
  * Creates geometry from mesh definition
  */
-export function createGeometry(meshDef: MeshDef): THREE.BufferGeometry {
+export function createGeometry(meshDef: MeshDef): StubGeometry {
 	const params = meshDef.geometryParams;
 
 	switch (meshDef.geometryType) {
 		case "BOX":
-			return new THREE.BoxGeometry(params[0], params[1], params[2]);
+			return new StubBoxGeometry(params[0], params[1], params[2]);
 		case "CYLINDER":
-			return new THREE.CylinderGeometry(params[0], params[1], params[2], params[3] || 8);
+			return new StubCylinderGeometry(params[0], params[1], params[2], params[3] || 8);
 		case "SPHERE":
-			return new THREE.SphereGeometry(params[0], params[1] || 12, params[2] || 8);
+			return new StubSphereGeometry(params[0], params[1] || 12, params[2] || 8);
 		case "CAPSULE":
-			return new THREE.CapsuleGeometry(params[0], params[1], params[2] || 4, params[3] || 8);
+			return new StubCapsuleGeometry(params[0], params[1], params[2] || 4, params[3] || 8);
 		case "CONE":
-			return new THREE.ConeGeometry(params[0], params[1], params[2] || 8);
+			return new StubConeGeometry(params[0], params[1], params[2] || 8);
 		case "TORUS":
-			return new THREE.TorusGeometry(params[0], params[1], params[2] || 8, params[3] || 16);
+			return new StubTorusGeometry(params[0], params[1], params[2] || 8, params[3] || 16);
 		default:
-			return new THREE.BoxGeometry(1, 1, 1);
+			return new StubBoxGeometry(1, 1, 1);
 	}
 }
 
@@ -1012,13 +1117,13 @@ export function instantiateMesh(
 	meshId: MeshId,
 	faction: Faction,
 	materialType: "WOOD" | "METAL" | "FABRIC" | "SKIN" | "PRIMARY" | "SECONDARY" = "PRIMARY",
-): THREE.Mesh {
+): StubMesh {
 	const meshDef = MESH_LIBRARY[meshId];
 	const geometry = createGeometry(meshDef);
 	const material = createMaterial(faction, materialType);
 
-	const mesh = new THREE.Mesh(geometry, material);
-	mesh.scale.copy(meshDef.defaultScale);
+	const mesh = new StubMesh(geometry, material);
+	mesh.scale.copyFrom(meshDef.defaultScale);
 	mesh.castShadow = true;
 	mesh.receiveShadow = true;
 
@@ -1036,7 +1141,7 @@ export function instantiateMesh(
 /**
  * Clones an existing mesh with a different faction's materials
  */
-export function reskinnedMesh(originalMesh: THREE.Mesh, newFaction: Faction): THREE.Mesh {
+export function reskinnedMesh(originalMesh: StubMesh, newFaction: Faction): StubMesh {
 	const { meshId, materialType } = originalMesh.userData;
 	return instantiateMesh(meshId, newFaction, materialType);
 }

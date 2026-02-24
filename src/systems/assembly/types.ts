@@ -8,7 +8,7 @@
  * are imported from ECS data - the single source of truth.
  */
 
-import type * as THREE from "three";
+import type { Vector3 } from "@babylonjs/core";
 
 // Import slot types from ECS - single source of truth
 import type {
@@ -61,9 +61,9 @@ export type StructureComponentType =
 export interface StructureComponent {
 	id: string;
 	type: StructureComponentType;
-	localPosition: THREE.Vector3;
-	localRotation: THREE.Euler;
-	scale: THREE.Vector3;
+	localPosition: Vector3;
+	localRotation: Vector3;
+	scale: Vector3;
 	material: "WOOD" | "BAMBOO" | "THATCH" | "METAL" | "ROPE";
 	condition: number; // 0-1, affects appearance
 	isDestructible: boolean;
@@ -104,8 +104,8 @@ export interface StructureTemplate {
  */
 export interface SnapPoint {
 	id: string;
-	localPosition: THREE.Vector3;
-	direction: THREE.Vector3; // Normal direction
+	localPosition: Vector3;
+	direction: Vector3; // Normal direction
 	acceptsTypes: StructureArchetype[];
 	occupied: boolean;
 }
@@ -115,7 +115,7 @@ export interface SnapPoint {
  */
 export interface InteractionPoint {
 	id: string;
-	localPosition: THREE.Vector3;
+	localPosition: Vector3;
 	type: "ENTER" | "CLIMB" | "LOOT" | "HEAL" | "BUILD";
 	radius: number;
 }
@@ -186,12 +186,12 @@ export interface SettlementConfig {
  */
 export interface PathSegment {
 	id: string;
-	start: THREE.Vector3;
-	end: THREE.Vector3;
+	start: Vector3;
+	end: Vector3;
 	width: number;
 	style: "DIRT" | "PLANKS" | "STONES" | "ELEVATED" | "BRIDGE";
 	elevation: number;
-	waypoints: THREE.Vector3[]; // For curved paths
+	waypoints: Vector3[]; // For curved paths
 }
 
 /**
@@ -199,10 +199,10 @@ export interface PathSegment {
  */
 export interface PlatformSection {
 	id: string;
-	position: THREE.Vector3;
+	position: Vector3;
 	size: { width: number; depth: number };
 	height: number;
-	stilts: THREE.Vector3[]; // Stilt positions
+	stilts: Vector3[]; // Stilt positions
 	railings: ("NORTH" | "SOUTH" | "EAST" | "WEST")[];
 	hasLadder: boolean;
 	ladderSide: "NORTH" | "SOUTH" | "EAST" | "WEST";
@@ -246,7 +246,7 @@ export interface SnapRule {
 export interface BuildModeState {
 	isActive: boolean;
 	selectedItem: BuildableItem | null;
-	ghostPosition: THREE.Vector3 | null;
+	ghostPosition: Vector3 | null;
 	ghostRotation: number;
 	canPlace: boolean;
 	nearbySnapPoints: SnapPoint[];

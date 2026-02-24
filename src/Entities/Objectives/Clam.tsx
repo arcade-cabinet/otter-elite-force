@@ -4,6 +4,7 @@
  */
 
 import type { PointLight as BabylonPointLight, TransformNode } from "@babylonjs/core";
+import { Color3, Vector3 } from "@babylonjs/core";
 import { useEffect, useRef } from "react";
 import { useScene } from "reactylon";
 
@@ -40,71 +41,60 @@ export function Clam({
 	}, [scene, isCarried]);
 
 	return (
-		<transformNode name="clamGroup" ref={groupRef} position={position}>
-			{/* Clam Shells */}
-			<sphere name="clamShellTop" diameter={0.8} segments={16} rotation={[Math.PI / 4, 0, 0]}>
-				<standardMaterial
-					name="clamShellMat"
-					diffuseColor={[1, 1, 1]}
-					metallic={0.8}
-					roughness={0.2}
-				/>
+		<transformNode
+			name="clamGroup"
+			ref={groupRef}
+			positionX={position[0]}
+			positionY={position[1]}
+			positionZ={position[2]}
+		>
+			{/* Clam Shell Top */}
+			<sphere
+				name="clamShellTop"
+				options={{ diameter: 0.8, segments: 16 }}
+				positionX={0}
+				positionY={0}
+				positionZ={0}
+				rotationX={Math.PI / 4}
+			>
+				<standardMaterial name="clamShellMat" diffuseColor={new Color3(1, 1, 1)} />
 			</sphere>
+
+			{/* Clam Shell Bottom */}
 			<sphere
 				name="clamShellBottom"
-				diameter={0.8}
-				segments={16}
-				rotation={[-Math.PI / 4, 0, 0]}
-				position={[0, -0.1, 0]}
+				options={{ diameter: 0.8, segments: 16 }}
+				positionX={0}
+				positionY={-0.1}
+				positionZ={0}
+				rotationX={-Math.PI / 4}
 			>
-				<standardMaterial
-					name="clamShellMat2"
-					diffuseColor={[1, 1, 1]}
-					metallic={0.8}
-					roughness={0.2}
-				/>
+				<standardMaterial name="clamShellMat2" diffuseColor={new Color3(1, 1, 1)} />
 			</sphere>
 
 			{/* Bioluminescent Pearl */}
-			<sphere name="pearl" diameter={0.3} segments={16} position={[0, 0, 0]}>
-				<standardMaterial name="pearlMat" emissiveColor={[0, 0.8, 1]} diffuseColor={[0, 0.8, 1]} />
+			<sphere
+				name="pearl"
+				options={{ diameter: 0.3, segments: 16 }}
+				positionX={0}
+				positionY={0}
+				positionZ={0}
+			>
+				<standardMaterial
+					name="pearlMat"
+					emissiveColor={new Color3(0, 0.8, 1)}
+					diffuseColor={new Color3(0, 0.8, 1)}
+				/>
 			</sphere>
+
 			<pointLight
 				name="pearlLight"
 				ref={lightRef}
-				diffuse={[0, 0.8, 1]}
-				specular={[0, 0.8, 1]}
+				position={new Vector3(0, 0, 0)}
+				diffuse={new Color3(0, 0.8, 1)}
+				specular={new Color3(0, 0.8, 1)}
 				intensity={1.5}
 				range={5}
-				position={[0, 0, 0]}
-			/>
-		</transformNode>
-	);
-}
-
-export function ExtractionPoint({ position }: { position: [number, number, number] }) {
-	return (
-		<transformNode name="extractionPoint" position={position}>
-			{/* Signal Flare / Marker */}
-			<disc name="extractionMarker" radius={3} tessellation={32} position={[0, 0.1, 0]}>
-				<standardMaterial name="markerMat" emissiveColor={[1, 0.67, 0]} alpha={0.2} />
-			</disc>
-			<cylinder
-				name="extractionBeam"
-				diameterTop={0.1}
-				diameterBottom={0.1}
-				height={10}
-				position={[0, 5, 0]}
-			>
-				<standardMaterial name="beamMat" emissiveColor={[1, 0.67, 0]} alpha={0.1} />
-			</cylinder>
-			<pointLight
-				name="extractionLight"
-				position={[0, 1, 0]}
-				diffuse={[1, 0.67, 0]}
-				specular={[1, 0.67, 0]}
-				intensity={2}
-				range={10}
 			/>
 		</transformNode>
 	);

@@ -6,14 +6,16 @@
  * - Optional numeric HP display
  */
 
-import { useFrame, useThree } from "@react-three/fiber";
-import { useRef, useState } from "react";
-import * as THREE from "three";
+import { Matrix, Vector3, Viewport } from "@babylonjs/core";
+import { useEffect, useState } from "react";
+import { useScene } from "reactylon";
 import { enemies } from "../ecs/world";
 
 interface HealthBarData {
 	entityId: string;
-	position: THREE.Vector3;
+	worldX: number;
+	worldY: number;
+	worldZ: number;
 	health: number;
 	maxHealth: number;
 	lastDamageTime: number;
@@ -25,58 +27,79 @@ interface EnemyHealthBarsProps {
 }
 
 export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps) {
-	const { camera, size } = useThree();
+	const scene = useScene();
 	const [healthBars, setHealthBars] = useState<Map<string, HealthBarData>>(new Map());
-	const tempVector = useRef(new THREE.Vector3());
-	const tempVector2 = useRef(new THREE.Vector3());
 
-	// Update health bar data from ECS
-	useFrame(() => {
-		const now = Date.now();
-		const newHealthBars = new Map<string, HealthBarData>();
+	// Update health bar data from ECS on every frame
+	useEffect(() => {
+		if (!scene) return;
 
-		for (const entity of enemies) {
-			if (!entity.health || !entity.transform) continue;
-			if (entity.isDead) continue;
+		const observer = scene.onBeforeRenderObservable.add(() => {
+			const now = Date.now();
+			const newHealthBars = new Map<string, HealthBarData>();
 
-			const timeSinceDamage = (now - entity.health.lastDamageTime) / 1000;
-			const wasRecentlyDamaged = timeSinceDamage < 3;
+			for (const entity of enemies) {
+				if (!entity.health || !entity.transform) continue;
+				if (entity.isDead) continue;
 
-			// Only show if recently damaged
-			if (wasRecentlyDamaged) {
-				// Calculate position above enemy
-				const worldPos = tempVector.current;
-				worldPos.copy(entity.transform.position);
-				worldPos.y += 2; // Position above enemy
+				const timeSinceDamage = (now - entity.health.lastDamageTime) / 1000;
+				const wasRecentlyDamaged = timeSinceDamage < 3;
 
-				newHealthBars.set(entity.id, {
-					entityId: entity.id,
-					position: worldPos.clone(),
-					health: entity.health.current,
-					maxHealth: entity.health.max,
-					lastDamageTime: entity.health.lastDamageTime,
-					visible: true,
-				});
+				// Only show if recently damaged
+				if (wasRecentlyDamaged) {
+					const pos = entity.transform.position;
+					newHealthBars.set(entity.id, {
+						entityId: entity.id,
+						worldX: pos.x,
+						worldY: pos.y + 2, // Position above enemy
+						worldZ: pos.z,
+						health: entity.health.current,
+						maxHealth: entity.health.max,
+						lastDamageTime: entity.health.lastDamageTime,
+						visible: true,
+					});
+				}
 			}
-		}
 
-		setHealthBars(newHealthBars);
-	});
+			setHealthBars(newHealthBars);
+		});
 
-	// Convert 3D position to 2D screen position
-	const get2DPosition = (worldPos: THREE.Vector3): { x: number; y: number; visible: boolean } => {
-		const screenPos = tempVector2.current.copy(worldPos);
-		screenPos.project(camera);
+		return () => {
+			scene.onBeforeRenderObservable.remove(observer);
+		};
+	}, [scene]);
 
-		// Check if behind camera
-		if (screenPos.z > 1) {
+	// Convert 3D world position to 2D screen position using Babylon.js projection
+	const get2DPosition = (
+		worldX: number,
+		worldY: number,
+		worldZ: number,
+	): { x: number; y: number; visible: boolean } => {
+		if (!scene) return { x: 0, y: 0, visible: false };
+
+		const camera = scene.activeCamera;
+		if (!camera) return { x: 0, y: 0, visible: false };
+
+		const engine = scene.getEngine();
+		const viewportWidth = engine.getRenderWidth();
+		const viewportHeight = engine.getRenderHeight();
+
+		const worldPos = new Vector3(worldX, worldY, worldZ);
+		const viewport = new Viewport(0, 0, viewportWidth, viewportHeight);
+
+		const projected = Vector3.Project(
+			worldPos,
+			Matrix.Identity(),
+			scene.getTransformMatrix(),
+			viewport,
+		);
+
+		// Check if behind camera (z > 1 means behind the near plane in NDC)
+		if (projected.z < 0 || projected.z > 1) {
 			return { x: 0, y: 0, visible: false };
 		}
 
-		const x = (screenPos.x * 0.5 + 0.5) * size.width;
-		const y = (screenPos.y * -0.5 + 0.5) * size.height;
-
-		return { x, y, visible: true };
+		return { x: projected.x, y: projected.y, visible: true };
 	};
 
 	// Get color based on health percentage
@@ -99,7 +122,7 @@ export function EnemyHealthBars({ showNumericHP = false }: EnemyHealthBarsProps)
 			}}
 		>
 			{Array.from(healthBars.values()).map((data) => {
-				const screenPos = get2DPosition(data.position);
+				const screenPos = get2DPosition(data.worldX, data.worldY, data.worldZ);
 				if (!screenPos.visible) return null;
 
 				const healthPercent = data.health / data.maxHealth;

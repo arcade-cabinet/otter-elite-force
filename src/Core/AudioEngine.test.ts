@@ -1,17 +1,16 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AudioEngine } from "./AudioEngine";
 
 // Mock the strata audio-synth module
-vi.mock("@strata-game-library/audio-synth", () => {
+jest.mock("@strata-game-library/audio-synth", () => {
 	const mockManager = {
-		init: vi.fn().mockResolvedValue(undefined),
-		isReady: vi.fn().mockReturnValue(false),
-		playSFX: vi.fn(),
-		playMusic: vi.fn(),
-		stopMusic: vi.fn(),
-		stopAll: vi.fn(),
-		setMasterVolume: vi.fn(),
-		dispose: vi.fn(),
+		init: jest.fn().mockResolvedValue(undefined),
+		isReady: jest.fn().mockReturnValue(false),
+		playSFX: jest.fn(),
+		playMusic: jest.fn(),
+		stopMusic: jest.fn(),
+		stopAll: jest.fn(),
+		setMasterVolume: jest.fn(),
+		dispose: jest.fn(),
 	};
 
 	// Track initialization state
@@ -28,11 +27,11 @@ vi.mock("@strata-game-library/audio-synth", () => {
 	});
 
 	return {
-		createSynthManager: vi.fn(() => mockManager),
-		AudioSynthProvider: vi.fn(),
-		useAudioSynth: vi.fn(),
-		usePlaySFX: vi.fn(),
-		usePlayMusic: vi.fn(),
+		createSynthManager: jest.fn(() => mockManager),
+		AudioSynthProvider: jest.fn(),
+		useAudioSynth: jest.fn(),
+		usePlaySFX: jest.fn(),
+		usePlayMusic: jest.fn(),
 	};
 });
 
@@ -40,7 +39,7 @@ describe("AudioEngine", () => {
 	let audioEngine: AudioEngine;
 
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		audioEngine = new AudioEngine();
 	});
 

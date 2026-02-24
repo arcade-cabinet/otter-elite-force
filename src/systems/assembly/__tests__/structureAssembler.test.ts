@@ -4,8 +4,7 @@
  * Tests procedural generation of structures (huts, platforms, towers)
  */
 
-import * as THREE from "three";
-import { describe, expect, it } from "vitest";
+import { Vector3 } from "@babylonjs/core";
 import {
 	assembleHut,
 	assemblePlatform,
@@ -172,11 +171,10 @@ describe("Structure Assembler", () => {
 
 			for (let i = 0; i < platforms.length; i++) {
 				for (let j = i + 1; j < platforms.length; j++) {
-					const dist = new THREE.Vector3(
-						platforms[i].position.x,
-						0,
-						platforms[i].position.z,
-					).distanceTo(new THREE.Vector3(platforms[j].position.x, 0, platforms[j].position.z));
+					const dist = Vector3.Distance(
+						new Vector3(platforms[i].position.x, 0, platforms[i].position.z),
+						new Vector3(platforms[j].position.x, 0, platforms[j].position.z),
+					);
 
 					expect(dist).toBeGreaterThan(3);
 				}
@@ -263,7 +261,7 @@ describe("Structure Assembler", () => {
 			const hut = assembleHut(12345, DEFAULT_ASSEMBLY_CONFIG.hut, "BASIC");
 
 			for (const component of hut.components) {
-				expect(component.localPosition).toBeInstanceOf(THREE.Vector3);
+				expect(component.localPosition).toBeInstanceOf(Vector3);
 				expect(Number.isFinite(component.localPosition.x)).toBe(true);
 				expect(Number.isFinite(component.localPosition.y)).toBe(true);
 				expect(Number.isFinite(component.localPosition.z)).toBe(true);
@@ -274,7 +272,7 @@ describe("Structure Assembler", () => {
 			const hut = assembleHut(12345, DEFAULT_ASSEMBLY_CONFIG.hut, "BASIC");
 
 			for (const component of hut.components) {
-				expect(component.localRotation).toBeInstanceOf(THREE.Euler);
+				expect(component.localRotation).toBeInstanceOf(Vector3);
 			}
 		});
 	});

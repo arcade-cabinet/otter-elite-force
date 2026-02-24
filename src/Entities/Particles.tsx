@@ -1,17 +1,17 @@
 /**
  * Particle System
  * Visual effects: shell casings, blood splatters, explosions
+ * Babylon.js implementation using individual sphere meshes
  */
 
-import { useFrame } from "@react-three/fiber";
+import { Color3 } from "@babylonjs/core";
 import { useEffect, useRef } from "react";
-import type { Points } from "three";
-import * as THREE from "three";
+import { useScene } from "reactylon";
 
 export interface ParticleData {
 	id: string;
-	position: THREE.Vector3;
-	velocity: THREE.Vector3;
+	position: { x: number; y: number; z: number };
+	velocity: { x: number; y: number; z: number };
 	lifetime: number;
 	type: "shell" | "blood" | "explosion";
 }
@@ -21,38 +21,31 @@ interface ParticlesProps {
 	onExpire?: (id: string) => void;
 }
 
-// Pre-computed particle colors to avoid recreation
-const PARTICLE_COLORS = {
-	shell: new THREE.Color("#FFD700"),
-	blood: new THREE.Color("#8B0000"),
-	explosion: new THREE.Color("#FF4500"),
+// Pre-computed particle colors
+const PARTICLE_COLORS: Record<ParticleData["type"], Color3> = {
+	shell: new Color3(1.0, 0.843, 0.0),
+	blood: new Color3(0.545, 0.0, 0.0),
+	explosion: new Color3(1.0, 0.271, 0.0),
 };
 
-const INITIAL_CAPACITY = 1000;
+interface ParticleState {
+	lifetime: number;
+	x: number;
+	y: number;
+	z: number;
+	vx: number;
+	vy: number;
+	vz: number;
+	type: ParticleData["type"];
+}
 
 export function Particles({ particles, onExpire }: ParticlesProps) {
-	const pointsRef = useRef<Points>(null);
+	const scene = useScene();
+
 	// Track internal state for particles to avoid mutating props
-	const particleStateRef = useRef<
-		Map<
-			string,
-			{
-				lifetime: number;
-				position: THREE.Vector3;
-				velocity: THREE.Vector3;
-				type: "shell" | "blood" | "explosion";
-			}
-		>
-	>(new Map());
+	const particleStateRef = useRef<Map<string, ParticleState>>(new Map());
 
-	// Reusable buffers to avoid allocation every frame
-	const buffersRef = useRef({
-		positions: new Float32Array(INITIAL_CAPACITY * 3),
-		colors: new Float32Array(INITIAL_CAPACITY * 3),
-		sizes: new Float32Array(INITIAL_CAPACITY),
-	});
-
-	// Sync internal state with new particles
+	// Sync internal state with new particles from props
 	useEffect(() => {
 		const currentIds = new Set(particles.map((p) => p.id));
 		// Remove particles no longer in props
@@ -66,106 +59,94 @@ export function Particles({ particles, onExpire }: ParticlesProps) {
 			if (!particleStateRef.current.has(particle.id)) {
 				particleStateRef.current.set(particle.id, {
 					lifetime: particle.lifetime,
-					position: particle.position.clone(),
-					velocity: particle.velocity.clone(),
-					type: particle.type, // Store type to avoid O(N) lookup in useFrame
+					x: particle.position.x,
+					y: particle.position.y,
+					z: particle.position.z,
+					vx: particle.velocity.x,
+					vy: particle.velocity.y,
+					vz: particle.velocity.z,
+					type: particle.type,
 				});
 			}
 		}
 	}, [particles]);
 
-	// Update particles
-	useFrame((_state, delta) => {
-		if (!pointsRef.current || particleStateRef.current.size === 0) return;
+	// Animate particles each frame via scene observable
+	useEffect(() => {
+		if (!scene) return;
 
-		const geometry = pointsRef.current.geometry as THREE.BufferGeometry;
-		const count = particleStateRef.current.size;
-		let resized = false;
+		let lastTime = performance.now();
 
-		// Resize buffers if needed
-		if (buffersRef.current.sizes.length < count) {
-			const newCapacity = count * 2; // Double capacity
-			buffersRef.current.positions = new Float32Array(newCapacity * 3);
-			buffersRef.current.colors = new Float32Array(newCapacity * 3);
-			buffersRef.current.sizes = new Float32Array(newCapacity);
-			resized = true;
-		}
+		const obs = scene.onBeforeRenderObservable.add(() => {
+			const now = performance.now();
+			const delta = (now - lastTime) / 1000;
+			lastTime = now;
 
-		const { positions, colors, sizes } = buffersRef.current;
-		const toRemove: string[] = [];
-		let i = 0;
+			if (particleStateRef.current.size === 0) return;
 
-		for (const [id, state] of particleStateRef.current) {
-			// Update lifetime
-			state.lifetime -= delta;
+			const toRemove: string[] = [];
 
-			if (state.lifetime <= 0) {
-				toRemove.push(id);
-				continue;
+			for (const [id, state] of particleStateRef.current) {
+				state.lifetime -= delta;
+
+				if (state.lifetime <= 0) {
+					toRemove.push(id);
+					continue;
+				}
+
+				// Update position
+				state.x += state.vx * delta;
+				state.y += state.vy * delta;
+				state.z += state.vz * delta;
+
+				// Apply gravity
+				state.vy -= 9.8 * delta;
+
+				// Update Babylon.js mesh position directly
+				const mesh = scene.getMeshByName(`particle-${id}`);
+				if (mesh) {
+					mesh.position.x = state.x;
+					mesh.position.y = state.y;
+					mesh.position.z = state.z;
+				}
 			}
 
-			// Update position (using internal cloned state, not props)
-			state.position.x += state.velocity.x * delta;
-			state.position.y += state.velocity.y * delta;
-			state.position.z += state.velocity.z * delta;
+			// Remove expired particles
+			for (const id of toRemove) {
+				particleStateRef.current.delete(id);
+				onExpire?.(id);
+			}
+		});
 
-			// Apply gravity
-			state.velocity.y -= 9.8 * delta;
-
-			// Add to buffers
-			positions[i * 3] = state.position.x;
-			positions[i * 3 + 1] = state.position.y;
-			positions[i * 3 + 2] = state.position.z;
-
-			// Color based on type (using stored type, O(1) lookup)
-			const color = PARTICLE_COLORS[state.type];
-			colors[i * 3] = color.r;
-			colors[i * 3 + 1] = color.g;
-			colors[i * 3 + 2] = color.b;
-
-			// Size fades with lifetime
-			sizes[i] = state.lifetime * 0.5;
-			i++;
-		}
-
-		// Remove expired particles
-		for (const id of toRemove) {
-			particleStateRef.current.delete(id);
-			onExpire?.(id);
-		}
-
-		// Optimized geometry update:
-		// Only create new BufferAttributes when the array instance changes (resize).
-		// Otherwise, just rely on the existing connection to the TypedArray.
-		// NOTE: Three.js BufferAttribute holds a reference to the array passed in constructor.
-		if (resized || !geometry.attributes.position) {
-			geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-			geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-			geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
-		}
-
-		// Set draw range to only render active particles
-		geometry.setDrawRange(0, i);
-
-		// Signal to Three.js that data has changed
-		if (geometry.attributes.position) geometry.attributes.position.needsUpdate = true;
-		if (geometry.attributes.color) geometry.attributes.color.needsUpdate = true;
-		if (geometry.attributes.size) geometry.attributes.size.needsUpdate = true;
-	});
+		return () => {
+			scene.onBeforeRenderObservable.remove(obs);
+		};
+	}, [scene, onExpire]);
 
 	if (particles.length === 0) return null;
 
 	return (
-		<points ref={pointsRef}>
-			<bufferGeometry />
-			<pointsMaterial
-				size={0.2}
-				vertexColors
-				sizeAttenuation
-				transparent
-				opacity={0.8}
-				depthWrite={false}
-			/>
-		</points>
+		<transformNode name="particleSystem">
+			{particles.map((p) => {
+				const color = PARTICLE_COLORS[p.type];
+				return (
+					<sphere
+						key={p.id}
+						name={`particle-${p.id}`}
+						options={{ diameter: 0.2, segments: 4 }}
+						positionX={p.position.x}
+						positionY={p.position.y}
+						positionZ={p.position.z}
+					>
+						<standardMaterial
+							name={`particleMat-${p.id}`}
+							diffuseColor={color}
+							emissiveColor={color}
+							alpha={0.8}
+						/>
+					</sphere>
+				);
+			})}
+		</transformNode>
 	);
 }

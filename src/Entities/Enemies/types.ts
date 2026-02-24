@@ -5,11 +5,15 @@
  * For ECS-based entities, see src/ecs/components/index.ts
  */
 
-import type * as THREE from "three";
+export interface Vec3 {
+	x: number;
+	y: number;
+	z: number;
+}
 
 export interface EnemyBaseData {
 	id: string;
-	position: THREE.Vector3;
+	position: Vec3;
 	hp: number;
 	maxHp: number;
 	isHeavy?: boolean;
@@ -33,8 +37,8 @@ export interface ScoutData extends EnemyBaseData {
 
 export interface EnemyProps<T> {
 	data: T;
-	targetPosition: THREE.Vector3;
+	targetPosition: Vec3;
 	onDeath?: (id: string) => void;
-	onHit?: (id: string, damage: number, position: THREE.Vector3) => void;
-	onSignal?: (id: string, position: THREE.Vector3) => void;
+	onHit?: (id: string, damage: number, position: Vec3) => void;
+	onSignal?: (id: string, position: Vec3) => void;
 }

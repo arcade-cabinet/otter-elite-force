@@ -10,7 +10,6 @@
  * - Save/Load persistence
  */
 
-import { beforeEach, describe, expect, it } from "vitest";
 import {
 	CHAR_PRICES,
 	CHARACTERS,

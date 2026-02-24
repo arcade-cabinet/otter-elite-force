@@ -1,25 +1,19 @@
 /**
  * GameWorld Scene
- * Main gameplay scene with 3D world
+ * Main gameplay scene with 3D world - Babylon.js / Reactylon
  */
 
-import { Environment, Sky } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import {
-	Bloom,
-	BrightnessContrast,
-	EffectComposer,
-	HueSaturation,
-	Noise,
-	Vignette,
-} from "@react-three/postprocessing";
+import type { Scene as BabylonScene, TransformNode } from "@babylonjs/core";
+import { Color3, Color4, Vector3 } from "@babylonjs/core";
 import { useCallback, useRef, useState } from "react";
-import * as THREE from "three";
+import { Scene } from "reactylon";
+import { Engine } from "reactylon/web";
 import { audioEngine } from "../Core/AudioEngine";
 import { GameLoop } from "../Core/GameLoop";
 import { BaseFloor, BaseRoof, BaseStilt, BaseWall } from "../Entities/BaseBuilding";
 import { Clam } from "../Entities/Objectives/Clam";
-import { type ParticleData, Particles } from "../Entities/Particles";
+import type { ParticleData } from "../Entities/Particles";
+import { Particles } from "../Entities/Particles";
 import { PlayerRig } from "../Entities/PlayerRig";
 import { Projectiles, type ProjectilesHandle } from "../Entities/Projectiles";
 import { Raft } from "../Entities/Raft";
@@ -37,22 +31,24 @@ export function GameWorld() {
 		selectedComponentType,
 	} = useGameStore();
 	const character = CHARACTERS[selectedCharacterId] || CHARACTERS.bubbles;
-	const [playerPos] = useState(() => new THREE.Vector3(0, 0, 0));
+	const [playerPos] = useState(() => new Vector3(0, 0, 0));
 	const [, setPlayerVelY] = useState(0);
 	const [isClimbing] = useState(false);
 	const [playerRot] = useState(0);
 	const [isPlayerMoving, setIsPlayerMoving] = useState(false);
 	const [activeChunks, setActiveChunks] = useState<ChunkData[]>([]);
 	const [particles, setParticles] = useState<ParticleData[]>([]);
-	const playerRef = useRef<THREE.Group | null>(null);
+
+	// PlayerRig expects a TransformNode ref in Babylon.js
+	const playerRef = useRef<TransformNode | null>(null);
 	const projectilesRef = useRef<ProjectilesHandle | null>(null);
 
-	const handleImpact = useCallback((pos: THREE.Vector3, type: "blood" | "shell") => {
+	const handleImpact = useCallback((pos: Vector3, type: "blood" | "shell") => {
 		audioEngine.playSFX("hit");
 		const newParticles = [...Array(5)].map(() => ({
 			id: `${type}-${Math.random()}`, // NOSONAR: Non-critical visual ID
 			position: pos.clone(),
-			velocity: new THREE.Vector3(
+			velocity: new Vector3(
 				(Math.random() - 0.5) * 5, // NOSONAR: Visual randomness
 				Math.random() * 5, // NOSONAR: Visual randomness
 				(Math.random() - 0.5) * 5, // NOSONAR: Visual randomness
@@ -77,75 +73,103 @@ export function GameWorld() {
 		if (selectedComponentType === "WALL") ghostPos[1] += 1;
 	}
 
+	const onSceneReady = useCallback((scene: BabylonScene) => {
+		// Warm, humid jungle atmosphere
+		scene.clearColor = new Color4(0.53, 0.65, 0.47, 1);
+		scene.fogMode = 3; // FOGMODE_EXP2
+		scene.fogColor = new Color3(0.83, 0.77, 0.66);
+		scene.fogDensity = 0.015;
+	}, []);
+
 	return (
-		<Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
-			<GameLogic
-				playerRef={playerRef}
-				projectilesRef={projectilesRef}
-				setPlayerVelY={setPlayerVelY}
-				setIsPlayerMoving={setIsPlayerMoving}
-				setActiveChunks={setActiveChunks}
-				activeChunks={activeChunks}
-				character={character}
-				handleImpact={handleImpact}
-			/>
-			<ambientLight intensity={0.3} />
-			<directionalLight position={[50, 50, 25]} intensity={1.5} castShadow />
-			<Sky sunPosition={[100, 20, 100]} />
-			<fogExp2 attach="fog" args={["#d4c4a8", 0.015]} />
-			<Environment preset="sunset" />
-			{activeChunks.map((chunk) => (
-				<ChunkRenderer key={chunk.id} data={chunk} playerPos={playerPos} />
-			))}
-			<PlayerRig
-				ref={playerRef}
-				traits={character.traits}
-				gear={character.gear}
-				position={[0, 0, 0]}
-				rotation={playerRot}
-				isMoving={isPlayerMoving}
-				isClimbing={isClimbing}
-			>
-				{isCarryingClam && <Clam position={new THREE.Vector3(0, 0.8, 0)} isCarried />}
-				{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
-			</PlayerRig>
-
-			{/* Render Ghost Preview */}
-			{isBuildMode && ghostPos && (
-				<>
-					{selectedComponentType === "FLOOR" && <BaseFloor position={ghostPos} ghost />}
-					{selectedComponentType === "WALL" && <BaseWall position={ghostPos} ghost />}
-					{selectedComponentType === "ROOF" && <BaseRoof position={ghostPos} ghost />}
-					{selectedComponentType === "STILT" && <BaseStilt position={ghostPos} ghost />}
-				</>
-			)}
-
-			{saveData.baseComponents.map((comp) => {
-				if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
-				if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
-				if (comp.type === "ROOF") return <BaseRoof key={comp.id} position={comp.position} />;
-				if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
-				return null;
-			})}
-			<Projectiles ref={projectilesRef} />
-			<Particles
-				particles={particles}
-				onExpire={useCallback(
-					(id: string) => setParticles((prev) => prev.filter((p) => p.id !== id)),
-					[],
-				)}
-			/>
-			<GameLoop />
-			<EffectComposer>
-				<Bloom intensity={0.5} />
-				<Noise opacity={0.05} />
-				<Vignette
-					darkness={saveData.isFallTriggered ? 0.8 : 0.4}
-					offset={saveData.isFallTriggered ? 0.5 : 0.3}
+		<Engine canvasId="game-canvas">
+			<Scene onSceneReady={onSceneReady}>
+				{/* Follow camera - position managed by GameLogic observer */}
+				<arcRotateCamera
+					name="gameCamera"
+					alpha={Math.PI / 2}
+					beta={Math.PI / 3}
+					radius={12}
+					target={new Vector3(0, 0.8, 0)}
 				/>
-				<BrightnessContrast brightness={0.05} contrast={0.2} />
-				<HueSaturation saturation={-0.2} />
-			</EffectComposer>
-		</Canvas>
+
+				{/* Lighting */}
+				<hemisphericLight
+					name="ambient"
+					direction={new Vector3(0, 1, 0)}
+					intensity={0.3}
+					groundColor={new Color3(0.1, 0.08, 0.04)}
+				/>
+				<directionalLight
+					name="sun"
+					direction={new Vector3(-0.5, -1, -0.5)}
+					position={new Vector3(50, 50, 25)}
+					intensity={1.5}
+				/>
+
+				{/* Game logic (input + physics + chunk streaming) */}
+				<GameLogic
+					playerRef={playerRef}
+					projectilesRef={projectilesRef}
+					setPlayerVelY={setPlayerVelY}
+					setIsPlayerMoving={setIsPlayerMoving}
+					setActiveChunks={setActiveChunks}
+					activeChunks={activeChunks}
+					character={character}
+					handleImpact={handleImpact}
+				/>
+
+				{/* Active world chunks */}
+				{activeChunks.map((chunk) => (
+					<ChunkRenderer key={chunk.id} data={chunk} playerPos={playerPos} />
+				))}
+
+				{/* Player */}
+				<PlayerRig
+					ref={playerRef as React.Ref<TransformNode>}
+					traits={character.traits}
+					gear={character.gear}
+					position={[0, 0, 0]}
+					rotation={playerRot}
+					isMoving={isPlayerMoving}
+					isClimbing={isClimbing}
+				>
+					{isCarryingClam && <Clam position={[0, 0.8, 0]} isCarried />}
+					{isPilotingRaft && <Raft position={[0, -0.5, 0]} isPiloted />}
+				</PlayerRig>
+
+				{/* Ghost preview for build mode */}
+				{isBuildMode && ghostPos && (
+					<>
+						{selectedComponentType === "FLOOR" && <BaseFloor position={ghostPos} ghost />}
+						{selectedComponentType === "WALL" && <BaseWall position={ghostPos} ghost />}
+						{selectedComponentType === "ROOF" && <BaseRoof position={ghostPos} ghost />}
+						{selectedComponentType === "STILT" && <BaseStilt position={ghostPos} ghost />}
+					</>
+				)}
+
+				{/* Placed base components */}
+				{saveData.baseComponents.map((comp) => {
+					if (comp.type === "FLOOR") return <BaseFloor key={comp.id} position={comp.position} />;
+					if (comp.type === "WALL") return <BaseWall key={comp.id} position={comp.position} />;
+					if (comp.type === "ROOF") return <BaseRoof key={comp.id} position={comp.position} />;
+					if (comp.type === "STILT") return <BaseStilt key={comp.id} position={comp.position} />;
+					return null;
+				})}
+
+				{/* Projectiles & particles */}
+				<Projectiles ref={projectilesRef} />
+				<Particles
+					particles={particles}
+					onExpire={useCallback(
+						(id: string) => setParticles((prev) => prev.filter((p) => p.id !== id)),
+						[],
+					)}
+				/>
+
+				{/* Game loop */}
+				<GameLoop />
+			</Scene>
+		</Engine>
 	);
 }

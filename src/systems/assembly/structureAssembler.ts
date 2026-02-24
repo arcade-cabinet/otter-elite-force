@@ -5,7 +5,7 @@
  * from atomic components following assembly rules.
  */
 
-import * as THREE from "three";
+import { Vector3 } from "@babylonjs/core";
 import type {
 	AssemblyConfig,
 	InteractionPoint,
@@ -120,9 +120,9 @@ export function assembleHut(
 		components.push({
 			id: `stilt-${i}`,
 			type: "STILT",
-			localPosition: new THREE.Vector3(pos.x, floorHeight / 2, pos.z),
-			localRotation: new THREE.Euler(0, random.range(-0.05, 0.05), random.range(-0.02, 0.02)),
-			scale: new THREE.Vector3(0.15, floorHeight, 0.15),
+			localPosition: new Vector3(pos.x, floorHeight / 2, pos.z),
+			localRotation: new Vector3(0, random.range(-0.05, 0.05), random.range(-0.02, 0.02)),
+			scale: new Vector3(0.15, floorHeight, 0.15),
 			material: "WOOD",
 			condition: wear,
 			isDestructible: true,
@@ -132,9 +132,9 @@ export function assembleHut(
 		components.push({
 			id: `binding-${i}`,
 			type: "ROPE_BINDING",
-			localPosition: new THREE.Vector3(pos.x, floorHeight - 0.1, pos.z),
-			localRotation: new THREE.Euler(0, 0, 0),
-			scale: new THREE.Vector3(0.2, 0.15, 0.2),
+			localPosition: new Vector3(pos.x, floorHeight - 0.1, pos.z),
+			localRotation: new Vector3(0, 0, 0),
+			scale: new Vector3(0.2, 0.15, 0.2),
 			material: "ROPE",
 			condition: wear,
 			isDestructible: false,
@@ -150,9 +150,9 @@ export function assembleHut(
 		components.push({
 			id: `plank-${i}`,
 			type: "FLOOR_PLANK",
-			localPosition: new THREE.Vector3(0, floorHeight, z),
-			localRotation: new THREE.Euler(0, 0, random.range(-0.02, 0.02)),
-			scale: new THREE.Vector3(width, 0.05, depth / plankCount - 0.02),
+			localPosition: new Vector3(0, floorHeight, z),
+			localRotation: new Vector3(0, 0, random.range(-0.02, 0.02)),
+			scale: new Vector3(width, 0.05, depth / plankCount - 0.02),
 			material: "WOOD",
 			condition: wear,
 			isDestructible: true,
@@ -173,7 +173,7 @@ export function assembleHut(
 				type: "DOOR_FRAME",
 				localPosition: doorPos.position,
 				localRotation: doorPos.rotation,
-				scale: new THREE.Vector3(1.2, wallHeight, 0.1),
+				scale: new Vector3(1.2, wallHeight, 0.1),
 				material: "WOOD",
 				condition: 1 - random.range(0, config.wearVariation),
 				isDestructible: true,
@@ -199,13 +199,13 @@ export function assembleHut(
 				components.push({
 					id: `window-${side}`,
 					type: "WINDOW_OPENING",
-					localPosition: new THREE.Vector3(
+					localPosition: new Vector3(
 						wallPos.position.x,
 						wallPos.position.y + 0.3,
 						wallPos.position.z,
 					),
 					localRotation: wallPos.rotation,
-					scale: new THREE.Vector3(0.6, 0.5, 0.1),
+					scale: new Vector3(0.6, 0.5, 0.1),
 					material: "WOOD",
 					condition: 1,
 					isDestructible: false,
@@ -222,9 +222,9 @@ export function assembleHut(
 	components.push({
 		id: "roof-beam-main",
 		type: "ROOF_BEAM",
-		localPosition: new THREE.Vector3(0, floorHeight + wallHeight + roofHeight / 2, 0),
-		localRotation: new THREE.Euler(0, 0, 0),
-		scale: new THREE.Vector3(0.12, 0.12, depth + 0.5),
+		localPosition: new Vector3(0, floorHeight + wallHeight + roofHeight / 2, 0),
+		localRotation: new Vector3(0, 0, 0),
+		scale: new Vector3(0.12, 0.12, depth + 0.5),
 		material: "WOOD",
 		condition: 1 - random.range(0, config.wearVariation * 0.5),
 		isDestructible: true,
@@ -236,13 +236,13 @@ export function assembleHut(
 		components.push({
 			id: `roof-${side > 0 ? "east" : "west"}`,
 			type: roofMaterial === "METAL" ? "ROOF_TIN" : "ROOF_THATCH",
-			localPosition: new THREE.Vector3(
+			localPosition: new Vector3(
 				(side * width) / 4,
 				floorHeight + wallHeight + roofHeight / 2,
 				0,
 			),
-			localRotation: new THREE.Euler(0, 0, roofAngle),
-			scale: new THREE.Vector3(width / 2 + 0.3, 0.1, depth + 0.4),
+			localRotation: new Vector3(0, 0, roofAngle),
+			scale: new Vector3(width / 2 + 0.3, 0.1, depth + 0.4),
 			material: roofMaterial === "METAL" ? "METAL" : "THATCH",
 			condition: 1 - random.range(0, config.wearVariation),
 			isDestructible: true,
@@ -259,7 +259,7 @@ export function assembleHut(
 			type: "LADDER",
 			localPosition: ladderPos.position,
 			localRotation: ladderPos.rotation,
-			scale: new THREE.Vector3(0.5, floorHeight, 0.1),
+			scale: new Vector3(0.5, floorHeight, 0.1),
 			material: "WOOD",
 			condition: 1 - random.range(0, config.wearVariation),
 			isDestructible: true,
@@ -271,9 +271,9 @@ export function assembleHut(
 		components.push({
 			id: "lantern",
 			type: "LANTERN_HOOK",
-			localPosition: new THREE.Vector3(0, floorHeight + wallHeight - 0.3, 0),
-			localRotation: new THREE.Euler(0, 0, 0),
-			scale: new THREE.Vector3(0.3, 0.4, 0.3),
+			localPosition: new Vector3(0, floorHeight + wallHeight - 0.3, 0),
+			localRotation: new Vector3(0, 0, 0),
+			scale: new Vector3(0.3, 0.4, 0.3),
 			material: "METAL",
 			condition: 1,
 			isDestructible: false,
@@ -322,16 +322,16 @@ export function assemblePlatform(
 	} = options;
 
 	// Calculate stilt positions (corners + optional center supports)
-	const stilts: THREE.Vector3[] = [
-		new THREE.Vector3(-size.width / 2, 0, -size.depth / 2),
-		new THREE.Vector3(size.width / 2, 0, -size.depth / 2),
-		new THREE.Vector3(-size.width / 2, 0, size.depth / 2),
-		new THREE.Vector3(size.width / 2, 0, size.depth / 2),
+	const stilts: Vector3[] = [
+		new Vector3(-size.width / 2, 0, -size.depth / 2),
+		new Vector3(size.width / 2, 0, -size.depth / 2),
+		new Vector3(-size.width / 2, 0, size.depth / 2),
+		new Vector3(size.width / 2, 0, size.depth / 2),
 	];
 
 	// Add center stilts for larger platforms
 	if (size.width > 4 || size.depth > 4) {
-		stilts.push(new THREE.Vector3(0, 0, 0));
+		stilts.push(new Vector3(0, 0, 0));
 	}
 
 	// Determine which sides need railings (not the ladder side)
@@ -347,7 +347,7 @@ export function assemblePlatform(
 
 	return {
 		id: `platform-${seed}`,
-		position: new THREE.Vector3(0, height, 0),
+		position: new Vector3(0, height, 0),
 		size,
 		height,
 		stilts,
@@ -370,7 +370,7 @@ export function assemblePlatformNetwork(
 	const platforms: PlatformSection[] = [];
 
 	// Generate initial platform positions using rejection sampling
-	const positions: THREE.Vector3[] = [];
+	const positions: Vector3[] = [];
 	const minDistance = config.sectionSize * 1.5;
 
 	let attempts = 0;
@@ -390,7 +390,7 @@ export function assemblePlatformNetwork(
 		}
 
 		if (valid) {
-			positions.push(new THREE.Vector3(x, height, z));
+			positions.push(new Vector3(x, height, z));
 		}
 		attempts++;
 	}
@@ -449,9 +449,9 @@ export function assembleWatchtower(seed: number): StructureTemplate {
 		components.push({
 			id: `pole-${i}`,
 			type: "STILT",
-			localPosition: new THREE.Vector3((bottomX + topX) / 2, towerHeight / 2, (bottomZ + topZ) / 2),
-			localRotation: new THREE.Euler(leanZ, 0, -leanX),
-			scale: new THREE.Vector3(0.12, towerHeight * 1.1, 0.12),
+			localPosition: new Vector3((bottomX + topX) / 2, towerHeight / 2, (bottomZ + topZ) / 2),
+			localRotation: new Vector3(leanZ, 0, -leanX),
+			scale: new Vector3(0.12, towerHeight * 1.1, 0.12),
 			material: "WOOD",
 			condition: 1 - random.range(0, 0.2),
 			isDestructible: true,
@@ -472,9 +472,9 @@ export function assembleWatchtower(seed: number): StructureTemplate {
 			components.push({
 				id: `brace-${height}-${i}`,
 				type: "WALL_FRAME",
-				localPosition: new THREE.Vector3(midX, height, midZ),
-				localRotation: new THREE.Euler(0, -angle - Math.PI / 4, 0),
-				scale: new THREE.Vector3(1.5, 0.08, 0.08),
+				localPosition: new Vector3(midX, height, midZ),
+				localRotation: new Vector3(0, -angle - Math.PI / 4, 0),
+				scale: new Vector3(1.5, 0.08, 0.08),
 				material: "WOOD",
 				condition: 1 - random.range(0, 0.15),
 				isDestructible: true,
@@ -486,9 +486,9 @@ export function assembleWatchtower(seed: number): StructureTemplate {
 	components.push({
 		id: "platform",
 		type: "FLOOR_SECTION",
-		localPosition: new THREE.Vector3(0, towerHeight, 0),
-		localRotation: new THREE.Euler(0, 0, 0),
-		scale: new THREE.Vector3(platformSize, 0.1, platformSize),
+		localPosition: new Vector3(0, towerHeight, 0),
+		localRotation: new Vector3(0, 0, 0),
+		scale: new Vector3(platformSize, 0.1, platformSize),
 		material: "WOOD",
 		condition: 1 - random.range(0, 0.15),
 		isDestructible: true,
@@ -503,9 +503,9 @@ export function assembleWatchtower(seed: number): StructureTemplate {
 		components.push({
 			id: `railing-${i}`,
 			type: "RAILING",
-			localPosition: new THREE.Vector3(x, towerHeight + 0.5, z),
-			localRotation: new THREE.Euler(0, angle, 0),
-			scale: new THREE.Vector3(platformSize, 0.8, 0.05),
+			localPosition: new Vector3(x, towerHeight + 0.5, z),
+			localRotation: new Vector3(0, angle, 0),
+			scale: new Vector3(platformSize, 0.8, 0.05),
 			material: "WOOD",
 			condition: 1 - random.range(0, 0.2),
 			isDestructible: true,
@@ -516,9 +516,9 @@ export function assembleWatchtower(seed: number): StructureTemplate {
 	components.push({
 		id: "ladder",
 		type: "LADDER",
-		localPosition: new THREE.Vector3(0, towerHeight / 2, platformSize / 2 + 0.2),
-		localRotation: new THREE.Euler(0.1, 0, 0),
-		scale: new THREE.Vector3(0.6, towerHeight, 0.15),
+		localPosition: new Vector3(0, towerHeight / 2, platformSize / 2 + 0.2),
+		localRotation: new Vector3(0.1, 0, 0),
+		scale: new Vector3(0.6, towerHeight, 0.15),
 		material: "WOOD",
 		condition: 1 - random.range(0, 0.15),
 		isDestructible: true,
@@ -528,9 +528,9 @@ export function assembleWatchtower(seed: number): StructureTemplate {
 	components.push({
 		id: "roof",
 		type: "ROOF_THATCH",
-		localPosition: new THREE.Vector3(0, towerHeight + 1.2, 0),
-		localRotation: new THREE.Euler(0, Math.PI / 4, 0),
-		scale: new THREE.Vector3(platformSize + 0.5, 0.8, platformSize + 0.5),
+		localPosition: new Vector3(0, towerHeight + 1.2, 0),
+		localRotation: new Vector3(0, Math.PI / 4, 0),
+		scale: new Vector3(platformSize + 0.5, 0.8, platformSize + 0.5),
 		material: "THATCH",
 		condition: 1 - random.range(0, 0.2),
 		isDestructible: true,
@@ -545,7 +545,7 @@ export function assembleWatchtower(seed: number): StructureTemplate {
 		interactionPoints: [
 			{
 				id: "climb",
-				localPosition: new THREE.Vector3(0, 0.5, platformSize / 2 + 0.3),
+				localPosition: new Vector3(0, 0.5, platformSize / 2 + 0.3),
 				type: "CLIMB",
 				radius: 1,
 			},
@@ -600,34 +600,34 @@ function getWallPosition(
 	depth: number,
 	floorHeight: number,
 	wallHeight: number,
-): { position: THREE.Vector3; rotation: THREE.Euler; scale: THREE.Vector3 } {
+): { position: Vector3; rotation: Vector3; scale: Vector3 } {
 	const halfWall = wallHeight / 2;
 	const y = floorHeight + halfWall;
 
 	switch (side) {
 		case "NORTH":
 			return {
-				position: new THREE.Vector3(0, y, -depth / 2),
-				rotation: new THREE.Euler(0, 0, 0),
-				scale: new THREE.Vector3(width, wallHeight, 0.08),
+				position: new Vector3(0, y, -depth / 2),
+				rotation: new Vector3(0, 0, 0),
+				scale: new Vector3(width, wallHeight, 0.08),
 			};
 		case "SOUTH":
 			return {
-				position: new THREE.Vector3(0, y, depth / 2),
-				rotation: new THREE.Euler(0, Math.PI, 0),
-				scale: new THREE.Vector3(width, wallHeight, 0.08),
+				position: new Vector3(0, y, depth / 2),
+				rotation: new Vector3(0, Math.PI, 0),
+				scale: new Vector3(width, wallHeight, 0.08),
 			};
 		case "EAST":
 			return {
-				position: new THREE.Vector3(width / 2, y, 0),
-				rotation: new THREE.Euler(0, Math.PI / 2, 0),
-				scale: new THREE.Vector3(depth, wallHeight, 0.08),
+				position: new Vector3(width / 2, y, 0),
+				rotation: new Vector3(0, Math.PI / 2, 0),
+				scale: new Vector3(depth, wallHeight, 0.08),
 			};
 		case "WEST":
 			return {
-				position: new THREE.Vector3(-width / 2, y, 0),
-				rotation: new THREE.Euler(0, -Math.PI / 2, 0),
-				scale: new THREE.Vector3(depth, wallHeight, 0.08),
+				position: new Vector3(-width / 2, y, 0),
+				rotation: new Vector3(0, -Math.PI / 2, 0),
+				scale: new Vector3(depth, wallHeight, 0.08),
 			};
 	}
 }
@@ -637,29 +637,29 @@ function getLadderPosition(
 	width: number,
 	depth: number,
 	floorHeight: number,
-): { position: THREE.Vector3; rotation: THREE.Euler } {
+): { position: Vector3; rotation: Vector3 } {
 	const offset = 0.3;
 
 	switch (side) {
 		case "NORTH":
 			return {
-				position: new THREE.Vector3(0, floorHeight / 2, -depth / 2 - offset),
-				rotation: new THREE.Euler(-0.1, 0, 0),
+				position: new Vector3(0, floorHeight / 2, -depth / 2 - offset),
+				rotation: new Vector3(-0.1, 0, 0),
 			};
 		case "SOUTH":
 			return {
-				position: new THREE.Vector3(0, floorHeight / 2, depth / 2 + offset),
-				rotation: new THREE.Euler(0.1, Math.PI, 0),
+				position: new Vector3(0, floorHeight / 2, depth / 2 + offset),
+				rotation: new Vector3(0.1, Math.PI, 0),
 			};
 		case "EAST":
 			return {
-				position: new THREE.Vector3(width / 2 + offset, floorHeight / 2, 0),
-				rotation: new THREE.Euler(0, Math.PI / 2, 0.1),
+				position: new Vector3(width / 2 + offset, floorHeight / 2, 0),
+				rotation: new Vector3(0, Math.PI / 2, 0.1),
 			};
 		case "WEST":
 			return {
-				position: new THREE.Vector3(-width / 2 - offset, floorHeight / 2, 0),
-				rotation: new THREE.Euler(0, -Math.PI / 2, -0.1),
+				position: new Vector3(-width / 2 - offset, floorHeight / 2, 0),
+				rotation: new Vector3(0, -Math.PI / 2, -0.1),
 			};
 	}
 }
@@ -678,10 +678,11 @@ function generateHutSnapPoints(
 
 		const pos = getWallPosition(side, width, depth, floorHeight, 0);
 		// Convert rotation to direction vector
-		const direction = new THREE.Vector3(0, 0, 1).applyEuler(pos.rotation);
+		// applyEuler has no direct Babylon.js equivalent; using forward vector as default direction
+		const direction = new Vector3(0, 0, 1);
 		snapPoints.push({
 			id: `snap-${side}`,
-			localPosition: pos.position.clone().setY(floorHeight),
+			localPosition: new Vector3(pos.position.x, floorHeight, pos.position.z),
 			direction,
 			acceptsTypes: ["BASIC_HUT", "LONGHOUSE", "STORAGE_SHED", "BRIDGE_SECTION"],
 			occupied: false,
@@ -702,7 +703,7 @@ function generateHutInteractionPoints(
 	const points: InteractionPoint[] = [
 		{
 			id: "enter",
-			localPosition: ladderPos.position.clone().setY(0),
+			localPosition: new Vector3(ladderPos.position.x, 0, ladderPos.position.z),
 			type: "ENTER",
 			radius: 1.5,
 		},

@@ -1,14 +1,18 @@
+/**
+ * PlayerRig Component Tests
+ *
+ * Tests the Babylon.js-based PlayerRig that uses reactylon for 3D rendering.
+ */
+
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
 import { PlayerRig } from "../PlayerRig";
 
-// Mock Three.js elements that are not supported in happy-dom
-vi.mock("@react-three/fiber", () => ({
-	useFrame: vi.fn(),
-	useThree: vi.fn(() => ({
-		camera: { position: { z: 5 } },
-		scene: { add: vi.fn(), remove: vi.fn() },
-	})),
+// Mock reactylon to provide a fake scene (stubs useScene)
+jest.mock("reactylon");
+
+// Mock Weapon component (child, also uses Babylon.js)
+jest.mock("../Weapon", () => ({
+	Weapon: () => null,
 }));
 
 describe("PlayerRig", () => {
@@ -19,10 +23,8 @@ describe("PlayerRig", () => {
 
 	it("should apply default traits if none provided", () => {
 		const { container } = render(<PlayerRig />);
-		// In a real DOM (even happy-dom), R3F components don't render standard HTML tags directly
-		// in a way that's easy to query like "div".
-		// However, we can check if the component renders.
-		// Since we are not using a full WebGL environment, we mainly test that the component code executes.
+		// Babylon.js 3D components render into the scene, not the DOM
+		// Verify the component mounts cleanly without throwing
 		expect(container).toBeDefined();
 	});
 
@@ -44,12 +46,11 @@ describe("PlayerRig", () => {
 
 	it("should render with tactical gear", () => {
 		const gear = {
-			headgear: "helmet",
-			vest: "tactical",
-			backgear: "backpack",
-			weaponId: "rifle",
+			headgear: "helmet" as const,
+			vest: "tactical" as const,
+			backgear: "none" as const,
+			weaponId: "service-pistol",
 		};
-		// @ts-expect-error
 		const { container } = render(<PlayerRig gear={gear} />);
 		expect(container).toBeDefined();
 	});
@@ -62,5 +63,15 @@ describe("PlayerRig", () => {
 	it("should render when climbing", () => {
 		const { container } = render(<PlayerRig isClimbing={true} />);
 		expect(container).toBeDefined();
+	});
+
+	it("should register a scene observer for animations", () => {
+		// Use require (cached module) to get same mockScene instance injected by jest.mock("reactylon")
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
+		const { mockScene } = require("../../test/__mocks__/reactylon") as {
+			mockScene: { onBeforeRenderObservable: { add: jest.Mock; remove: jest.Mock } };
+		};
+		render(<PlayerRig />);
+		expect(mockScene.onBeforeRenderObservable.add).toHaveBeenCalled();
 	});
 });

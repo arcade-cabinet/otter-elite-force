@@ -4,7 +4,6 @@
  * Smoke tests verifying components export correctly and types are valid.
  */
 
-import { describe, expect, it } from "vitest";
 import * as EnvironmentExports from "../index";
 
 describe("Environment Entity Exports", () => {

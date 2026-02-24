@@ -12,10 +12,10 @@
  * - Bright, intelligent beady eyes
  */
 
-import { useFrame } from "@react-three/fiber";
+import type { TransformNode } from "@babylonjs/core";
+import { Color3 } from "@babylonjs/core";
 import { forwardRef, useEffect, useMemo, useRef } from "react";
-import type { Group } from "three";
-import * as THREE from "three";
+import { useScene } from "reactylon";
 import type { CharacterGear, CharacterTraits } from "../stores/gameStore";
 import { Weapon } from "./Weapon";
 
@@ -28,10 +28,10 @@ interface PlayerRigProps {
 	isClimbing?: boolean;
 	velocity?: number;
 	children?: React.ReactNode;
-	muzzleRef?: React.RefObject<THREE.Group>;
+	muzzleRef?: React.RefObject<TransformNode>;
 }
 
-export const PlayerRig = forwardRef<Group, PlayerRigProps>(
+export const PlayerRig = forwardRef<TransformNode, PlayerRigProps>(
 	(
 		{
 			traits = {
@@ -60,320 +60,506 @@ export const PlayerRig = forwardRef<Group, PlayerRigProps>(
 		},
 		ref,
 	) => {
-		const legLRef = useRef<THREE.Group>(null);
-		const legRRef = useRef<THREE.Group>(null);
-		const armLRef = useRef<THREE.Group>(null);
-		const armRRef = useRef<THREE.Group>(null);
-		const headRef = useRef<THREE.Group>(null);
-		const tailRef = useRef<THREE.Group>(null);
+		const scene = useScene();
 
-		// Memoize materials to prevent recreation every render
-		const materials = useMemo(
+		const legLRef = useRef<TransformNode>(null);
+		const legRRef = useRef<TransformNode>(null);
+		const armLRef = useRef<TransformNode>(null);
+		const armRRef = useRef<TransformNode>(null);
+		const headRef = useRef<TransformNode>(null);
+		const tailRef = useRef<TransformNode>(null);
+
+		// Memoize colors to prevent recreation every render
+		const colors = useMemo(
 			() => ({
-				fur: new THREE.MeshStandardMaterial({ color: traits.furColor, roughness: 0.95 }),
-				underFur: new THREE.MeshStandardMaterial({ color: "#a08060", roughness: 0.9 }), // Lighter underbelly
-				snout: new THREE.MeshStandardMaterial({ color: "#9D7E63", roughness: 0.85 }),
-				nose: new THREE.MeshStandardMaterial({ color: "#222", roughness: 0.3 }),
-				eye: new THREE.MeshStandardMaterial({
-					color: traits.eyeColor,
-					roughness: 0.1,
-					metalness: 0.3,
-				}),
-				eyeHighlight: new THREE.MeshBasicMaterial({ color: "#ffffff" }),
-				webbing: new THREE.MeshStandardMaterial({
-					color: "#6d5040",
-					roughness: 0.7,
-					transparent: true,
-					opacity: 0.9,
-				}),
+				fur: Color3.FromHexString(traits.furColor),
+				underFur: new Color3(0.627, 0.502, 0.376), // #a08060
+				snout: new Color3(0.616, 0.494, 0.388), // #9D7E63
+				nose: new Color3(0.133, 0.133, 0.133), // #222
+				eye: Color3.FromHexString(traits.eyeColor),
+				eyeHighlight: new Color3(1, 1, 1),
+				webbing: new Color3(0.427, 0.314, 0.251), // #6d5040
+				tacticalVest: new Color3(0.165, 0.227, 0.29), // #2a3a4a
+				tacticalPouch: new Color3(0.102, 0.165, 0.227), // #1a2a3a
+				whisker: new Color3(0.867, 0.867, 0.867), // #ddd
+				helmetColor: new Color3(0.239, 0.302, 0.161), // #3d4d29
 			}),
 			[traits.furColor, traits.eyeColor],
 		);
 
-		// Cleanup materials on unmount
+		// Animation loop via Babylon scene observable
 		useEffect(() => {
-			return () => {
-				Object.values(materials).forEach((material) => {
-					material.dispose();
-				});
-			};
-		}, [materials]);
+			if (!scene) return;
 
-		useFrame((state) => {
-			const time = state.clock.elapsedTime;
+			const observer = scene.onBeforeRenderObservable.add(() => {
+				const time = performance.now() / 1000;
 
-			// Tail always has subtle movement - otters use it for balance
-			if (tailRef.current) {
-				// Smooth serpentine tail movement
-				tailRef.current.children.forEach((segment, i) => {
-					segment.rotation.y = Math.sin(time * 3 - i * 0.5) * 0.1;
-					segment.rotation.x = Math.sin(time * 2 - i * 0.3) * 0.05;
-				});
-			}
-
-			if (isClimbing) {
-				// Climbing gait
-				const speed = time * 10;
-				if (legLRef.current) legLRef.current.rotation.x = -Math.PI / 4 + Math.sin(speed) * 0.4;
-				if (legRRef.current)
-					legRRef.current.rotation.x = -Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
-				if (armLRef.current)
-					armLRef.current.rotation.x = Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
-				if (armRRef.current) armRRef.current.rotation.x = Math.PI / 4 + Math.sin(speed) * 0.4;
-				return;
-			}
-
-			if (headRef.current) {
-				// Subtle breathing/idle head bob
-				headRef.current.position.y = 0.55 + Math.sin(time * 2.5) * 0.01;
-				if (isMoving) {
-					headRef.current.rotation.z = Math.sin(time * 12) * 0.03;
-					headRef.current.rotation.x = Math.sin(time * 6) * 0.02;
-				} else {
-					headRef.current.rotation.z = THREE.MathUtils.lerp(headRef.current.rotation.z, 0, 0.1);
-					headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, 0, 0.1);
+				// Tail always has subtle movement - otters use it for balance
+				if (tailRef.current) {
+					(tailRef.current.getChildren() as TransformNode[]).forEach((segment, i) => {
+						segment.rotation.y = Math.sin(time * 3 - i * 0.5) * 0.1;
+						segment.rotation.x = Math.sin(time * 2 - i * 0.3) * 0.05;
+					});
 				}
-			}
 
-			if (isMoving) {
-				// Natural quadruped gait - diagonal pairs move together
-				const walkSpeed = time * 14;
-				if (legLRef.current) legLRef.current.rotation.x = Math.sin(walkSpeed) * 0.6;
-				if (armRRef.current) armRRef.current.rotation.x = Math.sin(walkSpeed) * 0.6;
+				if (isClimbing) {
+					// Climbing gait
+					const speed = time * 10;
+					if (legLRef.current) legLRef.current.rotation.x = -Math.PI / 4 + Math.sin(speed) * 0.4;
+					if (legRRef.current)
+						legRRef.current.rotation.x = -Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
+					if (armLRef.current)
+						armLRef.current.rotation.x = Math.PI / 4 + Math.sin(speed + Math.PI) * 0.4;
+					if (armRRef.current) armRRef.current.rotation.x = Math.PI / 4 + Math.sin(speed) * 0.4;
+					return;
+				}
 
-				if (legRRef.current) legRRef.current.rotation.x = Math.sin(walkSpeed + Math.PI) * 0.6;
-				if (armLRef.current) armLRef.current.rotation.x = Math.sin(walkSpeed + Math.PI) * 0.6;
-			} else {
-				[legLRef, legRRef, armLRef, armRRef].forEach((ref) => {
-					if (ref.current)
-						ref.current.rotation.x = THREE.MathUtils.lerp(ref.current.rotation.x, 0, 0.1);
-				});
-			}
+				if (headRef.current) {
+					// Subtle breathing/idle head bob
+					headRef.current.position.y = 0.55 + Math.sin(time * 2.5) * 0.01;
+					if (isMoving) {
+						headRef.current.rotation.z = Math.sin(time * 12) * 0.03;
+						headRef.current.rotation.x = Math.sin(time * 6) * 0.02;
+					} else {
+						headRef.current.rotation.z += (0 - headRef.current.rotation.z) * 0.1;
+						headRef.current.rotation.x += (0 - headRef.current.rotation.x) * 0.1;
+					}
+				}
 
-			// Tail swishes more when moving
-			if (tailRef.current && isMoving) {
-				tailRef.current.rotation.z = Math.sin(time * 8) * 0.15;
-			}
-		});
+				if (isMoving) {
+					// Natural quadruped gait - diagonal pairs move together
+					const walkSpeed = time * 14;
+					if (legLRef.current) legLRef.current.rotation.x = Math.sin(walkSpeed) * 0.6;
+					if (armRRef.current) armRRef.current.rotation.x = Math.sin(walkSpeed) * 0.6;
+					if (legRRef.current) legRRef.current.rotation.x = Math.sin(walkSpeed + Math.PI) * 0.6;
+					if (armLRef.current) armLRef.current.rotation.x = Math.sin(walkSpeed + Math.PI) * 0.6;
+				} else {
+					[legLRef, legRRef, armLRef, armRRef].forEach((limb) => {
+						if (limb.current) limb.current.rotation.x += (0 - limb.current.rotation.x) * 0.1;
+					});
+				}
+
+				// Tail swishes more when moving
+				if (tailRef.current && isMoving) {
+					tailRef.current.rotation.z = Math.sin(time * 8) * 0.15;
+				}
+			});
+
+			return () => {
+				scene.onBeforeRenderObservable.remove(observer);
+			};
+		}, [scene, isMoving, isClimbing]);
 
 		// Webbed paw component - high detail realistic otter foot
-		const WebbedPaw = ({ scale = 1 }: { scale?: number }) => (
-			<group scale={scale}>
+		const WebbedPaw = ({ namePrefix, scale = 1 }: { namePrefix: string; scale?: number }) => (
+			<transformNode name={`${namePrefix}-paw`} scalingX={scale} scalingY={scale} scalingZ={scale}>
 				{/* Main paw pad */}
-				<mesh position={[0, -0.1, 0.02]} material={materials.snout}>
-					<sphereGeometry args={[0.1, 16, 16]} />
-				</mesh>
+				<sphere
+					name={`${namePrefix}-pad`}
+					options={{ diameter: 0.2, segments: 16 }}
+					positionX={0}
+					positionY={-0.1}
+					positionZ={0.02}
+				>
+					<standardMaterial name={`${namePrefix}-padMat`} diffuseColor={colors.snout} />
+				</sphere>
 				{/* Toes with webbing */}
-				{[-0.07, -0.025, 0.025, 0.07].map((x, i) => (
-					<group key={`toe-${i}`}>
+				{([-0.07, -0.025, 0.025, 0.07] as number[]).map((x, i) => (
+					<transformNode key={`toe-${i}`} name={`${namePrefix}-toeGroup-${i}`}>
 						{/* Individual toe */}
-						<mesh position={[x, -0.12, 0.08]} material={materials.fur}>
-							<sphereGeometry args={[0.035, 12, 12]} />
-						</mesh>
+						<sphere
+							name={`${namePrefix}-toe-${i}`}
+							options={{ diameter: 0.07, segments: 12 }}
+							positionX={x}
+							positionY={-0.12}
+							positionZ={0.08}
+						>
+							<standardMaterial name={`${namePrefix}-toeMat-${i}`} diffuseColor={colors.fur} />
+						</sphere>
 						{/* Webbing between toes */}
 						{i < 3 && (
-							<mesh
-								position={[(x + (x + 0.05)) / 2, -0.11, 0.06]}
-								rotation-x={-0.2}
-								material={materials.webbing}
+							<plane
+								name={`${namePrefix}-webbing-${i}`}
+								options={{ width: 0.04, height: 0.06 }}
+								positionX={(x + (x + 0.05)) / 2}
+								positionY={-0.11}
+								positionZ={0.06}
+								rotationX={-0.2}
 							>
-								<planeGeometry args={[0.04, 0.06]} />
-							</mesh>
+								<standardMaterial
+									name={`${namePrefix}-webbingMat-${i}`}
+									diffuseColor={colors.webbing}
+									alpha={0.9}
+								/>
+							</plane>
 						)}
-					</group>
+					</transformNode>
 				))}
-			</group>
+			</transformNode>
 		);
 
 		return (
-			<group ref={ref} position={position} rotation-y={rotation}>
+			<transformNode
+				name="playerRig"
+				ref={ref}
+				positionX={position[0]}
+				positionY={position[1]}
+				positionZ={position[2]}
+				rotationY={rotation}
+			>
 				{children}
 
 				{/* === QUADRUPEDAL BODY - Horizontal streamlined otter torso === */}
-				<group position={[0, 0.45, 0]}>
+				<transformNode name="body" positionX={0} positionY={0.45} positionZ={0}>
 					{/* Lower torso / Hips */}
-					<mesh position={[0, 0, -0.4]} castShadow receiveShadow material={materials.fur}>
-						<sphereGeometry args={[0.35, 32, 32]} />
-					</mesh>
-
-					{/* Main elongated body capsule */}
-					<mesh
-						position={[0, 0, 0]}
-						rotation-x={Math.PI / 2}
-						castShadow
-						receiveShadow
-						material={materials.fur}
+					<sphere
+						name="hips"
+						options={{ diameter: 0.7, segments: 32 }}
+						positionX={0}
+						positionY={0}
+						positionZ={-0.4}
 					>
-						<capsuleGeometry args={[0.32, 0.8, 24, 32]} />
-					</mesh>
+						<standardMaterial name="hipsMat" diffuseColor={colors.fur} />
+					</sphere>
+
+					{/* Main elongated body - approximated with cylinder */}
+					<cylinder
+						name="torso"
+						options={{ diameterTop: 0.64, diameterBottom: 0.64, height: 0.8, tessellation: 32 }}
+						positionX={0}
+						positionY={0}
+						positionZ={0}
+						rotationX={Math.PI / 2}
+					>
+						<standardMaterial name="torsoMat" diffuseColor={colors.fur} />
+					</cylinder>
 
 					{/* Upper torso / Shoulders */}
-					<mesh position={[0, 0.05, 0.4]} castShadow receiveShadow material={materials.fur}>
-						<sphereGeometry args={[0.36, 32, 32]} />
-					</mesh>
+					<sphere
+						name="shoulders"
+						options={{ diameter: 0.72, segments: 32 }}
+						positionX={0}
+						positionY={0.05}
+						positionZ={0.4}
+					>
+						<standardMaterial name="shouldersMat" diffuseColor={colors.fur} />
+					</sphere>
 
 					{/* Underbelly - lighter coloration */}
-					<mesh position={[0, -0.15, 0]} rotation-x={Math.PI / 2} material={materials.underFur}>
-						<capsuleGeometry args={[0.25, 0.7, 16, 24]} />
-					</mesh>
+					<cylinder
+						name="underbelly"
+						options={{ diameterTop: 0.5, diameterBottom: 0.5, height: 0.7, tessellation: 24 }}
+						positionX={0}
+						positionY={-0.15}
+						positionZ={0}
+						rotationX={Math.PI / 2}
+					>
+						<standardMaterial name="underbellyMat" diffuseColor={colors.underFur} />
+					</cylinder>
 
 					{/* === TACTICAL GEAR === */}
 					{gear.vest === "tactical" && (
-						<group position={[0, 0.1, 0]}>
-							<mesh rotation-x={Math.PI / 2}>
-								<cylinderGeometry args={[0.38, 0.38, 0.6, 32]} />
-								<meshStandardMaterial color="#2a3a4a" roughness={0.7} />
-							</mesh>
+						<transformNode name="vestGroup" positionX={0} positionY={0.1} positionZ={0}>
+							<cylinder
+								name="vest"
+								options={{ diameterTop: 0.76, diameterBottom: 0.76, height: 0.6, tessellation: 32 }}
+								positionX={0}
+								positionY={0}
+								positionZ={0}
+								rotationX={Math.PI / 2}
+							>
+								<standardMaterial name="vestMat" diffuseColor={colors.tacticalVest} />
+							</cylinder>
 							{/* Side pouches */}
-							{[-0.35, 0.35].map((x) => (
-								<mesh key={`pouch-${x}`} position={[x, 0.15, 0]}>
-									<boxGeometry args={[0.1, 0.2, 0.3]} />
-									<meshStandardMaterial color="#1a2a3a" />
-								</mesh>
+							{([-0.35, 0.35] as number[]).map((x) => (
+								<box
+									key={`pouch-${x}`}
+									name={`pouch-${x}`}
+									options={{ width: 0.1, height: 0.2, depth: 0.3 }}
+									positionX={x}
+									positionY={0.15}
+									positionZ={0}
+								>
+									<standardMaterial name={`pouchMat-${x}`} diffuseColor={colors.tacticalPouch} />
+								</box>
 							))}
-						</group>
+						</transformNode>
 					)}
 
 					{/* === TAIL - Iconically thick and tapered === */}
-					<group ref={tailRef} position={[0, -0.05, -0.65]} rotation-x={-0.1}>
-						{[0.2, 0.15, 0.1, 0.05].map((radius, i) => (
-							<mesh
+					<transformNode
+						name="tail"
+						ref={tailRef}
+						positionX={0}
+						positionY={-0.05}
+						positionZ={-0.65}
+						rotationX={-0.1}
+					>
+						{([0.2, 0.15, 0.1, 0.05] as number[]).map((radius, i) => (
+							<cylinder
 								key={`tail-seg-${i}`}
-								position={[0, 0, -i * 0.4]}
-								rotation-x={Math.PI / 2}
-								castShadow
-								material={materials.fur}
+								name={`tail-seg-${i}`}
+								options={{
+									diameterTop: radius * 2,
+									diameterBottom: radius * 2,
+									height: 0.4,
+									tessellation: 24,
+								}}
+								positionX={0}
+								positionY={0}
+								positionZ={-i * 0.4}
+								rotationX={Math.PI / 2}
 							>
-								<capsuleGeometry args={[radius, 0.4, 16, 24]} />
-							</mesh>
+								<standardMaterial name={`tailSegMat-${i}`} diffuseColor={colors.fur} />
+							</cylinder>
 						))}
-					</group>
+					</transformNode>
 
 					{/* === LEGS - Quadrupedal arrangement === */}
-					{/* Back Legs */}
-					<group ref={legLRef} position={[-0.25, -0.1, -0.4]}>
-						<mesh position={[0, -0.15, 0]} material={materials.fur} castShadow>
-							<capsuleGeometry args={[0.12, 0.3, 12, 16]} />
-						</mesh>
-						<group position={[0, -0.3, 0.05]}>
-							<WebbedPaw scale={0.9} />
-						</group>
-					</group>
-					<group ref={legRRef} position={[0.25, -0.1, -0.4]}>
-						<mesh position={[0, -0.15, 0]} material={materials.fur} castShadow>
-							<capsuleGeometry args={[0.12, 0.3, 12, 16]} />
-						</mesh>
-						<group position={[0, -0.3, 0.05]}>
-							<WebbedPaw scale={0.9} />
-						</group>
-					</group>
+					{/* Back Left Leg */}
+					<transformNode
+						name="legL"
+						ref={legLRef}
+						positionX={-0.25}
+						positionY={-0.1}
+						positionZ={-0.4}
+					>
+						<cylinder
+							name="legLCyl"
+							options={{ diameterTop: 0.24, diameterBottom: 0.24, height: 0.3, tessellation: 16 }}
+							positionX={0}
+							positionY={-0.15}
+							positionZ={0}
+						>
+							<standardMaterial name="legLMat" diffuseColor={colors.fur} />
+						</cylinder>
+						<WebbedPaw namePrefix="legL" scale={0.9} />
+					</transformNode>
+					{/* Back Right Leg */}
+					<transformNode
+						name="legR"
+						ref={legRRef}
+						positionX={0.25}
+						positionY={-0.1}
+						positionZ={-0.4}
+					>
+						<cylinder
+							name="legRCyl"
+							options={{ diameterTop: 0.24, diameterBottom: 0.24, height: 0.3, tessellation: 16 }}
+							positionX={0}
+							positionY={-0.15}
+							positionZ={0}
+						>
+							<standardMaterial name="legRMat" diffuseColor={colors.fur} />
+						</cylinder>
+						<WebbedPaw namePrefix="legR" scale={0.9} />
+					</transformNode>
 
-					{/* Front Legs */}
-					<group ref={armLRef} position={[-0.25, -0.1, 0.4]}>
-						<mesh position={[0, -0.15, 0]} material={materials.fur} castShadow>
-							<capsuleGeometry args={[0.11, 0.28, 12, 16]} />
-						</mesh>
-						<group position={[0, -0.3, 0.05]}>
-							<WebbedPaw scale={0.8} />
-						</group>
-					</group>
-					<group ref={armRRef} position={[0.25, -0.1, 0.4]}>
-						<mesh position={[0, -0.15, 0]} material={materials.fur} castShadow>
-							<capsuleGeometry args={[0.11, 0.28, 12, 16]} />
-						</mesh>
-						<group position={[0, -0.3, 0.05]}>
-							<WebbedPaw scale={0.8} />
-						</group>
-						{/* Weapon remains attached to front right leg area for now */}
-						<group position={[0.1, 0, 0.1]}>
+					{/* Front Left Arm */}
+					<transformNode
+						name="armL"
+						ref={armLRef}
+						positionX={-0.25}
+						positionY={-0.1}
+						positionZ={0.4}
+					>
+						<cylinder
+							name="armLCyl"
+							options={{ diameterTop: 0.22, diameterBottom: 0.22, height: 0.28, tessellation: 16 }}
+							positionX={0}
+							positionY={-0.15}
+							positionZ={0}
+						>
+							<standardMaterial name="armLMat" diffuseColor={colors.fur} />
+						</cylinder>
+						<WebbedPaw namePrefix="armL" scale={0.8} />
+					</transformNode>
+					{/* Front Right Arm */}
+					<transformNode
+						name="armR"
+						ref={armRRef}
+						positionX={0.25}
+						positionY={-0.1}
+						positionZ={0.4}
+					>
+						<cylinder
+							name="armRCyl"
+							options={{ diameterTop: 0.22, diameterBottom: 0.22, height: 0.28, tessellation: 16 }}
+							positionX={0}
+							positionY={-0.15}
+							positionZ={0}
+						>
+							<standardMaterial name="armRMat" diffuseColor={colors.fur} />
+						</cylinder>
+						<WebbedPaw namePrefix="armR" scale={0.8} />
+						{/* Weapon remains attached to front right arm area */}
+						<transformNode name="weaponMount" positionX={0.1} positionY={0} positionZ={0.1}>
 							<Weapon weaponId={gear.weaponId} muzzleRef={muzzleRef} />
-						</group>
-					</group>
+						</transformNode>
+					</transformNode>
 
 					{/* === NECK & HEAD === */}
-					<group ref={headRef} position={[0, 0.1, 0.55]}>
+					<transformNode
+						name="headGroup"
+						ref={headRef}
+						positionX={0}
+						positionY={0.1}
+						positionZ={0.55}
+					>
 						{/* Neck */}
-						<mesh
-							position={[0, 0.15, 0.1]}
-							rotation-x={-Math.PI / 4}
-							material={materials.fur}
-							castShadow
+						<cylinder
+							name="neck"
+							options={{ diameterTop: 0.36, diameterBottom: 0.36, height: 0.3, tessellation: 24 }}
+							positionX={0}
+							positionY={0.15}
+							positionZ={0.1}
+							rotationX={-Math.PI / 4}
 						>
-							<capsuleGeometry args={[0.18, 0.3, 16, 24]} />
-						</mesh>
+							<standardMaterial name="neckMat" diffuseColor={colors.fur} />
+						</cylinder>
 
 						{/* Head Group */}
-						<group position={[0, 0.45, 0.2]}>
+						<transformNode name="head" positionX={0} positionY={0.45} positionZ={0.2}>
 							{/* Skull */}
-							<mesh castShadow material={materials.fur}>
-								<sphereGeometry args={[0.3, 32, 32]} />
-							</mesh>
+							<sphere
+								name="skull"
+								options={{ diameter: 0.6, segments: 32 }}
+								positionX={0}
+								positionY={0}
+								positionZ={0}
+							>
+								<standardMaterial name="skullMat" diffuseColor={colors.fur} />
+							</sphere>
 
 							{/* Snout */}
-							<group position={[0, -0.1, 0.22]}>
-								<mesh material={materials.snout}>
-									<sphereGeometry args={[0.18, 24, 24]} />
-								</mesh>
+							<transformNode name="snoutGroup" positionX={0} positionY={-0.1} positionZ={0.22}>
+								<sphere
+									name="snout"
+									options={{ diameter: 0.36, segments: 24 }}
+									positionX={0}
+									positionY={0}
+									positionZ={0}
+								>
+									<standardMaterial name="snoutMat" diffuseColor={colors.snout} />
+								</sphere>
 								{/* Nose */}
-								<mesh position={[0, 0.05, 0.15]}>
-									<sphereGeometry args={[0.06, 16, 16]} />
-									<meshStandardMaterial color="#111" roughness={0.2} />
-								</mesh>
+								<sphere
+									name="nose"
+									options={{ diameter: 0.12, segments: 16 }}
+									positionX={0}
+									positionY={0.05}
+									positionZ={0.15}
+								>
+									<standardMaterial name="noseMat" diffuseColor={colors.nose} />
+								</sphere>
 								{/* Whiskers */}
-								{[-1, 1].map((side) => (
-									<group key={`whiskers-${side}`} position={[side * 0.12, 0, 0.1]}>
-										{[0, 1, 2].map((row) => (
-											<mesh
+								{([-1, 1] as number[]).map((side) => (
+									<transformNode
+										key={`whiskers-${side}`}
+										name={`whiskersGroup-${side}`}
+										positionX={side * 0.12}
+										positionY={0}
+										positionZ={0.1}
+									>
+										{([0, 1, 2] as number[]).map((row) => (
+											<cylinder
 												key={`whisker-${side}-${row}`}
-												position={[side * 0.02, -0.02 + row * 0.03, 0]}
-												rotation-z={side * (0.2 + row * 0.1)}
-												rotation-y={side * 0.3}
+												name={`whisker-${side}-${row}`}
+												options={{
+													diameterTop: 0.001,
+													diameterBottom: 0.004,
+													height: traits.whiskerLength + row * 0.04,
+													tessellation: 8,
+												}}
+												positionX={side * 0.02}
+												positionY={-0.02 + row * 0.03}
+												positionZ={0}
+												rotationZ={side * (0.2 + row * 0.1)}
+												rotationY={side * 0.3}
 											>
-												<cylinderGeometry
-													args={[0.002, 0.0005, traits.whiskerLength + row * 0.04, 8]}
+												<standardMaterial
+													name={`whiskerMat-${side}-${row}`}
+													diffuseColor={colors.whisker}
+													alpha={0.6}
 												/>
-												<meshBasicMaterial color="#ddd" transparent opacity={0.6} />
-											</mesh>
+											</cylinder>
 										))}
-									</group>
+									</transformNode>
 								))}
-							</group>
+							</transformNode>
 
 							{/* Eyes */}
-							{[-1, 1].map((side) => (
-								<group key={`eye-${side}`} position={[side * 0.15, 0.1, 0.22]}>
-									<mesh material={materials.eye}>
-										<sphereGeometry args={[0.045, 16, 16]} />
-									</mesh>
-									<mesh position={[0, 0, 0.035]} material={materials.eyeHighlight}>
-										<sphereGeometry args={[0.01, 8, 8]} />
-									</mesh>
-								</group>
+							{([-1, 1] as number[]).map((side) => (
+								<transformNode
+									key={`eye-${side}`}
+									name={`eyeGroup-${side}`}
+									positionX={side * 0.15}
+									positionY={0.1}
+									positionZ={0.22}
+								>
+									<sphere
+										name={`eyeBall-${side}`}
+										options={{ diameter: 0.09, segments: 16 }}
+										positionX={0}
+										positionY={0}
+										positionZ={0}
+									>
+										<standardMaterial name={`eyeMat-${side}`} diffuseColor={colors.eye} />
+									</sphere>
+									<sphere
+										name={`eyeHighlight-${side}`}
+										options={{ diameter: 0.02, segments: 8 }}
+										positionX={0}
+										positionY={0}
+										positionZ={0.035}
+									>
+										<standardMaterial
+											name={`eyeHighlightMat-${side}`}
+											diffuseColor={colors.eyeHighlight}
+										/>
+									</sphere>
+								</transformNode>
 							))}
 
 							{/* Ears */}
-							{[-1, 1].map((side) => (
-								<mesh
+							{([-1, 1] as number[]).map((side) => (
+								<sphere
 									key={`ear-${side}`}
-									position={[side * 0.28, 0.2, -0.05]}
-									rotation-z={side * 0.3}
-									material={materials.fur}
+									name={`ear-${side}`}
+									options={{ diameter: 0.16, segments: 16 }}
+									positionX={side * 0.28}
+									positionY={0.2}
+									positionZ={-0.05}
+									rotationZ={side * 0.3}
 								>
-									<sphereGeometry args={[0.08, 16, 16]} />
-								</mesh>
+									<standardMaterial name={`earMat-${side}`} diffuseColor={colors.fur} />
+								</sphere>
 							))}
 
 							{/* Headgear */}
 							{gear.headgear === "helmet" && (
-								<mesh position={[0, 0.2, 0]} rotation-x={0.1}>
-									<sphereGeometry args={[0.35, 32, 24, 0, Math.PI * 2, 0, Math.PI / 2]} />
-									<meshStandardMaterial color="#3d4d29" roughness={0.7} />
-								</mesh>
+								<cylinder
+									name="helmet"
+									options={{
+										diameterTop: 0.62,
+										diameterBottom: 0.7,
+										height: 0.35,
+										tessellation: 32,
+									}}
+									positionX={0}
+									positionY={0.2}
+									positionZ={0}
+									rotationX={0.1}
+								>
+									<standardMaterial name="helmetMat" diffuseColor={colors.helmetColor} />
+								</cylinder>
 							)}
-						</group>
-					</group>
-				</group>
-			</group>
+						</transformNode>
+					</transformNode>
+				</transformNode>
+			</transformNode>
 		);
 	},
 );
+
+PlayerRig.displayName = "PlayerRig";

@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import { initialMenuState, menuReducer } from "../state/menuReducer";
 
 describe("menuReducer", () => {

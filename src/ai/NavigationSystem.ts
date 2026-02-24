@@ -2,7 +2,15 @@
  * AI Navigation System with Recast Navmesh
  */
 
-import { type Mesh, type Scene, TransformNode, type Vector3 } from "@babylonjs/core";
+import {
+	type IAgentParameters,
+	type ICrowd,
+	type INavMeshParameters,
+	type Mesh,
+	type Scene,
+	TransformNode,
+	type Vector3,
+} from "@babylonjs/core";
 import { RecastJSPlugin } from "@babylonjs/core/Navigation/Plugins/recastJSPlugin";
 
 // Type definitions for Recast navigation
@@ -27,24 +35,15 @@ interface AgentParams {
 	height?: number;
 	maxAcceleration?: number;
 	maxSpeed?: number;
-}
-
-interface RecastNavMesh {
-	computePath(start: Vector3, end: Vector3): Vector3[] | null;
-}
-
-interface RecastCrowd {
-	addAgent(position: Vector3, params: AgentParams, transform: TransformNode): number;
-	getAgentPosition(idx: number): Vector3;
-	setAgentTarget(idx: number, target: Vector3): void;
-	update(delta: number): void;
+	collisionQueryRange?: number;
+	pathOptimizationRange?: number;
+	separationWeight?: number;
 }
 
 export class NavigationSystem {
 	private scene: Scene;
 	private navigationPlugin: RecastJSPlugin | null = null;
-	private navMesh: RecastNavMesh | null = null;
-	private crowd: RecastCrowd | null = null;
+	private crowd: ICrowd | null = null;
 
 	constructor(scene: Scene) {
 		this.scene = scene;
@@ -53,7 +52,7 @@ export class NavigationSystem {
 	async initialize(): Promise<void> {
 		const Recast = await import("recast-detour");
 		this.navigationPlugin = new RecastJSPlugin(Recast);
-		console.log("✅ Navigation system initialized with Recast");
+		console.log("Navigation system initialized with Recast");
 	}
 
 	async createNavMesh(meshes: Mesh[], parameters?: NavMeshParams): Promise<void> {
@@ -61,7 +60,7 @@ export class NavigationSystem {
 			throw new Error("Navigation plugin not initialized");
 		}
 
-		const navParams = {
+		const navParams: INavMeshParameters = {
 			cs: parameters?.cs ?? 0.2,
 			ch: parameters?.ch ?? 0.2,
 			walkableSlopeAngle: parameters?.walkableSlopeAngle ?? 35,
@@ -77,13 +76,13 @@ export class NavigationSystem {
 			detailSampleMaxError: parameters?.detailSampleMaxError ?? 1,
 		};
 
-		this.navMesh = this.navigationPlugin.createNavMesh(meshes, navParams);
+		this.navigationPlugin.createNavMesh(meshes, navParams);
 		this.crowd = this.navigationPlugin.createCrowd(100, 0.5, this.scene);
-		console.log("✅ Navigation mesh created");
+		console.log("Navigation mesh created");
 	}
 
 	findPath(start: Vector3, end: Vector3): Vector3[] | null {
-		if (!this.navigationPlugin || !this.navMesh) {
+		if (!this.navigationPlugin) {
 			return null;
 		}
 		return this.navigationPlugin.computePath(start, end);
@@ -94,11 +93,14 @@ export class NavigationSystem {
 			throw new Error("Crowd not initialized");
 		}
 
-		const agentParams = {
+		const agentParams: IAgentParameters = {
 			radius: parameters?.radius ?? 0.5,
 			height: parameters?.height ?? 2.0,
 			maxAcceleration: parameters?.maxAcceleration ?? 4.0,
 			maxSpeed: parameters?.maxSpeed ?? 1.0,
+			collisionQueryRange: parameters?.collisionQueryRange ?? 0.5,
+			pathOptimizationRange: parameters?.pathOptimizationRange ?? 0.0,
+			separationWeight: parameters?.separationWeight ?? 1.0,
 		};
 
 		return this.crowd.addAgent(position, agentParams, new TransformNode("agent", this.scene));

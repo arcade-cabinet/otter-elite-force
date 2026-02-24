@@ -3,91 +3,123 @@
  * Slows movement significantly, authentic swamp aesthetic
  */
 
-import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import type * as THREE from "three";
+import { Color3 } from "@babylonjs/core";
+
+function pseudoRandom(seed: number) {
+	let s = seed;
+	return () => {
+		s = (s * 9301 + 49297) % 233280;
+		return s / 233280;
+	};
+}
 
 interface MudPitProps {
-	position: [number, number, number] | THREE.Vector3;
+	positionX?: number;
+	positionY?: number;
+	positionZ?: number;
 	size?: number;
 }
 
-export function MudPit({ position, size = 4 }: MudPitProps) {
-	const bubblesRef = useRef<THREE.Group>(null);
+export function MudPit({ positionX = 0, positionY = 0, positionZ = 0, size = 4 }: MudPitProps) {
+	const rand = pseudoRandom(42);
 
-	// Generate random bubble data
-	const bubbleData = useMemo(
-		() =>
-			[...Array(8)].map(() => ({
-				x: (Math.random() - 0.5) * size * 0.8,
-				z: (Math.random() - 0.5) * size * 0.8,
-				speed: 0.5 + Math.random() * 1.5,
-				phase: Math.random() * Math.PI * 2,
-				size: 0.08 + Math.random() * 0.1,
-			})),
-		[size],
-	);
+	const bubbles = Array.from({ length: 8 }, () => ({
+		x: (rand() - 0.5) * size * 0.8,
+		z: (rand() - 0.5) * size * 0.8,
+		diameter: 0.08 + rand() * 0.1,
+	}));
 
-	useFrame((state) => {
-		if (!bubblesRef.current) return;
-		const t = state.clock.elapsedTime;
+	const edgeDebris = Array.from({ length: 6 }, (_, i) => ({
+		angle: (i / 6) * Math.PI * 2,
+		width: 0.3 + rand() * 0.2,
+		depth: 0.15 + rand() * 0.1,
+	}));
 
-		bubblesRef.current.children.forEach((bubble, i) => {
-			const data = bubbleData[i];
-			// Bubbles rise and pop
-			const cycle = (t * data.speed + data.phase) % 2;
-			bubble.position.y = cycle < 1.5 ? cycle * 0.15 : 0;
-			bubble.scale.setScalar(cycle < 1.5 ? data.size * (1 + cycle * 0.3) : 0.01);
-		});
-	});
+	const rippleRatios = [0.4, 0.6, 0.8];
 
 	return (
-		<group position={position}>
+		<transformNode name="mudPit" positionX={positionX} positionY={positionY} positionZ={positionZ}>
 			{/* Main mud surface */}
-			<mesh rotation-x={-Math.PI / 2} position={[0, 0.02, 0]} receiveShadow>
-				<circleGeometry args={[size, 32]} />
-				<meshStandardMaterial color="#3d2b1f" roughness={1} transparent opacity={0.95} />
-			</mesh>
+			<cylinder
+				name="mudSurface"
+				options={{
+					diameterTop: size * 2,
+					diameterBottom: size * 2,
+					height: 0.04,
+					tessellation: 24,
+				}}
+				positionY={0.02}
+			>
+				<standardMaterial name="mudSurfaceMat" diffuseColor={new Color3(0.239, 0.169, 0.122)} />
+			</cylinder>
 
 			{/* Darker center */}
-			<mesh rotation-x={-Math.PI / 2} position={[0, 0.03, 0]}>
-				<circleGeometry args={[size * 0.6, 24]} />
-				<meshStandardMaterial color="#2a1f15" roughness={1} transparent opacity={0.7} />
-			</mesh>
+			<cylinder
+				name="mudCenter"
+				options={{
+					diameterTop: size * 1.2,
+					diameterBottom: size * 1.2,
+					height: 0.04,
+					tessellation: 18,
+				}}
+				positionY={0.03}
+			>
+				<standardMaterial name="mudCenterMat" diffuseColor={new Color3(0.165, 0.122, 0.082)} />
+			</cylinder>
 
-			{/* Mud ripples */}
-			{[0.4, 0.6, 0.8].map((r, i) => (
-				<mesh key={`ripple-${i}`} rotation-x={-Math.PI / 2} position={[0, 0.04 + i * 0.01, 0]}>
-					<ringGeometry args={[size * r - 0.1, size * r, 24]} />
-					<meshStandardMaterial color="#4a3828" roughness={1} transparent opacity={0.3} />
-				</mesh>
+			{/* Mud ripple rings */}
+			{rippleRatios.map((r, i) => (
+				<cylinder
+					key={i}
+					name={`mudRipple-${i}`}
+					options={{
+						diameterTop: size * r * 2,
+						diameterBottom: size * r * 2,
+						height: 0.02,
+						tessellation: 16,
+					}}
+					positionY={0.04 + i * 0.005}
+				>
+					<standardMaterial
+						name={`mudRippleMat-${i}`}
+						diffuseColor={new Color3(0.29, 0.22, 0.157)}
+					/>
+				</cylinder>
 			))}
 
-			{/* Rising bubbles */}
-			<group ref={bubblesRef}>
-				{bubbleData.map((data, i) => (
-					<mesh key={`bubble-${i}`} position={[data.x, 0.05, data.z]}>
-						<sphereGeometry args={[data.size, 8, 8]} />
-						<meshStandardMaterial color="#5d4037" roughness={0.8} transparent opacity={0.6} />
-					</mesh>
-				))}
-			</group>
+			{/* Bubbles */}
+			{bubbles.map((b, i) => (
+				<sphere
+					key={i}
+					name={`mudBubble-${i}`}
+					options={{ diameter: b.diameter * 2, segments: 6 }}
+					positionX={b.x}
+					positionY={0.05}
+					positionZ={b.z}
+				>
+					<standardMaterial
+						name={`mudBubbleMat-${i}`}
+						diffuseColor={new Color3(0.365, 0.251, 0.216)}
+					/>
+				</sphere>
+			))}
 
 			{/* Edge debris */}
-			{[...Array(6)].map((_, i) => {
-				const angle = (i / 6) * Math.PI * 2;
-				const dist = size * 0.85;
-				return (
-					<mesh
-						key={`debris-${i}`}
-						position={[Math.cos(angle) * dist, 0.05, Math.sin(angle) * dist]}
-						rotation={[Math.random() * 0.3, Math.random() * Math.PI, Math.random() * 0.3]}
-					>
-						<boxGeometry args={[0.3 + Math.random() * 0.2, 0.1, 0.15 + Math.random() * 0.1]} />
-						<meshStandardMaterial color="#2d2015" roughness={1} />
-					</mesh>
-				);
-			})}
-		</group>
+			{edgeDebris.map((d, i) => (
+				<box
+					key={i}
+					name={`mudDebris-${i}`}
+					options={{ width: d.width, height: 0.1, depth: d.depth }}
+					positionX={Math.cos(d.angle) * size * 0.85}
+					positionY={0.05}
+					positionZ={Math.sin(d.angle) * size * 0.85}
+				>
+					<standardMaterial
+						name={`mudDebrisMat-${i}`}
+						diffuseColor={new Color3(0.176, 0.125, 0.082)}
+					/>
+				</box>
+			))}
+		</transformNode>
 	);
 }

@@ -4,126 +4,231 @@
  * Distinct from regular villagers with medical supplies and green cross markings
  */
 
-import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
-import type * as THREE from "three";
-import type { Group } from "three";
+import type { PointLight as BabylonPointLight, TransformNode } from "@babylonjs/core";
+import { Color3, Vector3 } from "@babylonjs/core";
+import { useEffect, useRef } from "react";
+import { useScene } from "reactylon";
 
 interface HealerProps {
-	position: [number, number, number] | THREE.Vector3;
+	position: [number, number, number];
 	isInteracting?: boolean;
 }
 
+const EYE_OFFSETS = [-0.15, 0.15];
+const PARTICLE_COUNT = [0, 1, 2, 3, 4, 5];
+
 export function Healer({ position, isInteracting = false }: HealerProps) {
-	const groupRef = useRef<Group>(null);
-	const headRef = useRef<THREE.Mesh>(null);
-	const glowRef = useRef<THREE.PointLight>(null);
+	const scene = useScene();
+	const groupRef = useRef<TransformNode>(null);
+	const headRef = useRef<TransformNode>(null);
+	const glowRef = useRef<BabylonPointLight>(null);
 
-	useFrame((state) => {
-		if (!groupRef.current || !headRef.current) return;
-		const t = state.clock.elapsedTime;
+	useEffect(() => {
+		if (!scene) return;
 
-		// Gentle idle animation
-		groupRef.current.rotation.y = Math.sin(t * 0.3) * 0.1;
-		headRef.current.rotation.y = Math.sin(t * 1.5) * 0.15;
-		headRef.current.position.y = 1.2 + Math.sin(t * 3) * 0.02;
+		const obs = scene.onBeforeRenderObservable.add(() => {
+			if (!groupRef.current || !headRef.current) return;
+			const t = performance.now() / 1000;
 
-		// Healing glow effect when interacting
-		if (glowRef.current) {
-			glowRef.current.intensity = isInteracting ? 2 + Math.sin(t * 8) * 0.5 : 0.5;
-		}
-	});
+			// Gentle idle animation
+			groupRef.current.rotation.y = Math.sin(t * 0.3) * 0.1;
+			headRef.current.rotation.y = Math.sin(t * 1.5) * 0.15;
+			headRef.current.position.y = 1.2 + Math.sin(t * 3) * 0.02;
+
+			// Healing glow effect when interacting
+			if (glowRef.current) {
+				glowRef.current.intensity = isInteracting ? 2 + Math.sin(t * 8) * 0.5 : 0.5;
+			}
+		});
+
+		return () => {
+			scene.onBeforeRenderObservable.remove(obs);
+		};
+	}, [scene, isInteracting]);
+
+	const furColor = new Color3(0.553, 0.431, 0.388);
+	const snoutColor = new Color3(0.631, 0.533, 0.498);
+	const coatColor = new Color3(0.91, 0.91, 0.878);
+	const medGreenColor = new Color3(0.18, 0.49, 0.196);
+	const healGlowColor = new Color3(0.4, 0.733, 0.416);
 
 	return (
-		<group ref={groupRef} position={position}>
+		<transformNode
+			name="healer"
+			ref={groupRef}
+			positionX={position[0]}
+			positionY={position[1]}
+			positionZ={position[2]}
+		>
 			{/* Body - White/cream medical coat */}
-			<mesh position={[0, 0.6, 0]} castShadow>
-				<cylinderGeometry args={[0.4, 0.35, 1.2, 8]} />
-				<meshStandardMaterial color="#e8e8e0" roughness={0.9} />
-			</mesh>
+			<cylinder
+				name="healerBody"
+				options={{ diameterTop: 0.8, diameterBottom: 0.7, height: 1.2, tessellation: 8 }}
+				positionX={0}
+				positionY={0.6}
+				positionZ={0}
+			>
+				<standardMaterial name="coatMat" diffuseColor={coatColor} />
+			</cylinder>
 
-			{/* Green cross on chest - Medical insignia */}
-			<group position={[0, 0.7, 0.36]}>
-				{/* Vertical bar */}
-				<mesh>
-					<boxGeometry args={[0.08, 0.25, 0.02]} />
-					<meshStandardMaterial color="#2e7d32" />
-				</mesh>
-				{/* Horizontal bar */}
-				<mesh>
-					<boxGeometry args={[0.25, 0.08, 0.02]} />
-					<meshStandardMaterial color="#2e7d32" />
-				</mesh>
-			</group>
+			{/* Green cross on chest - vertical bar */}
+			<box
+				name="crossVert"
+				options={{ width: 0.08, height: 0.25, depth: 0.02 }}
+				positionX={0}
+				positionY={0.7}
+				positionZ={0.36}
+			>
+				<standardMaterial name="crossMatV" diffuseColor={medGreenColor} />
+			</box>
+			{/* Green cross on chest - horizontal bar */}
+			<box
+				name="crossHoriz"
+				options={{ width: 0.25, height: 0.08, depth: 0.02 }}
+				positionX={0}
+				positionY={0.7}
+				positionZ={0.36}
+			>
+				<standardMaterial name="crossMatH" diffuseColor={medGreenColor} />
+			</box>
 
-			{/* Head - Otter features */}
-			<mesh ref={headRef} position={[0, 1.2, 0]} castShadow>
-				<sphereGeometry args={[0.35, 16, 16]} />
-				<meshStandardMaterial color="#8D6E63" roughness={1} />
-			</mesh>
+			{/* Head */}
+			<transformNode name="healerHead" ref={headRef} positionX={0} positionY={1.2} positionZ={0}>
+				<sphere
+					name="healerHeadSphere"
+					options={{ diameter: 0.7, segments: 16 }}
+					positionX={0}
+					positionY={0}
+					positionZ={0}
+				>
+					<standardMaterial name="headMat" diffuseColor={furColor} />
+				</sphere>
 
-			{/* Snout */}
-			<mesh position={[0, 1.15, 0.25]} scale={[1, 0.8, 1.2]}>
-				<sphereGeometry args={[0.2, 12, 12]} />
-				<meshStandardMaterial color="#A1887F" />
-			</mesh>
+				{/* Snout - scaled via parent transformNode */}
+				<transformNode
+					name="snoutNode"
+					positionX={0}
+					positionY={-0.05}
+					positionZ={0.25}
+					scalingX={1}
+					scalingY={0.8}
+					scalingZ={1.2}
+				>
+					<sphere
+						name="snout"
+						options={{ diameter: 0.4, segments: 12 }}
+						positionX={0}
+						positionY={0}
+						positionZ={0}
+					>
+						<standardMaterial name="snoutMat" diffuseColor={snoutColor} />
+					</sphere>
+				</transformNode>
 
-			{/* Eyes - Calm, caring */}
-			{[-0.15, 0.15].map((x, i) => (
-				<mesh key={`eye-${i}`} position={[x, 1.3, 0.25]}>
-					<sphereGeometry args={[0.04, 8, 8]} />
-					<meshBasicMaterial color="#2e7d32" />
-				</mesh>
-			))}
+				{/* Eyes */}
+				{EYE_OFFSETS.map((x, i) => (
+					<sphere
+						key={`eye-${i}`}
+						name={`eye-${i}`}
+						options={{ diameter: 0.08, segments: 8 }}
+						positionX={x}
+						positionY={0.1}
+						positionZ={0.25}
+					>
+						<standardMaterial
+							name={`eyeMat-${i}`}
+							diffuseColor={medGreenColor}
+							emissiveColor={medGreenColor}
+						/>
+					</sphere>
+				))}
 
-			{/* Medical headband with cross */}
-			<mesh position={[0, 1.45, 0]} rotation-x={-0.1}>
-				<torusGeometry args={[0.32, 0.04, 8, 24]} />
-				<meshStandardMaterial color="#fff" />
-			</mesh>
-			<mesh position={[0, 1.52, 0.25]}>
-				<boxGeometry args={[0.1, 0.1, 0.02]} />
-				<meshStandardMaterial color="#c62828" />
-			</mesh>
+				{/* Medical headband */}
+				<cylinder
+					name="headband"
+					options={{ diameterTop: 0.72, diameterBottom: 0.72, height: 0.08, tessellation: 24 }}
+					positionX={0}
+					positionY={0.25}
+					positionZ={0}
+					rotationX={-0.1}
+				>
+					<standardMaterial name="headbandMat" diffuseColor={new Color3(1, 1, 1)} />
+				</cylinder>
+				<box
+					name="headbandCross"
+					options={{ width: 0.1, height: 0.1, depth: 0.02 }}
+					positionX={0}
+					positionY={0.32}
+					positionZ={0.25}
+				>
+					<standardMaterial
+						name="headbandCrossMat"
+						diffuseColor={new Color3(0.776, 0.157, 0.157)}
+					/>
+				</box>
+			</transformNode>
 
 			{/* Medical satchel */}
-			<group position={[-0.35, 0.5, 0.1]}>
-				<mesh castShadow>
-					<boxGeometry args={[0.25, 0.3, 0.15]} />
-					<meshStandardMaterial color="#5d4037" roughness={0.9} />
-				</mesh>
-				{/* Cross on satchel */}
-				<mesh position={[0, 0, 0.08]}>
-					<boxGeometry args={[0.12, 0.04, 0.01]} />
-					<meshStandardMaterial color="#c62828" />
-				</mesh>
-				<mesh position={[0, 0, 0.08]}>
-					<boxGeometry args={[0.04, 0.12, 0.01]} />
-					<meshStandardMaterial color="#c62828" />
-				</mesh>
-			</group>
+			<box
+				name="satchel"
+				options={{ width: 0.25, height: 0.3, depth: 0.15 }}
+				positionX={-0.35}
+				positionY={0.5}
+				positionZ={0.1}
+			>
+				<standardMaterial name="satchelMat" diffuseColor={new Color3(0.365, 0.251, 0.216)} />
+			</box>
+			{/* Cross on satchel - horizontal */}
+			<box
+				name="satchelCrossH"
+				options={{ width: 0.12, height: 0.04, depth: 0.01 }}
+				positionX={-0.35}
+				positionY={0.5}
+				positionZ={0.18}
+			>
+				<standardMaterial name="satchelCrossMatH" diffuseColor={new Color3(0.776, 0.157, 0.157)} />
+			</box>
+			{/* Cross on satchel - vertical */}
+			<box
+				name="satchelCrossV"
+				options={{ width: 0.04, height: 0.12, depth: 0.01 }}
+				positionX={-0.35}
+				positionY={0.5}
+				positionZ={0.18}
+			>
+				<standardMaterial name="satchelCrossMatV" diffuseColor={new Color3(0.776, 0.157, 0.157)} />
+			</box>
 
 			{/* Healing glow */}
-			<pointLight ref={glowRef} color="#66bb6a" intensity={0.5} distance={3} position={[0, 1, 0]} />
+			<pointLight
+				name="healGlow"
+				ref={glowRef}
+				position={new Vector3(0, 1, 0)}
+				diffuse={healGlowColor}
+				specular={healGlowColor}
+				intensity={0.5}
+				range={3}
+			/>
 
 			{/* Healing particles when interacting */}
-			{isInteracting && (
-				<group position={[0, 1, 0]}>
-					{[...Array(6)].map((_, i) => (
-						<mesh
-							key={`particle-${i}`}
-							position={[
-								Math.cos(i * 1.05) * 0.5,
-								Math.sin(Date.now() * 0.003 + i) * 0.3 + 0.5,
-								Math.sin(i * 1.05) * 0.5,
-							]}
-						>
-							<sphereGeometry args={[0.05, 6, 6]} />
-							<meshBasicMaterial color="#66bb6a" transparent opacity={0.7} />
-						</mesh>
-					))}
-				</group>
-			)}
-		</group>
+			{isInteracting &&
+				PARTICLE_COUNT.map((i) => (
+					<sphere
+						key={`particle-${i}`}
+						name={`healParticle-${i}`}
+						options={{ diameter: 0.1, segments: 6 }}
+						positionX={Math.cos(i * 1.05) * 0.5}
+						positionY={1.5}
+						positionZ={Math.sin(i * 1.05) * 0.5}
+					>
+						<standardMaterial
+							name={`particleMat-${i}`}
+							diffuseColor={healGlowColor}
+							emissiveColor={healGlowColor}
+							alpha={0.7}
+						/>
+					</sphere>
+				))}
+		</transformNode>
 	);
 }

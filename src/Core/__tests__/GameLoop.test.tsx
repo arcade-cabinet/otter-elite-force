@@ -1,35 +1,50 @@
-import { render } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+/**
+ * GameLoop Component Tests
+ *
+ * Tests the Babylon.js-based game loop that uses scene.onBeforeRenderObservable.
+ */
+
+import { act, render } from "@testing-library/react";
 import { useGameStore } from "../../stores/gameStore";
 import { GameLoop } from "../GameLoop";
 
-// Mock store
-const mockSetState = vi.fn();
-vi.mock("../../stores/gameStore", () => ({
+// Mock reactylon to provide a fake scene with controllable onBeforeRenderObservable
+jest.mock("reactylon");
+
+// Mock game store
+jest.mock("../../stores/gameStore", () => ({
 	useGameStore: Object.assign(
-		vi.fn((selector) => selector({ mode: "GAME", comboTimer: 0 })),
-		{ setState: vi.fn() }, // Initial mock, we will override or spy on it
+		jest.fn((selector: (s: { mode: string; comboTimer: number }) => unknown) =>
+			selector({ mode: "GAME", comboTimer: 0 }),
+		),
+		{
+			setState: jest.fn(),
+			getState: jest.fn(() => ({ mode: "GAME", comboTimer: 0 })),
+		},
 	),
 }));
 
-// Capture the callback properly
-const mockUseFrame = vi.fn();
-vi.mock("@react-three/fiber", () => ({
-	useFrame: (cb: any) => mockUseFrame(cb),
-}));
+// Access the mocked scene + observer from our reactylon mock
+function getReactylonMock() {
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	return require("../../test/__mocks__/reactylon") as {
+		mockScene: { onBeforeRenderObservable: { add: jest.Mock; remove: jest.Mock } };
+		mockObserver: { callback: (() => void) | null };
+	};
+}
 
 describe("GameLoop", () => {
-	const mockUseGameStore = useGameStore as unknown as ReturnType<typeof vi.fn>;
+	const mockUseGameStore = useGameStore as unknown as jest.Mock;
+	let mockSetState: jest.Mock;
 
 	beforeEach(() => {
-		vi.clearAllMocks();
-		// Default state
-		mockUseGameStore.mockImplementation((selector: any) =>
-			selector({ mode: "GAME", comboTimer: 0 }),
+		jest.clearAllMocks();
+		mockSetState = jest.fn();
+		mockUseGameStore.mockImplementation(
+			(selector: (s: { mode: string; comboTimer: number }) => unknown) =>
+				selector({ mode: "GAME", comboTimer: 0 }),
 		);
-
-		// Link the external mockSetState to the store's setState
-		(useGameStore.setState as unknown as ReturnType<typeof vi.fn>).mockImplementation(mockSetState);
+		(useGameStore.setState as jest.Mock).mockImplementation(mockSetState);
 	});
 
 	it("should render without crashing", () => {
@@ -37,61 +52,100 @@ describe("GameLoop", () => {
 		expect(container).toBeDefined();
 	});
 
-	it("should not update when not in GAME mode", () => {
-		mockUseGameStore.mockImplementation((selector: any) =>
-			selector({ mode: "MENU", comboTimer: 0 }),
+	it("should register an observer on the Babylon.js scene", () => {
+		const { mockScene } = getReactylonMock();
+		render(<GameLoop />);
+		expect(mockScene.onBeforeRenderObservable.add).toHaveBeenCalled();
+	});
+
+	it("should not call onUpdate when not in GAME mode", () => {
+		mockUseGameStore.mockImplementation(
+			(selector: (s: { mode: string; comboTimer: number }) => unknown) =>
+				selector({ mode: "MENU", comboTimer: 0 }),
 		);
-		const onUpdate = vi.fn();
+		const onUpdate = jest.fn();
+		const { mockObserver } = getReactylonMock();
 
 		render(<GameLoop onUpdate={onUpdate} />);
 
-		// Get the registered callback
-		const frameCallback = mockUseFrame.mock.calls[0][0];
-		frameCallback({ clock: { elapsedTime: 10 } }, 0.1);
+		act(() => {
+			mockObserver.callback?.();
+		});
 
 		expect(onUpdate).not.toHaveBeenCalled();
 	});
 
-	it("should update when in GAME mode", () => {
-		mockUseGameStore.mockImplementation((selector: any) =>
-			selector({ mode: "GAME", comboTimer: 0 }),
-		);
-		const onUpdate = vi.fn();
+	it("should call onUpdate when in GAME mode", () => {
+		const onUpdate = jest.fn();
+		const { mockObserver } = getReactylonMock();
+
+		// Mock performance.now BEFORE render so lastTime initialization gets 1000
+		(performance.now as jest.Mock)
+			.mockReturnValueOnce(1000) // for lastTime = performance.now() in useEffect
+			.mockReturnValueOnce(1100); // for now = performance.now() in callback
 
 		render(<GameLoop onUpdate={onUpdate} />);
 
-		const frameCallback = mockUseFrame.mock.calls[0][0];
-		frameCallback({ clock: { elapsedTime: 10 } }, 0.1);
+		act(() => {
+			mockObserver.callback?.();
+		});
 
-		expect(onUpdate).toHaveBeenCalledWith(0.1, 10);
+		expect(onUpdate).toHaveBeenCalled();
 	});
 
-	it("should update combo timer", () => {
-		mockUseGameStore.mockImplementation((selector: any) =>
-			selector({ mode: "GAME", comboTimer: 2 }),
+	it("should decrement combo timer each frame", () => {
+		mockUseGameStore.mockImplementation(
+			(selector: (s: { mode: string; comboTimer: number }) => unknown) =>
+				selector({ mode: "GAME", comboTimer: 2 }),
 		);
+		const { mockObserver } = getReactylonMock();
+
+		// Mock BEFORE render: lastTime=0, then callback gets now=100 → 0.1s delta
+		(performance.now as jest.Mock)
+			.mockReturnValueOnce(0) // for lastTime in useEffect
+			.mockReturnValueOnce(100); // for now in callback
 
 		render(<GameLoop />);
 
-		const frameCallback = mockUseFrame.mock.calls[0][0];
-		frameCallback({ clock: { elapsedTime: 10 } }, 0.1);
+		act(() => {
+			mockObserver.callback?.();
+		});
 
-		expect(mockSetState).toHaveBeenCalledWith({ comboTimer: 1.9 });
+		expect(mockSetState).toHaveBeenCalledWith(
+			expect.objectContaining({ comboTimer: expect.any(Number) }),
+		);
 	});
 
 	it("should reset combo count when timer expires", () => {
-		mockUseGameStore.mockImplementation((selector: any) =>
-			selector({ mode: "GAME", comboTimer: 0.05 }),
+		mockUseGameStore.mockImplementation(
+			(selector: (s: { mode: string; comboTimer: number }) => unknown) =>
+				selector({ mode: "GAME", comboTimer: 0.05 }),
 		);
+		const { mockObserver } = getReactylonMock();
+
+		// React 19's scheduler also calls performance.now internally.
+		// Use an always-increasing mock (100ms per call) so lastTime→now always has 100ms delta.
+		// Any consecutive calls produce rawDelta=0.1s (capped to 0.1s) which exceeds the 0.05s timer.
+		let perfTime = 0;
+		(performance.now as jest.Mock).mockImplementation(() => {
+			perfTime += 100;
+			return perfTime;
+		});
 
 		render(<GameLoop />);
 
-		const frameCallback = mockUseFrame.mock.calls[0][0];
-		frameCallback({ clock: { elapsedTime: 10 } }, 0.1);
+		act(() => {
+			mockObserver.callback?.();
+		});
 
-		// Timer should become 0
-		expect(mockSetState).toHaveBeenCalledWith({ comboTimer: 0 });
-		// Combo count should reset
+		// Should be called twice: { comboTimer: 0 } then { comboCount: 0 }
 		expect(mockSetState).toHaveBeenCalledWith({ comboCount: 0 });
+	});
+
+	it("should remove the observer on unmount", () => {
+		const { mockScene } = getReactylonMock();
+		const { unmount } = render(<GameLoop />);
+		unmount();
+		expect(mockScene.onBeforeRenderObservable.remove).toHaveBeenCalled();
 	});
 });

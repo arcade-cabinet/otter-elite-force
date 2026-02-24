@@ -1,103 +1,164 @@
-import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
-import * as THREE from "three";
-
-interface SiphonProps {
-	position: THREE.Vector3;
-	secured?: boolean;
-}
-
 /**
  * Siphon - Scale-Guard Militia oil extraction point
  * When active: Pumps pollutants into the river, emits smoke, red warning light
  * When secured: Destroyed/disabled, no smoke, green "cleared" light
  */
+
+import type { TransformNode } from "@babylonjs/core";
+import { Color3, Vector3 } from "@babylonjs/core";
+import { useEffect, useRef } from "react";
+import { useScene } from "reactylon";
+
+interface SiphonProps {
+	position: [number, number, number];
+	secured?: boolean;
+}
+
+const PIPE_INDICES = [0, 1, 2];
+const SMOKE_INDICES = [0, 1, 2, 3, 4];
+const DEBRIS_INDICES = [0, 1, 2, 3];
+
 export function Siphon({ position, secured = false }: SiphonProps) {
-	const smokeRef = useRef<THREE.Group>(null);
-	const structureRef = useRef<THREE.Mesh>(null);
+	const scene = useScene();
+	const smokeGroupRef = useRef<TransformNode>(null);
+	const structureRef = useRef<TransformNode>(null);
 
-	useFrame((_state, delta) => {
-		// Only animate smoke when siphon is active (not secured)
-		if (!secured && smokeRef.current) {
-			smokeRef.current.children.forEach((child) => {
-				child.position.y += 0.05;
-				child.scale.setScalar(child.scale.x + 0.01);
-				if (child.position.y > 5) {
-					child.position.y = 0;
-					child.scale.setScalar(0.2);
+	useEffect(() => {
+		if (!scene) return;
+
+		const obs = scene.onBeforeRenderObservable.add(() => {
+			// Animate smoke puffs when active
+			if (!secured && smokeGroupRef.current) {
+				for (const child of smokeGroupRef.current.getChildTransformNodes()) {
+					child.position.y += 0.05;
+					const s = child.scaling.x + 0.01;
+					child.scaling.set(s, s, s);
+					if (child.position.y > 5) {
+						child.position.y = 0;
+						child.scaling.set(0.2, 0.2, 0.2);
+					}
 				}
-			});
-		}
+			}
 
-		// Secured siphons slowly sink/tilt to show destruction
-		if (secured && structureRef.current) {
-			structureRef.current.rotation.z = THREE.MathUtils.lerp(
-				structureRef.current.rotation.z,
-				0.3,
-				delta * 0.5,
-			);
-			structureRef.current.position.y = THREE.MathUtils.lerp(
-				structureRef.current.position.y,
-				-1,
-				delta * 0.5,
-			);
-		}
-	});
+			// Secured siphons slowly tilt/sink
+			if (secured && structureRef.current) {
+				structureRef.current.rotation.z += (0.3 - structureRef.current.rotation.z) * 0.016 * 0.5;
+				structureRef.current.position.y += (-1 - structureRef.current.position.y) * 0.016 * 0.5;
+			}
+		});
+
+		return () => {
+			scene.onBeforeRenderObservable.remove(obs);
+		};
+	}, [scene, secured]);
+
+	const structureColor = secured
+		? new Color3(0.102, 0.102, 0.102)
+		: new Color3(0.067, 0.067, 0.067);
+	const pipeColor = secured ? new Color3(0.2, 0.2, 0.2) : new Color3(0.133, 0.133, 0.133);
+	const lightColor = secured ? new Color3(0, 1, 0) : new Color3(1, 0, 0);
+	const smokeColor = new Color3(0.2, 0.2, 0.2);
+	const debrisColor = new Color3(0.133, 0.133, 0.133);
 
 	return (
-		<group position={position}>
-			{/* Main Siphon Structure */}
-			<mesh ref={structureRef} castShadow receiveShadow>
-				<cylinderGeometry args={[1.5, 2, 4, 32]} />
-				<meshStandardMaterial
-					color={secured ? "#1a1a1a" : "#111"}
-					metalness={0.8}
-					roughness={secured ? 0.9 : 0.3}
+		<transformNode
+			name="siphon"
+			positionX={position[0]}
+			positionY={position[1]}
+			positionZ={position[2]}
+		>
+			<transformNode name="siphonStructure" ref={structureRef}>
+				{/* Main Siphon Body */}
+				<cylinder
+					name="siphonBody"
+					options={{ diameterTop: 3, diameterBottom: 4, height: 4, tessellation: 32 }}
+					positionX={0}
+					positionY={0}
+					positionZ={0}
+				>
+					<standardMaterial name="siphonMat" diffuseColor={structureColor} />
+				</cylinder>
+
+				{/* Pumping Pipes */}
+				{PIPE_INDICES.map((i) => (
+					<cylinder
+						key={`pipe-${i}`}
+						name={`pipe-${i}`}
+						options={{ diameterTop: 0.6, diameterBottom: 0.6, height: 5, tessellation: 16 }}
+						positionX={0}
+						positionY={-1}
+						positionZ={0}
+						rotationY={(i * Math.PI * 2) / 3}
+					>
+						<standardMaterial name={`pipeMat-${i}`} diffuseColor={pipeColor} />
+					</cylinder>
+				))}
+
+				{/* Dirty Smoke Effect - only when active */}
+				{!secured && (
+					<transformNode
+						name="smokeGroup"
+						ref={smokeGroupRef}
+						positionX={0}
+						positionY={2}
+						positionZ={0}
+					>
+						{SMOKE_INDICES.map((i) => (
+							<transformNode
+								key={`smoke-${i}`}
+								name={`smokeParticle-${i}`}
+								positionX={0}
+								positionY={i * 1}
+								positionZ={0}
+								scalingX={0.2}
+								scalingY={0.2}
+								scalingZ={0.2}
+							>
+								<sphere
+									name={`smokeSphere-${i}`}
+									options={{ diameter: 1, segments: 16 }}
+									positionX={0}
+									positionY={0}
+									positionZ={0}
+								>
+									<standardMaterial name={`smokeMat-${i}`} diffuseColor={smokeColor} alpha={0.4} />
+								</sphere>
+							</transformNode>
+						))}
+					</transformNode>
+				)}
+
+				{/* Secured: Show wreckage debris */}
+				{secured && (
+					<transformNode name="debrisGroup" positionX={0} positionY={0.5} positionZ={0}>
+						{DEBRIS_INDICES.map((i) => (
+							<box
+								key={`debris-${i}`}
+								name={`debris-${i}`}
+								options={{ width: 0.4, height: 0.2, depth: 0.3 }}
+								positionX={Math.cos(i * 1.5) * 2}
+								positionY={0.25}
+								positionZ={Math.sin(i * 1.5) * 2}
+								rotationX={i * 0.7}
+								rotationY={i * 0.5}
+								rotationZ={i * 0.3}
+							>
+								<standardMaterial name={`debrisMat-${i}`} diffuseColor={debrisColor} />
+							</box>
+						))}
+					</transformNode>
+				)}
+
+				{/* Status Light */}
+				<pointLight
+					name="statusLight"
+					position={new Vector3(0, 0, 0)}
+					diffuse={lightColor}
+					specular={lightColor}
+					intensity={secured ? 0.5 : 2}
+					range={secured ? 5 : 10}
 				/>
-			</mesh>
-
-			{/* Pumping Pipes */}
-			{[0, 1, 2].map((i) => (
-				<mesh key={`pipe-${i}`} rotation-y={(i * Math.PI * 2) / 3} position={[0, -1, 0]}>
-					<cylinderGeometry args={[0.3, 0.3, 5, 16]} />
-					<meshStandardMaterial color={secured ? "#333" : "#222"} />
-				</mesh>
-			))}
-
-			{/* Dirty Smoke Effect - only when active */}
-			{!secured && (
-				<group ref={smokeRef} position={[0, 2, 0]}>
-					{[...Array(5)].map((_, i) => (
-						<mesh key={`smoke-${i}`} position={[0, i * 1, 0]} scale={0.2}>
-							<sphereGeometry args={[0.5, 16, 16]} />
-							<meshBasicMaterial color="#333" transparent opacity={0.4} />
-						</mesh>
-					))}
-				</group>
-			)}
-
-			{/* Secured: Show wreckage debris */}
-			{secured && (
-				<group position={[0, 0.5, 0]}>
-					{[...Array(4)].map((_, i) => (
-						<mesh
-							key={`debris-${i}`}
-							position={[Math.cos(i * 1.5) * 2, Math.random() * 0.5, Math.sin(i * 1.5) * 2]}
-							rotation={[Math.random(), Math.random(), Math.random()]}
-						>
-							<boxGeometry args={[0.4, 0.2, 0.3]} />
-							<meshStandardMaterial color="#222" />
-						</mesh>
-					))}
-				</group>
-			)}
-
-			{/* Status Light: Red = active threat, Green = secured */}
-			<pointLight
-				color={secured ? "#00ff00" : "#ff0000"}
-				intensity={secured ? 0.5 : 2}
-				distance={secured ? 5 : 10}
-			/>
-		</group>
+			</transformNode>
+		</transformNode>
 	);
 }

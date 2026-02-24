@@ -8,7 +8,7 @@
  * 4. Populating with inhabitants
  */
 
-import * as THREE from "three";
+import { Vector3 } from "@babylonjs/core";
 import type { Faction } from "./componentLibrary";
 import {
 	assembleHut,
@@ -235,20 +235,20 @@ export const SETTLEMENT_CONFIGS: Record<SettlementType, SettlementConfig> = {
 
 export interface SettlementStructure {
 	template: StructureTemplate;
-	worldPosition: THREE.Vector3;
+	worldPosition: Vector3;
 	worldRotation: number;
 	faction: Faction;
 }
 
 export interface SettlementInhabitant {
 	type: "VILLAGER" | "HEALER" | "GUARD" | "PRISONER";
-	position: THREE.Vector3;
+	position: Vector3;
 	faction: Faction;
 }
 
 export interface Settlement {
 	type: SettlementType;
-	center: THREE.Vector3;
+	center: Vector3;
 	radius: number;
 	structures: SettlementStructure[];
 	paths: PathSegment[];
@@ -268,8 +268,8 @@ function layoutScattered(
 	count: number,
 	spacing: { min: number; max: number },
 	centerBuffer: number,
-): THREE.Vector3[] {
-	const positions: THREE.Vector3[] = [];
+): Vector3[] {
+	const positions: Vector3[] = [];
 	let attempts = 0;
 	const maxAttempts = count * 50;
 
@@ -281,12 +281,12 @@ function layoutScattered(
 
 		const x = Math.cos(angle) * distance;
 		const z = Math.sin(angle) * distance;
-		const candidate = new THREE.Vector3(x, 0, z);
+		const candidate = new Vector3(x, 0, z);
 
 		// Check minimum distance from existing positions
 		let valid = true;
 		for (const existing of positions) {
-			if (candidate.distanceTo(existing) < spacing.min) {
+			if (Vector3.Distance(candidate, existing) < spacing.min) {
 				valid = false;
 				break;
 			}
@@ -309,15 +309,15 @@ function layoutCircular(
 	count: number,
 	spacing: { min: number; max: number },
 	centerBuffer: number,
-): THREE.Vector3[] {
-	const positions: THREE.Vector3[] = [];
+): Vector3[] {
+	const positions: Vector3[] = [];
 	const avgSpacing = (spacing.min + spacing.max) / 2;
 	const radius = Math.max(centerBuffer, (count * avgSpacing) / (Math.PI * 2));
 
 	for (let i = 0; i < count; i++) {
 		const angle = (i / count) * Math.PI * 2 + random.range(-0.1, 0.1);
 		const dist = radius + random.range(-1, 1);
-		positions.push(new THREE.Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist));
+		positions.push(new Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist));
 	}
 
 	return positions;
@@ -331,13 +331,13 @@ function layoutLinear(
 	count: number,
 	spacing: { min: number; max: number },
 	_centerBuffer: number,
-): THREE.Vector3[] {
-	const positions: THREE.Vector3[] = [];
+): Vector3[] {
+	const positions: Vector3[] = [];
 	let currentX = 0;
 
 	for (let i = 0; i < count; i++) {
 		const offset = random.range(-1, 1);
-		positions.push(new THREE.Vector3(currentX, 0, offset));
+		positions.push(new Vector3(currentX, 0, offset));
 		currentX += random.range(spacing.min, spacing.max);
 	}
 
@@ -358,8 +358,8 @@ function layoutGrid(
 	count: number,
 	spacing: { min: number; max: number },
 	centerBuffer: number,
-): THREE.Vector3[] {
-	const positions: THREE.Vector3[] = [];
+): Vector3[] {
+	const positions: Vector3[] = [];
 	const cols = Math.ceil(Math.sqrt(count));
 	const rows = Math.ceil(count / cols);
 	const avgSpacing = (spacing.min + spacing.max) / 2;
@@ -375,7 +375,7 @@ function layoutGrid(
 				continue;
 			}
 
-			positions.push(new THREE.Vector3(x, 0, z));
+			positions.push(new Vector3(x, 0, z));
 			placed++;
 		}
 	}
@@ -391,12 +391,12 @@ function layoutDefensive(
 	count: number,
 	spacing: { min: number; max: number },
 	centerBuffer: number,
-): THREE.Vector3[] {
+): Vector3[] {
 	// Command post in center, others around perimeter
-	const positions: THREE.Vector3[] = [];
+	const positions: Vector3[] = [];
 
 	// Center position for command structure
-	positions.push(new THREE.Vector3(0, 0, 0));
+	positions.push(new Vector3(0, 0, 0));
 
 	// Perimeter positions
 	const perimeterCount = count - 1;
@@ -405,7 +405,7 @@ function layoutDefensive(
 	for (let i = 0; i < perimeterCount; i++) {
 		const angle = (i / perimeterCount) * Math.PI * 2;
 		const dist = radius + random.range(0, spacing.max - spacing.min);
-		positions.push(new THREE.Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist));
+		positions.push(new Vector3(Math.cos(angle) * dist, 0, Math.sin(angle) * dist));
 	}
 
 	return positions;
@@ -415,10 +415,10 @@ function layoutDefensive(
  * Calculate rotation for structure based on pattern
  */
 function calculateRotation(
-	position: THREE.Vector3,
+	position: Vector3,
 	pattern: SettlementConfig["layout"]["rotation"],
 	random: SettlementRandom,
-	waterDirection?: THREE.Vector3,
+	waterDirection?: Vector3,
 ): number {
 	switch (pattern) {
 		case "FACING_CENTER":
@@ -463,7 +463,7 @@ function generatePaths(
 			for (let toIdx = 0; toIdx < structures.length; toIdx++) {
 				if (inMST.has(toIdx)) continue;
 
-				const dist = structures[fromIdx].worldPosition.distanceTo(structures[toIdx].worldPosition);
+				const dist = Vector3.Distance(structures[fromIdx].worldPosition, structures[toIdx].worldPosition);
 
 				if (!bestEdge || dist < bestEdge.dist) {
 					bestEdge = { from: fromIdx, to: toIdx, dist };
@@ -502,7 +502,7 @@ function generatePaths(
 export function assembleSettlement(
 	seed: number,
 	type: SettlementType,
-	center: THREE.Vector3,
+	center: Vector3,
 	faction: Faction,
 ): Settlement {
 	const random = new SettlementRandom(seed);
@@ -525,7 +525,7 @@ export function assembleSettlement(
 	const totalStructures = structuresToBuild.reduce((sum, s) => sum + s.count, 0);
 
 	// Generate layout positions
-	let positions: THREE.Vector3[];
+	let positions: Vector3[];
 	switch (config.layout.pattern) {
 		case "SCATTERED":
 			positions = layoutScattered(
@@ -587,7 +587,7 @@ export function assembleSettlement(
 		for (let i = 0; i < count && positionIndex < positions.length; i++) {
 			const position = positions[positionIndex++].clone().add(center);
 			const rotation = calculateRotation(
-				position.clone().sub(center),
+				position.clone().subtract(center),
 				config.layout.rotation,
 				random,
 			);
@@ -641,7 +641,7 @@ export function assembleSettlement(
 		for (let i = 0; i < count; i++) {
 			// Place inhabitants near structures
 			const nearStructure = random.pick(structures);
-			const offset = new THREE.Vector3(random.range(-3, 3), 0, random.range(-3, 3));
+			const offset = new Vector3(random.range(-3, 3), 0, random.range(-3, 3));
 
 			inhabitants.push({
 				type: inhabitantConfig.type,
@@ -654,7 +654,7 @@ export function assembleSettlement(
 	// Calculate settlement radius
 	let maxRadius = 0;
 	for (const structure of structures) {
-		const dist = structure.worldPosition.distanceTo(center);
+		const dist = Vector3.Distance(structure.worldPosition, center);
 		if (dist > maxRadius) maxRadius = dist;
 	}
 
@@ -678,7 +678,7 @@ export function assembleSettlement(
  */
 export function assembleElevatedNetwork(
 	seed: number,
-	center: THREE.Vector3,
+	center: Vector3,
 	areaSize: number,
 	platformCount: number,
 ): {
@@ -696,8 +696,9 @@ export function assembleElevatedNetwork(
 			const p1 = platforms[i];
 			const p2 = platforms[j];
 
-			const dist = new THREE.Vector3(p1.position.x, 0, p1.position.z).distanceTo(
-				new THREE.Vector3(p2.position.x, 0, p2.position.z),
+			const dist = Vector3.Distance(
+				new Vector3(p1.position.x, 0, p1.position.z),
+				new Vector3(p2.position.x, 0, p2.position.z),
 			);
 
 			// Connect if close enough
@@ -717,7 +718,7 @@ export function assembleElevatedNetwork(
 
 	// Offset platforms to world position
 	for (const platform of platforms) {
-		platform.position.add(center);
+		platform.position.addInPlace(center);
 	}
 
 	return { platforms, bridges };

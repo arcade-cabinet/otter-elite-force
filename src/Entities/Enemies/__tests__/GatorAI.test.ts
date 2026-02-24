@@ -1,11 +1,9 @@
-import * as THREE from "three";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Vehicle as VehicleType } from "yuka";
+import { Vector3 } from "@babylonjs/core";
 import { GatorAI } from "../GatorAI";
 
-// Mock YUKA
-vi.mock("yuka", () => {
-	class Vector3 {
+// Mock YUKA - must be hoisted before imports
+jest.mock("yuka", () => {
+	class YukaVector3 {
 		x = 0;
 		y = 0;
 		z = 0;
@@ -41,38 +39,40 @@ vi.mock("yuka", () => {
 	}
 
 	class Vehicle {
-		position = new Vector3();
-		velocity = new Vector3();
+		position = new YukaVector3();
+		velocity = new YukaVector3();
 		maxSpeed = 0;
 		steering = {
-			add: vi.fn(),
-			clear: vi.fn(),
+			add: jest.fn(),
+			clear: jest.fn(),
 		};
-		update = vi.fn();
+		update = jest.fn();
 	}
 
 	class MockBehavior {
-		target = new Vector3();
+		target = new YukaVector3();
 	}
 
 	return {
 		Vehicle,
-		Vector3,
+		Vector3: YukaVector3,
 		SeekBehavior: MockBehavior,
 		FleeBehavior: MockBehavior,
-		WanderBehavior: vi.fn(),
-		EntityManager: vi.fn().mockImplementation(() => ({
-			clear: vi.fn(),
+		WanderBehavior: jest.fn(),
+		EntityManager: jest.fn().mockImplementation(() => ({
+			clear: jest.fn(),
 		})),
 	};
 });
 
+// Use require() to get the mocked yuka (avoids dynamic import / --experimental-vm-modules requirement)
+const YUKA = require("yuka");
+
 describe("GatorAI", () => {
-	let vehicle: VehicleType;
+	let vehicle: InstanceType<typeof YUKA.Vehicle>;
 	let gatorAI: GatorAI;
 
-	beforeEach(async () => {
-		const YUKA = await import("yuka");
+	beforeEach(() => {
 		vehicle = new YUKA.Vehicle();
 		gatorAI = new GatorAI(vehicle);
 	});
@@ -82,7 +82,7 @@ describe("GatorAI", () => {
 	});
 
 	it("should transition from IDLE to STALK when player is within range", () => {
-		const playerPos = new THREE.Vector3(12, 0, 0);
+		const playerPos = new Vector3(12, 0, 0);
 		vehicle.position.set(0, 0, 0);
 
 		gatorAI.update(0.1, playerPos, 10, 0);
@@ -90,7 +90,7 @@ describe("GatorAI", () => {
 	});
 
 	it("should transition to AMBUSH when player is very close", () => {
-		const playerPos = new THREE.Vector3(5, 0, 0);
+		const playerPos = new Vector3(5, 0, 0);
 		vehicle.position.set(0, 0, 0);
 
 		// First transition to STALK
@@ -101,19 +101,19 @@ describe("GatorAI", () => {
 	});
 
 	it("should transition to RETREAT when health is low", () => {
-		const playerPos = new THREE.Vector3(30, 0, 0);
+		const playerPos = new Vector3(30, 0, 0);
 		gatorAI.update(0.1, playerPos, 1, 0);
 		expect(gatorAI.getState()).toBe("RETREAT");
 	});
 
 	it("should transition to SUPPRESSED when suppression is high", () => {
-		const playerPos = new THREE.Vector3(30, 0, 0);
+		const playerPos = new Vector3(30, 0, 0);
 		gatorAI.update(0.1, playerPos, 10, 1.0);
 		expect(gatorAI.getState()).toBe("SUPPRESSED");
 	});
 
 	it("should exit RETREAT state after timer and distance", () => {
-		const playerPos = new THREE.Vector3(50, 0, 0);
+		const playerPos = new Vector3(50, 0, 0);
 		gatorAI.update(0.1, playerPos, 1, 0); // Enter retreat
 		expect(gatorAI.getState()).toBe("RETREAT");
 

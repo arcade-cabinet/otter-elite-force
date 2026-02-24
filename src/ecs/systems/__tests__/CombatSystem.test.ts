@@ -1,5 +1,4 @@
-import * as THREE from "three";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Vector3 } from "@babylonjs/core";
 import { createProjectile } from "../../archetypes";
 import { damageables, deadEntities, enemies, players, projectiles, world } from "../../world";
 import {
@@ -14,11 +13,11 @@ import {
 } from "../CombatSystem";
 
 // Mock dependencies
-vi.mock("../../world", () => ({
+jest.mock("../../world", () => ({
 	world: {
 		entities: [],
-		addComponent: vi.fn(),
-		remove: vi.fn(),
+		addComponent: jest.fn(),
+		remove: jest.fn(),
 	},
 	damageables: [],
 	enemies: [],
@@ -27,23 +26,23 @@ vi.mock("../../world", () => ({
 	deadEntities: [],
 }));
 
-const mockRegisterHit = vi.fn();
+const mockRegisterHit = jest.fn();
 
-vi.mock("../../../stores/gameStore", () => ({
+jest.mock("../../../stores/gameStore", () => ({
 	useGameStore: {
-		getState: vi.fn(() => ({
+		getState: jest.fn(() => ({
 			registerHit: mockRegisterHit,
 		})),
 	},
 }));
 
-vi.mock("../../archetypes", () => ({
-	createProjectile: vi.fn(),
+jest.mock("../../archetypes", () => ({
+	createProjectile: jest.fn(),
 }));
 
 describe("CombatSystem", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		// Clear mock arrays
 		(damageables as unknown as any[]).length = 0;
 		(enemies as unknown as any[]).length = 0;
@@ -154,11 +153,11 @@ describe("CombatSystem", () => {
 			const entity = {
 				id: "1",
 				weapon: { lastFireTime: 0, fireRate: 1, ammo: 10, bulletSpeed: 10, damage: 10, range: 100 },
-				transform: { position: new THREE.Vector3(), rotation: new THREE.Euler() },
+				transform: { position: new Vector3(), rotation: { x: 0, y: 0, z: 0 } },
 			};
 			(world.entities as unknown as any[]).push(entity);
 
-			const result = fireWeapon("1", new THREE.Vector3(1, 0, 0));
+			const result = fireWeapon("1", new Vector3(1, 0, 0));
 
 			expect(result).toBe(true);
 			expect(createProjectile).toHaveBeenCalled();
@@ -170,11 +169,11 @@ describe("CombatSystem", () => {
 			const entity = {
 				id: "1",
 				weapon: { lastFireTime: Date.now(), fireRate: 1, ammo: 10 },
-				transform: { position: new THREE.Vector3() },
+				transform: { position: new Vector3() },
 			};
 			(world.entities as unknown as any[]).push(entity);
 
-			const result = fireWeapon("1", new THREE.Vector3(1, 0, 0));
+			const result = fireWeapon("1", new Vector3(1, 0, 0));
 
 			expect(result).toBe(false);
 			expect(createProjectile).not.toHaveBeenCalled();
@@ -184,11 +183,11 @@ describe("CombatSystem", () => {
 			const entity = {
 				id: "1",
 				weapon: { lastFireTime: 0, fireRate: 1, ammo: 0 },
-				transform: { position: new THREE.Vector3() },
+				transform: { position: new Vector3() },
 			};
 			(world.entities as unknown as any[]).push(entity);
 
-			const result = fireWeapon("1", new THREE.Vector3(1, 0, 0));
+			const result = fireWeapon("1", new Vector3(1, 0, 0));
 
 			expect(result).toBe(false);
 			expect(createProjectile).not.toHaveBeenCalled();
@@ -199,12 +198,12 @@ describe("CombatSystem", () => {
 		it("should handle collisions", () => {
 			const player = {
 				id: "player1",
-				transform: { position: new THREE.Vector3(0, 0, 0) },
+				transform: { position: new Vector3(0, 0, 0) },
 				collider: { radius: 1 },
 				health: { current: 100, max: 100 }, // Add health so applyDamage works
 			};
 			const projectile = {
-				transform: { position: new THREE.Vector3(0, 0, 0) },
+				transform: { position: new Vector3(0, 0, 0) },
 				damage: { amount: 10, type: "kinetic", source: "enemy1" },
 				collider: { radius: 0.1 },
 			};
@@ -283,13 +282,13 @@ describe("CombatSystem", () => {
 			const entity = {
 				id: "1",
 				health: { current: 100, max: 100, lastDamageTime: 0 },
-				transform: { position: new THREE.Vector3(0, 0, 0) },
+				transform: { position: new Vector3(0, 0, 0) },
 			};
 			(damageables as unknown as any[]).push(entity);
 
 			// Explosion at origin, radius 10, damage 100
 			// Distance 0 -> 100 damage
-			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100);
+			applyExplosionDamage(new Vector3(0, 0, 0), 10, 100);
 
 			expect(entity.health.current).toBe(0);
 		});
@@ -298,13 +297,13 @@ describe("CombatSystem", () => {
 			const entity = {
 				id: "1",
 				health: { current: 100, max: 100, lastDamageTime: 0 },
-				transform: { position: new THREE.Vector3(5, 0, 0) },
+				transform: { position: new Vector3(5, 0, 0) },
 			};
 			(damageables as unknown as any[]).push(entity);
 
 			// Explosion at origin, radius 10, damage 100
 			// Distance 5 -> 50% falloff -> 50 damage
-			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100);
+			applyExplosionDamage(new Vector3(0, 0, 0), 10, 100);
 
 			expect(entity.health.current).toBe(50);
 		});
@@ -313,11 +312,11 @@ describe("CombatSystem", () => {
 			const entity = {
 				id: "source",
 				health: { current: 100, max: 100 },
-				transform: { position: new THREE.Vector3(0, 0, 0) },
+				transform: { position: new Vector3(0, 0, 0) },
 			};
 			(damageables as unknown as any[]).push(entity);
 
-			applyExplosionDamage(new THREE.Vector3(0, 0, 0), 10, 100, "source");
+			applyExplosionDamage(new Vector3(0, 0, 0), 10, 100, "source");
 
 			expect(entity.health.current).toBe(100);
 		});

@@ -10,21 +10,20 @@
  * - Base building
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameStore } from "../stores/gameStore";
 
 // Mock localStorage
 const localStorageMock = (() => {
 	let store: Record<string, string> = {};
 	return {
-		getItem: vi.fn((key: string) => store[key] || null),
-		setItem: vi.fn((key: string, value: string) => {
+		getItem: jest.fn((key: string) => store[key] || null),
+		setItem: jest.fn((key: string, value: string) => {
 			store[key] = value;
 		}),
-		removeItem: vi.fn((key: string) => {
+		removeItem: jest.fn((key: string) => {
 			delete store[key];
 		}),
-		clear: vi.fn(() => {
+		clear: jest.fn(() => {
 			store = {};
 		}),
 	};

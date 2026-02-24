@@ -4,7 +4,6 @@
  * Tests for slot definitions (equipment, attachments, build categories, etc.)
  */
 
-import { describe, expect, it } from "vitest";
 import {
 	ATTACHMENT_SLOT_DEFS,
 	ATTACHMENT_SLOTS,

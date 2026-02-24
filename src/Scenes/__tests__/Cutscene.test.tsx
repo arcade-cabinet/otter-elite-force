@@ -1,39 +1,21 @@
 /**
  * Cutscene Component Tests
+ *
+ * Tests the Cutscene component which uses Babylon.js Engine/Scene
+ * for the 3D backdrop and React Native for the dialogue UI overlay.
  */
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useGameStore } from "../../stores/gameStore";
 
-// Mock React Three Fiber
-vi.mock("@react-three/fiber", () => ({
-	Canvas: ({ children }: { children: React.ReactNode }) => (
-		<div data-testid="canvas">{children}</div>
-	),
-	useFrame: vi.fn((callback) => {
-		// Simulate a frame
-		const mockState = {
-			clock: { elapsedTime: 1.0 },
-			camera: {
-				position: { x: 0, y: 5, z: 20 },
-				lookAt: vi.fn(),
-			},
-		};
-		callback(mockState);
-	}),
-}));
+// reactylon/web is automatically replaced via moduleNameMapper in jest.config.ts
+// Do NOT call jest.mock("reactylon/web") - that would auto-mock and replace Engine
+// with a no-op jest.fn() that renders nothing, breaking data-testid assertions.
+// Mock reactylon Scene/useScene
+jest.mock("reactylon");
 
-// Mock drei
-vi.mock("@react-three/drei", () => ({
-	Environment: () => null,
-	Sky: () => null,
-}));
-
-// Mock PlayerRig
-vi.mock("../../Entities/PlayerRig", () => ({
-	PlayerRig: () => null,
-}));
+// Use static import (jest.mock calls are hoisted above imports, so mocks apply)
+import { Cutscene } from "../Cutscene";
 
 describe("Cutscene", () => {
 	beforeEach(() => {
@@ -47,25 +29,19 @@ describe("Cutscene", () => {
 		cleanup();
 	});
 
-	it("should render the cutscene screen", async () => {
-		const { Cutscene } = await import("../Cutscene");
+	it("should render the cutscene screen", () => {
 		const { container } = render(<Cutscene />);
-
-		expect(container.querySelector(".cutscene-screen")).toBeInTheDocument();
+		expect(container).toBeDefined();
+		expect(container.firstChild).not.toBeNull();
 	});
 
-	it("should display dialogue box", async () => {
-		const { Cutscene } = await import("../Cutscene");
-		const { container } = render(<Cutscene />);
-
-		expect(container.querySelector(".dialogue-box")).toBeInTheDocument();
-	});
-
-	it("should show first dialogue line on render", async () => {
-		const { Cutscene } = await import("../Cutscene");
+	it("should show first dialogue speaker name", () => {
 		render(<Cutscene />);
-
 		expect(screen.getByText("GEN. WHISKERS")).toBeInTheDocument();
+	});
+
+	it("should show first dialogue line on render", () => {
+		render(<Cutscene />);
 		expect(
 			screen.getByText(
 				"Listen up, River-Rats! The Scale-Guard just hit our observation post at the Mouth.",
@@ -73,21 +49,17 @@ describe("Cutscene", () => {
 		).toBeInTheDocument();
 	});
 
-	it("should show NEXT button for first dialogue lines", async () => {
-		const { Cutscene } = await import("../Cutscene");
+	it("should show NEXT button for first dialogue lines", () => {
 		render(<Cutscene />);
-
-		expect(screen.getByRole("button", { name: "NEXT >>" })).toBeInTheDocument();
+		expect(screen.getByText("NEXT >>")).toBeInTheDocument();
 	});
 
-	it("should advance dialogue when clicking NEXT", async () => {
-		const { Cutscene } = await import("../Cutscene");
+	it("should advance dialogue when clicking NEXT", () => {
 		render(<Cutscene />);
 
-		const nextButton = screen.getByRole("button", { name: "NEXT >>" });
+		const nextButton = screen.getByText("NEXT >>");
 		fireEvent.click(nextButton);
 
-		// Should now show SGT. BUBBLES dialogue
 		expect(
 			screen.getByText(
 				"They're pushing deeper into the Reach, General. The soup is getting thick.",
@@ -95,40 +67,35 @@ describe("Cutscene", () => {
 		).toBeInTheDocument();
 	});
 
-	it("should show BEGIN MISSION on last dialogue", async () => {
-		const { Cutscene } = await import("../Cutscene");
+	it("should show BEGIN MISSION on last dialogue", () => {
 		render(<Cutscene />);
 
-		// Click through all dialogue lines
-		const nextButton = screen.getByRole("button", { name: "NEXT >>" });
-		fireEvent.click(nextButton); // Line 2
-		fireEvent.click(nextButton); // Line 3
-		fireEvent.click(nextButton); // Line 4 (last)
+		// Click through to the last dialogue (4 lines total, index 0->3)
+		const getNext = () => screen.queryByText("NEXT >>");
+		fireEvent.click(getNext()!); // line 2
+		fireEvent.click(getNext()!); // line 3
+		fireEvent.click(getNext()!); // line 4
 
-		expect(screen.getByRole("button", { name: "BEGIN MISSION" })).toBeInTheDocument();
+		expect(screen.getByText("BEGIN MISSION")).toBeInTheDocument();
 	});
 
-	it("should transition to GAME mode on final click", async () => {
-		const { Cutscene } = await import("../Cutscene");
+	it("should transition to GAME mode on final click", () => {
 		render(<Cutscene />);
 
-		// Click through all dialogue
-		const nextButton = screen.getByRole("button", { name: "NEXT >>" });
-		fireEvent.click(nextButton); // Line 2
-		fireEvent.click(nextButton); // Line 3
-		fireEvent.click(nextButton); // Line 4
+		const getNext = () => screen.queryByText("NEXT >>");
+		fireEvent.click(getNext()!); // line 2
+		fireEvent.click(getNext()!); // line 3
+		fireEvent.click(getNext()!); // line 4
 
-		// Click BEGIN MISSION
-		const beginButton = screen.getByRole("button", { name: "BEGIN MISSION" });
+		const beginButton = screen.getByText("BEGIN MISSION");
 		fireEvent.click(beginButton);
 
 		expect(useGameStore.getState().mode).toBe("GAME");
 	});
 
-	it("should render Canvas component", async () => {
-		const { Cutscene } = await import("../Cutscene");
+	it("should render Babylon.js Engine wrapper", () => {
 		render(<Cutscene />);
-
-		expect(screen.getByTestId("canvas")).toBeInTheDocument();
+		// The mocked Engine renders a div with data-testid
+		expect(screen.getByTestId("babylon-engine-cutscene-canvas")).toBeInTheDocument();
 	});
 });

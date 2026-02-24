@@ -1,6 +1,6 @@
-import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
-import * as THREE from "three";
+import { Color3, Vector3 } from "@babylonjs/core";
+import { useEffect, useRef } from "react";
+import { useScene } from "reactylon";
 import { Gator } from "../../../Entities/Enemies/Gator";
 import { Snake } from "../../../Entities/Enemies/Snake";
 import { Snapper } from "../../../Entities/Enemies/Snapper";
@@ -12,114 +12,221 @@ import {
 	Mangroves,
 	Reeds,
 } from "../../../Entities/Environment";
+import { ExtractionPoint } from "../../../Entities/ExtractionPoint";
 import { ModularHut } from "../../../Entities/ModularHut";
-import { ExtractionPoint } from "../../../Entities/Objectives/Clam";
 import { Siphon } from "../../../Entities/Objectives/Siphon";
 import { Raft } from "../../../Entities/Raft";
 import { Villager } from "../../../Entities/Villager";
 import { CHUNK_SIZE, type ChunkData, useGameStore } from "../../../stores/gameStore";
-import { WATER_FRAG, WATER_VERT } from "../../../utils/shaders";
 
+// ---------------------------------------------------------------------------
+// GasStockpile
+// ---------------------------------------------------------------------------
 export function GasStockpile({
 	position,
 	secured = false,
 }: {
-	position: THREE.Vector3;
+	position: [number, number, number];
 	secured?: boolean;
 }) {
+	const color = secured ? new Color3(0.18, 0.24, 0.1) : new Color3(0.83, 0.18, 0.18);
 	return (
-		<group position={position}>
-			{[
-				[-0.5, 0, 0],
-				[0.5, 0, 0],
-				[0, 0, 0.5],
-			].map((pos, i) => (
-				<mesh key={i} position={pos as [number, number, number]} castShadow receiveShadow>
-					<cylinderGeometry args={[0.4, 0.4, 1.2, 32]} />
-					<meshStandardMaterial color={secured ? "#2d3d19" : "#d32f2f"} metalness={0.5} />
-				</mesh>
+		<transformNode
+			name="gasStockpile"
+			positionX={position[0]}
+			positionY={position[1]}
+			positionZ={position[2]}
+		>
+			{(
+				[
+					[-0.5, 0, 0],
+					[0.5, 0, 0],
+					[0, 0, 0.5],
+				] as [number, number, number][]
+			).map((pos, i) => (
+				<cylinder
+					key={i}
+					name={`barrel-${i}`}
+					options={{ diameter: 0.8, height: 1.2, tessellation: 32 }}
+					positionX={pos[0]}
+					positionY={pos[1]}
+					positionZ={pos[2]}
+				>
+					<standardMaterial name={`barrelMat-${i}`} diffuseColor={color} />
+				</cylinder>
 			))}
-			<mesh position={[0, -0.5, 0]} receiveShadow>
-				<boxGeometry args={[2, 0.2, 2]} />
-				<meshStandardMaterial color="#3d2b1f" />
-			</mesh>
-		</group>
+			<box
+				name="gasBase"
+				options={{ width: 2, height: 0.2, depth: 2 }}
+				positionX={0}
+				positionY={-0.5}
+				positionZ={0}
+			>
+				<standardMaterial name="gasBaseMat" diffuseColor={new Color3(0.24, 0.17, 0.12)} />
+			</box>
+		</transformNode>
 	);
 }
 
+// ---------------------------------------------------------------------------
+// ClamBasket
+// ---------------------------------------------------------------------------
 export function ClamBasket({
 	position,
 	isTrap = false,
 }: {
-	position: THREE.Vector3;
+	position: [number, number, number];
 	isTrap?: boolean;
 }) {
 	return (
-		<group position={position}>
-			<mesh castShadow receiveShadow>
-				<cylinderGeometry args={[0.6, 0.5, 0.5, 32]} />
-				<meshStandardMaterial color="#5d4037" />
-			</mesh>
-			{isTrap && <pointLight color="#ff0000" intensity={0.2} distance={2} />}
-		</group>
+		<transformNode
+			name="clamBasket"
+			positionX={position[0]}
+			positionY={position[1]}
+			positionZ={position[2]}
+		>
+			<cylinder
+				name="basket"
+				options={{ diameterTop: 1.2, diameterBottom: 1.0, height: 0.5, tessellation: 32 }}
+				positionX={0}
+				positionY={0}
+				positionZ={0}
+			>
+				<standardMaterial name="basketMat" diffuseColor={new Color3(0.36, 0.25, 0.15)} />
+			</cylinder>
+			{isTrap && (
+				<pointLight
+					name="trapLight"
+					diffuse={new Color3(1, 0, 0)}
+					specular={new Color3(1, 0, 0)}
+					intensity={0.2}
+					range={2}
+					position={new Vector3(0, 0, 0)}
+				/>
+			)}
+		</transformNode>
 	);
 }
 
+// ---------------------------------------------------------------------------
+// PrisonCage
+// ---------------------------------------------------------------------------
 export function PrisonCage({
 	position,
 	rescued = false,
 }: {
-	position: THREE.Vector3;
+	position: [number, number, number];
 	rescued?: boolean;
 }) {
 	return (
-		<group position={position}>
+		<transformNode
+			name="prisonCage"
+			positionX={position[0]}
+			positionY={position[1]}
+			positionZ={position[2]}
+		>
 			{!rescued && (
-				<mesh castShadow>
-					<boxGeometry args={[2, 3, 2]} />
-					<meshStandardMaterial color="#222" wireframe />
-				</mesh>
+				<box
+					name="cage"
+					options={{ width: 2, height: 3, depth: 2 }}
+					positionX={0}
+					positionY={0}
+					positionZ={0}
+				>
+					<standardMaterial name="cageMat" diffuseColor={new Color3(0.13, 0.13, 0.13)} wireframe />
+				</box>
 			)}
-			<mesh position={[0, -0.1, 0]} receiveShadow>
-				<boxGeometry args={[2.5, 0.2, 2.5]} />
-				<meshStandardMaterial color="#111" />
-			</mesh>
-		</group>
+			<box
+				name="cageBase"
+				options={{ width: 2.5, height: 0.2, depth: 2.5 }}
+				positionX={0}
+				positionY={-0.1}
+				positionZ={0}
+			>
+				<standardMaterial name="cageBaseMat" diffuseColor={new Color3(0.07, 0.07, 0.07)} />
+			</box>
+		</transformNode>
 	);
 }
 
-export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos: THREE.Vector3 }) {
-	const waterUniforms = useRef({
-		time: { value: 0 },
-		waterColor: { value: new THREE.Color("#4d4233") },
-	});
-	useFrame((state) => {
-		waterUniforms.current.time.value = state.clock.elapsedTime;
-	});
+// ---------------------------------------------------------------------------
+// WaterPlane - animated water surface
+// ---------------------------------------------------------------------------
+function WaterPlane({ chunkSize, id }: { chunkSize: number; id: string }) {
+	const scene = useScene();
+	// Animate specular power to simulate water shimmer
+	const timeRef = useRef(0);
+
+	useEffect(() => {
+		if (!scene) return;
+		const observer = scene.onBeforeRenderObservable.add(() => {
+			timeRef.current = performance.now() / 1000;
+		});
+		return () => {
+			scene.onBeforeRenderObservable.remove(observer);
+		};
+	}, [scene]);
+
+	return (
+		<ground
+			name={`waterPlane-${id}`}
+			options={{ width: chunkSize, height: chunkSize }}
+			positionX={0}
+			positionY={0.1}
+			positionZ={0}
+		>
+			<standardMaterial
+				name={`waterMat-${id}`}
+				diffuseColor={new Color3(0.3, 0.26, 0.2)}
+				alpha={0.7}
+				specularColor={new Color3(0.6, 0.6, 0.6)}
+			/>
+		</ground>
+	);
+}
+
+// ---------------------------------------------------------------------------
+// ChunkRenderer
+// ---------------------------------------------------------------------------
+export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos: Vector3 }) {
 	const chunkX = data.x * CHUNK_SIZE;
 	const chunkZ = data.z * CHUNK_SIZE;
 	const addResources = useGameStore((state) => state.addResources);
 
 	return (
-		<group position={[chunkX, 0, chunkZ]}>
-			<mesh position={[0, -2.5, 0]} receiveShadow>
-				<boxGeometry args={[CHUNK_SIZE, 5, CHUNK_SIZE]} />
-				<meshStandardMaterial color="#1a1208" />
-			</mesh>
-			<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-				<planeGeometry args={[CHUNK_SIZE, CHUNK_SIZE]} />
-				<meshStandardMaterial color="#2d5016" />
-			</mesh>
-			<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}>
-				<planeGeometry args={[CHUNK_SIZE, CHUNK_SIZE]} />
-				<shaderMaterial
-					vertexShader={WATER_VERT}
-					fragmentShader={WATER_FRAG}
-					uniforms={waterUniforms.current}
-					transparent
-					opacity={0.7}
+		<transformNode name={`chunk-${data.id}`} positionX={chunkX} positionY={0} positionZ={chunkZ}>
+			{/* Terrain base */}
+			<box
+				name={`terrain-${data.id}`}
+				options={{ width: CHUNK_SIZE, height: 5, depth: CHUNK_SIZE }}
+				positionX={0}
+				positionY={-2.5}
+				positionZ={0}
+			>
+				<standardMaterial
+					name={`terrainMat-${data.id}`}
+					diffuseColor={new Color3(0.1, 0.07, 0.03)}
 				/>
-			</mesh>
+			</box>
+
+			{/* Ground surface */}
+			<ground
+				name={`ground-${data.id}`}
+				options={{ width: CHUNK_SIZE, height: CHUNK_SIZE }}
+				positionX={0}
+				positionY={0}
+				positionZ={0}
+			>
+				<standardMaterial
+					name={`groundMat-${data.id}`}
+					diffuseColor={new Color3(0.18, 0.31, 0.09)}
+				/>
+			</ground>
+
+			{/* Animated water surface */}
+			<WaterPlane chunkSize={CHUNK_SIZE} id={data.id} />
+
+			{/* Decorations */}
 			{data.decorations.map((dec) => {
 				const key = dec.id;
 				if (dec.type === "REED") return <Reeds key={key} count={dec.count} seed={data.seed} />;
@@ -134,12 +241,15 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 				if (dec.type === "DEBRIS") return <Debris key={key} count={dec.count} seed={data.seed} />;
 				return null;
 			})}
+
+			{/* Entities */}
 			{data.entities.map((entity) => {
-				const worldPos = new THREE.Vector3(
-					chunkX + entity.position[0],
-					entity.position[1],
-					chunkZ + entity.position[2],
-				);
+				const wx = chunkX + entity.position[0];
+				const wy = entity.position[1];
+				const wz = chunkZ + entity.position[2];
+				const worldPos = new Vector3(wx, wy, wz);
+				const worldPosArr: [number, number, number] = [wx, wy, wz];
+
 				if (entity.type === "GATOR")
 					return (
 						<Gator
@@ -164,7 +274,13 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 					return (
 						<Snake
 							key={entity.id}
-							data={{ id: entity.id, position: worldPos, hp: 2, maxHp: 2, suppression: 0 }}
+							data={{
+								id: entity.id,
+								position: worldPos,
+								hp: 2,
+								maxHp: 2,
+								suppression: 0,
+							}}
 							targetPosition={playerPos}
 							onDeath={() => {
 								addResources({ wood: 2, metal: 0, supplies: 1 });
@@ -176,7 +292,13 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 					return (
 						<Snapper
 							key={entity.id}
-							data={{ id: entity.id, position: worldPos, hp: 20, maxHp: 20, suppression: 0 }}
+							data={{
+								id: entity.id,
+								position: worldPos,
+								hp: 20,
+								maxHp: 20,
+								suppression: 0,
+							}}
 							targetPosition={playerPos}
 							onDeath={() => {
 								addResources({ wood: 10, metal: 5, supplies: 3 });
@@ -186,32 +308,55 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 					);
 				if (entity.type === "PLATFORM")
 					return (
-						<mesh key={entity.id} position={worldPos} castShadow receiveShadow>
-							<boxGeometry args={[5, 1, 5]} />
-							<meshStandardMaterial color="#3d2b1f" />
-						</mesh>
+						<box
+							key={entity.id}
+							name={`platform-${entity.id}`}
+							options={{ width: 5, height: 1, depth: 5 }}
+							positionX={wx}
+							positionY={wy}
+							positionZ={wz}
+						>
+							<standardMaterial
+								name={`platMat-${entity.id}`}
+								diffuseColor={new Color3(0.24, 0.17, 0.12)}
+							/>
+						</box>
 					);
 				if (entity.type === "CLIMBABLE")
 					return (
-						<mesh key={entity.id} position={worldPos} castShadow receiveShadow>
-							<cylinderGeometry args={[0.8, 1, 10, 32]} />
-							<meshStandardMaterial color="#2d1f15" />
-						</mesh>
+						<cylinder
+							key={entity.id}
+							name={`climbable-${entity.id}`}
+							options={{
+								diameterTop: 1.6,
+								diameterBottom: 2.0,
+								height: 10,
+								tessellation: 32,
+							}}
+							positionX={wx}
+							positionY={wy}
+							positionZ={wz}
+						>
+							<standardMaterial
+								name={`climbMat-${entity.id}`}
+								diffuseColor={new Color3(0.18, 0.12, 0.08)}
+							/>
+						</cylinder>
 					);
 				if (entity.type === "SIPHON")
-					return <Siphon key={entity.id} position={worldPos} secured={data.secured} />;
+					return <Siphon key={entity.id} position={worldPosArr} secured={data.secured} />;
 				if (entity.type === "GAS_STOCKPILE")
-					return <GasStockpile key={entity.id} position={worldPos} secured={data.secured} />;
+					return <GasStockpile key={entity.id} position={worldPosArr} secured={data.secured} />;
 				if (entity.type === "CLAM_BASKET")
-					return <ClamBasket key={entity.id} position={worldPos} isTrap={entity.isHeavy} />;
+					return <ClamBasket key={entity.id} position={worldPosArr} isTrap={entity.isHeavy} />;
 				if (entity.type === "EXTRACTION_POINT")
-					return <ExtractionPoint key={entity.id} position={worldPos} />;
-				if (entity.type === "VILLAGER") return <Villager key={entity.id} position={worldPos} />;
-				if (entity.type === "HEALER") return <Villager key={entity.id} position={worldPos} />;
+					return <ExtractionPoint key={entity.id} position={worldPosArr} />;
+				if (entity.type === "VILLAGER") return <Villager key={entity.id} position={worldPosArr} />;
+				if (entity.type === "HEALER") return <Villager key={entity.id} position={worldPosArr} />;
 				if (entity.type === "HUT")
-					return <ModularHut key={entity.id} position={worldPos} seed={data.seed} />;
+					return <ModularHut key={entity.id} position={worldPosArr} seed={data.seed} />;
 				if (entity.type === "PRISON_CAGE")
-					return <PrisonCage key={entity.id} position={worldPos} rescued={entity.rescued} />;
+					return <PrisonCage key={entity.id} position={worldPosArr} rescued={entity.rescued} />;
 				if (entity.type === "RAFT") {
 					const isThisRaft = useGameStore.getState().raftId === entity.id;
 					return (
@@ -224,6 +369,6 @@ export function ChunkRenderer({ data, playerPos }: { data: ChunkData; playerPos:
 				}
 				return null;
 			})}
-		</group>
+		</transformNode>
 	);
 }

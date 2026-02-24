@@ -4,7 +4,6 @@
  * Tests for ECS-integrated weapon definitions
  */
 
-import { describe, expect, it } from "vitest";
 import {
 	ATTACHMENT_TEMPLATES,
 	calculateFinalStats,

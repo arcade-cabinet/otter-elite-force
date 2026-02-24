@@ -5,7 +5,7 @@
  * Replaces the old constants-based approach with proper ECS integration.
  */
 
-import type * as THREE from "three";
+import { Vector3 } from "@babylonjs/core";
 
 // =============================================================================
 // BUILDABLE COMPONENT TYPES
@@ -325,14 +325,14 @@ export function deductBuildableCost(
 // =============================================================================
 
 export interface CalculatedSnapPoint {
-	worldPosition: THREE.Vector3;
-	direction: THREE.Vector3;
+	worldPosition: Vector3;
+	direction: Vector3;
 	acceptsCategories: BuildableTemplate["category"][];
 }
 
 export function getSnapPointsForTemplate(
 	template: BuildableTemplate,
-	worldPosition: THREE.Vector3,
+	worldPosition: Vector3,
 	rotation: number,
 ): CalculatedSnapPoint[] {
 	// This would calculate actual snap points based on the template's size
@@ -355,12 +355,8 @@ export function getSnapPointsForTemplate(
 		const rotatedZ = edge.x * sin + edge.z * cos;
 
 		points.push({
-			worldPosition: worldPosition.clone().add({ x: rotatedX, y: 0, z: rotatedZ } as THREE.Vector3),
-			direction: {
-				x: edge.dx * cos - edge.dz * sin,
-				y: 0,
-				z: edge.dx * sin + edge.dz * cos,
-			} as THREE.Vector3,
+			worldPosition: new Vector3(worldPosition.x + rotatedX, worldPosition.y, worldPosition.z + rotatedZ),
+			direction: new Vector3(edge.dx * cos - edge.dz * sin, 0, edge.dx * sin + edge.dz * cos),
 			acceptsCategories: ["FOUNDATION", "WALLS"],
 		});
 	}

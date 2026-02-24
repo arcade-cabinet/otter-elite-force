@@ -1,23 +1,47 @@
-import type * as THREE from "three";
+import { Color3 } from "@babylonjs/core";
 
-export function SimpleHut({ position }: { position: [number, number, number] | THREE.Vector3 }) {
+const hc = (hex: string): Color3 => {
+	const h = hex.replace("#", "");
+	const f =
+		h.length === 3
+			? h
+					.split("")
+					.map((c) => c + c)
+					.join("")
+			: h;
+	return new Color3(
+		parseInt(f.slice(0, 2), 16) / 255,
+		parseInt(f.slice(2, 4), 16) / 255,
+		parseInt(f.slice(4, 6), 16) / 255,
+	);
+};
+
+export function SimpleHut({ position }: { position: [number, number, number] }) {
 	return (
-		<group position={position}>
-			{/* Base */}
-			<mesh position={[0, 1, 0]} castShadow receiveShadow>
-				<boxGeometry args={[4, 2, 4]} />
-				<meshStandardMaterial color="#3d2b1f" roughness={1} />
-			</mesh>
-			{/* Thatched Roof */}
-			<mesh position={[0, 2.5, 0]}>
-				<cylinderGeometry args={[0, 3, 1.5, 4]} />
-				<meshStandardMaterial color="#d4c4a8" roughness={1} />
-			</mesh>
-			{/* Doorway */}
-			<mesh position={[0, 0.8, 2.01]}>
-				<planeGeometry args={[1, 1.6]} />
-				<meshBasicMaterial color="#000" />
-			</mesh>
-		</group>
+		<transformNode
+			name="simpleHut"
+			positionX={position[0]}
+			positionY={position[1]}
+			positionZ={position[2]}
+		>
+			<box name="hutBase" options={{ width: 4, height: 2, depth: 4 }} positionY={1}>
+				<standardMaterial name="hutBaseMat" diffuseColor={hc("#3d2b1f")} />
+			</box>
+			<cylinder
+				name="hutRoof"
+				options={{ diameterTop: 0, diameterBottom: 6, height: 1.5, tessellation: 4 }}
+				positionY={2.5}
+			>
+				<standardMaterial name="hutRoofMat" diffuseColor={hc("#d4c4a8")} />
+			</cylinder>
+			<box
+				name="hutDoor"
+				options={{ width: 1, height: 1.6, depth: 0.05 }}
+				positionY={0.8}
+				positionZ={2.01}
+			>
+				<standardMaterial name="hutDoorMat" emissiveColor={hc("#000000")} />
+			</box>
+		</transformNode>
 	);
 }

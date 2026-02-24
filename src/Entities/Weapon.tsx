@@ -4,166 +4,342 @@
  * Each weapon has distinct silhouette and tactical aesthetic
  */
 
-import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
-import type * as THREE from "three";
+import type { TransformNode } from "@babylonjs/core";
+import { Color3 } from "@babylonjs/core";
+import { useEffect, useMemo, useRef } from "react";
+import { useScene } from "reactylon";
 import { WEAPONS } from "../stores/gameStore";
 
 interface WeaponProps {
 	weaponId: string;
 	level?: number;
-	muzzleRef?: React.RefObject<THREE.Group>;
+	muzzleRef?: React.RefObject<TransformNode>;
 	isFiring?: boolean;
 }
 
 export function Weapon({ weaponId, muzzleRef, isFiring = false }: WeaponProps) {
 	const weapon = useMemo(() => WEAPONS[weaponId] || WEAPONS["service-pistol"], [weaponId]);
-	const flashRef = useRef<THREE.Mesh>(null);
+	const scene = useScene();
 	const flashIntensity = useRef(0);
+	const lastTimeRef = useRef<number>(performance.now());
 
 	// Muzzle flash animation
-	useFrame((_, delta) => {
-		if (isFiring) {
-			flashIntensity.current = 1;
-		} else {
-			flashIntensity.current = Math.max(0, flashIntensity.current - delta * 15);
-		}
-		if (flashRef.current) {
-			flashRef.current.scale.setScalar(flashIntensity.current * 0.3);
-			(flashRef.current.material as THREE.MeshBasicMaterial).opacity = flashIntensity.current;
-		}
-	});
+	useEffect(() => {
+		if (!scene) return;
+
+		const observer = scene.onBeforeRenderObservable.add(() => {
+			const now = performance.now();
+			const delta = (now - lastTimeRef.current) / 1000;
+			lastTimeRef.current = now;
+
+			if (isFiring) {
+				flashIntensity.current = 1;
+			} else {
+				flashIntensity.current = Math.max(0, flashIntensity.current - delta * 15);
+			}
+		});
+
+		return () => {
+			scene.onBeforeRenderObservable.remove(observer);
+		};
+	}, [scene, isFiring]);
+
+	// Precomputed colors
+	const colors = useMemo(
+		() => ({
+			darkMetal: new Color3(0.133, 0.133, 0.133), // #222
+			blackMetal: new Color3(0.067, 0.067, 0.067), // #111
+			wood: new Color3(0.2, 0.133, 0.067), // #332211
+			cyanGlass: new Color3(0, 0.8, 1), // #00ccff
+			lightGray: new Color3(0.933, 0.933, 0.933), // #eee
+			darkGreen: new Color3(0.239, 0.239, 0.161), // #3d3d29
+			darkGray: new Color3(0.133, 0.133, 0.133), // #222
+			gunMetal: new Color3(0.102, 0.102, 0.102), // #1a1a1a
+			darkBrown: new Color3(0.29, 0.208, 0.125), // #4a3520
+			lime: new Color3(0.667, 1, 0.667), // #aaffaa
+			mortarGreen: new Color3(0.161, 0.161, 0.102), // #2a2a1a
+			mortarDark: new Color3(0.133, 0.133, 0.133), // #222
+			pressureChamber: new Color3(0.176, 0.29, 0.176), // #2d4a2d
+			darkGray2: new Color3(0.2, 0.2, 0.2), // #333
+			needleMetal: new Color3(0.333, 0.333, 0.333), // #555
+		}),
+		[],
+	);
 
 	return (
-		<group>
+		<transformNode name="weapon">
 			{weapon.visualType === "PISTOL_GRIP" && (
-				<group position={[0, -0.1, 0.2]}>
+				<transformNode name="pistolGroup" positionX={0} positionY={-0.1} positionZ={0.2}>
 					{/* Body */}
-					<mesh castShadow>
-						<boxGeometry args={[0.15, 0.25, 0.5]} />
-						<meshStandardMaterial color="#222" metalness={0.8} />
-					</mesh>
+					<box
+						name="pistolBody"
+						options={{ width: 0.15, height: 0.25, depth: 0.5 }}
+						positionX={0}
+						positionY={0}
+						positionZ={0}
+					>
+						<standardMaterial name="pistolBodyMat" diffuseColor={colors.darkMetal} />
+					</box>
 					{/* Barrel */}
-					<mesh position={[0, 0.08, 0.3]} rotation-x={Math.PI / 2}>
-						<cylinderGeometry args={[0.04, 0.04, 0.4, 8]} />
-						<meshStandardMaterial color="#111" metalness={0.9} />
-					</mesh>
-					<group ref={muzzleRef} position={[0, 0.08, 0.5]} />
-				</group>
+					<cylinder
+						name="pistolBarrel"
+						options={{ diameterTop: 0.08, diameterBottom: 0.08, height: 0.4, tessellation: 8 }}
+						positionX={0}
+						positionY={0.08}
+						positionZ={0.3}
+						rotationX={Math.PI / 2}
+					>
+						<standardMaterial name="pistolBarrelMat" diffuseColor={colors.blackMetal} />
+					</cylinder>
+					<transformNode
+						name="pistolMuzzle"
+						ref={muzzleRef}
+						positionX={0}
+						positionY={0.08}
+						positionZ={0.5}
+					/>
+				</transformNode>
 			)}
 
 			{weapon.visualType === "FISH_CANNON" && (
-				<group position={[0, -0.2, 0.8]} rotation-x={0.1}>
+				<transformNode
+					name="cannonGroup"
+					positionX={0}
+					positionY={-0.2}
+					positionZ={0.8}
+					rotationX={0.1}
+				>
 					{/* Main Barrel */}
-					<mesh castShadow rotation-x={Math.PI / 2}>
-						<cylinderGeometry args={[0.15, 0.18, 1.2, 12]} />
-						<meshStandardMaterial color="#222" metalness={0.8} roughness={0.2} />
-					</mesh>
+					<cylinder
+						name="cannonBarrel"
+						options={{ diameterTop: 0.3, diameterBottom: 0.36, height: 1.2, tessellation: 12 }}
+						positionX={0}
+						positionY={0}
+						positionZ={0}
+						rotationX={Math.PI / 2}
+					>
+						<standardMaterial name="cannonBarrelMat" diffuseColor={colors.darkMetal} />
+					</cylinder>
 					{/* Stock/Handle */}
-					<mesh position={[0, -0.15, -0.4]}>
-						<boxGeometry args={[0.1, 0.3, 0.4]} />
-						<meshStandardMaterial color="#332211" />
-					</mesh>
-					<group ref={muzzleRef} position={[0, 0, 0.6]} />
-				</group>
+					<box
+						name="cannonStock"
+						options={{ width: 0.1, height: 0.3, depth: 0.4 }}
+						positionX={0}
+						positionY={-0.15}
+						positionZ={-0.4}
+					>
+						<standardMaterial name="cannonStockMat" diffuseColor={colors.wood} />
+					</box>
+					<transformNode
+						name="cannonMuzzle"
+						ref={muzzleRef}
+						positionX={0}
+						positionY={0}
+						positionZ={0.6}
+					/>
+				</transformNode>
 			)}
 
 			{weapon.visualType === "BUBBLE_GUN" && (
-				<group position={[0, -0.2, 0.7]}>
-					<mesh castShadow>
-						<sphereGeometry args={[0.25, 12, 12]} />
-						<meshStandardMaterial color="#00ccff" transparent opacity={0.6} />
-					</mesh>
-					<mesh position={[0, 0, 0.3]} rotation-x={Math.PI / 2}>
-						<cylinderGeometry args={[0.05, 0.1, 0.4]} />
-						<meshStandardMaterial color="#eee" />
-					</mesh>
-					<group ref={muzzleRef} position={[0, 0, 0.5]} />
-				</group>
+				<transformNode name="bubbleGunGroup" positionX={0} positionY={-0.2} positionZ={0.7}>
+					<sphere
+						name="bubbleGunBody"
+						options={{ diameter: 0.5, segments: 12 }}
+						positionX={0}
+						positionY={0}
+						positionZ={0}
+					>
+						<standardMaterial name="bubbleGunBodyMat" diffuseColor={colors.cyanGlass} alpha={0.6} />
+					</sphere>
+					<cylinder
+						name="bubbleGunBarrel"
+						options={{ diameterTop: 0.1, diameterBottom: 0.2, height: 0.4, tessellation: 8 }}
+						positionX={0}
+						positionY={0}
+						positionZ={0.3}
+						rotationX={Math.PI / 2}
+					>
+						<standardMaterial name="bubbleGunBarrelMat" diffuseColor={colors.lightGray} />
+					</cylinder>
+					<transformNode
+						name="bubbleGunMuzzle"
+						ref={muzzleRef}
+						positionX={0}
+						positionY={0}
+						positionZ={0.5}
+					/>
+				</transformNode>
 			)}
 
 			{/* Scatter Shell - Double barrel shotgun */}
 			{weapon.visualType === "SHOTGUN" && (
-				<group position={[0, -0.15, 0.5]} rotation-x={0.05}>
+				<transformNode
+					name="shotgunGroup"
+					positionX={0}
+					positionY={-0.15}
+					positionZ={0.5}
+					rotationX={0.05}
+				>
 					{/* Double barrels */}
-					{[-0.05, 0.05].map((x, i) => (
-						<mesh key={`barrel-${i}`} position={[x, 0.05, 0]} rotation-x={Math.PI / 2} castShadow>
-							<cylinderGeometry args={[0.06, 0.06, 0.9, 8]} />
-							<meshStandardMaterial color="#1a1a1a" metalness={0.9} roughness={0.2} />
-						</mesh>
+					{([-0.05, 0.05] as number[]).map((x, i) => (
+						<cylinder
+							key={`barrel-${i}`}
+							name={`shotgunBarrel-${i}`}
+							options={{ diameterTop: 0.12, diameterBottom: 0.12, height: 0.9, tessellation: 8 }}
+							positionX={x}
+							positionY={0.05}
+							positionZ={0}
+							rotationX={Math.PI / 2}
+						>
+							<standardMaterial name={`shotgunBarrelMat-${i}`} diffuseColor={colors.gunMetal} />
+						</cylinder>
 					))}
 					{/* Receiver */}
-					<mesh position={[0, 0, -0.35]} castShadow>
-						<boxGeometry args={[0.18, 0.15, 0.4]} />
-						<meshStandardMaterial color="#222" metalness={0.8} />
-					</mesh>
+					<box
+						name="shotgunReceiver"
+						options={{ width: 0.18, height: 0.15, depth: 0.4 }}
+						positionX={0}
+						positionY={0}
+						positionZ={-0.35}
+					>
+						<standardMaterial name="shotgunReceiverMat" diffuseColor={colors.darkMetal} />
+					</box>
 					{/* Stock */}
-					<mesh position={[0, -0.08, -0.6]} rotation-x={0.1}>
-						<boxGeometry args={[0.1, 0.2, 0.4]} />
-						<meshStandardMaterial color="#4a3520" roughness={0.9} />
-					</mesh>
+					<box
+						name="shotgunStock"
+						options={{ width: 0.1, height: 0.2, depth: 0.4 }}
+						positionX={0}
+						positionY={-0.08}
+						positionZ={-0.6}
+						rotationX={0.1}
+					>
+						<standardMaterial name="shotgunStockMat" diffuseColor={colors.darkBrown} />
+					</box>
 					{/* Foregrip */}
-					<mesh position={[0, -0.08, 0.1]}>
-						<boxGeometry args={[0.12, 0.1, 0.25]} />
-						<meshStandardMaterial color="#4a3520" roughness={0.9} />
-					</mesh>
-					<group ref={muzzleRef} position={[0, 0.05, 0.45]} />
-				</group>
+					<box
+						name="shotgunForegrip"
+						options={{ width: 0.12, height: 0.1, depth: 0.25 }}
+						positionX={0}
+						positionY={-0.08}
+						positionZ={0.1}
+					>
+						<standardMaterial name="shotgunForegripMat" diffuseColor={colors.darkBrown} />
+					</box>
+					<transformNode
+						name="shotgunMuzzle"
+						ref={muzzleRef}
+						positionX={0}
+						positionY={0.05}
+						positionZ={0.45}
+					/>
+				</transformNode>
 			)}
 
 			{/* Clam Mortar - Grenade launcher */}
 			{weapon.visualType === "MORTAR" && (
-				<group position={[0, -0.2, 0.6]} rotation-x={0.15}>
+				<transformNode
+					name="mortarGroup"
+					positionX={0}
+					positionY={-0.2}
+					positionZ={0.6}
+					rotationX={0.15}
+				>
 					{/* Wide mortar tube */}
-					<mesh castShadow rotation-x={Math.PI / 2}>
-						<cylinderGeometry args={[0.2, 0.18, 0.8, 12]} />
-						<meshStandardMaterial color="#3d3d29" metalness={0.6} roughness={0.5} />
-					</mesh>
-					{/* Muzzle ring */}
-					<mesh position={[0, 0, 0.4]} rotation-x={Math.PI / 2}>
-						<torusGeometry args={[0.18, 0.03, 8, 16]} />
-						<meshStandardMaterial color="#222" metalness={0.8} />
-					</mesh>
+					<cylinder
+						name="mortarTube"
+						options={{ diameterTop: 0.4, diameterBottom: 0.36, height: 0.8, tessellation: 12 }}
+						positionX={0}
+						positionY={0}
+						positionZ={0}
+						rotationX={Math.PI / 2}
+					>
+						<standardMaterial name="mortarTubeMat" diffuseColor={colors.darkGreen} />
+					</cylinder>
 					{/* Handle/Grip */}
-					<mesh position={[0, -0.2, -0.2]}>
-						<boxGeometry args={[0.1, 0.25, 0.15]} />
-						<meshStandardMaterial color="#2a2a1a" roughness={0.8} />
-					</mesh>
+					<box
+						name="mortarGrip"
+						options={{ width: 0.1, height: 0.25, depth: 0.15 }}
+						positionX={0}
+						positionY={-0.2}
+						positionZ={-0.2}
+					>
+						<standardMaterial name="mortarGripMat" diffuseColor={colors.mortarGreen} />
+					</box>
 					{/* Shoulder brace */}
-					<mesh position={[0, 0, -0.5]} rotation-x={-0.2}>
-						<boxGeometry args={[0.15, 0.12, 0.3]} />
-						<meshStandardMaterial color="#222" roughness={0.9} />
-					</mesh>
-					<group ref={muzzleRef} position={[0, 0, 0.5]} />
-				</group>
+					<box
+						name="mortarBrace"
+						options={{ width: 0.15, height: 0.12, depth: 0.3 }}
+						positionX={0}
+						positionY={0}
+						positionZ={-0.5}
+						rotationX={-0.2}
+					>
+						<standardMaterial name="mortarBraceMat" diffuseColor={colors.mortarDark} />
+					</box>
+					<transformNode
+						name="mortarMuzzle"
+						ref={muzzleRef}
+						positionX={0}
+						positionY={0}
+						positionZ={0.5}
+					/>
+				</transformNode>
 			)}
 
 			{/* Silt Needle - Precision dart gun */}
 			{weapon.visualType === "NEEDLE_GUN" && (
-				<group position={[0, -0.1, 0.3]}>
+				<transformNode name="needleGunGroup" positionX={0} positionY={-0.1} positionZ={0.3}>
 					{/* Sleek barrel */}
-					<mesh position={[0, 0.05, 0.15]} rotation-x={Math.PI / 2} castShadow>
-						<cylinderGeometry args={[0.025, 0.03, 0.6, 8]} />
-						<meshStandardMaterial color="#555" metalness={0.95} roughness={0.1} />
-					</mesh>
+					<cylinder
+						name="needleBarrel"
+						options={{ diameterTop: 0.05, diameterBottom: 0.06, height: 0.6, tessellation: 8 }}
+						positionX={0}
+						positionY={0.05}
+						positionZ={0.15}
+						rotationX={Math.PI / 2}
+					>
+						<standardMaterial name="needleBarrelMat" diffuseColor={colors.needleMetal} />
+					</cylinder>
 					{/* Pressure chamber */}
-					<mesh position={[0, 0, -0.1]} castShadow>
-						<sphereGeometry args={[0.1, 12, 12]} />
-						<meshStandardMaterial color="#2d4a2d" metalness={0.7} roughness={0.3} />
-					</mesh>
+					<sphere
+						name="pressureChamber"
+						options={{ diameter: 0.2, segments: 12 }}
+						positionX={0}
+						positionY={0}
+						positionZ={-0.1}
+					>
+						<standardMaterial name="pressureChamberMat" diffuseColor={colors.pressureChamber} />
+					</sphere>
 					{/* Grip */}
-					<mesh position={[0, -0.12, -0.05]}>
-						<boxGeometry args={[0.08, 0.18, 0.12]} />
-						<meshStandardMaterial color="#333" roughness={0.8} />
-					</mesh>
+					<box
+						name="needleGrip"
+						options={{ width: 0.08, height: 0.18, depth: 0.12 }}
+						positionX={0}
+						positionY={-0.12}
+						positionZ={-0.05}
+					>
+						<standardMaterial name="needleGripMat" diffuseColor={colors.darkGray2} />
+					</box>
 					{/* Needle tip accent */}
-					<mesh position={[0, 0.05, 0.45]} rotation-x={Math.PI / 2}>
-						<coneGeometry args={[0.015, 0.08, 6]} />
-						<meshStandardMaterial color="#aaffaa" metalness={0.9} />
-					</mesh>
-					<group ref={muzzleRef} position={[0, 0.05, 0.5]} />
-				</group>
+					<cylinder
+						name="needleTip"
+						options={{ diameterTop: 0, diameterBottom: 0.03, height: 0.08, tessellation: 6 }}
+						positionX={0}
+						positionY={0.05}
+						positionZ={0.45}
+						rotationX={Math.PI / 2}
+					>
+						<standardMaterial name="needleTipMat" diffuseColor={colors.lime} />
+					</cylinder>
+					<transformNode
+						name="needleMuzzle"
+						ref={muzzleRef}
+						positionX={0}
+						positionY={0.05}
+						positionZ={0.5}
+					/>
+				</transformNode>
 			)}
-		</group>
+		</transformNode>
 	);
 }

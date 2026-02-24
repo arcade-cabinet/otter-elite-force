@@ -2,13 +2,11 @@
  * Enemy Archetypes Tests
  */
 
-import * as THREE from "three";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import { Vector3 } from "@babylonjs/core";
 // Mock yuka before importing
-vi.mock("yuka", () => {
+jest.mock("yuka", () => {
 	class MockVehicle {
-		position = { set: vi.fn(), x: 0, y: 0, z: 0 };
+		position = { set: jest.fn(), x: 0, y: 0, z: 0 };
 		maxSpeed = 0;
 	}
 	return {
@@ -17,12 +15,12 @@ vi.mock("yuka", () => {
 });
 
 // Mock the world module
-vi.mock("../../world", () => {
+jest.mock("../../world", () => {
 	let idCounter = 0;
 	return {
-		generateId: vi.fn(() => `entity-${++idCounter}`),
+		generateId: jest.fn(() => `entity-${++idCounter}`),
 		world: {
-			add: vi.fn((entity) => entity),
+			add: jest.fn((entity) => entity),
 		},
 	};
 });
@@ -41,18 +39,18 @@ import {
 
 describe("createGator", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
 
 	const defaultOptions: CreateGatorOptions = {
-		position: new THREE.Vector3(10, 0, 20),
+		position: new Vector3(10, 0, 20),
 		isHeavy: false,
 	};
 
 	it("should create light gator with correct health", () => {
 		createGator(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.health!.current).toBe(10);
 		expect(calledWith.health!.max).toBe(10);
 	});
@@ -60,7 +58,7 @@ describe("createGator", () => {
 	it("should create heavy gator with correct health", () => {
 		createGator({ ...defaultOptions, isHeavy: true });
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.health!.current).toBe(20);
 		expect(calledWith.health!.max).toBe(20);
 	});
@@ -68,37 +66,37 @@ describe("createGator", () => {
 	it("should set light gator speed", () => {
 		createGator(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.velocity!.maxSpeed).toBe(7);
 	});
 
 	it("should set heavy gator speed", () => {
 		createGator({ ...defaultOptions, isHeavy: true });
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.velocity!.maxSpeed).toBe(4);
 	});
 
 	it("should set correct tier based on isHeavy", () => {
 		createGator(defaultOptions);
-		expect(vi.mocked(world.add).mock.calls[0][0].enemy!.tier).toBe("light");
+		expect(jest.mocked(world.add).mock.calls[0][0].enemy!.tier).toBe("light");
 
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		createGator({ ...defaultOptions, isHeavy: true });
-		expect(vi.mocked(world.add).mock.calls[0][0].enemy!.tier).toBe("heavy");
+		expect(jest.mocked(world.add).mock.calls[0][0].enemy!.tier).toBe("heavy");
 	});
 
 	it("should set enemy type to gator", () => {
 		createGator(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.enemy!.type).toBe("gator");
 	});
 
 	it("should set gator-specific components", () => {
 		createGator(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.gator).toEqual({
 			isSubmerged: true,
 			ambushCooldown: 0,
@@ -109,14 +107,14 @@ describe("createGator", () => {
 	it("should set isEnemy tag", () => {
 		createGator(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.isEnemy).toEqual({ __tag: "IsEnemy" });
 	});
 
 	it("should set chunkReference when chunkId provided", () => {
 		createGator({ ...defaultOptions, chunkId: "chunk-1,2" });
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.chunkReference).toBeDefined();
 		expect(calledWith.chunkReference?.chunkId).toBe("chunk-1,2");
 	});
@@ -124,14 +122,14 @@ describe("createGator", () => {
 	it("should not set chunkReference when chunkId not provided", () => {
 		createGator(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.chunkReference).toBeUndefined();
 	});
 
 	it("should scale heavy gator larger", () => {
 		createGator({ ...defaultOptions, isHeavy: true });
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.transform!.scale.x).toBe(1.6);
 		expect(calledWith.transform!.scale.y).toBe(1.6);
 		expect(calledWith.transform!.scale.z).toBe(1.6);
@@ -140,32 +138,32 @@ describe("createGator", () => {
 	it("should set heavy gator xp value higher", () => {
 		createGator({ ...defaultOptions, isHeavy: true });
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.enemy!.xpValue).toBe(50);
 	});
 
 	it("should set light gator xp value", () => {
 		createGator(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.enemy!.xpValue).toBe(20);
 	});
 });
 
 describe("createSnake", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
 
 	const defaultOptions: CreateSnakeOptions = {
-		position: new THREE.Vector3(5, 2, 10),
+		position: new Vector3(5, 2, 10),
 		anchorHeight: 3,
 	};
 
 	it("should create snake with correct health", () => {
 		createSnake(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.health!.current).toBe(5);
 		expect(calledWith.health!.max).toBe(5);
 	});
@@ -173,14 +171,14 @@ describe("createSnake", () => {
 	it("should set enemy type to snake", () => {
 		createSnake(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.enemy!.type).toBe("snake");
 	});
 
 	it("should set snake-specific components with anchor position", () => {
 		createSnake(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.snake!.segmentCount).toBe(8);
 		expect(calledWith.snake!.strikeRange).toBe(3);
 		expect(calledWith.snake!.isStriking).toBe(false);
@@ -190,31 +188,31 @@ describe("createSnake", () => {
 	it("should set isEnemy tag", () => {
 		createSnake(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.isEnemy).toEqual({ __tag: "IsEnemy" });
 	});
 
 	it("should set animated to coiled animation", () => {
 		createSnake(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.animated!.currentAnimation).toBe("coiled");
 	});
 });
 
 describe("createSnapper", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
 
 	const defaultOptions: CreateSnapperOptions = {
-		position: new THREE.Vector3(15, 0, 25),
+		position: new Vector3(15, 0, 25),
 	};
 
 	it("should create snapper with correct health", () => {
 		createSnapper(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.health!.current).toBe(30);
 		expect(calledWith.health!.max).toBe(30);
 	});
@@ -222,7 +220,7 @@ describe("createSnapper", () => {
 	it("should set enemy type to snapper", () => {
 		createSnapper(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.enemy!.type).toBe("snapper");
 		expect(calledWith.enemy!.tier).toBe("heavy");
 	});
@@ -230,7 +228,7 @@ describe("createSnapper", () => {
 	it("should set snapper-specific components", () => {
 		createSnapper(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.snapper).toEqual({
 			turretRotation: 0,
 			turretTargetRotation: 0,
@@ -242,21 +240,21 @@ describe("createSnapper", () => {
 	it("should set high xp value", () => {
 		createSnapper(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.enemy!.xpValue).toBe(75);
 	});
 
 	it("should include upgrade_token in loot table", () => {
 		createSnapper(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.enemy!.lootTable).toContain("upgrade_token");
 	});
 
 	it("should set suppression with slower decay rate", () => {
 		createSnapper(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		// Snappers have a 10 point/sec decay rate (graduated suppression system)
 		expect(calledWith.suppression!.decayRate).toBe(10);
 		expect(calledWith.suppression!.amount).toBe(0);
@@ -265,17 +263,17 @@ describe("createSnapper", () => {
 
 describe("createScout", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
 
 	const defaultOptions: CreateScoutOptions = {
-		position: new THREE.Vector3(0, 0, 0),
+		position: new Vector3(0, 0, 0),
 	};
 
 	it("should create scout with correct health", () => {
 		createScout(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.health!.current).toBe(3);
 		expect(calledWith.health!.max).toBe(3);
 	});
@@ -283,7 +281,7 @@ describe("createScout", () => {
 	it("should set enemy type to scout", () => {
 		createScout(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.enemy!.type).toBe("scout");
 		expect(calledWith.enemy!.tier).toBe("light");
 	});
@@ -291,7 +289,7 @@ describe("createScout", () => {
 	it("should set scout-specific components", () => {
 		createScout(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.scout).toEqual({
 			hasSpottedPlayer: false,
 			signalCooldown: 0,
@@ -303,7 +301,7 @@ describe("createScout", () => {
 	it("should set packMember when packId provided", () => {
 		createScout({ ...defaultOptions, packId: "pack-alpha" });
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.packMember).toBeDefined();
 		expect(calledWith.packMember?.packId).toBe("pack-alpha");
 		expect(calledWith.packMember?.role).toBe("scout");
@@ -313,35 +311,35 @@ describe("createScout", () => {
 	it("should not set packMember when packId not provided", () => {
 		createScout(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.packMember).toBeUndefined();
 	});
 
 	it("should set high max speed for evasion", () => {
 		createScout(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.velocity!.maxSpeed).toBe(10);
 	});
 
 	it("should start in patrol state", () => {
 		createScout(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.aiBrain!.currentState).toBe("patrol");
 	});
 
 	it("should set low xp value", () => {
 		createScout(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.enemy!.xpValue).toBe(10);
 	});
 
 	it("should have scurry animation", () => {
 		createScout(defaultOptions);
 
-		const calledWith = vi.mocked(world.add).mock.calls[0][0];
+		const calledWith = jest.mocked(world.add).mock.calls[0][0];
 		expect(calledWith.animated!.currentAnimation).toBe("scurry");
 		expect(calledWith.animated!.animationSpeed).toBe(1.5);
 	});

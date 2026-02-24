@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import { angleDifference, clamp, lerp, normalizeAngle, randomInt, randomRange } from "./math";
 
 describe("math utilities", () => {

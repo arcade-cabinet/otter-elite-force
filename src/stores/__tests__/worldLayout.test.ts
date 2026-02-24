@@ -4,7 +4,6 @@
  * Tests the intelligent procedural world generation algorithm
  */
 
-import { describe, expect, it } from "vitest";
 import {
 	DEFAULT_WORLD_CONFIG,
 	findPathTo,

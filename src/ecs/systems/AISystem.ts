@@ -4,7 +4,7 @@
  * Handles enemy AI state machines, decision making, and pack coordination.
  */
 
-import * as THREE from "three";
+import { Vector3 } from "@babylonjs/core";
 import type { AIState } from "../components";
 import { type Entity, enemies, packMembers, players } from "../world";
 
@@ -40,7 +40,7 @@ export const transitionState = (entity: Entity, newState: AIState): void => {
 /**
  * Get the player's current position (first player entity)
  */
-const getPlayerPosition = (): THREE.Vector3 | null => {
+const getPlayerPosition = (): Vector3 | null => {
 	const player = [...players][0];
 	return player?.transform?.position ?? null;
 };
@@ -59,7 +59,7 @@ export const updateAI = (delta: number): void => {
 		if (!entity.aiBrain || !entity.transform) continue;
 
 		// Calculate distance to player
-		const distanceToPlayer = entity.transform.position.distanceTo(playerPos);
+		const distanceToPlayer = Vector3.Distance(entity.transform.position, playerPos);
 
 		// Hibernation check: Only update AI if close to player
 		if (distanceToPlayer > HIBERNATION_DISTANCE) {
@@ -101,7 +101,7 @@ const GATOR_AMBUSH_DURATION = 3;
 
 const updateGatorAI = (
 	entity: Entity,
-	playerPos: THREE.Vector3,
+	playerPos: Vector3,
 	distance: number,
 	delta: number,
 ): void => {
@@ -155,10 +155,10 @@ const updateGatorAI = (
 		case "flee": {
 			entity.gator.isSubmerged = true;
 			// Flee away from player
-			const fleeDir = entity.transform!.position.clone().sub(playerPos).normalize();
+			// subtract returns a new Vector3 in Babylon.js
+			const fleeDir = entity.transform!.position.subtract(playerPos).normalize();
 			entity.steeringAgent.targetPosition = entity
-				.transform!.position.clone()
-				.add(fleeDir.multiplyScalar(20));
+				.transform!.position.add(fleeDir.scale(20));
 
 			if (!isSuppressed && entity.aiBrain.stateTime > 3) {
 				transitionState(entity, "idle");
@@ -180,7 +180,7 @@ const SNAKE_STRIKE_COOLDOWN = 4;
 
 const updateSnakeAI = (
 	entity: Entity,
-	_playerPos: THREE.Vector3,
+	_playerPos: Vector3,
 	distance: number,
 	delta: number,
 ): void => {
@@ -228,7 +228,7 @@ const SNAPPER_COOLDOWN_RATE = 0.3;
 
 const updateSnapperAI = (
 	entity: Entity,
-	playerPos: THREE.Vector3,
+	playerPos: Vector3,
 	distance: number,
 	delta: number,
 ): void => {
@@ -248,7 +248,7 @@ const updateSnapperAI = (
 
 	// Calculate target turret rotation (with reduced accuracy if suppressed)
 	if (distance < SNAPPER_ENGAGE_RANGE && entity.transform) {
-		const lookDir = playerPos.clone().sub(entity.transform.position);
+		const lookDir = playerPos.subtract(entity.transform.position);
 		let targetRotation = Math.atan2(lookDir.x, lookDir.z);
 
 		// Reduced accuracy at 25%+ suppression
@@ -307,7 +307,7 @@ const SCOUT_SIGNAL_COOLDOWN = 8;
 
 const updateScoutAI = (
 	entity: Entity,
-	playerPos: THREE.Vector3,
+	playerPos: Vector3,
 	distance: number,
 	delta: number,
 ): void => {
@@ -332,7 +332,7 @@ const updateScoutAI = (
 				entity.steeringAgent.targetPosition = entity.aiBrain.homePosition
 					.clone()
 					.add(
-						new THREE.Vector3(
+						new Vector3(
 							Math.cos(patrolAngle) * patrolRadius,
 							0,
 							Math.sin(patrolAngle) * patrolRadius,
@@ -363,10 +363,10 @@ const updateScoutAI = (
 		case "flee": {
 			entity.scout.isSignaling = false;
 			// Flee away from player
-			const fleeDir = entity.transform!.position.clone().sub(playerPos).normalize();
+			// subtract returns a new Vector3 in Babylon.js
+			const fleeDir = entity.transform!.position.subtract(playerPos).normalize();
 			entity.steeringAgent.targetPosition = entity
-				.transform!.position.clone()
-				.add(fleeDir.multiplyScalar(30));
+				.transform!.position.add(fleeDir.scale(30));
 
 			if (distance > SCOUT_FLEE_RANGE * 2 && entity.aiBrain.stateTime > 5) {
 				transitionState(entity, "patrol");
@@ -409,7 +409,7 @@ const alertPack = (signalingEntity: Entity): void => {
 		if (entity.packMember?.packId !== packId) continue;
 		if (!entity.transform) continue;
 
-		const distance = entity.transform.position.distanceTo(signalPos);
+		const distance = Vector3.Distance(entity.transform.position, signalPos);
 		if (distance > signalRange) continue;
 
 		// Alert this pack member
@@ -425,15 +425,15 @@ const alertPack = (signalingEntity: Entity): void => {
  * Create a flanking formation for pack hunters
  */
 export const calculateFlankPositions = (
-	targetPos: THREE.Vector3,
+	targetPos: Vector3,
 	packSize: number,
-): THREE.Vector3[] => {
-	const positions: THREE.Vector3[] = [];
+): Vector3[] => {
+	const positions: Vector3[] = [];
 	const flankDistance = 10;
 
 	for (let i = 0; i < packSize; i++) {
 		const angle = (i / packSize) * Math.PI * 2 + Math.PI / packSize;
-		const offset = new THREE.Vector3(
+		const offset = new Vector3(
 			Math.cos(angle) * flankDistance,
 			0,
 			Math.sin(angle) * flankDistance,
