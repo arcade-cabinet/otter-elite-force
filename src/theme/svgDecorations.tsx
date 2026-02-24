@@ -212,6 +212,7 @@ export const SVGDecoration = ({
 		<div
 			className={className}
 			style={style}
+			// biome-ignore lint/security/noDangerouslySetInnerHtml: Static SVG constants defined in this file, not user input
 			dangerouslySetInnerHTML={{ __html: SVG_DECORATIONS[type] }}
 		/>
 	);
