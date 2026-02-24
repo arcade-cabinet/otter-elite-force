@@ -1,14 +1,17 @@
 /**
  * Victory Scene
  * Displayed after a successful mission extraction
- * Spectacular celebration with multi-stage fireworks
+ * TODO: Port particle fireworks to Babylon.js particle system
  */
 
-import { Environment, Sky } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
-import * as THREE from "three";
-import { PlayerRig } from "../Entities/PlayerRig";
+import { useState } from "react";
+import { BabylonEngine } from "../babylon/BabylonEngine";
+import { Scene } from "../babylon/Scene";
+import { ArcRotateCamera } from "../babylon/Camera";
+import { HemisphericLight, DirectionalLight } from "../babylon/Light";
+import { Ground } from "../babylon/primitives/Ground";
+import { Box } from "../babylon/primitives/Box";
+import type { Scene as BabylonScene } from "@babylonjs/core";
 import { CHARACTERS, useGameStore } from "../stores/gameStore";
 
 const PARTICLE_COUNT = 80;

@@ -1,124 +1,116 @@
 /**
- * Main App Entry Point for Expo
- * Migrated to Babylon.js + Reactylon Native
+ * Main App Component
+ * Root component that manages game state and renders appropriate screens
  */
 
-import React, { useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View, Text, Platform } from 'react-native';
-import { useGameStore } from './stores/gameStore';
-import { audioEngine } from './Core/AudioEngine';
-import { BabylonEngine } from './babylon/BabylonEngine';
-import { Scene } from './babylon/Scene';
-import { ArcRotateCamera } from './babylon/Camera';
-import { HemisphericLight } from './babylon/Light';
-import { Box } from './babylon/primitives/Box';
-import { Ground } from './babylon/primitives/Ground';
+import { useEffect, useRef } from "react";
+import type { useGameStore as GameStoreType } from "./stores/gameStore";
 
-// Expose store for E2E testing
+// Extend Window for E2E testing
 declare global {
-  interface Window {
-    __gameStore?: typeof useGameStore;
-  }
+	interface Window {
+		__gameStore?: typeof GameStoreType;
+	}
 }
 
-export default function App() {
-  const { mode, loadData } = useGameStore();
+import { audioEngine } from "./Core/AudioEngine";
+import { inputSystem } from "./Core/InputSystem";
+import { Canteen } from "./Scenes/Canteen";
+import { Cutscene } from "./Scenes/Cutscene";
+import { GameWorld } from "./Scenes/GameWorld";
+import { MainMenu } from "./Scenes/MainMenu";
+import { useGameStore } from "./stores/gameStore";
+import { DamageFeedback } from "./UI/DamageFeedback";
+import { EnemyHealthBars } from "./UI/EnemyHealthBars";
+import { HUD } from "./UI/HUD";
 
-  useEffect(() => {
-    // Expose store to window for testing
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.__gameStore = useGameStore;
-    }
+export function App() {
+	const { mode, loadData, hudReady } = useGameStore();
+	const inputInitialized = useRef(false);
 
-    // Load save data
-    loadData();
+	// Initialize on mount
+	useEffect(() => {
+		// Expose store to window for E2E testing
+		if (typeof window !== "undefined") {
+			window.__gameStore = useGameStore;
+		}
 
-    // Initialize audio on interaction
-    const initAudio = async () => {
-      await audioEngine.init();
-      audioEngine.playMusic('menu');
-    };
+		// Load save data
+		loadData();
 
-    if (Platform.OS === 'web') {
-      const handleInteraction = () => {
-        initAudio();
-        document.removeEventListener('click', handleInteraction);
-        document.removeEventListener('touchstart', handleInteraction);
-      };
+		// Initialize audio on first user interaction
+		const initAudio = async () => {
+			await audioEngine.init();
+			audioEngine.playMusic("menu");
+		};
 
-      document.addEventListener('click', handleInteraction);
-      document.addEventListener('touchstart', handleInteraction);
+		// Setup audio initialization on first interaction
+		const handleInteraction = () => {
+			initAudio();
+			document.removeEventListener("click", handleInteraction);
+			document.removeEventListener("touchstart", handleInteraction);
+		};
 
-      return () => {
-        document.removeEventListener('click', handleInteraction);
-        document.removeEventListener('touchstart', handleInteraction);
-      };
-    }
-  }, [loadData]);
+		document.addEventListener("click", handleInteraction);
+		document.addEventListener("touchstart", handleInteraction);
 
-  return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      
-      {/* Babylon.js 3D Scene */}
-      <BabylonEngine style={styles.canvas}>
-        <Scene clearColor={[0.1, 0.1, 0.15, 1]}>
-          <ArcRotateCamera 
-            position={[0, 5, -10]}
-            target={[0, 0, 0]}
-            radius={15}
-            beta={Math.PI / 3}
-          />
-          <HemisphericLight intensity={0.7} />
-          <Ground width={20} height={20} color={[0.3, 0.5, 0.3]} />
-          <Box position={[0, 1, 0]} size={2} color={[1, 0.5, 0]} />
-          <Box position={[3, 1, 0]} size={1.5} color={[0.5, 0.5, 1]} />
-          <Box position={[-3, 0.5, 2]} size={1} color={[1, 0.2, 0.2]} />
-        </Scene>
-      </BabylonEngine>
+		return () => {
+			document.removeEventListener("click", handleInteraction);
+			document.removeEventListener("touchstart", handleInteraction);
+		};
+	}, [loadData]);
 
-      {/* UI Overlay */}
-      <View style={styles.overlay}>
-        <Text style={styles.title}>🦦 OTTER: ELITE FORCE</Text>
-        <Text style={styles.subtitle}>Mode: {mode}</Text>
-        <Text style={styles.info}>Babylon.js + Reactylon Native + Expo</Text>
-        <Text style={styles.info}>Platform: {Platform.OS}</Text>
-      </View>
-    </View>
-  );
+	// Initialize input system when entering GAME mode and HUD is ready (deterministic)
+	useEffect(() => {
+		const shouldBeInitialized = mode === "GAME" && hudReady;
+
+		if (shouldBeInitialized && !inputInitialized.current) {
+			inputSystem.init();
+			inputInitialized.current = true;
+		} else if (!shouldBeInitialized && inputInitialized.current) {
+			inputSystem.destroy();
+			inputInitialized.current = false;
+		}
+
+		// Handle unmount - if we are still initialized, destroy
+		return () => {
+			if (inputInitialized.current) {
+				inputSystem.destroy();
+				inputInitialized.current = false;
+			}
+		};
+	}, [mode, hudReady]);
+
+	useEffect(() => {
+		if (mode === "GAME") {
+			audioEngine.playMusic("combat");
+		} else if (mode === "MENU") {
+			audioEngine.playMusic("menu");
+		}
+	}, [mode]);
+
+	return (
+		<div className="app">
+			{/* Scanlines overlay */}
+			<div className="scanlines" />
+
+			{/* Main content based on mode */}
+			{mode === "MENU" && <MainMenu />}
+			{mode === "CUTSCENE" && <Cutscene />}
+			{mode === "CANTEEN" && <Canteen />}
+
+			{mode === "GAME" && (
+				<>
+					<GameWorld />
+					<HUD />
+					<EnemyHealthBars showNumericHP={false} />
+					<DamageFeedback />
+				</>
+			)}
+
+			{/* Flash effects */}
+			<div id="flash" />
+			<div id="damage" />
+		</div>
+	);
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  canvas: {
-    flex: 1,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    right: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffaa00',
-    textShadowColor: '#000',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#fff',
-    marginTop: 8,
-  },
-  info: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 4,
-  },
-});

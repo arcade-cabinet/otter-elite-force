@@ -1,12 +1,16 @@
 /**
  * Cutscene Scene
  * Handles introductory dialogue and story beats
+ * MIGRATED TO BABYLON.JS
  */
 
-import { Environment, Sky } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
 import { useState } from "react";
-import { PlayerRig } from "../Entities/PlayerRig";
+import { BabylonEngine } from "../babylon/BabylonEngine";
+import { Scene } from "../babylon/Scene";
+import { ArcRotateCamera } from "../babylon/Camera";
+import { HemisphericLight, DirectionalLight } from "../babylon/Light";
+import { Ground } from "../babylon/primitives/Ground";
+import type { Scene as BabylonScene } from "@babylonjs/core";
 import { CHARACTERS, useGameStore } from "../stores/gameStore";
 
 interface DialogueLine {
@@ -33,15 +37,7 @@ const INTRO_DIALOGUE: DialogueLine[] = [
 	},
 ];
 
-function CinematicCamera() {
-	useFrame((state) => {
-		const t = state.clock.elapsedTime;
-		state.camera.position.x = Math.sin(t * 0.2) * 10;
-		state.camera.position.z = Math.cos(t * 0.2) * 10 + 15;
-		state.camera.lookAt(0, 0.5, 0);
-	});
-	return null;
-}
+// Cinematic camera animation handled in Scene onSceneMount
 
 export function Cutscene() {
 	const { setMode, selectedCharacterId } = useGameStore();
@@ -59,36 +55,34 @@ export function Cutscene() {
 	const currentLine = INTRO_DIALOGUE[index];
 	const isSgtBubbles = currentLine.name === "SGT. BUBBLES";
 
+	const handleSceneMount = (scene: BabylonScene) => {
+		// Cinematic camera rotation animation
+		scene.onBeforeRenderObservable.add(() => {
+			const camera = scene.activeCamera;
+			if (camera) {
+				const t = performance.now() / 1000;
+				camera.position.x = Math.sin(t * 0.2) * 10;
+				camera.position.z = Math.cos(t * 0.2) * 10 + 15;
+				camera.setTarget(new (scene as any).Vector3(0, 0.5, 0));
+			}
+		});
+	};
+
 	return (
 		<div className="screen active cutscene-screen">
 			<div className="cutscene-background" />
 			<div className="cutscene-3d">
-				<Canvas shadows camera={{ position: [0, 5, 20], fov: 45 }}>
-					<ambientLight intensity={0.5} />
-					<directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-					<Sky sunPosition={[100, 10, 100]} />
-					<Environment preset="sunset" />
-
-					<PlayerRig
-						traits={CHARACTERS.whiskers.traits}
-						gear={CHARACTERS.whiskers.gear}
-						position={[-2, 0.45, 0]}
-						rotation={0.5}
-					/>
-					<PlayerRig
-						traits={character.traits}
-						gear={character.gear}
-						position={[2, 0.45, 0]}
-						rotation={-0.5}
-					/>
-
-					<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-						<planeGeometry args={[100, 100]} />
-						<meshStandardMaterial color="#2d5016" />
-					</mesh>
-
-					<CinematicCamera />
-				</Canvas>
+				<BabylonEngine>
+					<Scene clearColor={[0.4, 0.6, 0.9, 1]} onSceneMount={handleSceneMount}>
+						<ArcRotateCamera position={[0, 5, 20]} target={[0, 0.5, 0]} radius={20} />
+						<HemisphericLight intensity={0.5} />
+						<DirectionalLight position={[10, 10, 5]} intensity={1} />
+						
+						{/* TODO: Port PlayerRig entities to Babylon.js */}
+						{/* For now, just show ground */}
+						<Ground width={100} height={100} color={[0.18, 0.31, 0.09]} />
+					</Scene>
+				</BabylonEngine>
 			</div>
 
 			<div className="dialogue-box">
