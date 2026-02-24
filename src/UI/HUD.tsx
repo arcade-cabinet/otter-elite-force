@@ -51,7 +51,6 @@ export function HUD() {
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
 	const requestSupplyDrop = useGameStore((state) => state.requestSupplyDrop);
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
-	const _setSelectedComponentType = useGameStore((state) => state.setSelectedComponentType);
 	const placeComponent = useGameStore((state) => state.placeComponent);
 	const setHudReady = useGameStore((state) => state.setHudReady);
 
@@ -91,7 +90,8 @@ export function HUD() {
 			if (!template) return;
 
 			if (!canAffordBuildable(template, resources)) {
-				audioEngine.playSFX("error");
+				// Use "hit" sound for error feedback
+				audioEngine.playSFX("hit");
 				return;
 			}
 

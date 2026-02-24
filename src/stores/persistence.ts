@@ -15,7 +15,7 @@
 
 import { STORAGE_KEY } from "../utils/constants";
 import { WEAPONS } from "./gameData";
-import type { PlacedComponent, SaveData } from "./types";
+import type { DifficultyMode, PlacedComponent, SaveData } from "./types";
 
 /**
  * Generate default weapon levels from WEAPONS registry.

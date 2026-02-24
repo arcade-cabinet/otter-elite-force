@@ -22,6 +22,9 @@ export const GAME_CONFIG = {
 	MAX_CHUNK_CACHE: 50,
 } as const;
 
+// Export CHUNK_SIZE for easier access
+export const CHUNK_SIZE = GAME_CONFIG.CHUNK_SIZE;
+
 /**
  * Difficulty Mode Order (for escalation logic)
  * Single source of truth for difficulty hierarchy.
