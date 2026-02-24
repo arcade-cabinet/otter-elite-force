@@ -45,11 +45,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm build
+      - name: Build for Web (Expo)
+        run: |
+          # Export static web build optimized for GitHub Pages
+          pnpm expo export:web --output-dir dist
         env:
           # Set base URL for GitHub Pages (repo name)
-          VITE_BASE_URL: /${{ github.event.repository.name }}/
+          PUBLIC_URL: /${{ github.event.repository.name }}/
+          EXPO_PUBLIC_BASE_URL: /${{ github.event.repository.name }}/
+
+      - name: Fix paths for GitHub Pages subdirectory
+        run: |
+          # Update index.html to use relative paths for assets
+          cd dist
+          if [ -f index.html ]; then
+            sed -i 's|href="/|href=".\/|g' index.html
+            sed -i 's|src="/|src=".\/|g' index.html
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
