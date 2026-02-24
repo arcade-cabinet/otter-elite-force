@@ -187,8 +187,14 @@ test.describe("Resource Loading Performance", () => {
 		
 		page.on("response", async (response) => {
 			const url = response.url();
+			let hostname: string | null = null;
+			try {
+				hostname = new URL(url).hostname;
+			} catch {
+				hostname = null;
+			}
 			
-			if (url.includes("fonts.googleapis.com") || url.includes("fonts.gstatic.com")) {
+			if (hostname === "fonts.googleapis.com" || hostname === "fonts.gstatic.com") {
 				const timing = response.timing();
 				fontRequests.push({
 					url,
