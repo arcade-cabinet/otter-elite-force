@@ -23,6 +23,14 @@ Recently completed comprehensive workflow consolidation, Biome 2.4 migration, an
 - Created `WORKLOG.md` for tracking development activities
 
 ### Latest Features in Main
+
+- Complete production stack: Expo + Babylon.js + Metro + Havok + NativeWind
+- Billboard sprite system (Daggerfall technique)
+- Smart auto-aim and combat stance
+- Responsive device detection hooks
+- 17-device Playwright test coverage
+- Performance budgets enforced
+- GitHub Actions CI/CD (SHA-pinned)
 - **Documentation Organization**: Properly structured `docs/` directory with architecture, development, and guides sections
 - **Formal Work Log**: `WORKLOG.md` replacing informal summaries
 - **Workflow Consolidation**: Modern CI/CD with `ci.yml` and `cd.yml`

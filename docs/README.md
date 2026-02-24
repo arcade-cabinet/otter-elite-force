@@ -1,58 +1,41 @@
-# Documentation
+# Documentation Index
 
-## Structure
+**OTTER: ELITE FORCE** - Complete technical documentation
 
-This directory contains all technical and development documentation for OTTER: ELITE FORCE.
+---
 
-### Directories
+## Files by Category
 
-- **`architecture/`** - System design, architectural decisions, and core patterns
-- **`development/`** - Development guides, testing strategies, and code analysis
-- **`guides/`** - User and contributor guides
+### Architecture
 
-### Files by Category
+- **[TECH_DECISIONS.md](./architecture/TECH_DECISIONS.md)** - Technology stack decisions and rationale (Babylon.js, Havok, Expo, Metro)
+- **[CHUNK_PERSISTENCE.md](./architecture/CHUNK_PERSISTENCE.md)** - Open world chunk system design
 
-#### Architecture
-- [`CHUNK_PERSISTENCE.md`](./architecture/CHUNK_PERSISTENCE.md) - Open world chunk system design and implementation
-- [`TECH_DECISIONS.md`](./architecture/TECH_DECISIONS.md) - Technology stack decisions and rationale
+### Development
 
-#### Development
-- [`TESTING.md`](./development/TESTING.md) - Testing philosophy, patterns, and guidelines
-- [`OTTERS_HTML_ANALYSIS.md`](./development/OTTERS_HTML_ANALYSIS.md) - Comparative analysis of vanilla JS POC vs React implementation
-- [`BUNDLE_SIZE.md`](./development/BUNDLE_SIZE.md) - Bundle size tracking and optimization
-- [`TECH_STACK.md`](./development/TECH_STACK.md) - Complete technology stack documentation
+- **[TECH_STACK.md](./development/TECH_STACK.md)** - Current technology stack reference
+- **[TESTING.md](./development/TESTING.md)** - Testing strategy and guidelines
+- **[BUNDLE_SIZE.md](./development/BUNDLE_SIZE.md)** - Performance tracking and optimization
 
-## Guides
+### Guides
 
-- [Contributing Guide](./guides/CONTRIBUTING.md) - How to contribute to the project
+- **[CONTRIBUTING.md](./guides/CONTRIBUTING.md)** - Contribution guidelines
 
-## Root Documentation
+---
 
-Core project documentation remains in the repository root:
-- `README.md` - Project overview and quick start
-- `CHANGELOG.md` - Version history and release notes
-- `LICENSE` - Project license
-- `LORE.md` - Game narrative and world-building
-- `WORKLOG.md` - Formal development activity log
-- `AGENTS.md` - AI agent technical briefing
-- `CLAUDE.md` - Claude-specific mission control
+## Quick Links
 
-## Memory Bank
+**Project Root:**
+- [README.md](../README.md) - Project overview
+- [WORKLOG.md](../WORKLOG.md) - Development activity log
+- [CHANGELOG.md](../CHANGELOG.md) - Version history
+- [LORE.md](../LORE.md) - Game narrative
 
-The `memory-bank/` directory contains project context files for AI coding sessions:
-- `projectbrief.md` - Core requirements and design principles
-- `productContext.md` - UX goals and game design
-- `systemPatterns.md` - Architecture patterns and systems
-- `techContext.md` - Technology stack and constraints
-- `activeContext.md` - Current work focus
-- `progress.md` - Feature checklist and roadmap
-- `testing-strategy.md` - Comprehensive testing approach
-- `claude-automation.md` - Claude Code integration
-- `dev-logs/` - Historical session transcripts
+**AI Context:**
+- [memory-bank/](../memory-bank/) - AI coding session context
+- [AGENTS.md](../AGENTS.md) - Complete agent briefing
+- [CLAUDE.md](../CLAUDE.md) - Claude mission control
 
-## Contributing
+---
 
-Before contributing, please read:
-1. [`CONTRIBUTING.md`](./guides/CONTRIBUTING.md) - Contribution guidelines
-2. `AGENTS.md` (root) - Project design principles
-3. [`TESTING.md`](./development/TESTING.md) - Testing requirements
+**All documentation reflects production stack: Expo + Babylon.js + Metro + Havok + NativeWind**

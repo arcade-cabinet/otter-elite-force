@@ -7,7 +7,7 @@ The project is currently at **Version 8.0 (Modular Refactor Stage)**. The techni
 ## Milestone Checklist
 
 ### 1. Core Foundations ✅
-- [x] pnpm/Vite/TS Infrastructure
+- [x] pnpm/Metro/Expo/TS Infrastructure
 - [x] Biome/Vitest/Playwright Tooling
 - [x] **Biome 2.4 Migration** - Latest linter with zero errors/warnings
 - [x] **Workflow Consolidation** - Modern CI/CD with ci.yml and cd.yml

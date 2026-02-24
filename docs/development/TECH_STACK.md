@@ -1,221 +1,308 @@
 # Technology Stack Documentation
 
+**Last Updated:** 2026-02-24  
+**Status:** Production (Post-Migration)
+
+---
+
 ## Current Architecture
 
-### 3D Graphics Engine: Three.js
+### 3D Graphics Engine: Babylon.js
 
-**Library:** Three.js r0.182.0  
-**React Integration:** @react-three/fiber v9.4.2  
-**Helpers:** @react-three/drei v10.7.7  
-**Post-Processing:** @react-three/postprocessing v3.0.4
+**Library:** @babylonjs/core 8.52.0  
+**React Integration:** reactylon 3.5.4  
+**Loaders:** @babylonjs/loaders 8.52.0  
+**Materials:** @babylonjs/materials 8.52.0  
+**Post-Processing:** @babylonjs/post-processes 8.52.0  
+**Native Support:** @babylonjs/react-native 1.9.0
 
-**Why Three.js over Babylon.js/Reactylon:**
-1. **Smaller bundle size** (~400KB vs 1MB+) - critical for mobile
-2. **Rapier physics integration** - best-in-class physics
-3. **Mature R3F ecosystem** - battle-tested, extensive community
-4. **Zero migration cost** - already deeply integrated
-5. **Performance parity** - both engines are excellent
+**Why Babylon.js:**
+- Built for games, not just visualization
+- Native Havok physics integration
+- Complete tooling (Inspector, Profiler, Scene Optimizer)
+- Reactylon provides declarative JSX components
+- Better React Native integration
+- Production-ready particle systems, animations, audio
 
-**Decision:** Keep Three.js. Reactylon is great for NEW projects, but migrating would cost 100+ hours with no tangible benefit for this game's requirements.
-
----
-
-### Physics Engine: Rapier
-
-**Library:** @react-three/rapier v2.2.0
-
-**Why Rapier:**
-- **Rust-based** - compiled to WebAssembly for maximum performance
-- **Deterministic** - same simulation every time
-- **Feature-complete** - rigid bodies, colliders, joints, triggers
-- **Best-in-class** - superior to Cannon.js, Ammo.js for web games
-- **Active development** - modern, well-maintained
-
-**Integration:**
-- Character controller for player movement
-- Collision detection for combat
-- Trigger volumes for objectives
-- Rigid bodies for physics objects
+**Usage:**
+```tsx
+<Canvas>
+  <scene clearColor={[0.1, 0.1, 0.1, 1]}>
+    <arcRotateCamera name="camera" alpha={0} beta={1} radius={10} />
+    <hemisphericLight name="light" intensity={0.7} />
+    <box name="myBox" size={2} position={[0, 1, 0]}>
+      <standardMaterial name="mat" diffuseColor={[1, 0.5, 0]} />
+    </box>
+  </scene>
+</Canvas>
+```
 
 ---
 
-### Audio System
+### Physics Engine: Havok
 
-**Synthesis:** Tone.js v15.1.22  
-**Game Audio:** @strata-game-library/audio-synth v1.0.2
+**Library:** @babylonjs/havok 1.3.11
 
-**Capabilities:**
-- Procedural sound effects (no audio files needed)
-- Music generation
-- Spatial audio
-- Real-time synthesis
+**Why Havok:**
+- AAA-grade physics (Halo, Elden Ring, Call of Duty)
+- WebAssembly compiled for performance
+- Complete feature set: ragdolls, cloth, advanced constraints
+- Native Babylon.js integration
+- Industry standard
+
+**Features:**
+- Rigid body dynamics
+- Advanced collision detection
+- Character controllers
+- Joints and constraints
+- Trigger volumes
 
 ---
 
-### State Management & ECS
+### Mobile Framework: Expo + React Native
 
-**Global State:** Zustand v5.0.9
-- Lightweight, fast, no boilerplate
-- Perfect for React integration
-- Persistent storage support
+**Core:**
+- expo 52.0.49
+- react-native 0.76.5
+- react-native-web 0.21.2
 
-**Entity Component System:** Miniplex v2.0.0
-- Type-safe ECS for game entities
-- Query-based architecture
-- Excellent React integration via @miniplex/react
+**Expo Modules:**
+- expo-gl 15.0.5 (WebGL/OpenGL)
+- expo-asset 11.0.5 (asset management)
+- expo-constants 17.0.8 (app constants)
+- expo-status-bar 2.0.1 (status bar control)
 
-**AI/Steering:** Yuka v0.7.8
-- Professional game AI library
-- Steering behaviors (seek, flee, pursue, evade)
-- State machines
-- Path finding
+**Why Expo:**
+- Complete React Native framework
+- OTA updates without app store
+- Expo Go for instant testing
+- EAS Build for native compilation
+- Web support via react-native-web
+- Metro bundler integration
 
 ---
 
 ### Build & Tooling
 
-**Build System:** Vite v7.3.1
-- Lightning-fast HMR
-- Optimized production builds
-- ES modules native
-- Excellent TypeScript support
+**Bundler:** Metro 0.84.0 (React Native standard)  
+**Metro Config:** @react-native/metro-config 0.84.0  
+**Linter/Formatter:** @biomejs/biome 2.4.4  
+**TypeScript:** 5.9.3  
+**Package Manager:** pnpm 10.26.2
 
-**Linting/Formatting:** Biome v2.4.4
-- All-in-one tool (replaces ESLint + Prettier)
-- 100x faster than ESLint
-- Zero config needed
+**Why Metro:**
+- Official React Native bundler
+- Code splitting optimized for mobile
+- Fast Refresh (HMR)
+- Asset resolution for native platforms
+- Cross-platform (iOS, Android, Web)
 
-**Testing:**
-- Unit: Vitest v4.0.18
-- E2E: Playwright v1.58.2
-- React Testing: @testing-library/react
-- 3D Testing: @react-three/test-renderer
-
-**TypeScript:** v5.9.3 (strict mode)
-
----
-
-### Mobile Support
-
-**Current:** Mobile-first web app (PWA)
-- Touch controls (nipplejs v0.10.2)
-- Gyroscope support
-- Responsive design
-- Service worker ready
-
-**Planned:** Capacitor Native Apps
-- iOS App Store
-- Google Play Store
-- Native APIs (haptics, notifications, etc.)
-- Offline support
+**Build Commands:**
+```bash
+pnpm dev                 # Metro dev server (web)
+pnpm start               # Metro dev server (all platforms)
+pnpm build               # Export static web build
+pnpm android             # Start Android
+pnpm ios                 # Start iOS
+```
 
 ---
 
-### UI Framework
+### Styling: NativeWind
 
-**Framework:** React 19.2.3
-- Latest stable release
-- Server components ready
-- Improved hydration
-- Better performance
+**Library:** nativewind 4.2.2  
+**CSS Framework:** tailwindcss 3.3.2
 
-**Utilities:**
-- Window size: @react-hook/window-size
-- Device detection: react-device-detect
-- Animations: GSAP v3.14.2
+**Why NativeWind:**
+- Tailwind CSS for React Native
+- Same utility classes work on web and native
+- Platform-specific variants (ios:, android:, web:)
+- Design tokens (Vietnam-era color palette)
+- Compiled at build time for performance
 
----
-
-## Architecture Decisions
-
-### Why NOT Reactylon/Babylon.js?
-
-**Reactylon Pros:**
-- Nice React wrappers for Babylon.js
-- All-in-one solution
-- Good documentation
-
-**Reactylon Cons for This Project:**
-1. **Migration cost:** Entire 3D layer rewrite (~1500 LOC)
-2. **Bundle size:** ~3x larger than Three.js
-3. **Physics:** Babylon's physics options inferior to Rapier
-4. **Investment:** Already deep into R3F ecosystem
-5. **Community:** R3F has more examples, plugins, support
-6. **No benefit:** Performance would be identical
-
-**Verdict:** Keep Three.js + R3F. Reactylon is excellent for greenfield projects, but switching would delay production by 2-3 months for zero gameplay improvement.
+**Usage:**
+```tsx
+<View className="flex-1 bg-jungle-night p-4">
+  <Text className="text-2xl font-bold text-otter-orange">
+    OTTER: ELITE FORCE
+  </Text>
+</View>
+```
 
 ---
 
-### Why Rapier over Cannon/Ammo/Havok?
+### State Management
 
-**Rapier Advantages:**
-- **Performance:** Rust + WASM = fastest option
-- **Determinism:** Critical for gameplay consistency
-- **Features:** Most complete feature set
-- **Integration:** @react-three/rapier is seamless
-- **Size:** Smaller bundle than Ammo.js
-- **Maintenance:** Actively developed
+**Global State:** zustand 5.0.9  
+**Entity Component System:** miniplex 2.0.0, @miniplex/react 2.0.0-next.10
 
-**Alternatives Rejected:**
-- Cannon.js: Slower, unmaintained
-- Ammo.js: Large bundle, complex API
-- Havok: Proprietary, expensive
+**Why This Combination:**
+- Zustand for UI state (simple, performant)
+- Miniplex for game entities (ECS pattern)
+- Clean separation of concerns
+- TypeScript support
 
 ---
 
-### Why Tone.js over Howler/Web Audio API?
+### Navigation & AI
 
-**Tone.js chosen for:**
-- **Procedural synthesis** - no audio files needed
-- **Musical composition** - notes, scales, timing
-- **Effects chain** - reverb, delay, filters
-- **Zero-asset philosophy** - matches game design
+**Pathfinding:** recast-detour 1.6.4  
+**Steering:** yuka 0.7.8
 
-**Raw Web Audio API** would require more code.  
-**Howler.js** is for playing audio files (we generate all audio).
+**Why Recast:**
+- Industry-standard navmesh generation
+- Crowd simulation (100+ agents)
+- Dynamic obstacle avoidance
+- WebAssembly performance
+
+---
+
+### Audio System
+
+**Synthesis:** tone 15.1.22  
+**Game Audio:** @strata-game-library/audio-synth 1.0.2, @strata-game-library/core 1.4.11
+
+**Capabilities:**
+- Procedural sound generation (no audio files)
+- Music synthesis
+- Spatial audio
+- Real-time effects
+
+---
+
+### Testing
+
+**Unit Tests:** vitest 4.0.18  
+**E2E Tests:** @playwright/test 1.58.2  
+**Component Tests:** @testing-library/react 16.3.2, @testing-library/dom 10.4.1  
+**Test Utilities:** @testing-library/jest-dom 6.9.1, @testing-library/user-event 14.5.3  
+**Coverage:** @vitest/coverage-v8 4.0.18  
+**Test Environments:** happy-dom 20.7.0, jsdom 28.1.0
+
+**E2E Device Coverage:**
+- 17 device configurations
+- iPhone 15 Pro, iPhone SE
+- Pixel 8a
+- OnePlus Open (folded/unfolded)
+- iPad Pro, Pixel Tablet
+- Desktop Chrome
+- Portrait and landscape orientations
+
+---
+
+### Additional Libraries
+
+**UI/Interaction:**
+- react 19.2.3
+- react-dom 19.2.3
+- nipplejs 0.10.2 (touch joystick)
+- @react-hook/window-size 3.1.1
+- react-device-detect 2.2.3
+
+**Animation:**
+- gsap 3.14.2
+
+**Storage:**
+- @react-native-async-storage/async-storage 3.0.1
+
+**Types:**
+- @types/react 19.2.8
+- @types/react-dom 19.2.3
+- @types/node 25.3.0
 
 ---
 
 ## Performance Targets
 
-**Mobile:**
-- 60fps on iPhone 12 / Galaxy S21
-- 30fps minimum on iPhone XR / older devices
-- <500KB gzipped bundle (currently ~650KB - needs optimization)
+**Web:**
+- Load time: < 3s
+- FPS: 60 (target), 50 (minimum)
+- Bundle size: < 2MB uncompressed
+- Memory: < 200MB initial
 
-**Desktop:**
-- 144fps on modern hardware
-- 60fps on integrated graphics
+**Mobile:**
+- 60fps on mid-range devices (Pixel 8a, iPhone SE)
+- Startup time: < 5s
+- Battery efficient rendering
+
+---
+
+## Deployment
+
+**Web:** GitHub Pages via GitHub Actions  
+**iOS:** Expo EAS Build → App Store  
+**Android:** Expo EAS Build → Google Play
+
+**CI/CD:**
+- GitHub Actions (2 workflows)
+- All actions SHA-pinned for security
+- Automated testing (lint, unit, e2e, build)
 
 ---
 
 ## Future Considerations
 
-### Potential Additions
+**Performance:**
+- Implement texture atlasing for sprites
+- Add LOD (Level of Detail) systems
+- Optimize draw calls with batching
 
-**Capacitor** (High Priority)
-- Native iOS/Android apps
-- App Store distribution
-- Native APIs access
+**Features:**
+- Advanced particle effects
+- Dynamic lighting and shadows
+- Texture support for terrain
+- Full audio integration
 
-**Bundle Optimization** (High Priority)
-- Code splitting
-- Dynamic imports
-- Tree shaking improvements
-- Target: <500KB gzipped
-
-**Analytics** (Medium Priority)
-- Error tracking (Sentry)
-- Usage analytics
-- Performance monitoring
+**Mobile:**
+- Native builds for iOS/Android
+- App store deployment
+- Push notifications
+- In-app purchases (if needed)
 
 ---
 
 ## Dependency Audit
 
-Last Updated: 2026-02-24
+**Production Dependencies:** 28  
+**Dev Dependencies:** 21  
+**Total:** 49 packages
 
-All dependencies are latest stable versions with no known critical vulnerabilities. Biome v2.4.4 ensures zero linting errors.
+**Security:**
+- All GitHub Actions SHA-pinned
+- Regular dependency updates
+- Biome for code quality
+- TypeScript for type safety
 
-See `package.json` for complete list.
+**Bundle Analysis:**
+- Bundle size tracking via CI
+- Performance budgets enforced
+- Lazy loading for sprites
+
+---
+
+## Migration History
+
+**From:** Three.js + R3F + Vite + Capacitor  
+**To:** Babylon.js + Reactylon + Metro + Expo  
+**Date:** February 2026  
+**Reason:** Mobile-first production readiness
+
+**Removed:**
+- three, @react-three/fiber, @react-three/drei, @react-three/rapier
+- vite (kept only for unit test runner)
+- Capacitor (ios/, android/ directories)
+- 1,161 total files deleted
+
+**Added:**
+- Babylon.js ecosystem (core, havok, reactylon)
+- Expo + React Native
+- Metro bundler
+- NativeWind
+- 444 new packages (React Native ecosystem)
+
+---
+
+**See also:**
+- [TECH_DECISIONS.md](../architecture/TECH_DECISIONS.md) - Why these choices
+- [TESTING.md](./TESTING.md) - Testing strategy
+- [BUNDLE_SIZE.md](./BUNDLE_SIZE.md) - Performance tracking

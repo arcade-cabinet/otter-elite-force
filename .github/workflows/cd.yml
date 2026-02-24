@@ -45,10 +45,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build for Web (Expo)
+      - name: Build for Web (Metro/Expo)
         run: |
-          # Export static web build optimized for GitHub Pages
-          pnpm expo export:web --output-dir dist
+          # Export static web build optimized for GitHub Pages using Metro bundler
+          npx expo export --platform web --output-dir dist
         env:
           # Set base URL for GitHub Pages (repo name)
           PUBLIC_URL: /${{ github.event.repository.name }}/
@@ -57,10 +57,15 @@ jobs:
       - name: Fix paths for GitHub Pages subdirectory
         run: |
           # Update index.html to use relative paths for assets
+          # Only rewrite root-relative paths that begin with a single slash (exclude //)
+          # Also handle CSS url(...) patterns
           cd dist
           if [ -f index.html ]; then
-            sed -i 's|href="/|href=".\/|g' index.html
-            sed -i 's|src="/|src=".\/|g' index.html
+            # Fix href and src attributes - only single slash paths, not protocol-relative (//)
+            sed -i 's|href="/\([^/]\)|href="./\1|g' index.html
+            sed -i 's|src="/\([^/]\)|src="./\1|g' index.html
+            # Fix CSS url() references
+            sed -i 's|url("/\([^/]\)|url("./\1|g' index.html
           fi
 
       - name: Upload artifact
