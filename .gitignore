@@ -23,6 +23,13 @@ web-build/
 # React Native / Metro
 .metro-health-check*
 
+# Temporary POC and extracted files (keep only in public/sprites/)
+/otters.html
+/otter.zip
+/otter.svg
+/keyframes/
+/spriter_file_png_parts/
+
 # Misc
 .DS_Store
 *.pem
