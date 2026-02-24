@@ -267,3 +267,65 @@ For historical context prior to this log, see:
 
 **Status:** TRANSFORMATIONAL SUCCESS 🎖️
 
+
+---
+
+## 2026-02-24: Repository Cleanup - All Errata Removed
+
+**Objective:** Clean up all temporary POC files and documentation summaries.
+
+### Cleanup Completed
+
+**Removed 1,027 files:**
+- `otters.html` - POC file (techniques extracted to docs)
+- `otter.zip` - Archive (extracted to public/sprites/)
+- `otter.svg` - Duplicate/unused SVG
+- `keyframes/` - 417 sprite PNGs (duplicated in public/sprites/)
+- `spriter_file_png_parts/` - 600+ raw sprite parts (not needed)
+- `FINAL_PR_SUMMARY.md` - Summary (consolidated to WORKLOG)
+- `PR_SUMMARY.md` - Summary (consolidated to WORKLOG)
+- `MIGRATION_COMPLETE.md` - Migration notes (consolidated to WORKLOG)
+- `docs/guides/CAPACITOR_SETUP.md` - Obsolete (we use Expo)
+- `docs/guides/CAPACITOR_INSTALL.md` - Obsolete (we use Expo)
+
+**All value preserved:**
+- POC techniques documented in `docs/development/OTTERS_HTML_ANALYSIS.md`
+- POC improvements integrated in code
+- Sprites in proper location: `public/sprites/keyframes/` (417 PNGs)
+- Billboard animation system: `src/rendering/BillboardSprites.ts`
+
+**Updated `.gitignore`:**
+- Added patterns to prevent future POC clutter
+- Prevent temporary files from being committed
+
+### Final Documentation Structure
+
+```
+Root Documentation:
+├── README.md (project overview)
+├── CHANGELOG.md (version history)
+├── LICENSE (legal)
+├── LORE.md (narrative)
+├── WORKLOG.md (THIS FILE - single source of truth)
+├── AGENTS.md (AI instructions)
+└── CLAUDE.md (AI instructions)
+
+docs/ (organized):
+├── README.md (documentation index)
+├── architecture/
+│   ├── TECH_DECISIONS.md (technology choices)
+│   └── CHUNK_PERSISTENCE.md (open world design)
+├── development/
+│   ├── TECH_STACK.md (current stack)
+│   ├── BUNDLE_SIZE.md (performance tracking)
+│   ├── TESTING.md (testing guide)
+│   └── OTTERS_HTML_ANALYSIS.md (POC analysis)
+└── guides/
+    └── CONTRIBUTING.md (contribution guide)
+
+memory-bank/ (AI context):
+└── [all files preserved]
+```
+
+**Result:** Clean, professional repository structure. WORKLOG.md is now the single source of truth for all development activity.
+
