@@ -253,12 +253,12 @@ use: customDevices["Pixel Tablet Landscape"],
 },
 ],
 
-webServer: {
-command: "pnpm web",
-url: "http://localhost:8081",
-reuseExistingServer: !isCI,
-stdout: "pipe",
-stderr: "pipe",
-timeout: 120_000,
-},
+	webServer: {
+		command: "pnpm web",
+		url: "http://localhost:8081",
+		reuseExistingServer: !isCI,
+		stdout: "pipe",
+		stderr: "pipe",
+		timeout: 120_000,
+	},
 });
