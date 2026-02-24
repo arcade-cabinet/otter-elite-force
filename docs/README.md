@@ -14,14 +14,18 @@ This directory contains all technical and development documentation for OTTER: E
 
 #### Architecture
 - [`CHUNK_PERSISTENCE.md`](./architecture/CHUNK_PERSISTENCE.md) - Open world chunk system design and implementation
+- [`TECH_DECISIONS.md`](./architecture/TECH_DECISIONS.md) - Technology stack decisions and rationale
 
 #### Development
 - [`TESTING.md`](./development/TESTING.md) - Testing philosophy, patterns, and guidelines
 - [`OTTERS_HTML_ANALYSIS.md`](./development/OTTERS_HTML_ANALYSIS.md) - Comparative analysis of vanilla JS POC vs React implementation
 - [`BUNDLE_SIZE.md`](./development/BUNDLE_SIZE.md) - Bundle size tracking and optimization
+- [`TECH_STACK.md`](./development/TECH_STACK.md) - Complete technology stack documentation
 
 #### Guides
 - [`CONTRIBUTING.md`](./guides/CONTRIBUTING.md) - How to contribute to the project
+- [`CAPACITOR_SETUP.md`](./guides/CAPACITOR_SETUP.md) - Native mobile app setup with Capacitor
+- [`CAPACITOR_INSTALL.md`](./guides/CAPACITOR_INSTALL.md) - Capacitor installation instructions
 
 ## Root Documentation
 
