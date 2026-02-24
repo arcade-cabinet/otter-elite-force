@@ -16,9 +16,9 @@
  */
 
 import { CHARACTERS, type DifficultyMode, useGameStore } from "../stores/gameStore";
-import { DIFFICULTY_CONFIGS, DIFFICULTY_ORDER, RANKS } from "../utils/constants";
 import DESIGN_TOKENS from "../theme/designTokens";
 import { SVGDecoration } from "../theme/svgDecorations";
+import { DIFFICULTY_CONFIGS, DIFFICULTY_ORDER, RANKS } from "../utils/constants";
 
 export function MainMenu() {
 	const { saveData, setMode, resetData, selectedCharacterId, selectCharacter, setDifficulty } =
@@ -60,29 +60,29 @@ export function MainMenu() {
 			{/* Command Briefing Container */}
 			<div className="max-w-2xl w-full bg-jungle-dark/90 border-2 border-olive-drab shadow-haze backdrop-blur-sm relative">
 				{/* SVG Corner Decorations */}
-				<SVGDecoration 
-					type="stencilStar" 
-					className="absolute top-2 left-2 w-8 h-8 opacity-30 pointer-events-none" 
+				<SVGDecoration
+					type="stencilStar"
+					className="absolute top-2 left-2 w-8 h-8 opacity-30 pointer-events-none"
 				/>
-				<SVGDecoration 
-					type="stencilStar" 
-					className="absolute top-2 right-2 w-8 h-8 opacity-30 pointer-events-none" 
+				<SVGDecoration
+					type="stencilStar"
+					className="absolute top-2 right-2 w-8 h-8 opacity-30 pointer-events-none"
 				/>
-				
+
 				{/* Header: Main Title */}
 				<div className="bg-olive-drab border-b-2 border-canvas-tan p-6 text-center relative overflow-hidden">
 					{/* Background helicopter silhouette */}
-					<SVGDecoration 
-						type="helicopter" 
-						className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 opacity-10 pointer-events-none animate-chopper-wobble" 
+					<SVGDecoration
+						type="helicopter"
+						className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 opacity-10 pointer-events-none animate-chopper-wobble"
 					/>
-					
+
 					{/* URA Insignia */}
-					<SVGDecoration 
-						type="uraInsignia" 
-						className="absolute left-4 top-1/2 -translate-y-1/2 w-16 h-16 opacity-40 pointer-events-none" 
+					<SVGDecoration
+						type="uraInsignia"
+						className="absolute left-4 top-1/2 -translate-y-1/2 w-16 h-16 opacity-40 pointer-events-none"
 					/>
-					
+
 					<div className="absolute inset-0 bg-noise opacity-20 pointer-events-none" />
 					<h1 className="font-stencil text-stencil-lg text-chalk-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] tracking-widest relative z-10 text-stencil-shadow">
 						OTTER
@@ -92,11 +92,11 @@ export function MainMenu() {
 					<div className="font-typewriter text-briefing text-haze-yellow mt-2 tracking-wide relative z-10">
 						{DESIGN_TOKENS.brand.tagline}
 					</div>
-					
+
 					{/* Barbed wire border decoration */}
-					<SVGDecoration 
-						type="barbedWire" 
-						className="absolute bottom-0 left-0 right-0 h-2 opacity-50 pointer-events-none" 
+					<SVGDecoration
+						type="barbedWire"
+						className="absolute bottom-0 left-0 right-0 h-2 opacity-50 pointer-events-none"
 					/>
 				</div>
 
@@ -208,7 +208,8 @@ export function MainMenu() {
 								}[mode];
 
 								const selectedClasses = {
-									SUPPORT: "bg-ura-orange/30 border-ura-orange shadow-[0_0_20px_rgba(255,136,0,0.4)]",
+									SUPPORT:
+										"bg-ura-orange/30 border-ura-orange shadow-[0_0_20px_rgba(255,136,0,0.4)]",
 									TACTICAL:
 										"bg-warning-amber/30 border-warning-amber shadow-[0_0_20px_rgba(255,191,0,0.4)]",
 									ELITE: "bg-ura-blood/30 border-ura-blood shadow-[0_0_20px_rgba(139,0,0,0.4)]",

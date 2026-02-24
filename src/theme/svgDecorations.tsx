@@ -120,7 +120,7 @@ export const SVG_DECORATIONS = {
 					<line x1="${x - 3}" y1="13" x2="${x}" y2="10" stroke="#717568" stroke-width="0.5"/>
 					<line x1="${x + 3}" y1="13" x2="${x}" y2="10" stroke="#717568" stroke-width="0.5"/>
 				`;
-			}).join('')}
+			}).join("")}
 		</svg>
 	`,
 
@@ -163,7 +163,7 @@ export const SVG_DECORATIONS = {
 					<line x1="0" y1="${pos}" x2="200" y2="${pos}" stroke="#3d5016" stroke-width="0.5" opacity="0.3"/>
 					<line x1="${pos}" y1="0" x2="${pos}" y2="200" stroke="#3d5016" stroke-width="0.5" opacity="0.3"/>
 				`;
-			}).join('')}
+			}).join("")}
 			
 			<!-- Border -->
 			<rect x="1" y="1" width="198" height="198" fill="none" stroke="#c4b59d" stroke-width="2"/>
@@ -199,17 +199,17 @@ export const SVG_DECORATIONS = {
 };
 
 // === SVG COMPONENT HELPERS ===
-export const SVGDecoration = ({ 
-	type, 
-	className = '', 
-	style = {} 
-}: { 
-	type: keyof typeof SVG_DECORATIONS; 
-	className?: string; 
+export const SVGDecoration = ({
+	type,
+	className = "",
+	style = {},
+}: {
+	type: keyof typeof SVG_DECORATIONS;
+	className?: string;
 	style?: React.CSSProperties;
 }) => {
 	return (
-		<div 
+		<div
 			className={className}
 			style={style}
 			dangerouslySetInnerHTML={{ __html: SVG_DECORATIONS[type] }}

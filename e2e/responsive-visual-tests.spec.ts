@@ -1,15 +1,15 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
  * Responsive Visual Testing Suite
- * 
+ *
  * Captures screenshots across all device viewports to verify:
  * - Responsive scaling (Expo + NativeWind)
  * - Touch target sizes (44px minimum)
  * - Layout adaptation (portrait/landscape)
  * - Text readability
  * - Game canvas rendering
- * 
+ *
  * Devices tested:
  * - Desktop: Chrome 1920x1080
  * - iPhones: 15 Pro, SE (portrait & landscape)
@@ -34,12 +34,8 @@ test.describe("Main Menu - Responsive Design", () => {
 		});
 
 		// Verify essential UI elements are visible
-		await expect(
-			page.getByRole("button", { name: /new game/i }),
-		).toBeVisible();
-		await expect(
-			page.getByRole("button", { name: /continue/i }),
-		).toBeVisible();
+		await expect(page.getByRole("button", { name: /new game/i })).toBeVisible();
+		await expect(page.getByRole("button", { name: /continue/i })).toBeVisible();
 		await expect(page.getByRole("button", { name: /canteen/i })).toBeVisible();
 	});
 
@@ -62,10 +58,7 @@ test.describe("Main Menu - Responsive Design", () => {
 		expect(svgElements).toBeGreaterThan(0);
 	});
 
-	test("should have proper touch targets on mobile", async ({
-		page,
-		browserName,
-	}) => {
+	test("should have proper touch targets on mobile", async ({ page }) => {
 		test.skip(
 			!test.info().project.name.includes("iPhone") &&
 				!test.info().project.name.includes("Pixel") &&
@@ -111,7 +104,7 @@ test.describe("Difficulty Selection - Responsive", () => {
 		// Wait for difficulty selector to appear
 		// (This might not be implemented yet, so make it non-blocking)
 		try {
-			await page.waitForSelector('text=/SUPPORT|TACTICAL|ELITE/i', {
+			await page.waitForSelector("text=/SUPPORT|TACTICAL|ELITE/i", {
 				timeout: 5000,
 			});
 
@@ -120,7 +113,7 @@ test.describe("Difficulty Selection - Responsive", () => {
 				path: `screenshots/difficulty-${test.info().project.name.replace(/\s/g, "-")}.png`,
 				fullPage: true,
 			});
-		} catch (e) {
+		} catch (_e) {
 			console.log("Difficulty selector not yet implemented");
 		}
 	});
@@ -211,12 +204,10 @@ test.describe("NativeWind Tailwind Styling", () => {
 
 		// Check computed styles for font families
 		const title = page.getByText("OTTER: ELITE FORCE");
-		const fontSize = await title.evaluate((el) =>
-			window.getComputedStyle(el).fontSize,
-		);
+		const fontSize = await title.evaluate((el) => window.getComputedStyle(el).fontSize);
 
 		// Should be large (stencil title)
-		const size = parseInt(fontSize);
+		const size = Number.parseInt(fontSize, 10);
 		expect(size).toBeGreaterThan(24); // Should be at least 24px
 	});
 });

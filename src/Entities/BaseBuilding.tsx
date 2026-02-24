@@ -14,14 +14,7 @@ export function BaseFloor({
 }) {
 	const color = ghost ? [0.4, 0.8, 1] : [0.24, 0.17, 0.12];
 	return (
-		<box
-			name="baseFloor"
-			width={4}
-			height={0.2}
-			depth={4}
-			position={position}
-			rotation={rotation}
-		>
+		<box name="baseFloor" width={4} height={0.2} depth={4} position={position} rotation={rotation}>
 			<standardMaterial
 				name="floorMat"
 				diffuseColor={color}
@@ -43,20 +36,8 @@ export function BaseWall({
 }) {
 	const color = ghost ? [0.4, 0.8, 1] : [0.24, 0.17, 0.12];
 	return (
-		<box
-			name="baseWall"
-			width={4}
-			height={2}
-			depth={0.1}
-			position={position}
-			rotation={rotation}
-		>
-			<standardMaterial
-				name="wallMat"
-				diffuseColor={color}
-				roughness={1}
-				alpha={ghost ? 0.5 : 1}
-			/>
+		<box name="baseWall" width={4} height={2} depth={0.1} position={position} rotation={rotation}>
+			<standardMaterial name="wallMat" diffuseColor={color} roughness={1} alpha={ghost ? 0.5 : 1} />
 		</box>
 	);
 }
@@ -81,12 +62,7 @@ export function BaseRoof({
 			position={position}
 			rotation={rotation}
 		>
-			<standardMaterial
-				name="roofMat"
-				diffuseColor={color}
-				roughness={1}
-				alpha={ghost ? 0.5 : 1}
-			/>
+			<standardMaterial name="roofMat" diffuseColor={color} roughness={1} alpha={ghost ? 0.5 : 1} />
 		</cylinder>
 	);
 }
@@ -107,11 +83,7 @@ export function BaseStilt({
 			height={2}
 			position={position}
 		>
-			<standardMaterial
-				name="stiltMat"
-				diffuseColor={color}
-				alpha={ghost ? 0.5 : 1}
-			/>
+			<standardMaterial name="stiltMat" diffuseColor={color} alpha={ghost ? 0.5 : 1} />
 		</cylinder>
 	);
 }

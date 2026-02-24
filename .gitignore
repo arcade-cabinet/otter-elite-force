@@ -3,6 +3,11 @@ node_modules/
 .pnp
 .pnp.js
 
+# npm artifacts (ALWAYS use pnpm, not npm)
+package-lock.json
+npm-debug.log*
+.npm/
+
 # Testing
 coverage/
 playwright-report/

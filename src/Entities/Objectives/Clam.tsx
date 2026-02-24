@@ -3,9 +3,9 @@
  * The "Flag" in our CTF scenario. A heavy, bioluminescent artifact.
  */
 
-import { useScene } from "reactylon";
+import type { PointLight as BabylonPointLight, TransformNode } from "@babylonjs/core";
 import { useEffect, useRef } from "react";
-import type { TransformNode, PointLight as BabylonPointLight } from "@babylonjs/core";
+import { useScene } from "reactylon";
 
 export function Clam({
 	position,
@@ -42,12 +42,7 @@ export function Clam({
 	return (
 		<transformNode name="clamGroup" ref={groupRef} position={position}>
 			{/* Clam Shells */}
-			<sphere
-				name="clamShellTop"
-				diameter={0.8}
-				segments={16}
-				rotation={[Math.PI / 4, 0, 0]}
-			>
+			<sphere name="clamShellTop" diameter={0.8} segments={16} rotation={[Math.PI / 4, 0, 0]}>
 				<standardMaterial
 					name="clamShellMat"
 					diffuseColor={[1, 1, 1]}
@@ -72,11 +67,7 @@ export function Clam({
 
 			{/* Bioluminescent Pearl */}
 			<sphere name="pearl" diameter={0.3} segments={16} position={[0, 0, 0]}>
-				<standardMaterial
-					name="pearlMat"
-					emissiveColor={[0, 0.8, 1]}
-					diffuseColor={[0, 0.8, 1]}
-				/>
+				<standardMaterial name="pearlMat" emissiveColor={[0, 0.8, 1]} diffuseColor={[0, 0.8, 1]} />
 			</sphere>
 			<pointLight
 				name="pearlLight"
@@ -96,11 +87,7 @@ export function ExtractionPoint({ position }: { position: [number, number, numbe
 		<transformNode name="extractionPoint" position={position}>
 			{/* Signal Flare / Marker */}
 			<disc name="extractionMarker" radius={3} tessellation={32} position={[0, 0.1, 0]}>
-				<standardMaterial
-					name="markerMat"
-					emissiveColor={[1, 0.67, 0]}
-					alpha={0.2}
-				/>
+				<standardMaterial name="markerMat" emissiveColor={[1, 0.67, 0]} alpha={0.2} />
 			</disc>
 			<cylinder
 				name="extractionBeam"

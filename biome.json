@@ -30,10 +30,26 @@
 			},
 			"complexity": {
 				"noImportantStyles": "off"
+			},
+			"security": {
+				"noDangerouslySetInnerHtml": "off"
 			}
 		}
 	},
 	"overrides": [
+		{
+			"includes": ["src/**/*.css"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noUnknownAtRules": "off"
+					},
+					"correctness": {
+						"noInvalidPositionAtImportRule": "off"
+					}
+				}
+			}
+		},
 		{
 			"includes": [
 				"**/*.test.ts",

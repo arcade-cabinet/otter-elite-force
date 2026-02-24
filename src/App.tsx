@@ -5,14 +5,14 @@
  */
 
 import { useEffect, useRef } from "react";
-import { View, Platform } from "react-native";
+import { Platform, View } from "react-native";
 import type { useGameStore as GameStoreType } from "./stores/gameStore";
 
 // Extend Window for E2E testing
 declare global {
-interface Window {
-__gameStore?: typeof GameStoreType;
-}
+	interface Window {
+		__gameStore?: typeof GameStoreType;
+	}
 }
 
 import { audioEngine } from "./Core/AudioEngine";
@@ -28,95 +28,95 @@ import { EnemyHealthBars } from "./UI/EnemyHealthBars";
 import { HUD } from "./UI/HUD";
 
 // Import global styles for web
-if (Platform.OS === 'web') {
-require('./global.css');
+if (Platform.OS === "web") {
+	require("./global.css");
 }
 
 export function App() {
-const { mode, loadData, hudReady } = useGameStore();
-const inputInitialized = useRef(false);
+	const { mode, loadData, hudReady } = useGameStore();
+	const inputInitialized = useRef(false);
 
-// Initialize on mount
-useEffect(() => {
-// Expose store to window for E2E testing
-if (Platform.OS === 'web' && typeof window !== "undefined") {
-window.__gameStore = useGameStore;
-}
+	// Initialize on mount
+	useEffect(() => {
+		// Expose store to window for E2E testing
+		if (Platform.OS === "web" && typeof window !== "undefined") {
+			window.__gameStore = useGameStore;
+		}
 
-// Load save data
-loadData();
+		// Load save data
+		loadData();
 
-// Initialize audio on first user interaction
-const initAudio = async () => {
-await audioEngine.init();
-audioEngine.playMusic("menu");
-};
+		// Initialize audio on first user interaction
+		const initAudio = async () => {
+			await audioEngine.init();
+			audioEngine.playMusic("menu");
+		};
 
-if (Platform.OS === 'web') {
-// Setup audio initialization on first interaction
-const handleInteraction = () => {
-initAudio();
-document.removeEventListener("click", handleInteraction);
-document.removeEventListener("touchstart", handleInteraction);
-};
+		if (Platform.OS === "web") {
+			// Setup audio initialization on first interaction
+			const handleInteraction = () => {
+				initAudio();
+				document.removeEventListener("click", handleInteraction);
+				document.removeEventListener("touchstart", handleInteraction);
+			};
 
-document.addEventListener("click", handleInteraction);
-document.addEventListener("touchstart", handleInteraction);
+			document.addEventListener("click", handleInteraction);
+			document.addEventListener("touchstart", handleInteraction);
 
-return () => {
-document.removeEventListener("click", handleInteraction);
-document.removeEventListener("touchstart", handleInteraction);
-};
-}
-}, [loadData]);
+			return () => {
+				document.removeEventListener("click", handleInteraction);
+				document.removeEventListener("touchstart", handleInteraction);
+			};
+		}
+	}, [loadData]);
 
-// Initialize input system when entering GAME mode and HUD is ready (deterministic)
-useEffect(() => {
-const shouldBeInitialized = mode === "GAME" && hudReady;
+	// Initialize input system when entering GAME mode and HUD is ready (deterministic)
+	useEffect(() => {
+		const shouldBeInitialized = mode === "GAME" && hudReady;
 
-if (shouldBeInitialized && !inputInitialized.current) {
-inputSystem.init();
-inputInitialized.current = true;
-} else if (!shouldBeInitialized && inputInitialized.current) {
-inputSystem.destroy();
-inputInitialized.current = false;
-}
+		if (shouldBeInitialized && !inputInitialized.current) {
+			inputSystem.init();
+			inputInitialized.current = true;
+		} else if (!shouldBeInitialized && inputInitialized.current) {
+			inputSystem.destroy();
+			inputInitialized.current = false;
+		}
 
-// Handle unmount - if we are still initialized, destroy
-return () => {
-if (inputInitialized.current) {
-inputSystem.destroy();
-inputInitialized.current = false;
-}
-};
-}, [mode, hudReady]);
+		// Handle unmount - if we are still initialized, destroy
+		return () => {
+			if (inputInitialized.current) {
+				inputSystem.destroy();
+				inputInitialized.current = false;
+			}
+		};
+	}, [mode, hudReady]);
 
-useEffect(() => {
-if (mode === "GAME") {
-audioEngine.playMusic("combat");
-} else if (mode === "MENU") {
-audioEngine.playMusic("menu");
-}
-}, [mode]);
+	useEffect(() => {
+		if (mode === "GAME") {
+			audioEngine.playMusic("combat");
+		} else if (mode === "MENU") {
+			audioEngine.playMusic("menu");
+		}
+	}, [mode]);
 
-return (
-<View className="flex-1 bg-otter-bg">
-{/* Main content based on mode */}
-{mode === "MENU" && <MainMenu />}
-{mode === "CUTSCENE" && <Cutscene />}
-{mode === "CANTEEN" && <Canteen />}
-{mode === "VICTORY" && <Victory />}
+	return (
+		<View className="flex-1 bg-otter-bg">
+			{/* Main content based on mode */}
+			{mode === "MENU" && <MainMenu />}
+			{mode === "CUTSCENE" && <Cutscene />}
+			{mode === "CANTEEN" && <Canteen />}
+			{mode === "VICTORY" && <Victory />}
 
-{mode === "GAME" && (
-<>
-<GameWorld />
-<HUD />
-<EnemyHealthBars showNumericHP={false} />
-<DamageFeedback />
-</>
-)}
-</View>
-);
+			{mode === "GAME" && (
+				<>
+					<GameWorld />
+					<HUD />
+					<EnemyHealthBars showNumericHP={false} />
+					<DamageFeedback />
+				</>
+			)}
+		</View>
+	);
 }
 
 export default App;

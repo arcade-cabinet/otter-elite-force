@@ -4,9 +4,9 @@
  * Features authentic log construction, rope bindings, and proper propeller
  */
 
-import { useScene } from "reactylon";
-import { forwardRef, useEffect, useRef } from "react";
 import type { TransformNode } from "@babylonjs/core";
+import { forwardRef, useEffect, useRef } from "react";
+import { useScene } from "reactylon";
 
 interface RaftProps {
 	position: [number, number, number];
@@ -28,8 +28,7 @@ export const Raft = forwardRef<TransformNode, RaftProps>(
 				const t = performance.now() / 1000;
 
 				// Realistic water bobbing - slight delay between roll and pitch
-				groupRef.current.position.y =
-					Math.sin(t * 1.8) * 0.06 + Math.sin(t * 2.5) * 0.03 + 0.1;
+				groupRef.current.position.y = Math.sin(t * 1.8) * 0.06 + Math.sin(t * 2.5) * 0.03 + 0.1;
 				groupRef.current.rotation.z = Math.sin(t * 1.4) * 0.025;
 				groupRef.current.rotation.x = Math.cos(t * 1.1) * 0.02;
 
@@ -65,11 +64,7 @@ export const Raft = forwardRef<TransformNode, RaftProps>(
 								position={[x, 0, (i % 2) * 0.05]}
 								rotation={[Math.PI / 2, 0, 0]}
 							>
-								<standardMaterial
-									name={`logMat-${i}`}
-									diffuseColor={color}
-									roughness={roughness}
-								/>
+								<standardMaterial name={`logMat-${i}`} diffuseColor={color} roughness={roughness} />
 							</cylinder>
 						);
 					})}
@@ -136,11 +131,7 @@ export const Raft = forwardRef<TransformNode, RaftProps>(
 					{/* Ammo crate */}
 					<transformNode name="crateGroup" position={[0, 0.45, -0.6]}>
 						<box name="crate" width={0.7} height={0.5} depth={0.5}>
-							<standardMaterial
-								name="crateMat"
-								diffuseColor={[0.18, 0.24, 0.1]}
-								roughness={0.8}
-							/>
+							<standardMaterial name="crateMat" diffuseColor={[0.18, 0.24, 0.1]} roughness={0.8} />
 						</box>
 						{/* Crate straps */}
 						<box name="crateStrap" width={0.75} height={0.02} depth={0.1} position={[0, 0.26, 0]}>
@@ -265,11 +256,7 @@ export const Raft = forwardRef<TransformNode, RaftProps>(
 					{/* Water spray effect when piloted */}
 					{isPiloted && (
 						<sphere name="waterSpray" diameter={0.3} segments={8} position={[0, -0.1, -1.8]}>
-							<standardMaterial
-								name="sprayMat"
-								diffuseColor={[0.53, 0.6, 0.67]}
-								alpha={0.3}
-							/>
+							<standardMaterial name="sprayMat" diffuseColor={[0.53, 0.6, 0.67]} alpha={0.3} />
 						</sphere>
 					)}
 				</transformNode>
