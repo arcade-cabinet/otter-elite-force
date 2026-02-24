@@ -22,9 +22,13 @@ export function GameLoop({ onUpdate }: GameLoopProps) {
 		// Only run game updates when in GAME mode
 		if (mode !== "GAME") return;
 
+		// Cap delta time to prevent physics explosions from lag spikes
+		// (Adapted from otters.html - prevents runaway physics on frame drops)
+		const cappedDelta = Math.min(delta, 0.1);
+
 		// Update combo timer
 		if (comboTimer > 0) {
-			const newTimer = Math.max(0, comboTimer - delta);
+			const newTimer = Math.max(0, comboTimer - cappedDelta);
 			useGameStore.setState({ comboTimer: newTimer });
 
 			// Reset combo when timer expires
@@ -33,8 +37,8 @@ export function GameLoop({ onUpdate }: GameLoopProps) {
 			}
 		}
 
-		// Call custom update handler
-		onUpdate?.(delta, state.clock.elapsedTime);
+		// Call custom update handler with capped delta
+		onUpdate?.(cappedDelta, state.clock.elapsedTime);
 	});
 
 	return null;
