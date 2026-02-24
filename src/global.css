@@ -1,0 +1,6 @@
+/* Import modern CSS utilities */
+@import "./theme/modernCSS.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

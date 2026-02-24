@@ -3,68 +3,109 @@
  * The "Flag" in our CTF scenario. A heavy, bioluminescent artifact.
  */
 
-import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
-import type * as THREE from "three";
+import type { PointLight as BabylonPointLight, TransformNode } from "@babylonjs/core";
+import { useEffect, useRef } from "react";
+import { useScene } from "reactylon";
 
 export function Clam({
 	position,
 	isCarried = false,
 }: {
-	position: THREE.Vector3;
+	position: [number, number, number];
 	isCarried?: boolean;
 }) {
-	const groupRef = useRef<THREE.Group>(null);
-	const lightRef = useRef<THREE.PointLight>(null);
+	const scene = useScene();
+	const groupRef = useRef<TransformNode>(null);
+	const lightRef = useRef<BabylonPointLight>(null);
 
-	useFrame((state) => {
-		if (isCarried || !groupRef.current) return;
-		const t = state.clock.elapsedTime;
+	useEffect(() => {
+		if (!scene || isCarried) return;
 
-		// Levitate and rotate if not carried
-		groupRef.current.position.y = 0.5 + Math.sin(t * 2) * 0.1;
-		groupRef.current.rotation.y = t * 0.5;
+		const observer = scene.onBeforeRenderObservable.add(() => {
+			if (isCarried || !groupRef.current) return;
+			const t = performance.now() / 1000;
 
-		if (lightRef.current) {
-			lightRef.current.intensity = 1.5 + Math.sin(t * 4) * 0.5;
-		}
-	});
+			// Levitate and rotate if not carried
+			groupRef.current.position.y = 0.5 + Math.sin(t * 2) * 0.1;
+			groupRef.current.rotation.y = t * 0.5;
+
+			if (lightRef.current) {
+				lightRef.current.intensity = 1.5 + Math.sin(t * 4) * 0.5;
+			}
+		});
+
+		return () => {
+			scene.onBeforeRenderObservable.remove(observer);
+		};
+	}, [scene, isCarried]);
 
 	return (
-		<group ref={groupRef} position={position}>
+		<transformNode name="clamGroup" ref={groupRef} position={position}>
 			{/* Clam Shells */}
-			<mesh rotation-x={Math.PI / 4}>
-				<sphereGeometry args={[0.4, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-				<meshStandardMaterial color="#fff" metalness={0.8} roughness={0.2} />
-			</mesh>
-			<mesh rotation-x={-Math.PI / 4} position={[0, -0.1, 0]}>
-				<sphereGeometry args={[0.4, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2]} />
-				<meshStandardMaterial color="#fff" metalness={0.8} roughness={0.2} />
-			</mesh>
+			<sphere name="clamShellTop" diameter={0.8} segments={16} rotation={[Math.PI / 4, 0, 0]}>
+				<standardMaterial
+					name="clamShellMat"
+					diffuseColor={[1, 1, 1]}
+					metallic={0.8}
+					roughness={0.2}
+				/>
+			</sphere>
+			<sphere
+				name="clamShellBottom"
+				diameter={0.8}
+				segments={16}
+				rotation={[-Math.PI / 4, 0, 0]}
+				position={[0, -0.1, 0]}
+			>
+				<standardMaterial
+					name="clamShellMat2"
+					diffuseColor={[1, 1, 1]}
+					metallic={0.8}
+					roughness={0.2}
+				/>
+			</sphere>
 
 			{/* Bioluminescent Pearl */}
-			<mesh position={[0, 0, 0]}>
-				<sphereGeometry args={[0.15, 16, 16]} />
-				<meshBasicMaterial color="#00ccff" />
-				<pointLight ref={lightRef} color="#00ccff" distance={5} />
-			</mesh>
-		</group>
+			<sphere name="pearl" diameter={0.3} segments={16} position={[0, 0, 0]}>
+				<standardMaterial name="pearlMat" emissiveColor={[0, 0.8, 1]} diffuseColor={[0, 0.8, 1]} />
+			</sphere>
+			<pointLight
+				name="pearlLight"
+				ref={lightRef}
+				diffuse={[0, 0.8, 1]}
+				specular={[0, 0.8, 1]}
+				intensity={1.5}
+				range={5}
+				position={[0, 0, 0]}
+			/>
+		</transformNode>
 	);
 }
 
-export function ExtractionPoint({ position }: { position: THREE.Vector3 }) {
+export function ExtractionPoint({ position }: { position: [number, number, number] }) {
 	return (
-		<group position={position}>
+		<transformNode name="extractionPoint" position={position}>
 			{/* Signal Flare / Marker */}
-			<mesh position={[0, 0.1, 0]}>
-				<circleGeometry args={[3, 32]} />
-				<meshBasicMaterial color="#ffaa00" transparent opacity={0.2} />
-			</mesh>
-			<mesh position={[0, 5, 0]}>
-				<cylinderGeometry args={[0.05, 0.05, 10]} />
-				<meshBasicMaterial color="#ffaa00" transparent opacity={0.1} />
-			</mesh>
-			<pointLight position={[0, 1, 0]} color="#ffaa00" intensity={2} distance={10} />
-		</group>
+			<disc name="extractionMarker" radius={3} tessellation={32} position={[0, 0.1, 0]}>
+				<standardMaterial name="markerMat" emissiveColor={[1, 0.67, 0]} alpha={0.2} />
+			</disc>
+			<cylinder
+				name="extractionBeam"
+				diameterTop={0.1}
+				diameterBottom={0.1}
+				height={10}
+				position={[0, 5, 0]}
+			>
+				<standardMaterial name="beamMat" emissiveColor={[1, 0.67, 0]} alpha={0.1} />
+			</cylinder>
+			<pointLight
+				name="extractionLight"
+				position={[0, 1, 0]}
+				diffuse={[1, 0.67, 0]}
+				specular={[1, 0.67, 0]}
+				intensity={2}
+				range={10}
+			/>
+		</transformNode>
 	);
 }

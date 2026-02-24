@@ -1,280 +1,98 @@
 /**
  * Canteen Scene
- * Forward Operating Base for character selection and upgrades
- *
- * Redesigned with:
- * - Fixed camera view (no user-controlled orbit)
- * - Modal-based preview system for gear/character changes
- * - Proper touch handling for scrollable content
+ * Forward Operating Base for upgrades and loadout management
+ * USING REACTYLON
  */
 
-import { Environment } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Group } from "three";
-import { PlayerRig } from "../Entities/PlayerRig";
-import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, useGameStore } from "../stores/gameStore";
-
-// Color constants for theming
-const GROUND_PLANE_COLOR = "#332211";
-const ROTATION_SPEED = 0.5;
-
-// Upgrade configuration for looping
-const UPGRADES_CONFIG = [
-	{ id: "speed", name: "SPEED BOOST", key: "speedBoost" },
-	{ id: "health", name: "HEALTH BOOST", key: "healthBoost" },
-	{ id: "damage", name: "DAMAGE BOOST", key: "damageBoost" },
-] as const;
-
-/** Slowly rotating character display for modal preview */
-function RotatingCharacterDisplay({
-	traits,
-	gear,
-}: {
-	traits: (typeof CHARACTERS)[string]["traits"];
-	gear: (typeof CHARACTERS)[string]["gear"];
-}) {
-	const groupRef = useRef<Group>(null);
-
-	useFrame((_, delta) => {
-		if (groupRef.current) {
-			groupRef.current.rotation.y += delta * ROTATION_SPEED;
-		}
-	});
-
-	return (
-		<group ref={groupRef}>
-			<PlayerRig traits={traits} gear={gear} position={[0, 0, 0]} rotation={0} />
-		</group>
-	);
-}
-
-/** Modal for previewing and confirming character/gear selection */
-const PreviewModal = memo(function PreviewModal({
-	char,
-	isUnlocked,
-	price,
-	coins,
-	onConfirm,
-	onCancel,
-}: {
-	char: (typeof CHARACTERS)[string];
-	isUnlocked: boolean;
-	price: number;
-	coins: number;
-	onConfirm: () => void;
-	onCancel: () => void;
-}) {
-	const canAfford = coins >= price;
-
-	// Handle Escape key to close modal (accessibility)
-	useEffect(() => {
-		const handleKeyDown = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				onCancel();
-			}
-		};
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [onCancel]);
-
-	return (
-		/* biome-ignore lint/a11y/useKeyWithClickEvents: Escape key handled via useEffect */
-		/* biome-ignore lint/a11y/noStaticElementInteractions: Backdrop needs click handler for modal UX */
-		<div className="canteen-modal-overlay" onClick={onCancel}>
-			{/* biome-ignore lint/a11y/useKeyWithClickEvents: onClick only used to stop propagation, not for interaction */}
-			<div
-				className="canteen-modal"
-				onClick={(e) => e.stopPropagation()}
-				role="dialog"
-				aria-modal="true"
-				aria-labelledby="canteen-modal-title"
-			>
-				<div className="canteen-modal-3d">
-					<Canvas shadows camera={{ position: [0, 1.5, 4], fov: 35 }}>
-						<ambientLight intensity={0.6} />
-						<directionalLight position={[3, 5, 3]} intensity={1.2} castShadow />
-						<pointLight position={[-2, 2, 2]} intensity={0.4} color="#ffa" />
-						<Environment preset="sunset" />
-
-						<RotatingCharacterDisplay traits={char.traits} gear={char.gear} />
-
-						{/* Ground plane */}
-						<mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]} receiveShadow>
-							<circleGeometry args={[2, 32]} />
-							<meshStandardMaterial color={GROUND_PLANE_COLOR} />
-						</mesh>
-					</Canvas>
-				</div>
-
-				<div className="canteen-modal-content">
-					<h3 id="canteen-modal-title">{char.traits.name}</h3>
-					<p className="char-bio">
-						{char.traits.grizzled
-							? "A battle-hardened veteran of the early campaigns."
-							: "Fresh meat, but ready for the soup."}
-					</p>
-
-					<div className="char-stats">
-						<div className="stat-row">
-							<span>SPEED</span>
-							<span className="stat-value">{char.traits.baseSpeed}</span>
-						</div>
-						<div className="stat-row">
-							<span>HEALTH</span>
-							<span className="stat-value">{char.traits.baseHealth}</span>
-						</div>
-						<div className="stat-row">
-							<span>CLIMB</span>
-							<span className="stat-value">{char.traits.climbSpeed}</span>
-						</div>
-					</div>
-
-					<div className="modal-actions">
-						{isUnlocked ? (
-							<div className="status-unlocked">✓ DEPLOYED</div>
-						) : (
-							<button
-								type="button"
-								className="purchase-btn"
-								onClick={onConfirm}
-								disabled={!canAfford}
-							>
-								{canAfford ? `REQUISITION: ${price} CREDITS` : `NEED ${price - coins} MORE`}
-							</button>
-						)}
-						<button type="button" className="cancel-btn" onClick={onCancel}>
-							{isUnlocked ? "CLOSE" : "CANCEL"}
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
-});
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { Canvas } from "reactylon/web";
+import { useGameStore } from "../stores/gameStore";
 
 export function Canteen() {
-	const coins = useGameStore((state) => state.saveData.coins);
-	const unlockedCharacters = useGameStore((state) => state.saveData.unlockedCharacters);
-	const upgrades = useGameStore((state) => state.saveData.upgrades);
-	const unlockCharacter = useGameStore((state) => state.unlockCharacter);
-	const spendCoins = useGameStore((state) => state.spendCoins);
-	const setMode = useGameStore((state) => state.setMode);
-	const buyUpgrade = useGameStore((state) => state.buyUpgrade);
+	const { setMode, saveData } = useGameStore();
 
-	const [view, setView] = useState<"PLATOON" | "UPGRADES">("PLATOON");
-	const [previewCharId, setPreviewCharId] = useState<string | null>(null);
-
-	const { previewChar, isPreviewUnlocked, previewPrice } = useMemo(() => {
-		if (!previewCharId) {
-			return { previewChar: null, isPreviewUnlocked: false, previewPrice: 0 };
-		}
-		return {
-			previewChar: CHARACTERS[previewCharId],
-			isPreviewUnlocked: unlockedCharacters.includes(previewCharId),
-			previewPrice: CHAR_PRICES[previewCharId] || 0,
-		};
-	}, [previewCharId, unlockedCharacters]);
-
-	const handlePurchase = useCallback(() => {
-		if (previewCharId && spendCoins(previewPrice)) {
-			unlockCharacter(previewCharId);
-			setPreviewCharId(null); // Auto-close modal after successful purchase
-		}
-	}, [previewCharId, previewPrice, spendCoins, unlockCharacter]);
-
-	const handleCancel = useCallback(() => {
-		setPreviewCharId(null);
-	}, []);
+	const handleReturn = () => {
+		setMode("MENU");
+	};
 
 	return (
-		<div className="screen active canteen-screen">
-			{/* Scrollable UI container - full screen now */}
-			<div className="canteen-ui-full">
-				<div className="canteen-header">
-					<h2>FORWARD OPERATING BASE</h2>
-					<div className="coin-display">SUPPLY CREDITS: {coins}</div>
-				</div>
+		<View className="flex-1 bg-black">
+			<View className="flex-1">
+				<Canvas>
+					<scene clearColor={[0.2, 0.15, 0.1, 1]}>
+						<arcRotateCamera
+							name="camera"
+							alpha={0}
+							beta={Math.PI / 6}
+							radius={5}
+							target={[0, 1, 0]}
+						/>
+						<hemisphericLight name="ambient" intensity={0.5} />
+						<directionalLight name="sun" intensity={0.7} position={[3, 5, 3]} />
 
-				<div className="canteen-tabs">
-					<button
-						type="button"
-						className={view === "PLATOON" ? "active" : ""}
-						onClick={() => setView("PLATOON")}
+						<ground name="ground" width={20} height={20}>
+							<standardMaterial name="groundMat" diffuseColor={[0.3, 0.25, 0.2]} />
+						</ground>
+
+						{/* Weapon rack */}
+						<box name="rack" width={3} height={2} depth={0.2} position={[-2, 1, -1]}>
+							<standardMaterial name="wood" diffuseColor={[0.4, 0.3, 0.2]} />
+						</box>
+
+						{/* Crate */}
+						<box name="crate" size={1} position={[2, 0.5, -1]}>
+							<standardMaterial name="metal" diffuseColor={[0.5, 0.5, 0.5]} />
+						</box>
+					</scene>
+				</Canvas>
+			</View>
+
+			<View className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
+				<View className="items-center mt-10 pointer-events-auto">
+					<Text className="text-3xl font-bold text-otter-orange mb-6">
+						🏪 FORWARD OPERATING BASE
+					</Text>
+				</View>
+
+				<ScrollView
+					className="flex-1 px-6 pointer-events-auto"
+					contentContainerStyle={{ paddingBottom: 100 }}
+				>
+					<View className="bg-black/80 p-6 rounded-lg mb-4">
+						<Text className="text-2xl font-bold text-white mb-4">Arsenal</Text>
+						<View className="flex-row justify-between mb-2">
+							<Text className="text-white text-lg">Credits:</Text>
+							<Text className="text-otter-orange text-lg font-bold">{saveData.credits}</Text>
+						</View>
+						<Text className="text-gray-400 mt-4">
+							Upgrades available when weapons system is implemented
+						</Text>
+					</View>
+
+					<View className="bg-black/80 p-6 rounded-lg">
+						<Text className="text-2xl font-bold text-white mb-4">Intelligence</Text>
+						<View className="flex-row justify-between mb-2">
+							<Text className="text-white text-lg">Peacekeeping Score:</Text>
+							<Text className="text-otter-orange text-lg font-bold">
+								{saveData.peacekeepingScore}
+							</Text>
+						</View>
+						<View className="flex-row justify-between">
+							<Text className="text-white text-lg">Territory Secured:</Text>
+							<Text className="text-otter-orange text-lg font-bold">{saveData.territoryScore}</Text>
+						</View>
+					</View>
+				</ScrollView>
+
+				<View className="items-center pb-8 pointer-events-auto">
+					<TouchableOpacity
+						onPress={handleReturn}
+						className="bg-otter-orange px-8 py-4 rounded-lg active:scale-95"
 					>
-						PLATOON
-					</button>
-					<button
-						type="button"
-						className={view === "UPGRADES" ? "active" : ""}
-						onClick={() => setView("UPGRADES")}
-					>
-						UPGRADES
-					</button>
-				</div>
-
-				<div className="canteen-content">
-					{view === "PLATOON" ? (
-						<div className="platoon-grid">
-							{Object.values(CHARACTERS).map((char) => {
-								const unlocked = unlockedCharacters.includes(char.traits.id);
-								const price = CHAR_PRICES[char.traits.id];
-								return (
-									<button
-										type="button"
-										key={char.traits.id}
-										className={`platoon-card ${unlocked ? "unlocked" : "locked"}`}
-										onClick={() => setPreviewCharId(char.traits.id)}
-									>
-										<div className="platoon-card-name">{char.traits.name}</div>
-										<div className="platoon-card-status">
-											{unlocked ? (
-												<span className="status-deployed">DEPLOYED</span>
-											) : (
-												<span className="status-locked">{price} CREDITS</span>
-											)}
-										</div>
-									</button>
-								);
-							})}
-						</div>
-					) : (
-						<div className="upgrades-list">
-							{UPGRADES_CONFIG.map((upgrade) => (
-								<div className="upgrade-item" key={upgrade.id}>
-									<div className="upgrade-info">
-										<span className="upgrade-name">{upgrade.name}</span>
-										<span className="upgrade-level">Level {upgrades[upgrade.key]}</span>
-									</div>
-									<button
-										type="button"
-										onClick={() => buyUpgrade(upgrade.id, UPGRADE_COSTS[upgrade.id])}
-										disabled={coins < UPGRADE_COSTS[upgrade.id]}
-									>
-										{UPGRADE_COSTS[upgrade.id]} CR
-									</button>
-								</div>
-							))}
-						</div>
-					)}
-				</div>
-
-				<button type="button" className="return-btn" onClick={() => setMode("MENU")}>
-					RETURN TO PERIMETER
-				</button>
-			</div>
-
-			{/* Modal preview for character selection */}
-			{previewChar && (
-				<PreviewModal
-					char={previewChar}
-					isUnlocked={isPreviewUnlocked}
-					price={previewPrice}
-					coins={coins}
-					onConfirm={handlePurchase}
-					onCancel={handleCancel}
-				/>
-			)}
-		</div>
+						<Text className="text-black text-xl font-bold">RETURN TO MAIN MENU</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
+		</View>
 	);
 }

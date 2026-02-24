@@ -1,9 +1,11 @@
 /**
  * Main App Component
  * Root component that manages game state and renders appropriate screens
+ * USING NATIVEWIND for styling
  */
 
 import { useEffect, useRef } from "react";
+import { Platform, View } from "react-native";
 import type { useGameStore as GameStoreType } from "./stores/gameStore";
 
 // Extend Window for E2E testing
@@ -19,10 +21,16 @@ import { Canteen } from "./Scenes/Canteen";
 import { Cutscene } from "./Scenes/Cutscene";
 import { GameWorld } from "./Scenes/GameWorld";
 import { MainMenu } from "./Scenes/MainMenu";
+import { Victory } from "./Scenes/Victory";
 import { useGameStore } from "./stores/gameStore";
 import { DamageFeedback } from "./UI/DamageFeedback";
 import { EnemyHealthBars } from "./UI/EnemyHealthBars";
 import { HUD } from "./UI/HUD";
+
+// Import global styles for web
+if (Platform.OS === "web") {
+	require("./global.css");
+}
 
 export function App() {
 	const { mode, loadData, hudReady } = useGameStore();
@@ -31,7 +39,7 @@ export function App() {
 	// Initialize on mount
 	useEffect(() => {
 		// Expose store to window for E2E testing
-		if (typeof window !== "undefined") {
+		if (Platform.OS === "web" && typeof window !== "undefined") {
 			window.__gameStore = useGameStore;
 		}
 
@@ -44,20 +52,22 @@ export function App() {
 			audioEngine.playMusic("menu");
 		};
 
-		// Setup audio initialization on first interaction
-		const handleInteraction = () => {
-			initAudio();
-			document.removeEventListener("click", handleInteraction);
-			document.removeEventListener("touchstart", handleInteraction);
-		};
+		if (Platform.OS === "web") {
+			// Setup audio initialization on first interaction
+			const handleInteraction = () => {
+				initAudio();
+				document.removeEventListener("click", handleInteraction);
+				document.removeEventListener("touchstart", handleInteraction);
+			};
 
-		document.addEventListener("click", handleInteraction);
-		document.addEventListener("touchstart", handleInteraction);
+			document.addEventListener("click", handleInteraction);
+			document.addEventListener("touchstart", handleInteraction);
 
-		return () => {
-			document.removeEventListener("click", handleInteraction);
-			document.removeEventListener("touchstart", handleInteraction);
-		};
+			return () => {
+				document.removeEventListener("click", handleInteraction);
+				document.removeEventListener("touchstart", handleInteraction);
+			};
+		}
 	}, [loadData]);
 
 	// Initialize input system when entering GAME mode and HUD is ready (deterministic)
@@ -90,14 +100,12 @@ export function App() {
 	}, [mode]);
 
 	return (
-		<div className="app">
-			{/* Scanlines overlay */}
-			<div className="scanlines" />
-
+		<View className="flex-1 bg-otter-bg">
 			{/* Main content based on mode */}
 			{mode === "MENU" && <MainMenu />}
 			{mode === "CUTSCENE" && <Cutscene />}
 			{mode === "CANTEEN" && <Canteen />}
+			{mode === "VICTORY" && <Victory />}
 
 			{mode === "GAME" && (
 				<>
@@ -107,10 +115,8 @@ export function App() {
 					<DamageFeedback />
 				</>
 			)}
-
-			{/* Flash effects */}
-			<div id="flash" />
-			<div id="damage" />
-		</div>
+		</View>
 	);
 }
+
+export default App;

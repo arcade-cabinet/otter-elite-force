@@ -1,12 +1,12 @@
 /**
  * Cutscene Scene
  * Handles introductory dialogue and story beats
+ * USING REACTYLON
  */
 
-import { Environment, Sky } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
 import { useState } from "react";
-import { PlayerRig } from "../Entities/PlayerRig";
+import { Text, TouchableOpacity, View } from "react-native";
+import { Canvas } from "reactylon/web";
 import { CHARACTERS, useGameStore } from "../stores/gameStore";
 
 interface DialogueLine {
@@ -33,16 +33,6 @@ const INTRO_DIALOGUE: DialogueLine[] = [
 	},
 ];
 
-function CinematicCamera() {
-	useFrame((state) => {
-		const t = state.clock.elapsedTime;
-		state.camera.position.x = Math.sin(t * 0.2) * 10;
-		state.camera.position.z = Math.cos(t * 0.2) * 10 + 15;
-		state.camera.lookAt(0, 0.5, 0);
-	});
-	return null;
-}
-
 export function Cutscene() {
 	const { setMode, selectedCharacterId } = useGameStore();
 	const [index, setIndex] = useState(0);
@@ -60,46 +50,47 @@ export function Cutscene() {
 	const isSgtBubbles = currentLine.name === "SGT. BUBBLES";
 
 	return (
-		<div className="screen active cutscene-screen">
-			<div className="cutscene-background" />
-			<div className="cutscene-3d">
-				<Canvas shadows camera={{ position: [0, 5, 20], fov: 45 }}>
-					<ambientLight intensity={0.5} />
-					<directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-					<Sky sunPosition={[100, 10, 100]} />
-					<Environment preset="sunset" />
+		<View className="flex-1 bg-black">
+			<View className="flex-1">
+				<Canvas>
+					<scene clearColor={[0.4, 0.6, 0.9, 1]}>
+						<arcRotateCamera
+							name="camera"
+							alpha={0}
+							beta={Math.PI / 4}
+							radius={20}
+							target={[0, 0.5, 0]}
+							position={[0, 5, 20]}
+						/>
+						<hemisphericLight name="ambient" intensity={0.5} direction={[0, 1, 0]} />
+						<directionalLight name="sun" intensity={1} position={[10, 10, 5]} />
 
-					<PlayerRig
-						traits={CHARACTERS.whiskers.traits}
-						gear={CHARACTERS.whiskers.gear}
-						position={[-2, 0.45, 0]}
-						rotation={0.5}
-					/>
-					<PlayerRig
-						traits={character.traits}
-						gear={character.gear}
-						position={[2, 0.45, 0]}
-						rotation={-0.5}
-					/>
+						{/* Ground plane */}
+						<ground name="ground" width={100} height={100}>
+							<standardMaterial name="groundMat" diffuseColor={[0.18, 0.31, 0.09]} />
+						</ground>
 
-					<mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-						<planeGeometry args={[100, 100]} />
-						<meshStandardMaterial color="#2d5016" />
-					</mesh>
-
-					<CinematicCamera />
+						{/* TODO: Add PlayerRig entities */}
+					</scene>
 				</Canvas>
-			</div>
+			</View>
 
-			<div className="dialogue-box">
-				<div className="dialogue-name">
-					{isSgtBubbles ? character.traits.name : currentLine.name}
-				</div>
-				<div className="dialogue-text">{currentLine.text}</div>
-				<button type="button" className="dialogue-next" onClick={handleNext}>
-					{index < INTRO_DIALOGUE.length - 1 ? "NEXT >>" : "BEGIN MISSION"}
-				</button>
-			</div>
-		</div>
+			<View className="absolute bottom-0 left-0 right-0 p-6">
+				<View className="bg-black/90 p-6 rounded-lg">
+					<Text className="text-otter-orange text-xl font-bold mb-2">
+						{isSgtBubbles ? character.traits.name : currentLine.name}
+					</Text>
+					<Text className="text-white text-lg mb-4">{currentLine.text}</Text>
+					<TouchableOpacity
+						onPress={handleNext}
+						className="bg-otter-orange px-6 py-3 rounded active:scale-95"
+					>
+						<Text className="text-black text-lg font-bold text-center">
+							{index < INTRO_DIALOGUE.length - 1 ? "NEXT >>" : "BEGIN MISSION"}
+						</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
+		</View>
 	);
 }

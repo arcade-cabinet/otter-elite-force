@@ -1,0 +1,378 @@
+/**
+ * Modern CSS Utilities & Animations
+ * CSS Grid, Custom Properties, Advanced Animations
+ */
+
+@layer base {
+	/* === CSS CUSTOM PROPERTIES === */
+	:root {
+		/* Spacing scale (8px base) */
+		--space-1: 0.25rem;
+		--space-2: 0.5rem;
+		--space-3: 0.75rem;
+		--space-4: 1rem;
+		--space-6: 1.5rem;
+		--space-8: 2rem;
+		--space-12: 3rem;
+		--space-16: 4rem;
+
+		/* Typography scale */
+		--text-xs: 0.75rem;
+		--text-sm: 0.875rem;
+		--text-base: 1rem;
+		--text-lg: 1.125rem;
+		--text-xl: 1.25rem;
+		--text-2xl: 1.5rem;
+		--text-3xl: 1.875rem;
+		--text-4xl: 2.25rem;
+
+		/* Line heights */
+		--leading-none: 1;
+		--leading-tight: 1.25;
+		--leading-normal: 1.5;
+		--leading-relaxed: 1.75;
+
+		/* Border radius */
+		--radius-sm: 0.125rem;
+		--radius-md: 0.25rem;
+		--radius-lg: 0.5rem;
+
+		/* Transitions */
+		--transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+		--transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+		--transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+		/* Z-index scale */
+		--z-base: 0;
+		--z-dropdown: 10;
+		--z-overlay: 20;
+		--z-modal: 30;
+		--z-toast: 40;
+		--z-tooltip: 50;
+
+		/* Shadows */
+		--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+		--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+		--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+		--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+	}
+}
+
+@layer utilities {
+	/* === MODERN CSS GRID LAYOUTS === */
+
+	/* Auto-fit responsive grid */
+	.grid-auto-fit {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: var(--space-4);
+	}
+
+	/* Auto-fill responsive grid */
+	.grid-auto-fill {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: var(--space-4);
+	}
+
+	/* Sidebar layout */
+	.grid-sidebar {
+		display: grid;
+		grid-template-columns: minmax(200px, 25%) 1fr;
+		gap: var(--space-6);
+	}
+
+	/* Holy grail layout */
+	.grid-holy-grail {
+		display: grid;
+		grid-template-areas:
+			"header header header"
+			"nav main aside"
+			"footer footer footer";
+		grid-template-columns: 200px 1fr 200px;
+		grid-template-rows: auto 1fr auto;
+		min-height: 100vh;
+		gap: var(--space-4);
+	}
+
+	/* === ADVANCED ANIMATIONS === */
+
+	/* Pulse glow effect */
+	@keyframes pulse-glow {
+		0%,
+		100% {
+			opacity: 1;
+			filter: drop-shadow(0 0 8px currentColor);
+		}
+		50% {
+			opacity: 0.7;
+			filter: drop-shadow(0 0 16px currentColor);
+		}
+	}
+
+	.animate-pulse-glow {
+		animation: pulse-glow 2s ease-in-out infinite;
+	}
+
+	/* Flicker (radio static, damaged light) */
+	@keyframes flicker {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		10% {
+			opacity: 0.95;
+		}
+		20% {
+			opacity: 1;
+		}
+		30% {
+			opacity: 0.9;
+		}
+		40% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.85;
+		}
+		60% {
+			opacity: 1;
+		}
+		70% {
+			opacity: 0.95;
+		}
+		80% {
+			opacity: 1;
+		}
+		90% {
+			opacity: 0.9;
+		}
+	}
+
+	.animate-flicker {
+		animation: flicker 0.15s steps(1) infinite;
+	}
+
+	/* Typewriter text reveal */
+	@keyframes typewriter {
+		from {
+			width: 0;
+		}
+		to {
+			width: 100%;
+		}
+	}
+
+	.animate-typewriter {
+		overflow: hidden;
+		white-space: nowrap;
+		border-right: 2px solid currentColor;
+		animation: typewriter 2s steps(40) 1s forwards;
+	}
+
+	/* Scan line (CRT monitor effect) */
+	@keyframes scanline {
+		0% {
+			transform: translateY(-100%);
+		}
+		100% {
+			transform: translateY(100vh);
+		}
+	}
+
+	.animate-scanline::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 2px;
+		background: linear-gradient(transparent, rgba(255, 255, 255, 0.1), transparent);
+		animation: scanline 6s linear infinite;
+		pointer-events: none;
+	}
+
+	/* Bullet shell drop */
+	@keyframes shell-drop {
+		0% {
+			transform: translateY(0) rotateZ(0deg);
+			opacity: 1;
+		}
+		100% {
+			transform: translateY(20px) rotateZ(180deg);
+			opacity: 0;
+		}
+	}
+
+	.animate-shell-drop {
+		animation: shell-drop 0.5s ease-out forwards;
+	}
+
+	/* Smoke drift */
+	@keyframes smoke-drift {
+		0% {
+			transform: translateY(0) scale(1);
+			opacity: 0.8;
+		}
+		100% {
+			transform: translateY(-30px) scale(1.5);
+			opacity: 0;
+		}
+	}
+
+	.animate-smoke {
+		animation: smoke-drift 3s ease-out forwards;
+	}
+
+	/* === GLASS MORPHISM === */
+	.glass {
+		background: rgba(26, 31, 18, 0.7);
+		backdrop-filter: blur(10px) saturate(150%);
+		border: 1px solid rgba(196, 181, 157, 0.2);
+	}
+
+	.glass-dark {
+		background: rgba(15, 17, 8, 0.85);
+		backdrop-filter: blur(12px) saturate(120%);
+		border: 1px solid rgba(196, 181, 157, 0.1);
+	}
+
+	/* === CLIP PATHS === */
+	.clip-chevron {
+		clip-path: polygon(0 0, 100% 0, 90% 100%, 10% 100%);
+	}
+
+	.clip-dog-tag {
+		clip-path: polygon(10% 0, 90% 0, 100% 10%, 100% 90%, 90% 100%, 10% 100%, 0 90%, 0 10%);
+	}
+
+	.clip-stencil {
+		clip-path: polygon(5% 0, 95% 0, 100% 5%, 100% 95%, 95% 100%, 5% 100%, 0 95%, 0 5%);
+	}
+
+	/* === TEXT EFFECTS === */
+	.text-stencil-shadow {
+		text-shadow:
+			2px 2px 0 rgba(0, 0, 0, 0.5),
+			4px 4px 8px rgba(0, 0, 0, 0.3);
+	}
+
+	.text-embossed {
+		text-shadow:
+			0 1px 0 rgba(255, 255, 255, 0.3),
+			0 -1px 0 rgba(0, 0, 0, 0.7);
+	}
+
+	.text-glow-orange {
+		text-shadow:
+			0 0 10px rgba(255, 136, 0, 0.8),
+			0 0 20px rgba(255, 136, 0, 0.4);
+	}
+
+	.text-glow-green {
+		text-shadow:
+			0 0 10px rgba(57, 255, 20, 0.8),
+			0 0 20px rgba(57, 255, 20, 0.4);
+	}
+
+	/* === FILTERS === */
+	.filter-film-grain {
+		filter: contrast(1.1) brightness(0.95);
+		background-image: repeating-linear-gradient(
+			0deg,
+			transparent,
+			transparent 2px,
+			rgba(0, 0, 0, 0.03) 2px,
+			rgba(0, 0, 0, 0.03) 4px
+		);
+	}
+
+	.filter-vhs {
+		filter: contrast(1.2) brightness(0.9) saturate(0.8);
+	}
+
+	.filter-night-vision {
+		filter: contrast(1.3) brightness(0.7) hue-rotate(90deg) saturate(2);
+	}
+
+	/* === BLEND MODES === */
+	.blend-multiply {
+		mix-blend-mode: multiply;
+	}
+
+	.blend-screen {
+		mix-blend-mode: screen;
+	}
+
+	.blend-overlay {
+		mix-blend-mode: overlay;
+	}
+
+	/* === SCROLLBAR STYLING === */
+	.scrollbar-military {
+		scrollbar-width: thin;
+		scrollbar-color: #717568 #1a1f12;
+	}
+
+	.scrollbar-military::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+
+	.scrollbar-military::-webkit-scrollbar-track {
+		background: #1a1f12;
+	}
+
+	.scrollbar-military::-webkit-scrollbar-thumb {
+		background: #717568;
+		border-radius: 4px;
+	}
+
+	.scrollbar-military::-webkit-scrollbar-thumb:hover {
+		background: #8b9a7e;
+	}
+
+	/* === CONTAINER QUERIES === */
+	@container (min-width: 400px) {
+		.container-md\:text-lg {
+			font-size: var(--text-lg);
+		}
+	}
+
+	/* === FOCUS STYLES === */
+	.focus-visible-ring {
+		outline: 2px solid transparent;
+		outline-offset: 2px;
+	}
+
+	.focus-visible-ring:focus-visible {
+		outline-color: #ff8800;
+		outline-offset: 4px;
+	}
+}
+
+/* === PRINT STYLES === */
+@media print {
+	.no-print {
+		display: none !important;
+	}
+
+	.print-break-before {
+		page-break-before: always;
+	}
+
+	.print-break-after {
+		page-break-after: always;
+	}
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

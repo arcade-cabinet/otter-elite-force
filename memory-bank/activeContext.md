@@ -1,32 +1,49 @@
 # Active Context: OTTER: ELITE FORCE
 
-## Current State (2025-12-28)
+## Current State (2026-02-24)
 
-PR #33 (comprehensive E2E tests) has merged to main. The project is now in a **clean extraction phase** where conflicting branches are being replaced with cleanly rebased PRs.
+Recently completed comprehensive workflow consolidation, Biome 2.4 migration, and documentation organization. The project now has streamlined CI/CD pipelines and properly organized documentation structure.
 
-### Merge Queue Status
+### Recent Completed Work
 
-| Position | PR | Title | Status |
-|----------|-----|-------|--------|
-| 1 | #68 | Sentinel: Add CSP | 🔄 Auto-merge enabled |
-| 2 | #72 | fix: Vignette darkness | 🔄 Auto-merge enabled |
-| 3 | #71 | Bolt: Vector optimization | 🔄 Auto-merge enabled |
-| 4 | #70 | Strata: API integration | 🔄 Auto-merge enabled |
-| 5 | #69 | Visual: Main menu fix | 🔄 Auto-merge enabled |
-| 6 | #67 | Palette: A11y fix | 🔄 Auto-merge enabled |
+**Workflow Consolidation:**
+- Replaced 7 overlapping workflows with 2 streamlined pipelines (`ci.yml`, `cd.yml`)
+- Updated all GitHub Actions to latest versions with exact SHA pinning
+- Reduced workflow code by 78% (986 lines → 212 lines)
+
+**Biome 2.4 Migration:**
+- Upgraded `@biomejs/biome` from 2.3.10 → 2.4.4
+- Fixed all linting errors and warnings (5 errors, 2 warnings → 0)
+- Configured to exclude `otters.html` standalone POC
+
+**Documentation Organization:**
+- Created formal `docs/` structure with categorized documentation
+- Moved technical docs to appropriate locations
+- Removed summary/errata files in favor of formal work log
+- Created `WORKLOG.md` for tracking development activities
 
 ### Latest Features in Main
+
+- Complete production stack: Expo + Babylon.js + Metro + Havok + NativeWind
+- Billboard sprite system (Daggerfall technique)
+- Smart auto-aim and combat stance
+- Responsive device detection hooks
+- 17-device Playwright test coverage
+- Performance budgets enforced
+- GitHub Actions CI/CD (SHA-pinned)
+- **Documentation Organization**: Properly structured `docs/` directory with architecture, development, and guides sections
+- **Formal Work Log**: `WORKLOG.md` replacing informal summaries
+- **Workflow Consolidation**: Modern CI/CD with `ci.yml` and `cd.yml`
+- **Biome 2.4**: Latest linting with zero errors/warnings
+- **Delta Time Capping**: Prevents physics explosions from lag spikes
 - **Enemy Health Bars**: Visual feedback for enemy damage
 - **Suppression Mechanics**: Tactical suppression system
 - **Damage Feedback UI**: Visual damage indicators
 - **Territory State Display**: Chunk status (HOSTILE/NEUTRAL/SECURED) in HUD
 - **Chunk Hibernation**: Performance optimization for distant chunks
-- **Workflow Standardization**: Node.js 22, pnpm 10 across all workflows
-- **CSP Integration**: Content Security Policy added to index.html
-- **Mobile UX Polish**: Improved joystick zones and labels
 
 ### Agent Coordination
-All PRs have been commented with merge order and rebase instructions. Agents (@cursor, @copilot, @claude) are coordinating via PR comments.
+Documentation is now properly organized in `docs/` directory with clear categories. See `docs/README.md` for navigation. Development activity is tracked in `WORKLOG.md` at repository root.
 
 ---
 

@@ -21,10 +21,16 @@ export function createMockSaveData(overrides?: Partial<SaveData>): SaveData {
 		unlockedCharacters: ["bubbles"],
 		unlockedWeapons: ["service-pistol"],
 		coins: 0,
+		resources: {
+			wood: 0,
+			metal: 0,
+			supplies: 0,
+		},
 		discoveredChunks: {},
 		territoryScore: 0,
 		peacekeepingScore: 0,
 		difficultyMode: "SUPPORT",
+		highestDifficulty: "SUPPORT",
 		isFallTriggered: false,
 		strategicObjectives: {
 			siphonsDismantled: 0,

@@ -169,11 +169,21 @@ This project includes deployment configurations for:
 
 ## 📚 Documentation
 
-For AI agents and developers:
+### For Contributors
+- [`docs/guides/CONTRIBUTING.md`](./docs/guides/CONTRIBUTING.md) - Contribution guidelines
+- [`docs/development/TESTING.md`](./docs/development/TESTING.md) - Testing philosophy and patterns
+- [`docs/README.md`](./docs/README.md) - Full documentation index
+
+### For AI Agents
+- `AGENTS.md` - Technical briefing and design principles
 - `CLAUDE.md` - Mission control and tactical priorities
-- `AGENTS.md` - Technical briefing and guidelines
-- `docs/BUNDLE_SIZE.md` - Bundle size monitoring guide
-- `memory-bank/` - Comprehensive project context
+- `memory-bank/` - Comprehensive project context files
+- `WORKLOG.md` - Formal development activity log
+
+### Technical Documentation
+- [`docs/architecture/CHUNK_PERSISTENCE.md`](./docs/architecture/CHUNK_PERSISTENCE.md) - Open world chunk system design
+- [`docs/development/OTTERS_HTML_ANALYSIS.md`](./docs/development/OTTERS_HTML_ANALYSIS.md) - POC comparative analysis
+- [`docs/development/BUNDLE_SIZE.md`](./docs/development/BUNDLE_SIZE.md) - Bundle size monitoring guide
 
 ## 📊 Performance Monitoring
 

@@ -4,189 +4,265 @@
  * Features authentic log construction, rope bindings, and proper propeller
  */
 
-import { useFrame } from "@react-three/fiber";
-import { forwardRef, useMemo, useRef } from "react";
-import type { Group } from "three";
-import * as THREE from "three";
+import type { TransformNode } from "@babylonjs/core";
+import { forwardRef, useEffect, useRef } from "react";
+import { useScene } from "reactylon";
 
 interface RaftProps {
 	position: [number, number, number];
 	rotation?: number;
-	velocity?: THREE.Vector3;
 	isPiloted?: boolean;
 }
 
-export const Raft = forwardRef<Group, RaftProps>(
+export const Raft = forwardRef<TransformNode, RaftProps>(
 	({ position, rotation = 0, isPiloted = false }, ref) => {
-		const groupRef = useRef<Group>(null);
-		const propellerRef = useRef<Group>(null);
+		const scene = useScene();
+		const groupRef = useRef<TransformNode>(null);
+		const propellerRef = useRef<TransformNode>(null);
 
-		// Materials
-		const materials = useMemo(
-			() => ({
-				log: new THREE.MeshStandardMaterial({ color: "#5d4037", roughness: 0.9 }),
-				logDark: new THREE.MeshStandardMaterial({ color: "#3d2a1f", roughness: 0.95 }),
-				rope: new THREE.MeshStandardMaterial({ color: "#8b7355", roughness: 1.0 }),
-				metal: new THREE.MeshStandardMaterial({ color: "#333", metalness: 0.7, roughness: 0.4 }),
-				propBlade: new THREE.MeshStandardMaterial({
-					color: "#444",
-					metalness: 0.8,
-					roughness: 0.3,
-				}),
-				crate: new THREE.MeshStandardMaterial({ color: "#2d3d19", roughness: 0.8 }),
-			}),
-			[],
-		);
+		useEffect(() => {
+			if (!scene) return;
 
-		useFrame((state) => {
-			if (!groupRef.current) return;
-			const t = state.clock.elapsedTime;
+			const observer = scene.onBeforeRenderObservable.add(() => {
+				if (!groupRef.current) return;
+				const t = performance.now() / 1000;
 
-			// Realistic water bobbing - slight delay between roll and pitch
-			groupRef.current.position.y = Math.sin(t * 1.8) * 0.06 + Math.sin(t * 2.5) * 0.03 + 0.1;
-			groupRef.current.rotation.z = Math.sin(t * 1.4) * 0.025;
-			groupRef.current.rotation.x = Math.cos(t * 1.1) * 0.02;
+				// Realistic water bobbing - slight delay between roll and pitch
+				groupRef.current.position.y = Math.sin(t * 1.8) * 0.06 + Math.sin(t * 2.5) * 0.03 + 0.1;
+				groupRef.current.rotation.z = Math.sin(t * 1.4) * 0.025;
+				groupRef.current.rotation.x = Math.cos(t * 1.1) * 0.02;
 
-			// Animate propeller when piloted - realistic multi-blade spin
-			if (isPiloted && propellerRef.current) {
-				propellerRef.current.rotation.z = t * 25;
-			}
-		});
+				// Animate propeller when piloted - realistic multi-blade spin
+				if (isPiloted && propellerRef.current) {
+					propellerRef.current.rotation.z = t * 25;
+				}
+			});
+
+			return () => {
+				scene.onBeforeRenderObservable.remove(observer);
+			};
+		}, [scene, isPiloted]);
 
 		return (
-			<group ref={ref} position={position} rotation-y={rotation}>
-				<group ref={groupRef}>
+			<transformNode name="raft" ref={ref} position={position} rotation={[0, rotation, 0]}>
+				<transformNode name="raftBody" ref={groupRef}>
 					{/* === MAIN LOG DECK === */}
 					{/* Logs with slight variation for authenticity */}
 					{[-0.9, -0.45, 0, 0.45, 0.9].map((x, i) => {
 						const radiusVariation = 0.2 + (i % 2) * 0.03;
 						const lengthVariation = 3 + (i === 2 ? 0.2 : 0);
+						const color = i % 2 === 0 ? [0.36, 0.25, 0.22] : [0.24, 0.16, 0.12];
+						const roughness = i % 2 === 0 ? 0.9 : 0.95;
 						return (
-							<mesh
+							<cylinder
 								key={`log-${i}`}
+								name={`log-${i}`}
+								diameterTop={radiusVariation * 2}
+								diameterBottom={radiusVariation * 0.95 * 2}
+								height={lengthVariation}
+								tessellation={12}
 								position={[x, 0, (i % 2) * 0.05]}
-								rotation-x={Math.PI / 2}
-								castShadow
-								receiveShadow
-								material={i % 2 === 0 ? materials.log : materials.logDark}
+								rotation={[Math.PI / 2, 0, 0]}
 							>
-								<cylinderGeometry
-									args={[radiusVariation, radiusVariation * 0.95, lengthVariation, 12]}
-								/>
-							</mesh>
+								<standardMaterial name={`logMat-${i}`} diffuseColor={color} roughness={roughness} />
+							</cylinder>
 						);
 					})}
 
 					{/* === ROPE BINDINGS === */}
 					{/* Front binding */}
-					<group position={[0, 0.15, 1.1]}>
+					<transformNode name="ropeFrontGroup" position={[0, 0.15, 1.1]}>
 						{[-0.7, 0, 0.7].map((x, i) => (
-							<mesh
+							<torus
 								key={`rope-front-${i}`}
+								name={`rope-front-${i}`}
+								diameter={0.5}
+								thickness={0.03}
+								tessellation={12}
 								position={[x, 0, 0]}
-								rotation-z={Math.PI / 2}
-								material={materials.rope}
+								rotation={[0, 0, Math.PI / 2]}
 							>
-								<torusGeometry args={[0.25, 0.03, 6, 12]} />
-							</mesh>
+								<standardMaterial
+									name={`ropeMat-front-${i}`}
+									diffuseColor={[0.55, 0.45, 0.33]}
+									roughness={1.0}
+								/>
+							</torus>
 						))}
-					</group>
+					</transformNode>
 					{/* Rear binding */}
-					<group position={[0, 0.15, -1.1]}>
+					<transformNode name="ropeRearGroup" position={[0, 0.15, -1.1]}>
 						{[-0.7, 0, 0.7].map((x, i) => (
-							<mesh
+							<torus
 								key={`rope-rear-${i}`}
+								name={`rope-rear-${i}`}
+								diameter={0.5}
+								thickness={0.03}
+								tessellation={12}
 								position={[x, 0, 0]}
-								rotation-z={Math.PI / 2}
-								material={materials.rope}
+								rotation={[0, 0, Math.PI / 2]}
 							>
-								<torusGeometry args={[0.25, 0.03, 6, 12]} />
-							</mesh>
+								<standardMaterial
+									name={`ropeMat-rear-${i}`}
+									diffuseColor={[0.55, 0.45, 0.33]}
+									roughness={1.0}
+								/>
+							</torus>
 						))}
-					</group>
+					</transformNode>
 					{/* Cross rope pattern */}
-					<mesh position={[0, 0.2, 0]} rotation-x={Math.PI / 2} material={materials.rope}>
-						<cylinderGeometry args={[0.02, 0.02, 2.2, 6]} />
-					</mesh>
+					<cylinder
+						name="crossRope"
+						diameterTop={0.04}
+						diameterBottom={0.04}
+						height={2.2}
+						tessellation={6}
+						position={[0, 0.2, 0]}
+						rotation={[Math.PI / 2, 0, 0]}
+					>
+						<standardMaterial
+							name="crossRopeMat"
+							diffuseColor={[0.55, 0.45, 0.33]}
+							roughness={1.0}
+						/>
+					</cylinder>
 
 					{/* === TACTICAL CARGO === */}
 					{/* Ammo crate */}
-					<group position={[0, 0.45, -0.6]}>
-						<mesh castShadow material={materials.crate}>
-							<boxGeometry args={[0.7, 0.5, 0.5]} />
-						</mesh>
+					<transformNode name="crateGroup" position={[0, 0.45, -0.6]}>
+						<box name="crate" width={0.7} height={0.5} depth={0.5}>
+							<standardMaterial name="crateMat" diffuseColor={[0.18, 0.24, 0.1]} roughness={0.8} />
+						</box>
 						{/* Crate straps */}
-						<mesh position={[0, 0.26, 0]}>
-							<boxGeometry args={[0.75, 0.02, 0.1]} />
-							<meshStandardMaterial color="#1a1a1a" />
-						</mesh>
+						<box name="crateStrap" width={0.75} height={0.02} depth={0.1} position={[0, 0.26, 0]}>
+							<standardMaterial name="strapMat" diffuseColor={[0.1, 0.1, 0.1]} />
+						</box>
 						{/* Stenciled marking */}
-						<mesh position={[0, 0, 0.26]}>
-							<planeGeometry args={[0.3, 0.2]} />
-							<meshBasicMaterial color="#111" />
-						</mesh>
-					</group>
+						<plane name="crateMarking" width={0.3} height={0.2} position={[0, 0, 0.26]}>
+							<standardMaterial name="markingMat" emissiveColor={[0.07, 0.07, 0.07]} />
+						</plane>
+					</transformNode>
 
 					{/* === OUTBOARD MOTOR === */}
-					<group position={[0, 0.1, -1.6]}>
+					<transformNode name="motorGroup" position={[0, 0.1, -1.6]}>
 						{/* Motor housing */}
-						<mesh position={[0, 0.2, 0]} castShadow material={materials.metal}>
-							<boxGeometry args={[0.25, 0.5, 0.25]} />
-						</mesh>
+						<box name="motorHousing" width={0.25} height={0.5} depth={0.25} position={[0, 0.2, 0]}>
+							<standardMaterial
+								name="metalMat"
+								diffuseColor={[0.2, 0.2, 0.2]}
+								metallic={0.7}
+								roughness={0.4}
+							/>
+						</box>
 						{/* Motor cowling */}
-						<mesh position={[0, 0.5, 0]} castShadow>
-							<cylinderGeometry args={[0.12, 0.15, 0.15, 8]} />
-							<meshStandardMaterial color="#2a4a2a" roughness={0.7} />
-						</mesh>
+						<cylinder
+							name="motorCowling"
+							diameterTop={0.24}
+							diameterBottom={0.3}
+							height={0.15}
+							tessellation={8}
+							position={[0, 0.5, 0]}
+						>
+							<standardMaterial
+								name="cowlingMat"
+								diffuseColor={[0.16, 0.29, 0.16]}
+								roughness={0.7}
+							/>
+						</cylinder>
 						{/* Drive shaft */}
-						<mesh position={[0, -0.3, 0]} material={materials.metal}>
-							<cylinderGeometry args={[0.04, 0.04, 0.6, 8]} />
-						</mesh>
+						<cylinder
+							name="driveShaft"
+							diameterTop={0.08}
+							diameterBottom={0.08}
+							height={0.6}
+							tessellation={8}
+							position={[0, -0.3, 0]}
+						>
+							<standardMaterial
+								name="shaftMat"
+								diffuseColor={[0.2, 0.2, 0.2]}
+								metallic={0.7}
+								roughness={0.4}
+							/>
+						</cylinder>
 
 						{/* === PROPELLER - Realistic 3-blade === */}
-						<group ref={propellerRef} position={[0, -0.55, 0]}>
+						<transformNode name="propeller" ref={propellerRef} position={[0, -0.55, 0]}>
 							{/* Hub */}
-							<mesh material={materials.metal}>
-								<sphereGeometry args={[0.06, 8, 8]} />
-							</mesh>
+							<sphere name="propHub" diameter={0.12} segments={8}>
+								<standardMaterial
+									name="hubMat"
+									diffuseColor={[0.2, 0.2, 0.2]}
+									metallic={0.7}
+									roughness={0.4}
+								/>
+							</sphere>
 							{/* Three angled blades */}
 							{[0, 1, 2].map((i) => (
-								<group key={`blade-${i}`} rotation-z={(i * Math.PI * 2) / 3}>
-									<mesh
+								<transformNode
+									key={`blade-${i}`}
+									name={`bladeGroup-${i}`}
+									rotation={[0, 0, (i * Math.PI * 2) / 3]}
+								>
+									<box
+										name={`blade-${i}`}
+										width={0.25}
+										height={0.02}
+										depth={0.08}
 										position={[0.18, 0, 0]}
-										rotation-y={0.3}
-										rotation-x={0.1}
-										material={materials.propBlade}
+										rotation={[0.1, 0.3, 0]}
 									>
-										{/* Blade shape - tapered and curved */}
-										<boxGeometry args={[0.25, 0.02, 0.08]} />
-									</mesh>
-								</group>
+										<standardMaterial
+											name={`bladeMat-${i}`}
+											diffuseColor={[0.27, 0.27, 0.27]}
+											metallic={0.8}
+											roughness={0.3}
+										/>
+									</box>
+								</transformNode>
 							))}
-						</group>
+						</transformNode>
 
 						{/* Tiller handle */}
-						<mesh position={[0.3, 0.3, 0]} rotation-z={-0.5} material={materials.logDark}>
-							<cylinderGeometry args={[0.03, 0.03, 0.5, 6]} />
-						</mesh>
+						<cylinder
+							name="tillerHandle"
+							diameterTop={0.06}
+							diameterBottom={0.06}
+							height={0.5}
+							tessellation={6}
+							position={[0.3, 0.3, 0]}
+							rotation={[0, 0, -0.5]}
+						>
+							<standardMaterial
+								name="tillerMat"
+								diffuseColor={[0.24, 0.16, 0.12]}
+								roughness={0.95}
+							/>
+						</cylinder>
 						{/* Grip */}
-						<mesh position={[0.5, 0.15, 0]} rotation-z={-0.5}>
-							<cylinderGeometry args={[0.04, 0.04, 0.12, 8]} />
-							<meshStandardMaterial color="#111" roughness={0.9} />
-						</mesh>
-					</group>
+						<cylinder
+							name="tillerGrip"
+							diameterTop={0.08}
+							diameterBottom={0.08}
+							height={0.12}
+							tessellation={8}
+							position={[0.5, 0.15, 0]}
+							rotation={[0, 0, -0.5]}
+						>
+							<standardMaterial name="gripMat" diffuseColor={[0.07, 0.07, 0.07]} roughness={0.9} />
+						</cylinder>
+					</transformNode>
 
 					{/* Water spray effect when piloted */}
 					{isPiloted && (
-						<group position={[0, -0.1, -1.8]}>
-							<mesh>
-								<sphereGeometry args={[0.15, 8, 8]} />
-								<meshBasicMaterial color="#8899aa" transparent opacity={0.3} />
-							</mesh>
-						</group>
+						<sphere name="waterSpray" diameter={0.3} segments={8} position={[0, -0.1, -1.8]}>
+							<standardMaterial name="sprayMat" diffuseColor={[0.53, 0.6, 0.67]} alpha={0.3} />
+						</sphere>
 					)}
-				</group>
-			</group>
+				</transformNode>
+			</transformNode>
 		);
 	},
 );
+
+Raft.displayName = "Raft";
