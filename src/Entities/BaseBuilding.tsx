@@ -12,16 +12,23 @@ export function BaseFloor({
 	rotation?: [number, number, number];
 	ghost?: boolean;
 }) {
+	const color = ghost ? [0.4, 0.8, 1] : [0.24, 0.17, 0.12];
 	return (
-		<mesh position={position} rotation={rotation} receiveShadow={!ghost}>
-			<boxGeometry args={[4, 0.2, 4]} />
-			<meshStandardMaterial
-				color={ghost ? "#66ccff" : "#3d2b1f"}
+		<box
+			name="baseFloor"
+			width={4}
+			height={0.2}
+			depth={4}
+			position={position}
+			rotation={rotation}
+		>
+			<standardMaterial
+				name="floorMat"
+				diffuseColor={color}
 				roughness={1}
-				transparent={ghost}
-				opacity={ghost ? 0.5 : 1}
+				alpha={ghost ? 0.5 : 1}
 			/>
-		</mesh>
+		</box>
 	);
 }
 
@@ -34,16 +41,23 @@ export function BaseWall({
 	rotation?: [number, number, number];
 	ghost?: boolean;
 }) {
+	const color = ghost ? [0.4, 0.8, 1] : [0.24, 0.17, 0.12];
 	return (
-		<mesh position={position} rotation={rotation} castShadow={!ghost} receiveShadow={!ghost}>
-			<boxGeometry args={[4, 2, 0.1]} />
-			<meshStandardMaterial
-				color={ghost ? "#66ccff" : "#3d2b1f"}
+		<box
+			name="baseWall"
+			width={4}
+			height={2}
+			depth={0.1}
+			position={position}
+			rotation={rotation}
+		>
+			<standardMaterial
+				name="wallMat"
+				diffuseColor={color}
 				roughness={1}
-				transparent={ghost}
-				opacity={ghost ? 0.5 : 1}
+				alpha={ghost ? 0.5 : 1}
 			/>
-		</mesh>
+		</box>
 	);
 }
 
@@ -56,16 +70,24 @@ export function BaseRoof({
 	rotation?: [number, number, number];
 	ghost?: boolean;
 }) {
+	const color = ghost ? [0.4, 0.8, 1] : [0.83, 0.77, 0.66];
 	return (
-		<mesh position={position} rotation={rotation} castShadow={!ghost}>
-			<cylinderGeometry args={[0, 3, 1.5, 4]} />
-			<meshStandardMaterial
-				color={ghost ? "#66ccff" : "#d4c4a8"}
+		<cylinder
+			name="baseRoof"
+			diameterTop={0}
+			diameterBottom={6}
+			height={1.5}
+			tessellation={4}
+			position={position}
+			rotation={rotation}
+		>
+			<standardMaterial
+				name="roofMat"
+				diffuseColor={color}
 				roughness={1}
-				transparent={ghost}
-				opacity={ghost ? 0.5 : 1}
+				alpha={ghost ? 0.5 : 1}
 			/>
-		</mesh>
+		</cylinder>
 	);
 }
 
@@ -76,14 +98,20 @@ export function BaseStilt({
 	position: [number, number, number];
 	ghost?: boolean;
 }) {
+	const color = ghost ? [0.4, 0.8, 1] : [0.18, 0.12, 0.08];
 	return (
-		<mesh position={position} castShadow={!ghost}>
-			<cylinderGeometry args={[0.1, 0.1, 2]} />
-			<meshStandardMaterial
-				color={ghost ? "#66ccff" : "#2d1f15"}
-				transparent={ghost}
-				opacity={ghost ? 0.5 : 1}
+		<cylinder
+			name="baseStilt"
+			diameterTop={0.2}
+			diameterBottom={0.2}
+			height={2}
+			position={position}
+		>
+			<standardMaterial
+				name="stiltMat"
+				diffuseColor={color}
+				alpha={ghost ? 0.5 : 1}
 			/>
-		</mesh>
+		</cylinder>
 	);
 }
