@@ -13,8 +13,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
-import { useGameStore } from "../stores/gameStore";
 import { BUILDABLE_TEMPLATES, canAffordBuildable } from "../ecs/data/buildableTemplates";
+import { useGameStore } from "../stores/gameStore";
 import { CHUNK_SIZE } from "../utils/constants";
 
 export function HUD() {
@@ -51,7 +51,7 @@ export function HUD() {
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
 	const requestSupplyDrop = useGameStore((state) => state.requestSupplyDrop);
 	const setBuildMode = useGameStore((state) => state.setBuildMode);
-	const setSelectedComponentType = useGameStore((state) => state.setSelectedComponentType);
+	const _setSelectedComponentType = useGameStore((state) => state.setSelectedComponentType);
 	const placeComponent = useGameStore((state) => state.placeComponent);
 	const setHudReady = useGameStore((state) => state.setHudReady);
 
@@ -106,14 +106,17 @@ export function HUD() {
 			if (template.category === "WALLS") pos[1] += 1;
 
 			spendResources(template.cost);
-			placeComponent({
-				type: (template.category === "FOUNDATION"
+			const componentType: "FLOOR" | "WALL" | "ROOF" | "STILT" =
+				template.category === "FOUNDATION"
 					? "FLOOR"
 					: template.category === "WALLS"
 						? "WALL"
 						: template.category === "ROOF"
 							? "ROOF"
-							: "STILT") as any,
+							: "STILT";
+
+			placeComponent({
+				type: componentType,
 				position: pos,
 				rotation: [0, 0, 0],
 			});
@@ -315,8 +318,7 @@ export function HUD() {
 					SCOPE
 				</button>
 				{(saveData.isLZSecured ||
-					(Math.abs(playerPos[0]) < chunkRadius &&
-						Math.abs(playerPos[2]) < chunkRadius)) && (
+					(Math.abs(playerPos[0]) < chunkRadius && Math.abs(playerPos[2]) < chunkRadius)) && (
 					<button
 						type="button"
 						className={`action-btn build ${isBuildMode ? "active" : ""}`}

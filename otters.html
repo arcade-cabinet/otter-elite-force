@@ -230,7 +230,7 @@
             save: function() { 
                 try { localStorage.setItem('otter_gm', JSON.stringify(this.data)); } catch(e){} 
             },
-            reset: function() { 
+            reset: () => { 
                 try { localStorage.removeItem('otter_gm'); } catch(e){} 
                 location.reload(); 
             },
@@ -436,7 +436,7 @@
                 // Combat Stance: Snap to Target
                 const targetAng = Math.atan2(target.position.x - player.position.x, target.position.z - player.position.z);
                 const diff = targetAng - player.rotation.y;
-                let d = ((diff + Math.PI)%(Math.PI*2)) - Math.PI;
+                const d = ((diff + Math.PI)%(Math.PI*2)) - Math.PI;
                 player.rotation.y += d * 15 * dt; // Fast snap
                 
                 if(moveVec.lengthSq()>0.01) player.position.add(moveVec.normalize().multiplyScalar(6*dt)); // Tactical Strafe
@@ -445,7 +445,7 @@
                 if(moveVec.lengthSq()>0.01) {
                     const targetAng = Math.atan2(moveVec.x, moveVec.z);
                     const diff = targetAng - player.rotation.y;
-                    let d = ((diff + Math.PI)%(Math.PI*2)) - Math.PI;
+                    const d = ((diff + Math.PI)%(Math.PI*2)) - Math.PI;
                     player.rotation.y += d * 10 * dt;
                     player.position.add(moveVec.normalize().multiplyScalar(12*dt)); // Sprint
                 }
@@ -539,7 +539,7 @@
 
                 if(e.position.distanceTo(player.position)<2.0) {
                     health -= 1;
-                    document.getElementById('hud-hp-fill').style.width = Math.max(0, health)+"%";
+                    document.getElementById('hud-hp-fill').style.width = `${Math.max(0, health)}%`;
                     document.getElementById('damage').style.opacity = 0.8;
                     setTimeout(()=>document.getElementById('damage').style.opacity=0, 100);
                     if(health<=0) { alert("OPERATIVE KIA."); buildMainMenu(); }
@@ -550,7 +550,7 @@
                 const p = pickups[i]; p.rotation.y += 0.05; p.position.y = 1 + Math.sin(t*5)*0.2;
                 if(p.position.distanceTo(player.position)<2.5) {
                     health = Math.min(100, health+20);
-                    document.getElementById('hud-hp-fill').style.width = health+"%";
+                    document.getElementById('hud-hp-fill').style.width = `${health}%`;
                     State.gainXP(50);
                     sfx('pickup');
                     scene.remove(p); pickups.splice(i,1);

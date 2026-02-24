@@ -126,8 +126,10 @@ export const migrateSchema = (data: Record<string, unknown>): Record<string, unk
 			deepClone(DEFAULT_SAVE_DATA.strategicObjectives);
 		data.spoilsOfWar =
 			(data.spoilsOfWar as SaveData["spoilsOfWar"]) || deepClone(DEFAULT_SAVE_DATA.spoilsOfWar);
-		data.resources = (data.resources as SaveData["resources"]) || deepClone(DEFAULT_SAVE_DATA.resources);
-		data.highestDifficulty = (data.highestDifficulty as DifficultyMode) || data.difficultyMode || "SUPPORT";
+		data.resources =
+			(data.resources as SaveData["resources"]) || deepClone(DEFAULT_SAVE_DATA.resources);
+		data.highestDifficulty =
+			(data.highestDifficulty as DifficultyMode) || data.difficultyMode || "SUPPORT";
 	}
 
 	// Ensure weaponLvl exists for all base weapons

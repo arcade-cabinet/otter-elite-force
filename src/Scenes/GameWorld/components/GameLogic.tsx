@@ -144,8 +144,7 @@ export function GameLogic({
 
 				// Predator contact damage to player
 				if (["GATOR", "SNAKE", "SNAPPER"].includes(entity.type) && dist < 2.5) {
-					const baseDamage =
-						entity.type === "SNAPPER" ? 1.5 : entity.type === "GATOR" ? 1.0 : 0.5;
+					const baseDamage = entity.type === "SNAPPER" ? 1.5 : entity.type === "GATOR" ? 1.0 : 0.5;
 					// Apply base damage normalized by frame rate (multiplier is applied in takeDamage)
 					takeDamage(baseDamage * delta * 15, {
 						x: playerRef.current!.position.x - worldPos.x,

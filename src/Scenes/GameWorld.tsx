@@ -139,7 +139,10 @@ export function GameWorld() {
 			<EffectComposer>
 				<Bloom intensity={0.5} />
 				<Noise opacity={0.05} />
-				<Vignette darkness={saveData.isFallTriggered ? 0.8 : 0.4} offset={saveData.isFallTriggered ? 0.5 : 0.3} />
+				<Vignette
+					darkness={saveData.isFallTriggered ? 0.8 : 0.4}
+					offset={saveData.isFallTriggered ? 0.5 : 0.3}
+				/>
 				<BrightnessContrast brightness={0.05} contrast={0.2} />
 				<HueSaturation saturation={-0.2} />
 			</EffectComposer>
