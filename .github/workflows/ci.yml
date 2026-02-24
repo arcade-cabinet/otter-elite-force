@@ -1,4 +1,10 @@
 # CI Workflow - Continuous Integration Pipeline
+#
+# Build System: Metro Bundler (via Expo)
+# - NOT using Vite
+# - Uses expo export:web for production builds
+# - Metro optimized for React Native code splitting
+#
 name: CI
 
 permissions:
@@ -103,8 +109,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
+      - name: Build for Web (Metro/Expo)
         run: pnpm build
+        # Uses Metro bundler via: expo export:web --output-dir dist
 
       - name: Extract Bundle Size
         run: pnpm bundle-size
