@@ -26,6 +26,13 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 		}
 	}, [initialY]);
 
+	// Check if dead
+	useEffect(() => {
+		if (data.hp <= 0 && onDeath) {
+			onDeath(data.id);
+		}
+	}, [data.hp, data.id, onDeath]);
+
 	useFrame((state, delta) => {
 		if (!groupRef.current) return;
 
@@ -62,10 +69,6 @@ export function Snake({ data, targetPosition, onDeath }: EnemyProps<SnakeData>) 
 				seg.rotation.y = Math.atan2(lookDir.x, lookDir.z);
 			}
 		});
-
-		if (data.hp <= 0 && onDeath) {
-			onDeath(data.id);
-		}
 
 		// Suppression logic for snakes
 		if (data.suppression > 0.5) {

@@ -32,7 +32,10 @@ export function MainMenu() {
 
 	const canUpgradeDifficulty = (targetMode: DifficultyMode): boolean => {
 		// Use centralized DIFFICULTY_ORDER constant
-		return DIFFICULTY_ORDER.indexOf(targetMode) > DIFFICULTY_ORDER.indexOf(saveData.difficultyMode);
+		return (
+			DIFFICULTY_ORDER.indexOf(targetMode) > DIFFICULTY_ORDER.indexOf(saveData.difficultyMode) ||
+			DIFFICULTY_ORDER.indexOf(targetMode) > DIFFICULTY_ORDER.indexOf(saveData.highestDifficulty)
+		);
 	};
 
 	const getDifficultyWarning = (targetMode: DifficultyMode): string | null => {

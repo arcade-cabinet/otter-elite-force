@@ -14,6 +14,8 @@ import { useShallow } from "zustand/shallow";
 import { audioEngine } from "../Core/AudioEngine";
 import { inputSystem } from "../Core/InputSystem";
 import { useGameStore } from "../stores/gameStore";
+import { BUILDABLE_TEMPLATES, canAffordBuildable } from "../ecs/data/buildableTemplates";
+import { CHUNK_SIZE } from "../utils/constants";
 
 export function HUD() {
 	const {
@@ -26,6 +28,8 @@ export function HUD() {
 		isBuildMode,
 		selectedComponentType,
 		lastDamageDirection,
+		resources,
+		spendResources,
 	} = useGameStore(
 		useShallow((state) => ({
 			health: state.health,
@@ -37,8 +41,12 @@ export function HUD() {
 			isBuildMode: state.isBuildMode,
 			selectedComponentType: state.selectedComponentType,
 			lastDamageDirection: state.lastDamageDirection,
+			resources: state.saveData.resources,
+			spendResources: state.spendResources,
 		})),
 	);
+
+	const chunkRadius = typeof CHUNK_SIZE === "number" ? CHUNK_SIZE * 2 : 0;
 
 	const toggleZoom = useGameStore((state) => state.toggleZoom);
 	const requestSupplyDrop = useGameStore((state) => state.requestSupplyDrop);
@@ -78,24 +86,46 @@ export function HUD() {
 	const showTheFall = saveData.difficultyMode === "TACTICAL" && saveData.isFallTriggered;
 
 	const handlePlace = useCallback(
-		(type: "FLOOR" | "WALL" | "ROOF" | "STILT") => {
+		(templateId: string) => {
+			const template = BUILDABLE_TEMPLATES.find((t) => t.id === templateId);
+			if (!template) return;
+
+			if (!canAffordBuildable(template, resources)) {
+				audioEngine.playSFX("error");
+				return;
+			}
+
 			const pos: [number, number, number] = [
 				Math.round(playerPos[0] / 4) * 4,
 				Math.round(playerPos[1]),
 				Math.round(playerPos[2] / 4) * 4,
 			];
 
-			if (type === "ROOF") pos[1] += 2.5;
-			if (type === "WALL") pos[1] += 1;
+			// Simple offset logic based on template category
+			if (template.category === "ROOF") pos[1] += 2.5;
+			if (template.category === "WALLS") pos[1] += 1;
 
+			spendResources(template.cost);
 			placeComponent({
-				type,
+				type: (template.category === "FOUNDATION"
+					? "FLOOR"
+					: template.category === "WALLS"
+						? "WALL"
+						: template.category === "ROOF"
+							? "ROOF"
+							: "STILT") as any,
 				position: pos,
 				rotation: [0, 0, 0],
 			});
+
+			// If first build, secure LZ
+			if (!saveData.isLZSecured) {
+				useGameStore.getState().secureLZ();
+			}
+
 			audioEngine.playSFX("pickup");
 		},
-		[playerPos, placeComponent],
+		[playerPos, placeComponent, resources, spendResources, saveData.isLZSecured],
 	);
 
 	return (
@@ -155,6 +185,19 @@ export function HUD() {
 					<div style={{ color: "#fff", fontSize: "1rem" }}>SECURE YOUR LZ</div>
 					<div style={{ color: "#888", fontSize: "0.8rem", marginTop: "8px" }}>
 						Return to coordinates (0, 0) and establish your base
+					</div>
+					{/* Directional Arrow to LZ (0,0) */}
+					<div
+						style={{
+							marginTop: "15px",
+							fontSize: "2rem",
+							transform: `rotate(${Math.atan2(-playerPos[0], -playerPos[2])}rad)`,
+							display: "inline-block",
+							color: "var(--primary)",
+							textShadow: "0 0 10px var(--primary)",
+						}}
+					>
+						↑
 					</div>
 				</div>
 			)}
@@ -233,6 +276,14 @@ export function HUD() {
 					{saveData.peacekeepingScore > 0 && (
 						<div className="hud-peacekeeping">PEACEKEEPING: {saveData.peacekeepingScore}</div>
 					)}
+					<div
+						className="hud-resources"
+						style={{ marginTop: "10px", fontSize: "0.7rem", color: "#aaa" }}
+					>
+						<span style={{ color: "#8b4513" }}>WOOD: {resources.wood}</span> |{" "}
+						<span style={{ color: "#b0c4de" }}>METAL: {resources.metal}</span> |{" "}
+						<span style={{ color: "#ff8c00" }}>SUPPLIES: {resources.supplies}</span>
+					</div>
 				</div>
 
 				<div className="hud-objective">
@@ -263,7 +314,9 @@ export function HUD() {
 				<button type="button" className="action-btn scope" onClick={toggleZoom}>
 					SCOPE
 				</button>
-				{saveData.isLZSecured && (
+				{(saveData.isLZSecured ||
+					(Math.abs(playerPos[0]) < chunkRadius &&
+						Math.abs(playerPos[2]) < chunkRadius)) && (
 					<button
 						type="button"
 						className={`action-btn build ${isBuildMode ? "active" : ""}`}
@@ -282,26 +335,87 @@ export function HUD() {
 
 			{/* BUILD UI (Bottom Center) */}
 			{isBuildMode && (
-				<div className="build-ui">
-					<div className="build-palette">
-						{(["FLOOR", "WALL", "ROOF", "STILT"] as const).map((type) => (
-							<button
-								key={type}
-								type="button"
-								className={selectedComponentType === type ? "selected" : ""}
-								onClick={() => setSelectedComponentType(type)}
-							>
-								{type}
-							</button>
-						))}
-					</div>
-					<button
-						type="button"
-						className="place-btn"
-						onClick={() => handlePlace(selectedComponentType)}
+				<div
+					className="build-ui"
+					style={{
+						position: "absolute",
+						bottom: "200px",
+						left: "50%",
+						transform: "translateX(-50%)",
+						background: "rgba(0, 0, 0, 0.9)",
+						border: "2px solid var(--primary)",
+						borderRadius: "8px",
+						padding: "15px",
+						width: "90%",
+						maxWidth: "600px",
+						zIndex: 200,
+						pointerEvents: "auto",
+					}}
+				>
+					<div
+						className="build-header"
+						style={{
+							display: "flex",
+							justifyContent: "space-between",
+							marginBottom: "15px",
+							color: "var(--primary)",
+							fontWeight: "bold",
+						}}
 					>
-						PLACE {selectedComponentType}
-					</button>
+						<span>COMPONENT REQUISITION</span>
+						<button
+							type="button"
+							onClick={() => setBuildMode(false)}
+							style={{
+								width: "auto",
+								margin: 0,
+								padding: "2px 10px",
+								fontSize: "0.8rem",
+								background: "#444",
+							}}
+						>
+							CLOSE
+						</button>
+					</div>
+					<div
+						className="build-palette"
+						style={{
+							display: "grid",
+							gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+							gap: "10px",
+							maxHeight: "300px",
+							overflowY: "auto",
+						}}
+					>
+						{BUILDABLE_TEMPLATES.map((template) => {
+							const affordable = canAffordBuildable(template, resources);
+							return (
+								<button
+									key={template.id}
+									type="button"
+									className={selectedComponentType === template.id ? "selected" : ""}
+									onClick={() => handlePlace(template.id)}
+									disabled={!affordable}
+									style={{
+										display: "flex",
+										flexDirection: "column",
+										alignItems: "center",
+										padding: "10px",
+										fontSize: "0.7rem",
+										margin: 0,
+										opacity: affordable ? 1 : 0.5,
+										background: affordable ? "rgba(255, 170, 0, 0.1)" : "#222",
+										border: "1px solid #444",
+									}}
+								>
+									<div style={{ fontWeight: "bold", marginBottom: "5px" }}>{template.name}</div>
+									<div style={{ fontSize: "0.6rem", color: "#aaa" }}>
+										W:{template.cost.wood} M:{template.cost.metal} S:{template.cost.supplies}
+									</div>
+								</button>
+							);
+						})}
+					</div>
 				</div>
 			)}
 

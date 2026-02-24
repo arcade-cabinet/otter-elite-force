@@ -92,6 +92,8 @@ describe("Integration - Complete Game Loop", () => {
 	it("should handle combat scenario with damage and kills", () => {
 		const store = useGameStore.getState();
 		store.setMode("GAME");
+		// Use TACTICAL difficulty for standard damage
+		store.setDifficulty("TACTICAL");
 
 		// Simulate combat
 		store.takeDamage(20);
@@ -116,6 +118,8 @@ describe("Integration - Complete Game Loop", () => {
 	it("should handle player death and game over", () => {
 		const store = useGameStore.getState();
 		store.setMode("GAME");
+		// Use TACTICAL difficulty for standard damage
+		store.setDifficulty("TACTICAL");
 
 		// Take fatal damage
 		store.takeDamage(100);
@@ -127,6 +131,8 @@ describe("Integration - Complete Game Loop", () => {
 	it("should handle healing during combat", () => {
 		const store = useGameStore.getState();
 		store.setMode("GAME");
+		// Use TACTICAL difficulty for standard damage
+		store.setDifficulty("TACTICAL");
 
 		// Take damage
 		store.takeDamage(50);
@@ -504,8 +510,9 @@ describe("Integration - Difficulty Modes", () => {
 		const store = useGameStore.getState();
 
 		// Taking damage below 30 should not trigger fall
+		// In SUPPORT, 75 damage becomes 75 * 0.75 = 56.25. 100 - 56.25 = 43.75
 		store.takeDamage(75);
-		expect(useGameStore.getState().health).toBe(25);
+		expect(useGameStore.getState().health).toBe(43.75);
 		expect(useGameStore.getState().saveData.isFallTriggered).toBe(false);
 	});
 

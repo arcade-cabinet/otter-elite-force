@@ -280,9 +280,15 @@ export interface SaveData {
 	unlockedCharacters: string[];
 	unlockedWeapons: string[];
 	coins: number;
+	resources: {
+		wood: number;
+		metal: number;
+		supplies: number;
+	};
 	discoveredChunks: Record<string, ChunkData>;
 	territoryScore: number;
 	difficultyMode: DifficultyMode;
+	highestDifficulty: DifficultyMode;
 	isFallTriggered: boolean;
 	strategicObjectives: StrategicObjectives;
 	spoilsOfWar: SpoilsOfWar;
@@ -314,6 +320,7 @@ export interface DifficultyConfig {
 	fallThreshold: number;
 	permadeath: boolean;
 	enemyDamageMultiplier: number;
+	enemyDensityMultiplier: number;
 	xpMultiplier: number;
 }
 

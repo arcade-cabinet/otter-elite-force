@@ -37,11 +37,11 @@ describe("gameStore - Basic Operations", () => {
 		localStorageMock.clear();
 		const store = useGameStore.getState();
 		store.resetStats();
-		// Reset save data to defaults
+		// Reset save data to defaults with TACTICAL difficulty for standard damage calculations
 		useGameStore.setState({
 			saveData: {
 				...useGameStore.getState().saveData,
-				difficultyMode: "SUPPORT",
+				difficultyMode: "TACTICAL",
 				discoveredChunks: {},
 				territoryScore: 0,
 				peacekeepingScore: 0,
@@ -83,18 +83,36 @@ describe("gameStore - Basic Operations", () => {
 
 	it("should take damage correctly", () => {
 		const store = useGameStore.getState();
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				difficultyMode: "TACTICAL",
+			},
+		});
 		store.takeDamage(20);
 		expect(useGameStore.getState().health).toBe(80);
 	});
 
 	it("should not go below zero health", () => {
 		const store = useGameStore.getState();
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				difficultyMode: "TACTICAL",
+			},
+		});
 		store.takeDamage(120);
 		expect(useGameStore.getState().health).toBe(0);
 	});
 
 	it("should heal correctly", () => {
 		const store = useGameStore.getState();
+		useGameStore.setState({
+			saveData: {
+				...useGameStore.getState().saveData,
+				difficultyMode: "TACTICAL",
+			},
+		});
 		store.takeDamage(50);
 		store.heal(20);
 		expect(useGameStore.getState().health).toBe(70);

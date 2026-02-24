@@ -22,7 +22,13 @@
 
 import { create } from "zustand";
 import { audioEngine } from "../Core/AudioEngine";
-import { DIFFICULTY_ORDER, GAME_CONFIG, RANKS, STORAGE_KEY } from "../utils/constants";
+import {
+	DIFFICULTY_CONFIGS,
+	DIFFICULTY_ORDER,
+	GAME_CONFIG,
+	RANKS,
+	STORAGE_KEY,
+} from "../utils/constants";
 import { CHAR_PRICES, CHARACTERS, UPGRADE_COSTS, WEAPONS } from "./gameData";
 import { DEFAULT_SAVE_DATA } from "./persistence";
 import type { ChunkData, DifficultyMode, GameMode, PlacedComponent, SaveData } from "./types";
@@ -76,6 +82,8 @@ interface GameState {
 	playerPos: [number, number, number];
 	/** Direction of last damage taken (for screen shake/feedback) */
 	lastDamageDirection: { x: number; y: number } | null;
+	/** Timestamp of last supply drop (for cooldowns) */
+	lastSupplyDropTime: number;
 
 	// Combat feedback
 	/** Current combo count */
@@ -163,6 +171,8 @@ interface GameState {
 	// Economy & Upgrades
 	addCoins: (amount: number) => void;
 	spendCoins: (amount: number) => boolean;
+	addResources: (resources: Partial<SaveData["resources"]>) => void;
+	spendResources: (resources: Partial<SaveData["resources"]>) => boolean;
 	buyUpgrade: (type: "speed" | "health" | "damage", cost: number) => void;
 	collectSpoils: (type: "credit" | "clam") => void;
 	completeStrategic: (type: "peacekeeping") => void;
@@ -208,6 +218,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 	selectedCharacterId: "bubbles",
 	playerPos: [0, 0, 0],
 	lastDamageDirection: null,
+	lastSupplyDropTime: 0,
 	comboCount: 0,
 	comboTimer: 0,
 	lastHit: null,
@@ -230,6 +241,11 @@ export const useGameStore = create<GameState>((set, get) => ({
 				saveData: {
 					...state.saveData,
 					difficultyMode: difficulty,
+					highestDifficulty:
+						DIFFICULTY_ORDER.indexOf(difficulty) >
+						DIFFICULTY_ORDER.indexOf(state.saveData.highestDifficulty)
+							? difficulty
+							: state.saveData.highestDifficulty,
 				},
 			}));
 			get().saveGame();
@@ -239,11 +255,23 @@ export const useGameStore = create<GameState>((set, get) => ({
 	// Player stats
 	takeDamage: (amount, direction) => {
 		const { health, saveData, resetData, triggerFall, setMode } = get();
-		const newHealth = Math.max(0, health - amount);
+
+		// Apply difficulty damage multiplier
+		const config = DIFFICULTY_CONFIGS[saveData.difficultyMode as keyof typeof DIFFICULTY_CONFIGS];
+		const damageMultiplier = config?.enemyDamageMultiplier ?? 1.0;
+		const finalDamage = amount * damageMultiplier;
+
+		const newHealth = Math.max(0, health - finalDamage);
 
 		if (newHealth <= 0) {
 			if (saveData.difficultyMode === "ELITE") {
-				resetData(); // Permadeath
+				resetData(); // Permadeath: Wipe everything
+				return;
+			}
+			if (saveData.difficultyMode === "SUPPORT") {
+				// SUPPORT mode: Quick respawn at LZ (0,0) without GAMEOVER
+				set({ health: 100, playerPos: [0, 0, 0] });
+				get().saveGame();
 				return;
 			}
 			setMode("GAMEOVER");
@@ -319,13 +347,15 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 	setFallTriggered: (active) =>
 		set((state) => ({
+			isFallTriggered: active,
 			saveData: { ...state.saveData, isFallTriggered: active },
 		})),
 
 	triggerFall: () => {
-		const { saveData } = get();
-		if (saveData.difficultyMode === "TACTICAL" && !saveData.isFallTriggered) {
+		const { saveData, isFallTriggered } = get();
+		if (saveData.difficultyMode === "TACTICAL" && !isFallTriggered) {
 			set((state) => ({
+				isFallTriggered: true,
 				saveData: { ...state.saveData, isFallTriggered: true },
 			}));
 			get().saveGame();
@@ -357,8 +387,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
 		const entities: ChunkData["entities"] = [];
 
+		// Calculate density based on difficulty
+		const config = DIFFICULTY_CONFIGS[saveData.difficultyMode as keyof typeof DIFFICULTY_CONFIGS];
+		const densityMultiplier = config?.enemyDensityMultiplier ?? 1.0;
+
 		// Add Predators
-		const entityCount = Math.floor(rand() * 5) + 2;
+		const entityCount = Math.floor((rand() * 5 + 2) * densityMultiplier);
 		const packId = `pack-${id}`;
 		for (let i = 0; i < entityCount; i++) {
 			const type = rand() > 0.7 ? (rand() > 0.5 ? "SNAPPER" : "SNAKE") : "GATOR";
@@ -744,6 +778,43 @@ export const useGameStore = create<GameState>((set, get) => ({
 		return false;
 	},
 
+	addResources: (res) => {
+		set((state) => ({
+			saveData: {
+				...state.saveData,
+				resources: {
+					wood: state.saveData.resources.wood + (res.wood || 0),
+					metal: state.saveData.resources.metal + (res.metal || 0),
+					supplies: state.saveData.resources.supplies + (res.supplies || 0),
+				},
+			},
+		}));
+		get().saveGame();
+	},
+
+	spendResources: (res) => {
+		const { saveData } = get();
+		if (
+			saveData.resources.wood >= (res.wood || 0) &&
+			saveData.resources.metal >= (res.metal || 0) &&
+			saveData.resources.supplies >= (res.supplies || 0)
+		) {
+			set((state) => ({
+				saveData: {
+					...state.saveData,
+					resources: {
+						wood: state.saveData.resources.wood - (res.wood || 0),
+						metal: state.saveData.resources.metal - (res.metal || 0),
+						supplies: state.saveData.resources.supplies - (res.supplies || 0),
+					},
+				},
+			}));
+			get().saveGame();
+			return true;
+		}
+		return false;
+	},
+
 	buyUpgrade: (type, cost) => {
 		if (get().spendCoins(cost)) {
 			const upgradeKey = `${type}Boost` as "speedBoost" | "healthBoost" | "damageBoost";
@@ -821,13 +892,21 @@ export const useGameStore = create<GameState>((set, get) => ({
 	toggleZoom: () => set((state) => ({ isZoomed: !state.isZoomed })),
 
 	requestSupplyDrop: () => {
-		const { saveData, heal, playerPos } = get();
+		const { saveData, heal, playerPos, lastSupplyDropTime } = get();
+		const now = Date.now();
+		const cooldown = saveData.difficultyMode === "ELITE" ? 60000 : 30000; // 60s for ELITE, 30s otherwise
+
+		if (now - lastSupplyDropTime < cooldown) {
+			return; // Still on cooldown
+		}
+
 		const isAtLZ =
 			Math.abs(playerPos[0]) < CHUNK_SIZE / 2 && Math.abs(playerPos[2]) < CHUNK_SIZE / 2;
 
 		if (saveData.difficultyMode === "SUPPORT" || isAtLZ) {
 			heal(50);
 			audioEngine.playSFX("pickup");
+			set({ lastSupplyDropTime: now });
 		}
 	},
 
