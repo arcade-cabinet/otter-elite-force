@@ -38,7 +38,7 @@ jobs:
             --repo jbcom/control-center \
             -f pr_number=${{ github.event.pull_request.number }} \
             -f repository=${{ github.repository }} \
-            -f model_tier=ollama
+            -f model_tier=ollama || echo "::warning::Failed to trigger ecosystem review. Check JBCOM_TOKEN."
 
   # ============================================
   # CI AUTO-FIX LOOP
@@ -59,7 +59,7 @@ jobs:
             --repo jbcom/control-center \
             -f run_id=${{ github.event.workflow_run.id }} \
             -f repository=${{ github.repository }} \
-            -f branch=${{ github.event.workflow_run.head_branch }}
+            -f branch=${{ github.event.workflow_run.head_branch }} || echo "::warning::Failed to trigger ecosystem fix. Check JBCOM_TOKEN."
 
   # ============================================
   # ON-CALL / DELEGATION LOOP
@@ -89,7 +89,7 @@ jobs:
             ARGS="-f comment_body=\"$COMMENT\" -f issue_number=${{ github.event.issue.number || github.event.pull_request.number }} -f repository=${{ github.repository }}"
           fi
           
-          gh workflow run "$WORKFLOW" --repo jbcom/control-center $ARGS
+          gh workflow run "$WORKFLOW" --repo jbcom/control-center $ARGS || echo "::warning::Failed to trigger ecosystem delegation. Check JBCOM_TOKEN."
 
   # ============================================
   # ISSUE TRIAGE LOOP
@@ -107,4 +107,4 @@ jobs:
             --repo jbcom/control-center \
             -f query="Please triage and label this new issue" \
             -f context_repo=${{ github.repository }} \
-            -f context_issue=${{ github.event.issue.number }}
+            -f context_issue=${{ github.event.issue.number }} || echo "::warning::Failed to trigger ecosystem triage. Check JBCOM_TOKEN."
