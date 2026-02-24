@@ -1,16 +1,11 @@
 /**
  * Canteen Scene
  * Forward Operating Base for upgrades and loadout management
- * USING NATIVEWIND
+ * USING REACTYLON
  */
 
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { BabylonEngine } from "../babylon/BabylonEngine";
-import { Scene } from "../babylon/Scene";
-import { ArcRotateCamera } from "../babylon/Camera";
-import { HemisphericLight, DirectionalLight } from "../babylon/Light";
-import { Ground } from "../babylon/primitives/Ground";
-import { Box } from "../babylon/primitives/Box";
+import { Canvas } from "reactylon/web";
 import { useGameStore } from "../stores/gameStore";
 
 export function Canteen() {
@@ -23,18 +18,33 @@ setMode("MENU");
 return (
 <View className="flex-1 bg-black">
 <View className="flex-1">
-<BabylonEngine>
-<Scene clearColor={[0.2, 0.15, 0.1, 1]}>
-<ArcRotateCamera position={[0, 1.5, 4]} target={[0, 1, 0]} radius={5} />
-<HemisphericLight intensity={0.5} />
-<DirectionalLight position={[3, 5, 3]} intensity={0.7} />
-<Ground width={20} height={20} color={[0.3, 0.25, 0.2]} />
+<Canvas>
+<scene clearColor={[0.2, 0.15, 0.1, 1]}>
+<arcRotateCamera 
+name="camera"
+alpha={0}
+beta={Math.PI / 6}
+radius={5}
+target={[0, 1, 0]}
+/>
+<hemisphericLight name="ambient" intensity={0.5} />
+<directionalLight name="sun" intensity={0.7} position={[3, 5, 3]} />
+
+<ground name="ground" width={20} height={20}>
+<standardMaterial name="groundMat" diffuseColor={[0.3, 0.25, 0.2]} />
+</ground>
 
 {/* Weapon rack */}
-<Box position={[-2, 1, -1]} width={3} height={2} depth={0.2} color={[0.4, 0.3, 0.2]} />
-<Box position={[2, 0.5, -1]} size={1} color={[0.5, 0.5, 0.5]} />
-</Scene>
-</BabylonEngine>
+<box name="rack" width={3} height={2} depth={0.2} position={[-2, 1, -1]}>
+<standardMaterial name="wood" diffuseColor={[0.4, 0.3, 0.2]} />
+</box>
+
+{/* Crate */}
+<box name="crate" size={1} position={[2, 0.5, -1]}>
+<standardMaterial name="metal" diffuseColor={[0.5, 0.5, 0.5]} />
+</box>
+</scene>
+</Canvas>
 </View>
 
 <View className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
@@ -44,7 +54,10 @@ return (
 </Text>
 </View>
 
-<ScrollView className="flex-1 px-6 pointer-events-auto" contentContainerStyle={{ paddingBottom: 100 }}>
+<ScrollView 
+className="flex-1 px-6 pointer-events-auto" 
+contentContainerStyle={{ paddingBottom: 100 }}
+>
 <View className="bg-black/80 p-6 rounded-lg mb-4">
 <Text className="text-2xl font-bold text-white mb-4">Arsenal</Text>
 <View className="flex-row justify-between mb-2">
