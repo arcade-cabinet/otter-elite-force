@@ -68,6 +68,9 @@ test.describe("Performance Budgets", () => {
 
 		await page.goto("/");
 
+		// Wait for network to be idle to capture all bundles
+		await page.waitForLoadState("networkidle");
+
 		await expect(page.getByText("OTTER: ELITE FORCE")).toBeVisible({
 			timeout: 30000,
 		});
@@ -138,29 +141,31 @@ test.describe("Performance Budgets", () => {
 			timeout: 30000,
 		});
 
-		// Get memory metrics (Chrome DevTools Protocol)
-		const metrics = await page.evaluate(() => {
+		// Get memory metrics (Chrome DevTools Protocol - Chromium only)
+		const metrics = await page.evaluate<PerformanceMemory | null>(() => {
 			const perf = performance as PerformanceWithMemory;
-			if ("memory" in performance) {
-				const mem = perf.memory;
+			if ("memory" in performance && perf.memory) {
 				return {
-					usedJSHeapSize: mem.usedJSHeapSize,
-					totalJSHeapSize: mem.totalJSHeapSize,
-					jsHeapSizeLimit: mem.jsHeapSizeLimit,
+					usedJSHeapSize: perf.memory.usedJSHeapSize,
+					totalJSHeapSize: perf.memory.totalJSHeapSize,
+					jsHeapSizeLimit: perf.memory.jsHeapSizeLimit,
 				};
 			}
 			return null;
 		});
 
-		if (metrics) {
-			const usedMB = Math.round(metrics.usedJSHeapSize / 1024 / 1024);
-			const totalMB = Math.round(metrics.totalJSHeapSize / 1024 / 1024);
-
-			console.log(`💾 Memory usage: ${usedMB}MB / ${totalMB}MB`);
-
-			// Budget: < 200MB for initial load
-			expect(usedMB).toBeLessThan(200);
+		if (!metrics) {
+			test.skip(true, "Memory metrics only available in Chromium browsers");
+			return;
 		}
+
+		const usedMB = Math.round(metrics.usedJSHeapSize / 1024 / 1024);
+		const totalMB = Math.round(metrics.totalJSHeapSize / 1024 / 1024);
+
+		console.log(`💾 Memory usage: ${usedMB}MB / ${totalMB}MB`);
+
+		// Budget: < 200MB for initial load
+		expect(usedMB).toBeLessThan(200);
 	});
 
 	test("should have acceptable Time to Interactive", async ({ page }) => {
