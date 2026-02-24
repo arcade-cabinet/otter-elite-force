@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Dimensions, Platform, ScaledSize } from 'react-native';
+import { Dimensions, Platform } from 'react-native';
 
 export type Orientation = 'portrait' | 'landscape';
 export type DeviceType = 'phone' | 'tablet' | 'foldable' | 'desktop';
