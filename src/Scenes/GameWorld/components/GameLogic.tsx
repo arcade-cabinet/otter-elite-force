@@ -51,6 +51,9 @@ export function GameLogic({
 	const [playerVelY, setPlayerVelYLocal] = useState(0);
 	const [isGrounded, setIsGrounded] = useState(true);
 	const lastFireTime = useRef(0);
+	// Smart auto-aim: tracks nearest enemy for combat stance logic
+	// Prefixed with _ because getter is unused (reserved for future UI: reticle, damage indicators)
+	const [_currentTarget, setCurrentTarget] = useState<THREE.Vector3 | null>(null);
 
 	// Reusable vectors to avoid garbage collection in the render loop
 	const vecCache = useRef({
@@ -95,7 +98,40 @@ export function GameLogic({
 		}
 
 		const isAiming = input.look.active;
-		let moveSpeed = isAiming ? character.traits.baseSpeed * 0.6 : character.traits.baseSpeed;
+
+		// === SMART AUTO-AIM (POC lines 424-433) ===
+		// Find nearest enemy within 40 units when firing
+		let nearestEnemy: THREE.Vector3 | null = null;
+		let minDist = 40;
+		if (isAiming) {
+			activeChunks.forEach((chunk) => {
+				chunk.entities.forEach((entity) => {
+					if (["GATOR", "SNAKE", "SNAPPER"].includes(entity.type)) {
+						worldPos.set(
+							chunk.x * CHUNK_SIZE + entity.position[0],
+							entity.position[1],
+							chunk.z * CHUNK_SIZE + entity.position[2],
+						);
+						const dist = playerRef.current!.position.distanceTo(worldPos);
+						if (dist < minDist) {
+							minDist = dist;
+							nearestEnemy = worldPos.clone();
+						}
+					}
+				});
+			});
+		}
+		setCurrentTarget(nearestEnemy);
+
+		// === COMBAT STANCE SYSTEM (POC lines 435-452) ===
+		// Targeting mode: slower movement (6 u/s), faster rotation (15x)
+		// Free run mode: faster movement (12 u/s), slower rotation (10x)
+		const hasTarget = nearestEnemy !== null && isAiming;
+		let moveSpeed = hasTarget
+			? 6 // Tactical strafe when engaging
+			: character.traits.baseSpeed; // Sprint when free-running
+
+		// Apply existing modifiers on top of base combat stance
 		if (isCarryingClam) moveSpeed *= 0.7;
 		if (isPilotingRaft) moveSpeed *= 2.0;
 		if (saveData.isFallTriggered) moveSpeed *= 0.5; // "The Fall" penalty: 50% speed reduction
@@ -218,7 +254,9 @@ export function GameLogic({
 		});
 
 		if (isAiming) {
-			playerRef.current.rotation.y -= input.look.x * 3 * delta;
+			// Combat stance rotation: faster when targeting (15x vs 10x base)
+			const rotSpeed = hasTarget ? 15 : 10;
+			playerRef.current.rotation.y -= input.look.x * rotSpeed * delta;
 			if (moveVec.lengthSq() > 0.01)
 				playerRef.current.position.add(moveVec.normalize().multiplyScalar(moveSpeed * delta));
 			if (state.clock.elapsedTime - lastFireTime.current > GAME_CONFIG.FIRE_RATE) {
