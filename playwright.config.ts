@@ -31,7 +31,8 @@ export default defineConfig({
 	// Shared settings for all the projects below
 	use: {
 		// Base URL to use in actions like `await page.goto('/')`
-		baseURL: "http://localhost:4173",
+		// Metro bundler runs on 8081, Vite on 4173
+		baseURL: "http://localhost:8081",
 		// Collect trace when retrying the failed test
 		trace: "on-first-retry",
 		// Take screenshot on failure (always capture for visual analysis)
@@ -97,10 +98,14 @@ export default defineConfig({
 		},
 	],
 	// Run your local dev server before starting the tests
+	// Metro bundler for Expo web (React Native)
 	webServer: {
-		command: "pnpm preview",
-		url: "http://localhost:4173",
+		command: hasMcpSupport ? "pnpm web" : "pnpm web",
+		url: "http://localhost:8081",
 		reuseExistingServer: !isCI,
 		timeout: 120000,
+		// Metro takes longer to start than Vite
+		stdout: "pipe",
+		stderr: "pipe",
 	},
 });

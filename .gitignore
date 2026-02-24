@@ -1,35 +1,53 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+playwright-report/
+test-results/
+blob-report/
+visual-audit-results/
+visual-audit-results-combat/
+
+# Production
+dist/
+build/
+
+# Expo
+.expo/
+.expo-shared/
+web-build/
+
+# React Native / Metro
+.metro-health-check*
+
+# Misc
+.DS_Store
+*.pem
+.env
+.env.local
+.env.production.local
+.env.development.local
+.env.test.local
+
 # Logs
-logs
-*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-coverage
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Bundle analysis
-stats.html
-bundle-size.json
+# TypeScript
+*.tsbuildinfo
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Playwright
-test-results/
-playwright-report/
-playwright/.cache/
-package-lock.json
+# Temporary
+tmp/
+temp/
