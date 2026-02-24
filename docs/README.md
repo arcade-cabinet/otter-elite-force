@@ -22,10 +22,9 @@ This directory contains all technical and development documentation for OTTER: E
 - [`BUNDLE_SIZE.md`](./development/BUNDLE_SIZE.md) - Bundle size tracking and optimization
 - [`TECH_STACK.md`](./development/TECH_STACK.md) - Complete technology stack documentation
 
-#### Guides
-- [`CONTRIBUTING.md`](./guides/CONTRIBUTING.md) - How to contribute to the project
-- [`CAPACITOR_SETUP.md`](./guides/CAPACITOR_SETUP.md) - Native mobile app setup with Capacitor
-- [`CAPACITOR_INSTALL.md`](./guides/CAPACITOR_INSTALL.md) - Capacitor installation instructions
+## Guides
+
+- [Contributing Guide](./guides/CONTRIBUTING.md) - How to contribute to the project
 
 ## Root Documentation
 
