@@ -70,7 +70,7 @@
 		"expo": "~52.0.49",
 		"expo-asset": "~11.0.5",
 		"expo-constants": "~17.0.8",
-		"expo-gl": "~15.0.5",
+		"expo-gl": "~55.0.9",
 		"expo-status-bar": "~2.0.1",
 		"gsap": "^3.14.2",
 		"miniplex": "^2.0.0",
