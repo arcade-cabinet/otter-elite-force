@@ -2,7 +2,7 @@
 // Paints a mission's terrain onto a single background Canvas.
 // Follows the POC's buildMap() pattern: fill base, apply regions, apply overrides.
 
-import type { MissionDef, TerrainRegion, TileOverride, TerrainTileDef } from "../types";
+import type { MissionDef, TerrainRegion, TerrainTileDef } from "../types";
 import { TERRAIN_TILES } from "./tiles";
 
 /**

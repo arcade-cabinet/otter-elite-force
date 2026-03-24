@@ -24,7 +24,7 @@ export function spawnUnit(
 	y: number,
 	faction?: string,
 ) {
-	const traits = [
+	const traits: any[] = [
 		Position({ x, y }),
 		UnitType({ type: def.id }),
 		Faction({ id: faction ?? def.faction }),
@@ -72,7 +72,9 @@ export function spawnUnit(
 		traits.push(IsHero);
 	}
 
-	return world.spawn(...traits);
+	// Dynamic trait composition requires type assertion — Koota's spawn() expects
+	// a fixed tuple but we build the trait list conditionally from definitions.
+	return world.spawn(...(traits as any[]));
 }
 
 /**
@@ -85,7 +87,7 @@ export function spawnBuilding(
 	y: number,
 	faction?: string,
 ) {
-	const traits = [
+	const traits: any[] = [
 		Position({ x, y }),
 		UnitType({ type: def.id }),
 		Faction({ id: faction ?? def.faction }),

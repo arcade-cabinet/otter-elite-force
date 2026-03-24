@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas RTS: Orcs vs Humans</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; user-select: none; }
+        #game-canvas {
+            image-rendering: pixelated; /* Essential for the crisp retro look */
+            display: block;
+        }
+        .ui-panel {
+            background-color: #2d3748;
+            border: 4px solid #4a5568;
+            border-top-color: #718096;
+            border-left-color: #718096;
+            color: #e2e8f0;
+            font-family: 'Courier New', Courier, monospace;
+            text-shadow: 1px 1px 0 #000;
+        }
+        .action-btn {
+            background-color: #4a5568;
+            border: 2px solid #2d3748;
+            border-top-color: #a0aec0;
+            border-left-color: #a0aec0;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .action-btn:active {
+            border-color: #2d3748;
+            border-bottom-color: #a0aec0;
+            border-right-color: #a0aec0;
+            background-color: #2d3748;
+        }
+        .action-btn:hover { background-color: #718096; }
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #2d3748;
+        }
+    </style>
+</head>
+<body class="flex h-screen w-screen text-sm">
+
+    <!-- Left UI Sidebar -->
+    <div class="w-64 flex flex-col ui-panel z-10 h-full shadow-xl">
+        <!-- Minimap -->
+        <div class="h-64 p-2 border-b-4 border-gray-700 bg-gray-900 flex justify-center items-center">
+            <canvas id="minimap" width="200" height="200" class="border-2 border-gray-600 w-full h-full" style="image-rendering: pixelated;"></canvas>
+        </div>
+        
+        <!-- Selection Info -->
+        <div id="selection-info" class="flex-1 p-4 border-b-4 border-gray-700 flex flex-col gap-2 overflow-y-auto">
+            <h2 id="sel-name" class="text-xl font-bold text-yellow-400">Nothing Selected</h2>
+            <div id="sel-hp-bar" class="w-full h-4 bg-red-900 hidden border border-gray-900">
+                <div id="sel-hp-fill" class="h-full bg-green-500" style="width: 100%;"></div>
+            </div>
+            <p id="sel-stats" class="text-gray-300"></p>
+            <p id="sel-desc" class="text-xs text-gray-400 mt-2"></p>
+        </div>
+
+        <!-- Action Panel -->
+        <div id="action-panel" class="h-64 p-3 grid grid-cols-2 gap-2 bg-gray-800">
+            <!-- Buttons dynamically populated here -->
+        </div>
+    </div>
+
+    <!-- Main Game Area -->
+    <div class="flex-1 relative cursor-crosshair overflow-hidden">
+        <!-- Top Resource Bar -->
+        <div class="absolute top-0 left-0 w-full h-12 ui-panel border-l-0 border-r-0 border-t-0 flex items-center px-6 space-x-8 z-10 bg-opacity-90">
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 bg-yellow-400 border border-yellow-200"></div>
+                <span>Gold: <span id="res-gold" class="text-yellow-400 font-bold">1000</span></span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 bg-yellow-800 border border-yellow-600"></div>
+                <span>Wood: <span id="res-wood" class="text-yellow-700 font-bold">500</span></span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 bg-red-600 border border-red-400"></div>
+                <span>Food: <span id="res-food" class="text-red-400 font-bold">0/0</span></span>
+            </div>
+            <div class="flex-1 text-right text-gray-400 text-xs">
+                Drag to select multiple • Right-click to move/gather/attack
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <canvas id="game-canvas"></canvas>
+    </div>
+
+<script>
+/**
+ * --- GAME CONFIGURATION & CONSTANTS ---
+ */
+const TILE_SIZE = 32;
+const MAP_WIDTH = 64; // in tiles
+const MAP_HEIGHT = 64;
+const WORLD_WIDTH = MAP_WIDTH * TILE_SIZE;
+const WORLD_HEIGHT = MAP_HEIGHT * TILE_SIZE;
+
+// Sprite Color Palette
+const PALETTE = {
+    '.': 'transparent',
+    '#': '#000000', // Black Outline
+    'S': '#ffcc99', // Skin light
+    's': '#eebb88', // Skin dark
+    'B': '#1e3a8a', // Blue Primary (Player)
+    'b': '#3b82f6', // Blue Secondary
+    'R': '#7f1d1d', // Red Primary (Enemy)
+    'r': '#ef4444', // Red Secondary
+    'G': '#166534', // Dark Green (Leaves/Grass)
+    'g': '#22c55e', // Light Green
+    'W': '#78350f', // Dark Wood
+    'w': '#b45309', // Light Wood
+    'Y': '#eab308', // Gold
+    'y': '#fef08a', // Light Gold
+    'C': '#4b5563', // Dark Stone
+    'c': '#9ca3af', // Light Stone
+    'M': '#1f2937'  // Mine interior
+};
+
+/**
+ * --- ASCII SPRITE DEFINITIONS ---
+ * 16x16 or 32x32 arrays of characters mapped to PALETTE.
+ */
+const SPRITE_DATA = {
+    peasant: [
+        "......####......",
+        ".....#SSSS#.....",
+        ".....#ssss#.....",
+        "......####......",
+        ".....#bbbb#.....",
+        "....#bbbbbb#..##",
+        "....#bBBBBb#.#c#",
+        "....#bBBBBb##c#.",
+        ".....#BBBB##cc#.",
+        ".....#BBBB#.#c#.",
+        ".....#wwww#..##.",
+        ".....#wwww#.....",
+        ".....#WWWW#.....",
+        ".....#WWWW#.....",
+        "....###..###....",
+        "................"
+    ],
+    footman: [
+        "......####......",
+        ".....#cccc#.....",
+        ".....#cccc#.....",
+        "......####......",
+        ".....#bbbb#.....",
+        "....#bbbbbb#..##",
+        "...#cbBBBBbc##c#",
+        "..#ccbBBBBbcc#c#",
+        "..#c##BBBB##c#c#",
+        "..##.#BBBB#.#c#.",
+        ".....#cccc#..##.",
+        ".....#CCCC#.....",
+        ".....#CCCC#.....",
+        ".....#CCCC#.....",
+        "....###..###....",
+        "................"
+    ],
+    orc: [
+        "......####......",
+        ".....#GGGG#.....",
+        ".....#gggg#.....",
+        "......####......",
+        ".....#rrrr#.....",
+        "....#rrrrrr#..##",
+        "....#rRRRRr#.#c#",
+        "....#rRRRRr##c#.",
+        ".....#RRRR##cc#.",
+        ".....#RRRR#.#c#.",
+        ".....#wwww#..##.",
+        ".....#wwww#.....",
+        ".....#WWWW#.....",
+        ".....#WWWW#.....",
+        "....###..###....",
+        "................"
+    ],
+    tree: [
+        "......####......",
+        "....##gggg##....",
+        "...#gggggggg#...",
+        "..#ggggGGgggg#..",
+        ".#ggggGGGGgggg#.",
+        ".#ggGGGGGGGGgg#.",
+        ".#ggGGGGGGGGgg#.",
+        "..#ggggGGgggg#..",
+        "...#gggggggg#...",
+        "....##gggg##....",
+        "......#ww#......",
+        "......#ww#......",
+        "......#ww#......",
+        ".....##ww##.....",
+        "....#wwwwww#....",
+        "....########...."
+    ],
+    goldmine: [
+        "......####......",
+        "....##cccc##....",
+        "...#cccccccc#...",
+        "..#ccyyccyycc#..",
+        ".#cccyyccyyccc#.",
+        ".#cccccccccccc#.",
+        ".#ccyyccccyycc#.",
+        "..#cyyccccyyc#..",
+        "..#cccccccccc#..",
+        "..#CCC####CCC#..",
+        ".#CCCC#MM#CCCC#.",
+        ".#CCCC#MM#CCCC#.",
+        ".#CCCC#MM#CCCC#.",
+        ".#CCCC#MM#CCCC#.",
+        "###############.",
+        "................"
+    ],
+    townhall: [
+        "................................",
+        "............########............",
+        "..........##bbbbbbbb##..........",
+        ".........#bbbbbbbbbbbb#.........",
+        "........#bbbbbbbbbbbbbb#........",
+        ".......#bbbbbbbbbbbbbbbb#.......",
+        "......#bbbbbbbbbbbbbbbbbb#......",
+        ".....#bbbbbbbbbbbbbbbbbbbb#.....",
+        "....########################....",
+        "...#wwwwwwwwwwwwwwwwwwwwwwww#...",
+        "...#wwwwwwwwwwwwwwwwwwwwwwww#...",
+        "...#wwccccwwwwwwwwwwwwccccww#...",
+        "...#wwcCCCwwwwwwwwwwwwcCCCww#...",
+        "...#wwccccwwwwwwwwwwwwccccww#...",
+        "...#wwwwwwwwwwwwwwwwwwwwwwww#...",
+        "...#wwwwwwwwwwwwwwwwwwwwwwww#...",
+        "...#wwwwwwwwwwwwwwwwwwwwwwww#...",
+        "...#wwccccwwwwwwwwwwwwccccww#...",
+        "...#wwcCCCwwwwwwwwwwwwcCCCww#...",
+        "...#wwccccwwwwwwwwwwwwccccww#...",
+        "...#wwwwwwwwww####wwwwwwwwww#...",
+        "...#wwwwwwwwww#MM#wwwwwwwwww#...",
+        "...#wwwwwwwwww#MM#wwwwwwwwww#...",
+        "...#wwwwwwwwww#MM#wwwwwwwwww#...",
+        "...#wwwwwwwwww#MM#wwwwwwwwww#...",
+        "...#wwwwwwwwww#MM#wwwwwwwwww#...",
+        "...#wwwwwwwwww#MM#wwwwwwwwww#...",
+        "...#wwwwwwwwww#MM#wwwwwwwwww#...",
+        "...##########################...",
+        "................................",
+        "................................",
+        "................................"
+    ],
+    farm: [
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "............########............",
+        "..........##yyyyyyyy##..........",
+        ".........#yyyyyyyyyyyy#.........",
+        "........#yyyyyyyyyyyyyy#........",
+        ".......#yyyyyyyyyyyyyyyy#.......",
+        "......####################......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......#wwccccwwwwwwccccww#......",
+        "......#wwcCCCwwwwwwcCCCww#......",
+        "......#wwccccwwwwwwccccww#......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......#wwwwwwwwwwwwwwwwww#......",
+        "......####################......",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................"
+    ],
+    barracks: [
+        "................................",
+        "............########............",
+        "..........##cccccccc##..........",
+        ".........#cCCCCCCCCCCc#.........",
+        "........#cCCCCCCCCCCCCc#........",
+        ".......#cCCCCCCCCCCCCCCc#.......",
+        "......####################......",
+        "......#cccccccccccccccccc#......",
+        "......#cCCCCCCCCCCCCCCCCc#......",
+        "......#cCbbbbbbbbbbbbbbCc#......",
+        "......#cCbbbbbbbbbbbbbbCc#......",
+        "......#cCbbbbbbbbbbbbbbCc#......",
+        "......#cCCCCCCCCCCCCCCCCc#......",
+        "......#cccccccccccccccccc#......",
+        "......#cCCCCCCCCCCCCCCCCc#......",
+        "......#cCCCCCCCCCCCCCCCCc#......",
+        "......#cCCCCCCCCCCCCCCCCc#......",
+        "......#cCCCCCCCCCCCCCCCCc#......",
+        "......#cCCCCCCCCCCCCCCCCc#......",
+        "......#cCCCCCCC####CCCCCc#......",
+        "......#cCCCCCCC#MM#CCCCCc#......",
+        "......#cCCCCCCC#MM#CCCCCc#......",
+        "......#cCCCCCCC#MM#CCCCCc#......",
+        "......#cCCCCCCC#MM#CCCCCc#......",
+        "......####################......",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................",
+        "................................"
+    ]
+};
+
+// Global state
+const GAME = {
+    canvas: document.getElementById('game-canvas'),
+    ctx: null,
+    minimap: document.getElementById('minimap'),
+    minimapCtx: null,
+    sprites: {},
+    bgCanvas: null, // Pre-rendered terrain
+    entities: [],
+    particles: [],
+    
+    // Player resources
+    resources: { gold: 1000, wood: 500, food: 0, maxFood: 0 },
+    
+    // Camera
+    camX: 0, camY: 0,
+    width: 0, height: 0,
+    
+    // Controls
+    mouse: { x: 0, y: 0, worldX: 0, worldY: 0, isDown: false, startX: 0, startY: 0, btn: 0 },
+    keys: {},
+    selection: [],
+    placingBuilding: null, // 'farm' or 'barracks'
+    
+    lastTime: 0,
+    frameCount: 0
+};
+
+GAME.ctx = GAME.canvas.getContext('2d', { alpha: false });
+GAME.minimapCtx = GAME.minimap.getContext('2d', { alpha: false });
+
+/**
+ * --- SPRITE GENERATION ---
+ * Renders ASCII arrays into offscreen canvases for fast drawing
+ */
+function buildSprites() {
+    for (const [name, ascii] of Object.entries(SPRITE_DATA)) {
+        const size = ascii.length;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                const char = ascii[y][x];
+                if (PALETTE[char] !== 'transparent') {
+                    ctx.fillStyle = PALETTE[char];
+                    ctx.fillRect(x, y, 1, 1);
+                }
+            }
+        }
+        
+        // Scale up sprites for that chunky pixel look
+        const scale = name === 'townhall' || name === 'farm' || name === 'barracks' ? 3 : 2; 
+        const scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = size * scale;
+        scaledCanvas.height = size * scale;
+        const sCtx = scaledCanvas.getContext('2d');
+        sCtx.imageSmoothingEnabled = false;
+        sCtx.drawImage(canvas, 0, 0, size * scale, size * scale);
+        
+        GAME.sprites[name] = scaledCanvas;
+    }
+}
+
+/**
+ * --- MAP GENERATION ---
+ */
+function buildMap() {
+    GAME.bgCanvas = document.createElement('canvas');
+    GAME.bgCanvas.width = WORLD_WIDTH;
+    GAME.bgCanvas.height = WORLD_HEIGHT;
+    const ctx = GAME.bgCanvas.getContext('2d', { alpha: false });
+    
+    // Base grass
+    ctx.fillStyle = '#14532d'; // Very dark green
+    ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+    
+    // Add noise for grass texture
+    for(let i=0; i<30000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? '#166534' : '#15803d';
+        ctx.fillRect(Math.random() * WORLD_WIDTH, Math.random() * WORLD_HEIGHT, 4, 4);
+    }
+    
+    // Add dirt patches
+    for(let p=0; p<50; p++) {
+        let px = Math.random() * WORLD_WIDTH;
+        let py = Math.random() * WORLD_HEIGHT;
+        let radius = 50 + Math.random() * 100;
+        for(let i=0; i<radius*10; i++) {
+            let angle = Math.random() * Math.PI * 2;
+            let r = Math.random() * radius;
+            let x = px + Math.cos(angle) * r;
+            let y = py + Math.sin(angle) * r;
+            ctx.fillStyle = Math.random() > 0.5 ? '#713f12' : '#854d0e'; // dirt colors
+            ctx.fillRect(x, y, 6, 6);
+        }
+    }
+}
+
+/**
+ * --- ENTITY SYSTEM ---
+ */
+class Entity {
+    constructor(type, x, y, faction) {
+        this.id = Math.random().toString(36).substr(2, 9);
+        this.type = type;
+        this.x = x;
+        this.y = y;
+        this.faction = faction; // 'player', 'enemy', 'neutral'
+        this.sprite = GAME.sprites[type];
+        this.width = this.sprite ? this.sprite.width : 32;
+        this.height = this.sprite ? this.sprite.height : 32;
+        this.radius = this.width / 2.5;
+        
+        this.selected = false;
+        this.hp = 100;
+        this.maxHp = 100;
+        this.state = 'idle';
+        this.isBuilding = ['townhall', 'farm', 'barracks'].includes(type);
+        this.isResource = ['tree', 'goldmine'].includes(type);
+        
+        // Specific stats
+        if (type === 'townhall') { this.maxHp = 1200; this.hp = 1200; }
+        if (type === 'farm') { this.maxHp = 400; this.hp = 400; }
+        if (type === 'barracks') { this.maxHp = 800; this.hp = 800; }
+        if (type === 'footman' || type === 'orc') { this.maxHp = 60; this.hp = 60; this.speed = 1.8; this.damage = 6; this.attackRange = 40; this.attackCooldown = 0; }
+        if (type === 'peasant') { this.maxHp = 30; this.hp = 30; this.speed = 1.5; this.damage = 2; this.attackRange = 35; this.attackCooldown = 0; }
+        if (type === 'tree') { this.resourceAmount = 500; }
+        if (type === 'goldmine') { this.resourceAmount = 25000; }
+
+        // Construction logic
+        this.constructionProgress = 100;
+        if (this.isBuilding && faction === 'player' && type !== 'townhall') {
+            this.constructionProgress = 1;
+            this.hp = 1; // Starts at 1 HP until built
+        }
+
+        GAME.entities.push(this);
+    }
+    
+    update() {
+        if (this.hp <= 0 && !this.isResource) {
+            this.destroy();
+            return;
+        }
+        
+        // Cooldowns
+        if (this.attackCooldown > 0) this.attackCooldown--;
+
+        // Unit Logic
+        if (!this.isBuilding && !this.isResource) {
+            this.updateUnit();
+            this.separate();
+        }
+
+        // Building Logic
+        if (this.isBuilding && this.faction === 'player') {
+            if (this.type === 'townhall') this.providesFood = 2;
+            if (this.type === 'farm') this.providesFood = 4;
+            
+            // Handle spawn queue
+            if (this.spawnQueue && this.spawnQueue.length > 0) {
+                this.spawnTimer--;
+                if (this.spawnTimer <= 0) {
+                    let type = this.spawnQueue.shift();
+                    let spawnX = this.x + (Math.random() > 0.5 ? 1 : -1) * (this.width/2 + 20);
+                    let spawnY = this.y + this.height/2 + 20;
+                    new Entity(type, spawnX, spawnY, 'player');
+                    this.spawnTimer = 180; // 3 seconds at 60fps
+                }
+            }
+        }
+    }
+    
+    updateUnit() {
+        if (this.state === 'move' || this.state === 'gather_move' || this.state === 'return_move' || this.state === 'attack_move') {
+            if (!this.targetPos) { this.state = 'idle'; return; }
+            
+            let dx = this.targetPos.x - this.x;
+            let dy = this.targetPos.y - this.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist < this.speed) {
+                this.x = this.targetPos.x;
+                this.y = this.targetPos.y;
+                this.handleArrival();
+            } else {
+                this.x += (dx / dist) * this.speed;
+                this.y += (dy / dist) * this.speed;
+                // Wobble animation
+                this.yOffset = Math.sin(GAME.frameCount * 0.2) * 2;
+            }
+        }
+        
+        if (this.state === 'gathering') {
+            if (!this.targetEntity || this.targetEntity.hp <= 0 && !this.targetEntity.isResource) {
+                this.state = 'idle';
+                return;
+            }
+            this.gatherTimer--;
+            if (this.gatherTimer <= 0) {
+                this.heldResourceType = this.targetEntity.type === 'tree' ? 'wood' : 'gold';
+                this.heldResourceAmount = 10;
+                this.targetEntity.resourceAmount -= 10;
+                if(this.targetEntity.resourceAmount <= 0) this.targetEntity.destroy();
+                
+                // Find nearest Town Hall
+                let hall = GAME.entities.find(e => e.type === 'townhall' && e.faction === 'player');
+                if (hall) {
+                    this.targetPos = {x: hall.x, y: hall.y};
+                    this.state = 'return_move';
+                } else {
+                    this.state = 'idle'; // Nowhere to return
+                }
+            }
+        }
+
+        if (this.state === 'building') {
+            if (!this.targetEntity || this.targetEntity.hp >= this.targetEntity.maxHp) {
+                this.state = 'idle'; return;
+            }
+            this.gatherTimer--;
+            if (this.gatherTimer <= 0) {
+                this.targetEntity.hp += 5;
+                this.targetEntity.constructionProgress = (this.targetEntity.hp / this.targetEntity.maxHp) * 100;
+                if (this.targetEntity.hp >= this.targetEntity.maxHp) {
+                    this.targetEntity.hp = this.targetEntity.maxHp;
+                    this.targetEntity.constructionProgress = 100;
+                    this.state = 'idle';
+                }
+                this.gatherTimer = 30; // Half second per hammer strike
+            }
+        }
+
+        if (this.state === 'attacking') {
+            if (!this.targetEntity || this.targetEntity.hp <= 0) {
+                this.state = 'idle'; return;
+            }
+            let dx = this.targetEntity.x - this.x;
+            let dy = this.targetEntity.y - this.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist <= this.attackRange) {
+                // In range, strike
+                if (this.attackCooldown <= 0) {
+                    this.targetEntity.hp -= this.damage;
+                    this.attackCooldown = 60; // 1 sec
+                    // Spawn blood/hit particle
+                    GAME.particles.push({x: this.targetEntity.x, y: this.targetEntity.y, life: 10, color: '#ef4444'});
+                }
+            } else {
+                // Chase
+                this.targetPos = {x: this.targetEntity.x, y: this.targetEntity.y};
+                this.state = 'attack_move';
+            }
+        }
+
+        // Enemy AI (Very simple: wander or attack nearest player)
+        if (this.faction === 'enemy' && this.state === 'idle' && Math.random() < 0.05) {
+            let targets = GAME.entities.filter(e => e.faction === 'player');
+            if (targets.length > 0) {
+                let target = targets[Math.floor(Math.random() * targets.length)];
+                this.commandAttack(target);
+            } else {
+                this.commandMove(this.x + (Math.random()-0.5)*200, this.y + (Math.random()-0.5)*200);
+            }
+        }
+    }
+    
+    handleArrival() {
+        if (this.state === 'move') {
+            this.state = 'idle';
+            this.yOffset = 0;
+        } else if (this.state === 'gather_move') {
+            this.state = 'gathering';
+            this.gatherTimer = 120; // 2 seconds to gather
+            this.yOffset = 0;
+        } else if (this.state === 'return_move') {
+            // Reached Town Hall
+            if (this.heldResourceType) {
+                GAME.resources[this.heldResourceType] += this.heldResourceAmount;
+                this.heldResourceType = null;
+                this.heldResourceAmount = 0;
+                // Go back to gathering
+                if (this.targetEntity && this.targetEntity.resourceAmount > 0) {
+                    this.targetPos = {x: this.targetEntity.x, y: this.targetEntity.y};
+                    this.state = 'gather_move';
+                } else {
+                    this.state = 'idle';
+                }
+            }
+            this.yOffset = 0;
+        } else if (this.state === 'attack_move') {
+            this.state = 'attacking';
+            this.yOffset = 0;
+        }
+    }
+    
+    // Separation steering behavior to prevent overlapping
+    separate() {
+        for (let other of GAME.entities) {
+            if (other === this || other.isBuilding || other.isResource) continue;
+            let dx = this.x - other.x;
+            let dy = this.y - other.y;
+            let distSq = dx*dx + dy*dy;
+            let minDist = this.radius + other.radius;
+            if (distSq < minDist*minDist && distSq > 0) {
+                let dist = Math.sqrt(distSq);
+                let force = (minDist - dist) * 0.1;
+                this.x += (dx / dist) * force;
+                this.y += (dy / dist) * force;
+            }
+        }
+        // Keep in bounds
+        this.x = Math.max(this.radius, Math.min(WORLD_WIDTH - this.radius, this.x));
+        this.y = Math.max(this.radius, Math.min(WORLD_HEIGHT - this.radius, this.y));
+    }
+    
+    commandMove(x, y) {
+        this.targetPos = {x, y};
+        this.state = 'move';
+        this.targetEntity = null;
+    }
+    
+    commandGather(resourceEnt) {
+        if (this.type !== 'peasant') return this.commandMove(resourceEnt.x, resourceEnt.y);
+        this.targetEntity = resourceEnt;
+        this.targetPos = {x: resourceEnt.x, y: resourceEnt.y};
+        this.state = 'gather_move';
+    }
+
+    commandBuild(buildingEnt) {
+        if (this.type !== 'peasant') return this.commandMove(buildingEnt.x, buildingEnt.y);
+        this.targetEntity = buildingEnt;
+        this.targetPos = {x: buildingEnt.x, y: buildingEnt.y + buildingEnt.height/2 + 10}; // Move to front of building
+        this.state = 'attack_move'; // Reuse movement logic
+        // override arrival for building
+        const oldHandleArrival = this.handleArrival;
+        this.handleArrival = () => {
+            this.state = 'building';
+            this.gatherTimer = 30;
+            this.yOffset = 0;
+            this.handleArrival = oldHandleArrival; // restore
+        };
+    }
+
+    commandAttack(targetEnt) {
+        if (this.type === 'peasant' || this.type === 'footman' || this.type === 'orc') {
+            this.targetEntity = targetEnt;
+            this.targetPos = {x: targetEnt.x, y: targetEnt.y};
+            this.state = 'attack_move';
+        }
+    }
+
+    commandReturn(townhallEnt) {
+        if (this.type !== 'peasant' || !this.heldResourceType) return this.commandMove(townhallEnt.x, townhallEnt.y);
+        this.targetPos = {x: townhallEnt.x, y: townhallEnt.y};
+        this.state = 'return_move';
+    }
+    
+    destroy() {
+        let idx = GAME.entities.indexOf(this);
+        if (idx > -1) GAME.entities.splice(idx, 1);
+        idx = GAME.selection.indexOf(this);
+        if (idx > -1) GAME.selection.splice(idx, 1);
+        updateUI();
+    }
+    
+    draw(ctx) {
+        let drawX = this.x - this.width/2;
+        let drawY = this.y - this.height/2 + (this.yOffset || 0);
+        
+        // Draw selection circle
+        if (this.selected) {
+            ctx.beginPath();
+            ctx.ellipse(this.x, this.y + this.height/2 - 5, this.radius + 5, this.radius/2 + 2, 0, 0, Math.PI*2);
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // Under-construction logic
+        if (this.isBuilding && this.constructionProgress < 100) {
+            ctx.globalAlpha = 0.5 + (this.constructionProgress/200);
+            ctx.drawImage(this.sprite, drawX, drawY + this.height - (this.height * (this.constructionProgress/100)), this.width, this.height * (this.constructionProgress/100));
+            ctx.globalAlpha = 1.0;
+            // Scaffolding lines
+            ctx.strokeStyle = '#b45309';
+            ctx.strokeRect(drawX, drawY, this.width, this.height);
+        } else {
+            ctx.drawImage(this.sprite, drawX, drawY);
+        }
+        
+        // Resource indicator (carrying wood/gold)
+        if (this.heldResourceType) {
+            ctx.fillStyle = this.heldResourceType === 'gold' ? '#eab308' : '#78350f';
+            ctx.fillRect(this.x + 5, this.y - 15, 6, 6);
+        }
+
+        // Draw Health Bar if selected or damaged
+        if (this.selected || (this.hp < this.maxHp && !this.isResource)) {
+            let barW = this.width * 0.8;
+            let barH = 4;
+            let barX = this.x - barW/2;
+            let barY = drawY - 8;
+            ctx.fillStyle = '#7f1d1d';
+            ctx.fillRect(barX, barY, barW, barH);
+            ctx.fillStyle = '#22c55e';
+            ctx.fillRect(barX, barY, barW * (this.hp/this.maxHp), barH);
+        }
+
+        // Spawn queue indicator
+        if (this.isBuilding && this.spawnQueue && this.spawnQueue.length > 0) {
+            let progress = 1 - (this.spawnTimer / 180);
+            ctx.fillStyle = '#1e3a8a';
+            ctx.fillRect(this.x - 15, this.y + this.height/2 + 5, 30, 4);
+            ctx.fillStyle = '#60a5fa';
+            ctx.fillRect(this.x - 15, this.y + this.height/2 + 5, 30 * progress, 4);
+        }
+    }
+}
+
+/**
+ * --- GAME INITIALIZATION & SCENE SETUP ---
+ */
+function initGame() {
+    buildSprites();
+    buildMap();
+    
+    // Spawn initial entities
+    let startX = WORLD_WIDTH / 2;
+    let startY = WORLD_HEIGHT / 2;
+    
+    // Player Base
+    new Entity('townhall', startX, startY, 'player');
+    new Entity('peasant', startX - 40, startY + 40, 'player');
+    new Entity('peasant', startX + 40, startY + 40, 'player');
+    new Entity('peasant', startX, startY + 50, 'player');
+    
+    // Nearby Resources
+    new Entity('goldmine', startX - 250, startY - 100, 'neutral');
+    for(let i=0; i<8; i++) {
+        new Entity('tree', startX + 150 + Math.random()*100, startY - 200 + Math.random()*150, 'neutral');
+    }
+    
+    // Enemies scattered
+    for(let i=0; i<15; i++) {
+        let ex, ey;
+        do {
+            ex = Math.random() * WORLD_WIDTH;
+            ey = Math.random() * WORLD_HEIGHT;
+        } while (Math.abs(ex - startX) < 500 && Math.abs(ey - startY) < 500); // Keep away from start
+        new Entity('orc', ex, ey, 'enemy');
+    }
+
+    // More trees globally
+    for(let i=0; i<150; i++) {
+        new Entity('tree', Math.random()*WORLD_WIDTH, Math.random()*WORLD_HEIGHT, 'neutral');
+    }
+
+    // Center Camera
+    GAME.camX = startX - GAME.canvas.width / 2;
+    GAME.camY = startY - GAME.canvas.height / 2;
+    
+    setupInput();
+    requestAnimationFrame(gameLoop);
+}
+
+/**
+ * --- INPUT HANDLING ---
+ */
+function setupInput() {
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    
+    GAME.canvas.addEventListener('mousedown', e => {
+        const rect = GAME.canvas.getBoundingClientRect();
+        GAME.mouse.x = e.clientX - rect.left;
+        GAME.mouse.y = e.clientY - rect.top;
+        GAME.mouse.worldX = GAME.mouse.x + GAME.camX;
+        GAME.mouse.worldY = GAME.mouse.y + GAME.camY;
+        GAME.mouse.btn = e.button; // 0=left, 2=right
+        
+        if (GAME.placingBuilding && e.button === 0) {
+            placeBuilding();
+            return;
+        }
+
+        if (e.button === 0) { // Left Click
+            GAME.mouse.isDown = true;
+            GAME.mouse.startX = GAME.mouse.worldX;
+            GAME.mouse.startY = GAME.mouse.worldY;
+        } else if (e.button === 2) { // Right Click
+            handleRightClick();
+        }
+    });
+    
+    GAME.canvas.addEventListener('mousemove', e => {
+        const rect = GAME.canvas.getBoundingClientRect();
+        GAME.mouse.x = e.clientX - rect.left;
+        GAME.mouse.y = e.clientY - rect.top;
+        GAME.mouse.worldX = GAME.mouse.x + GAME.camX;
+        GAME.mouse.worldY = GAME.mouse.y + GAME.camY;
+    });
+    
+    GAME.canvas.addEventListener('mouseup', e => {
+        if (e.button === 0 && GAME.mouse.isDown) {
+            GAME.mouse.isDown = false;
+            handleLeftClickRelease();
+        }
+    });
+    
+    // Prevent context menu
+    GAME.canvas.addEventListener('contextmenu', e => e.preventDefault());
+    
+    // Keyboard for camera
+    window.addEventListener('keydown', e => GAME.keys[e.key.toLowerCase()] = true);
+    window.addEventListener('keyup', e => GAME.keys[e.key.toLowerCase()] = false);
+}
+
+function resizeCanvas() {
+    const parent = GAME.canvas.parentElement;
+    GAME.canvas.width = parent.clientWidth;
+    GAME.canvas.height = parent.clientHeight;
+    GAME.width = GAME.canvas.width;
+    GAME.height = GAME.canvas.height;
+    // Don't let crisp lines blur on resize
+    GAME.ctx.imageSmoothingEnabled = false; 
+}
+
+function handleLeftClickRelease() {
+    let dx = GAME.mouse.worldX - GAME.mouse.startX;
+    let dy = GAME.mouse.worldY - GAME.mouse.startY;
+    
+    // Clear old selection
+    GAME.selection.forEach(e => e.selected = false);
+    GAME.selection = [];
+    
+    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+        // Single Click Select
+        let clicked = null;
+        // Sort by Y to match visual depth, reverse to pick top-most
+        let sorted = [...GAME.entities].sort((a,b) => b.y - a.y); 
+        for(let e of sorted) {
+            if (Math.abs(e.x - GAME.mouse.worldX) < e.radius + 10 && 
+                Math.abs(e.y - GAME.mouse.worldY) < e.height/2 + 10) {
+                clicked = e;
+                break;
+            }
+        }
+        if (clicked) {
+            clicked.selected = true;
+            GAME.selection.push(clicked);
+        }
+    } else {
+        // Drag Select (only player units)
+        let minX = Math.min(GAME.mouse.startX, GAME.mouse.worldX);
+        let maxX = Math.max(GAME.mouse.startX, GAME.mouse.worldX);
+        let minY = Math.min(GAME.mouse.startY, GAME.mouse.worldY);
+        let maxY = Math.max(GAME.mouse.startY, GAME.mouse.worldY);
+        
+        GAME.entities.forEach(e => {
+            if (e.faction === 'player' && !e.isBuilding && 
+                e.x >= minX && e.x <= maxX && e.y >= minY && e.y <= maxY) {
+                e.selected = true;
+                GAME.selection.push(e);
+            }
+        });
+    }
+    
+    updateUI();
+}
+
+function handleRightClick() {
+    if (GAME.placingBuilding) {
+        GAME.placingBuilding = null; // Cancel placement
+        return;
+    }
+
+    if (GAME.selection.length === 0) return;
+    
+    let target = null;
+    let sorted = [...GAME.entities].sort((a,b) => b.y - a.y);
+    for(let e of sorted) {
+        if (Math.abs(e.x - GAME.mouse.worldX) < e.radius + 10 && 
+            Math.abs(e.y - GAME.mouse.worldY) < e.height/2 + 10) {
+            target = e;
+            break;
+        }
+    }
+    
+    GAME.selection.forEach(unit => {
+        if (unit.faction !== 'player' || unit.isBuilding) return;
+        
+        if (target) {
+            if (target.faction === 'enemy') {
+                unit.commandAttack(target);
+            } else if (target.isResource && unit.type === 'peasant') {
+                unit.commandGather(target);
+            } else if (target.faction === 'player' && target.isBuilding && target.constructionProgress < 100 && unit.type === 'peasant') {
+                unit.commandBuild(target);
+            } else if (target.type === 'townhall' && unit.type === 'peasant' && unit.heldResourceType) {
+                unit.commandReturn(target);
+            } else {
+                unit.commandMove(GAME.mouse.worldX + (Math.random()-0.5)*20, GAME.mouse.worldY + (Math.random()-0.5)*20);
+            }
+        } else {
+            // Group movement logic - arrange in rough formation
+            let idx = GAME.selection.indexOf(unit);
+            let row = Math.floor(idx / 4);
+            let col = idx % 4;
+            let offset_x = (col - 1.5) * 30;
+            let offset_y = (row - 1.5) * 30;
+            unit.commandMove(GAME.mouse.worldX + offset_x, GAME.mouse.worldY + offset_y);
+        }
+    });
+}
+
+/**
+ * --- UI LOGIC ---
+ */
+function updateUI() {
+    const selName = document.getElementById('sel-name');
+    const selStats = document.getElementById('sel-stats');
+    const selDesc = document.getElementById('sel-desc');
+    const hpBar = document.getElementById('sel-hp-bar');
+    const hpFill = document.getElementById('sel-hp-fill');
+    const actionPanel = document.getElementById('action-panel');
+    
+    actionPanel.innerHTML = ''; // Clear actions
+    
+    if (GAME.selection.length === 0) {
+        selName.textContent = "Nothing Selected";
+        selStats.textContent = "";
+        selDesc.textContent = "";
+        hpBar.classList.add('hidden');
+        return;
+    }
+    
+    let ent = GAME.selection[0];
+    
+    if (GAME.selection.length > 1) {
+        selName.textContent = `Multiple Units (${GAME.selection.length})`;
+        selStats.textContent = "Mixed selection";
+        selDesc.textContent = "Right-click to move/attack";
+        hpBar.classList.add('hidden');
+    } else {
+        // Single Selection Formatting
+        selName.textContent = ent.type.charAt(0).toUpperCase() + ent.type.slice(1);
+        if (ent.faction !== 'neutral') {
+            selName.classList.remove('text-yellow-400');
+            selName.classList.add(ent.faction === 'player' ? 'text-blue-400' : 'text-red-400');
+        } else {
+            selName.classList.add('text-yellow-400');
+        }
+
+        hpBar.classList.remove('hidden');
+        hpFill.style.width = `${Math.max(0, (ent.hp / ent.maxHp) * 100)}%`;
+        
+        if (ent.isResource) {
+            selStats.textContent = `Resources: ${ent.resourceAmount}`;
+            selDesc.textContent = ent.type === 'tree' ? "Provides Wood." : "Provides Gold.";
+            hpBar.classList.add('hidden');
+        } else {
+            selStats.textContent = `HP: ${Math.floor(ent.hp)}/${ent.maxHp}  ${ent.damage ? `| Dmg: ${ent.damage}` : ''}`;
+            let stateText = ent.state;
+            if (ent.isBuilding && ent.constructionProgress < 100) stateText = `Constructing (${Math.floor(ent.constructionProgress)}%)`;
+            selDesc.textContent = `State: ${stateText}`;
+        }
+    }
+
+    // Action Buttons
+    let isPlayer = GAME.selection.every(e => e.faction === 'player');
+    if (!isPlayer) return;
+
+    let hasPeasant = GAME.selection.some(e => e.type === 'peasant');
+    let hasTownhall = GAME.selection.length === 1 && GAME.selection[0].type === 'townhall';
+    let hasBarracks = GAME.selection.length === 1 && GAME.selection[0].type === 'barracks';
+
+    if (hasPeasant) {
+        createActionButton("Build Farm", "500 W", () => startPlacement('farm'), GAME.resources.wood >= 500);
+        createActionButton("Build Barracks", "600 G, 400 W", () => startPlacement('barracks'), GAME.resources.gold >= 600 && GAME.resources.wood >= 400);
+        createActionButton("Build Town Hall", "1200 G, 800 W", () => startPlacement('townhall'), GAME.resources.gold >= 1200 && GAME.resources.wood >= 800);
+    }
+    
+    if (hasTownhall && ent.constructionProgress >= 100) {
+        createActionButton("Train Peasant", "400 G\n1 Food", () => trainUnit(ent, 'peasant', 400, 0, 1), GAME.resources.gold >= 400 && GAME.resources.food < GAME.resources.maxFood);
+    }
+
+    if (hasBarracks && ent.constructionProgress >= 100) {
+        createActionButton("Train Footman", "600 G, 200 W\n1 Food", () => trainUnit(ent, 'footman', 600, 200, 1), GAME.resources.gold >= 600 && GAME.resources.wood >= 200 && GAME.resources.food < GAME.resources.maxFood);
+    }
+}
+
+function createActionButton(title, costText, onClick, canAfford) {
+    const btn = document.createElement('button');
+    btn.className = `action-btn flex flex-col items-center justify-center p-1 text-xs text-center font-bold ${!canAfford ? 'opacity-50 cursor-not-allowed' : ''}`;
+    btn.innerHTML = `<span>${title}</span><span class="text-gray-400 text-[10px] whitespace-pre-wrap">${costText}</span>`;
+    if (canAfford) {
+        btn.onclick = (e) => { e.stopPropagation(); onClick(); };
+    }
+    document.getElementById('action-panel').appendChild(btn);
+}
+
+function startPlacement(type) {
+    GAME.placingBuilding = type;
+}
+
+function placeBuilding() {
+    let type = GAME.placingBuilding;
+    let costG = 0, costW = 0;
+    if (type === 'farm') costW = 500;
+    if (type === 'barracks') { costG = 600; costW = 400; }
+    if (type === 'townhall') { costG = 1200; costW = 800; }
+
+    if (GAME.resources.gold >= costG && GAME.resources.wood >= costW) {
+        GAME.resources.gold -= costG;
+        GAME.resources.wood -= costW;
+        
+        // Snap to grid roughly
+        let bx = Math.round(GAME.mouse.worldX / TILE_SIZE) * TILE_SIZE;
+        let by = Math.round(GAME.mouse.worldY / TILE_SIZE) * TILE_SIZE;
+        
+        let building = new Entity(type, bx, by, 'player');
+        
+        // Send selected peasants to build it
+        GAME.selection.forEach(u => {
+            if (u.type === 'peasant') u.commandBuild(building);
+        });
+        
+        GAME.placingBuilding = null;
+        updateUI();
+    }
+}
+
+function trainUnit(building, type, costG, costW, costF) {
+    if (GAME.resources.gold >= costG && GAME.resources.wood >= costW && GAME.resources.food < GAME.resources.maxFood) {
+        GAME.resources.gold -= costG;
+        GAME.resources.wood -= costW;
+        // Food consumed immediately upon queue
+        GAME.resources.food += costF; 
+        
+        building.spawnQueue = building.spawnQueue || [];
+        building.spawnQueue.push(type);
+        if (!building.spawnTimer) building.spawnTimer = 180;
+        updateUI();
+    }
+}
+
+function updateResourceBar() {
+    // Recalculate max food
+    let maxFood = 0;
+    let currentFood = 0;
+    
+    GAME.entities.forEach(e => {
+        if (e.faction === 'player') {
+            if (e.providesFood && e.constructionProgress >= 100) maxFood += e.providesFood;
+            if (e.type === 'peasant' || e.type === 'footman') currentFood++;
+        }
+    });
+    
+    GAME.resources.food = currentFood;
+    GAME.resources.maxFood = maxFood;
+
+    document.getElementById('res-gold').textContent = GAME.resources.gold;
+    document.getElementById('res-wood').textContent = GAME.resources.wood;
+    document.getElementById('res-food').textContent = `${GAME.resources.food}/${GAME.resources.maxFood}`;
+    
+    const foodEl = document.getElementById('res-food');
+    if (GAME.resources.food >= GAME.resources.maxFood) {
+        foodEl.classList.add('text-red-500');
+        foodEl.classList.remove('text-red-400');
+    } else {
+        foodEl.classList.add('text-red-400');
+        foodEl.classList.remove('text-red-500');
+    }
+}
+
+
+/**
+ * --- MAIN GAME LOOP ---
+ */
+function update() {
+    GAME.frameCount++;
+    
+    // Camera movement via keys or mouse edges
+    const camSpeed = 10;
+    const edgeSize = 20;
+    if (GAME.keys['w'] || GAME.keys['arrowup'] || (GAME.mouse.y < edgeSize && !GAME.mouse.isDown)) GAME.camY -= camSpeed;
+    if (GAME.keys['s'] || GAME.keys['arrowdown'] || (GAME.mouse.y > GAME.height - edgeSize && !GAME.mouse.isDown)) GAME.camY += camSpeed;
+    if (GAME.keys['a'] || GAME.keys['arrowleft'] || (GAME.mouse.x < edgeSize && !GAME.mouse.isDown)) GAME.camX -= camSpeed;
+    if (GAME.keys['d'] || GAME.keys['arrowright'] || (GAME.mouse.x > GAME.width - edgeSize && !GAME.mouse.isDown)) GAME.camX += camSpeed;
+    
+    // Clamp camera
+    GAME.camX = Math.max(0, Math.min(WORLD_WIDTH - GAME.width, GAME.camX));
+    GAME.camY = Math.max(0, Math.min(WORLD_HEIGHT - GAME.height, GAME.camY));
+
+    // Update Entities
+    for (let i = GAME.entities.length - 1; i >= 0; i--) {
+        GAME.entities[i].update();
+    }
+    
+    // Simple Enemy Spawner (Orc raids)
+    if (GAME.frameCount % 1800 === 0) { // Every ~30 seconds
+        let hall = GAME.entities.find(e => e.type === 'townhall' && e.faction === 'player');
+        if (hall) {
+            let spawnSide = Math.random();
+            let sx, sy;
+            if (spawnSide < 0.25) { sx = 0; sy = Math.random() * WORLD_HEIGHT; }
+            else if (spawnSide < 0.5) { sx = WORLD_WIDTH; sy = Math.random() * WORLD_HEIGHT; }
+            else if (spawnSide < 0.75) { sx = Math.random() * WORLD_WIDTH; sy = 0; }
+            else { sx = Math.random() * WORLD_WIDTH; sy = WORLD_HEIGHT; }
+            
+            let orc = new Entity('orc', sx, sy, 'enemy');
+            orc.commandAttack(hall);
+            
+            // Add a second one later in the game
+            if (GAME.frameCount > 5000) {
+                let orc2 = new Entity('orc', sx+30, sy+30, 'enemy');
+                orc2.commandAttack(hall);
+            }
+        }
+    }
+
+    // Update particles
+    for (let i = GAME.particles.length - 1; i >= 0; i--) {
+        let p = GAME.particles[i];
+        p.life--;
+        p.y -= 0.5;
+        if (p.life <= 0) GAME.particles.splice(i, 1);
+    }
+
+    if (GAME.frameCount % 10 === 0) updateResourceBar();
+    if (GAME.frameCount % 30 === 0 && GAME.selection.length === 1) updateUI(); // Periodic refresh of selected HP
+}
+
+function draw() {
+    let ctx = GAME.ctx;
+    
+    // Clear and draw map background offset by camera
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, GAME.width, GAME.height);
+    
+    ctx.save();
+    ctx.translate(-Math.floor(GAME.camX), -Math.floor(GAME.camY));
+    
+    // Draw Map Canvas
+    ctx.drawImage(GAME.bgCanvas, 0, 0);
+    
+    // Sort entities by Y for pseudo-depth
+    let sortedEntities = [...GAME.entities].sort((a,b) => a.y - b.y);
+    
+    for (let ent of sortedEntities) {
+        // Frustum culling (only draw what's on screen)
+        if (ent.x + ent.width/2 > GAME.camX && ent.x - ent.width/2 < GAME.camX + GAME.width &&
+            ent.y + ent.height/2 > GAME.camY && ent.y - ent.height/2 < GAME.camY + GAME.height) {
+            ent.draw(ctx);
+        }
+    }
+
+    // Draw Particles
+    for (let p of GAME.particles) {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 4, 4);
+    }
+
+    // Draw Drag Selection Box
+    if (GAME.mouse.isDown && !GAME.placingBuilding) {
+        ctx.strokeStyle = '#22c55e'; // Green
+        ctx.lineWidth = 1;
+        let x = Math.min(GAME.mouse.startX, GAME.mouse.worldX);
+        let y = Math.min(GAME.mouse.startY, GAME.mouse.worldY);
+        let w = Math.abs(GAME.mouse.worldX - GAME.mouse.startX);
+        let h = Math.abs(GAME.mouse.worldY - GAME.mouse.startY);
+        ctx.strokeRect(x, y, w, h);
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.2)';
+        ctx.fillRect(x, y, w, h);
+    }
+
+    // Draw Placement Preview
+    if (GAME.placingBuilding) {
+        let bx = Math.round(GAME.mouse.worldX / TILE_SIZE) * TILE_SIZE;
+        let by = Math.round(GAME.mouse.worldY / TILE_SIZE) * TILE_SIZE;
+        ctx.globalAlpha = 0.5;
+        let sprite = GAME.sprites[GAME.placingBuilding];
+        // Green if can afford, red if can't
+        let canAfford = true;
+        if (GAME.placingBuilding === 'farm' && GAME.resources.wood < 500) canAfford = false;
+        
+        if (!canAfford) {
+            ctx.fillStyle = 'rgba(255,0,0,0.5)';
+            ctx.fillRect(bx - sprite.width/2, by - sprite.height/2, sprite.width, sprite.height);
+        } else {
+            ctx.drawImage(sprite, bx - sprite.width/2, by - sprite.height/2);
+            ctx.fillStyle = 'rgba(0,255,0,0.3)';
+            ctx.fillRect(bx - sprite.width/2, by - sprite.height/2, sprite.width, sprite.height);
+        }
+        ctx.globalAlpha = 1.0;
+    }
+
+    ctx.restore();
+
+    // --- DRAW MINIMAP ---
+    let mctx = GAME.minimapCtx;
+    mctx.fillStyle = '#14532d';
+    mctx.fillRect(0, 0, 200, 200);
+    
+    let scaleX = 200 / WORLD_WIDTH;
+    let scaleY = 200 / WORLD_HEIGHT;
+
+    for (let ent of GAME.entities) {
+        if (ent.type === 'tree') mctx.fillStyle = '#22c55e';
+        else if (ent.type === 'goldmine') mctx.fillStyle = '#eab308';
+        else if (ent.faction === 'player') mctx.fillStyle = '#3b82f6';
+        else if (ent.faction === 'enemy') mctx.fillStyle = '#ef4444';
+        else mctx.fillStyle = '#ffffff';
+
+        let size = ent.isBuilding ? 4 : 2;
+        mctx.fillRect(ent.x * scaleX - size/2, ent.y * scaleY - size/2, size, size);
+    }
+
+    // Camera view rectangle on minimap
+    mctx.strokeStyle = '#ffffff';
+    mctx.lineWidth = 1;
+    mctx.strokeRect(GAME.camX * scaleX, GAME.camY * scaleY, GAME.width * scaleX, GAME.height * scaleY);
+}
+
+function gameLoop(timestamp) {
+    let dt = timestamp - GAME.lastTime;
+    if (dt > 1000/60) {
+        update();
+        draw();
+        GAME.lastTime = timestamp;
+    }
+    requestAnimationFrame(gameLoop);
+}
+
+// Start
+initGame();
+
+</script>
+</body>
+</html>
