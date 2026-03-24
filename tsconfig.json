@@ -31,7 +31,7 @@
 		"noFallthroughCasesInSwitch": true
 	},
 	"include": [
-		"src/main.ts",
+		"src/main.tsx",
 		"src/app",
 		"src/game",
 		"src/ui",
