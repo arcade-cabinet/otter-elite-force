@@ -25,32 +25,39 @@ The player commands Sgt. Bubbles, a Rambo-style warrior-leader of an elite otter
 | **Game Engine** | Phaser | 3.90+ | Canvas/WebGL rendering, input, cameras, tilemaps |
 | **ECS** | Koota | latest | Entity/trait/query state management |
 | **AI** | Yuka | 0.7.x | Steering, pathfinding, FSM, goal-driven behavior |
-| **UI** | React 19 + DaisyUI | latest | HUD, menus, briefings, portraits (DOM overlay) |
-| **State Bridge** | Zustand | 5.x | Campaign persistence, React↔Phaser communication |
-| **Persistence** | sql.js + Drizzle (web) / @capacitor-community/sqlite (native) | 8.x | Save games, settings, campaign progress |
+| **State** | Zustand | 5.x | Campaign persistence, settings, Phaser scene communication |
+| **Persistence** | @capacitor-community/sqlite (native + web via jeep-sqlite) | 8.x | Save games, settings, campaign progress |
 | **Audio** | Tone.js | 15.x | Procedural synth music and SFX |
 | **Quality** | Biome + Vitest + Playwright | latest | Lint/format, unit tests, E2E |
 
-### Platform Persistence Strategy (Bok Pattern)
+### Platform Persistence Strategy
 
-```
-DatabaseAdapter interface
-├── Web: sql.js (WASM) + Drizzle ORM, persisted to localStorage
-└── Native: @capacitor-community/sqlite (real SQLite via Capacitor plugin)
+**One library, all platforms:** `@capacitor-community/sqlite` provides:
+- **Native (iOS/Android):** Real SQLite via Capacitor plugin
+- **Web:** jeep-sqlite (WASM-based SQLite, built into the same package)
 
-Platform detection: Capacitor.isNativePlatform()
-Dynamic imports keep native code out of web bundles.
+No sql.js, no Drizzle, no separate web fallback. One SQLite API everywhere. Configure in `capacitor.config.ts`:
+
+```typescript
+plugins: {
+  CapacitorSQLite: {
+    iosDatabaseLocation: 'Library/CapacitorDatabase',
+    iosIsEncryption: false,
+    androidIsEncryption: false,
+  }
+}
 ```
 
 ### Architecture Layers
 
+**Pure Phaser — no React.** Phaser owns ALL rendering including UI. This eliminates the hardest integration problem (two-event-system arbitration between React DOM and Phaser canvas). The UI IS the game — hand-painted ASCII panels that match the art style, not web-framework buttons.
+
 ```
 ┌──────────────────────────────────────────────────────┐
-│                    React + DaisyUI                    │
-│  (HUD, Menus, Briefings, Portraits — DOM overlay)    │
-├──────────────────────────────────────────────────────┤
-│                    Phaser Canvas                      │
-│  (Tilemap, Sprites, Fog of War, Particles, Camera)   │
+│              Phaser (ALL visual output)               │
+│  Game Scene: Tilemap, Sprites, Fog, Particles, Camera│
+│  HUD Scene:  Resources, Minimap, Unit Panel, Actions │
+│  Menu Scene: Campaign Select, Briefings, Portraits   │
 ├──────────────────────────────────────────────────────┤
 │                    Koota ECS World                    │
 │  (Entities, Traits, Queries, Relations, Systems)      │
@@ -65,6 +72,8 @@ Dynamic imports keep native code out of web bundles.
 └──────────────────────────────────────────────────────┘
 ```
 
+**Why no React:** Phaser's Scene system natively supports layered UI (HUD Scene over Game Scene). Phaser Text, Graphics, Container, and BitmapText handle all UI elements. Briefings are just: background + portrait sprite + text box + button — all Phaser-native. Dropping React removes ~150KB of bundle and eliminates DOM↔Canvas input conflicts entirely.
+
 ---
 
 ## 3. Art Direction: The ASCII Sprite Factory
@@ -74,24 +83,95 @@ Dynamic imports keep native code out of web bundles.
 ### Pipeline
 
 ```
-ASCII Art Definition (text grid + color map)
-         │
+Design Time                    Build Time                  Runtime
+┌───────────────────┐    ┌──────────────────────┐    ┌─────────────────┐
+│ ASCII Sprite Editor│    │ Vite Plugin/Script    │    │ Phaser loads     │
+│ (visual painting   │───▶│ Reads .sprite.json    │───▶│ pre-compiled     │
+│  tool in browser)  │    │ Outputs pixel buffers  │    │ texture atlases  │
+└───────────────────┘    │ + spritesheet atlases  │    └─────────────────┘
+         │               └──────────────────────┘
          ▼
-   Sprite Factory (converts to pixel buffer)
-         │
-         ▼
-   Phaser Texture (loaded as spritesheet)
-         │
-         ▼
-   Game renders at target resolution
+  .sprite.json files
+  (source of truth)
 ```
+
+### Storage Format (.sprite)
+
+Sprites use a human-readable `.sprite` format: TOML header for metadata, then the raw ASCII grid IS the art. You can open the file and literally see the sprite.
+
+```toml
+# mudfoot.sprite
+
+[meta]
+name = "mudfoot"
+width = 16
+height = 16
+
+[palette]
+# char = "fg_hex"  (bg always transparent unless specified as "fg;bg")
+"#" = "#8B6914"     # brown fur
+"@" = "#6B4912"     # dark fur / shadow
+"." = "#FFFFFF"     # eye glint
+"=" = "#1E3A8A"     # blue uniform
+"-" = "#3B82F6"     # light blue detail
+"o" = "#FFCC99"     # skin
+"^" = "#4B5563"     # helmet metal
+
+[animations]
+idle = { frames = [0], rate = 1 }
+walk = { frames = [0, 1, 2, 1], rate = 8 }
+
+[frame.0]
+art = """
+
+
+      ^^^^
+     ^@@@@^
+     ^.@@.^
+      oooo
+     o=--=o
+     ======
+     =#==#=
+     =-==-=
+      ====
+     ##  ##
+     ##  ##
+     ##  ##
+
+
+"""
+```
+
+**Why this format:**
+1. **The art is visible in the source file.** Open `mudfoot.sprite` and you SEE the otter. No JSON array parsing needed to visualize it.
+2. **TOML is human-editable.** Palette definitions are readable. Animation configs are clean.
+3. **Git-friendly.** Diffs show exactly which pixels changed. JSON pixel arrays produce unreadable diffs.
+4. **AI-authorable.** Claude can read, write, and modify `.sprite` files naturally — the art is just text.
+5. **Editor-compatible.** The visual editor reads/writes this format. The raw file is also editable in any text editor.
+
+The build-time compiler maps character density (`#` = solid, `@` = dense, `.` = light, ` ` = transparent) combined with the palette colors to produce pixel buffers.
+
+### Dev Tooling
+
+A browser-based ASCII sprite editor (forked from or inspired by tools like `ascii-sprite-editor`) provides:
+- Visual grid painting with character + color selection per cell
+- Live preview at target resolution (1x, 2x, 4x)
+- Animation frame editing (multi-frame sprites)
+- Read/write `.sprite` files (TOML + ASCII grid)
+- Gallery view of all game assets
+- Palette management (per-sprite and shared palettes)
+
+This tool is dev-only (not shipped in the game). It runs as a separate Vite dev server or as a Phaser Scene in a dev mode.
+
+**Workflow:** Paint in editor → save as `.sprite` → build-time Vite plugin compiles to texture atlases → Phaser loads atlases at boot. The `.sprite` files are the source of truth, checked into git alongside the code.
 
 ### Why ASCII-as-Pixels
 
 1. **Pixel-level control** — Each character maps to a pixel with density (glyph shape) AND color. A `#` in brown is fur texture. A `.` in white is an eye glint. Two channels of visual information per pixel.
-2. **Human-authorable** — Portraits and sprites are typed in a text editor. Most ergonomic pixel art format possible.
-3. **Resolution-independent** — Same ASCII source renders at 1x, 2x, 4x by changing pixel scale. Cross-platform scaling for free.
-4. **No external assets** — Consistent with existing design mandate.
+2. **Human-authorable** — Sprites are painted visually in an editor, stored as JSON. No opaque binary formats.
+3. **Resolution-independent** — Same source renders at 1x, 2x, 4x by changing pixel scale. Cross-platform scaling for free.
+4. **No external assets** — JSON definitions are checked into git. No PNGs, no asset CDN. Everything compiles from source.
+5. **AI-authorable** — Claude can read and write `.sprite.json` files directly, enabling AI-assisted art creation.
 
 ### Asset Scale Tiers
 
@@ -341,7 +421,8 @@ Portrait orientation is used ONLY for the campaign menu/briefing screens.
 ### 8.1 Tilemap & Terrain
 
 - **Tile size:** 32×32 pixels (rendered from ASCII tile definitions)
-- **Map sizes:** Small (40×40), Medium (60×60), Large (80×80), Epic (100×100)
+- **No fixed map sizes.** Each mission's map is exactly the size its content requires. A tight commando infiltration (Mission 4) might be 30×25 tiles. An all-out war (Mission 15) might be 120×90. The map serves the mission, not the other way around.
+- **Responsive viewport:** The camera shows a segment of the map. On larger screens, more tiles are visible. On smaller screens, fewer. The map is always the same; only the viewport window changes. Phaser's camera zoom + ScaleManager handle this automatically.
 - **Terrain types:** Grass, dirt, mud (slow), water (impassable without raft/swim), mangrove (blocks LOS, harvestable), toxic sludge (damages), bridge, tall grass (concealment)
 - **Phaser TilemapLayer:** Orthogonal view, top-down perspective
 - **Hand-painted campaign maps:** Each of the 16 campaign missions has a hand-crafted map defined as a tilemap data file. Every chokepoint, resource node, trigger zone, and scenic detail is intentionally placed for that mission's narrative and gameplay flow. No procedural terrain generation for campaign.
@@ -605,45 +686,12 @@ After completing the campaign (or specific missions), unlock Skirmish mode:
 
 ---
 
-## 14. Phaser ↔ React Integration Design
+## 14. Koota ↔ Phaser Sync Layer
 
-### Input Event Arbitration
+Koota is the authoritative state. Phaser sprites are visual representations. No React — Phaser owns all rendering and input.
 
-Phaser canvas and React DOM overlay coexist on the same screen. Input events must not leak between them.
+### Entity Lifecycle
 
-**Rules:**
-1. DaisyUI elements (`z-index: 20`) sit above the Phaser canvas (`z-index: 10`)
-2. React elements use `pointer-events: auto` and call `event.stopPropagation()` on all pointer events
-3. Phaser canvas receives only events that DON'T hit a React element
-4. When a DaisyUI modal/dropdown is open, Phaser input is disabled entirely via `this.input.enabled = false`
-5. Keyboard events: React captures when a text input has focus. Otherwise, Phaser gets them.
-
-**Communication bridge (Zustand):**
-```typescript
-// Shared Zustand store — both React and Phaser subscribe
-const useGameBridge = create(() => ({
-  selectedEntities: [] as number[],   // Koota entity IDs
-  resources: { fish: 0, timber: 0, salvage: 0 },
-  isPaused: false,
-  currentObjectives: [] as Objective[],
-  briefingOpen: false,
-}));
-
-// Phaser scene writes to store:
-useGameBridge.setState({ resources: { fish: 100, timber: 50, salvage: 30 } });
-
-// React reads from store:
-function ResourceBar() {
-  const resources = useGameBridge(s => s.resources);
-  return <div>Fish: {resources.fish}</div>;
-}
-```
-
-### Koota ↔ Phaser Sync Layer
-
-Koota is the authoritative state. Phaser sprites are visual representations.
-
-**Entity lifecycle:**
 1. When a Koota entity gains `Position` + `UnitType` → create a Phaser Sprite, store sprite reference in an AoS trait
 2. Each frame: sync Koota `Position` → Phaser sprite `x, y`
 3. When a Koota entity is destroyed → destroy corresponding Phaser sprite
@@ -652,14 +700,15 @@ Koota is the authoritative state. Phaser sprites are visual representations.
 ```typescript
 const PhaserSprite = trait(() => null as Phaser.GameObjects.Sprite | null);
 
-// Sync system
-function syncKootaToPhaser(world: World) {
+// Sync system — runs in Phaser Scene update()
+function syncKootaToPhaser(world: World, scene: Phaser.Scene) {
   // Handle new entities (need sprite creation)
   world.query(Added(Position), UnitType).forEach(entity => {
     const pos = entity.get(Position);
     const type = entity.get(UnitType);
     const sprite = scene.add.sprite(pos.x * 32, pos.y * 32, type.type);
-    sprite.setData('kootaEntity', entity);  // Back-reference
+    sprite.setInteractive();
+    sprite.setData('kootaEntity', entity);  // Back-reference for input
     entity.add(PhaserSprite(sprite));
   });
 
@@ -677,6 +726,36 @@ function syncKootaToPhaser(world: World) {
     if (sprite) sprite.destroy();
   });
 }
+```
+
+### Phaser Scene Architecture
+
+```
+Phaser.Game
+├── BootScene          — Load ASCII sprite textures from compiled atlases
+├── MenuScene          — Campaign select, settings, difficulty
+├── BriefingScene      — Portrait + dialogue (Phaser Text + Sprite)
+├── GameScene          — Tilemap, units, fog of war, combat
+├── HUDScene           — Resources, minimap, unit panel, actions (parallel to GameScene)
+├── PauseScene         — Pause overlay
+└── VictoryScene       — Mission complete, star rating
+```
+
+HUDScene runs **in parallel** with GameScene via `this.scene.launch('HUD')`. HUD elements are Phaser GameObjects (Text, Graphics, Containers) — NOT DOM elements. This means all UI matches the pixel art aesthetic perfectly.
+
+### Zustand Role (Without React)
+
+Zustand still serves as the persistence bridge and global state, but is accessed via `getState()` / `subscribe()` instead of React hooks:
+
+```typescript
+// Phaser scene reads campaign state
+const campaignState = useCampaignStore.getState();
+if (campaignState.missions[4].status === 'completed') {
+  // Gen. Whiskers delivers briefing instead of FOXHOUND
+}
+
+// Phaser scene writes to state on mission complete
+useCampaignStore.setState({ missions: { ...missions, [id]: { status: 'completed', stars: 3 } } });
 ```
 
 ---
@@ -713,7 +792,7 @@ The RTS pivot is a full engine swap. The following existing code is **not reusab
 
 | Module | How It's Reused |
 |--------|----------------|
-| Zustand store pattern | Adapted for campaign state + Phaser↔React bridge |
+| Zustand store pattern | Adapted for campaign state + Phaser scene communication |
 | Tone.js AudioEngine | Carried forward for procedural synth |
 | Yuka AI integration pattern | Adapted for RTS unit AI (steering + FSM) |
 | Zod schema validation | Used for scenario definition validation |
@@ -728,6 +807,7 @@ The RTS pivot is a full engine swap. The following existing code is **not reusab
 
 ### Phase 1: Foundation (MVP — Missions 1-4)
 - Vite + Phaser + Capacitor scaffold
+- `.sprite` format parser + build-time compiler (Vite plugin)
 - ASCII Sprite Factory proof-of-concept (unit sprites + 1 portrait)
 - Koota ECS with core traits (Position, Health, UnitType, Faction)
 - Koota↔Phaser sync layer
@@ -737,12 +817,12 @@ The RTS pivot is a full engine swap. The following existing code is **not reusab
 - Unit training (River Rat, Mudfoot)
 - Basic combat (melee + ranged)
 - Fog of war (RenderTexture)
-- A* pathfinding on tile grid
+- Yuka A* pathfinding on tile grid + steering behaviors
 - Desktop input (click/drag select, right-click move)
-- React/DaisyUI HUD (resources, minimap, unit panel)
-- Briefing system (1 portrait)
+- Phaser HUD Scene (resources, minimap, unit panel — all in-engine, no DOM)
+- Briefing Scene (1 portrait — Gen. Whiskers or FOXHOUND)
 - Missions 1-4 playable
-- SQLite persistence (save/load mid-mission)
+- @capacitor-community/sqlite persistence (save/load mid-mission)
 - **Deliverable:** Playable 4-mission demo on desktop web
 
 ### Phase 2: Depth (Missions 5-8)
@@ -802,8 +882,6 @@ The RTS pivot is a full engine swap. The following existing code is **not reusab
 ## 19. Open Questions
 
 1. **Multiplayer:** Is local or online multiplayer in scope for v1? (Assumed: no, campaign only)
-2. **Procedural maps for skirmish:** How much generation vs. hand-design?
-3. **Music:** Full procedural soundtrack per mission, or ambient loops?
-4. **Localization:** English only for v1?
-5. **Analytics:** Track play metrics for balancing?
-6. **ASCII sprite editor:** Use or fork an existing tool (e.g., ascii-sprite-editor) as a dev-time design tool, storing sprites in a structured format (JSON with grid + color map) and compiling to pixel buffers at build time?
+2. **Music:** Full procedural soundtrack per mission, or ambient loops?
+3. **Localization:** English only for v1?
+4. **Analytics:** Track play metrics for balancing?
