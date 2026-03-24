@@ -1,0 +1,96 @@
+{
+	"meta": {
+		"image": "portraits_1x.png",
+		"size": {
+			"w": 455,
+			"h": 96
+		},
+		"scale": 1
+	},
+	"frames": {
+		"foxhound": {
+			"frame": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 96
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 96
+			}
+		},
+		"sgt_bubbles": {
+			"frame": {
+				"x": 65,
+				"y": 0,
+				"w": 64,
+				"h": 96
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 96
+			}
+		},
+		"gen_whiskers": {
+			"frame": {
+				"x": 130,
+				"y": 0,
+				"w": 64,
+				"h": 96
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 96
+			}
+		},
+		"cpl_splash": {
+			"frame": {
+				"x": 195,
+				"y": 0,
+				"w": 64,
+				"h": 96
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 96
+			}
+		},
+		"sgt_fang": {
+			"frame": {
+				"x": 260,
+				"y": 0,
+				"w": 64,
+				"h": 96
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 96
+			}
+		},
+		"medic_marina": {
+			"frame": {
+				"x": 325,
+				"y": 0,
+				"w": 64,
+				"h": 96
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 96
+			}
+		},
+		"pvt_muskrat": {
+			"frame": {
+				"x": 390,
+				"y": 0,
+				"w": 64,
+				"h": 96
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 96
+			}
+		}
+	}
+}
