@@ -27,5 +27,14 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
 		pixelArt: true,
 		antialias: false,
 	},
-	scene: [BootScene, MenuScene, BriefingScene, GameScene, HUDScene, PauseScene, VictoryScene],
+	scene: [
+		BootScene,
+		MenuScene,
+		CampaignMapScene,
+		BriefingScene,
+		GameScene,
+		HUDScene,
+		PauseScene,
+		VictoryScene,
+	],
 };

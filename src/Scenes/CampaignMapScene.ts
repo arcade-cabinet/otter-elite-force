@@ -9,10 +9,9 @@
  */
 
 import Phaser from "phaser";
-import { GAME_HEIGHT, GAME_WIDTH } from "@/config/game.config";
+import { GAME_HEIGHT, GAME_WIDTH } from "@/config/constants";
 import { useCampaignStore } from "@/stores/campaignStore";
 import { territoryStore } from "@/stores/territoryStore";
-import type { CampaignProgress } from "@/persistence/repos/campaignRepo";
 
 // ---------------------------------------------------------------------------
 // Mission landmark positions on the campaign map (pixel coords at 1280x720)
@@ -297,7 +296,7 @@ export class CampaignMapScene extends Phaser.Scene {
 		return { dot, label, zone, starDots, pulse };
 	}
 
-	private selectMission(missionId: string, status: "available" | "completed"): void {
+	private selectMission(missionId: string, _status: "available" | "completed"): void {
 		// Extract mission number from id (e.g. "ch1-m1" → 1)
 		const match = missionId.match(/m(\d+)/);
 		const missionNum = match ? Number.parseInt(match[1], 10) : 1;

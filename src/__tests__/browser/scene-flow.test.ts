@@ -12,6 +12,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
 	BootScene,
 	BriefingScene,
+	CampaignMapScene,
 	GameScene,
 	HUDScene,
 	MenuScene,
@@ -20,10 +21,11 @@ import {
 } from "@/Scenes";
 import { createTestGame, type TestGameHandle } from "./phaser-test-helper";
 
-/** All 7 production scenes in boot order. */
+/** All 8 production scenes in boot order. */
 const ALL_SCENES = [
 	BootScene,
 	MenuScene,
+	CampaignMapScene,
 	BriefingScene,
 	GameScene,
 	HUDScene,

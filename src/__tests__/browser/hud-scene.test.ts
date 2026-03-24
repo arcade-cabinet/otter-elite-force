@@ -48,8 +48,15 @@ describe("HUDScene (browser)", () => {
 	let handle: TestGameHandle;
 
 	afterEach(() => {
-		// Destroy the game FIRST — this triggers the HUD "shutdown" event
-		// which unsubscribes from Zustand stores. Then reset the store safely.
+		// Stop the HUD scene first to trigger its "shutdown" event,
+		// which unsubscribes from Zustand stores. Without this, calling
+		// reset() would fire the store subscription on destroyed Text objects.
+		if (handle?.game?.scene) {
+			const hudScene = handle.game.scene.getScene("HUD");
+			if (hudScene?.scene?.isActive()) {
+				handle.game.scene.stop("HUD");
+			}
+		}
 		handle?.destroy();
 		resourceStore.getState().reset();
 	});
@@ -102,10 +109,13 @@ describe("HUDScene (browser)", () => {
 
 		await handle.waitForScene("HUD");
 
-		// Mutate the Zustand store
+		// Wait for Phaser text objects to fully initialize their canvas context
+		await new Promise((resolve) => setTimeout(resolve, 200));
+
+		// Mutate the Zustand store — HUD subscription should update text objects
 		resourceStore.getState().addResources({ fish: 150, timber: 75, salvage: 30 });
 
-		// Wait a frame for the subscription to fire
+		// Wait a frame for the subscription to fire and text to update
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
 		const hudScene = handle.game.scene.getScene("HUD") as HUDScene;

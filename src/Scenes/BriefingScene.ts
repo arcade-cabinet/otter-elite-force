@@ -33,6 +33,61 @@ const MISSION_BRIEFINGS: Record<number, { title: string; lines: DialogueLine[] }
 			},
 		],
 	},
+	2: {
+		title: "MISSION 2: THE CAUSEWAY",
+		lines: [
+			{
+				speaker: "FOXHOUND",
+				text: "Excellent work on the beachhead. Now we need to secure the supply line. A convoy is inbound along the jungle causeway.",
+			},
+			{
+				speaker: "FOXHOUND",
+				text: "Scale-Guard ambush teams have been spotted at three chokepoints along the road. Escort that convoy to the eastern outpost.",
+			},
+			{
+				speaker: "SGT. BUBBLES",
+				text: "Ambush alley. Wonderful. We'll set up overwatch positions and push through. Nobody touches our supplies.",
+			},
+		],
+	},
+	3: {
+		title: "MISSION 3: FIREBASE DELTA",
+		lines: [
+			{
+				speaker: "FOXHOUND",
+				text: "Three strategic hilltops form a triangle north of our position. Scale-Guard has fortified the northern approaches.",
+			},
+			{
+				speaker: "FOXHOUND",
+				text: "Capture all three points and hold them for two minutes. Expect heavy counter-attacks once they realize what's happening.",
+			},
+			{
+				speaker: "SGT. BUBBLES",
+				text: "King of the hill, otter-style. We'll take them fast and dig in deep. Those crocs won't know what hit them.",
+			},
+		],
+	},
+	4: {
+		title: "MISSION 4: PRISON BREAK",
+		lines: [
+			{
+				speaker: "FOXHOUND",
+				text: "We've located Gen. Whiskers. He's being held in a Scale-Guard compound deep in hostile territory.",
+			},
+			{
+				speaker: "FOXHOUND",
+				text: "This is a stealth operation. Take a small team in through the mangrove route. Use tall grass for concealment.",
+			},
+			{
+				speaker: "FOXHOUND",
+				text: "Rescue the General and get to the extraction point in the northwest. If you're spotted, it gets ugly fast.",
+			},
+			{
+				speaker: "SGT. BUBBLES",
+				text: "Silent and deadly. The River Rats don't leave anyone behind. We're bringing the General home.",
+			},
+		],
+	},
 };
 
 const DEFAULT_BRIEFING: { title: string; lines: DialogueLine[] } = {

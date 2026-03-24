@@ -97,9 +97,9 @@ function handleAttack(
 
 	// Move toward target if out of attack range
 	if (entity.has(Attack)) {
-		const attack = entity.get(Attack);
-		const pos = entity.get(Position);
-		const targetPos = target.get(Position);
+		const attack = entity.get(Attack)!;
+		const pos = entity.get(Position)!;
+		const targetPos = target.get(Position)!;
 		const dist = distanceBetween(pos.x, pos.y, targetPos.x, targetPos.y);
 
 		if (dist > attack.range) {
@@ -135,7 +135,7 @@ function handleGather(
 	entity.set(AIState, (prev) => ({ ...prev, state: "gathering" }));
 
 	// Move toward resource if not adjacent
-	const pos = entity.get(Position);
+	const pos = entity.get(Position)!;
 	if (order.targetX !== undefined && order.targetY !== undefined) {
 		const dist = distanceBetween(pos.x, pos.y, order.targetX, order.targetY);
 		if (dist > 1.5) {
@@ -145,7 +145,7 @@ function handleGather(
 }
 
 function handleBuild(entity: Entity, order: Order, agent: SteeringVehicle): void {
-	entity.set(AIState, { state: "building" });
+	entity.set(AIState, (prev) => ({ ...prev, state: "building" }));
 
 	if (order.targetX !== undefined && order.targetY !== undefined) {
 		dispatchPath(agent, order.targetX, order.targetY);
@@ -166,7 +166,7 @@ function handleStop(entity: Entity, orders: Order[], agent: SteeringVehicle): vo
 function handlePatrol(entity: Entity, order: Order, agent: SteeringVehicle): void {
 	if (!order.waypoints || order.waypoints.length === 0) return;
 
-	entity.set(AIState, { state: "patrolling" });
+	entity.set(AIState, (prev) => ({ ...prev, state: "patrolling" }));
 
 	// Begin moving to first waypoint
 	const first = order.waypoints[0];
@@ -185,7 +185,7 @@ export function orderSystem(world: World, _delta: number): void {
 	const entities = world.query(OrderQueue, AIState);
 
 	for (const entity of entities) {
-		const orders = entity.get(OrderQueue);
+		const orders = entity.get(OrderQueue)!;
 		if (orders.length === 0) continue;
 
 		const order = orders[0];

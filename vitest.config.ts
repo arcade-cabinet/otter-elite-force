@@ -48,17 +48,11 @@ export default defineConfig({
 			},
 		},
 		include: ["src/**/*.{test,spec}.{ts,tsx}"],
-		exclude: ["node_modules", "dist", "e2e"],
+		exclude: ["node_modules", "dist", "e2e", "src/__tests__/browser/**"],
 		// Handle ESM packages with directory imports
 		server: {
 			deps: {
-				inline: [
-					"@react-three/fiber",
-					"@react-three/drei",
-					"@react-three/postprocessing",
-					"three",
-					"yuka",
-				],
+				inline: ["yuka"],
 			},
 		},
 	},

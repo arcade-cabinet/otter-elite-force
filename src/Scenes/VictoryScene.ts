@@ -1,8 +1,12 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "@/config/constants";
 
+/** Maximum mission ID in Chapter 1. */
+const MAX_MISSION_ID = 4;
+
 interface VictoryData {
 	missionId: number;
+	difficulty: "support" | "tactical" | "elite";
 	stars: number;
 	stats: {
 		unitsLost: number;
@@ -117,34 +121,69 @@ export class VictoryScene extends Phaser.Scene {
 	}
 
 	private createContinueButton(x: number, y: number): void {
+		const hasNextMission = this.victoryData.missionId < MAX_MISSION_ID;
 		const w = 240;
 		const h = 50;
 
+		if (hasNextMission) {
+			// "NEXT MISSION" button — advances campaign
+			this.createActionButton(x, y, w, h, "NEXT MISSION >>", "#4ade80", 0x2f4f2f, () => {
+				this.scene.start("Briefing", {
+					missionId: this.victoryData.missionId + 1,
+					difficulty: this.victoryData.difficulty,
+				});
+			});
+
+			// Smaller "RETURN TO HQ" link below
+			const returnText = this.add
+				.text(x, y + 45, "RETURN TO HQ", {
+					fontFamily: "monospace",
+					fontSize: "13px",
+					color: "#6b7280",
+				})
+				.setOrigin(0.5)
+				.setInteractive({ useHandCursor: true });
+
+			returnText.on("pointerover", () => returnText.setColor("#9ca3af"));
+			returnText.on("pointerout", () => returnText.setColor("#6b7280"));
+			returnText.on("pointerdown", () => this.scene.start("Menu"));
+		} else {
+			// Final mission — return to menu
+			this.createActionButton(x, y, w, h, "RETURN TO HQ >>", "#c4a43a", 0x1a2332, () => {
+				this.scene.start("Menu");
+			});
+		}
+	}
+
+	private createActionButton(
+		x: number,
+		y: number,
+		w: number,
+		h: number,
+		label: string,
+		color: string,
+		bgColor: number,
+		callback: () => void,
+	): void {
 		const bg = this.add.graphics();
-		bg.fillStyle(0x1a2332, 1);
-		bg.lineStyle(2, 0xc4a43a, 1);
+		bg.fillStyle(bgColor, 1);
+		bg.lineStyle(2, Phaser.Display.Color.HexStringToColor(color).color, 1);
 		bg.fillRect(x - w / 2, y - h / 2, w, h);
 		bg.strokeRect(x - w / 2, y - h / 2, w, h);
 
 		const text = this.add
-			.text(x, y, "CONTINUE >>", {
+			.text(x, y, label, {
 				fontFamily: "monospace",
 				fontSize: "20px",
-				color: "#c4a43a",
+				color,
 				fontStyle: "bold",
 			})
 			.setOrigin(0.5);
 
 		const zone = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true });
 
-		zone.on("pointerover", () => {
-			text.setColor("#e0c060");
-		});
-		zone.on("pointerout", () => {
-			text.setColor("#c4a43a");
-		});
-		zone.on("pointerdown", () => {
-			this.scene.start("Menu");
-		});
+		zone.on("pointerover", () => text.setColor("#e0c060"));
+		zone.on("pointerout", () => text.setColor(color));
+		zone.on("pointerdown", callback);
 	}
 }

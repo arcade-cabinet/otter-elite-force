@@ -450,6 +450,7 @@ export class GameScene extends Phaser.Scene {
 		this.scene.stop("HUD");
 		this.scene.start("Victory", {
 			missionId: this.missionData.missionId,
+			difficulty: this.missionData.difficulty,
 			stars,
 			stats: {
 				unitsLost: 0,

@@ -201,10 +201,7 @@ export class MenuScene extends Phaser.Scene {
 	}
 
 	private continueMission(): void {
-		// TODO: Load save state from SQLite persistence layer
-		// For now, start mission 1
-		this.scene.start("Briefing", {
-			missionId: 1,
+		this.scene.start("CampaignMap", {
 			difficulty: this.selectedDifficulty,
 		});
 	}

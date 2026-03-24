@@ -8,5 +8,4 @@ export const AIState = trait(() => ({
 }));
 
 /** Yuka Vehicle reference — AoS callback, null until assigned */
-// @ts-expect-error Koota AoS trait with null initial value
-export const SteeringAgent = trait(() => null as any);
+export const SteeringAgent = trait(() => null as unknown);
