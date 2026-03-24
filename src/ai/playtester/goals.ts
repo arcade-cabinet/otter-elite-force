@@ -457,8 +457,9 @@ export class WaitForConditionGoal extends PlaytesterGoal {
 export class DefendBaseGoal extends CompositePlaytesterGoal {
 	override activate(_perception: PlayerPerception): void {
 		this.clearSubgoals();
-		this.addSubgoal(new AttackNearestEnemyGoal());
+		// Reverse execution order: select first, attack second
 		this.addSubgoal(new SelectMilitaryUnitsGoal());
+		this.addSubgoal(new AttackNearestEnemyGoal());
 	}
 
 	override execute(perception: PlayerPerception): PlayerAction[] {
@@ -477,16 +478,18 @@ export class BuildEconomyGoal extends CompositePlaytesterGoal {
 		const idleCount = countIdleWorkers(perception);
 
 		if (idleCount > 0) {
-			// Send idle workers to gather
-			this.addSubgoal(new RightClickResourceGoal());
+			// Send idle workers to gather: select first, then right-click resource
+			// addSubgoal uses unshift, so add in REVERSE execution order
 			this.addSubgoal(new SelectIdleWorkerGoal());
+			this.addSubgoal(new RightClickResourceGoal());
 		} else if (canAfford(perception, { timber: 100 })) {
 			// Build a fish trap for passive income
+			// Execution order: select worker → open build menu → place building
 			const cp = findBuildings(perception, "command_post");
 			if (cp.length > 0) {
-				this.addSubgoal(new PlaceBuildingGoal("f", cp[0].tileX + 2, cp[0].tileY));
-				this.addSubgoal(new OpenBuildMenuGoal());
 				this.addSubgoal(new SelectIdleWorkerGoal());
+				this.addSubgoal(new OpenBuildMenuGoal());
+				this.addSubgoal(new PlaceBuildingGoal("f", cp[0].tileX + 2, cp[0].tileY));
 			}
 		}
 
@@ -510,19 +513,19 @@ export class BuildArmyGoal extends CompositePlaytesterGoal {
 		this.clearSubgoals();
 
 		if (!hasPopulationRoom(perception)) {
-			// Need a burrow first
+			// Need a burrow first: select worker → build menu → place
 			if (canAfford(perception, { timber: 80 })) {
 				const cp = findBuildings(perception, "command_post");
 				if (cp.length > 0) {
-					this.addSubgoal(new PlaceBuildingGoal("u", cp[0].tileX - 2, cp[0].tileY));
-					this.addSubgoal(new OpenBuildMenuGoal());
 					this.addSubgoal(new SelectIdleWorkerGoal());
+					this.addSubgoal(new OpenBuildMenuGoal());
+					this.addSubgoal(new PlaceBuildingGoal("u", cp[0].tileX - 2, cp[0].tileY));
 				}
 			}
 		} else if (canAfford(perception, { fish: 80, salvage: 20 })) {
-			// Train a mudfoot
-			this.addSubgoal(new ClickTrainButtonGoal("1"));
+			// Train a mudfoot: select barracks first, then click train
 			this.addSubgoal(new SelectBarracksGoal());
+			this.addSubgoal(new ClickTrainButtonGoal("1"));
 		}
 
 		if (this.subgoals.length === 0) {
@@ -542,9 +545,9 @@ export class BuildArmyGoal extends CompositePlaytesterGoal {
 export class CompleteObjectiveGoal extends CompositePlaytesterGoal {
 	override activate(_perception: PlayerPerception): void {
 		this.clearSubgoals();
-		// Select army, then attack-move toward enemy territory
-		this.addSubgoal(new AttackNearestEnemyGoal());
+		// Reverse execution order: select first, attack second
 		this.addSubgoal(new SelectMilitaryUnitsGoal());
+		this.addSubgoal(new AttackNearestEnemyGoal());
 	}
 
 	override execute(perception: PlayerPerception): PlayerAction[] {
@@ -559,8 +562,9 @@ export class CompleteObjectiveGoal extends CompositePlaytesterGoal {
 export class ScoutMapGoal extends CompositePlaytesterGoal {
 	override activate(_perception: PlayerPerception): void {
 		this.clearSubgoals();
-		this.addSubgoal(new RightClickUnexploredGoal());
+		// Reverse execution order: select first, rightclick-explore second
 		this.addSubgoal(new SelectScoutGoal());
+		this.addSubgoal(new RightClickUnexploredGoal());
 	}
 
 	override execute(perception: PlayerPerception): PlayerAction[] {
