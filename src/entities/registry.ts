@@ -98,7 +98,7 @@ export const ALL_UNIT_ENTITIES: Record<string, UnitDef> = {
 	...SCALE_GUARD_UNIT_ENTITIES,
 };
 
-// ─── Heroes (5/6 — waiting on pvt-muskrat from #13) ───
+// ─── Heroes (COMPLETE: 6/6) ───
 
 import { sgtBubbles } from "./heroes/sgt-bubbles";
 import { genWhiskers } from "./heroes/gen-whiskers";
@@ -117,7 +117,7 @@ export const ALL_HERO_ENTITIES: Record<string, HeroDef> = {
 	pvt_muskrat: pvtMuskrat,
 };
 
-// ─── Portraits (1/7 — waiting on #17) ───
+// ─── Portraits (3/7 — remaining 4 pending #17) ───
 
 import { foxhound } from "./portraits/foxhound";
 import { sgtBubbles as sgtBubblesPortrait } from "./portraits/sgt-bubbles";
