@@ -1,0 +1,100 @@
+import type { UnitDef } from "@/entities/types";
+
+export const scoutLizard: UnitDef = {
+	id: "scout_lizard",
+	name: "SCOUT LIZARD",
+	faction: "scale_guard",
+	category: "scout",
+
+	sprite: {
+		size: 16,
+		frames: {
+			idle: [
+				[
+					"......####......",
+					".....#gGGg#.....",
+					".....#gGGg#.....",
+					"......####......",
+					".....#rrrr#.....",
+					"...G#rRRRRr#G...",
+					"...G#rRRRRr#G...",
+					"...G#rRRRRr#G...",
+					"....##RRRR##....",
+					".....#RRRR#.....",
+					".....#gggg#.....",
+					".....#gggg#.....",
+					".....#GGGG#.....",
+					".....#GGGG#.....",
+					"....###..###....",
+					"................",
+				],
+			],
+			walk: [
+				[
+					"......####......",
+					".....#gGGg#.....",
+					".....#gGGg#.....",
+					"......####......",
+					".....#rrrr#.....",
+					"...G#rRRRRr#G...",
+					"...G#rRRRRr#G...",
+					"...G#rRRRRr#G...",
+					"....##RRRR##....",
+					".....#RRRR#.....",
+					".....#gggg#.....",
+					".....#gggg#.....",
+					".....#GGGG#.....",
+					".....##GG##.....",
+					"....##...###....",
+					"................",
+				],
+				[
+					"......####......",
+					".....#gGGg#.....",
+					".....#gGGg#.....",
+					"......####......",
+					".....#rrrr#.....",
+					"...G#rRRRRr#G...",
+					"...G#rRRRRr#G...",
+					"...G#rRRRRr#G...",
+					"....##RRRR##....",
+					".....#RRRR#.....",
+					".....#gggg#.....",
+					".....#gggg#.....",
+					".....#GGGG#.....",
+					".....#GG##......",
+					"....###..##.....",
+					"................",
+				],
+			],
+		},
+		animationRates: { walk: 8 },
+	},
+
+	hp: 25,
+	armor: 0,
+	damage: 3,
+	range: 1,
+	attackCooldown: 1.0,
+	speed: 14,
+	visionRadius: 10,
+
+	cost: { fish: 40, salvage: 10 },
+	populationCost: 1,
+	trainTime: 12,
+	trainedAt: "spawning_pool",
+
+	unlockedAt: "mission_2",
+
+	aiProfile: {
+		states: ["idle", "patrol", "scout", "flee", "signal"],
+		defaultState: "patrol",
+		aggroRange: 10,
+		fleeThreshold: 0.5,
+		specialBehavior: "signal",
+	},
+
+	drops: [{ type: "salvage", min: 1, max: 3, chance: 0.2 }],
+
+	tags: ["IsUnit", "IsScout"],
+};

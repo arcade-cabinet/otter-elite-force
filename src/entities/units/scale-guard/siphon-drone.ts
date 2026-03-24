@@ -1,0 +1,100 @@
+import type { UnitDef } from "@/entities/types";
+
+export const siphonDrone: UnitDef = {
+	id: "siphon_drone",
+	name: "SIPHON DRONE",
+	faction: "scale_guard",
+	category: "support",
+
+	sprite: {
+		size: 16,
+		frames: {
+			idle: [
+				[
+					"......####......",
+					".....#PPPP#.....",
+					".....#PppP#.....",
+					"......####......",
+					".....#rrrr#.....",
+					"....#rRRRRr#....",
+					"....#rRRRRr#....",
+					"....#rRRRRr#....",
+					".....#RRRR#.....",
+					".....#RRRR#.....",
+					"....##PPPP##....",
+					"...#PPppppPP#...",
+					"...#PPPPPPPP#...",
+					"...##########...",
+					"....##....##....",
+					"................",
+				],
+			],
+			walk: [
+				[
+					"......####......",
+					".....#PPPP#.....",
+					".....#PppP#.....",
+					"......####......",
+					".....#rrrr#.....",
+					"....#rRRRRr#....",
+					"....#rRRRRr#....",
+					"....#rRRRRr#....",
+					".....#RRRR#.....",
+					".....#RRRR#.....",
+					"....##PPPP##....",
+					"...#PPppppPP#...",
+					"...#PPPPPPPP#...",
+					"...##########...",
+					"...##......##...",
+					"................",
+				],
+				[
+					"......####......",
+					".....#PPPP#.....",
+					".....#PppP#.....",
+					"......####......",
+					".....#rrrr#.....",
+					"....#rRRRRr#....",
+					"....#rRRRRr#....",
+					"....#rRRRRr#....",
+					".....#RRRR#.....",
+					".....#RRRR#.....",
+					"....##PPPP##....",
+					"...#PPppppPP#...",
+					"...#PPPPPPPP#...",
+					"...##########...",
+					"....##....##....",
+					"................",
+				],
+			],
+		},
+		animationRates: { walk: 4 },
+	},
+
+	hp: 40,
+	armor: 1,
+	damage: 0,
+	range: 3,
+	attackCooldown: 1.0,
+	speed: 7,
+	visionRadius: 5,
+
+	cost: { fish: 50, salvage: 30 },
+	populationCost: 1,
+	trainTime: 20,
+	trainedAt: "spawning_pool",
+
+	unlockedAt: "mission_5",
+
+	aiProfile: {
+		states: ["idle", "patrol", "drain", "flee"],
+		defaultState: "patrol",
+		aggroRange: 5,
+		fleeThreshold: 0.3,
+		specialBehavior: "drain",
+	},
+
+	drops: [{ type: "salvage", min: 5, max: 10, chance: 0.5 }],
+
+	tags: ["IsUnit", "IsDrainer"],
+};
