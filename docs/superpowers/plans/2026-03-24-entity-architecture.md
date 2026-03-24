@@ -1,688 +1,337 @@
-# Entity Architecture Redesign — Implementation Plan
+# Entity Architecture — Implementation Plan (Revised)
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Restructure codebase so every entity (unit, building, resource, terrain, portrait) is a single TypeScript file containing sprite data + stats + behavior, with runtime Canvas→Phaser texture rendering that actually produces visible pixel art.
+**Goal:** Restructure the codebase around entity-centric definitions with tests-as-specifications driving all implementation.
 
-**Architecture:** Entity definitions are TypeScript modules with ASCII sprite grids and gameplay data. At boot, a renderer converts ASCII grids to Canvas elements at device-appropriate scale and registers them as Phaser textures. A spawner reads definitions to create Koota entities with correct traits. Map terrain uses hybrid regions + tile overrides, painted onto a background Canvas at load time.
+**Philosophy:** Write tests that define what things SHOULD be FIRST. Then build until the tests pass. Tests are the design documents in code form.
 
-**Tech Stack:** Phaser 3.90 (textures.addCanvas), Koota ECS, TypeScript, Vitest
+**Architecture:** Entity definitions are TypeScript modules with ASCII sprites + stats. Runtime renderer converts to Phaser textures. Spawner creates Koota entities from definitions. Map painter renders terrain from region declarations. 3-layer test strategy: specification → visual → integration.
+
+**Tech Stack:** Phaser 3.90, Koota ECS, Yuka AI, Vitest, @vitest/browser-playwright
+
+**Design Docs:** `docs/design/` (game-design-document, art-direction, balance-framework, audio-design, mission-design-guide)
+
+**Architecture Docs:** `docs/architecture/` (overview, testing-strategy)
 
 **Spec:** `docs/superpowers/specs/2026-03-24-entity-architecture-design.md`
 
-**POC Reference:** `docs/references/poc_handdrawn.html` (ASCII sprite rendering pattern)
+---
+
+## Phase A: Foundation (Types + Renderer + Palette)
+
+### Task A1: Type System + Palette
+**Owner:** types-agent
+**Files:** Create `src/entities/types.ts`, `src/entities/palette.ts`
+**Deps:** None
+
+### Task A2: Sprite Renderer
+**Owner:** renderer-agent
+**Files:** Create `src/entities/renderer.ts`
+**Deps:** A1
+
+### Task A3: Entity Spawner
+**Owner:** renderer-agent
+**Files:** Create `src/entities/spawner.ts`
+**Deps:** A1, A2
+
+### Task A4: Terrain Tile Definitions + Map Painter
+**Owner:** terrain-agent
+**Files:** Create `src/entities/terrain/tiles.ts`, `src/entities/terrain/map-painter.ts`
+**Deps:** A1, A2
 
 ---
 
-## File Map
+## Phase B: Specification Tests (Tests FIRST — define what everything should be)
 
-### Create (new files)
-```
-src/entities/
-├── types.ts                          # All type interfaces (UnitDef, BuildingDef, etc.)
-├── palette.ts                        # PALETTE constant (shared color mapping)
-├── renderer.ts                       # ASCII grid → Canvas → Phaser texture
-├── spawner.ts                        # Definition → Koota entity with traits
-├── registry.ts                       # Central registry: ALL_UNITS, ALL_BUILDINGS, etc.
-├── units/ura/river-rat.ts            # First unit definition (POC)
-├── units/ura/mudfoot.ts
-├── buildings/ura/command-post.ts     # First building definition
-├── buildings/ura/barracks.ts
-├── resources/fish-spot.ts            # First resource definition
-├── resources/mangrove-tree.ts
-├── terrain/tiles.ts                  # All terrain tile definitions
-├── terrain/map-painter.ts            # Region + override → painted Canvas
-├── portraits/foxhound.ts            # First portrait
-├── missions/chapter1/mission-01-beachhead.ts  # First mission (new format)
-```
+### Task B1: Unit Stat Specification Tests
+**Owner:** spec-tester
+**Files:** Create `src/__tests__/specs/entities/unit-stats.test.ts`
+**Deps:** A1 (types only — tests import types, not implementations)
 
-### Modify (existing files)
-```
-src/Scenes/BootScene.ts               # Wire renderer to generate all textures at boot
-src/Scenes/GameScene.ts               # Wire spawner + map-painter for mission loading
-src/config/game.config.ts             # Expose game instance for texture access
-vitest.config.ts                      # Ensure new paths are included
-```
-
-### Delete (after migration complete)
-```
-src/sprites/                          # Entire directory (parser, compiler, atlas, vitePlugin, .sprite files)
-src/data/                             # units.ts, buildings.ts, research.ts, factions.ts
-src/maps/                             # Old mission map data files
-```
-
----
-
-## Task 1: Type System + Palette
-
-**Files:**
-- Create: `src/entities/types.ts`
-- Create: `src/entities/palette.ts`
-- Test: `src/__tests__/entities/types.test.ts`
-
-- [ ] **Step 1: Write type interfaces**
-
-Create `src/entities/types.ts` with all interfaces from the spec: `SpriteDef`, `UnitDef`, `HeroDef`, `BuildingDef`, `ResourceDef`, `TerrainTileDef`, `PortraitDef`, `ResearchDef`, `MissionDef`, `TerrainRegion`, `TileOverride`, `Placement`, `DifficultyModifier`. These are pure types — no runtime code.
-
-- [ ] **Step 2: Create the shared palette**
-
-Create `src/entities/palette.ts` following the POC's pattern:
+Write tests that assert EVERY unit's stats match the design docs. These tests will FAIL until entity definitions are written.
 
 ```typescript
-export const PALETTE: Record<string, string> = {
-  '.': 'transparent',
-  '#': '#000000',   // Black outline
-  'S': '#ffcc99',   // Skin light
-  's': '#eebb88',   // Skin dark/shadow
-  'B': '#1e3a8a',   // Blue primary (URA)
-  'b': '#3b82f6',   // Blue secondary (URA)
-  'R': '#7f1d1d',   // Red primary (Scale-Guard)
-  'r': '#ef4444',   // Red secondary
-  'G': '#166534',   // Dark green (leaves/jungle)
-  'g': '#22c55e',   // Light green
-  'W': '#78350f',   // Dark wood
-  'w': '#b45309',   // Light wood
-  'Y': '#eab308',   // Gold/yellow
-  'y': '#fef08a',   // Light gold
-  'C': '#4b5563',   // Dark stone
-  'c': '#9ca3af',   // Light stone
-  'M': '#1f2937',   // Dark interior
-  'T': '#0d9488',   // Teal (water/otter)
-  't': '#5eead4',   // Light teal
-  'O': '#c2410c',   // Orange (enemy accent)
-  'o': '#fb923c',   // Light orange
-  'P': '#7e22ce',   // Purple (poison/special)
-  'p': '#c084fc',   // Light purple
-};
-```
-
-- [ ] **Step 3: Write a type-check test**
-
-```typescript
-// src/__tests__/entities/types.test.ts
-import { describe, it, expect } from 'vitest';
-import { PALETTE } from '@/entities/palette';
-import type { UnitDef, BuildingDef, SpriteDef } from '@/entities/types';
-
-describe('PALETTE', () => {
-  it('has transparent mapped to "."', () => {
-    expect(PALETTE['.']).toBe('transparent');
-  });
-  it('has at least 20 color entries', () => {
-    expect(Object.keys(PALETTE).length).toBeGreaterThanOrEqual(20);
-  });
-  it('all non-transparent values are valid hex colors', () => {
-    for (const [key, val] of Object.entries(PALETTE)) {
-      if (val !== 'transparent') {
-        expect(val).toMatch(/^#[0-9a-fA-F]{6}$/);
-      }
-    }
-  });
-});
-```
-
-- [ ] **Step 4: Run test, verify pass**
-
-Run: `pnpm vitest run src/__tests__/entities/types.test.ts`
-
-- [ ] **Step 5: Commit**
-
-`git commit -m "✨ feat(entities): add type system and shared palette"`
-
----
-
-## Task 2: Sprite Renderer
-
-**Files:**
-- Create: `src/entities/renderer.ts`
-- Test: `src/__tests__/entities/renderer.test.ts`
-
-- [ ] **Step 1: Write failing test for single-frame rendering**
-
-```typescript
-// src/__tests__/entities/renderer.test.ts
-import { describe, it, expect, beforeAll } from 'vitest';
-import { renderSprite, renderAllSprites } from '@/entities/renderer';
-import { PALETTE } from '@/entities/palette';
-import type { SpriteDef } from '@/entities/types';
-
-// Need ImageData polyfill for happy-dom
-beforeAll(() => {
-  if (typeof globalThis.ImageData === 'undefined') {
-    globalThis.ImageData = class ImageData {
-      width: number; height: number; data: Uint8ClampedArray;
-      constructor(w: number, h: number) {
-        this.width = w; this.height = h;
-        this.data = new Uint8ClampedArray(w * h * 4);
-      }
-    } as any;
-  }
-});
-
-const testSprite: SpriteDef = {
-  size: 4,
-  frames: {
-    idle: [[
-      '.##.',
-      '#BB#',
-      '#BB#',
-      '.##.',
-    ]]
-  }
-};
-
-describe('renderSprite', () => {
-  it('creates a canvas with correct dimensions at scale 1', () => {
-    const canvas = renderSprite(testSprite, 'idle', 0, 1);
-    expect(canvas.width).toBe(4);
-    expect(canvas.height).toBe(4);
-  });
-
-  it('scales dimensions correctly at scale 3', () => {
-    const canvas = renderSprite(testSprite, 'idle', 0, 3);
-    expect(canvas.width).toBe(12);
-    expect(canvas.height).toBe(12);
-  });
-
-  it('draws non-transparent pixels', () => {
-    const canvas = renderSprite(testSprite, 'idle', 0, 1);
-    const ctx = canvas.getContext('2d')!;
-    const pixel = ctx.getImageData(1, 0, 1, 1).data; // '#' at (1,0) = black
-    expect(pixel[3]).toBeGreaterThan(0); // not transparent
-  });
-
-  it('leaves transparent pixels empty', () => {
-    const canvas = renderSprite(testSprite, 'idle', 0, 1);
-    const ctx = canvas.getContext('2d')!;
-    const pixel = ctx.getImageData(0, 0, 1, 1).data; // '.' at (0,0)
-    expect(pixel[3]).toBe(0); // transparent
-  });
-});
-```
-
-- [ ] **Step 2: Run test, verify FAIL** (renderSprite not defined)
-
-- [ ] **Step 3: Implement renderer**
-
-```typescript
-// src/entities/renderer.ts
-import { PALETTE } from './palette';
-import type { SpriteDef } from './types';
-
-/**
- * Render a single animation frame from a SpriteDef to an offscreen Canvas.
- * Each character in the ASCII grid maps to a PALETTE color.
- * Scale multiplies the pixel size for crispy pixel art at any resolution.
- */
-export function renderSprite(
-  sprite: SpriteDef,
-  animation: string,
-  frameIndex: number,
-  scale: number,
-): HTMLCanvasElement {
-  const frames = sprite.frames[animation];
-  if (!frames || !frames[frameIndex]) {
-    throw new Error(`No frame ${animation}[${frameIndex}]`);
-  }
-  const grid = frames[frameIndex];
-  const h = grid.length;
-  const w = grid[0].length;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = w * scale;
-  canvas.height = h * scale;
-  const ctx = canvas.getContext('2d')!;
-
-  // Critical: disable smoothing for crispy pixels
-  ctx.imageSmoothingEnabled = false;
-
-  for (let y = 0; y < h; y++) {
-    const row = grid[y];
-    for (let x = 0; x < row.length; x++) {
-      const char = row[x];
-      const color = PALETTE[char];
-      if (color && color !== 'transparent') {
-        ctx.fillStyle = color;
-        ctx.fillRect(x * scale, y * scale, scale, scale);
-      }
-    }
-  }
-
-  return canvas;
-}
-
-/**
- * Determine scale factor based on device/canvas size.
- * Units (16px grid): 2x mobile, 3x tablet, 3-4x desktop
- * Buildings (32px grid): 2-3x
- * Portraits (64x96): 1-2x
- */
-export function getScaleFactor(gridSize: number): number {
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-  if (gridSize >= 64) return Math.max(1, Math.round(dpr));        // portraits
-  if (gridSize >= 32) return Math.max(2, Math.round(dpr * 1.5));  // buildings
-  return Math.max(2, Math.round(dpr * 2));                         // units/terrain (16px)
-}
-
-/**
- * Register a SpriteDef as Phaser textures.
- * Creates one texture per animation frame: "{id}" for idle[0],
- * "{id}_{anim}_{frame}" for others.
- */
-export function registerSpriteTextures(
-  textures: Phaser.Textures.TextureManager,
-  id: string,
-  sprite: SpriteDef,
-  scale?: number,
-): void {
-  const s = scale ?? getScaleFactor(sprite.size);
-
-  for (const [anim, frames] of Object.entries(sprite.frames)) {
-    for (let i = 0; i < frames.length; i++) {
-      const canvas = renderSprite(sprite, anim, i, s);
-      const key = anim === 'idle' && i === 0 ? id : `${id}_${anim}_${i}`;
-      if (!textures.exists(key)) {
-        textures.addCanvas(key, canvas);
-      }
-    }
-  }
-}
-```
-
-- [ ] **Step 4: Run tests, verify PASS**
-
-- [ ] **Step 5: Commit**
-
-`git commit -m "✨ feat(entities): implement ASCII grid → Canvas sprite renderer"`
-
----
-
-## Task 3: First Unit Definition (Mudfoot) + First Building (Command Post)
-
-**Files:**
-- Create: `src/entities/units/ura/mudfoot.ts`
-- Create: `src/entities/units/ura/river-rat.ts`
-- Create: `src/entities/buildings/ura/command-post.ts`
-- Create: `src/entities/buildings/ura/barracks.ts`
-- Test: `src/__tests__/entities/definitions.test.ts`
-
-- [ ] **Step 1: Create mudfoot definition**
-
-Model the sprite after the POC's `peasant`/`footman` pattern — 16×16 grid with body/head/limbs drawn from PALETTE chars. Include all gameplay stats from the spec.
-
-```typescript
-// src/entities/units/ura/mudfoot.ts
+// Example: test imports the definition (which doesn't exist yet) and validates it
 import type { UnitDef } from '@/entities/types';
 
-export const mudfoot: UnitDef = {
-  id: 'mudfoot',
-  name: 'MUDFOOT',
-  faction: 'ura',
-  category: 'infantry',
-
-  sprite: {
-    size: 16,
-    frames: {
-      idle: [[
-        '......####......',
-        '.....#TTTT#.....',
-        '.....#tttt#.....',
-        '......####......',
-        '.....#bbbb#.....',
-        '....#bbbbbb#....',
-        '....#bBBBBb#....',
-        '....#bBBBBb#.##.',
-        '.....#BBBB##cC#.',
-        '.....#BBBB#.##..',
-        '.....#WWWW#.....',
-        '.....#wwww#.....',
-        '.....#WWWW#.....',
-        '.....#WWWW#.....',
-        '....###..###....',
-        '................',
-      ]],
-      walk: [[
-        '......####......',
-        '.....#TTTT#.....',
-        '.....#tttt#.....',
-        '......####......',
-        '.....#bbbb#.....',
-        '....#bbbbbb#....',
-        '....#bBBBBb#....',
-        '....#bBBBBb#.##.',
-        '.....#BBBB##cC#.',
-        '.....#BBBB#.##..',
-        '.....#WWWW#.....',
-        '.....#wwww#.....',
-        '.....#WW..#.....',
-        '.....#..WW#.....',
-        '....###..###....',
-        '................',
-      ]],
-    },
-  },
-
-  hp: 80,
-  armor: 2,
-  damage: 12,
-  range: 1,
-  attackCooldown: 1.0,
-  speed: 8,
-  visionRadius: 5,
-
-  cost: { fish: 80, salvage: 20 },
-  populationCost: 1,
-  trainTime: 10,
-  trainedAt: 'barracks',
-  unlockedAt: 'mission-01',
-
-  tags: ['IsUnit'],
-};
-```
-
-- [ ] **Step 2: Create river-rat definition** (worker unit — similar pattern but with tool sprite, add gather fields)
-
-- [ ] **Step 3: Create command-post definition** (32×32 building sprite following POC's `townhall` pattern)
-
-- [ ] **Step 4: Create barracks definition** (32×32 building sprite following POC's `barracks` pattern)
-
-- [ ] **Step 5: Write validation test**
-
-```typescript
-// src/__tests__/entities/definitions.test.ts
-import { describe, it, expect } from 'vitest';
-import { mudfoot } from '@/entities/units/ura/mudfoot';
-import { riverRat } from '@/entities/units/ura/river-rat';
-import { commandPost } from '@/entities/buildings/ura/command-post';
-import { barracks } from '@/entities/buildings/ura/barracks';
-import { PALETTE } from '@/entities/palette';
-
-describe('Unit definitions', () => {
-  it('mudfoot has valid sprite frames', () => {
-    const frame = mudfoot.sprite.frames.idle[0];
-    expect(frame.length).toBe(16); // 16 rows
-    expect(frame[0].length).toBe(16); // 16 cols
+describe('Mudfoot specification', () => {
+  // This test defines what the mudfoot SHOULD be
+  it('has 80 HP, 2 armor, 12 damage, range 1, speed 8', () => {
+    // Will import from '@/entities/units/ura/mudfoot' once it exists
+    expect(mudfoot.hp).toBe(80);
+    expect(mudfoot.armor).toBe(2);
+    expect(mudfoot.damage).toBe(12);
+    expect(mudfoot.range).toBe(1);
+    expect(mudfoot.speed).toBe(8);
   });
 
-  it('mudfoot sprite uses only valid palette chars', () => {
-    for (const [anim, frames] of Object.entries(mudfoot.sprite.frames)) {
-      for (const frame of frames) {
-        for (const row of frame) {
-          for (const char of row) {
-            expect(PALETTE).toHaveProperty(char);
-          }
+  it('costs 80 fish and 20 salvage', () => {
+    expect(mudfoot.cost).toEqual({ fish: 80, salvage: 20 });
+  });
+
+  it('has a 16x16 sprite with idle and walk frames', () => {
+    expect(mudfoot.sprite.size).toBe(16);
+    expect(mudfoot.sprite.frames.idle).toBeDefined();
+    expect(mudfoot.sprite.frames.idle.length).toBeGreaterThanOrEqual(1);
+    expect(mudfoot.sprite.frames.walk).toBeDefined();
+    expect(mudfoot.sprite.frames.walk.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('sprite grid uses only valid palette characters', () => {
+    for (const frame of mudfoot.sprite.frames.idle) {
+      for (const row of frame) {
+        expect(row.length).toBe(16);
+        for (const char of row) {
+          expect(PALETTE).toHaveProperty(char);
         }
       }
     }
   });
 
-  it('mudfoot stats match spec', () => {
-    expect(mudfoot.hp).toBe(80);
-    expect(mudfoot.armor).toBe(2);
-    expect(mudfoot.damage).toBe(12);
-    expect(mudfoot.cost).toEqual({ fish: 80, salvage: 20 });
-  });
-
-  it('command-post is 32x32', () => {
-    expect(commandPost.sprite.size).toBe(32);
-    const frame = commandPost.sprite.frames.idle[0];
-    expect(frame.length).toBe(32);
-    expect(frame[0].length).toBe(32);
+  it('trains at barracks, unlocks at mission-01', () => {
+    expect(mudfoot.trainedAt).toBe('barracks');
+    expect(mudfoot.unlockedAt).toBe('mission-01');
   });
 });
 ```
 
-- [ ] **Step 6: Run tests, verify PASS**
-- [ ] **Step 7: Commit**
+Write these for ALL 13 URA units + 6 Scale-Guard units + 6 heroes = 25 unit specs.
 
-`git commit -m "✨ feat(entities): add mudfoot, river-rat, command-post, barracks definitions"`
+### Task B2: Building Stat Specification Tests
+**Owner:** spec-tester
+**Files:** Create `src/__tests__/specs/entities/building-stats.test.ts`
+**Deps:** A1
+
+Same pattern for ALL 12 URA buildings + 5 Scale-Guard buildings = 17 building specs.
+
+### Task B3: Combat Outcome Specification Tests
+**Owner:** balance-tester
+**Files:** Create `src/__tests__/specs/combat/melee-outcomes.test.ts`, `ranged-outcomes.test.ts`, `building-damage.test.ts`
+**Deps:** A1
+
+Tests that define the counter matrix from balance-framework.md:
+- Gator beats Mudfoot 1v1 with >50% HP remaining
+- 3 Mudfoots beat 2 Gators with 1-2 survivors
+- Shellcracker kites Gator (wins at range 5 vs speed 5)
+- Sapper does 30 damage to buildings (45 with research)
+- Mortar AoE hits all units in 2-tile splash
+
+### Task B4: Economy Curve Specification Tests
+**Owner:** balance-tester
+**Files:** Create `src/__tests__/specs/economy/gather-rates.test.ts`, `build-order.test.ts`, `population.test.ts`
+**Deps:** A1
+
+Tests from balance-framework.md:
+- 2 workers gathering 60s → ~120 fish
+- Fish Trap income: +3 fish per 10s
+- Build order timeline matches design (Barracks at ~1min)
+- Burrow provides +6 pop cap (not Fish Trap)
+- Population limit: 10 burrows × 6 = 60 max
+
+### Task B5: Sprite Validity Specification Tests
+**Owner:** spec-tester
+**Files:** Create `src/__tests__/specs/entities/sprite-validity.test.ts`
+**Deps:** A1
+
+Tests from art-direction.md:
+- Every unit sprite is 16×16
+- Every building sprite is 32×32
+- Every portrait sprite is 64×96
+- All characters in all grids exist in PALETTE
+- No row length mismatches (every row same length as declared size)
+- Every entity has at least an idle frame
+- URA units have 'B' or 'b' chars in torso region (rows 4-9)
+- Scale-Guard units have 'R' or 'r' chars in torso region
+
+### Task B6: Research Effect Specification Tests
+**Owner:** balance-tester
+**Files:** Create `src/__tests__/specs/entities/research-effects.test.ts`
+**Deps:** A1
+
+- Hardshell Armor: +20 HP to Mudfoots (80→100)
+- Fish Oil Arrows: +3 damage to Shellcrackers (10→13)
+- Demolition Training: +50% Sapper building damage (30→45)
+- Each research costs correct resources and time
+
+### Task B7: Mission Structure Specification Tests
+**Owner:** spec-tester
+**Files:** Create `src/__tests__/specs/scenarios/mission-structure.test.ts`
+**Deps:** A1
+
+For each of the 16 missions:
+- Has valid terrain (width/height > 0, at least one fill region)
+- All placement entity types exist in registry
+- All zone references have matching zone definitions
+- Briefing has portrait + at least 2 lines
+- Has at least 1 primary objective
+- Has par time defined
+- Has starting resources defined
 
 ---
 
-## Task 4: Entity Spawner
+## Phase C: Entity Definitions (satisfy the Phase B tests)
 
-**Files:**
-- Create: `src/entities/spawner.ts`
-- Test: `src/__tests__/entities/spawner.test.ts`
+### Task C1: All URA Unit Definitions
+**Owner:** sprite-artist
+**Files:** Create `src/entities/units/ura/*.ts` (7 files)
+**Deps:** A1, A2 (and B1+B5 tests exist to validate against)
 
-- [ ] **Step 1: Write failing test**
+Draw ASCII sprites following art-direction.md rules. Set stats from design docs. Run B1+B5 tests to validate.
 
-```typescript
-import { describe, it, expect } from 'vitest';
-import { createWorld } from 'koota';
-import { spawnUnit, spawnBuilding } from '@/entities/spawner';
-import { mudfoot } from '@/entities/units/ura/mudfoot';
-import { commandPost } from '@/entities/buildings/ura/command-post';
-import { Position } from '@/ecs/traits/spatial';
-import { Health } from '@/ecs/traits/combat';
-import { UnitType, Faction } from '@/ecs/traits/identity';
+### Task C2: All Scale-Guard Unit Definitions
+**Owner:** sprite-artist
+**Files:** Create `src/entities/units/scale-guard/*.ts` (6 files)
+**Deps:** A1, A2
 
-describe('spawner', () => {
-  it('spawns a unit with correct traits from definition', () => {
-    const world = createWorld();
-    const entity = spawnUnit(world, mudfoot, 10, 20, 'ura');
+### Task C3: All Hero Definitions
+**Owner:** sprite-artist
+**Files:** Create `src/entities/units/heroes/*.ts` (6 files)
+**Deps:** A1, A2
 
-    const pos = entity.get(Position);
-    expect(pos?.x).toBe(10);
-    expect(pos?.y).toBe(20);
+### Task C4: All URA Building Definitions
+**Owner:** building-artist
+**Files:** Create `src/entities/buildings/ura/*.ts` (12 files)
+**Deps:** A1, A2
 
-    const health = entity.get(Health);
-    expect(health?.max).toBe(80);
-    expect(health?.current).toBe(80);
+### Task C5: All Scale-Guard Building Definitions
+**Owner:** building-artist
+**Files:** Create `src/entities/buildings/scale-guard/*.ts` (5 files)
+**Deps:** A1, A2
 
-    const type = entity.get(UnitType);
-    expect(type?.type).toBe('mudfoot');
+### Task C6: Resource + Prop Definitions
+**Owner:** building-artist
+**Files:** Create `src/entities/resources/*.ts` (3 files), `src/entities/props/*.ts` (2 files)
+**Deps:** A1, A2
 
-    const faction = entity.get(Faction);
-    expect(faction?.id).toBe('ura');
-  });
+### Task C7: Portrait Definitions
+**Owner:** sprite-artist
+**Files:** Create `src/entities/portraits/*.ts` (7 files)
+**Deps:** A1, A2
 
-  it('spawns a building with correct traits', () => {
-    const world = createWorld();
-    const entity = spawnBuilding(world, commandPost, 5, 5, 'ura');
+### Task C8: Research Definitions
+**Owner:** building-artist
+**Files:** Create `src/entities/research.ts`
+**Deps:** A1
 
-    const health = entity.get(Health);
-    expect(health?.max).toBe(600); // command post HP from spec
-  });
-});
+### Task C9: Entity Registry
+**Owner:** sprite-artist (or building-artist, whoever finishes first)
+**Files:** Create `src/entities/registry.ts`
+**Deps:** C1-C8 (needs all definitions to import)
+
+---
+
+## Phase D: Visual Specification Tests (Vitest Browser — screenshots)
+
+### Task D1: Unit Sprite Render Tests
+**Owner:** visual-tester
+**Files:** Create `src/__tests__/visual/sprites/unit-renders.test.ts`
+**Deps:** C1, C2, C3 (needs actual sprites to render)
+
+For each unit: render at 3x, verify dimensions, sample faction color pixels, take screenshot baseline.
+
+### Task D2: Building + Portrait + Terrain Render Tests
+**Owner:** visual-tester
+**Files:** Create `src/__tests__/visual/sprites/building-renders.test.ts`, `portrait-renders.test.ts`, `terrain-painting.test.ts`
+**Deps:** C4, C5, C7, A4
+
+---
+
+## Phase E: Mission Definitions
+
+### Task E1: Mission 1-4 Definitions (Chapter 1)
+**Owner:** mission-designer
+**Files:** Create `src/entities/missions/chapter1/*.ts`
+**Deps:** A4, C9 (needs terrain tiles + entity registry)
+
+### Task E2: Mission 5-8 Definitions (Chapter 2)
+**Owner:** mission-designer
+**Deps:** E1
+
+### Task E3: Mission 9-12 Definitions (Chapter 3)
+**Owner:** mission-designer
+**Deps:** E1
+
+### Task E4: Mission 13-16 Definitions (Chapter 4)
+**Owner:** mission-designer
+**Deps:** E1
+
+### Task E5: Mission Index + Campaign Structure
+**Owner:** mission-designer
+**Files:** Create `src/entities/missions/index.ts`
+**Deps:** E1-E4
+
+---
+
+## Phase F: Scene Wiring + Integration
+
+### Task F1: Wire BootScene (renderer → textures)
+**Owner:** integration-agent
+**Files:** Modify `src/Scenes/BootScene.ts`
+**Deps:** A2, C9
+
+### Task F2: Wire GameScene (spawner + map painter)
+**Owner:** integration-agent
+**Files:** Modify `src/Scenes/GameScene.ts`
+**Deps:** A3, A4, E1
+
+### Task F3: Wire BriefingScene (portraits + dialogue)
+**Owner:** integration-agent
+**Files:** Modify `src/Scenes/BriefingScene.ts`
+**Deps:** C7, E1
+
+### Task F4: Integration Tests (full pipeline)
+**Owner:** integration-agent
+**Files:** Update `src/__tests__/browser/*.test.ts`
+**Deps:** F1, F2, F3
+
+### Task F5: Playtest with Chrome DevTools + Screenshots
+**Owner:** integration-agent
+**Deps:** F4
+
+---
+
+## Phase G: Cleanup + Tag
+
+### Task G1: Delete Old Code
+**Files:** Delete `src/sprites/`, `src/data/`, `src/maps/`
+**Deps:** F4 (all integration tests pass first)
+
+### Task G2: Final Verification
+**Deps:** G1
+
+Run all 3 test layers. Typecheck. Production build. Manual playtest Mission 1 end-to-end.
+
+Tag: `git tag v0.3.0-entity-architecture`
+
+---
+
+## Dependency Graph
+
+```
+A1 (types+palette)
+├── A2 (renderer) ──── A3 (spawner)
+├── A4 (terrain)
+├── B1-B7 (spec tests — can start immediately after A1)
+│
+├── C1-C8 (entity definitions — satisfy B tests)
+│   └── C9 (registry)
+│       ├── D1-D2 (visual tests)
+│       ├── E1-E5 (missions)
+│       │   └── F1-F3 (scene wiring)
+│       │       └── F4-F5 (integration + playtest)
+│       │           └── G1-G2 (cleanup + tag)
 ```
 
-- [ ] **Step 2: Implement spawner**
+## Agent Team (6 agents)
 
-`src/entities/spawner.ts` — reads a `UnitDef` or `BuildingDef` and calls `world.spawn()` with all appropriate Koota traits populated from the definition's stat values. Maps optional fields (canSwim, gatherCapacity, aiProfile, etc.) to their corresponding traits.
+| Agent | Owns | Parallel Track |
+|-------|------|---------------|
+| **types-agent** | A1, A2, A3, A4 | Foundation — everything depends on this |
+| **spec-tester** | B1, B2, B5, B7 | Write spec tests while foundation builds |
+| **balance-tester** | B3, B4, B6 | Write balance tests while foundation builds |
+| **sprite-artist** | C1, C2, C3, C7, C9 | Draw all unit + hero + portrait sprites |
+| **building-artist** | C4, C5, C6, C8 | Draw all building + resource + prop + research defs |
+| **mission-designer** | E1-E5, plus visual tests D1-D2 | Mission content + visual QC |
 
-- [ ] **Step 3: Run tests, verify PASS**
-- [ ] **Step 4: Commit**
-
-`git commit -m "✨ feat(entities): implement spawner — definition → Koota entity"`
-
----
-
-## Task 5: Terrain Tiles + Map Painter
-
-**Files:**
-- Create: `src/entities/terrain/tiles.ts`
-- Create: `src/entities/terrain/map-painter.ts`
-- Test: `src/__tests__/entities/map-painter.test.ts`
-
-- [ ] **Step 1: Define terrain tiles**
-
-```typescript
-// src/entities/terrain/tiles.ts
-import type { TerrainTileDef } from '@/entities/types';
-
-export const TERRAIN: Record<string, TerrainTileDef> = {
-  grass: {
-    id: 'grass',
-    name: 'Grass',
-    sprite: { size: 16, frames: { idle: [[ /* 16x16 green grid */ ]] } },
-    movementCost: 1,
-    blocksVision: false,
-    providesConcealment: false,
-    paintRules: {
-      baseColor: '#14532d',
-      noiseColors: ['#166534', '#15803d'],
-      noiseDensity: 0.3,
-    },
-  },
-  water: {
-    id: 'water',
-    name: 'Water',
-    sprite: { size: 16, frames: { idle: [[ /* 16x16 blue grid */ ]] } },
-    movementCost: Infinity,
-    swimCost: 2,
-    blocksVision: false,
-    providesConcealment: false,
-    paintRules: {
-      baseColor: '#1e3a5f',
-      noiseColors: ['#1e40af', '#2563eb'],
-      noiseDensity: 0.4,
-    },
-  },
-  // mud, dirt, mangrove, bridge, tall_grass, toxic_sludge, beach...
-};
-```
-
-- [ ] **Step 2: Implement map painter**
-
-`src/entities/terrain/map-painter.ts` — takes a `MissionDef.terrain` (regions + overrides) and paints a large offscreen Canvas:
-
-1. Fill canvas with base region (the one with `fill: true`)
-2. Paint each subsequent region using its shape (rect/circle/river)
-3. For each terrain type, apply `paintRules` noise (random scatter of noiseColors at noiseDensity)
-4. Apply sparse tile overrides
-5. Return the Canvas for Phaser to use as background
-
-- [ ] **Step 3: Write test**
-
-Test that `paintTerrain()` returns a Canvas with correct dimensions, that regions are painted in order, and that overrides take precedence.
-
-- [ ] **Step 4: Run tests, verify PASS**
-- [ ] **Step 5: Commit**
-
-`git commit -m "✨ feat(entities): add terrain tiles and hybrid region map painter"`
-
----
-
-## Task 6: First Mission Definition (Beachhead)
-
-**Files:**
-- Create: `src/entities/missions/chapter1/mission-01-beachhead.ts`
-- Test: `src/__tests__/entities/mission.test.ts`
-
-- [ ] **Step 1: Create mission definition**
-
-Using the new `MissionDef` type: define terrain regions (beach in south, jungle in north, river running east-west), placement zones (ura_start, resource_area, enemy_patrol), entity placements (3 river rats in ura_start zone, fish spot at exact coords, mangrove cluster in northern_forest zone), briefing lines, objectives, triggers, and starting resources.
-
-- [ ] **Step 2: Write test validating structure**
-
-Verify: terrain dimensions exist, at least one region has `fill: true`, all placements reference valid entity ids, all zone references in placements have matching zone definitions, briefing has at least one line.
-
-- [ ] **Step 3: Run test, verify PASS**
-- [ ] **Step 4: Commit**
-
-`git commit -m "✨ feat(entities): add Mission 1 Beachhead definition (new format)"`
-
----
-
-## Task 7: Wire Into BootScene + GameScene
-
-**Files:**
-- Modify: `src/Scenes/BootScene.ts`
-- Modify: `src/Scenes/GameScene.ts`
-- Create: `src/entities/registry.ts`
-
-- [ ] **Step 1: Create entity registry**
-
-`src/entities/registry.ts` — import all entity definitions, export them as lookup maps:
-
-```typescript
-import { mudfoot } from './units/ura/mudfoot';
-import { riverRat } from './units/ura/river-rat';
-import { commandPost } from './buildings/ura/command-post';
-// ...
-
-export const ALL_UNITS: Record<string, UnitDef> = {
-  mudfoot, river_rat: riverRat, // ...
-};
-export const ALL_BUILDINGS: Record<string, BuildingDef> = {
-  command_post: commandPost, // ...
-};
-// etc.
-```
-
-- [ ] **Step 2: Wire BootScene to render all textures**
-
-In `BootScene.create()`:
-1. Import registry
-2. For each definition with a sprite, call `registerSpriteTextures(this.textures, def.id, def.sprite)`
-3. Transition to MenuScene when done
-
-- [ ] **Step 3: Wire GameScene to use map painter + spawner**
-
-In `GameScene.create(data)`:
-1. Load mission definition from registry by missionId
-2. Call `paintTerrain(mission.terrain, tileSize, scale)` → register as background texture
-3. Create Phaser Image from background texture
-4. For each placement: look up definition, call `spawnUnit`/`spawnBuilding`/etc.
-5. Set starting resources from `mission.startResources`
-6. Initialize scenario engine with `mission.triggers`
-
-- [ ] **Step 4: Manual test — run `pnpm dev`, verify sprites render as pixel art not colored rectangles**
-
-- [ ] **Step 5: Commit**
-
-`git commit -m "✨ feat: wire entity renderer into BootScene + spawner into GameScene"`
-
----
-
-## Task 8: Remaining Entity Definitions
-
-**Files:** All remaining unit, building, resource, portrait, and prop definitions.
-
-- [ ] **Step 1:** Create remaining URA units: shellcracker, sapper, raftsman, mortar-otter, diver
-- [ ] **Step 2:** Create all Scale-Guard units: gator, viper, snapper, scout-lizard, croc-champion, siphon-drone
-- [ ] **Step 3:** Create all heroes: sgt-bubbles, gen-whiskers, cpl-splash, sgt-fang, medic-marina, pvt-muskrat
-- [ ] **Step 4:** Create remaining URA buildings: armory, watchtower, fish-trap, burrow, dock, field-hospital, sandbag-wall, stone-wall, gun-tower, minefield
-- [ ] **Step 5:** Create Scale-Guard buildings: sludge-pit, spawning-pool, venom-spire, siphon, scale-wall
-- [ ] **Step 6:** Create resources: fish-spot, mangrove-tree, salvage-cache
-- [ ] **Step 7:** Create portraits: foxhound, gen-whiskers, cpl-splash, sgt-fang, medic-marina, pvt-muskrat, sgt-bubbles
-- [ ] **Step 8:** Create props: tall-grass, toxic-sludge
-- [ ] **Step 9:** Create research definitions (can be one file: `src/entities/research.ts`)
-- [ ] **Step 10:** Update registry.ts with all new definitions
-- [ ] **Step 11:** Run full test suite: `pnpm vitest run`
-- [ ] **Step 12:** Commit: `🎨 feat(entities): add all unit, building, resource, portrait, prop, and research definitions`
-
----
-
-## Task 9: Remaining Mission Definitions
-
-**Files:** `src/entities/missions/chapter1/` through `chapter4/`
-
-- [ ] **Step 1:** Convert missions 2-4 to new MissionDef format (terrain regions + zone placements)
-- [ ] **Step 2:** Convert missions 5-8 (Chapter 2)
-- [ ] **Step 3:** Convert missions 9-12 (Chapter 3)
-- [ ] **Step 4:** Convert missions 13-16 (Chapter 4)
-- [ ] **Step 5:** Create mission index: `src/entities/missions/index.ts` with `CAMPAIGN` array
-- [ ] **Step 6:** Run tests, commit: `🎨 feat(entities): convert all 16 missions to new definition format`
-
----
-
-## Task 10: Delete Old Code + Final Verification
-
-**Files:**
-- Delete: `src/sprites/` (entire directory)
-- Delete: `src/data/` (units.ts, buildings.ts, research.ts, factions.ts, index.ts)
-- Delete: `src/maps/` (old mission map files)
-- Delete: old sprite-related tests
-
-- [ ] **Step 1:** Delete `src/sprites/` — parser, compiler, atlas, vitePlugin, all .sprite files, types.ts, index.ts
-- [ ] **Step 2:** Delete `src/data/` — all stat definition files (replaced by entity definitions)
-- [ ] **Step 3:** Delete `src/maps/missions/` — old tilemap data files (replaced by mission definitions)
-- [ ] **Step 4:** Update any remaining imports that reference deleted modules (grep for `@/sprites`, `@/data`, `@/maps`)
-- [ ] **Step 5:** Remove `smol-toml` from package.json dependencies
-- [ ] **Step 6:** Run `pnpm tsc --noEmit` — zero errors
-- [ ] **Step 7:** Run `pnpm vitest run` — all tests pass
-- [ ] **Step 8:** Run `pnpm dev` — verify game boots, menu renders, click New Deployment → briefing shows portrait → Deploy → game renders terrain + units with actual pixel art sprites
-- [ ] **Step 9:** Commit: `♻️ refactor: delete old sprite/data/map code — entity definitions are single source of truth`
-- [ ] **Step 10:** Tag: `git tag v0.3.0-entity-architecture`
+Integration (F1-F5, G1-G2) is led by the team lead after all other work converges.
