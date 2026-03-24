@@ -1,13 +1,15 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "@/config/game.config";
+import { world } from "@/ecs/world";
+import { DesktopInput } from "@/input/desktopInput";
+import { loadMission, TILE_SIZE } from "@/maps/loader";
+import { mission01Beachhead } from "@/maps/missions/mission-01-beachhead";
+import type { MissionMapData } from "@/maps/types";
 
 interface GameData {
 	missionId: number;
 	difficulty: "support" | "tactical" | "elite";
 }
-
-/** Tile size in pixels — matches spec §8.1 */
-export const TILE_SIZE = 32;
 
 export class GameScene extends Phaser.Scene {
 	private missionData!: GameData;
@@ -51,9 +53,25 @@ export class GameScene extends Phaser.Scene {
 			},
 		);
 
-		// Tilemap will be loaded here by Task #7 (tilemap renderer).
-		// For now, draw a placeholder grid so the scene is visually verifiable.
-		this.drawPlaceholderGrid();
+		// Load mission tilemap
+		const missionMaps: Record<number, MissionMapData> = {
+			1: mission01Beachhead,
+		};
+		const mapData = missionMaps[this.missionData.missionId];
+		if (mapData) {
+			const { tilemap } = loadMission(this, mapData);
+			const mapWidth = tilemap.widthInPixels;
+			const mapHeight = tilemap.heightInPixels;
+			this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
+			// Center camera on player start position
+			this.cameras.main.scrollX = mapData.playerStart.tileX * TILE_SIZE - GAME_WIDTH / 2;
+			this.cameras.main.scrollY = mapData.playerStart.tileY * TILE_SIZE - GAME_HEIGHT / 2;
+		} else {
+			this.drawPlaceholderGrid();
+		}
+
+		// Desktop input: selection (left-click/drag) + commands (right-click)
+		new DesktopInput(this, world);
 
 		// Launch HUD scene in parallel
 		this.scene.launch("HUD", {
