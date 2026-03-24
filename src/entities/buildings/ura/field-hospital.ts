@@ -1,57 +1,59 @@
-import type { BuildingDef } from "../../types";
+import type { BuildingDef, SPDSLSprite } from "../../types";
 
-/**
- * Field Hospital — URA healing structure.
- * Heals nearby units (+2 HP/s in 3-tile radius).
- * White/teal cross on blue roof.
- */
+// Field Hospital — URA healing. Blue roof with teal cross, teal windows.
+// Palette: resource_default — blue 'a'/'b', teal 'c'/'d', wood '4'/'5', interior 'g'
+
+// prettier-ignore
+const structure: string[][] = [
+	[
+		"00000000000000000000000000000000",
+		"000000000001aaaaaaaaab1000000000",
+		"00000000001aaadddaaaaab100000000",
+		"0000000001aaddddddaaab1000000000",
+		"00000000011aadddaaaaaab100000000",
+		"000000001aaaaaaaaaaaaaaab1000000",
+		"00000001aaaaaaaaaaaaaaaaab100000",
+		"00000011111111111111111111110000",
+		"00000015555555555555555555510000",
+		"00000015555555555555555555510000",
+		"00000015577775555555557777551000",
+		"00000015577d75555555557dd7551000",
+		"00000015577775555555557777551000",
+		"00000015555555555555555555510000",
+		"00000015555555555555555555510000",
+		"00000015555555555555555555510000",
+		"00000015555555555555555555510000",
+		"00000015555555555555555555510000",
+		"00000015555555555555555555510000",
+		"000000155555555111155555555510000",
+		"0000001555555551gg1555555551000",
+		"0000001555555551gg1555555551000",
+		"0000001555555551gg1555555551000",
+		"0000001555555551gg1555555551000",
+		"000000666666666666666666666670000",
+		"000000677777777777777777777670000",
+		"000000677777777777777777777670000",
+		"000000666666666666666666666670000",
+		"00000011111111111111111111111100",
+		"00000011111111111111111111111100",
+		"00000011111111111111111111111100",
+		"00000000000000000000000000000000",
+	],
+];
+
+const sprite: SPDSLSprite = {
+	palette: "resource_default",
+	layers: [{ id: "structure", zIndex: 1, grid: structure }],
+	animations: { idle: [{}] },
+};
+
 export const fieldHospital: BuildingDef = {
 	id: "field_hospital",
 	name: "Field Hospital",
 	faction: "ura",
 	category: "special",
 
-	sprite: {
-		size: 32,
-		frames: {
-			idle: [
-				[
-					"................................",
-					"...........#BBBBBBBBb#..........",
-					"..........#BBBBttBBBBb#.........",
-					".........#BBBBttttBBBBb#........",
-					"........#BBBBBttBBBBBBb#........",
-					".......#BBBBBBBBBBBBBBBb#.......",
-					"......#BBBBBBBBBBBBBBBBBb#......",
-					"......########################..",
-					"......#wwwwwwwwwwwwwwwwwwww#....",
-					"......#wwwwwwwwwwwwwwwwwwww#....",
-					"......#wwccccwwwwwwwwccccww#....",
-					"......#wwcttcwwwwwwwwcttcww#....",
-					"......#wwccccwwwwwwwwccccww#....",
-					"......#wwwwwwwwwwwwwwwwwwww#....",
-					"......#wwwwwwwwwwwwwwwwwwww#....",
-					"......#wwwwwwwwwwwwwwwwwwww#....",
-					"......#wwwwwwwwwwwwwwwwwwww#....",
-					"......#wwwwwwwwwwwwwwwwwwww#....",
-					"......#wwwwwwwwwwwwwwwwwwww#....",
-					"......#wwwwwwww####wwwwwwww#....",
-					"......#wwwwwwww#MM#wwwwwwww#....",
-					"......#wwwwwwww#MM#wwwwwwww#....",
-					"......#wwwwwwww#MM#wwwwwwww#....",
-					"......#wwwwwwww#MM#wwwwwwww#....",
-					"......CCCCCCCCCCCCCCCCCCCCcc....",
-					"......CcccccccccccccccccccCc....",
-					"......CcccccccccccccccccccCc....",
-					"......CCCCCCCCCCCCCCCCCCCCcc....",
-					"......########################..",
-					"......########################..",
-					"......########################..",
-					"................................",
-				],
-			],
-		},
-	},
+	sprite,
 
 	hp: 250,
 	armor: 0,

@@ -1,57 +1,59 @@
-import type { BuildingDef } from "../../types";
+import type { BuildingDef, SPDSLSprite } from "../../types";
 
-/**
- * Gun Tower — URA upgraded defensive tower.
- * 12 damage ranged attack. Requires Gun Emplacements research.
- * Taller, heavier stone profile than Watchtower.
- */
+// Gun Tower — URA upgraded defense. Heavier stone, blue trim, gun slits.
+// Palette: resource_default — stone '6'/'7', blue 'a'/'b', wood '4'/'5', interior 'g'
+
+// prettier-ignore
+const structure: string[][] = [
+	[
+		"00000000000000000000000000000000",
+		"00000000000066666666000000000000",
+		"00000000000676666666700000000000",
+		"00000000006766aaa6666700000000000",
+		"00000000006766abb6666700000000000",
+		"00000000006766aaa6666700000000000",
+		"00000000067666666666667000000000",
+		"00000000166666666666666710000000",
+		"00000000177777777777777710000000",
+		"00000000177555555555557710000000",
+		"00000000177556666555557710000000",
+		"00000000177556766555557710000000",
+		"00000000177556666555557710000000",
+		"00000000177555555555557710000000",
+		"00000000177555555555557710000000",
+		"00000000177555555566665571000000",
+		"00000000177555555567665571000000",
+		"00000000177555555566665571000000",
+		"00000000177555555555557710000000",
+		"00000000177555555555557710000000",
+		"0000000017755gggg55557710000000",
+		"0000000017755gggg55557710000000",
+		"0000000017755gggg55557710000000",
+		"0000000017755gggg55557710000000",
+		"00000000666666666666666670000000",
+		"00000000677777777777776670000000",
+		"00000000677777777777776670000000",
+		"00000000666666666666666670000000",
+		"00000000111111111111111111000000",
+		"00000000111111111111111111000000",
+		"00000000111111111111111111000000",
+		"00000000000000000000000000000000",
+	],
+];
+
+const sprite: SPDSLSprite = {
+	palette: "resource_default",
+	layers: [{ id: "structure", zIndex: 1, grid: structure }],
+	animations: { idle: [{}] },
+};
+
 export const gunTower: BuildingDef = {
 	id: "gun_tower",
 	name: "Gun Tower",
 	faction: "ura",
 	category: "defense",
 
-	sprite: {
-		size: 32,
-		frames: {
-			idle: [
-				[
-					"................................",
-					"............CCCCCCCC............",
-					"...........CcCCCCCCCc...........",
-					"..........CcCCBBBBCCCc..........",
-					"..........CcCCBbbBCCCc..........",
-					"..........CcCCBBBBCCCc..........",
-					".........CcCCCCCCCCCCCc.........",
-					"........#CCCCCCCCCCCCCCc#.......",
-					"........#cccccccccccccccc#......",
-					"........#ccwwwwwwwwwwwwcc#......",
-					"........#ccwwccccccwwwwcc#......",
-					"........#ccwwcCCCCcwwwwcc#......",
-					"........#ccwwccccccwwwwcc#......",
-					"........#ccwwwwwwwwwwwwcc#......",
-					"........#ccwwwwwwwwwwwwcc#......",
-					"........#ccwwwwwwccccwwcc#......",
-					"........#ccwwwwwwcCCcwwcc#......",
-					"........#ccwwwwwwccccwwcc#......",
-					"........#ccwwwwwwwwwwwwcc#......",
-					"........#ccwwwwwwwwwwwwcc#......",
-					"........#ccwwwwMMMMwwwwcc#......",
-					"........#ccwwwwMMMMwwwwcc#......",
-					"........#ccwwwwMMMMwwwwcc#......",
-					"........#ccwwwwMMMMwwwwcc#......",
-					"........CCCCCCCCCCCCCCCCCc......",
-					"........CcccccccccccccccCc......",
-					"........CcccccccccccccccCc......",
-					"........CCCCCCCCCCCCCCCCCc......",
-					"........##################......",
-					"........##################......",
-					"........##################......",
-					"................................",
-				],
-			],
-		},
-	},
+	sprite,
 
 	hp: 350,
 	armor: 0,

@@ -1,57 +1,59 @@
-import type { BuildingDef } from "../../types";
+import type { BuildingDef, SPDSLSprite } from "../../types";
 
-/**
- * Command Post — URA headquarters.
- * Workers, resource depot. One per base.
- * Wide triangular blue roof, centered door, two window rows.
- */
+// Command Post — URA headquarters. Wide triangular blue roof, centered door.
+// Palette: resource_default — blue 'a'/'b', wood '4'/'5', stone '6'/'7', interior 'g'
+
+// prettier-ignore
+const structure: string[][] = [
+	[
+		"00000000000000000000000000000000",
+		"00000000000000111100000000000000",
+		"000000000000011aaa1100000000000",
+		"0000000000011aaaaaaab1100000000",
+		"000000000011aaaaaaaaab110000000",
+		"00000000011aaaaaaaaaaaab1100000",
+		"0000000011aaaaaaaaaaaaaab110000",
+		"000000011aaaaaaaaaaaaaaaaab1000",
+		"00000111111111111111111111111000",
+		"00001555555555555555555555551000",
+		"00001555555555555555555555551000",
+		"00001557777555555555555577755100",
+		"00001557767555555555555576755100",
+		"00001557777555555555555577755100",
+		"00001555555555555555555555551000",
+		"00001555555555555555555555551000",
+		"00001555555555555555555555551000",
+		"00001557777555555555555577755100",
+		"00001557767555555555555576755100",
+		"00001557777555555555555577755100",
+		"000015555555555511115555555551000",
+		"0000155555555551gg15555555551000",
+		"0000155555555551gg15555555551000",
+		"0000155555555551gg15555555551000",
+		"00006666666666666666666666666700",
+		"00006777777777777777777777776700",
+		"00006777777777777777777777776700",
+		"00006666666666666666666666666700",
+		"00001111111111111111111111111111",
+		"00001111111111111111111111111111",
+		"00001111111111111111111111111111",
+		"00000000000000000000000000000000",
+	],
+];
+
+const sprite: SPDSLSprite = {
+	palette: "resource_default",
+	layers: [{ id: "structure", zIndex: 1, grid: structure }],
+	animations: { idle: [{}] },
+};
+
 export const commandPost: BuildingDef = {
 	id: "command_post",
 	name: "Command Post",
 	faction: "ura",
 	category: "production",
 
-	sprite: {
-		size: 32,
-		frames: {
-			idle: [
-				[
-					"................................",
-					"..............####..............",
-					"............##BBBB##............",
-					"..........##BBBBBBBb##..........",
-					".........#BBBBBBBBBBBb#.........",
-					"........#BBBBBBBBBBBBBb#........",
-					".......#BBBBBBBBBBBBBBBb#.......",
-					"......#BBBBBBBBBBBBBBBBBb#......",
-					".....########################...",
-					"....#wwwwwwwwwwwwwwwwwwwwwww#...",
-					"....#wwwwwwwwwwwwwwwwwwwwwww#...",
-					"....#wwccccwwwwwwwwwwwccccww#...",
-					"....#wwcCCcwwwwwwwwwwwcCCcww#...",
-					"....#wwccccwwwwwwwwwwwccccww#...",
-					"....#wwwwwwwwwwwwwwwwwwwwwww#...",
-					"....#wwwwwwwwwwwwwwwwwwwwwww#...",
-					"....#wwwwwwwwwwwwwwwwwwwwwww#...",
-					"....#wwccccwwwwwwwwwwwccccww#...",
-					"....#wwcCCcwwwwwwwwwwwcCCcww#...",
-					"....#wwccccwwwwwwwwwwwccccww#...",
-					"....#wwwwwwwwww####wwwwwwwww#...",
-					"....#wwwwwwwwww#MM#wwwwwwwww#...",
-					"....#wwwwwwwwww#MM#wwwwwwwww#...",
-					"....#wwwwwwwwww#MM#wwwwwwwww#...",
-					"....CCCCCCCCCCCCCCCCCCCCCCCCc...",
-					"....CcccccccccccccccccccccccCc..",
-					"....CcccccccccccccccccccccccCc..",
-					"....CCCCCCCCCCCCCCCCCCCCCCCCc...",
-					"....############################",
-					"....############################",
-					"....############################",
-					"................................",
-				],
-			],
-		},
-	},
+	sprite,
 
 	hp: 600,
 	armor: 0,

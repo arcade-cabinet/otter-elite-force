@@ -1,57 +1,59 @@
-import type { BuildingDef } from "../../types";
+import type { BuildingDef, SPDSLSprite } from "../../types";
 
-/**
- * Dock — URA naval training facility.
- * Trains Raftsmen, Divers. Must be placed on water edge.
- * Wooden pier structure with blue URA trim.
- */
+// Dock — URA naval training. Wooden pier, teal water accents.
+// Palette: resource_default — blue 'a'/'b', wood '4'/'5', teal 'c'/'d', interior 'g'
+
+// prettier-ignore
+const structure: string[][] = [
+	[
+		"00000000000000000000000000000000",
+		"0000000000aaaaaaaaaaab0000000000",
+		"000000000aaaaaaaaaaaab000000000",
+		"000000000abbbbbbbbbbab000000000",
+		"000000000aaaaaaaaaaaab000000000",
+		"00000000155555555555551000000000",
+		"00000000155555555555551000000000",
+		"0000000015555cccc5555551000000000",
+		"0000000015555cddc5555551000000000",
+		"0000000015555cccc5555551000000000",
+		"00000000155555555555551000000000",
+		"00000000155555555555551000000000",
+		"000000001555555cccc5551000000000",
+		"000000001555555cddc5551000000000",
+		"000000001555555cccc5551000000000",
+		"00000000155555555555551000000000",
+		"00000000155555555555551000000000",
+		"00000000155555555555551000000000",
+		"00000000155555555555551000000000",
+		"000000001555511115555551000000000",
+		"000000001555g1gg15555551000000000",
+		"000000001555g1gg15555551000000000",
+		"000000001555g1gg15555551000000000",
+		"000000001555g1gg15555551000000000",
+		"00000000666666666666666670000000",
+		"00000000677777777777776670000000",
+		"00000000677777777777776670000000",
+		"00000000666666666666666670000000",
+		"00000000111111111111111111000000",
+		"00000000111111111111111111000000",
+		"00000000111111111111111111000000",
+		"00000000000000000000000000000000",
+	],
+];
+
+const sprite: SPDSLSprite = {
+	palette: "resource_default",
+	layers: [{ id: "structure", zIndex: 1, grid: structure }],
+	animations: { idle: [{}] },
+};
+
 export const dock: BuildingDef = {
 	id: "dock",
 	name: "Dock",
 	faction: "ura",
 	category: "production",
 
-	sprite: {
-		size: 32,
-		frames: {
-			idle: [
-				[
-					"................................",
-					"..........BBBBBBBBBBBb..........",
-					".........BBBBBBBBBBBBBb.........",
-					".........BbbbbbbbbbbbBb.........",
-					".........BBBBBBBBBBBBBb.........",
-					"........#wwwwwwwwwwwwww#........",
-					"........#wwwwwwwwwwwwww#........",
-					"........#wwwwTTTTwwwwww#........",
-					"........#wwwwTttTwwwwww#........",
-					"........#wwwwTTTTwwwwww#........",
-					"........#wwwwwwwwwwwwww#........",
-					"........#wwwwwwwwwwwwww#........",
-					"........#wwwwwwwwTTTTww#........",
-					"........#wwwwwwwwTttTww#........",
-					"........#wwwwwwwwTTTTww#........",
-					"........#wwwwwwwwwwwwww#........",
-					"........#wwwwwwwwwwwwww#........",
-					"........#wwwwwwwwwwwwww#........",
-					"........#wwwwwwwwwwwwww#........",
-					"........#wwww####wwwwww#........",
-					"........#wwww#MM#wwwwww#........",
-					"........#wwww#MM#wwwwww#........",
-					"........#wwww#MM#wwwwww#........",
-					"........#wwww#MM#wwwwww#........",
-					"........CCCCCCCCCCCCCCCCc.......",
-					"........CccccccccccccccCc.......",
-					"........CccccccccccccccCc.......",
-					"........CCCCCCCCCCCCCCCCc.......",
-					"........##################......",
-					"........##################......",
-					"........##################......",
-					"................................",
-				],
-			],
-		},
-	},
+	sprite,
 
 	hp: 300,
 	armor: 0,

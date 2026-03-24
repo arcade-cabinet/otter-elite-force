@@ -1,57 +1,59 @@
-import type { BuildingDef } from "../../types";
+import type { BuildingDef, SPDSLSprite } from "../../types";
 
-/**
- * Fish Trap — URA passive economy building.
- * Generates +3 fish every 10 seconds.
- * Low wooden structure near water.
- */
+// Fish Trap — URA passive economy. Low wooden structure with teal nets.
+// Palette: resource_default — wood '4'/'5', teal 'c'/'d', stone '6'/'7'
+
+// prettier-ignore
+const structure: string[][] = [
+	[
+		"00000000000000000000000000000000",
+		"00000000000000000000000000000000",
+		"00000000000000000000000000000000",
+		"00000000000000000000000000000000",
+		"00000000000000000000000000000000",
+		"00000000005555555555550000000000",
+		"000000000544444444444450000000000",
+		"00000000544444444444444500000000",
+		"000000054555555555555544500000000",
+		"000000054555555555555544500000000",
+		"000000054555cccccccc5544500000000",
+		"000000054555cdddddcc5544500000000",
+		"000000054555cccccccc5544500000000",
+		"000000054555555555555544500000000",
+		"000000054555555555555544500000000",
+		"000000054555cccccccc5544500000000",
+		"000000054555cdddddcc5544500000000",
+		"000000054555cccccccc5544500000000",
+		"000000054555555555555544500000000",
+		"000000054555555555555544500000000",
+		"00000000544444444444444500000000",
+		"000000000544444444444450000000000",
+		"00000000005555555555550000000000",
+		"00000000000000000000000000000000",
+		"00000066666666666666666677000000",
+		"00000067777777777777777670000000",
+		"00000067777777777777777670000000",
+		"00000066666666666666666677000000",
+		"00000011111111111111111111110000",
+		"00000011111111111111111111110000",
+		"00000011111111111111111111110000",
+		"00000000000000000000000000000000",
+	],
+];
+
+const sprite: SPDSLSprite = {
+	palette: "resource_default",
+	layers: [{ id: "structure", zIndex: 1, grid: structure }],
+	animations: { idle: [{}] },
+};
+
 export const fishTrap: BuildingDef = {
 	id: "fish_trap",
 	name: "Fish Trap",
 	faction: "ura",
 	category: "economy",
 
-	sprite: {
-		size: 32,
-		frames: {
-			idle: [
-				[
-					"................................",
-					"................................",
-					"................................",
-					"................................",
-					"................................",
-					"..........wwwwwwwwwwww..........",
-					".........wWWWWWWWWWWWWw.........",
-					"........wWWWWWWWWWWWWWWw........",
-					".......wWwwwwwwwwwwwwwWWw.......",
-					".......wWwwwwwwwwwwwwwWWw.......",
-					".......wWwwTTTTTTTTwwwWWw.......",
-					".......wWwwTtttttTTwwwWWw.......",
-					".......wWwwTTTTTTTTwwwWWw.......",
-					".......wWwwwwwwwwwwwwwWWw.......",
-					".......wWwwwwwwwwwwwwwWWw.......",
-					".......wWwwTTTTTTTTwwwWWw.......",
-					".......wWwwTtttttTTwwwWWw.......",
-					".......wWwwTTTTTTTTwwwWWw.......",
-					".......wWwwwwwwwwwwwwwWWw.......",
-					".......wWwwwwwwwwwwwwwWWw.......",
-					"........wWWWWWWWWWWWWWWw........",
-					".........wWWWWWWWWWWWWw.........",
-					"..........wwwwwwwwwwww..........",
-					"................................",
-					"......CCCCCCCCCCCCCCCCCCcc......",
-					"......CcccccccccccccccccCc......",
-					"......CcccccccccccccccccCc......",
-					"......CCCCCCCCCCCCCCCCCCcc......",
-					"......########################..",
-					"......########################..",
-					"......########################..",
-					"................................",
-				],
-			],
-		},
-	},
+	sprite,
 
 	hp: 80,
 	armor: 0,

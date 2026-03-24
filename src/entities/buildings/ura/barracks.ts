@@ -1,56 +1,59 @@
-import type { BuildingDef } from "../../types";
+import type { BuildingDef, SPDSLSprite } from "../../types";
 
-/**
- * Barracks — URA infantry training facility.
- * Flat stone battlements roof. Trains Mudfoots and Shellcrackers.
- */
+// Barracks — URA infantry training. Flat stone battlements, stone roof.
+// Palette: resource_default — stone '6'/'7', blue 'a'/'b', wood '4'/'5', interior 'g'
+
+// prettier-ignore
+const structure: string[][] = [
+	[
+		"00000000000000000000000000000000",
+		"00000000000011111111000000000000",
+		"0000000000117777777711000000000",
+		"000000000176666666666710000000",
+		"00000000176666666666667100000000",
+		"0000000176666666666666671000000",
+		"00000011111111111111111111000000",
+		"00000017777777777777777771000000",
+		"000000176666666666666666710000000",
+		"00000017655555555555556710000000",
+		"00000017655555555555556710000000",
+		"00000017655555555555556710000000",
+		"000000176666666666666666710000000",
+		"00000017777777777777777771000000",
+		"000000176666666666666666710000000",
+		"000000176666666666666666710000000",
+		"000000176666666666666666710000000",
+		"000000176666666666666666710000000",
+		"000000176666666666666666710000000",
+		"0000001766666661111666667100000",
+		"00000017666666g1gg16666671000000",
+		"00000017666666g1gg16666671000000",
+		"00000017666666g1gg16666671000000",
+		"00000017666666g1gg16666671000000",
+		"00000066666666666666666666700000",
+		"00000067777777777777777776700000",
+		"00000067777777777777777776700000",
+		"00000066666666666666666666700000",
+		"00000011111111111111111111111111",
+		"00000011111111111111111111111111",
+		"00000011111111111111111111111111",
+		"00000000000000000000000000000000",
+	],
+];
+
+const sprite: SPDSLSprite = {
+	palette: "resource_default",
+	layers: [{ id: "structure", zIndex: 1, grid: structure }],
+	animations: { idle: [{}] },
+};
+
 export const barracks: BuildingDef = {
 	id: "barracks",
 	name: "Barracks",
 	faction: "ura",
 	category: "production",
 
-	sprite: {
-		size: 32,
-		frames: {
-			idle: [
-				[
-					"................................",
-					"............########............",
-					"..........##cccccccc##..........",
-					".........#cCCCCCCCCCCc#.........",
-					"........#cCCCCCCCCCCCCc#........",
-					".......#cCCCCCCCCCCCCCCc#.......",
-					"......####################......",
-					"......#cccccccccccccccccc#......",
-					"......#cCCCCCCCCCCCCCCCCc#......",
-					"......#cCbbbbbbbbbbbbbbCc#......",
-					"......#cCbbbbbbbbbbbbbbCc#......",
-					"......#cCbbbbbbbbbbbbbbCc#......",
-					"......#cCCCCCCCCCCCCCCCCc#......",
-					"......#cccccccccccccccccc#......",
-					"......#cCCCCCCCCCCCCCCCCc#......",
-					"......#cCCCCCCCCCCCCCCCCc#......",
-					"......#cCCCCCCCCCCCCCCCCc#......",
-					"......#cCCCCCCCCCCCCCCCCc#......",
-					"......#cCCCCCCCCCCCCCCCCc#......",
-					"......#cCCCCCCC####CCCCCc#......",
-					"......#cCCCCCCC#MM#CCCCCc#......",
-					"......#cCCCCCCC#MM#CCCCCc#......",
-					"......#cCCCCCCC#MM#CCCCCc#......",
-					"......#cCCCCCCC#MM#CCCCCc#......",
-					"......CCCCCCCCCCCCCCCCCCCCc.....",
-					"......CcccccccccccccccccccCc....",
-					"......CcccccccccccccccccccCc....",
-					"......CCCCCCCCCCCCCCCCCCCCc.....",
-					"......##########################",
-					"......##########################",
-					"......##########################",
-					"................................",
-				],
-			],
-		},
-	},
+	sprite,
 
 	hp: 350,
 	armor: 0,

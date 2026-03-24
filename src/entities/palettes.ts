@@ -81,6 +81,12 @@ export const PALETTES: PaletteRecord = {
 		e: "#7e22ce", // Purple dark
 		f: "#c084fc", // Purple light
 		g: "#1f2937", // Dark interior
+		h: "#7f1d1d", // Red dark (Scale-Guard buildings)
+		i: "#ef4444", // Red light
+		j: "#ffcc99", // Skin light (face detail)
+		k: "#eebb88", // Skin shadow
+		l: "#c2410c", // Orange dark (Scale-Guard accent)
+		m: "#fb923c", // Orange light
 	},
 
 	// Portraits — extended palette for high-detail busts

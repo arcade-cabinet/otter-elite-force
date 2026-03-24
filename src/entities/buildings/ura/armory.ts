@@ -1,57 +1,59 @@
-import type { BuildingDef } from "../../types";
+import type { BuildingDef, SPDSLSprite } from "../../types";
 
-/**
- * Armory — URA advanced training and research facility.
- * Trains Sappers, Mortar Otters. Houses all research.
- * Stone-roofed reinforced building with blue trim.
- */
+// Armory — URA advanced training + research. Stone roof, blue trim, windows.
+// Palette: resource_default — stone '6'/'7', blue 'a'/'b', wood '4'/'5', interior 'g'
+
+// prettier-ignore
+const structure: string[][] = [
+	[
+		"00000000000000000000000000000000",
+		"00000000001166666666110000000000",
+		"0000000001766666666667100000000",
+		"000000001766aaaaaaaaa6671000000",
+		"0000000176aaaaaaaaaaaa66710000000",
+		"00000017666666666666666671000000",
+		"0000017666666666666666666710000",
+		"00000111111111111111111111111000",
+		"00000155555555555555555555551000",
+		"00000154aaa4555555554aaa45551000",
+		"0000015455a4555555554b5a45551000",
+		"00000154aaa4555555554aaa45551000",
+		"00000155555555555555555555551000",
+		"00000155555555555555555555551000",
+		"00000157777555555555577775551000",
+		"00000157676555555555576765551000",
+		"00000157777555555555577775551000",
+		"00000155555555555555555555551000",
+		"00000155555555555555555555551000",
+		"000001555555555111155555555510000",
+		"00000155555555g1gg155555555510000",
+		"00000155555555g1gg155555555510000",
+		"00000155555555g1gg155555555510000",
+		"00000155555555g1gg155555555510000",
+		"00000666666666666666666666666700",
+		"00000677777777777777777777776700",
+		"00000677777777777777777777776700",
+		"00000666666666666666666666666700",
+		"00000111111111111111111111111110",
+		"00000111111111111111111111111110",
+		"00000111111111111111111111111110",
+		"00000000000000000000000000000000",
+	],
+];
+
+const sprite: SPDSLSprite = {
+	palette: "resource_default",
+	layers: [{ id: "structure", zIndex: 1, grid: structure }],
+	animations: { idle: [{}] },
+};
+
 export const armory: BuildingDef = {
 	id: "armory",
 	name: "Armory",
 	faction: "ura",
 	category: "production",
 
-	sprite: {
-		size: 32,
-		frames: {
-			idle: [
-				[
-					"................................",
-					"..........##CCCCCCCC##..........",
-					".........#CCCCCCCCCCCc#.........",
-					"........#CCCBBBBBBBBCCc#........",
-					".......#CCCBBBBBBBBBBCCc#.......",
-					"......#CCCCCCCCCCCCCCCCCc#......",
-					".....#CCCCCCCCCCCCCCCCCCCc#.....",
-					".....########################...",
-					".....#wwwwwwwwwwwwwwwwwwwwww#...",
-					".....#wwBBBBwwwwwwwwBBBBwww#....",
-					".....#wwBbbBwwwwwwwwBbbBwww#....",
-					".....#wwBBBBwwwwwwwwBBBBwww#....",
-					".....#wwwwwwwwwwwwwwwwwwwww#....",
-					".....#wwwwwwwwwwwwwwwwwwwww#....",
-					".....#wwccccwwwwwwwwccccwww#....",
-					".....#wwcCCcwwwwwwwwcCCcwww#....",
-					".....#wwccccwwwwwwwwccccwww#....",
-					".....#wwwwwwwwwwwwwwwwwwwww#....",
-					".....#wwwwwwwwwwwwwwwwwwwww#....",
-					".....#wwwwwwwww####wwwwwwww#....",
-					".....#wwwwwwwww#MM#wwwwwwww#....",
-					".....#wwwwwwwww#MM#wwwwwwww#....",
-					".....#wwwwwwwww#MM#wwwwwwww#....",
-					".....#wwwwwwwww#MM#wwwwwwww#....",
-					".....CCCCCCCCCCCCCCCCCCCCCCc....",
-					".....CcccccccccccccccccccccCc...",
-					".....CcccccccccccccccccccccCc...",
-					".....CCCCCCCCCCCCCCCCCCCCCCc....",
-					".....##########################.",
-					".....##########################.",
-					".....##########################.",
-					"................................",
-				],
-			],
-		},
-	},
+	sprite,
 
 	hp: 400,
 	armor: 0,
