@@ -1,7 +1,7 @@
 # OTTER: ELITE FORCE — RTS Pivot Design Specification
 
 **Date:** 2026-03-23
-**Status:** Draft — Pending Review
+**Status:** Draft v2 — Post-Review Revision
 **Tag:** v0.1.0-ddl-snapshot (pre-pivot baseline)
 
 ---
@@ -132,43 +132,48 @@ Color palette: Bleached Ektachrome whites, silt-brown water, burnt orange sunset
 
 | Unit | Role | Cost | Unlock | Train At |
 |------|------|------|--------|----------|
-| **River Rat** | Worker — gathers, builds, repairs | 50 Fish | Mission 1 | Command Post |
-| **Mudfoot** | Melee infantry | 80 Fish, 20 Salvage | Mission 1 | Barracks |
-| **Shellcracker** | Ranged infantry | 70 Fish, 30 Salvage | Mission 3 | Barracks |
-| **Sapper** | Anti-building siege | 100 Fish, 50 Salvage | Mission 5 | Armory |
-| **Raftsman** | Water transport | 60 Timber, 20 Salvage | Mission 7 | Dock |
-| **Mortar Otter** | Long range AoE | 80 Fish, 60 Salvage | Mission 9 | Armory |
-| **Diver** | Underwater scout | 60 Fish, 40 Salvage | Mission 8 (after Splash rescue) | Dock |
+| Unit | Role | Cost | HP | Armor | Damage | Range | Speed | Pop | Unlock | Train At |
+|------|------|------|----|-------|--------|-------|-------|-----|--------|----------|
+| **River Rat** | Worker — gathers, builds, repairs | 50 Fish | 40 | 0 | 5 (melee) | 1 | 10 | 1 | Mission 1 | Command Post |
+| **Mudfoot** | Melee infantry — front line | 80 Fish, 20 Salvage | 80 | 2 | 12 (melee) | 1 | 8 | 1 | Mission 1 | Barracks |
+| **Shellcracker** | Ranged infantry — DPS | 70 Fish, 30 Salvage | 50 | 0 | 10 (ranged) | 5 | 9 | 1 | Mission 3 | Barracks |
+| **Sapper** | Anti-building siege | 100 Fish, 50 Salvage | 60 | 1 | 30 vs buildings, 8 vs units | 1 | 7 | 1 | Mission 5 | Armory |
+| **Raftsman** | Water transport (carries 4) | 60 Timber, 20 Salvage | 100 | 3 | 0 (no attack) | — | 6 | 1 | Mission 7 | Dock |
+| **Mortar Otter** | Long range AoE | 80 Fish, 60 Salvage | 45 | 0 | 20 (AoE, 2-tile splash) | 7 | 5 | 1 | Mission 9 | Armory |
+| **Diver** | Underwater scout | 60 Fish, 40 Salvage | 35 | 0 | 8 (melee) | 1 | 12 | 1 | Mission 9+ (requires Mission 8 completion) | Dock |
 
 **Buildings:**
 
-| Building | Function | Cost | Unlock |
-|----------|----------|------|--------|
-| **Command Post** | Workers, resource depot. One per base. | Starting / 400 Timber, 200 Salvage | Mission 1 |
-| **Barracks** | Trains Mudfoots, Shellcrackers | 200 Timber | Mission 1 |
-| **Armory** | Trains Sappers, Mortar Otters. Research upgrades. | 300 Timber, 100 Salvage | Mission 5 |
-| **Watchtower** | Detection radius, ranged defense | 150 Timber | Mission 1 |
-| **Fish Trap** | Passive fish income. +4 population cap. | 100 Timber | Mission 1 |
-| **Dock** | Trains Raftsmen, Divers. Water access. | 250 Timber, 50 Salvage | Mission 7 |
-| **Field Hospital** | Heals nearby units over time | 200 Timber, 100 Salvage | Mission 10 |
-| **Sandbag Wall** | Barrier, blocks pathing | 50 Timber | Mission 1 |
-| **Stone Wall** | Stronger barrier (Armory upgrade) | 100 Timber, 50 Salvage | Mission 11 |
-| **Gun Tower** | Watchtower upgrade, adds ranged attack | 200 Timber, 100 Salvage | Mission 11 |
-| **Minefield** | One-time trap, damages first unit | 80 Salvage | Mission 11 |
+| Building | Function | Cost | HP | Build Time | Unlock |
+|----------|----------|------|----|------------|--------|
+| **Command Post** | Workers, resource depot. One per base. | Starting / 400 Timber, 200 Salvage | 600 | 60s | Mission 1 |
+| **Barracks** | Trains Mudfoots, Shellcrackers | 200 Timber | 350 | 30s | Mission 1 |
+| **Armory** | Trains Sappers, Mortar Otters. Research. | 300 Timber, 100 Salvage | 400 | 40s | Mission 5 |
+| **Watchtower** | Detection radius (8 tiles), light ranged defense (6 dmg) | 150 Timber | 200 | 20s | Mission 1 |
+| **Fish Trap** | Passive fish income (+3 fish/10s) | 100 Timber | 80 | 15s | Mission 1 |
+| **Burrow** | +6 population cap | 80 Timber | 100 | 10s | Mission 1 |
+| **Dock** | Trains Raftsmen, Divers. Must be on water edge. | 250 Timber, 50 Salvage | 300 | 35s | Mission 7 |
+| **Field Hospital** | Heals nearby units (+2 HP/s in 3-tile radius) | 200 Timber, 100 Salvage | 250 | 30s | Mission 10 |
+| **Sandbag Wall** | Barrier, blocks pathing | 50 Timber | 150 | 5s | Mission 1 |
+| **Stone Wall** | Stronger barrier (requires Fortified Walls research) | 100 Timber, 50 Salvage | 400 | 10s | Mission 11 |
+| **Gun Tower** | Upgraded tower, 12 dmg ranged attack (requires research) | 200 Timber, 100 Salvage | 350 | 25s | Mission 11 |
+| **Minefield** | One-time trap, 40 dmg to first unit that crosses | 80 Salvage | 1 (invisible) | 8s | Mission 11 |
+
+**Key change from draft v1:** Fish Trap and population cap are now **split into separate buildings.** Fish Traps provide income only. **Burrows** provide population cap only (+6 per burrow). This creates a genuine economic tradeoff: spend Timber on income generation OR army capacity, not both at once.
 
 ### Scale-Guard Militia — Enemy Faction
 
 **Doctrine:** Ambush, area-denial, attrition. "Sacred Sludge" ideology.
 
-| Unit | Role | Behavior |
-|------|------|----------|
-| **Skink** | Worker | Gathers, builds Scale-Guard structures |
-| **Gator** | Melee tank | Slow, hard-hitting, can submerge briefly |
-| **Viper** | Ranged poison | DoT damage, glass cannon |
-| **Snapper** | Turret | Anchored, high sustained DPS |
-| **Scout Lizard** | Recon | Fast, reveals fog, calls reinforcements on sight |
-| **Croc Champion** | Elite | Mini-boss, heavy armor + damage |
-| **Siphon Drone** | Harass | Drains resources from nearby player buildings |
+| Unit | Role | HP | Armor | Damage | Range | Speed | Behavior |
+|------|------|----|-------|--------|-------|-------|----------|
+| **Skink** | Worker | 30 | 0 | 4 | 1 | 10 | Gathers, builds Scale-Guard structures |
+| **Gator** | Melee tank | 120 | 4 | 18 | 1 | 5 | Slow, hard-hitting, can submerge briefly for ambush |
+| **Viper** | Ranged poison | 35 | 0 | 8 + 4 DoT (3s) | 5 | 8 | Glass cannon, poison damage over time |
+| **Snapper** | Turret | 80 | 3 | 14 | 6 | 0 | Anchored, high sustained DPS, cannot move |
+| **Scout Lizard** | Recon | 25 | 0 | 3 | 1 | 14 | Fast, reveals fog, calls reinforcements on sight |
+| **Croc Champion** | Elite | 200 | 5 | 25 | 1 | 6 | Mini-boss, heavy armor + damage, spawns in later missions |
+| **Siphon Drone** | Harass | 40 | 1 | 0 | 3 | 7 | Drains 2 fish/sec from nearest player building within range |
 
 **Scale-Guard Buildings:** Sludge Pit (town hall), Spawning Pool (barracks), Venom Spire (tower), Siphon (resource drain / objective), Scale Wall.
 
@@ -313,20 +318,20 @@ Desktop (>1024px):
 │ [Actions]  │ [Build Menu / Command Queue]        │
 └────────────┴────────────────────────────────────┘
 
-Mobile (portrait):
-┌─────────────────────┐
-│ [Resources] [Score] │
-├──────┬──────────────┤
-│ Mini │               │
-│ map  │  Game Canvas  │
-│      │               │
-│      │               │
-├──────┴──────────────┤
-│ [Unit Info + Stats] │
-├─────────────────────┤
-│ [Actions / Build]   │
-│ [Squad Tabs 1-4]    │
-└─────────────────────┘
+Mobile/Tablet (LANDSCAPE ONLY — portrait not supported for gameplay):
+┌───────────────────────────────────────────────┐
+│ [Resources]                    [Clock/Score]  │
+├──────┬────────────────────────────┬───────────┤
+│      │                            │ Unit Info │
+│ Mini │       Game Canvas          │           │
+│ map  │                            │ Actions / │
+│      │                            │ Build     │
+├──────┴────────────────────────────┴───────────┤
+│ [Squad Tabs 1-4]              [Move][Attack]  │
+└───────────────────────────────────────────────┘
+
+Note: Capacitor ScreenOrientation plugin locks to landscape during gameplay.
+Portrait orientation is used ONLY for the campaign menu/briefing screens.
 ```
 
 ---
@@ -335,11 +340,12 @@ Mobile (portrait):
 
 ### 8.1 Tilemap & Terrain
 
-- **Tile size:** 32×32 pixels (rendered from ASCII)
+- **Tile size:** 32×32 pixels (rendered from ASCII tile definitions)
 - **Map sizes:** Small (40×40), Medium (60×60), Large (80×80), Epic (100×100)
-- **Terrain types:** Grass, dirt, mud (slow), water (impassable without raft/swim), mangrove (blocks LOS, harvestable), toxic sludge (damages), bridge
+- **Terrain types:** Grass, dirt, mud (slow), water (impassable without raft/swim), mangrove (blocks LOS, harvestable), toxic sludge (damages), bridge, tall grass (concealment)
 - **Phaser TilemapLayer:** Orthogonal view, top-down perspective
-- **Procedural generation** for terrain noise; mission-specific layouts are hand-designed tilemap definitions
+- **Hand-painted campaign maps:** Each of the 16 campaign missions has a hand-crafted map defined as a tilemap data file. Every chokepoint, resource node, trigger zone, and scenic detail is intentionally placed for that mission's narrative and gameplay flow. No procedural terrain generation for campaign.
+- **Procedural generation (Skirmish only):** Skirmish mode uses procedural map generation with terrain noise, resource seeding, and symmetry constraints for balanced PvE/PvP. Campaign maps are NEVER procedurally generated.
 
 ### 8.2 Fog of War
 
@@ -349,10 +355,12 @@ Mobile (portrait):
 
 ### 8.3 Pathfinding
 
-- **Grid-based A*** via EasyStarJS on the tilemap
-- **Terrain costs:** Grass=1, Dirt=1, Mud=2, Bridge=1, Water=∞ (unless swimmer)
-- **Dynamic obstacle avoidance:** Yuka steering behaviors for unit-to-unit collision avoidance
-- **Flow fields** for large group movement (optimization for 20+ units moving to same target)
+- **Single AI library:** Yuka handles BOTH pathfinding AND steering (no EasyStarJS)
+- **Tile-grid pathfinding:** Build a Yuka `Graph` from the tilemap (each tile = `Node`, edges = adjacent walkable tiles with cost weights). Use Yuka's `AStar` to find paths on this graph. Rebuild affected graph edges when buildings are placed/destroyed.
+- **Terrain costs:** Grass=1, Dirt=1, Mud=2, Bridge=1, Water=∞ (unless unit has `CanSwim` trait)
+- **Movement execution:** Yuka `FollowPathBehavior` converts A* waypoints into smooth steering
+- **Dynamic obstacle avoidance:** Yuka `SeparationBehavior` + `ObstacleAvoidanceBehavior` for unit-to-unit and unit-to-building collision avoidance
+- **Flow fields** for large group movement (optimization for 20+ units moving to same target — custom implementation layered on Yuka's steering)
 
 ### 8.4 Combat System
 
@@ -571,15 +579,17 @@ Researched at the Armory. Each upgrade is permanent within a campaign save.
 
 | Research | Cost | Effect | Available |
 |----------|------|--------|-----------|
-| **Hardshell Armor** | 150 Salvage | +2 HP to all Mudfoots | Mission 5 |
-| **Fish Oil Arrows** | 100 Salvage | +1 damage to Shellcrackers | Mission 5 |
-| **Fortified Walls** | 200 Salvage | Unlocks Stone Walls | Mission 11 |
-| **Gun Emplacements** | 250 Salvage | Unlocks Gun Towers | Mission 11 |
-| **Demolition Training** | 150 Salvage | +25% Sapper damage vs buildings | Mission 9 |
-| **Advanced Rafts** | 100 Salvage | +30% Raftsman speed | Mission 7 |
-| **Mortar Precision** | 200 Salvage | −20% Mortar Otter scatter radius | Mission 9 |
-| **Combat Medics** | 150 Salvage | Field Hospital heal rate +50% | Mission 10 |
-| **Diving Gear** | 100 Salvage | Divers can attack while submerged | Mission 8 |
+| **Hardshell Armor** | 150 Salvage, 20s | +20 HP to all Mudfoots (80→100) | Mission 5 |
+| **Fish Oil Arrows** | 100 Salvage, 15s | +3 damage to Shellcrackers (10→13) | Mission 5 |
+| **Fortified Walls** | 200 Salvage, 25s | Unlocks Stone Walls (150→400 HP) | Mission 9 |
+| **Gun Emplacements** | 250 Salvage, 30s | Unlocks Gun Towers (6→12 dmg) | Mission 9 |
+| **Demolition Training** | 150 Salvage, 20s | +50% Sapper damage vs buildings (30→45) | Mission 9 |
+| **Advanced Rafts** | 100 Salvage, 15s | +30% Raftsman speed, +2 carry capacity (4→6) | Mission 7 |
+| **Mortar Precision** | 200 Salvage, 25s | −30% Mortar Otter scatter radius | Mission 9 |
+| **Combat Medics** | 150 Salvage, 20s | Field Hospital heal rate +50% (+2→+3 HP/s) | Mission 10 |
+| **Diving Gear** | 100 Salvage, 15s | Divers can attack while submerged | Mission 9 |
+
+**Research timing note:** Research items are queued at the Armory one at a time. The research time creates a strategic decision: do you research upgrades NOW or save the Armory production slot for training Sappers/Mortar Otters? Fortified Walls and Gun Emplacements unlock at Mission 9 (not 11) to give the player time to experiment with them in Missions 9-10 before the Entrenchment defense mission (11) where they're essential.
 
 ---
 
@@ -595,7 +605,187 @@ After completing the campaign (or specific missions), unlock Skirmish mode:
 
 ---
 
-## 14. Design Anti-Patterns (REJECTED)
+## 14. Phaser ↔ React Integration Design
+
+### Input Event Arbitration
+
+Phaser canvas and React DOM overlay coexist on the same screen. Input events must not leak between them.
+
+**Rules:**
+1. DaisyUI elements (`z-index: 20`) sit above the Phaser canvas (`z-index: 10`)
+2. React elements use `pointer-events: auto` and call `event.stopPropagation()` on all pointer events
+3. Phaser canvas receives only events that DON'T hit a React element
+4. When a DaisyUI modal/dropdown is open, Phaser input is disabled entirely via `this.input.enabled = false`
+5. Keyboard events: React captures when a text input has focus. Otherwise, Phaser gets them.
+
+**Communication bridge (Zustand):**
+```typescript
+// Shared Zustand store — both React and Phaser subscribe
+const useGameBridge = create(() => ({
+  selectedEntities: [] as number[],   // Koota entity IDs
+  resources: { fish: 0, timber: 0, salvage: 0 },
+  isPaused: false,
+  currentObjectives: [] as Objective[],
+  briefingOpen: false,
+}));
+
+// Phaser scene writes to store:
+useGameBridge.setState({ resources: { fish: 100, timber: 50, salvage: 30 } });
+
+// React reads from store:
+function ResourceBar() {
+  const resources = useGameBridge(s => s.resources);
+  return <div>Fish: {resources.fish}</div>;
+}
+```
+
+### Koota ↔ Phaser Sync Layer
+
+Koota is the authoritative state. Phaser sprites are visual representations.
+
+**Entity lifecycle:**
+1. When a Koota entity gains `Position` + `UnitType` → create a Phaser Sprite, store sprite reference in an AoS trait
+2. Each frame: sync Koota `Position` → Phaser sprite `x, y`
+3. When a Koota entity is destroyed → destroy corresponding Phaser sprite
+4. Phaser input events (click on sprite) → resolve to Koota entity ID → update Koota selection state
+
+```typescript
+const PhaserSprite = trait(() => null as Phaser.GameObjects.Sprite | null);
+
+// Sync system
+function syncKootaToPhaser(world: World) {
+  // Handle new entities (need sprite creation)
+  world.query(Added(Position), UnitType).forEach(entity => {
+    const pos = entity.get(Position);
+    const type = entity.get(UnitType);
+    const sprite = scene.add.sprite(pos.x * 32, pos.y * 32, type.type);
+    sprite.setData('kootaEntity', entity);  // Back-reference
+    entity.add(PhaserSprite(sprite));
+  });
+
+  // Sync positions
+  world.query(Position, PhaserSprite).updateEach(([pos, sprite]) => {
+    if (sprite) {
+      sprite.x = pos.x * 32;
+      sprite.y = pos.y * 32;
+    }
+  });
+
+  // Handle removed entities
+  world.query(Removed(Position), PhaserSprite).forEach(entity => {
+    const sprite = entity.get(PhaserSprite);
+    if (sprite) sprite.destroy();
+  });
+}
+```
+
+---
+
+## 15. Pathfinding Performance Strategy
+
+Yuka's A* on a dense tile grid (100×100 = 10,000 nodes) may be slow for many simultaneous pathfinding requests. Mitigations:
+
+1. **Staggered pathfinding:** Don't compute all paths in one frame. Use a queue: max 4 pathfinding requests per frame, distribute over multiple frames.
+2. **Path caching:** If multiple units are moving to the same destination, compute path once and share waypoints (with offset for formation).
+3. **Hierarchical pathfinding:** For large maps, divide into sectors. A* between sectors first, then within-sector pathfinding.
+4. **Early termination:** If the path target is >50 tiles away, pathfind to an intermediate waypoint first.
+5. **Fallback:** If Yuka's Graph A* proves too slow in profiling, replace the pathfinder with a custom typed-array A* implementation while keeping Yuka for steering only.
+
+---
+
+## 16. Codebase Migration Plan
+
+### What Gets Discarded
+
+The RTS pivot is a full engine swap. The following existing code is **not reusable:**
+
+| Directory/System | Reason |
+|-----------------|--------|
+| `src/ecs/` (Miniplex) | Replaced by Koota ECS |
+| `src/Entities/` (R3F components) | Replaced by Phaser sprites |
+| `src/Scenes/` (R3F Canvas) | Replaced by Phaser scenes |
+| `src/UI/HUD.tsx` | Rebuilt with DaisyUI for RTS HUD |
+| Three.js, R3F, Drei, Rapier, GSAP | Not needed for 2D Phaser game |
+| `src/Core/InputSystem.ts` (nipplejs) | Replaced by Phaser input + Capacitor |
+| `src/stores/worldGenerator.ts` | Open-world chunks → hand-painted tilemaps |
+
+### What Gets Reused
+
+| Module | How It's Reused |
+|--------|----------------|
+| Zustand store pattern | Adapted for campaign state + Phaser↔React bridge |
+| Tone.js AudioEngine | Carried forward for procedural synth |
+| Yuka AI integration pattern | Adapted for RTS unit AI (steering + FSM) |
+| Zod schema validation | Used for scenario definition validation |
+| Biome, Vitest, Playwright config | Build/test tooling unchanged |
+| Vite config | Adapted for Phaser + Capacitor |
+| Lore & character definitions | Direct transfer to campaign briefings |
+| Existing DDL schemas | Adapted for RTS entity definitions |
+
+---
+
+## 17. Phased Delivery Plan
+
+### Phase 1: Foundation (MVP — Missions 1-4)
+- Vite + Phaser + Capacitor scaffold
+- ASCII Sprite Factory proof-of-concept (unit sprites + 1 portrait)
+- Koota ECS with core traits (Position, Health, UnitType, Faction)
+- Koota↔Phaser sync layer
+- Tilemap renderer with hand-painted Mission 1 map
+- Resource gathering (Fish, Timber, Salvage)
+- Building placement (Command Post, Barracks, Watchtower, Fish Trap, Burrow)
+- Unit training (River Rat, Mudfoot)
+- Basic combat (melee + ranged)
+- Fog of war (RenderTexture)
+- A* pathfinding on tile grid
+- Desktop input (click/drag select, right-click move)
+- React/DaisyUI HUD (resources, minimap, unit panel)
+- Briefing system (1 portrait)
+- Missions 1-4 playable
+- SQLite persistence (save/load mid-mission)
+- **Deliverable:** Playable 4-mission demo on desktop web
+
+### Phase 2: Depth (Missions 5-8)
+- Mobile input (touch pan/select, landscape lock)
+- Capacitor iOS/Android builds
+- Weather system (monsoon)
+- Water traversal (Raftsman, Dock)
+- Siphon destruction mechanic
+- CTF objective type
+- Hero missions with stealth/detection
+- Cpl. Splash + underwater layer
+- Sapper + Armory + tech research
+- Missions 5-8 playable
+- Full portrait gallery (all 6 heroes + FOXHOUND)
+- **Deliverable:** 8-mission game on desktop + mobile
+
+### Phase 3: Scale (Missions 9-12)
+- Mortar Otter + AoE combat
+- Village liberation / territory control
+- Defensive buildings (Stone Walls, Gun Towers, Minefields)
+- Field Hospital + Medic Marina
+- Sgt. Fang rescue + siege mechanics
+- Full Scale-Guard AI (all unit types)
+- Combined arms recon→strike gameplay
+- Missions 9-12 playable
+- **Deliverable:** 12-mission game with full unit roster
+
+### Phase 4: Culmination (Missions 13-16 + Skirmish)
+- Multi-base management
+- Supply line logistics
+- Demolition mechanics (Pvt. Muskrat)
+- The Great Siphon boss encounter
+- Sludge flood doomsday mechanic
+- Mission scoring (Bronze/Silver/Gold)
+- Skirmish mode with AI opponent
+- Procedural map generation (Skirmish only)
+- Audio polish (unit acknowledgments, ambient music)
+- Performance optimization
+- **Deliverable:** Complete game
+
+---
+
+## 18. Design Anti-Patterns (REJECTED)
 
 - ❌ External asset files (PNG, MP3, GLB, etc.)
 - ❌ Sci-fi aesthetics, chrome, cyborgs, lasers
@@ -604,13 +794,16 @@ After completing the campaign (or specific missions), unlock Skirmish mode:
 - ❌ Desktop-first with mobile afterthought
 - ❌ Canvas shape primitives for art (only ASCII pixel painting)
 - ❌ Level-select without narrative context
+- ❌ Procedurally generated campaign maps
+- ❌ Portrait orientation during gameplay
 
 ---
 
-## 15. Open Questions
+## 19. Open Questions
 
 1. **Multiplayer:** Is local or online multiplayer in scope for v1? (Assumed: no, campaign only)
 2. **Procedural maps for skirmish:** How much generation vs. hand-design?
 3. **Music:** Full procedural soundtrack per mission, or ambient loops?
 4. **Localization:** English only for v1?
 5. **Analytics:** Track play metrics for balancing?
+6. **ASCII sprite editor:** Use or fork an existing tool (e.g., ascii-sprite-editor) as a dev-time design tool, storing sprites in a structured format (JSON with grid + color map) and compiling to pixel buffers at build time?
