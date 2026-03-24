@@ -1,35 +1,38 @@
 import type { PropDef } from "./tall-grass";
 import type { SPDSLSprite } from "../types";
 
-// Toxic Sludge — environmental hazard. Purple/dark bubbling area. 16x16.
-// Palette: resource_default — purple 'e'/'f', interior 'g'
+// Toxic Sludge — environmental hazard. Purple-ish/dark bubbling area. 16x16.
+// Palette: otter_default
+// Legacy char map: P->8 (stone dark, purple substitute), p->9 (stone light), M->e (dark interior)
 
 // prettier-ignore
 const body: string[][] = [
 	[
 		"0000000000000000",
-		"0000eeeeff000000",
-		"000eeeeeeef00000",
-		"00eeefffffee0000",
-		"00eefggggfeef000",
-		"0eeefggggfeeef00",
-		"0eeffggggffeef00",
-		"0eeffgffgffeef00",
-		"0eeffgffgffeef00",
-		"0eeffggggffeef00",
-		"0eeefggggfeeef00",
-		"00eefggggfeef000",
-		"00eeefffffee0000",
-		"000eeeeeeef00000",
-		"0000eeeeff000000",
+		"0000888899000000",
+		"0008888888900000",
+		"0088899999880000",
+		"0088999ee9988000",
+		"0888899ee9988900",
+		"088999eeee998800",
+		"0889999ee9988000",
+		"0889999ee9988000",
+		"088999eeee998800",
+		"0888899ee9988900",
+		"0088999ee9988000",
+		"0088899999880000",
+		"0008888888900000",
+		"0000888899000000",
 		"0000000000000000",
 	],
 ];
 
 const sprite: SPDSLSprite = {
-	palette: "resource_default",
+	palette: "otter_default",
 	layers: [{ id: "body", zIndex: 1, grid: body }],
-	animations: { idle: [{}] },
+	animations: {
+		idle: [{}],
+	},
 };
 
 export const toxicSludge: PropDef = {

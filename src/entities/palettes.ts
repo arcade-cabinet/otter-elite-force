@@ -111,6 +111,7 @@ export const PALETTES: PaletteRecord = {
 		h: "#c2410c", // Orange
 		i: "#78350f", // Wood dark
 		j: "#b45309", // Wood light
+		k: "#fb923c", // Orange light (explosive highlights)
 	},
 } as const;
 
