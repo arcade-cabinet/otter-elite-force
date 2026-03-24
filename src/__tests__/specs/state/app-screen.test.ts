@@ -10,7 +10,7 @@
  *   - src/ecs/traits/state.ts (AppScreen, AppScreenType)
  *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createWorld, type World } from "koota";
 import { AppScreen, type AppScreenType, GamePhase, GameClock } from "@/ecs/traits/state";
 import { initSingletons } from "@/ecs/singletons";
@@ -20,6 +20,10 @@ let world: World;
 beforeEach(() => {
 	world = createWorld();
 	initSingletons(world);
+});
+
+afterEach(() => {
+	world.destroy();
 });
 
 // ===========================================================================

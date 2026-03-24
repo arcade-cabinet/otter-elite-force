@@ -9,7 +9,7 @@
  *   - src/ecs/traits/state.ts (CampaignProgress, UserSettings, TerritoryState)
  *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createWorld, type World } from "koota";
 import { CampaignProgress, UserSettings, TerritoryState } from "@/ecs/traits/state";
 import { initSingletons, resetSessionState } from "@/ecs/singletons";
@@ -19,6 +19,10 @@ let world: World;
 beforeEach(() => {
 	world = createWorld();
 	initSingletons(world);
+});
+
+afterEach(() => {
+	world.destroy();
 });
 
 // ===========================================================================

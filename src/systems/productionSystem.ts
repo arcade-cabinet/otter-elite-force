@@ -18,7 +18,7 @@ import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { RallyPoint } from "../ecs/traits/orders";
 import { OwnedBy } from "../ecs/relations";
-import { CompletedResearch, PopulationState, ResourcePool } from "../ecs/traits/state";
+import { PopulationState, ResourcePool } from "../ecs/traits/state";
 import { world as defaultWorld } from "../ecs/world";
 import { ALL_UNITS } from "../data/units";
 import { ALL_BUILDINGS } from "../data/buildings";
