@@ -68,10 +68,10 @@ describe("AppScreen trait", () => {
 			expect(world.get(AppScreen)!.screen).toBe("settings");
 		});
 
-			it("can transition to canteen screen", () => {
-				world.set(AppScreen, { screen: "canteen" });
-				expect(world.get(AppScreen)!.screen).toBe("canteen");
-			});
+		it("can transition to canteen screen", () => {
+			world.set(AppScreen, { screen: "canteen" });
+			expect(world.get(AppScreen)!.screen).toBe("canteen");
+		});
 	});
 
 	describe("app flow (menu → campaign → briefing → game → victory)", () => {
@@ -109,10 +109,10 @@ describe("AppScreen trait", () => {
 			"game",
 			"victory",
 			"settings",
-				"canteen",
+			"canteen",
 		];
 
-			it("accepts all valid screen types", () => {
+		it("accepts all valid screen types", () => {
 			for (const screen of validScreens) {
 				world.set(AppScreen, { screen });
 				expect(world.get(AppScreen)!.screen).toBe(screen);

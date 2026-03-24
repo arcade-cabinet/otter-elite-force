@@ -159,11 +159,18 @@ export const mission08UnderwaterCache: MissionDef = {
 			),
 		]),
 		trigger("activate-extraction", on.objectiveComplete("recover-cache"), [
-			act.dialogue("gen_whiskers", "Cache recovered! Extraction point is the north shore. Get everyone there."),
+			act.dialogue(
+				"gen_whiskers",
+				"Cache recovered! Extraction point is the north shore. Get everyone there.",
+			),
 			act.spawn("scout_lizard", "scale_guard", 10, 5, 2),
 			act.spawn("gator", "scale_guard", 24, 5, 2),
 		]),
-		trigger("extraction-reached", on.areaEntered("ura", "extraction_lz"), act.completeObjective("extract-north")),
+		trigger(
+			"extraction-reached",
+			on.areaEntered("ura", "extraction_lz"),
+			act.completeObjective("extract-north"),
+		),
 		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
 		trigger("splash-death", on.unitCount("ura", "cpl_splash", "eq", 0), act.failMission()),
 		trigger("mission-complete", on.allPrimaryComplete(), [

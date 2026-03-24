@@ -143,17 +143,34 @@ export const mission03FirebaseDelta: MissionDef = {
 		trigger(
 			"opening-hint",
 			on.timer(5),
-			act.dialogue("foxhound", "Shellcrackers have range advantage. Position them on high ground and let Mudfoots lead the charge."),
+			act.dialogue(
+				"foxhound",
+				"Shellcrackers have range advantage. Position them on high ground and let Mudfoots lead the charge.",
+			),
 		),
-		trigger("alpha-captured", on.areaEntered("ura", "point_alpha"), act.dialogue("foxhound", "Point Alpha secured. Two to go.")),
-		trigger("bravo-captured", on.areaEntered("ura", "point_bravo"), act.dialogue("foxhound", "Point Bravo is ours. Keep pushing.")),
+		trigger(
+			"alpha-captured",
+			on.areaEntered("ura", "point_alpha"),
+			act.dialogue("foxhound", "Point Alpha secured. Two to go."),
+		),
+		trigger(
+			"bravo-captured",
+			on.areaEntered("ura", "point_bravo"),
+			act.dialogue("foxhound", "Point Bravo is ours. Keep pushing."),
+		),
 		trigger(
 			"charlie-captured",
 			on.areaEntered("ura", "point_charlie"),
-			act.dialogue("foxhound", "Point Charlie captured. Hold all three and the clock starts. Two minutes, Bubbles."),
+			act.dialogue(
+				"foxhound",
+				"Point Charlie captured. Hold all three and the clock starts. Two minutes, Bubbles.",
+			),
 		),
 		trigger("counterattack-1", on.timer(180), [
-			act.dialogue("foxhound", "Scale-Guard counterattack incoming from the north! Reinforce your positions!"),
+			act.dialogue(
+				"foxhound",
+				"Scale-Guard counterattack incoming from the north! Reinforce your positions!",
+			),
 			act.spawn("gator", "scale_guard", 10, 1, 3),
 			act.spawn("viper", "scale_guard", 25, 1, 2),
 		]),
@@ -163,7 +180,10 @@ export const mission03FirebaseDelta: MissionDef = {
 			act.spawn("viper", "scale_guard", 18, 2, 2),
 		]),
 		trigger("counterattack-3", on.timer(420), [
-			act.dialogue("foxhound", "Heavy reinforcements! They're throwing everything at the points. Dig in!"),
+			act.dialogue(
+				"foxhound",
+				"Heavy reinforcements! They're throwing everything at the points. Dig in!",
+			),
 			act.spawn("gator", "scale_guard", 3, 2, 3),
 			act.spawn("gator", "scale_guard", 33, 2, 3),
 			act.spawn("viper", "scale_guard", 18, 0, 3),
@@ -175,7 +195,10 @@ export const mission03FirebaseDelta: MissionDef = {
 		]),
 		trigger("cp-destroyed", on.buildingCount("ura", "command_post", "eq", 0), act.failMission()),
 		trigger("mission-complete", on.allPrimaryComplete(), [
-			act.dialogue("foxhound", "Two minutes! Firebase Delta is ours. Scale-Guard is falling back. Outstanding work."),
+			act.dialogue(
+				"foxhound",
+				"Two minutes! Firebase Delta is ours. Scale-Guard is falling back. Outstanding work.",
+			),
 			act.victory(),
 		]),
 	],

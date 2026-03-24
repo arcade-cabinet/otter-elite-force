@@ -281,7 +281,9 @@ export interface MissionAreaEnteredCondition {
 	minUnits?: number;
 }
 
-export type MissionTriggerCondition = Exclude<TriggerCondition, { type: "areaEntered" }> | MissionAreaEnteredCondition;
+export type MissionTriggerCondition =
+	| Exclude<TriggerCondition, { type: "areaEntered" }>
+	| MissionAreaEnteredCondition;
 
 export interface MissionScenarioTrigger {
 	id: string;

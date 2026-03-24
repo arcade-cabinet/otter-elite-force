@@ -35,6 +35,7 @@ export const ALL_BUILDINGS = ALL_BUILDING_ENTITIES;
 import { ALL_RESEARCH_ENTITIES } from "./research";
 
 export { ALL_RESEARCH_ENTITIES };
+export const ALL_RESEARCH = ALL_RESEARCH_ENTITIES;
 
 // ─── Resources (COMPLETE: 3/3) ───
 

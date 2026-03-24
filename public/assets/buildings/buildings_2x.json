@@ -1,540 +1,540 @@
 {
-  "meta": {
-    "image": "buildings_2x.png",
-    "size": {
-      "w": 2015,
-      "h": 129
-    },
-    "scale": 2
-  },
-  "frames": {
-    "command_post": {
-      "frame": {
-        "x": 0,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "command_post_idle_0": {
-      "frame": {
-        "x": 65,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "barracks": {
-      "frame": {
-        "x": 130,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "barracks_idle_0": {
-      "frame": {
-        "x": 195,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "armory": {
-      "frame": {
-        "x": 260,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "armory_idle_0": {
-      "frame": {
-        "x": 325,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "watchtower": {
-      "frame": {
-        "x": 390,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "watchtower_idle_0": {
-      "frame": {
-        "x": 455,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "fish_trap": {
-      "frame": {
-        "x": 520,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "fish_trap_idle_0": {
-      "frame": {
-        "x": 585,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "burrow": {
-      "frame": {
-        "x": 650,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "burrow_idle_0": {
-      "frame": {
-        "x": 715,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "dock": {
-      "frame": {
-        "x": 780,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "dock_idle_0": {
-      "frame": {
-        "x": 845,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "field_hospital": {
-      "frame": {
-        "x": 910,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "field_hospital_idle_0": {
-      "frame": {
-        "x": 975,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "sandbag_wall": {
-      "frame": {
-        "x": 1040,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "sandbag_wall_idle_0": {
-      "frame": {
-        "x": 1105,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "stone_wall": {
-      "frame": {
-        "x": 1170,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "stone_wall_idle_0": {
-      "frame": {
-        "x": 1235,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "gun_tower": {
-      "frame": {
-        "x": 1300,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "gun_tower_idle_0": {
-      "frame": {
-        "x": 1365,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "minefield": {
-      "frame": {
-        "x": 1430,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "minefield_idle_0": {
-      "frame": {
-        "x": 1495,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "sludge_pit": {
-      "frame": {
-        "x": 1560,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "sludge_pit_idle_0": {
-      "frame": {
-        "x": 1625,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "sludge_pit__proc_hitflash": {
-      "frame": {
-        "x": 1690,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "sludge_pit_idle_0__proc_hitflash": {
-      "frame": {
-        "x": 1755,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "spawning_pool": {
-      "frame": {
-        "x": 1820,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "spawning_pool_idle_0": {
-      "frame": {
-        "x": 1885,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "spawning_pool__proc_hitflash": {
-      "frame": {
-        "x": 1950,
-        "y": 0,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "spawning_pool_idle_0__proc_hitflash": {
-      "frame": {
-        "x": 0,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "venom_spire": {
-      "frame": {
-        "x": 65,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "venom_spire_idle_0": {
-      "frame": {
-        "x": 130,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "venom_spire__proc_hitflash": {
-      "frame": {
-        "x": 195,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "venom_spire_idle_0__proc_hitflash": {
-      "frame": {
-        "x": 260,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "siphon": {
-      "frame": {
-        "x": 325,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "siphon_idle_0": {
-      "frame": {
-        "x": 390,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "siphon__proc_hitflash": {
-      "frame": {
-        "x": 455,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "siphon_idle_0__proc_hitflash": {
-      "frame": {
-        "x": 520,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "scale_wall": {
-      "frame": {
-        "x": 585,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "scale_wall_idle_0": {
-      "frame": {
-        "x": 650,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "scale_wall__proc_hitflash": {
-      "frame": {
-        "x": 715,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    },
-    "scale_wall_idle_0__proc_hitflash": {
-      "frame": {
-        "x": 780,
-        "y": 65,
-        "w": 64,
-        "h": 64
-      },
-      "sourceSize": {
-        "w": 64,
-        "h": 64
-      }
-    }
-  }
+	"meta": {
+		"image": "buildings_2x.png",
+		"size": {
+			"w": 2015,
+			"h": 129
+		},
+		"scale": 2
+	},
+	"frames": {
+		"command_post": {
+			"frame": {
+				"x": 0,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"command_post_idle_0": {
+			"frame": {
+				"x": 65,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"barracks": {
+			"frame": {
+				"x": 130,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"barracks_idle_0": {
+			"frame": {
+				"x": 195,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"armory": {
+			"frame": {
+				"x": 260,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"armory_idle_0": {
+			"frame": {
+				"x": 325,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"watchtower": {
+			"frame": {
+				"x": 390,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"watchtower_idle_0": {
+			"frame": {
+				"x": 455,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"fish_trap": {
+			"frame": {
+				"x": 520,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"fish_trap_idle_0": {
+			"frame": {
+				"x": 585,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"burrow": {
+			"frame": {
+				"x": 650,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"burrow_idle_0": {
+			"frame": {
+				"x": 715,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"dock": {
+			"frame": {
+				"x": 780,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"dock_idle_0": {
+			"frame": {
+				"x": 845,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"field_hospital": {
+			"frame": {
+				"x": 910,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"field_hospital_idle_0": {
+			"frame": {
+				"x": 975,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"sandbag_wall": {
+			"frame": {
+				"x": 1040,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"sandbag_wall_idle_0": {
+			"frame": {
+				"x": 1105,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"stone_wall": {
+			"frame": {
+				"x": 1170,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"stone_wall_idle_0": {
+			"frame": {
+				"x": 1235,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"gun_tower": {
+			"frame": {
+				"x": 1300,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"gun_tower_idle_0": {
+			"frame": {
+				"x": 1365,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"minefield": {
+			"frame": {
+				"x": 1430,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"minefield_idle_0": {
+			"frame": {
+				"x": 1495,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"sludge_pit": {
+			"frame": {
+				"x": 1560,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"sludge_pit_idle_0": {
+			"frame": {
+				"x": 1625,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"sludge_pit__proc_hitflash": {
+			"frame": {
+				"x": 1690,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"sludge_pit_idle_0__proc_hitflash": {
+			"frame": {
+				"x": 1755,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"spawning_pool": {
+			"frame": {
+				"x": 1820,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"spawning_pool_idle_0": {
+			"frame": {
+				"x": 1885,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"spawning_pool__proc_hitflash": {
+			"frame": {
+				"x": 1950,
+				"y": 0,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"spawning_pool_idle_0__proc_hitflash": {
+			"frame": {
+				"x": 0,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"venom_spire": {
+			"frame": {
+				"x": 65,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"venom_spire_idle_0": {
+			"frame": {
+				"x": 130,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"venom_spire__proc_hitflash": {
+			"frame": {
+				"x": 195,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"venom_spire_idle_0__proc_hitflash": {
+			"frame": {
+				"x": 260,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"siphon": {
+			"frame": {
+				"x": 325,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"siphon_idle_0": {
+			"frame": {
+				"x": 390,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"siphon__proc_hitflash": {
+			"frame": {
+				"x": 455,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"siphon_idle_0__proc_hitflash": {
+			"frame": {
+				"x": 520,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"scale_wall": {
+			"frame": {
+				"x": 585,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"scale_wall_idle_0": {
+			"frame": {
+				"x": 650,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"scale_wall__proc_hitflash": {
+			"frame": {
+				"x": 715,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		},
+		"scale_wall_idle_0__proc_hitflash": {
+			"frame": {
+				"x": 780,
+				"y": 65,
+				"w": 64,
+				"h": 64
+			},
+			"sourceSize": {
+				"w": 64,
+				"h": 64
+			}
+		}
+	}
 }

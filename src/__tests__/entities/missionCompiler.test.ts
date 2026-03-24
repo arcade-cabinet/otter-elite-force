@@ -19,7 +19,9 @@ describe("compileMissionScenario", () => {
 
 	it("resolves mission zone references into typed runtime triggers", () => {
 		const scenario = compileMissionScenario(mission01Beachhead);
-		const tutorialTrigger = scenario.triggers.find((trigger) => trigger.id === "enemy-scout-arrival");
+		const tutorialTrigger = scenario.triggers.find(
+			(trigger) => trigger.id === "enemy-scout-arrival",
+		);
 
 		expect(tutorialTrigger?.condition).toEqual({ type: "timer", time: 300 });
 		expect(tutorialTrigger?.action).toEqual([

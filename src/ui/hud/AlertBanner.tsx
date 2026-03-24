@@ -37,7 +37,8 @@ export function AlertBanner() {
 	useEffect(() => {
 		const onHudAlert = (alert: AlertPayload) => push(alert);
 		const onSceneReady = () => push({ message: "Scene sync green", severity: "info" });
-		const onMissionFailed = () => push({ message: "Mission pressure spiking", severity: "critical" });
+		const onMissionFailed = () =>
+			push({ message: "Mission pressure spiking", severity: "critical" });
 
 		EventBus.on("hud-alert", onHudAlert);
 		EventBus.on("current-scene-ready", onSceneReady);
@@ -56,10 +57,15 @@ export function AlertBanner() {
 
 	if (alerts.length === 0) {
 		return (
-			<Card data-testid="alert-banner" className="w-full border-accent/12 bg-card/75 shadow-[0_16px_32px_rgba(0,0,0,0.28)] sm:ml-auto sm:max-w-sm">
+			<Card
+				data-testid="alert-banner"
+				className="w-full border-accent/12 bg-card/75 shadow-[0_16px_32px_rgba(0,0,0,0.28)] sm:ml-auto sm:max-w-sm"
+			>
 				<CardContent className="flex items-center justify-between gap-2 p-3">
 					<Badge variant="accent">CLEAR</Badge>
-					<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">No active alerts</span>
+					<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+						No active alerts
+					</span>
 				</CardContent>
 			</Card>
 		);
@@ -71,7 +77,7 @@ export function AlertBanner() {
 				<Card
 					key={alert.id}
 					className={cn(
-							"font-heading text-xs uppercase tracking-wider shadow-[0_18px_36px_rgba(0,0,0,0.3)]",
+						"font-heading text-xs uppercase tracking-wider shadow-[0_18px_36px_rgba(0,0,0,0.3)]",
 						alert.severity === "critical" &&
 							"border-destructive bg-destructive/20 text-destructive",
 						alert.severity === "warning" && "border-accent bg-accent/10 text-accent",
@@ -79,11 +85,23 @@ export function AlertBanner() {
 					)}
 				>
 					<CardContent className="flex items-center gap-2 p-3">
-							<Badge variant={alert.severity === "critical" ? "danger" : alert.severity === "warning" ? "accent" : "default"}>
-								{alert.severity}
-							</Badge>
+						<Badge
+							variant={
+								alert.severity === "critical"
+									? "danger"
+									: alert.severity === "warning"
+										? "accent"
+										: "default"
+							}
+						>
+							{alert.severity}
+						</Badge>
 						<span>{alert.message}</span>
-						<button type="button" onClick={() => dismiss(alert.id)} className="ml-2 text-muted-foreground hover:text-foreground">
+						<button
+							type="button"
+							onClick={() => dismiss(alert.id)}
+							className="ml-2 text-muted-foreground hover:text-foreground"
+						>
 							X
 						</button>
 					</CardContent>

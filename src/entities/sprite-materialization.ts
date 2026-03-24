@@ -1,7 +1,13 @@
 import { PALETTE, PALETTES } from "./palettes";
 import type { SPDSLSprite, SpriteDef, SpriteLayer } from "./types";
 
-export type SpriteCategory = "units" | "buildings" | "terrain" | "portraits" | "resources" | "props";
+export type SpriteCategory =
+	| "units"
+	| "buildings"
+	| "terrain"
+	| "portraits"
+	| "resources"
+	| "props";
 
 export interface CanonicalSpriteDimensions {
 	width: number;

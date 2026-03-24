@@ -83,7 +83,7 @@ describe("ActionBar", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
 				world
-						.spawn(UnitType, Selected, Category)
+					.spawn(UnitType, Selected, Category)
 					.set(UnitType, { type: "river_rat" })
 					.set(Category, { category: "worker" });
 			});
@@ -188,7 +188,7 @@ describe("ActionBar", () => {
 			});
 			const buttons = screen.getAllByRole("button");
 			for (const btn of buttons) {
-					expect(btn.getAttribute("disabled")).toBeNull();
+				expect(btn.getAttribute("disabled")).toBeNull();
 			}
 		});
 	});

@@ -136,18 +136,18 @@ export class ScenarioEngine {
 				return false;
 			}
 
-				case "buildingCount": {
-					const count = world.countBuildings(condition.faction, condition.buildingType);
-					switch (condition.operator) {
-						case "gte":
-							return count >= condition.count;
-						case "lte":
-							return count <= condition.count;
-						case "eq":
-							return count === condition.count;
-					}
-					return false;
+			case "buildingCount": {
+				const count = world.countBuildings(condition.faction, condition.buildingType);
+				switch (condition.operator) {
+					case "gte":
+						return count >= condition.count;
+					case "lte":
+						return count <= condition.count;
+					case "eq":
+						return count === condition.count;
 				}
+				return false;
+			}
 
 			case "areaEntered": {
 				const minUnits = condition.minUnits ?? 1;

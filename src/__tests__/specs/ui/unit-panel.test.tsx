@@ -87,11 +87,11 @@ describe("UnitPanel", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
 				world
-						.spawn(UnitType, Selected, Health, Attack, Armor)
+					.spawn(UnitType, Selected, Health, Attack, Armor)
 					.set(UnitType, { type: "mudfoot" })
 					.set(Health, { current: 80, max: 80 })
-						.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
-						.set(Armor, { value: 2 });
+					.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
+					.set(Armor, { value: 2 });
 			});
 			expect(screen.getByText(/mudfoot/i)).toBeTruthy();
 		});
@@ -111,27 +111,27 @@ describe("UnitPanel", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
 				world
-						.spawn(UnitType, Selected, Health, Attack, Armor)
+					.spawn(UnitType, Selected, Health, Attack, Armor)
 					.set(UnitType, { type: "mudfoot" })
 					.set(Health, { current: 80, max: 80 })
-						.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
-						.set(Armor, { value: 2 });
+					.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
+					.set(Armor, { value: 2 });
 			});
 			// Should display armor somewhere in the panel
-				expect(screen.getByText(/arm\s*2/i)).toBeTruthy();
+			expect(screen.getByText(/arm\s*2/i)).toBeTruthy();
 		});
 
 		it("displays damage value", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
 				world
-						.spawn(UnitType, Selected, Health, Attack, Armor)
+					.spawn(UnitType, Selected, Health, Attack, Armor)
 					.set(UnitType, { type: "mudfoot" })
 					.set(Health, { current: 80, max: 80 })
-						.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
-						.set(Armor, { value: 2 });
+					.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
+					.set(Armor, { value: 2 });
 			});
-				expect(screen.getByText(/dmg\s*12/i)).toBeTruthy();
+			expect(screen.getByText(/dmg\s*12/i)).toBeTruthy();
 		});
 	});
 

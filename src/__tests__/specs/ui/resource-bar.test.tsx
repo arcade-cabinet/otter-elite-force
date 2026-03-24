@@ -106,7 +106,7 @@ describe("ResourceBar", () => {
 		it("displays correct fish count from ResourcePool", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ResourceBar), (world: any) => {
-					world.set(ResourcePool, { fish: 250, timber: 0, salvage: 0 });
+				world.set(ResourcePool, { fish: 250, timber: 0, salvage: 0 });
 			});
 			expect(screen.getByText("250")).toBeTruthy();
 		});
@@ -114,7 +114,7 @@ describe("ResourceBar", () => {
 		it("displays correct population from PopulationState", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ResourceBar), (world: any) => {
-					world.set(PopulationState, { current: 12, max: 24 });
+				world.set(PopulationState, { current: 12, max: 24 });
 			});
 			expect(screen.getByText(/12\s*\/\s*24/)).toBeTruthy();
 		});

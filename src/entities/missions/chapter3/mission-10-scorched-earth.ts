@@ -152,11 +152,17 @@ export const mission10ScorchedEarth: MissionDef = {
 		),
 		trigger("first-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 3), [
 			act.completeObjective("destroy-tank-nw"),
-			act.dialogue("gen_whiskers", "First tank down! Fire's spreading — watch your spacing. Three more to go."),
+			act.dialogue(
+				"gen_whiskers",
+				"First tank down! Fire's spreading — watch your spacing. Three more to go.",
+			),
 		]),
 		trigger("second-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 2), [
 			act.completeObjective("destroy-tank-ne"),
-			act.dialogue("gen_whiskers", "Second tank destroyed. They know we're here now — expect reinforcements."),
+			act.dialogue(
+				"gen_whiskers",
+				"Second tank destroyed. They know we're here now — expect reinforcements.",
+			),
 		]),
 		trigger("third-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 1), [
 			act.completeObjective("destroy-tank-sw"),

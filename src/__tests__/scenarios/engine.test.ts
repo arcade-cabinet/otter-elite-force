@@ -273,30 +273,30 @@ describe("ScenarioEngine", () => {
 		});
 	});
 
-		describe("BuildingCount trigger", () => {
-			it("should fire when building count meets threshold", () => {
-				const scenario = createScenario({
-					triggers: [
-						createTrigger({
-							condition: {
-								type: "buildingCount",
-								faction: "ura",
-								buildingType: "dock",
-								operator: "gte",
-								count: 3,
-							},
-						}),
-					],
-				});
-				const engine = new ScenarioEngine(scenario, actionHandler);
-				const world = createMockWorldQuery({ countBuildings: vi.fn(() => 3) });
-
-				engine.evaluate(world);
-
-				expect(world.countBuildings).toHaveBeenCalledWith("ura", "dock");
-				expect(actionHandler).toHaveBeenCalledTimes(1);
+	describe("BuildingCount trigger", () => {
+		it("should fire when building count meets threshold", () => {
+			const scenario = createScenario({
+				triggers: [
+					createTrigger({
+						condition: {
+							type: "buildingCount",
+							faction: "ura",
+							buildingType: "dock",
+							operator: "gte",
+							count: 3,
+						},
+					}),
+				],
 			});
+			const engine = new ScenarioEngine(scenario, actionHandler);
+			const world = createMockWorldQuery({ countBuildings: vi.fn(() => 3) });
+
+			engine.evaluate(world);
+
+			expect(world.countBuildings).toHaveBeenCalledWith("ura", "dock");
+			expect(actionHandler).toHaveBeenCalledTimes(1);
 		});
+	});
 
 	describe("BuildingDestroyed trigger", () => {
 		it("should fire when building is destroyed", () => {

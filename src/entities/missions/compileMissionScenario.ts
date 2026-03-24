@@ -1,7 +1,10 @@
 import type { MissionDef } from "../types";
 import type { Objective, Scenario, ScenarioTrigger, TriggerCondition } from "@/scenarios/types";
 
-function compileCondition(condition: MissionDef["triggers"][number]["condition"], mission: MissionDef): TriggerCondition {
+function compileCondition(
+	condition: MissionDef["triggers"][number]["condition"],
+	mission: MissionDef,
+): TriggerCondition {
 	if (condition.type !== "areaEntered") return condition;
 
 	const zone = mission.zones[condition.zoneId];
@@ -16,7 +19,10 @@ function compileCondition(condition: MissionDef["triggers"][number]["condition"]
 	};
 }
 
-function compileObjective(type: Objective["type"], objective: { id: string; description: string }): Objective {
+function compileObjective(
+	type: Objective["type"],
+	objective: { id: string; description: string },
+): Objective {
 	return {
 		id: objective.id,
 		description: objective.description,

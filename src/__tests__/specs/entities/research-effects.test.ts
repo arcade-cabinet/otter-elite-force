@@ -239,11 +239,12 @@ describe("Diving Gear", () => {
 		expect(r.unlockedAt).toBe("mission_9");
 	});
 
-	it("boosts Diver capabilities", () => {
+	it("unlocks Diver submerged attack ability", () => {
 		if (skip()) return;
 		const r = research.diving_gear;
-		expect(r.effect.type).toBe("stat_boost");
+		expect(r.effect.type).toBe("unlock_ability");
 		expect(r.effect.target).toBe("diver");
+		expect(r.effect.unlocks).toBe("submerged_attack");
 	});
 });
 
@@ -282,12 +283,13 @@ describe("Research balance", () => {
 		expect(r.effect.value).toBe(15); // +15 building damage (30 → 45)
 	});
 
-	it("all stat_boost research has positive value", () => {
+	it("all stat_boost research has non-zero value", () => {
 		if (skip()) return;
 		const boosts = Object.values(research).filter((r) => r.effect.type === "stat_boost");
 		for (const r of boosts) {
 			expect(r.effect.value).toBeDefined();
-			expect(r.effect.value).toBeGreaterThan(0);
+			// Value can be positive (buff) or negative (reduction like mortar scatter)
+			expect(r.effect.value).not.toBe(0);
 		}
 	});
 

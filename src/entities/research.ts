@@ -98,7 +98,7 @@ export const advancedRafts: ResearchDef = {
 	effect: {
 		type: "stat_boost",
 		target: "raftsman",
-		stat: "speed",
+		stat: "carryCapacity",
 		value: 2,
 	},
 };

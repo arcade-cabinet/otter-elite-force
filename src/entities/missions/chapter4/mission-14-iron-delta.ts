@@ -155,11 +155,17 @@ export const mission14IronDelta: MissionDef = {
 		),
 		trigger("west-captured", on.areaEntered("ura", "west_capture"), [
 			act.completeObjective("capture-island-west"),
-			act.dialogue("gen_whiskers", "Island West is ours! Good staging point for the central assault."),
+			act.dialogue(
+				"gen_whiskers",
+				"Island West is ours! Good staging point for the central assault.",
+			),
 		]),
 		trigger("central-captured", on.areaEntered("ura", "central_capture"), [
 			act.completeObjective("capture-island-central"),
-			act.dialogue("gen_whiskers", "Central island captured! That was the hardest one — well done."),
+			act.dialogue(
+				"gen_whiskers",
+				"Central island captured! That was the hardest one — well done.",
+			),
 		]),
 		trigger("east-captured", on.areaEntered("ura", "east_capture"), [
 			act.completeObjective("capture-island-east"),

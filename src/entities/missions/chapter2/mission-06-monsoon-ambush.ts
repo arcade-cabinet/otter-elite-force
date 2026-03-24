@@ -158,7 +158,10 @@ export const mission06MonsoonAmbush: MissionDef = {
 			act.spawn("snapper", "scale_guard", 4, 37, 2),
 		]),
 		trigger("wave-8", on.timer(900), [
-			act.dialogue("gen_whiskers", "FINAL WAVE! Everything they've got — all four roads! Hold that line, Sergeant!"),
+			act.dialogue(
+				"gen_whiskers",
+				"FINAL WAVE! Everything they've got — all four roads! Hold that line, Sergeant!",
+			),
 			act.spawn("gator", "scale_guard", 4, 1, 4),
 			act.spawn("gator", "scale_guard", 44, 37, 4),
 			act.spawn("viper", "scale_guard", 44, 1, 3),
@@ -168,11 +171,17 @@ export const mission06MonsoonAmbush: MissionDef = {
 		]),
 		trigger("waves-cleared", on.timer(1020), [
 			act.completeObjective("survive-all-waves"),
-			act.dialogue("gen_whiskers", "All waves repelled. The base held. Outstanding defense, Sergeant."),
+			act.dialogue(
+				"gen_whiskers",
+				"All waves repelled. The base held. Outstanding defense, Sergeant.",
+			),
 		]),
 		trigger("cp-destroyed", on.buildingCount("ura", "command_post", "eq", 0), act.failMission()),
 		trigger("mission-complete", on.allPrimaryComplete(), [
-			act.dialogue("gen_whiskers", "The monsoon assault failed. Scale-Guard is retreating. This position is ours."),
+			act.dialogue(
+				"gen_whiskers",
+				"The monsoon assault failed. Scale-Guard is retreating. This position is ours.",
+			),
 			act.victory(),
 		]),
 	],

@@ -136,7 +136,7 @@ describe("CampaignMap", () => {
 			if (lockedMarker) {
 				const btn = lockedMarker.closest("button");
 				if (btn) {
-						expect(btn.getAttribute("disabled")).not.toBeNull();
+					expect(btn.getAttribute("disabled")).not.toBeNull();
 				}
 			}
 		});
@@ -160,7 +160,7 @@ describe("CampaignMap", () => {
 			expect(marker).toBeTruthy();
 			const btn = marker.closest("button");
 			if (btn) {
-					expect(btn.getAttribute("disabled")).toBeNull();
+				expect(btn.getAttribute("disabled")).toBeNull();
 			}
 		});
 

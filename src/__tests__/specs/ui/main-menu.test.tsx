@@ -110,13 +110,13 @@ describe("MainMenu", () => {
 		it("shows 'Continue' when campaign progress exists", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(MainMenu), (world: any) => {
-					world.set(CampaignProgress, {
+				world.set(CampaignProgress, {
 					missions: {
 						mission_1: { status: "completed", stars: 2, bestTime: 480000 },
-						},
-						currentMission: "mission_2",
-						difficulty: "tactical",
-					});
+					},
+					currentMission: "mission_2",
+					difficulty: "tactical",
+				});
 			});
 			expect(screen.getByText(/continue/i)).toBeTruthy();
 		});
@@ -165,7 +165,7 @@ describe("MainMenu", () => {
 			// Should have at least 3 buttons (New Deployment, Canteen, Settings)
 			expect(buttons.length).toBeGreaterThanOrEqual(3);
 			for (const btn of buttons) {
-					expect(btn.getAttribute("disabled")).toBeNull();
+				expect(btn.getAttribute("disabled")).toBeNull();
 			}
 		});
 	});

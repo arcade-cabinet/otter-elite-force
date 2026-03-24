@@ -172,22 +172,33 @@ export const mission02Causeway: MissionDef = {
 	startPopCap: 10,
 
 	objectives: {
-		primary: [objective("escort-convoy", "Escort the supply convoy to the outpost (1/3 wagons minimum)")],
+		primary: [
+			objective("escort-convoy", "Escort the supply convoy to the outpost (1/3 wagons minimum)"),
+		],
 		bonus: [objective("all-wagons-survive", "All 3 wagons survive")],
 	},
 
 	triggers: [
 		trigger("convoy-spawn", on.timer(10), [
-			act.dialogue("foxhound", "Convoy entering the causeway from the west. Three wagons. Keep them alive, Sergeant."),
+			act.dialogue(
+				"foxhound",
+				"Convoy entering the causeway from the west. Three wagons. Keep them alive, Sergeant.",
+			),
 			act.spawn("supply_wagon", "ura", 1, 14, 3),
 		]),
 		trigger("ambush-1", on.areaEntered("ura", "ambush_1"), [
-			act.dialogue("foxhound", "Contact! Scale-Guard emerging from the treeline at the first crossing!"),
+			act.dialogue(
+				"foxhound",
+				"Contact! Scale-Guard emerging from the treeline at the first crossing!",
+			),
 			act.spawn("gator", "scale_guard", 4, 6, 2),
 			act.spawn("viper", "scale_guard", 5, 22, 1),
 		]),
 		trigger("ambush-2", on.areaEntered("ura", "ambush_2"), [
-			act.dialogue("foxhound", "Second ambush — they're hitting from the tall grass! Watch the flanks!"),
+			act.dialogue(
+				"foxhound",
+				"Second ambush — they're hitting from the tall grass! Watch the flanks!",
+			),
 			act.spawn("gator", "scale_guard", 18, 3, 2),
 			act.spawn("viper", "scale_guard", 19, 24, 2),
 		]),
@@ -206,7 +217,10 @@ export const mission02Causeway: MissionDef = {
 		]),
 		trigger("convoy-destroyed", on.unitCount("ura", "supply_wagon", "eq", 0), act.failMission()),
 		trigger("mission-complete", on.allPrimaryComplete(), [
-			act.dialogue("foxhound", "Causeway secured. The Reach just got a lot more interesting for Scale-Guard. FOXHOUND out."),
+			act.dialogue(
+				"foxhound",
+				"Causeway secured. The Reach just got a lot more interesting for Scale-Guard. FOXHOUND out.",
+			),
 			act.victory(),
 		]),
 	],

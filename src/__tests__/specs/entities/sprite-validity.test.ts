@@ -16,7 +16,10 @@
  * Tests are written BEFORE entity definitions exist.
  */
 import { describe, it, expect, beforeAll } from "vitest";
-import { getCategoryDimensions, materializeSpriteToLegacy } from "@/entities/sprite-materialization";
+import {
+	getCategoryDimensions,
+	materializeSpriteToLegacy,
+} from "@/entities/sprite-materialization";
 import type { UnitDef, HeroDef, BuildingDef, PortraitDef, SpriteDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------

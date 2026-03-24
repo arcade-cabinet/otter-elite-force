@@ -19,11 +19,26 @@ interface Upgrade {
 }
 
 const UPGRADES: Upgrade[] = [
-	{ id: "muzzle_velocity", name: "Muzzle Velocity I", description: "+10% projectile speed", cost: 100 },
-	{ id: "armor_plating", name: "Armor Plating I", description: "+1 armor for all units", cost: 150 },
+	{
+		id: "muzzle_velocity",
+		name: "Muzzle Velocity I",
+		description: "+10% projectile speed",
+		cost: 100,
+	},
+	{
+		id: "armor_plating",
+		name: "Armor Plating I",
+		description: "+1 armor for all units",
+		cost: 150,
+	},
 	{ id: "grenade_belt", name: "Grenade Belt", description: "Unlock frag grenades", cost: 200 },
 	{ id: "field_medic", name: "Field Medic Training", description: "+25% healing rate", cost: 175 },
-	{ id: "recon_optics", name: "Recon Optics", description: "+2 vision radius for scouts", cost: 125 },
+	{
+		id: "recon_optics",
+		name: "Recon Optics",
+		description: "+2 vision radius for scouts",
+		cost: 125,
+	},
 ];
 
 export function CanteenScreen() {
@@ -47,7 +62,10 @@ export function CanteenScreen() {
 			}
 		>
 			<div data-testid="canteen-screen" className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-				<ShellPanel title="Arsenal Ledger" description="These are still stubs mechanically, but the visual treatment now matches the command-post art direction.">
+				<ShellPanel
+					title="Arsenal Ledger"
+					description="These are still stubs mechanically, but the visual treatment now matches the command-post art direction."
+				>
 					<div className="grid gap-3">
 						{UPGRADES.map((upgrade) => (
 							<button
@@ -59,8 +77,12 @@ export function CanteenScreen() {
 								)}
 							>
 								<div className="flex flex-col gap-1">
-									<span className="font-heading text-xs uppercase tracking-[0.2em] text-foreground">{upgrade.name}</span>
-									<span className="font-body text-[11px] uppercase tracking-[0.12em] text-muted-foreground">{upgrade.description}</span>
+									<span className="font-heading text-xs uppercase tracking-[0.2em] text-foreground">
+										{upgrade.name}
+									</span>
+									<span className="font-body text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
+										{upgrade.description}
+									</span>
 								</div>
 								<Badge variant="accent">{upgrade.cost} SC</Badge>
 							</button>
@@ -68,15 +90,27 @@ export function CanteenScreen() {
 					</div>
 				</ShellPanel>
 
-				<ShellPanel title="Mess Hall Notes" description="Permanent progression should feel grounded in supply discipline, not arcade vending-machine chrome.">
+				<ShellPanel
+					title="Mess Hall Notes"
+					description="Permanent progression should feel grounded in supply discipline, not arcade vending-machine chrome."
+				>
 					<div className="grid gap-3">
 						<div className="rounded-lg border border-border/70 bg-background/20 p-4">
-							<div className="font-heading text-xs uppercase tracking-[0.2em] text-primary">Supply Credits</div>
-							<p className="mt-2 font-body text-xs uppercase tracking-[0.14em] leading-relaxed text-muted-foreground">Spend credits on permanent upgrades that live outside any single mission run.</p>
+							<div className="font-heading text-xs uppercase tracking-[0.2em] text-primary">
+								Supply Credits
+							</div>
+							<p className="mt-2 font-body text-xs uppercase tracking-[0.14em] leading-relaxed text-muted-foreground">
+								Spend credits on permanent upgrades that live outside any single mission run.
+							</p>
 						</div>
 						<div className="rounded-lg border border-border/70 bg-background/20 p-4">
-							<div className="font-heading text-xs uppercase tracking-[0.2em] text-accent">Design Goal</div>
-							<p className="mt-2 font-body text-xs uppercase tracking-[0.14em] leading-relaxed text-muted-foreground">Keep the screen feeling like a riveted field ledger rather than a flat list of buttons.</p>
+							<div className="font-heading text-xs uppercase tracking-[0.2em] text-accent">
+								Design Goal
+							</div>
+							<p className="mt-2 font-body text-xs uppercase tracking-[0.14em] leading-relaxed text-muted-foreground">
+								Keep the screen feeling like a riveted field ledger rather than a flat list of
+								buttons.
+							</p>
 						</div>
 					</div>
 				</ShellPanel>

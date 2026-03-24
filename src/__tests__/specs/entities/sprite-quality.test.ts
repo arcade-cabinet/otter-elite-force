@@ -21,7 +21,12 @@ describe("SP-DSL asset quality gates", () => {
 		for (const [id, portrait] of Object.entries(ALL_PORTRAITS)) {
 			const sprite = portrait.sprite as SPDSLSprite;
 			expect(getDimensions(sprite)).toEqual({ width: 64, height: 96 });
-			expect(sprite.layers.map((layer) => layer.id)).toEqual(["background", "face", "uniform", "details"]);
+			expect(sprite.layers.map((layer) => layer.id)).toEqual([
+				"background",
+				"face",
+				"uniform",
+				"details",
+			]);
 			void id;
 		}
 	});
@@ -48,7 +53,9 @@ describe("SP-DSL asset quality gates", () => {
 			}
 
 			expect(layerIds.length).toBeGreaterThanOrEqual(3);
-			expect(layerIds.some((layerId) => ["shadow", "foundation", "pool"].includes(layerId))).toBe(true);
+			expect(layerIds.some((layerId) => ["shadow", "foundation", "pool"].includes(layerId))).toBe(
+				true,
+			);
 			void id;
 		}
 	});

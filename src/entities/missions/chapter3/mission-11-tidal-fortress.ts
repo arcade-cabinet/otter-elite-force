@@ -147,12 +147,18 @@ export const mission11TidalFortress: MissionDef = {
 		trigger(
 			"tide-rising-1",
 			on.timer(120),
-			act.dialogue("gen_whiskers", "Tide is rising! Pull back from the flats or your units will be caught in the water."),
+			act.dialogue(
+				"gen_whiskers",
+				"Tide is rising! Pull back from the flats or your units will be caught in the water.",
+			),
 		),
 		trigger(
 			"tide-low-2",
 			on.timer(240),
-			act.dialogue("gen_whiskers", "Low tide again. Two minutes to push across. Make this one count."),
+			act.dialogue(
+				"gen_whiskers",
+				"Low tide again. Two minutes to push across. Make this one count.",
+			),
 		),
 		trigger(
 			"tide-rising-2",
@@ -168,7 +174,10 @@ export const mission11TidalFortress: MissionDef = {
 			),
 		),
 		trigger("fortress-breached", on.areaEntered("ura", "fortress_center"), [
-			act.dialogue("gen_whiskers", "You're inside the fortress! Push for their Command Post. Expect heavy resistance."),
+			act.dialogue(
+				"gen_whiskers",
+				"You're inside the fortress! Push for their Command Post. Expect heavy resistance.",
+			),
 			act.spawn("gator", "scale_guard", 24, 8, 3),
 			act.spawn("viper", "scale_guard", 22, 16, 2),
 		]),

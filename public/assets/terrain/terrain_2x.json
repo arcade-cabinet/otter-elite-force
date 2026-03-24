@@ -1,204 +1,204 @@
 {
-  "meta": {
-    "image": "terrain_2x.png",
-    "size": {
-      "w": 528,
-      "h": 32
-    },
-    "scale": 2
-  },
-  "frames": {
-    "grass": {
-      "frame": {
-        "x": 0,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "grass_idle_0": {
-      "frame": {
-        "x": 33,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "dirt": {
-      "frame": {
-        "x": 66,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "dirt_idle_0": {
-      "frame": {
-        "x": 99,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "beach": {
-      "frame": {
-        "x": 132,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "beach_idle_0": {
-      "frame": {
-        "x": 165,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "mud": {
-      "frame": {
-        "x": 198,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "mud_idle_0": {
-      "frame": {
-        "x": 231,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "water": {
-      "frame": {
-        "x": 264,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "water_idle_0": {
-      "frame": {
-        "x": 297,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "mangrove": {
-      "frame": {
-        "x": 330,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "mangrove_idle_0": {
-      "frame": {
-        "x": 363,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "toxic_sludge": {
-      "frame": {
-        "x": 396,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "toxic_sludge_idle_0": {
-      "frame": {
-        "x": 429,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "bridge": {
-      "frame": {
-        "x": 462,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    },
-    "bridge_idle_0": {
-      "frame": {
-        "x": 495,
-        "y": 0,
-        "w": 32,
-        "h": 32
-      },
-      "sourceSize": {
-        "w": 32,
-        "h": 32
-      }
-    }
-  }
+	"meta": {
+		"image": "terrain_2x.png",
+		"size": {
+			"w": 528,
+			"h": 32
+		},
+		"scale": 2
+	},
+	"frames": {
+		"grass": {
+			"frame": {
+				"x": 0,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"grass_idle_0": {
+			"frame": {
+				"x": 33,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"dirt": {
+			"frame": {
+				"x": 66,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"dirt_idle_0": {
+			"frame": {
+				"x": 99,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"beach": {
+			"frame": {
+				"x": 132,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"beach_idle_0": {
+			"frame": {
+				"x": 165,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"mud": {
+			"frame": {
+				"x": 198,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"mud_idle_0": {
+			"frame": {
+				"x": 231,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"water": {
+			"frame": {
+				"x": 264,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"water_idle_0": {
+			"frame": {
+				"x": 297,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"mangrove": {
+			"frame": {
+				"x": 330,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"mangrove_idle_0": {
+			"frame": {
+				"x": 363,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"toxic_sludge": {
+			"frame": {
+				"x": 396,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"toxic_sludge_idle_0": {
+			"frame": {
+				"x": 429,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"bridge": {
+			"frame": {
+				"x": 462,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		},
+		"bridge_idle_0": {
+			"frame": {
+				"x": 495,
+				"y": 0,
+				"w": 32,
+				"h": 32
+			},
+			"sourceSize": {
+				"w": 32,
+				"h": 32
+			}
+		}
+	}
 }

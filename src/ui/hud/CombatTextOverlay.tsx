@@ -171,7 +171,12 @@ export function CombatTextOverlay() {
 				const screenX = (floater.worldX * TILE_SIZE - camera.worldView.x) * camera.zoom;
 				const screenY = (floater.worldY * TILE_SIZE - camera.worldView.y) * camera.zoom;
 
-				if (screenX < -32 || screenY < -32 || screenX > camera.width + 32 || screenY > camera.height + 32) {
+				if (
+					screenX < -32 ||
+					screenY < -32 ||
+					screenX > camera.width + 32 ||
+					screenY > camera.height + 32
+				) {
 					return null;
 				}
 

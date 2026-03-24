@@ -161,7 +161,10 @@ export const mission05SiphonValley: MissionDef = {
 		trigger(
 			"build-reminder",
 			on.timer(120),
-			act.dialogue("gen_whiskers", "Get that Command Post up and start expanding. The siphons aren't going to destroy themselves."),
+			act.dialogue(
+				"gen_whiskers",
+				"Get that Command Post up and start expanding. The siphons aren't going to destroy themselves.",
+			),
 		),
 		trigger(
 			"approach-siphon-west",
@@ -173,11 +176,17 @@ export const mission05SiphonValley: MissionDef = {
 		),
 		trigger("siphon-west-destroyed", on.buildingCount("scale_guard", "siphon", "lte", 2), [
 			act.completeObjective("destroy-siphon-west"),
-			act.dialogue("gen_whiskers", "Siphon West is down! The western waterway is clearing. Two more to go."),
+			act.dialogue(
+				"gen_whiskers",
+				"Siphon West is down! The western waterway is clearing. Two more to go.",
+			),
 		]),
 		trigger("siphon-central-destroyed", on.buildingCount("scale_guard", "siphon", "lte", 1), [
 			act.completeObjective("destroy-siphon-central"),
-			act.dialogue("gen_whiskers", "Central siphon neutralized. That was the most fortified position — well done."),
+			act.dialogue(
+				"gen_whiskers",
+				"Central siphon neutralized. That was the most fortified position — well done.",
+			),
 		]),
 		trigger("siphon-east-destroyed", on.buildingCount("scale_guard", "siphon", "eq", 0), [
 			act.completeObjective("destroy-siphon-east"),
@@ -192,12 +201,18 @@ export const mission05SiphonValley: MissionDef = {
 			),
 		),
 		trigger("counterattack-1", on.timer(480), [
-			act.dialogue("gen_whiskers", "Incoming! Scale-Guard is sending a response force from the north. Defend your base!"),
+			act.dialogue(
+				"gen_whiskers",
+				"Incoming! Scale-Guard is sending a response force from the north. Defend your base!",
+			),
 			act.spawn("gator", "scale_guard", 27, 2, 4),
 			act.spawn("scout_lizard", "scale_guard", 20, 2, 2),
 		]),
 		trigger("counterattack-2", on.timer(840), [
-			act.dialogue("gen_whiskers", "Another wave from Scale-Guard. They're throwing everything at you — hold the line."),
+			act.dialogue(
+				"gen_whiskers",
+				"Another wave from Scale-Guard. They're throwing everything at you — hold the line.",
+			),
 			act.spawn("gator", "scale_guard", 5, 15, 3),
 			act.spawn("viper", "scale_guard", 50, 15, 2),
 			act.spawn("snapper", "scale_guard", 27, 2, 2),

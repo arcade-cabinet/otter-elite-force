@@ -149,7 +149,10 @@ export const mission07RiverRats: MissionDef = {
 		trigger(
 			"dock-hint",
 			on.timer(120),
-			act.dialogue("gen_whiskers", "Consider building a Dock at the riverbank. Raftsmen can cross the water directly — no bridge needed."),
+			act.dialogue(
+				"gen_whiskers",
+				"Consider building a Dock at the riverbank. Raftsmen can cross the water directly — no bridge needed.",
+			),
 		),
 		trigger("dock-built", on.buildingCount("ura", "dock", "gte", 1), [
 			act.completeObjective("build-dock"),

@@ -192,25 +192,33 @@ export const mission13GreatSiphon: MissionDef = {
 				"You're inside the Siphon compound. Five Venom Spires and heavy garrison. Clear the flanks and hit those generators.",
 			),
 		),
-		trigger("generator-west-destroyed", on.buildingCount("scale_guard", "shield_generator", "lte", 1), [
-			act.completeObjective("destroy-generator-west"),
-			act.dialogue(
-				"gen_whiskers",
-				"West generator down! The Siphon's shields are weakening. One more generator to go.",
-			),
-			act.spawn("gator", "scale_guard", 50, 2, 4),
-			act.spawn("viper", "scale_guard", 42, 12, 3),
-		]),
-		trigger("generator-east-destroyed", on.buildingCount("scale_guard", "shield_generator", "eq", 0), [
-			act.completeObjective("destroy-generator-east"),
-			act.dialogue(
-				"gen_whiskers",
-				"Both generators destroyed! The Siphon core is exposed. Hit it with everything you've got!",
-			),
-			act.spawn("snapper", "scale_guard", 50, 2, 3),
-			act.spawn("gator", "scale_guard", 58, 12, 4),
-			act.spawn("viper", "scale_guard", 42, 4, 3),
-		]),
+		trigger(
+			"generator-west-destroyed",
+			on.buildingCount("scale_guard", "shield_generator", "lte", 1),
+			[
+				act.completeObjective("destroy-generator-west"),
+				act.dialogue(
+					"gen_whiskers",
+					"West generator down! The Siphon's shields are weakening. One more generator to go.",
+				),
+				act.spawn("gator", "scale_guard", 50, 2, 4),
+				act.spawn("viper", "scale_guard", 42, 12, 3),
+			],
+		),
+		trigger(
+			"generator-east-destroyed",
+			on.buildingCount("scale_guard", "shield_generator", "eq", 0),
+			[
+				act.completeObjective("destroy-generator-east"),
+				act.dialogue(
+					"gen_whiskers",
+					"Both generators destroyed! The Siphon core is exposed. Hit it with everything you've got!",
+				),
+				act.spawn("snapper", "scale_guard", 50, 2, 3),
+				act.spawn("gator", "scale_guard", 58, 12, 4),
+				act.spawn("viper", "scale_guard", 42, 4, 3),
+			],
+		),
 		trigger(
 			"siphon-destroyed",
 			on.buildingCount("scale_guard", "great_siphon", "eq", 0),

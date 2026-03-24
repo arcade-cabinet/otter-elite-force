@@ -31,7 +31,7 @@ function createMockScene() {
 	const sprites: ReturnType<typeof createMockSprite>[] = [];
 	return {
 		add: {
-			sprite: vi.fn((x: number, y: number, _texture: string) => {
+			sprite: vi.fn((x: number, y: number, _texture: string, _frame?: string) => {
 				const s = createMockSprite(x, y);
 				// Wire up getData to return stored data
 				s.setData.mockImplementation((key: string, value: unknown) => {
@@ -42,6 +42,13 @@ function createMockScene() {
 				sprites.push(s);
 				return s;
 			}),
+		},
+		textures: {
+			exists: vi.fn().mockReturnValue(true),
+			get: vi.fn().mockReturnValue({ has: vi.fn().mockReturnValue(true) }),
+		},
+		registry: {
+			get: vi.fn().mockReturnValue("2x"),
 		},
 		_sprites: sprites,
 	};
@@ -74,7 +81,13 @@ describe("Koota↔Phaser Sync System", () => {
 
 			// Sprite should have been created
 			expect(scene.add.sprite).toHaveBeenCalledOnce();
-			expect(scene.add.sprite).toHaveBeenCalledWith(3 * 32 + 16, 7 * 32 + 16, "mudfoot");
+			// New atlas-based sprite creation: (x, y, atlasKey, frameKey) or (x, y, textureKey)
+			expect(scene.add.sprite).toHaveBeenCalledWith(
+				3 * 32 + 16,
+				7 * 32 + 16,
+				expect.any(String),
+				expect.anything(),
+			);
 
 			// Entity should have PhaserSprite trait
 			expect(entity.has(PhaserSprite)).toBe(true);
@@ -97,7 +110,8 @@ describe("Koota↔Phaser Sync System", () => {
 			expect(scene.add.sprite).toHaveBeenCalledWith(
 				expect.any(Number),
 				expect.any(Number),
-				"barracks",
+				expect.any(String),
+				expect.anything(),
 			);
 		});
 

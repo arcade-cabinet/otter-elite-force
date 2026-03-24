@@ -129,11 +129,21 @@ export const mission01Beachhead: MissionDef = {
 		]),
 		trigger("barracks-built", on.buildingCount("ura", "barracks", "gte", 1), [
 			act.completeObjective("build-barracks"),
-			act.dialogue("foxhound", "Barracks operational. Start training Mudfoots — we need four for a patrol squad."),
+			act.dialogue(
+				"foxhound",
+				"Barracks operational. Start training Mudfoots — we need four for a patrol squad.",
+			),
 		]),
-		trigger("mudfoots-trained", on.unitCount("ura", "mudfoot", "gte", 4), act.completeObjective("train-mudfoots")),
+		trigger(
+			"mudfoots-trained",
+			on.unitCount("ura", "mudfoot", "gte", 4),
+			act.completeObjective("train-mudfoots"),
+		),
 		trigger("enemy-scout-arrival", on.timer(300), [
-			act.dialogue("foxhound", "Heads up — Scale-Guard scouts spotted near your position. Stay sharp, Bubbles."),
+			act.dialogue(
+				"foxhound",
+				"Heads up — Scale-Guard scouts spotted near your position. Stay sharp, Bubbles.",
+			),
 			act.spawn("scout_lizard", "scale_guard", 25, 2, 2),
 		]),
 		trigger(
@@ -142,7 +152,10 @@ export const mission01Beachhead: MissionDef = {
 			act.dialogue("foxhound", "Good find! That wreckage has usable salvage. Strip it clean."),
 		),
 		trigger("mission-complete", on.allPrimaryComplete(), [
-			act.dialogue("foxhound", "Beachhead secured, Sergeant. The Copper-Silt Reach campaign begins. FOXHOUND out."),
+			act.dialogue(
+				"foxhound",
+				"Beachhead secured, Sergeant. The Copper-Silt Reach campaign begins. FOXHOUND out.",
+			),
 			act.victory(),
 		]),
 	],

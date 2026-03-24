@@ -86,8 +86,12 @@ export function PortraitDisplay({ portraitId, className }: PortraitDisplayProps)
 		>
 			<div className="absolute inset-0 bg-[repeating-linear-gradient(180deg,rgba(255,255,255,0.03)_0,rgba(255,255,255,0.03)_1px,transparent_1px,transparent_5px)] opacity-40" />
 			<div className="absolute inset-4 border border-accent/20" />
-			<div className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Field Dossier</div>
-			<div className="absolute right-4 top-4 rounded-full border border-accent/30 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-accent">LOCKED</div>
+			<div className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+				Field Dossier
+			</div>
+			<div className="absolute right-4 top-4 rounded-full border border-accent/30 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-accent">
+				LOCKED
+			</div>
 			<div className="relative z-10 flex w-full max-w-[18rem] flex-col gap-4">
 				<div className="briefing-portrait-frame relative mx-auto flex min-h-[22rem] w-full items-center justify-center overflow-hidden rounded-lg border border-accent/25 bg-[radial-gradient(circle_at_top,rgba(212,165,116,0.24),rgba(0,0,0,0.08))] p-5 shadow-[0_0_60px_rgba(245,230,200,0.08)]">
 					<div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.05),transparent_42%)]" />
@@ -108,15 +112,22 @@ export function PortraitDisplay({ portraitId, className }: PortraitDisplayProps)
 					)}
 				</div>
 				<div className="grid gap-2 rounded-lg border border-border/70 bg-background/20 px-4 py-3">
-					<div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Visual Source</div>
+					<div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+						Visual Source
+					</div>
 					<div className="font-body text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-						SP-DSL compiled atlas {portraitFrame ? `${atlas?.meta.scale ?? 0}x locked` : "fallback silhouette"}
+						SP-DSL compiled atlas{" "}
+						{portraitFrame ? `${atlas?.meta.scale ?? 0}x locked` : "fallback silhouette"}
 					</div>
 				</div>
 			</div>
 			<div className="absolute bottom-5 left-5 right-5 z-10 border-t border-border/70 pt-3">
-				<div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Callsign</div>
-				<div className="mt-1 font-heading text-lg uppercase tracking-[0.22em] text-primary">{callsign}</div>
+				<div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+					Callsign
+				</div>
+				<div className="mt-1 font-heading text-lg uppercase tracking-[0.22em] text-primary">
+					{callsign}
+				</div>
 			</div>
 		</div>
 	);

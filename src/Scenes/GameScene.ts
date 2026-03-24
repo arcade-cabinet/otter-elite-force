@@ -352,10 +352,10 @@ export class GameScene extends Phaser.Scene {
 		const scenario = mission
 			? compileMissionScenario(mission)
 			: {
-						id: `mission-${resolveMissionNumber(this.missionData.missionId)}`,
+					id: `mission-${resolveMissionNumber(this.missionData.missionId)}`,
 					chapter: 1,
-						mission: resolveMissionNumber(this.missionData.missionId),
-						name: `Mission ${resolveMissionNumber(this.missionData.missionId)}`,
+					mission: resolveMissionNumber(this.missionData.missionId),
+					name: `Mission ${resolveMissionNumber(this.missionData.missionId)}`,
 					briefing: { title: "", lines: [], objectives: [] },
 					startConditions: {},
 					objectives: [],
@@ -365,7 +365,7 @@ export class GameScene extends Phaser.Scene {
 		this.scenarioEngine = new ScenarioEngine(scenario, actionHandler);
 
 		this.scenarioEngine.on((event) => {
-				if (event.type === "missionFailed") {
+			if (event.type === "missionFailed") {
 				this.handleDefeat(event.reason);
 			}
 		});
@@ -385,19 +385,19 @@ export class GameScene extends Phaser.Scene {
 				});
 				return count;
 			},
-				countBuildings: (faction: string, buildingType?: string) => {
-					let count = 0;
-					world.query(Faction, UnitType, Health, IsBuilding).forEach((entity) => {
-						const entityFaction = entity.get(Faction);
-						if (!entityFaction || entityFaction.id !== faction) return;
-						if (buildingType) {
-							const entityType = entity.get(UnitType);
-							if (!entityType || entityType.type !== buildingType) return;
-						}
-						count++;
-					});
-					return count;
-				},
+			countBuildings: (faction: string, buildingType?: string) => {
+				let count = 0;
+				world.query(Faction, UnitType, Health, IsBuilding).forEach((entity) => {
+					const entityFaction = entity.get(Faction);
+					if (!entityFaction || entityFaction.id !== faction) return;
+					if (buildingType) {
+						const entityType = entity.get(UnitType);
+						if (!entityType || entityType.type !== buildingType) return;
+					}
+					count++;
+				});
+				return count;
+			},
 			countUnitsInArea: (
 				faction: string,
 				area: { x: number; y: number; width: number; height: number },
@@ -465,9 +465,9 @@ export class GameScene extends Phaser.Scene {
 					action.duration * 1000,
 				);
 				break;
-				case "victory":
-					this.handleVictory();
-					break;
+			case "victory":
+				this.handleVictory();
+				break;
 			case "showDialogue":
 			case "changeWeather":
 			case "playSFX":

@@ -28,7 +28,13 @@ export function CardTitle({ className, ...props }: ComponentPropsWithoutRef<"h3"
 
 export function CardDescription({ className, ...props }: ComponentPropsWithoutRef<"p">) {
 	return (
-		<p className={cn("font-body text-xs uppercase tracking-[0.18em] text-muted-foreground", className)} {...props} />
+		<p
+			className={cn(
+				"font-body text-xs uppercase tracking-[0.18em] text-muted-foreground",
+				className,
+			)}
+			{...props}
+		/>
 	);
 }
 

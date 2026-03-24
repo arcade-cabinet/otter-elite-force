@@ -10,7 +10,10 @@
  * They WILL FAIL until the corresponding entity modules are implemented.
  */
 import { describe, it, expect, beforeAll } from "vitest";
-import { getCategoryDimensions, materializeSpriteToLegacy } from "@/entities/sprite-materialization";
+import {
+	getCategoryDimensions,
+	materializeSpriteToLegacy,
+} from "@/entities/sprite-materialization";
 import type { BuildingDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------

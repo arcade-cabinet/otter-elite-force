@@ -1,8 +1,4 @@
-import type {
-	MissionObjective,
-	MissionScenarioTrigger,
-	MissionTriggerCondition,
-} from "../types";
+import type { MissionObjective, MissionScenarioTrigger, MissionTriggerCondition } from "../types";
 import type { TriggerAction } from "@/scenarios/types";
 
 const SPEAKER_NAMES: Record<string, string> = {
@@ -14,7 +10,13 @@ const SPEAKER_NAMES: Record<string, string> = {
 };
 
 function toSpeakerName(id: string): string {
-	return SPEAKER_NAMES[id] ?? id.split("_").map((part) => part[0].toUpperCase() + part.slice(1)).join(" ");
+	return (
+		SPEAKER_NAMES[id] ??
+		id
+			.split("_")
+			.map((part) => part[0].toUpperCase() + part.slice(1))
+			.join(" ")
+	);
 }
 
 export function objective(id: string, description: string): MissionObjective {

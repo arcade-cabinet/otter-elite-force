@@ -74,13 +74,13 @@ export function syncNewEntities(world: World, scene: Phaser.Scene): void {
 
 		const textureKey = unitType.type;
 
-			const sprite = createEntitySprite(
-				scene,
-				textureKey,
-				pos.x * TILE_SIZE + TILE_SIZE / 2,
-				pos.y * TILE_SIZE + TILE_SIZE / 2,
-			);
-			if (!sprite) continue;
+		const sprite = createEntitySprite(
+			scene,
+			textureKey,
+			pos.x * TILE_SIZE + TILE_SIZE / 2,
+			pos.y * TILE_SIZE + TILE_SIZE / 2,
+		);
+		if (!sprite) continue;
 		sprite.setInteractive();
 		sprite.setData("kootaEntity", entity);
 

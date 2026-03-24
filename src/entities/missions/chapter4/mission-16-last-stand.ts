@@ -287,7 +287,11 @@ export const mission16LastStand: MissionDef = {
 			act.completeObjective("destroy-enemy-cp"),
 		),
 		// CP loss = defeat
-		trigger("ura-cp-destroyed", on.buildingCount("ura", "command_post", "eq", 0), act.failMission()),
+		trigger(
+			"ura-cp-destroyed",
+			on.buildingCount("ura", "command_post", "eq", 0),
+			act.failMission(),
+		),
 		// Hero death = defeat
 		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
 		// Mission complete

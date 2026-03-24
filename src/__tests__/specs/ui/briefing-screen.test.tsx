@@ -145,11 +145,10 @@ describe("BriefingScreen", () => {
 					briefing: MISSION_1_BRIEFING,
 				}),
 			);
-				act(() => {
-					vi.advanceTimersByTime(600);
-				});
-				const text =
-					screen.queryByText(/welcome to the soup/i) ?? screen.queryByText(/sergeant/i);
+			act(() => {
+				vi.advanceTimersByTime(600);
+			});
+			const text = screen.queryByText(/welcome to the soup/i) ?? screen.queryByText(/sergeant/i);
 			expect(text).toBeTruthy();
 		});
 
@@ -189,7 +188,7 @@ describe("BriefingScreen", () => {
 				}),
 			);
 			const deployBtn = screen.getByText(/deploy/i);
-				expect(deployBtn.closest("button")?.getAttribute("disabled")).toBeNull();
+			expect(deployBtn.closest("button")?.getAttribute("disabled")).toBeNull();
 		});
 
 		it("calls onDeploy callback when deploy is clicked", () => {

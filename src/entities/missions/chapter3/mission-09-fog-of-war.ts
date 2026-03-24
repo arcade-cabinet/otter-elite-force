@@ -142,27 +142,45 @@ export const mission09FogOfWar: MissionDef = {
 		),
 		trigger("intel-nw-found", on.areaEntered("ura", "intel_nw"), [
 			act.completeObjective("discover-intel-nw"),
-			act.dialogue("gen_whiskers", "Northwest marker found — Scale-Guard supply cache. Three more to go."),
+			act.dialogue(
+				"gen_whiskers",
+				"Northwest marker found — Scale-Guard supply cache. Three more to go.",
+			),
 		]),
 		trigger("intel-ne-found", on.areaEntered("ura", "intel_ne"), [
 			act.completeObjective("discover-intel-ne"),
-			act.dialogue("gen_whiskers", "Northeast marker located — that's a staging area. They're building up forces here."),
+			act.dialogue(
+				"gen_whiskers",
+				"Northeast marker located — that's a staging area. They're building up forces here.",
+			),
 		]),
 		trigger("intel-center-found", on.areaEntered("ura", "intel_center"), [
 			act.completeObjective("discover-intel-center"),
-			act.dialogue("gen_whiskers", "Central marker confirmed — communications relay. This is how they're coordinating."),
+			act.dialogue(
+				"gen_whiskers",
+				"Central marker confirmed — communications relay. This is how they're coordinating.",
+			),
 		]),
 		trigger("intel-se-found", on.areaEntered("ura", "intel_se"), [
 			act.completeObjective("discover-intel-se"),
-			act.dialogue("gen_whiskers", "Southeast marker identified — ammunition depot. That completes the picture."),
+			act.dialogue(
+				"gen_whiskers",
+				"Southeast marker identified — ammunition depot. That completes the picture.",
+			),
 		]),
 		trigger(
 			"fog-lifting-warning",
 			on.timer(300),
-			act.dialogue("gen_whiskers", "Fog's thinning. You have about a minute before full visibility. Finish your recon."),
+			act.dialogue(
+				"gen_whiskers",
+				"Fog's thinning. You have about a minute before full visibility. Finish your recon.",
+			),
 		),
 		trigger("fog-lifted-counterattack", on.timer(360), [
-			act.dialogue("gen_whiskers", "Fog's lifted — they can see you now! Scale-Guard is mobilizing!"),
+			act.dialogue(
+				"gen_whiskers",
+				"Fog's lifted — they can see you now! Scale-Guard is mobilizing!",
+			),
 			act.spawn("gator", "scale_guard", 26, 2, 4),
 			act.spawn("viper", "scale_guard", 2, 20, 3),
 			act.spawn("scout_lizard", "scale_guard", 48, 24, 3),
