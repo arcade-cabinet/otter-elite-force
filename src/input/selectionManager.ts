@@ -10,7 +10,6 @@ import Phaser from "phaser";
 import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 import { TILE_SIZE } from "@/maps/loader";
-import { useRTSGameStore } from "@/stores/rtsGameStore";
 
 const DRAG_THRESHOLD = 5;
 
@@ -120,7 +119,6 @@ export class SelectionManager {
 
 		if (closestEntity) {
 			(closestEntity as Entity).add(Selected);
-			this.syncToStore();
 		}
 	}
 
@@ -152,8 +150,6 @@ export class SelectionManager {
 				entity.add(Selected);
 			}
 		});
-
-		this.syncToStore();
 	}
 
 	/** Remove Selected trait from all entities. */
@@ -161,16 +157,6 @@ export class SelectionManager {
 		this.world.query(Selected).forEach((entity) => {
 			entity.remove(Selected);
 		});
-		useRTSGameStore.getState().clearSelection();
-	}
-
-	/** Sync ECS Selected entities to Zustand store. */
-	private syncToStore(): void {
-		const ids: number[] = [];
-		this.world.query(Selected).forEach((entity) => {
-			ids.push(entity.id());
-		});
-		useRTSGameStore.getState().setSelection(ids);
 	}
 
 	destroy(): void {

@@ -8,9 +8,9 @@
 import type { MissionDef } from "../../types";
 
 export const mission06MonsoonAmbush: MissionDef = {
-	id: "mission-06-monsoon-ambush",
+	id: "mission_6",
 	chapter: 2,
-	mission: 6,
+	mission: 2,
 	name: "Monsoon Ambush",
 	subtitle: "Defend your base through 8 waves and 3 monsoon cycles",
 

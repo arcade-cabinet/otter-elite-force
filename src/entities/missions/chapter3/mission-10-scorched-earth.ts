@@ -9,10 +9,10 @@
 import type { MissionDef } from "../../types";
 
 export const mission10ScorchedEarth: MissionDef = {
-	id: "mission-10-scorched-earth",
+	id: "mission_10",
 	chapter: 3,
-	mission: 10,
-	name: "Scorched Earth",
+	mission: 2,
+	name: "The Healer's Grove",
 	subtitle: "Destroy four Scale-Guard fuel depots in the Blackmarsh",
 
 	briefing: {
@@ -229,9 +229,11 @@ export const mission10ScorchedEarth: MissionDef = {
 		},
 	],
 
-	unlocks: {},
+	unlocks: {
+		heroes: ["medic_marina"],
+	},
 
-	parTime: 600,
+	parTime: 720,
 
 	difficulty: {
 		support: {

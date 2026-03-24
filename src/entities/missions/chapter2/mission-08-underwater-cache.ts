@@ -8,9 +8,9 @@
 import type { MissionDef } from "../../types";
 
 export const mission08UnderwaterCache: MissionDef = {
-	id: "mission-08-underwater-cache",
+	id: "mission_8",
 	chapter: 2,
-	mission: 8,
+	mission: 4,
 	name: "The Underwater Cache",
 	subtitle: "Rescue Cpl. Splash and recover a submerged munitions cache",
 

@@ -9,10 +9,10 @@
 import type { MissionDef } from "../../types";
 
 export const mission13GreatSiphon: MissionDef = {
-	id: "mission-13-great-siphon",
+	id: "mission_13",
 	chapter: 4,
-	mission: 13,
-	name: "The Great Siphon",
+	mission: 1,
+	name: "Supply Lines",
 	subtitle: "Assault Scale-Guard headquarters and destroy the Great Siphon",
 
 	briefing: {
@@ -266,7 +266,7 @@ export const mission13GreatSiphon: MissionDef = {
 
 	unlocks: {},
 
-	parTime: 900,
+	parTime: 720,
 
 	difficulty: {
 		support: {

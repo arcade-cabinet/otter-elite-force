@@ -12,7 +12,8 @@ import { RESEARCH } from "../data/research";
 import { ResearchSlot } from "../ecs/traits/economy";
 import { Health, Attack } from "../ecs/traits/combat";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
-import { resourceStore } from "../stores/resourceStore";
+import { CompletedResearch, ResourcePool } from "../ecs/traits/state";
+import { world as defaultWorld } from "../ecs/world";
 
 // ---------------------------------------------------------------------------
 // Queue a new research at an Armory
@@ -23,7 +24,11 @@ import { resourceStore } from "../stores/resourceStore";
  * Returns false if: unknown research, already completed, building already
  * researching, wrong building type, or insufficient resources.
  */
-export function queueResearch(building: Entity, researchId: string): boolean {
+export function queueResearch(
+	building: Entity,
+	researchId: string,
+	world: World = defaultWorld,
+): boolean {
 	const def = RESEARCH[researchId];
 	if (!def) return false;
 
@@ -32,14 +37,28 @@ export function queueResearch(building: Entity, researchId: string): boolean {
 	if (buildingType !== def.researchAt) return false;
 
 	// Already completed globally
-	if (resourceStore.getState().isResearched(researchId)) return false;
+	const completed = world.get(CompletedResearch);
+	if (completed?.ids.has(researchId)) return false;
 
 	// Armory already has active research (one at a time)
 	const currentSlot = building.get(ResearchSlot);
 	if (currentSlot !== null) return false;
 
 	// Check affordability and deduct
-	if (!resourceStore.getState().deductResources(def.cost)) return false;
+	const pool = world.get(ResourcePool);
+	if (
+		!pool ||
+		pool.fish < (def.cost.fish ?? 0) ||
+		pool.timber < (def.cost.timber ?? 0) ||
+		pool.salvage < (def.cost.salvage ?? 0)
+	)
+		return false;
+
+	world.set(ResourcePool, {
+		fish: pool.fish - (def.cost.fish ?? 0),
+		timber: pool.timber - (def.cost.timber ?? 0),
+		salvage: pool.salvage - (def.cost.salvage ?? 0),
+	});
 
 	// Set the research slot (AoS — direct ref mutation is fine, but we use
 	// the entity.set pattern for the initial assignment since it was null)
@@ -69,8 +88,11 @@ export function researchSystem(world: World, delta: number): void {
 		slot.progress += (100 / slot.researchTime) * delta;
 
 		if (slot.progress >= 100) {
-			// Mark completed in store
-			resourceStore.getState().completeResearch(slot.researchId);
+			// Mark completed in world
+			const completed = world.get(CompletedResearch);
+			if (completed) {
+				completed.ids.add(slot.researchId);
+			}
 
 			// Apply global effects
 			applyResearchEffect(world, slot.researchId);

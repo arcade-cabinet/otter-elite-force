@@ -9,10 +9,10 @@
 import type { MissionDef } from "../../types";
 
 export const mission15SerpentKing: MissionDef = {
-	id: "mission-15-serpent-king",
+	id: "mission_15",
 	chapter: 4,
-	mission: 15,
-	name: "The Serpent King",
+	mission: 3,
+	name: "Sacred Sludge",
 	subtitle: "Breach the citadel and defeat the Scale-Guard supreme commander",
 
 	briefing: {
@@ -227,7 +227,7 @@ export const mission15SerpentKing: MissionDef = {
 
 	unlocks: {},
 
-	parTime: 840,
+	parTime: 900,
 
 	difficulty: {
 		support: {

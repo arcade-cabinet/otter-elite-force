@@ -23,7 +23,8 @@ import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
 import { Health } from "../../ecs/traits/combat";
 import { GatheringFrom, OwnedBy } from "../../ecs/relations";
-import { resourceStore } from "../../stores/resourceStore";
+import { initSingletons } from "../../ecs/singletons";
+import { ResourcePool } from "../../ecs/traits/state";
 import {
 	findNearestCPInRadius,
 	findNearestCPGlobal,
@@ -41,7 +42,7 @@ let world: World;
 
 beforeEach(() => {
 	world = createWorld();
-	resourceStore.getState().reset();
+	initSingletons(world);
 });
 
 afterEach(() => {
@@ -265,7 +266,7 @@ describe("Caravan Pickup & Delivery", () => {
 		const { cp: cp2 } = spawnCP(20, 0);
 
 		// Seed the global resource pool with fish
-		resourceStore.getState().addResources({ fish: 50 });
+		world.set(ResourcePool, { fish: 50, timber: 0, salvage: 0 });
 
 		const caravan = createSupplyCaravan(world, factionEntity, [cp1, cp2]);
 		const caravanData = caravan.get(SupplyCaravan);
@@ -299,13 +300,13 @@ describe("Caravan Pickup & Delivery", () => {
 		caravanData.carrying = "fish";
 		caravanData.amount = 15;
 
-		tickCaravanDelivery(caravanData);
+		tickCaravanDelivery(caravanData, world);
 
 		expect(caravanData.carrying).toBe("");
 		expect(caravanData.amount).toBe(0);
 
-		// Resources should be deposited to the global store
-		expect(resourceStore.getState().fish).toBe(15);
+		// Resources should be deposited to the world ResourcePool
+		expect(world.get(ResourcePool)!.fish).toBe(15);
 	});
 
 	it("should not pick up if caravan already carrying resources", () => {
@@ -333,16 +334,16 @@ describe("Caravan Vulnerability", () => {
 		const { cp: cp1, factionEntity } = spawnCP(0, 0);
 		const { cp: cp2 } = spawnCP(20, 0);
 
-		resourceStore.getState().addResources({ fish: 100 });
+		world.set(ResourcePool, { fish: 100, timber: 0, salvage: 0 });
 
 		const caravan = createSupplyCaravan(world, factionEntity, [cp1, cp2]);
 		const caravanData = caravan.get(SupplyCaravan);
 		caravanData.carrying = "fish";
 		caravanData.amount = 20;
 
-		// Deduct from store to simulate pickup
-		resourceStore.getState().deductResources({ fish: 20 });
-		expect(resourceStore.getState().fish).toBe(80);
+		// Deduct from pool to simulate pickup
+		world.set(ResourcePool, { fish: 80, timber: 0, salvage: 0 });
+		expect(world.get(ResourcePool)!.fish).toBe(80);
 
 		// Cargo query should report 20 fish
 		expect(getCaravanCargo(caravan)).toEqual({ type: "fish", amount: 20 });
@@ -351,8 +352,8 @@ describe("Caravan Vulnerability", () => {
 		caravan.set(Health, { current: 0, max: 50 });
 
 		// Caravan still has the cargo data, but it's "lost" — system should clean up
-		// The resources are gone from the store and NOT delivered
-		expect(resourceStore.getState().fish).toBe(80);
+		// The resources are gone from the pool and NOT delivered
+		expect(world.get(ResourcePool)!.fish).toBe(80);
 	});
 
 	it("should return zero cargo for an empty caravan", () => {
@@ -371,7 +372,7 @@ describe("multiBaseSystem integration", () => {
 		const { cp: cp1, factionEntity } = spawnCP(0, 0);
 		const { cp: cp2 } = spawnCP(2, 0);
 
-		resourceStore.getState().addResources({ fish: 50 });
+		world.set(ResourcePool, { fish: 50, timber: 0, salvage: 0 });
 
 		const caravan = createSupplyCaravan(world, factionEntity, [cp1, cp2]);
 		const caravanData = caravan.get(SupplyCaravan);
@@ -387,7 +388,7 @@ describe("multiBaseSystem integration", () => {
 		// Should have arrived and delivered
 		expect(caravanData.amount).toBe(0);
 		expect(caravanData.carrying).toBe("");
-		expect(resourceStore.getState().fish).toBe(65); // 50 + 15
+		expect(world.get(ResourcePool)!.fish).toBe(65); // 50 + 15
 	});
 
 	it("should skip dead caravans", () => {

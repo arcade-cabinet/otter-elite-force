@@ -10,10 +10,10 @@
 import type { MissionDef } from "../../types";
 
 export const mission16LastStand: MissionDef = {
-	id: "mission-16-last-stand",
+	id: "mission_16",
 	chapter: 4,
-	mission: 16,
-	name: "Last Stand",
+	mission: 4,
+	name: "The Reckoning",
 	subtitle: "Survive the final assault and crush Scale-Guard once and for all",
 
 	briefing: {
@@ -329,7 +329,7 @@ export const mission16LastStand: MissionDef = {
 
 	unlocks: {},
 
-	parTime: 1080,
+	parTime: 1200,
 
 	difficulty: {
 		support: {

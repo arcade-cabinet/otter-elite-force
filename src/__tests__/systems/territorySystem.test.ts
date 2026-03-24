@@ -4,8 +4,8 @@ import { Faction, IsBuilding, IsVillage, UnitType } from "@/ecs/traits/identity"
 import { Position } from "@/ecs/traits/spatial";
 import { Health } from "@/ecs/traits/combat";
 import { GarrisonedIn } from "@/ecs/relations";
-import { resourceStore } from "@/stores/resourceStore";
-import { territoryStore } from "@/stores/territoryStore";
+import { initSingletons } from "@/ecs/singletons";
+import { ResourcePool, TerritoryState } from "@/ecs/traits/state";
 import {
 	isGarrisonCleared,
 	liberateVillage,
@@ -46,8 +46,7 @@ describe("Territory / Village Liberation System", () => {
 
 	beforeEach(() => {
 		world = createWorld();
-		resourceStore.getState().reset();
-		territoryStore.getState().reset();
+		initSingletons(world);
 		resetVillageIncomeTimer();
 	});
 
@@ -84,55 +83,52 @@ describe("Territory / Village Liberation System", () => {
 	describe("liberateVillage", () => {
 		it("should flip faction to ura", () => {
 			const village = spawnVillage(world, "scale_guard", 5, 5);
-			territoryStore.getState().setTotalVillages(1);
+			world.set(TerritoryState, { totalVillages: 1, liberatedCount: 0, occupiedCount: 1 });
 
-			expect(liberateVillage(village)).toBe(true);
+			expect(liberateVillage(village, world)).toBe(true);
 			expect(village.get(Faction).id).toBe("ura");
 		});
 
-		it("should update territory store", () => {
+		it("should update territory state", () => {
 			const village = spawnVillage(world, "scale_guard", 5, 5);
-			territoryStore.getState().setTotalVillages(1);
+			world.set(TerritoryState, { totalVillages: 1, liberatedCount: 0, occupiedCount: 1 });
 
-			liberateVillage(village);
+			liberateVillage(village, world);
 
-			const state = territoryStore.getState();
+			const state = world.get(TerritoryState)!;
 			expect(state.liberatedCount).toBe(1);
 			expect(state.occupiedCount).toBe(0);
 		});
 
 		it("should not liberate an already liberated village", () => {
 			const village = spawnVillage(world, "ura", 5, 5);
-			expect(liberateVillage(village)).toBe(false);
+			expect(liberateVillage(village, world)).toBe(false);
 		});
 	});
 
 	describe("recaptureVillage", () => {
 		it("should flip faction back to scale_guard", () => {
 			const village = spawnVillage(world, "ura", 5, 5);
-			territoryStore.getState().setTotalVillages(1);
-			territoryStore.getState().liberateVillage(); // simulate prior liberation
+			world.set(TerritoryState, { totalVillages: 1, liberatedCount: 1, occupiedCount: 0 });
 
-			expect(recaptureVillage(village)).toBe(true);
+			expect(recaptureVillage(village, world)).toBe(true);
 			expect(village.get(Faction).id).toBe("scale_guard");
 		});
 
-		it("should update territory store", () => {
-			territoryStore.getState().setTotalVillages(2);
-			territoryStore.getState().liberateVillage();
-			territoryStore.getState().liberateVillage();
+		it("should update territory state", () => {
+			world.set(TerritoryState, { totalVillages: 2, liberatedCount: 2, occupiedCount: 0 });
 
 			const village = spawnVillage(world, "ura", 5, 5);
-			recaptureVillage(village);
+			recaptureVillage(village, world);
 
-			const state = territoryStore.getState();
+			const state = world.get(TerritoryState)!;
 			expect(state.liberatedCount).toBe(1);
 			expect(state.occupiedCount).toBe(1);
 		});
 
 		it("should not recapture an occupied village", () => {
 			const village = spawnVillage(world, "scale_guard", 5, 5);
-			expect(recaptureVillage(village)).toBe(false);
+			expect(recaptureVillage(village, world)).toBe(false);
 		});
 	});
 
@@ -215,34 +211,30 @@ describe("Territory / Village Liberation System", () => {
 
 	describe("applyVillageIncome", () => {
 		it("should add fish income after interval", () => {
-			territoryStore.getState().setTotalVillages(3);
-			territoryStore.getState().liberateVillage();
-			territoryStore.getState().liberateVillage();
+			world.set(TerritoryState, { totalVillages: 3, liberatedCount: 2, occupiedCount: 1 });
 
 			// Simulate 10 seconds
-			applyVillageIncome(10);
+			applyVillageIncome(world, 10);
 
-			expect(resourceStore.getState().fish).toBe(2); // 2 villages * 1 fish
+			expect(world.get(ResourcePool)!.fish).toBe(2); // 2 villages * 1 fish
 		});
 
 		it("should not add income before interval", () => {
-			territoryStore.getState().setTotalVillages(1);
-			territoryStore.getState().liberateVillage();
+			world.set(TerritoryState, { totalVillages: 1, liberatedCount: 1, occupiedCount: 0 });
 
-			applyVillageIncome(5); // only 5 seconds
+			applyVillageIncome(world, 5); // only 5 seconds
 
-			expect(resourceStore.getState().fish).toBe(0);
+			expect(world.get(ResourcePool)!.fish).toBe(0);
 		});
 
 		it("should accumulate timer across frames", () => {
-			territoryStore.getState().setTotalVillages(1);
-			territoryStore.getState().liberateVillage();
+			world.set(TerritoryState, { totalVillages: 1, liberatedCount: 1, occupiedCount: 0 });
 
-			applyVillageIncome(4);
-			applyVillageIncome(4);
-			applyVillageIncome(4); // total 12s → 1 tick at 10s
+			applyVillageIncome(world, 4);
+			applyVillageIncome(world, 4);
+			applyVillageIncome(world, 4); // total 12s -> 1 tick at 10s
 
-			expect(resourceStore.getState().fish).toBe(1);
+			expect(world.get(ResourcePool)!.fish).toBe(1);
 		});
 	});
 
@@ -259,7 +251,7 @@ describe("Territory / Village Liberation System", () => {
 
 	describe("territorySystem (integration)", () => {
 		it("should liberate village when garrison is killed", () => {
-			territoryStore.getState().setTotalVillages(1);
+			world.set(TerritoryState, { totalVillages: 1, liberatedCount: 0, occupiedCount: 1 });
 			const village = spawnVillage(world, "scale_guard", 5, 5);
 			const guard1 = spawnUnit(world, "scale_guard", 5, 5);
 			const guard2 = spawnUnit(world, "scale_guard", 5, 5);
@@ -276,13 +268,12 @@ describe("Territory / Village Liberation System", () => {
 
 			territorySystem(world, 0.016);
 			expect(village.get(Faction).id).toBe("ura");
-			expect(territoryStore.getState().liberatedCount).toBe(1);
+			expect(world.get(TerritoryState)!.liberatedCount).toBe(1);
 		});
 
 		it("should recapture undefended village when enemy approaches", () => {
-			territoryStore.getState().setTotalVillages(1);
+			world.set(TerritoryState, { totalVillages: 1, liberatedCount: 1, occupiedCount: 0 });
 			const village = spawnVillage(world, "ura", 10, 10);
-			territoryStore.getState().liberateVillage();
 
 			// Enemy approaches, no friendly nearby
 			spawnUnit(world, "scale_guard", 12, 10);
@@ -290,14 +281,13 @@ describe("Territory / Village Liberation System", () => {
 			territorySystem(world, 0.016);
 
 			expect(village.get(Faction).id).toBe("scale_guard");
-			expect(territoryStore.getState().liberatedCount).toBe(0);
-			expect(territoryStore.getState().occupiedCount).toBe(1);
+			expect(world.get(TerritoryState)!.liberatedCount).toBe(0);
+			expect(world.get(TerritoryState)!.occupiedCount).toBe(1);
 		});
 
 		it("should not recapture village when friendly units defend it", () => {
-			territoryStore.getState().setTotalVillages(1);
+			world.set(TerritoryState, { totalVillages: 1, liberatedCount: 1, occupiedCount: 0 });
 			const village = spawnVillage(world, "ura", 10, 10);
-			territoryStore.getState().liberateVillage();
 
 			spawnUnit(world, "scale_guard", 12, 10);
 			spawnUnit(world, "ura", 11, 10); // defender

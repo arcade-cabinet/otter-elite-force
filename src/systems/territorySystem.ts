@@ -19,8 +19,7 @@ import { Faction, IsBuilding, IsVillage, UnitType } from "../ecs/traits/identity
 import { Position } from "../ecs/traits/spatial";
 import { Health } from "../ecs/traits/combat";
 import { GarrisonedIn } from "../ecs/relations";
-import { resourceStore } from "../stores/resourceStore";
-import { territoryStore } from "../stores/territoryStore";
+import { ResourcePool, TerritoryState } from "../ecs/traits/state";
 
 /** Fish income per liberated village per tick interval. */
 const VILLAGE_FISH_INCOME = 1;
@@ -64,12 +63,19 @@ export function isGarrisonCleared(world: World, village: Entity): boolean {
  * Liberate a village: flip faction to 'ura'.
  * Returns true if the village was actually liberated (was not already 'ura').
  */
-export function liberateVillage(village: Entity): boolean {
+export function liberateVillage(village: Entity, world: World): boolean {
 	const faction = village.get(Faction);
 	if (faction.id === "ura") return false;
 
 	village.set(Faction, { id: "ura" });
-	territoryStore.getState().liberateVillage();
+	const territory = world.get(TerritoryState);
+	if (territory) {
+		world.set(TerritoryState, {
+			...territory,
+			liberatedCount: territory.liberatedCount + 1,
+			occupiedCount: Math.max(0, territory.occupiedCount - 1),
+		});
+	}
 	return true;
 }
 
@@ -77,12 +83,19 @@ export function liberateVillage(village: Entity): boolean {
  * Recapture a village: flip faction back to 'scale_guard'.
  * Returns true if the village was actually recaptured.
  */
-export function recaptureVillage(village: Entity): boolean {
+export function recaptureVillage(village: Entity, world: World): boolean {
 	const faction = village.get(Faction);
 	if (faction.id !== "ura") return false;
 
 	village.set(Faction, { id: "scale_guard" });
-	territoryStore.getState().recaptureVillage();
+	const territory = world.get(TerritoryState);
+	if (territory) {
+		world.set(TerritoryState, {
+			...territory,
+			liberatedCount: Math.max(0, territory.liberatedCount - 1),
+			occupiedCount: territory.occupiedCount + 1,
+		});
+	}
 	return true;
 }
 
@@ -151,16 +164,20 @@ export function applyVillageHealing(
 /**
  * Apply passive fish income from liberated villages.
  */
-export function applyVillageIncome(delta: number): void {
+export function applyVillageIncome(world: World, delta: number): void {
 	villageIncomeTimer += delta;
 
 	if (villageIncomeTimer >= VILLAGE_INCOME_INTERVAL) {
 		villageIncomeTimer -= VILLAGE_INCOME_INTERVAL;
-		const { liberatedCount } = territoryStore.getState();
-		if (liberatedCount > 0) {
-			resourceStore.getState().addResources({
-				fish: VILLAGE_FISH_INCOME * liberatedCount,
-			});
+		const territory = world.get(TerritoryState);
+		if (territory && territory.liberatedCount > 0) {
+			const pool = world.get(ResourcePool);
+			if (pool) {
+				world.set(ResourcePool, {
+					...pool,
+					fish: pool.fish + VILLAGE_FISH_INCOME * territory.liberatedCount,
+				});
+			}
 		}
 	}
 }
@@ -196,17 +213,17 @@ export function territorySystem(world: World, delta: number): void {
 		if (faction.id === "scale_guard") {
 			// Check if garrison is cleared → liberate
 			if (isGarrisonCleared(world, village)) {
-				liberateVillage(village);
+				liberateVillage(village, world);
 			}
 		} else if (faction.id === "ura") {
 			// Check if village should be recaptured
 			if (isVillageUndefended(world, village, allUnits)) {
-				recaptureVillage(village);
+				recaptureVillage(village, world);
 			}
 		}
 	}
 
 	// Liberated village benefits
 	applyVillageHealing(world, villages, friendlyUnits, delta);
-	applyVillageIncome(delta);
+	applyVillageIncome(world, delta);
 }

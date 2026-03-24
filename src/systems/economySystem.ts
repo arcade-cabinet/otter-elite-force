@@ -14,7 +14,7 @@ import { Gatherer, ResourceNode } from "../ecs/traits/economy";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { GatheringFrom, OwnedBy } from "../ecs/relations";
-import { resourceStore } from "../stores/resourceStore";
+import { ResourcePool } from "../ecs/traits/state";
 
 /** Distance (in tiles) at which a gatherer can interact with a node or building. */
 const GATHER_RANGE = 1.5;
@@ -52,6 +52,25 @@ export function economySystem(world: World, delta: number): void {
 }
 
 /**
+ * Add resources to the world-level ResourcePool.
+ */
+function addResources(world: World, type: string, amount: number): void {
+	const pool = world.get(ResourcePool);
+	if (!pool) return;
+	switch (type) {
+		case "fish":
+			world.set(ResourcePool, { ...pool, fish: pool.fish + amount });
+			break;
+		case "timber":
+			world.set(ResourcePool, { ...pool, timber: pool.timber + amount });
+			break;
+		case "salvage":
+			world.set(ResourcePool, { ...pool, salvage: pool.salvage + amount });
+			break;
+	}
+}
+
+/**
  * Process all gatherer entities.
  *
  * Gatherers with a GatheringFrom relation extract resources from the node.
@@ -81,7 +100,7 @@ function processGatherers(world: World, delta: number): void {
 
 			if (dist <= GATHER_RANGE) {
 				// Deposit resources
-				depositResources(gatherer.carrying, gatherer.amount);
+				addResources(world, gatherer.carrying, gatherer.amount);
 				gatherer.amount = 0;
 				gatherer.carrying = "";
 			} else {
@@ -148,24 +167,6 @@ function findCommandPost(world: World, gathererEntity: ReturnType<World["spawn"]
 }
 
 /**
- * Deposit gathered resources into the global resource store.
- */
-function depositResources(resourceType: string, amount: number): void {
-	const store = resourceStore.getState();
-	switch (resourceType) {
-		case "fish":
-			store.addResources({ fish: amount });
-			break;
-		case "timber":
-			store.addResources({ timber: amount });
-			break;
-		case "salvage":
-			store.addResources({ salvage: amount });
-			break;
-	}
-}
-
-/**
  * Move a position toward a target coordinate.
  * Simple linear interpolation — the real pathfinding is in the AI system.
  */
@@ -209,7 +210,7 @@ function processFishTrapIncome(world: World, delta: number): void {
 
 	if (fishTrapCount > 0) {
 		const income = fishTrapCount * FISH_TRAP_INCOME;
-		resourceStore.getState().addResources({ fish: income });
+		addResources(world, "fish", income);
 	}
 
 	// Reset timer (keep remainder for accuracy)

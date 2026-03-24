@@ -195,7 +195,6 @@ export function getPortrait(id: string): PortraitDef | undefined {
 // ─── Missions (COMPLETE: 16/16) ───
 
 import { CAMPAIGN, getMissionById, getMission } from "./missions";
-import type { MissionDef } from "./types";
 
 export { CAMPAIGN, getMissionById, getMission };
 

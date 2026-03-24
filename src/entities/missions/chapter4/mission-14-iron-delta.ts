@@ -9,10 +9,10 @@
 import type { MissionDef } from "../../types";
 
 export const mission14IronDelta: MissionDef = {
-	id: "mission-14-iron-delta",
+	id: "mission_14",
 	chapter: 4,
-	mission: 14,
-	name: "Iron Delta",
+	mission: 2,
+	name: "Gas Depot",
 	subtitle: "Capture three island outposts across the Iron Delta",
 
 	briefing: {
@@ -231,7 +231,7 @@ export const mission14IronDelta: MissionDef = {
 
 	unlocks: {},
 
-	parTime: 720,
+	parTime: 360,
 
 	difficulty: {
 		support: {

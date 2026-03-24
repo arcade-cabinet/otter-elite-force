@@ -9,9 +9,9 @@
 import type { MissionDef } from "../../types";
 
 export const mission05SiphonValley: MissionDef = {
-	id: "mission-05-siphon-valley",
+	id: "mission_5",
 	chapter: 2,
-	mission: 5,
+	mission: 1,
 	name: "Siphon Valley",
 	subtitle: "Destroy three toxic siphon installations",
 

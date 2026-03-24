@@ -9,10 +9,10 @@
 import type { MissionDef } from "../../types";
 
 export const mission12FangRescue: MissionDef = {
-	id: "mission-12-fang-rescue",
+	id: "mission_12",
 	chapter: 3,
-	mission: 12,
-	name: "Fang Rescue",
+	mission: 4,
+	name: "The Stronghold",
 	subtitle: "Infiltrate the Scale-Guard stronghold and rescue Sgt. Fang",
 
 	briefing: {
@@ -216,7 +216,7 @@ export const mission12FangRescue: MissionDef = {
 		heroes: ["sgt_fang"],
 	},
 
-	parTime: 420,
+	parTime: 720,
 
 	difficulty: {
 		support: {

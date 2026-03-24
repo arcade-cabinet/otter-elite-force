@@ -5,7 +5,8 @@ import { Health } from "../../ecs/traits/combat";
 import { IsBuilding, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
 import { ConstructingAt, OwnedBy } from "../../ecs/relations";
-import { resourceStore } from "../../stores/resourceStore";
+import { initSingletons } from "../../ecs/singletons";
+import { ResourcePool } from "../../ecs/traits/state";
 import {
 	buildingSystem,
 	canPlaceBuilding,
@@ -38,8 +39,8 @@ describe("buildingSystem", () => {
 
 	beforeEach(() => {
 		world = createWorld();
+		initSingletons(world);
 		uraFaction = world.spawn();
-		resourceStore.getState().reset();
 	});
 
 	afterEach(() => {
@@ -48,7 +49,7 @@ describe("buildingSystem", () => {
 
 	describe("canPlaceBuilding", () => {
 		it("should allow placement on grass with sufficient resources", () => {
-			resourceStore.getState().addResources({ timber: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const tileMap = createMockTileMap();
 
 			const result = canPlaceBuilding("barracks", 5, 5, tileMap);
@@ -64,7 +65,7 @@ describe("buildingSystem", () => {
 		});
 
 		it("should reject placement on occupied tile", () => {
-			resourceStore.getState().addResources({ timber: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const tileMap = createMockTileMap({ occupied: new Set(["5,5"]) });
 
 			const result = canPlaceBuilding("barracks", 5, 5, tileMap);
@@ -73,7 +74,7 @@ describe("buildingSystem", () => {
 		});
 
 		it("should reject placement on water for non-water buildings", () => {
-			resourceStore.getState().addResources({ timber: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const terrain = new Map([["5,5", "water" as const]]);
 			const tileMap = createMockTileMap({ terrain });
 
@@ -83,7 +84,7 @@ describe("buildingSystem", () => {
 		});
 
 		it("should allow dock placement on water", () => {
-			resourceStore.getState().addResources({ timber: 250, salvage: 50 });
+			world.set(ResourcePool, { fish: 0, timber: 250, salvage: 50 });
 			const terrain = new Map([["5,5", "water" as const]]);
 			const tileMap = createMockTileMap({ terrain });
 
@@ -92,7 +93,7 @@ describe("buildingSystem", () => {
 		});
 
 		it("should reject dock placement on non-water", () => {
-			resourceStore.getState().addResources({ timber: 250, salvage: 50 });
+			world.set(ResourcePool, { fish: 0, timber: 250, salvage: 50 });
 			const tileMap = createMockTileMap();
 
 			const result = canPlaceBuilding("dock", 5, 5, tileMap);
@@ -101,7 +102,7 @@ describe("buildingSystem", () => {
 		});
 
 		it("should reject placement on mangrove", () => {
-			resourceStore.getState().addResources({ timber: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const terrain = new Map([["5,5", "mangrove" as const]]);
 			const tileMap = createMockTileMap({ terrain });
 
@@ -121,7 +122,7 @@ describe("buildingSystem", () => {
 
 	describe("placeBuilding", () => {
 		it("should spawn a building entity with correct traits", () => {
-			resourceStore.getState().addResources({ timber: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const tileMap = createMockTileMap();
 
 			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction);
@@ -148,13 +149,13 @@ describe("buildingSystem", () => {
 		});
 
 		it("should deduct resources on placement", () => {
-			resourceStore.getState().addResources({ timber: 500 });
+			world.set(ResourcePool, { fish: 0, timber: 500, salvage: 0 });
 			const tileMap = createMockTileMap();
 
 			placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction);
 
-			const resources = resourceStore.getState();
-			expect(resources.timber).toBe(300); // 500 - 200
+			const pool = world.get(ResourcePool)!;
+			expect(pool.timber).toBe(300); // 500 - 200
 		});
 
 		it("should return null if placement is invalid", () => {
@@ -169,7 +170,7 @@ describe("buildingSystem", () => {
 	describe("construction progress", () => {
 		it("should advance construction when builder is near an incomplete building", () => {
 			// Place a building (30s build time for barracks)
-			resourceStore.getState().addResources({ timber: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const tileMap = createMockTileMap();
 			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
 
@@ -185,7 +186,7 @@ describe("buildingSystem", () => {
 		});
 
 		it("should complete construction at 100% and remove ConstructionProgress", () => {
-			resourceStore.getState().addResources({ timber: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const tileMap = createMockTileMap();
 			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
 
@@ -201,7 +202,7 @@ describe("buildingSystem", () => {
 		});
 
 		it("should not advance construction when builder is out of range", () => {
-			resourceStore.getState().addResources({ timber: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const tileMap = createMockTileMap();
 			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
 
@@ -215,7 +216,7 @@ describe("buildingSystem", () => {
 		});
 
 		it("should handle multiple builders on the same building", () => {
-			resourceStore.getState().addResources({ timber: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const tileMap = createMockTileMap();
 			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
 

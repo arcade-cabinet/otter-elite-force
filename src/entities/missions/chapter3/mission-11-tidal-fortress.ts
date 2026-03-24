@@ -9,10 +9,10 @@
 import type { MissionDef } from "../../types";
 
 export const mission11TidalFortress: MissionDef = {
-	id: "mission-11-tidal-fortress",
+	id: "mission_11",
 	chapter: 3,
-	mission: 11,
-	name: "Tidal Fortress",
+	mission: 3,
+	name: "Entrenchment",
 	subtitle: "Storm the island fortress during low tide windows",
 
 	briefing: {
@@ -216,7 +216,7 @@ export const mission11TidalFortress: MissionDef = {
 
 	unlocks: {},
 
-	parTime: 720,
+	parTime: 900,
 
 	difficulty: {
 		support: {

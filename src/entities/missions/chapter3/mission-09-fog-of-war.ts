@@ -9,10 +9,10 @@
 import type { MissionDef } from "../../types";
 
 export const mission09FogOfWar: MissionDef = {
-	id: "mission-09-fog-of-war",
+	id: "mission_9",
 	chapter: 3,
-	mission: 9,
-	name: "Fog of War",
+	mission: 1,
+	name: "Dense Canopy",
 	subtitle: "Scout four intel markers through the Blackmarsh fog",
 
 	briefing: {
@@ -215,7 +215,7 @@ export const mission09FogOfWar: MissionDef = {
 		units: ["scout_otter"],
 	},
 
-	parTime: 480,
+	parTime: 720,
 
 	difficulty: {
 		support: {

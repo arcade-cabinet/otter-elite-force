@@ -38,6 +38,7 @@ export const PALETTES: PaletteRecord = {
 		e: "#1f2937", // Dark interior (doors, caves)
 		f: "#0d9488", // Teal (wetsuit, dive gear — NOT body)
 		g: "#5eead4", // Light teal (wetsuit highlights)
+		h: "#ef4444", // Red (medic cross, alert indicators)
 	},
 
 	// Scale-Guard (Croc/Reptile) default — green skin, red uniform

@@ -17,7 +17,8 @@ import { Health } from "../ecs/traits/combat";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { ConstructingAt, OwnedBy } from "../ecs/relations";
-import { resourceStore } from "../stores/resourceStore";
+import { ResourcePool } from "../ecs/traits/state";
+import { world as defaultWorld } from "../ecs/world";
 import { ALL_BUILDINGS } from "../data/buildings";
 
 /** Distance at which a builder can work on a building. */
@@ -50,6 +51,7 @@ export function canPlaceBuilding(
 	x: number,
 	y: number,
 	tileMap: TileMap,
+	world: World = defaultWorld,
 ): { valid: boolean; reason?: string } {
 	const def = ALL_BUILDINGS[buildingId];
 	if (!def) return { valid: false, reason: "Unknown building type" };
@@ -74,7 +76,13 @@ export function canPlaceBuilding(
 	if (terrain === "mangrove") return { valid: false, reason: "Cannot build on mangrove" };
 
 	// Check if player can afford
-	if (!resourceStore.getState().canAfford(def.cost)) {
+	const pool = world.get(ResourcePool);
+	if (
+		!pool ||
+		pool.fish < (def.cost.fish ?? 0) ||
+		pool.timber < (def.cost.timber ?? 0) ||
+		pool.salvage < (def.cost.salvage ?? 0)
+	) {
 		return { valid: false, reason: "Insufficient resources" };
 	}
 
@@ -94,14 +102,26 @@ export function placeBuilding(
 	tileMap: TileMap,
 	ownerFaction: ReturnType<World["spawn"]>,
 ) {
-	const validation = canPlaceBuilding(buildingId, x, y, tileMap);
+	const validation = canPlaceBuilding(buildingId, x, y, tileMap, world);
 	if (!validation.valid) return null;
 
 	const def = ALL_BUILDINGS[buildingId];
 
 	// Deduct resources
-	const deducted = resourceStore.getState().deductResources(def.cost);
-	if (!deducted) return null;
+	const pool = world.get(ResourcePool);
+	if (
+		!pool ||
+		pool.fish < (def.cost.fish ?? 0) ||
+		pool.timber < (def.cost.timber ?? 0) ||
+		pool.salvage < (def.cost.salvage ?? 0)
+	)
+		return null;
+
+	world.set(ResourcePool, {
+		fish: pool.fish - (def.cost.fish ?? 0),
+		timber: pool.timber - (def.cost.timber ?? 0),
+		salvage: pool.salvage - (def.cost.salvage ?? 0),
+	});
 
 	// Spawn building entity with construction progress
 	const building = world.spawn(

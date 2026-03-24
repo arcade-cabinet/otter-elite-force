@@ -18,7 +18,8 @@ import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { RallyPoint } from "../ecs/traits/orders";
 import { OwnedBy } from "../ecs/relations";
-import { resourceStore } from "../stores/resourceStore";
+import { CompletedResearch, PopulationState, ResourcePool } from "../ecs/traits/state";
+import { world as defaultWorld } from "../ecs/world";
 import { ALL_UNITS } from "../data/units";
 import { ALL_BUILDINGS } from "../data/buildings";
 
@@ -28,7 +29,11 @@ import { ALL_BUILDINGS } from "../data/buildings";
  *
  * @returns true if the unit was successfully queued, false otherwise.
  */
-export function queueUnit(building: ReturnType<World["spawn"]>, unitType: string): boolean {
+export function queueUnit(
+	building: ReturnType<World["spawn"]>,
+	unitType: string,
+	world: World = defaultWorld,
+): boolean {
 	const unitDef = ALL_UNITS[unitType];
 	if (!unitDef) return false;
 
@@ -39,11 +44,25 @@ export function queueUnit(building: ReturnType<World["spawn"]>, unitType: string
 	if (!buildingDef?.trains?.includes(unitType)) return false;
 
 	// Check population cap
-	const state = resourceStore.getState();
-	if (state.currentPop + unitDef.pop > state.maxPop) return false;
+	const pop = world.get(PopulationState);
+	if (!pop || pop.current + unitDef.pop > pop.max) return false;
 
 	// Check and deduct resources
-	if (!state.deductResources(unitDef.cost)) return false;
+	const pool = world.get(ResourcePool);
+	if (!pool) return false;
+	const cost = unitDef.cost;
+	if (
+		pool.fish < (cost.fish ?? 0) ||
+		pool.timber < (cost.timber ?? 0) ||
+		pool.salvage < (cost.salvage ?? 0)
+	)
+		return false;
+
+	world.set(ResourcePool, {
+		fish: pool.fish - (cost.fish ?? 0),
+		timber: pool.timber - (cost.timber ?? 0),
+		salvage: pool.salvage - (cost.salvage ?? 0),
+	});
 
 	// Add to the building's production queue
 	const queue = building.get(ProductionQueue);
@@ -55,7 +74,7 @@ export function queueUnit(building: ReturnType<World["spawn"]>, unitType: string
 	});
 
 	// Reserve population immediately
-	resourceStore.getState().setPopulation(state.currentPop + unitDef.pop, state.maxPop);
+	world.set(PopulationState, { current: pop.current + unitDef.pop, max: pop.max });
 
 	return true;
 }

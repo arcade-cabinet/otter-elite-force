@@ -17,7 +17,7 @@ import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { Health } from "../ecs/traits/combat";
 import { OwnedBy } from "../ecs/relations";
-import { resourceStore } from "../stores/resourceStore";
+import { ResourcePool } from "../ecs/traits/state";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -206,7 +206,7 @@ export function tickCaravans(world: World, delta: number): void {
 		if (dist <= arrivalThreshold) {
 			// Already at destination — deliver and advance
 			if (data.amount > 0) {
-				tickCaravanDelivery(data);
+				tickCaravanDelivery(data, world);
 			}
 			data.routeIndex = (data.routeIndex + 1) % data.route.length;
 		} else {
@@ -222,7 +222,7 @@ export function tickCaravans(world: World, delta: number): void {
 			const newDist = tileDistance(newX, newY, destPos.x, destPos.y);
 			if (newDist <= arrivalThreshold) {
 				if (data.amount > 0) {
-					tickCaravanDelivery(data);
+					tickCaravanDelivery(data, world);
 				}
 				data.routeIndex = (data.routeIndex + 1) % data.route.length;
 			}
@@ -254,24 +254,26 @@ export function tickCaravanPickup(
 }
 
 /**
- * Deliver carried resources to the global resource store and clear the caravan cargo.
+ * Deliver carried resources to the world-level ResourcePool and clear the caravan cargo.
  */
-export function tickCaravanDelivery(caravanData: ReturnType<Entity["get"]>): void {
+export function tickCaravanDelivery(caravanData: ReturnType<Entity["get"]>, world: World): void {
 	if (caravanData.amount <= 0) return;
 
-	const store = resourceStore.getState();
+	const pool = world.get(ResourcePool);
+	if (!pool) return;
+
 	const amount = caravanData.amount;
 	const type = caravanData.carrying;
 
 	switch (type) {
 		case "fish":
-			store.addResources({ fish: amount });
+			world.set(ResourcePool, { ...pool, fish: pool.fish + amount });
 			break;
 		case "timber":
-			store.addResources({ timber: amount });
+			world.set(ResourcePool, { ...pool, timber: pool.timber + amount });
 			break;
 		case "salvage":
-			store.addResources({ salvage: amount });
+			world.set(ResourcePool, { ...pool, salvage: pool.salvage + amount });
 			break;
 	}
 

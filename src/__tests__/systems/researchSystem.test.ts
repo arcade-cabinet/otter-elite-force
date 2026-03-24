@@ -5,7 +5,8 @@ import { Health, Attack } from "../../ecs/traits/combat";
 import { IsBuilding, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
 import { OwnedBy } from "../../ecs/relations";
-import { resourceStore } from "../../stores/resourceStore";
+import { initSingletons } from "../../ecs/singletons";
+import { CompletedResearch, ResourcePool } from "../../ecs/traits/state";
 import { queueResearch, researchSystem } from "../../systems/researchSystem";
 
 describe("researchSystem", () => {
@@ -14,8 +15,8 @@ describe("researchSystem", () => {
 
 	beforeEach(() => {
 		world = createWorld();
+		initSingletons(world);
 		uraFaction = world.spawn();
-		resourceStore.getState().reset();
 	});
 
 	afterEach(() => {
@@ -67,10 +68,10 @@ describe("researchSystem", () => {
 
 	describe("queueResearch", () => {
 		it("should start research at an armory and deduct resources", () => {
-			resourceStore.getState().addResources({ salvage: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 200 });
 			const armory = spawnArmory();
 
-			const result = queueResearch(armory, "hardshell_armor");
+			const result = queueResearch(armory, "hardshell_armor", world);
 
 			expect(result).toBe(true);
 
@@ -81,54 +82,54 @@ describe("researchSystem", () => {
 			expect(slot!.researchTime).toBe(20);
 
 			// Hardshell Armor costs 150 salvage
-			expect(resourceStore.getState().salvage).toBe(50);
+			expect(world.get(ResourcePool)!.salvage).toBe(50);
 		});
 
 		it("should reject research if insufficient resources", () => {
 			const armory = spawnArmory();
 
-			const result = queueResearch(armory, "hardshell_armor");
+			const result = queueResearch(armory, "hardshell_armor", world);
 
 			expect(result).toBe(false);
 			expect(armory.get(ResearchSlot)).toBeNull();
 		});
 
 		it("should reject research if armory already has active research", () => {
-			resourceStore.getState().addResources({ salvage: 300 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 300 });
 			const armory = spawnArmory();
 
-			queueResearch(armory, "hardshell_armor");
-			const result = queueResearch(armory, "fish_oil_arrows");
+			queueResearch(armory, "hardshell_armor", world);
+			const result = queueResearch(armory, "fish_oil_arrows", world);
 
 			expect(result).toBe(false);
 			// Resources for second research should not be deducted
 			// First deducted 150, so 300-150 = 150 remaining
-			expect(resourceStore.getState().salvage).toBe(150);
+			expect(world.get(ResourcePool)!.salvage).toBe(150);
 		});
 
 		it("should reject research that is already completed", () => {
-			resourceStore.getState().addResources({ salvage: 300 });
-			resourceStore.getState().completeResearch("hardshell_armor");
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 300 });
+			world.get(CompletedResearch)!.ids.add("hardshell_armor");
 			const armory = spawnArmory();
 
-			const result = queueResearch(armory, "hardshell_armor");
+			const result = queueResearch(armory, "hardshell_armor", world);
 
 			expect(result).toBe(false);
 			// Resources should not be deducted
-			expect(resourceStore.getState().salvage).toBe(300);
+			expect(world.get(ResourcePool)!.salvage).toBe(300);
 		});
 
 		it("should reject unknown research id", () => {
-			resourceStore.getState().addResources({ salvage: 9999 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 9999 });
 			const armory = spawnArmory();
 
-			const result = queueResearch(armory, "nonexistent_research");
+			const result = queueResearch(armory, "nonexistent_research", world);
 
 			expect(result).toBe(false);
 		});
 
 		it("should reject research at a non-armory building", () => {
-			resourceStore.getState().addResources({ salvage: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 200 });
 			const barracks = world.spawn(
 				IsBuilding,
 				UnitType({ type: "barracks" }),
@@ -137,7 +138,7 @@ describe("researchSystem", () => {
 				OwnedBy(uraFaction),
 			);
 
-			const result = queueResearch(barracks, "hardshell_armor");
+			const result = queueResearch(barracks, "hardshell_armor", world);
 
 			expect(result).toBe(false);
 		});
@@ -149,9 +150,9 @@ describe("researchSystem", () => {
 
 	describe("research progress", () => {
 		it("should advance research progress over time", () => {
-			resourceStore.getState().addResources({ salvage: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 200 });
 			const armory = spawnArmory();
-			queueResearch(armory, "hardshell_armor");
+			queueResearch(armory, "hardshell_armor", world);
 
 			researchSystem(world, 10);
 
@@ -162,9 +163,9 @@ describe("researchSystem", () => {
 		});
 
 		it("should complete research and clear the slot", () => {
-			resourceStore.getState().addResources({ salvage: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 200 });
 			const armory = spawnArmory();
-			queueResearch(armory, "hardshell_armor");
+			queueResearch(armory, "hardshell_armor", world);
 
 			researchSystem(world, 20);
 
@@ -172,7 +173,7 @@ describe("researchSystem", () => {
 			expect(armory.get(ResearchSlot)).toBeNull();
 
 			// Should be marked as completed in the store
-			expect(resourceStore.getState().isResearched("hardshell_armor")).toBe(true);
+			expect(world.get(CompletedResearch)!.ids.has("hardshell_armor")).toBe(true);
 		});
 
 		it("should not process empty research slots", () => {
@@ -190,12 +191,12 @@ describe("researchSystem", () => {
 
 	describe("research effects", () => {
 		it("hardshell_armor should increase all Mudfoot HP by 20", () => {
-			resourceStore.getState().addResources({ salvage: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 200 });
 			const armory = spawnArmory();
 			const mudfoot1 = spawnMudfoot();
 			const mudfoot2 = spawnMudfoot();
 
-			queueResearch(armory, "hardshell_armor");
+			queueResearch(armory, "hardshell_armor", world);
 			researchSystem(world, 20); // Complete it
 
 			// Both mudfoots should have 100 max HP (80 + 20)
@@ -206,11 +207,11 @@ describe("researchSystem", () => {
 		});
 
 		it("fish_oil_arrows should increase all Shellcracker damage by 3", () => {
-			resourceStore.getState().addResources({ salvage: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 200 });
 			const armory = spawnArmory();
 			const sc = spawnShellcracker();
 
-			queueResearch(armory, "fish_oil_arrows");
+			queueResearch(armory, "fish_oil_arrows", world);
 			researchSystem(world, 15); // Complete it (time=15)
 
 			// Shellcracker damage: 10 -> 13
@@ -218,11 +219,11 @@ describe("researchSystem", () => {
 		});
 
 		it("demolition_training should increase all Sapper damage by 50% (base attack)", () => {
-			resourceStore.getState().addResources({ salvage: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 200 });
 			const armory = spawnArmory();
 			const sapper = spawnSapper();
 
-			queueResearch(armory, "demolition_training");
+			queueResearch(armory, "demolition_training", world);
 			researchSystem(world, 20);
 
 			// Sapper base damage stays 8, but the effect description says +50% vs buildings (30->45)
@@ -232,22 +233,22 @@ describe("researchSystem", () => {
 		});
 
 		it("should not affect non-matching unit types", () => {
-			resourceStore.getState().addResources({ salvage: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 200 });
 			const armory = spawnArmory();
 			const sc = spawnShellcracker();
 
 			// Hardshell armor only affects Mudfoots, not Shellcrackers
-			queueResearch(armory, "hardshell_armor");
+			queueResearch(armory, "hardshell_armor", world);
 			researchSystem(world, 20);
 
 			expect(sc.get(Health).max).toBe(50); // Unchanged
 		});
 
 		it("should apply effects to units spawned before research completes", () => {
-			resourceStore.getState().addResources({ salvage: 200 });
+			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 200 });
 			const armory = spawnArmory();
 
-			queueResearch(armory, "hardshell_armor");
+			queueResearch(armory, "hardshell_armor", world);
 
 			// Spawn a mudfoot mid-research
 			researchSystem(world, 10); // 50% done

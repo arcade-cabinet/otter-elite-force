@@ -9,9 +9,9 @@
 import type { MissionDef } from "../../types";
 
 export const mission07RiverRats: MissionDef = {
-	id: "mission-07-river-rats",
+	id: "mission_7",
 	chapter: 2,
-	mission: 7,
+	mission: 3,
 	name: "River Rats",
 	subtitle: "Capture enemy supply crates across the river",
 

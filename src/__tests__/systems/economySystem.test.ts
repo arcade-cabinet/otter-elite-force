@@ -4,7 +4,8 @@ import { Gatherer, ResourceNode } from "../../ecs/traits/economy";
 import { IsBuilding, IsResource, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
 import { GatheringFrom, OwnedBy } from "../../ecs/relations";
-import { resourceStore } from "../../stores/resourceStore";
+import { initSingletons } from "../../ecs/singletons";
+import { ResourcePool } from "../../ecs/traits/state";
 import { economySystem, resetFishTrapTimer } from "../../systems/economySystem";
 
 describe("economySystem", () => {
@@ -15,8 +16,8 @@ describe("economySystem", () => {
 
 	beforeEach(() => {
 		world = createWorld();
+		initSingletons(world);
 		uraFaction = world.spawn();
-		resourceStore.getState().reset();
 		resetFishTrapTimer();
 	});
 
@@ -94,9 +95,9 @@ describe("economySystem", () => {
 			// Act
 			economySystem(world, 0.1);
 
-			// Assert: resources deposited to store
-			const resources = resourceStore.getState();
-			expect(resources.fish).toBe(10);
+			// Assert: resources deposited to world ResourcePool
+			const pool = world.get(ResourcePool)!;
+			expect(pool.fish).toBe(10);
 
 			// Gatherer should be empty after deposit
 			const gatherer = worker.get(Gatherer);
@@ -180,8 +181,7 @@ describe("economySystem", () => {
 			// Tick 10 seconds
 			economySystem(world, 10);
 
-			const resources = resourceStore.getState();
-			expect(resources.fish).toBe(3);
+			expect(world.get(ResourcePool)!.fish).toBe(3);
 		});
 
 		it("should scale income with number of Fish Traps", () => {
@@ -192,8 +192,7 @@ describe("economySystem", () => {
 
 			economySystem(world, 10);
 
-			const resources = resourceStore.getState();
-			expect(resources.fish).toBe(9); // 3 traps * 3 fish
+			expect(world.get(ResourcePool)!.fish).toBe(9); // 3 traps * 3 fish
 		});
 
 		it("should not generate income before 10 seconds", () => {
@@ -201,8 +200,7 @@ describe("economySystem", () => {
 
 			economySystem(world, 5);
 
-			const resources = resourceStore.getState();
-			expect(resources.fish).toBe(0);
+			expect(world.get(ResourcePool)!.fish).toBe(0);
 		});
 
 		it("should accumulate timer across multiple ticks", () => {
@@ -212,8 +210,7 @@ describe("economySystem", () => {
 			economySystem(world, 5);
 			economySystem(world, 5);
 
-			const resources = resourceStore.getState();
-			expect(resources.fish).toBe(3);
+			expect(world.get(ResourcePool)!.fish).toBe(3);
 		});
 
 		it("should not count non-Fish-Trap buildings", () => {
@@ -221,8 +218,7 @@ describe("economySystem", () => {
 
 			economySystem(world, 10);
 
-			const resources = resourceStore.getState();
-			expect(resources.fish).toBe(0);
+			expect(world.get(ResourcePool)!.fish).toBe(0);
 		});
 	});
 });
