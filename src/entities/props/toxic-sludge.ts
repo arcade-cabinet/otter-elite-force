@@ -1,39 +1,42 @@
 import type { PropDef } from "./tall-grass";
+import type { SPDSLSprite } from "../types";
 
-/**
- * Toxic Sludge — environmental hazard prop.
- * Purple/dark bubbling area that deals damage. 16x16.
- */
+// Toxic Sludge — environmental hazard. Purple/dark bubbling area. 16x16.
+// Palette: resource_default — purple 'e'/'f', interior 'g'
+
+// prettier-ignore
+const body: string[][] = [
+	[
+		"0000000000000000",
+		"0000eeeeff000000",
+		"000eeeeeeef00000",
+		"00eeefffffee0000",
+		"00eefggggfeef000",
+		"0eeefggggfeeef00",
+		"0eeffggggffeef00",
+		"0eeffgffgffeef00",
+		"0eeffgffgffeef00",
+		"0eeffggggffeef00",
+		"0eeefggggfeeef00",
+		"00eefggggfeef000",
+		"00eeefffffee0000",
+		"000eeeeeeef00000",
+		"0000eeeeff000000",
+		"0000000000000000",
+	],
+];
+
+const sprite: SPDSLSprite = {
+	palette: "resource_default",
+	layers: [{ id: "body", zIndex: 1, grid: body }],
+	animations: { idle: [{}] },
+};
+
 export const toxicSludge: PropDef = {
 	id: "toxic_sludge",
 	name: "Toxic Sludge",
 
-	sprite: {
-		size: 16,
-		frames: {
-			idle: [
-				[
-					"................",
-					"....PPPPpp......",
-					"...PPPPPPPp.....",
-					"..PPPppppPPp....",
-					"..PPpMMMMpPPp...",
-					".PPPpMMMMpPPPp..",
-					".PPppMMMMppPPp..",
-					".PPppMppMppPPp..",
-					".PPppMppMppPPp..",
-					".PPppMMMMppPPp..",
-					".PPPpMMMMpPPPp..",
-					"..PPpMMMMpPPp...",
-					"..PPPppppPPp....",
-					"...PPPPPPPp.....",
-					"....PPPPpp......",
-					"................",
-				],
-			],
-		},
-		animationRates: { idle: 1 },
-	},
+	sprite,
 
 	providesConcealment: false,
 	damagePerSecond: 3,
