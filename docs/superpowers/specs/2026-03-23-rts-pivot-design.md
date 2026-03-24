@@ -292,7 +292,32 @@ River Rats gather Fish/Timber/Salvage → deposit at Command Post → spend to t
 
 ### Structure: 4 Chapters × 4 Missions = 16 Missions
 
-**Briefing system:** Before each mission, a hand-painted ASCII portrait of the briefing officer delivers context, objectives, and flavor. Missions 1-3: field radio operator ("FOXHOUND"). Missions 4+: Gen. Whiskers (after his rescue).
+### Campaign Map
+
+Between missions, the player views a hand-painted ASCII map of the **Copper-Silt Reach** showing:
+- **Liberated territory** (URA blue) vs. **Occupied territory** (Scale-Guard red)
+- The next mission's location highlighted with a pulsing marker
+- Previously completed mission sites marked with star ratings
+- Named geographic features (rivers, the Great Siphon, Healer's Grove, etc.)
+
+This makes progress feel *geographic* — you're conquering a map, not ticking off a list. Even though progression is linear, the territorial visualization adds narrative weight. (Inspired by C&C's world map.)
+
+### Briefing System
+
+Before each mission, a hand-painted ASCII portrait of the briefing officer delivers context, objectives, and flavor. Missions 1-3: field radio operator ("FOXHOUND"). Missions 4+: Gen. Whiskers (after his rescue).
+
+### In-Mission Story Events (Critical Design Principle)
+
+Every mission must have **at least one scripted in-mission dialogue moment** — a portrait pops up over the HUD with a character delivering a line. Examples:
+- Gen. Whiskers: *"Scale-Guard reinforcements incoming from the east! Fortify that flank, Bubbles!"*
+- Cpl. Splash: *"I've found a way under the perimeter. Going quiet."*
+- FOXHOUND: *"Command, we've lost contact with Firebase Delta. Recommend immediate investigation."*
+
+These in-mission events are defined as `ScenarioTrigger` actions and fire based on gameplay conditions (timer, area entered, objective completed, HP threshold). They make the mission feel alive — the difference between StarCraft and a generic skirmish.
+
+### Returning Base Mechanic
+
+Inspired by C&C: Red Alert's legendary "returning base" mission: **Mission 13 (Supply Lines) reuses the base the player built in Mission 11 (Entrenchment).** If the player over-built in Mission 11 (extra towers, thick walls), they're rewarded with a stronger starting position in Mission 13. If they barely survived Mission 11 with a skeleton base, Mission 13 is harder. Persistent consequences across missions.
 
 **Scoring:** Each mission awards Bronze/Silver/Gold stars based on time, units lost, and bonus objectives. Stars unlock Skirmish mode maps.
 
