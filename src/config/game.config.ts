@@ -2,15 +2,16 @@ import Phaser from "phaser";
 import {
 	BootScene,
 	BriefingScene,
+	CampaignMapScene,
 	GameScene,
 	HUDScene,
 	MenuScene,
 	PauseScene,
 	VictoryScene,
 } from "@/Scenes";
+import { GAME_HEIGHT, GAME_WIDTH } from "./constants";
 
-export const GAME_WIDTH = 1280;
-export const GAME_HEIGHT = 720;
+export { GAME_HEIGHT, GAME_WIDTH };
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
 	type: Phaser.AUTO,

@@ -29,13 +29,46 @@ export class CommandDispatcher {
 		this.scene.input.on("pointerdown", this.onPointerDown, this);
 	}
 
+	/**
+	 * Public entry point for issuing commands at a world position.
+	 * Used by MobileInput for tap-after-button and long-press commands.
+	 *
+	 * @param mode - "context" for smart right-click behavior,
+	 *               "move" for explicit move, "attack" for explicit attack
+	 */
+	issueCommandAt(worldX: number, worldY: number, mode: "context" | "move" | "attack"): void {
+		const tileX = Math.floor(worldX / TILE_SIZE);
+		const tileY = Math.floor(worldY / TILE_SIZE);
+
+		if (mode === "move") {
+			this.issueMoveCommand(tileX, tileY);
+			return;
+		}
+
+		if (mode === "attack") {
+			const target = this.findEntityAtTile(tileX, tileY);
+			if (target) {
+				this.issueAttackCommand(target);
+			} else {
+				// Attack-move to ground
+				this.issueMoveCommand(tileX, tileY);
+			}
+			return;
+		}
+
+		// Context mode: same as right-click logic
+		this.handleContextCommand(tileX, tileY);
+	}
+
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
 		if (!pointer.rightButtonDown()) return;
 
 		const tileX = Math.floor(pointer.worldX / TILE_SIZE);
 		const tileY = Math.floor(pointer.worldY / TILE_SIZE);
+		this.handleContextCommand(tileX, tileY);
+	}
 
-		// Check what's under the cursor
+	private handleContextCommand(tileX: number, tileY: number): void {
 		const target = this.findEntityAtTile(tileX, tileY);
 
 		if (target) {

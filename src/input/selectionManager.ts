@@ -83,6 +83,16 @@ export class SelectionManager {
 		this.selectionRect.strokeRect(x, y, w, h);
 	}
 
+	/** Public entry point for tap-to-select (used by MobileInput). */
+	selectAt(worldX: number, worldY: number): void {
+		this.clickSelect(worldX, worldY);
+	}
+
+	/** Public entry point for box selection (used by MobileInput on drag end). */
+	selectBox(x1: number, y1: number, x2: number, y2: number): void {
+		this.boxSelect(x1, y1, x2, y2);
+	}
+
 	/** Single-click: find the nearest friendly entity under the cursor. */
 	private clickSelect(worldX: number, worldY: number): void {
 		this.clearSelection();
@@ -108,8 +118,8 @@ export class SelectionManager {
 			}
 		});
 
-		if (closestEntity !== null) {
-			closestEntity.add(Selected);
+		if (closestEntity) {
+			(closestEntity as Entity).add(Selected);
 			this.syncToStore();
 		}
 	}

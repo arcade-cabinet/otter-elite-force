@@ -2,14 +2,17 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'" />
-		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 		<meta name="description" content="OTTER: ELITE FORCE - Defend the River. Fear the Clam." />
 		<title>OTTER: ELITE FORCE</title>
+		<style>
+			* { margin: 0; padding: 0; box-sizing: border-box; }
+			html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+			#game-container { width: 100%; height: 100%; }
+		</style>
 	</head>
 	<body>
-		<div id="root"></div>
-		<script type="module" src="/src/main.tsx"></script>
+		<div id="game-container"></div>
+		<script type="module" src="/src/main.ts"></script>
 	</body>
 </html>

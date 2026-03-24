@@ -1,5 +1,4 @@
 import path from "node:path";
-import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 /**
@@ -8,11 +7,10 @@ import { defineConfig } from "vitest/config";
  * Optimized test setup with:
  * - happy-dom for lightweight DOM simulation
  * - V8 coverage with comprehensive reporting
- * - ESM package handling for Three.js ecosystem
+ * - ESM package handling
  * - Separate test patterns for unit and integration tests
  */
 export default defineConfig({
-	plugins: [react()],
 	test: {
 		globals: true,
 		environment: "happy-dom",

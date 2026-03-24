@@ -1,21 +1,13 @@
-import react from "@vitejs/plugin-react";
-import { visualizer } from "rollup-plugin-visualizer";
+import path from "node:path";
 import { defineConfig } from "vite";
 
-// https://vite.dev/config/
-export default defineConfig(({ mode }) => ({
-	plugins: [
-		react(),
-		// Generate bundle visualization in analyze mode
-		mode === "analyze" &&
-			visualizer({
-				filename: "./dist/stats.html",
-				open: true,
-				gzipSize: true,
-				brotliSize: true,
-			}),
-	].filter(Boolean),
+export default defineConfig({
 	base: "./",
+	resolve: {
+		alias: {
+			"@": path.resolve(__dirname, "src"),
+		},
+	},
 	build: {
 		outDir: "dist",
 		assetsDir: "assets",
@@ -23,33 +15,12 @@ export default defineConfig(({ mode }) => ({
 		rollupOptions: {
 			output: {
 				manualChunks: {
-					// Split vendor chunks for better caching
-					react: ["react", "react-dom"],
-					three: [
-						"three",
-						"@react-three/fiber",
-						"@react-three/drei",
-						"@react-three/postprocessing",
-						"@react-three/rapier",
-					],
-					audio: ["tone"],
-					ai: ["yuka"],
+					phaser: ["phaser"],
+					tone: ["tone"],
+					yuka: ["yuka"],
+					koota: ["koota"],
 				},
 			},
 		},
 	},
-	test: {
-		globals: true,
-		environment: "jsdom",
-		setupFiles: "./src/test/setup.ts",
-		coverage: {
-			provider: "v8",
-			reporter: ["text", "json", "html"],
-			exclude: ["node_modules/", "src/test/"],
-		},
-		deps: {
-			// Inline strata packages to handle ESM resolution
-			inline: [/@strata-game-library\/.*/],
-		},
-	},
-}));
+});

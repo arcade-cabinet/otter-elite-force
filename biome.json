@@ -17,30 +17,12 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
-			"correctness": {
-				"useExhaustiveDependencies": "warn"
-			},
-			"style": {
-				"noNonNullAssertion": "off"
-			},
-			"suspicious": {
-				"noArrayIndexKey": "off"
-			},
-			"complexity": {
-				"noImportantStyles": "off"
-			}
+			"recommended": true
 		}
 	},
 	"overrides": [
 		{
-			"includes": [
-				"**/*.test.ts",
-				"**/*.test.tsx",
-				"**/test/**/*.ts",
-				"**/__tests__/**/*.ts",
-				"**/__tests__/**/*.tsx"
-			],
+			"includes": ["**/*.test.ts", "**/test/**/*.ts", "**/__tests__/**/*.ts"],
 			"linter": {
 				"rules": {
 					"suspicious": {
