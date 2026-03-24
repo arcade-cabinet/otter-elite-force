@@ -1,0 +1,41 @@
+/*
+ * Theme 3: Mission Briefing
+ *
+ * Active during pre-mission briefing screens.
+ * Visual: dark background with spotlight vignette, large portrait,
+ *         typewriter dialogue animation, dossier/intel report layout,
+ *         minimal chrome — portrait and text dominate.
+ *
+ * Selector: [data-theme="briefing"]
+ */
+
+[data-theme="briefing"] {
+	/* Semantic color mapping */
+	--theme-background: #0a0a0c;
+	--theme-foreground: #e8dfc1;
+
+	--theme-card: #1a1a1c;
+	--theme-card-foreground: #d3c89e;
+
+	--theme-popover: #0a0a0c;
+	--theme-popover-foreground: #e8dfc1;
+
+	--theme-primary: #f5e6c8;
+	--theme-primary-foreground: #0a0a0c;
+
+	--theme-secondary: #232326;
+	--theme-secondary-foreground: #d3c89e;
+
+	--theme-muted: #1a1a1c;
+	--theme-muted-foreground: #9a916c;
+
+	--theme-accent: #ffe28a;
+	--theme-accent-foreground: #0a0a0c;
+
+	--theme-destructive: #d9533f;
+	--theme-destructive-foreground: #e8dfc1;
+
+	--theme-border: #2e2e32;
+	--theme-input: #232326;
+	--theme-ring: #f5e6c8;
+}

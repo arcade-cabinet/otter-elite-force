@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+/*
+ * Otter Elite Force — Global Styles
+ *
+ * Three visual themes controlled via `data-theme` attribute on <html>:
+ *   - "tactical"     → gameplay HUD (jungle depth, phosphor green)
+ *   - "command-post"  → menus, campaign map, settings (rust brown, manila)
+ *   - "briefing"      → mission briefing screens (dark spotlight, typewriter)
+ *
+ * Theme CSS files define CSS custom properties scoped to [data-theme="..."].
+ * Components read these via Tailwind utilities (e.g. bg-background, text-foreground).
+ */
+
+@import "../ui/themes/tactical.css";
+@import "../ui/themes/command-post.css";
+@import "../ui/themes/briefing.css";
+
+/* ------------------------------------------------------------------ */
+/* Custom theme                                                        */
+/* ------------------------------------------------------------------ */
+
+@theme {
+  /* --- Color palette (shared across all themes) --- */
+  --color-jungle-950: #07140d;
+  --color-jungle-900: #0d2416;
+  --color-jungle-800: #12311f;
+  --color-jungle-700: #1a4229;
+  --color-jungle-600: #235535;
+  --color-jungle-500: #2f6b44;
+
+  --color-khaki-900: #3b3524;
+  --color-khaki-800: #4a432f;
+  --color-khaki-700: #5a523a;
+  --color-khaki-600: #6c6447;
+  --color-khaki-500: #7f7755;
+  --color-khaki-400: #9a916c;
+  --color-khaki-300: #b8ad85;
+  --color-khaki-200: #d3c89e;
+  --color-khaki-100: #e8dfc1;
+
+  --color-rust-900: #3a1f14;
+  --color-rust-800: #4d2a1b;
+  --color-rust-700: #6b3a26;
+  --color-rust-600: #8a4c32;
+  --color-rust-500: #a85e3e;
+
+  --color-steel-900: #1a1a1c;
+  --color-steel-800: #232326;
+  --color-steel-700: #2e2e32;
+  --color-steel-600: #3a3a3f;
+  --color-steel-500: #4a4a50;
+  --color-steel-400: #5c5c63;
+
+  --color-phosphor: #00ff41;
+  --color-phosphor-dim: #8aff9c;
+  --color-blood-orange: #ff4500;
+  --color-alert: #d9533f;
+  --color-highlight: #ffe28a;
+  --color-parchment: #f5e6c8;
+  --color-faded-yellow: #d4a574;
+
+  /* --- Semantic tokens (resolved per-theme via CSS vars) --- */
+  --color-background: var(--theme-background);
+  --color-foreground: var(--theme-foreground);
+  --color-card: var(--theme-card);
+  --color-card-foreground: var(--theme-card-foreground);
+  --color-popover: var(--theme-popover);
+  --color-popover-foreground: var(--theme-popover-foreground);
+  --color-primary: var(--theme-primary);
+  --color-primary-foreground: var(--theme-primary-foreground);
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-foreground: var(--theme-secondary-foreground);
+  --color-muted: var(--theme-muted);
+  --color-muted-foreground: var(--theme-muted-foreground);
+  --color-accent: var(--theme-accent);
+  --color-accent-foreground: var(--theme-accent-foreground);
+  --color-destructive: var(--theme-destructive);
+  --color-destructive-foreground: var(--theme-destructive-foreground);
+  --color-border: var(--theme-border);
+  --color-input: var(--theme-input);
+  --color-ring: var(--theme-ring);
+
+  /* --- Typography --- */
+  --font-heading: "Black Ops One", "Stencil Std", sans-serif;
+  --font-body: "Special Elite", "Courier New", monospace;
+  --font-mono: "Share Tech Mono", "Courier New", monospace;
+
+  /* --- Radius (military = sharp corners) --- */
+  --radius-sm: 0px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Base layer                                                          */
+/* ------------------------------------------------------------------ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-body);
+  }
+}

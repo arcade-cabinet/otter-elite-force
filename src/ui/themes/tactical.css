@@ -1,0 +1,40 @@
+/*
+ * Theme 1: Tactical HUD
+ *
+ * Active during gameplay. Wraps AROUND the Phaser canvas.
+ * Visual: jungle depth green, stenciled monospace, phosphor radar,
+ *         thick beveled borders, canvas grain texture.
+ *
+ * Selector: [data-theme="tactical"]
+ */
+
+[data-theme="tactical"] {
+	/* Semantic color mapping */
+	--theme-background: #0f2f1c;
+	--theme-foreground: #e8dfc1;
+
+	--theme-card: #12311f;
+	--theme-card-foreground: #d3c89e;
+
+	--theme-popover: #0d2416;
+	--theme-popover-foreground: #e8dfc1;
+
+	--theme-primary: #9a916c;
+	--theme-primary-foreground: #07140d;
+
+	--theme-secondary: #2e2e32;
+	--theme-secondary-foreground: #d3c89e;
+
+	--theme-muted: #1a4229;
+	--theme-muted-foreground: #b8ad85;
+
+	--theme-accent: #00ff41;
+	--theme-accent-foreground: #07140d;
+
+	--theme-destructive: #ff4500;
+	--theme-destructive-foreground: #e8dfc1;
+
+	--theme-border: #3a3a3f;
+	--theme-input: #2e2e32;
+	--theme-ring: #00ff41;
+}
