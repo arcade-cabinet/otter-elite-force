@@ -117,23 +117,25 @@ export const ALL_HERO_ENTITIES: Record<string, HeroDef> = {
 	pvt_muskrat: pvtMuskrat,
 };
 
-// ─── Portraits (3/7 — remaining 4 pending #17) ───
+// ─── Portraits (COMPLETE: 7/7) ───
 
 import { foxhound } from "./portraits/foxhound";
 import { sgtBubbles as sgtBubblesPortrait } from "./portraits/sgt-bubbles";
 import { genWhiskers as genWhiskersPortrait } from "./portraits/gen-whiskers";
-// TODO: Remaining 4 portraits pending Task #17:
-// import { cplSplash as cplSplashPortrait } from "./portraits/cpl-splash";
-// import { sgtFang as sgtFangPortrait } from "./portraits/sgt-fang";
-// import { medicMarina as medicMarinaPortrait } from "./portraits/medic-marina";
-// import { pvtMuskrat as pvtMuskratPortrait } from "./portraits/pvt-muskrat";
+import { cplSplash as cplSplashPortrait } from "./portraits/cpl-splash";
+import { sgtFang as sgtFangPortrait } from "./portraits/sgt-fang";
+import { medicMarina as medicMarinaPortrait } from "./portraits/medic-marina";
+import { pvtMuskrat as pvtMuskratPortrait } from "./portraits/pvt-muskrat";
 
-/** All portrait definitions keyed by id. Add remaining when #17 completes. */
+/** All 7 portrait definitions keyed by id. */
 export const ALL_PORTRAIT_ENTITIES: Record<string, PortraitDef> = {
 	foxhound,
 	sgt_bubbles: sgtBubblesPortrait,
 	gen_whiskers: genWhiskersPortrait,
-	// TODO: cpl_splash, sgt_fang, medic_marina, pvt_muskrat
+	cpl_splash: cplSplashPortrait,
+	sgt_fang: sgtFangPortrait,
+	medic_marina: medicMarinaPortrait,
+	pvt_muskrat: pvtMuskratPortrait,
 };
 
 // ─── Lookup Helpers ───
