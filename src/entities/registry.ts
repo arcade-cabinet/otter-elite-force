@@ -27,6 +27,9 @@ import { ALL_BUILDING_ENTITIES } from "./buildings";
 
 export { ALL_BUILDING_ENTITIES };
 
+/** Alias for tests. */
+export const ALL_BUILDINGS = ALL_BUILDING_ENTITIES;
+
 // ─── Research (COMPLETE: 9/9) ───
 
 import { ALL_RESEARCH_ENTITIES } from "./research";
@@ -98,6 +101,9 @@ export const ALL_UNIT_ENTITIES: Record<string, UnitDef> = {
 	...SCALE_GUARD_UNIT_ENTITIES,
 };
 
+/** Alias for tests. */
+export const ALL_UNITS = ALL_UNIT_ENTITIES;
+
 // ─── Heroes (COMPLETE: 6/6) ───
 
 import { sgtBubbles } from "./heroes/sgt-bubbles";
@@ -116,6 +122,9 @@ export const ALL_HERO_ENTITIES: Record<string, HeroDef> = {
 	medic_marina: medicMarina,
 	pvt_muskrat: pvtMuskrat,
 };
+
+/** Alias for tests. */
+export const ALL_HEROES = ALL_HERO_ENTITIES;
 
 // ─── Portraits (COMPLETE: 7/7) ───
 
@@ -137,6 +146,9 @@ export const ALL_PORTRAIT_ENTITIES: Record<string, PortraitDef> = {
 	medic_marina: medicMarinaPortrait,
 	pvt_muskrat: pvtMuskratPortrait,
 };
+
+/** Alias for tests. */
+export const ALL_PORTRAITS = ALL_PORTRAIT_ENTITIES;
 
 // ─── Lookup Helpers ───
 
