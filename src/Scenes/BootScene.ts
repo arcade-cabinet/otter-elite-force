@@ -1,14 +1,20 @@
 import Phaser from "phaser";
 import { EventBus } from "@/game/EventBus";
-import { renderSprite, registerTextures, getScaleFactor } from "@/entities/renderer";
-import {
-	ALL_UNIT_ENTITIES,
-	ALL_HERO_ENTITIES,
-	ALL_BUILDING_ENTITIES,
-	ALL_RESOURCES,
-	ALL_PROPS,
-	ALL_PORTRAIT_ENTITIES,
-} from "@/entities/registry";
+
+/**
+ * Select the best spritesheet scale based on device DPR and viewport width.
+ * Returns "1x", "2x", or "3x".
+ */
+function selectScale(): string {
+	const dpr = window.devicePixelRatio ?? 1;
+	const width = window.innerWidth ?? 1024;
+	if (width < 768) return "2x";
+	if (dpr >= 2 && width >= 1440) return "3x";
+	return "2x";
+}
+
+/** Spritesheet categories to load, with their asset subdirectory. */
+const SHEETS = ["units", "buildings", "terrain", "portraits"] as const;
 
 export class BootScene extends Phaser.Scene {
 	private loadingBar!: Phaser.GameObjects.Graphics;
@@ -37,7 +43,7 @@ export class BootScene extends Phaser.Scene {
 			this.loadingBar.destroy();
 		});
 
-		this.renderAllTextures();
+		this.loadSpritesheets();
 	}
 
 	create(): void {
@@ -64,49 +70,19 @@ export class BootScene extends Phaser.Scene {
 	}
 
 	/**
-	 * Render all entity sprites from definitions and register them with Phaser.
-	 * Replaces the old createPlaceholderTextures() — real pixel art instead of
-	 * colored rectangles.
+	 * Load pre-built spritesheet atlases from public/assets/.
+	 * Selects the appropriate scale (1x/2x/3x) based on device.
+	 * Atlas keys match entity IDs, so GameScene can reference frames
+	 * as atlas.frame("mudfoot") or atlas.frame("mudfoot_walk_0").
 	 */
-	private renderAllTextures(): void {
-		const unitScale = getScaleFactor(16);
-		const buildingScale = getScaleFactor(32);
-		const portraitScale = getScaleFactor(64);
+	private loadSpritesheets(): void {
+		const scale = selectScale();
 
-		// Units (14 definitions, 16px sprites)
-		for (const [id, def] of Object.entries(ALL_UNIT_ENTITIES)) {
-			const rendered = renderSprite(id, def.sprite, unitScale);
-			registerTextures(this.textures, rendered);
-		}
-
-		// Heroes (6 definitions, 16px sprites)
-		for (const [id, def] of Object.entries(ALL_HERO_ENTITIES)) {
-			const rendered = renderSprite(id, def.sprite, unitScale);
-			registerTextures(this.textures, rendered);
-		}
-
-		// Buildings (17 definitions, 32px sprites)
-		for (const [id, def] of Object.entries(ALL_BUILDING_ENTITIES)) {
-			const rendered = renderSprite(id, def.sprite, buildingScale);
-			registerTextures(this.textures, rendered);
-		}
-
-		// Resources (3 definitions, 16px sprites)
-		for (const [id, def] of Object.entries(ALL_RESOURCES)) {
-			const rendered = renderSprite(id, def.sprite, unitScale);
-			registerTextures(this.textures, rendered);
-		}
-
-		// Props (2 definitions, 16px sprites)
-		for (const [id, def] of Object.entries(ALL_PROPS)) {
-			const rendered = renderSprite(id, def.sprite, unitScale);
-			registerTextures(this.textures, rendered);
-		}
-
-		// Portraits (7 definitions, 64x96 sprites)
-		for (const [id, def] of Object.entries(ALL_PORTRAIT_ENTITIES)) {
-			const rendered = renderSprite(id, def.sprite, portraitScale);
-			registerTextures(this.textures, rendered);
+		for (const category of SHEETS) {
+			const key = `${category}_${scale}`;
+			const pngPath = `assets/${category}/${key}.png`;
+			const jsonPath = `assets/${category}/${key}.json`;
+			this.load.atlas(key, pngPath, jsonPath);
 		}
 	}
 }
