@@ -14,7 +14,12 @@
 		"isolatedModules": true,
 		"moduleDetection": "force",
 		"noEmit": true,
-		"jsx": "react-jsx",
+
+		/* Paths */
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		},
 
 		/* Linting */
 		"strict": true,
@@ -22,6 +27,6 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["src"],
-	"exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/__tests__/**"]
+	"include": ["src/main.ts", "src/config", "src/scenes", "src/ai", "src/types"],
+	"exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
 }
