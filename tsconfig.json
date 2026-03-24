@@ -27,6 +27,6 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["src/main.ts", "src/config", "src/scenes", "src/ai", "src/types"],
+	"include": ["src/main.ts", "src/config", "src/Scenes", "src/ai", "src/types"],
 	"exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
 }
