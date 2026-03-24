@@ -16,9 +16,7 @@
 import type { Entity, World } from "koota";
 import { CanSwim, Submerged } from "../ecs/traits/water";
 import { Position } from "../ecs/traits/spatial";
-import { Health } from "../ecs/traits/combat";
-import { Faction, UnitType } from "../ecs/traits/identity";
-import { VisionRadius } from "../ecs/traits/combat";
+import { UnitType } from "../ecs/traits/identity";
 import { GarrisonedIn } from "../ecs/relations";
 
 /** Default raft carry capacity. Advanced Rafts research increases this to 6. */
@@ -121,7 +119,7 @@ export function disembarkTransport(unit: Entity, transport: Entity): boolean {
 
 	// Copy transport's position to the disembarked unit
 	if (transport.has(Position) && unit.has(Position)) {
-		const transportPos = transport.get(Position);
+		const transportPos = transport.get(Position)!;
 		unit.set(Position, { x: transportPos.x, y: transportPos.y });
 	}
 
@@ -134,7 +132,7 @@ export function disembarkTransport(unit: Entity, transport: Entity): boolean {
  */
 export function syncGarrisonPositions(world: World, transport: Entity): void {
 	if (!transport.has(Position)) return;
-	const transportPos = transport.get(Position);
+	const transportPos = transport.get(Position)!;
 
 	const garrisoned = world.query(GarrisonedIn(transport), Position);
 	for (const unit of garrisoned) {
@@ -151,7 +149,7 @@ export function waterSystem(world: World): void {
 	const transports = world.query(UnitType, Position, CanSwim);
 	for (const transport of transports) {
 		const unitType = transport.get(UnitType);
-		if (unitType.type === "raftsman") {
+		if (unitType?.type === "raftsman") {
 			syncGarrisonPositions(world, transport);
 		}
 	}

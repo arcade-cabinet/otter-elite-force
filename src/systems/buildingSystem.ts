@@ -14,11 +14,11 @@
 import type { World } from "koota";
 import { ConstructionProgress } from "../ecs/traits/economy";
 import { Health } from "../ecs/traits/combat";
-import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
+import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { ConstructingAt, OwnedBy } from "../ecs/relations";
 import { resourceStore } from "../stores/resourceStore";
-import { ALL_BUILDINGS, type BuildingDef } from "../data/buildings";
+import { ALL_BUILDINGS } from "../data/buildings";
 
 /** Distance at which a builder can work on a building. */
 const BUILD_RANGE = 1.5;
@@ -65,8 +65,8 @@ export function canPlaceBuilding(
 		return { valid: false, reason: "Cannot build on water" };
 	}
 
-	// Water-required buildings need water
-	if (def.requiresWater && terrain !== "water") {
+	// Water-required buildings need water (this branch only reached for non-water terrain)
+	if (def.requiresWater) {
 		return { valid: false, reason: "Must be placed on water edge" };
 	}
 
@@ -138,6 +138,7 @@ function processConstruction(world: World, delta: number): void {
 
 		const builderPos = builder.get(Position);
 		const buildingPos = building.get(Position);
+		if (!builderPos || !buildingPos) continue;
 
 		const dx = builderPos.x - buildingPos.x;
 		const dy = builderPos.y - buildingPos.y;
@@ -147,7 +148,7 @@ function processConstruction(world: World, delta: number): void {
 
 		// Advance construction
 		const cp = building.get(ConstructionProgress);
-		if (cp.progress >= 100) continue;
+		if (!cp || cp.progress >= 100) continue;
 
 		// Rate: 100 / buildTime per second per builder
 		const rate = (BASE_BUILD_RATE / cp.buildTime) * delta;

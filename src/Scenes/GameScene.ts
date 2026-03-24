@@ -334,8 +334,9 @@ export class GameScene extends Phaser.Scene {
 			countUnits: (faction: string, unitType?: string) => {
 				let count = 0;
 				world.query(Faction, Health).forEach((entity) => {
+					// Query guarantees Faction+Health exist; guard satisfies strict null checks
 					const f = entity.get(Faction);
-					if (f.id !== faction) return;
+					if (!f || f.id !== faction) return;
 					if (unitType) {
 						const ut = entity.get(UnitType);
 						if (!ut || ut.type !== unitType) return;
@@ -352,12 +353,13 @@ export class GameScene extends Phaser.Scene {
 				let count = 0;
 				world.query(Faction, Position, Health).forEach((entity) => {
 					const f = entity.get(Faction);
-					if (f.id !== faction) return;
+					if (!f || f.id !== faction) return;
 					if (unitType) {
 						const ut = entity.get(UnitType);
 						if (!ut || ut.type !== unitType) return;
 					}
 					const pos = entity.get(Position);
+					if (!pos) return;
 					if (
 						pos.x >= area.x &&
 						pos.x < area.x + area.width &&

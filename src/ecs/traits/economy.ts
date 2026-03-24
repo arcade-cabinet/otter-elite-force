@@ -20,7 +20,6 @@ export const PopulationCost = trait({ cost: 1 });
 export const ConstructionProgress = trait({ progress: 0, buildTime: 30 });
 
 /** Active research at a building — one at a time, AoS for nullable object */
-// @ts-expect-error Koota AoS trait with null initial value
 export const ResearchSlot = trait(() => null as any);
 
 /** Tag: entity is a Command Post (primary or secondary base) */

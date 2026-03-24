@@ -131,11 +131,20 @@ describe("Scene Flow (browser)", () => {
 		expect(gameScene.scene.key).toBe("Game");
 	});
 
-	it("should have all 7 scenes registered in the game", async () => {
+	it("should have all 8 scenes registered in the game", async () => {
 		handle = await createTestGame({ scenes: ALL_SCENES, width: 1280, height: 720 });
 		await handle.waitForScene("Menu");
 
-		const expectedKeys = ["Boot", "Menu", "Briefing", "Game", "HUD", "Pause", "Victory"];
+		const expectedKeys = [
+			"Boot",
+			"Menu",
+			"CampaignMap",
+			"Briefing",
+			"Game",
+			"HUD",
+			"Pause",
+			"Victory",
+		];
 		for (const key of expectedKeys) {
 			const scene = handle.game.scene.getScene(key);
 			expect(scene, `scene "${key}" should be registered`).toBeDefined();

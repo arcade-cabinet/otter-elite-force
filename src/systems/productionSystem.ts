@@ -14,12 +14,12 @@
 import type { World } from "koota";
 import { PopulationCost, ProductionQueue } from "../ecs/traits/economy";
 import { Health } from "../ecs/traits/combat";
-import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
+import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { RallyPoint } from "../ecs/traits/orders";
 import { OwnedBy } from "../ecs/relations";
 import { resourceStore } from "../stores/resourceStore";
-import { ALL_UNITS, type ResourceCost } from "../data/units";
+import { ALL_UNITS } from "../data/units";
 import { ALL_BUILDINGS } from "../data/buildings";
 
 /**
@@ -34,6 +34,7 @@ export function queueUnit(building: ReturnType<World["spawn"]>, unitType: string
 
 	// Check that this building can train this unit type
 	const buildingType = building.get(UnitType);
+	if (!buildingType) return false;
 	const buildingDef = ALL_BUILDINGS[buildingType.type];
 	if (!buildingDef?.trains?.includes(unitType)) return false;
 
@@ -46,6 +47,7 @@ export function queueUnit(building: ReturnType<World["spawn"]>, unitType: string
 
 	// Add to the building's production queue
 	const queue = building.get(ProductionQueue);
+	if (!queue) return false;
 	queue.push({
 		unitType,
 		progress: 0,
@@ -67,7 +69,7 @@ export function productionSystem(world: World, delta: number): void {
 
 	for (const building of buildings) {
 		const queue = building.get(ProductionQueue);
-		if (queue.length === 0) continue;
+		if (!queue || queue.length === 0) continue;
 
 		const current = queue[0];
 		current.progress += (delta / current.buildTime) * 100;

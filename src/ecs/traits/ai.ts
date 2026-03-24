@@ -8,4 +8,4 @@ export const AIState = trait(() => ({
 }));
 
 /** Yuka Vehicle reference — AoS callback, null until assigned */
-export const SteeringAgent = trait(() => null as unknown);
+export const SteeringAgent = trait(() => null as any);

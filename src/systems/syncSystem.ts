@@ -38,6 +38,8 @@ export function syncNewEntities(world: World, scene: Phaser.Scene): void {
 
 		const pos = entity.get(Position);
 		const unitType = entity.get(UnitType);
+		if (!pos || !unitType) continue;
+
 		const textureKey = entity.has(IsBuilding) ? `building_${unitType.type}` : unitType.type;
 
 		const sprite = scene.add.sprite(
@@ -78,6 +80,7 @@ export function syncPositions(world: World): void {
 		if (!sprite) continue;
 
 		const pos = entity.get(Position);
+		if (!pos) continue;
 		sprite.x = pos.x * TILE_SIZE + TILE_SIZE / 2;
 		sprite.y = pos.y * TILE_SIZE + TILE_SIZE / 2;
 	}

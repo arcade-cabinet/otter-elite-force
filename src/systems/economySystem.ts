@@ -11,7 +11,7 @@
 
 import type { World } from "koota";
 import { Gatherer, ResourceNode } from "../ecs/traits/economy";
-import { Faction, IsBuilding, IsResource, UnitType } from "../ecs/traits/identity";
+import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { GatheringFrom, OwnedBy } from "../ecs/relations";
 import { resourceStore } from "../stores/resourceStore";
@@ -68,6 +68,7 @@ function processGatherers(world: World, delta: number): void {
 
 		const nodePos = target.get(Position);
 		const nodeData = target.get(ResourceNode);
+		if (!nodePos || !nodeData) return;
 
 		// If carrying is full, move toward Command Post to deposit
 		if (gatherer.amount >= gatherer.capacity) {
@@ -75,6 +76,7 @@ function processGatherers(world: World, delta: number): void {
 			if (!commandPost) return;
 
 			const cpPos = commandPost.get(Position);
+			if (!cpPos) return;
 			const dist = tileDistance(position.x, position.y, cpPos.x, cpPos.y);
 
 			if (dist <= GATHER_RANGE) {
@@ -127,12 +129,14 @@ function findCommandPost(world: World, gathererEntity: ReturnType<World["spawn"]
 	let nearestDist = Number.POSITIVE_INFINITY;
 
 	const gathererPos = gathererEntity.get(Position);
+	if (!gathererPos) return null;
 
 	for (const building of buildings) {
 		const unitType = building.get(UnitType);
-		if (unitType.type !== "command_post") continue;
+		if (!unitType || unitType.type !== "command_post") continue;
 
 		const bPos = building.get(Position);
+		if (!bPos) continue;
 		const dist = tileDistance(gathererPos.x, gathererPos.y, bPos.x, bPos.y);
 		if (dist < nearestDist) {
 			nearestDist = dist;
@@ -198,7 +202,7 @@ function processFishTrapIncome(world: World, delta: number): void {
 
 	for (const building of fishTraps) {
 		const unitType = building.get(UnitType);
-		if (unitType.type === "fish_trap") {
+		if (unitType?.type === "fish_trap") {
 			fishTrapCount++;
 		}
 	}
