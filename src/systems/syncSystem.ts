@@ -16,7 +16,7 @@
 import type { Entity, World } from "koota";
 import { createAdded, createRemoved } from "koota";
 import type Phaser from "phaser";
-import { UnitType, IsBuilding, Selected } from "../ecs/traits/identity";
+import { UnitType, Selected } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { PhaserSprite } from "../ecs/traits/phaser";
 
@@ -40,7 +40,7 @@ export function syncNewEntities(world: World, scene: Phaser.Scene): void {
 		const unitType = entity.get(UnitType);
 		if (!pos || !unitType) continue;
 
-		const textureKey = entity.has(IsBuilding) ? `building_${unitType.type}` : unitType.type;
+		const textureKey = unitType.type;
 
 		const sprite = scene.add.sprite(
 			pos.x * TILE_SIZE + TILE_SIZE / 2,

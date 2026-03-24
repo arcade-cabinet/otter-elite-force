@@ -1,110 +1,30 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "@/config/constants";
+import type { MissionDef } from "@/entities/types";
+import { getPortrait } from "@/entities/registry";
+import { mission01Beachhead } from "@/entities/missions/chapter1/mission-01-beachhead";
+import { mission02Causeway } from "@/entities/missions/chapter1/mission-02-causeway";
+import { mission03FirebaseDelta } from "@/entities/missions/chapter1/mission-03-firebase-delta";
+import { mission04PrisonBreak } from "@/entities/missions/chapter1/mission-04-prison-break";
 
 interface BriefingData {
 	missionId: number;
 	difficulty: "support" | "tactical" | "elite";
 }
 
-interface DialogueLine {
-	speaker: string;
-	text: string;
-}
-
-const MISSION_BRIEFINGS: Record<number, { title: string; lines: DialogueLine[] }> = {
-	1: {
-		title: "MISSION 1: BEACHHEAD",
-		lines: [
-			{
-				speaker: "FOXHOUND",
-				text: "Sgt. Bubbles, intel confirms Scale-Guard forces have established a foothold along the northern mangrove line.",
-			},
-			{
-				speaker: "FOXHOUND",
-				text: "Your primary objective: secure a beachhead and establish a forward operating base. Gather fish and timber to fund operations.",
-			},
-			{
-				speaker: "FOXHOUND",
-				text: "Enemy patrols are light — mostly Gator Grunts. But don't get cocky. The crocs fight dirty.",
-			},
-			{
-				speaker: "SGT. BUBBLES",
-				text: "Copy that, FOXHOUND. River Rats are locked and loaded. We'll have that FOB up before sundown.",
-			},
-		],
-	},
-	2: {
-		title: "MISSION 2: THE CAUSEWAY",
-		lines: [
-			{
-				speaker: "FOXHOUND",
-				text: "Excellent work on the beachhead. Now we need to secure the supply line. A convoy is inbound along the jungle causeway.",
-			},
-			{
-				speaker: "FOXHOUND",
-				text: "Scale-Guard ambush teams have been spotted at three chokepoints along the road. Escort that convoy to the eastern outpost.",
-			},
-			{
-				speaker: "SGT. BUBBLES",
-				text: "Ambush alley. Wonderful. We'll set up overwatch positions and push through. Nobody touches our supplies.",
-			},
-		],
-	},
-	3: {
-		title: "MISSION 3: FIREBASE DELTA",
-		lines: [
-			{
-				speaker: "FOXHOUND",
-				text: "Three strategic hilltops form a triangle north of our position. Scale-Guard has fortified the northern approaches.",
-			},
-			{
-				speaker: "FOXHOUND",
-				text: "Capture all three points and hold them for two minutes. Expect heavy counter-attacks once they realize what's happening.",
-			},
-			{
-				speaker: "SGT. BUBBLES",
-				text: "King of the hill, otter-style. We'll take them fast and dig in deep. Those crocs won't know what hit them.",
-			},
-		],
-	},
-	4: {
-		title: "MISSION 4: PRISON BREAK",
-		lines: [
-			{
-				speaker: "FOXHOUND",
-				text: "We've located Gen. Whiskers. He's being held in a Scale-Guard compound deep in hostile territory.",
-			},
-			{
-				speaker: "FOXHOUND",
-				text: "This is a stealth operation. Take a small team in through the mangrove route. Use tall grass for concealment.",
-			},
-			{
-				speaker: "FOXHOUND",
-				text: "Rescue the General and get to the extraction point in the northwest. If you're spotted, it gets ugly fast.",
-			},
-			{
-				speaker: "SGT. BUBBLES",
-				text: "Silent and deadly. The River Rats don't leave anyone behind. We're bringing the General home.",
-			},
-		],
-	},
-};
-
-const DEFAULT_BRIEFING: { title: string; lines: DialogueLine[] } = {
-	title: "MISSION BRIEFING",
-	lines: [
-		{
-			speaker: "FOXHOUND",
-			text: "Mission briefing data not yet available. Stand by for further intel.",
-		},
-	],
+/** Mission registry for briefing lookup. */
+const MISSION_DEFS: Record<number, MissionDef> = {
+	1: mission01Beachhead,
+	2: mission02Causeway,
+	3: mission03FirebaseDelta,
+	4: mission04PrisonBreak,
 };
 
 const TYPEWRITER_SPEED = 30;
 
 export class BriefingScene extends Phaser.Scene {
 	private missionData!: BriefingData;
-	private dialogueLines: DialogueLine[] = [];
+	private dialogueLines: MissionDef["briefing"]["lines"] = [];
 	private currentLineIndex = 0;
 	private dialogueText!: Phaser.GameObjects.Text;
 	private speakerText!: Phaser.GameObjects.Text;
@@ -126,11 +46,23 @@ export class BriefingScene extends Phaser.Scene {
 	create(): void {
 		this.cameras.main.setBackgroundColor("#0a0e14");
 
-		const briefing = MISSION_BRIEFINGS[this.missionData.missionId] ?? DEFAULT_BRIEFING;
-		this.dialogueLines = briefing.lines;
+		const mission = MISSION_DEFS[this.missionData.missionId];
+		if (mission) {
+			this.dialogueLines = mission.briefing.lines;
+			const title = `MISSION ${mission.mission}: ${mission.name.toUpperCase()}`;
+			this.createMissionHeader(title);
+			this.createPortrait(mission.briefing.portraitId);
+		} else {
+			this.dialogueLines = [
+				{
+					speaker: "FOXHOUND",
+					text: "Mission briefing data not yet available. Stand by for further intel.",
+				},
+			];
+			this.createMissionHeader("MISSION BRIEFING");
+			this.createPortrait("foxhound");
+		}
 
-		this.createMissionHeader(briefing.title);
-		this.createPortrait();
 		this.createDialogueBox();
 		this.createDeployButton();
 
@@ -166,23 +98,28 @@ export class BriefingScene extends Phaser.Scene {
 			.setOrigin(0.5);
 	}
 
-	private createPortrait(): void {
+	private createPortrait(portraitId: string): void {
 		const portraitBg = this.add.graphics();
 		portraitBg.fillStyle(0x1a2332, 1);
 		portraitBg.lineStyle(2, 0xc4a43a, 1);
 		portraitBg.fillRect(60, 120, 160, 240);
 		portraitBg.strokeRect(60, 120, 160, 240);
 
-		// Placeholder portrait — will use compiled sprite atlas later
-		if (this.textures.exists("portrait-foxhound")) {
-			this.add.image(140, 240, "portrait-foxhound").setScale(2);
+		// Use rendered portrait texture from BootScene
+		if (this.textures.exists(portraitId)) {
+			this.add.image(140, 240, portraitId).setScale(2);
 		}
 
+		// Speaker name label — use dialogueColor from portrait definition if available
+		const portraitDef = getPortrait(portraitId);
+		const nameColor = portraitDef?.dialogueColor ?? "#c4a43a";
+		const displayName = portraitDef?.name ?? portraitId.toUpperCase();
+
 		this.add
-			.text(140, 380, "FOXHOUND", {
+			.text(140, 380, displayName, {
 				fontFamily: "monospace",
 				fontSize: "12px",
-				color: "#c4a43a",
+				color: nameColor,
 			})
 			.setOrigin(0.5);
 	}

@@ -1,4 +1,13 @@
 import Phaser from "phaser";
+import { renderSprite, registerTextures, getScaleFactor } from "@/entities/renderer";
+import {
+	ALL_UNIT_ENTITIES,
+	ALL_HERO_ENTITIES,
+	ALL_BUILDING_ENTITIES,
+	ALL_RESOURCES,
+	ALL_PROPS,
+	ALL_PORTRAIT_ENTITIES,
+} from "@/entities/registry";
 
 export class BootScene extends Phaser.Scene {
 	private loadingBar!: Phaser.GameObjects.Graphics;
@@ -27,9 +36,7 @@ export class BootScene extends Phaser.Scene {
 			this.loadingBar.destroy();
 		});
 
-		// Sprite atlases will be loaded here once the sprite compiler
-		// generates them. For now, generate placeholder textures.
-		this.createPlaceholderTextures();
+		this.renderAllTextures();
 	}
 
 	create(): void {
@@ -54,52 +61,50 @@ export class BootScene extends Phaser.Scene {
 		loadingText.setOrigin(0.5);
 	}
 
-	private createPlaceholderTextures(): void {
-		// Generate colored rectangle textures as placeholders until
-		// the .sprite compiler pipeline produces real atlases.
-		const placeholders: Array<[string, number]> = [
-			["river-rat", 0x6b8e23],
-			["mudfoot", 0x556b2f],
-			["shellcracker", 0x8b4513],
-			["gator", 0x2f4f2f],
-			["command-post", 0x8b6914],
-			["barracks", 0x654321],
-			["watchtower", 0x4a3728],
-			["fish-trap", 0x2e8b57],
-			["burrow", 0x3e2723],
-			["sandbag-wall", 0x808080],
-			["grass", 0x228b22],
-			["water", 0x1e90ff],
-			["mud", 0x8b7355],
-			["dirt", 0xa0522d],
-			["mangrove", 0x006400],
-			["bridge", 0x8b7765],
-			["toxic-sludge", 0x7cfc00],
-			["tall-grass", 0x32cd32],
-			["portrait-foxhound", 0x4a4a4a],
-		];
+	/**
+	 * Render all entity sprites from definitions and register them with Phaser.
+	 * Replaces the old createPlaceholderTextures() — real pixel art instead of
+	 * colored rectangles.
+	 */
+	private renderAllTextures(): void {
+		const unitScale = getScaleFactor(16);
+		const buildingScale = getScaleFactor(32);
+		const portraitScale = getScaleFactor(64);
 
-		for (const [key, color] of placeholders) {
-			const size = key.startsWith("portrait")
-				? 64
-				: key.includes("-") &&
-						!key.startsWith("tall") &&
-						!key.startsWith("toxic") &&
-						[
-							"command-post",
-							"barracks",
-							"watchtower",
-							"fish-trap",
-							"burrow",
-							"sandbag-wall",
-						].includes(key)
-					? 32
-					: 16;
-			const gfx = this.add.graphics();
-			gfx.fillStyle(color, 1);
-			gfx.fillRect(0, 0, size, size);
-			gfx.generateTexture(key, size, size);
-			gfx.destroy();
+		// Units (14 definitions, 16px sprites)
+		for (const [id, def] of Object.entries(ALL_UNIT_ENTITIES)) {
+			const rendered = renderSprite(id, def.sprite, unitScale);
+			registerTextures(this.textures, rendered);
+		}
+
+		// Heroes (6 definitions, 16px sprites)
+		for (const [id, def] of Object.entries(ALL_HERO_ENTITIES)) {
+			const rendered = renderSprite(id, def.sprite, unitScale);
+			registerTextures(this.textures, rendered);
+		}
+
+		// Buildings (17 definitions, 32px sprites)
+		for (const [id, def] of Object.entries(ALL_BUILDING_ENTITIES)) {
+			const rendered = renderSprite(id, def.sprite, buildingScale);
+			registerTextures(this.textures, rendered);
+		}
+
+		// Resources (3 definitions, 16px sprites)
+		for (const [id, def] of Object.entries(ALL_RESOURCES)) {
+			const rendered = renderSprite(id, def.sprite, unitScale);
+			registerTextures(this.textures, rendered);
+		}
+
+		// Props (2 definitions, 16px sprites)
+		for (const [id, def] of Object.entries(ALL_PROPS)) {
+			const rendered = renderSprite(id, def.sprite, unitScale);
+			registerTextures(this.textures, rendered);
+		}
+
+		// Portraits (7 definitions, 64x96 sprites)
+		for (const [id, def] of Object.entries(ALL_PORTRAIT_ENTITIES)) {
+			const rendered = renderSprite(id, def.sprite, portraitScale);
+			registerTextures(this.textures, rendered);
 		}
 	}
 }

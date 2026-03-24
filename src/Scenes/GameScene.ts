@@ -2,8 +2,8 @@
  * GameScene — Main gameplay scene.
  *
  * Responsibilities:
- * 1. Load tilemap from mission data
- * 2. Spawn ECS entities from mission map definitions
+ * 1. Paint terrain from MissionDef using paintMap()
+ * 2. Spawn ECS entities from MissionDef.placements via spawner
  * 3. Initialize subsystems (fog, weather, scenario engine)
  * 4. Tick all ECS systems via tickAllSystems() each frame
  * 5. Handle camera controls (WASD/arrows/edge scroll/zoom)
@@ -12,22 +12,21 @@
 
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "@/config/constants";
-import { ALL_UNITS } from "@/data/units";
-import { AIState } from "@/ecs/traits/ai";
-import { Attack, Armor, Health, VisionRadius } from "@/ecs/traits/combat";
-import { ResourceNode } from "@/ecs/traits/economy";
-import { Faction, IsResource, UnitType } from "@/ecs/traits/identity";
-import { OrderQueue } from "@/ecs/traits/orders";
+import type { MissionDef, Placement } from "@/entities/types";
+import { getUnit, getHero, getBuilding, getResource } from "@/entities/registry";
+import { spawnUnit, spawnBuilding, spawnResource } from "@/entities/spawner";
+import { paintMap } from "@/entities/terrain/map-painter";
+import { getScaleFactor } from "@/entities/renderer";
+import { Faction, UnitType } from "@/ecs/traits/identity";
+import { Health } from "@/ecs/traits/combat";
 import { Position } from "@/ecs/traits/spatial";
 import { world } from "@/ecs/world";
 import { DesktopInput } from "@/input/desktopInput";
 import { MobileInput } from "@/input/mobileInput";
-import { loadMission, TILE_SIZE } from "@/maps/loader";
-import { mission01Beachhead } from "@/maps/missions/mission-01-beachhead";
-import { mission02Causeway } from "@/maps/missions/mission-02-causeway";
-import { mission03FirebaseDelta } from "@/maps/missions/mission-03-firebase-delta";
-import { mission04PrisonBreak } from "@/maps/missions/mission-04-prison-break";
-import type { MapEntity, MissionMapData } from "@/maps/types";
+import { mission01Beachhead } from "@/entities/missions/chapter1/mission-01-beachhead";
+import { mission02Causeway } from "@/entities/missions/chapter1/mission-02-causeway";
+import { mission03FirebaseDelta } from "@/entities/missions/chapter1/mission-03-firebase-delta";
+import { mission04PrisonBreak } from "@/entities/missions/chapter1/mission-04-prison-break";
 import { ScenarioEngine } from "@/scenarios/engine";
 import type { ScenarioWorldQuery, ActionHandler } from "@/scenarios/engine";
 import type { TriggerAction } from "@/scenarios/types";
@@ -44,8 +43,11 @@ interface GameData {
 	difficulty: "support" | "tactical" | "elite";
 }
 
-/** Mission map registry — maps missionId to map data. */
-const MISSION_MAPS: Record<number, MissionMapData> = {
+/** Tile size in pixels — matches the sync layer (32px). */
+const TILE_SIZE = 32;
+
+/** Mission registry — maps missionId to new MissionDef format. */
+const MISSION_DEFS: Record<number, MissionDef> = {
 	1: mission01Beachhead,
 	2: mission02Causeway,
 	3: mission03FirebaseDelta,
@@ -107,27 +109,10 @@ export class GameScene extends Phaser.Scene {
 			},
 		);
 
-		// Load mission tilemap and spawn entities
-		const mapData = MISSION_MAPS[this.missionData.missionId];
-		if (mapData) {
-			const { tilemap } = loadMission(this, mapData);
-			const mapWidth = tilemap.widthInPixels;
-			const mapHeight = tilemap.heightInPixels;
-			this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
-
-			// Center camera on player start
-			this.cameras.main.scrollX = mapData.playerStart.tileX * TILE_SIZE - GAME_WIDTH / 2;
-			this.cameras.main.scrollY = mapData.playerStart.tileY * TILE_SIZE - GAME_HEIGHT / 2;
-
-			// Spawn ECS entities from map definitions
-			this.spawnMapEntities(mapData.entities);
-
-			// Initialize subsystems
-			this.fogSystem = new FogOfWarSystem(this, world, mapData.cols, mapData.rows);
-			this.weatherSystem = new WeatherSystem(this);
-
-			// Initialize scenario engine
-			this.initScenarioEngine();
+		// Load mission from new MissionDef format
+		const mission = MISSION_DEFS[this.missionData.missionId];
+		if (mission) {
+			this.loadMission(mission);
 		} else {
 			this.drawPlaceholderGrid();
 		}
@@ -248,54 +233,117 @@ export class GameScene extends Phaser.Scene {
 	}
 
 	// =========================================================================
-	// Entity Spawning
+	// Mission Loading (new entity architecture)
 	// =========================================================================
 
-	private spawnMapEntities(entities: MapEntity[]): void {
-		for (const mapEntity of entities) {
-			const factionId =
-				mapEntity.faction === "scale-guard" ? "scale_guard" : (mapEntity.faction ?? "neutral");
+	private loadMission(mission: MissionDef): void {
+		// 1. Paint terrain onto a Canvas and register as background
+		const tileScale = getScaleFactor(16);
+		const terrainTileSize = 16 * tileScale; // e.g., 48 at 3x
+		const terrainCanvas = paintMap(mission.terrain, terrainTileSize);
+		this.textures.addCanvas("terrain-bg", terrainCanvas);
+		this.add.image(0, 0, "terrain-bg").setOrigin(0, 0);
 
-			if (mapEntity.type.startsWith("resource-")) {
-				const resourceType = mapEntity.type.replace("resource-", "");
-				const amount = (mapEntity.properties?.amount as number) ?? 100;
-				world.spawn(
-					IsResource(),
-					UnitType({ type: resourceType }),
-					Position({ x: mapEntity.tileX, y: mapEntity.tileY }),
-					ResourceNode({ type: resourceType, remaining: amount }),
-				);
-			} else {
-				const unitId = mapEntity.type.replace(/-/g, "_");
-				const unitDef = ALL_UNITS[unitId];
+		// Set camera bounds to terrain size
+		const mapWidth = terrainCanvas.width;
+		const mapHeight = terrainCanvas.height;
+		this.cameras.main.setBounds(0, 0, mapWidth, mapHeight);
 
-				if (unitDef) {
-					world.spawn(
-						UnitType({ type: unitId }),
-						Faction({ id: factionId }),
-						Position({ x: mapEntity.tileX, y: mapEntity.tileY }),
-						Health({ current: unitDef.hp, max: unitDef.hp }),
-						Attack({
-							damage: unitDef.damage,
-							range: unitDef.range,
-							cooldown: 1.0,
-							timer: 0,
-						}),
-						Armor({ value: unitDef.armor }),
-						VisionRadius({ radius: 5 }),
-						AIState,
-						OrderQueue,
-					);
-				} else {
-					world.spawn(
-						UnitType({ type: unitId }),
-						Faction({ id: factionId }),
-						Position({ x: mapEntity.tileX, y: mapEntity.tileY }),
-						Health({ current: 100, max: 100 }),
-						VisionRadius({ radius: 5 }),
-					);
-				}
+		// Center camera on the ura_start zone if it exists, otherwise center of map
+		const startZone = mission.zones.ura_start;
+		if (startZone) {
+			this.cameras.main.scrollX = startZone.x * TILE_SIZE - GAME_WIDTH / 2;
+			this.cameras.main.scrollY = startZone.y * TILE_SIZE - GAME_HEIGHT / 2;
+		}
+
+		// 2. Set starting resources from mission definition
+		const res = mission.startResources;
+		resourceStore.getState().addResources({
+			fish: res.fish ?? 0,
+			timber: res.timber ?? 0,
+			salvage: res.salvage ?? 0,
+		});
+		resourceStore.getState().setPopulation(0, mission.startPopCap);
+
+		// 3. Spawn all entities from placements using the spawner
+		this.spawnPlacements(mission);
+
+		// 4. Initialize subsystems
+		this.fogSystem = new FogOfWarSystem(this, world, mission.terrain.width, mission.terrain.height);
+		this.weatherSystem = new WeatherSystem(this);
+
+		// 5. Initialize scenario engine with mission data
+		this.initScenarioEngine(mission);
+	}
+
+	// =========================================================================
+	// Entity Spawning (via spawner)
+	// =========================================================================
+
+	private spawnPlacements(mission: MissionDef): void {
+		for (const placement of mission.placements) {
+			const count = placement.count ?? 1;
+			for (let i = 0; i < count; i++) {
+				const { x, y } = this.resolvePlacementPosition(placement, mission, i);
+				this.spawnFromPlacement(placement, x, y);
 			}
+		}
+	}
+
+	/** Resolve (x, y) for a placement — exact coords or scattered within zone. */
+	private resolvePlacementPosition(
+		placement: Placement,
+		mission: MissionDef,
+		index: number,
+	): { x: number; y: number } {
+		if (placement.x != null && placement.y != null) {
+			return { x: placement.x, y: placement.y };
+		}
+
+		if (placement.zone) {
+			const zone = mission.zones[placement.zone];
+			if (zone) {
+				return {
+					x: zone.x + Math.floor(Math.random() * zone.width),
+					y: zone.y + Math.floor(Math.random() * zone.height),
+				};
+			}
+		}
+
+		// Fallback: offset from origin
+		return { x: index, y: 0 };
+	}
+
+	/** Spawn a single entity from a Placement at resolved coordinates. */
+	private spawnFromPlacement(placement: Placement, x: number, y: number): void {
+		const faction = placement.faction ?? "neutral";
+
+		// Try unit definitions first
+		const unitDef = getUnit(placement.type);
+		if (unitDef) {
+			spawnUnit(world, unitDef, x, y, faction);
+			return;
+		}
+
+		// Try hero definitions
+		const heroDef = getHero(placement.type);
+		if (heroDef) {
+			spawnUnit(world, heroDef, x, y, faction);
+			return;
+		}
+
+		// Try building definitions
+		const buildingDef = getBuilding(placement.type);
+		if (buildingDef) {
+			spawnBuilding(world, buildingDef, x, y, faction);
+			return;
+		}
+
+		// Try resource definitions
+		const resourceDef = getResource(placement.type);
+		if (resourceDef) {
+			spawnResource(world, resourceDef, x, y);
+			return;
 		}
 	}
 
@@ -303,23 +351,34 @@ export class GameScene extends Phaser.Scene {
 	// Scenario Engine
 	// =========================================================================
 
-	private initScenarioEngine(): void {
+	private initScenarioEngine(mission?: MissionDef): void {
 		const actionHandler: ActionHandler = (action: TriggerAction) => {
 			this.handleScenarioAction(action);
 		};
 
-		const placeholderScenario = {
-			id: `mission-${this.missionData.missionId}`,
-			chapter: 1,
-			mission: this.missionData.missionId,
-			name: `Mission ${this.missionData.missionId}`,
-			briefing: { title: "", lines: [], objectives: [] },
-			startConditions: {},
-			objectives: [],
-			triggers: [],
-		};
+		const scenario = mission
+			? {
+					id: mission.id,
+					chapter: mission.chapter,
+					mission: mission.mission,
+					name: mission.name,
+					briefing: { title: "", lines: [], objectives: [] },
+					startConditions: {},
+					objectives: [],
+					triggers: [],
+				}
+			: {
+					id: `mission-${this.missionData.missionId}`,
+					chapter: 1,
+					mission: this.missionData.missionId,
+					name: `Mission ${this.missionData.missionId}`,
+					briefing: { title: "", lines: [], objectives: [] },
+					startConditions: {},
+					objectives: [],
+					triggers: [],
+				};
 
-		this.scenarioEngine = new ScenarioEngine(placeholderScenario, actionHandler);
+		this.scenarioEngine = new ScenarioEngine(scenario, actionHandler);
 
 		this.scenarioEngine.on((event) => {
 			if (event.type === "allObjectivesCompleted") {
@@ -334,7 +393,6 @@ export class GameScene extends Phaser.Scene {
 			countUnits: (faction: string, unitType?: string) => {
 				let count = 0;
 				world.query(Faction, Health).forEach((entity) => {
-					// Query guarantees Faction+Health exist; guard satisfies strict null checks
 					const f = entity.get(Faction);
 					if (!f || f.id !== faction) return;
 					if (unitType) {
@@ -379,46 +437,23 @@ export class GameScene extends Phaser.Scene {
 	private handleScenarioAction(action: TriggerAction): void {
 		switch (action.type) {
 			case "spawnUnits": {
+				const unitDef = getUnit(action.unitType);
+				const faction = action.faction === "scale-guard" ? "scale_guard" : action.faction;
 				for (let i = 0; i < action.count; i++) {
-					const unitId = action.unitType.replace(/-/g, "_");
-					const unitDef = ALL_UNITS[unitId];
-					const hp = unitDef?.hp ?? 100;
-					const factionId = action.faction === "scale-guard" ? "scale_guard" : action.faction;
-					world.spawn(
-						UnitType({ type: unitId }),
-						Faction({ id: factionId }),
-						Position({ x: action.position.x + i, y: action.position.y }),
-						Health({ current: hp, max: hp }),
-						Attack({
-							damage: unitDef?.damage ?? 10,
-							range: unitDef?.range ?? 1,
-							cooldown: 1.0,
-							timer: 0,
-						}),
-						Armor({ value: unitDef?.armor ?? 0 }),
-						VisionRadius({ radius: 5 }),
-						AIState,
-						OrderQueue,
-					);
+					if (unitDef) {
+						spawnUnit(world, unitDef, action.position.x + i, action.position.y, faction);
+					}
 				}
 				break;
 			}
 			case "spawnReinforcements":
 				for (const group of action.units) {
+					const unitDef = getUnit(group.unitType);
+					const faction = action.faction === "scale-guard" ? "scale_guard" : action.faction;
 					for (let i = 0; i < group.count; i++) {
-						const unitId = group.unitType.replace(/-/g, "_");
-						const unitDef = ALL_UNITS[unitId];
-						const hp = unitDef?.hp ?? 100;
-						const factionId = action.faction === "scale-guard" ? "scale_guard" : action.faction;
-						world.spawn(
-							UnitType({ type: unitId }),
-							Faction({ id: factionId }),
-							Position({ x: group.position.x + i, y: group.position.y }),
-							Health({ current: hp, max: hp }),
-							VisionRadius({ radius: 5 }),
-							AIState,
-							OrderQueue,
-						);
+						if (unitDef) {
+							spawnUnit(world, unitDef, group.position.x + i, group.position.y, faction);
+						}
 					}
 				}
 				break;
