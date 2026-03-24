@@ -60,13 +60,13 @@ export function createSFXPlayer(): SFXPlayer {
 	}).toDestination();
 
 	const buildSynth = new Tone.MetalSynth({
-		frequency: 300,
 		envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.05 },
 		harmonicity: 5.1,
 		modulationIndex: 16,
 		resonance: 4000,
 		octaves: 1.5,
 	}).toDestination();
+	buildSynth.frequency.value = 300;
 
 	const gatherSynth = new Tone.PluckSynth({
 		attackNoise: 1,
