@@ -31,7 +31,7 @@ let loadError: string | null = null;
 
 beforeAll(async () => {
 	try {
-		const paletteModule = await import("@/entities/palette");
+		const paletteModule = await import("@/entities/palettes");
 		PALETTE = paletteModule.PALETTE ?? {};
 
 		const registry = await import("@/entities/registry");

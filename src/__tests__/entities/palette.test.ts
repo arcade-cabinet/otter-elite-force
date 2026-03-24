@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PALETTE } from "@/entities/palette";
+import { PALETTE } from "@/entities/palettes";
 
 describe("PALETTE", () => {
 	it("has at least 20 entries", () => {

@@ -4,7 +4,7 @@
 // the new SpriteDef/PALETTE type system.
 
 import type { SpriteDef } from "./types";
-import { PALETTE } from "./palette";
+import { PALETTE } from "./palettes";
 
 /**
  * Determine scale factor based on device characteristics.

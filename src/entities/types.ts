@@ -3,7 +3,7 @@
 // Every entity in the game (units, buildings, resources, terrain, portraits,
 // research, missions) is described by these interfaces.
 
-// ─── Sprite Definition ───
+// ─── Sprite Definition (Legacy) ───
 
 /** Map of animation name to array of frames, each frame being rows of palette chars. */
 export interface SpriteFrames {
@@ -17,6 +17,51 @@ export interface SpriteDef {
 	frames: SpriteFrames;
 	/** Frames per second per animation. */
 	animationRates?: Record<string, number>;
+}
+
+// ─── SP-DSL Sprite Definition (Layered) ───
+
+/**
+ * A single compositing layer in an SP-DSL sprite.
+ * Layers are stacked by zIndex (low = back, high = front).
+ * Each grid cell is a numeric palette index: '0' = transparent, '1' = outline, '2'-'9' = colors.
+ */
+export interface SpriteLayer {
+	/** Unique layer identifier (e.g. "fur", "uniform", "eyes"). */
+	id: string;
+	/** Compositing order — lower renders first (back), higher renders on top (front). */
+	zIndex: number;
+	/** Pixel grid as rows of single-char numeric palette indices. */
+	grid: string[][];
+	/** Optional pixel offset [x, y] relative to sprite origin. */
+	offset?: [number, number];
+	/** Canvas composite operation for this layer. Defaults to "source-over". */
+	blendMode?: GlobalCompositeOperation;
+}
+
+/**
+ * SP-DSL sprite definition — palette-driven, multi-layer, animation-aware.
+ *
+ * Numeric indices ('0'–'9') in each layer grid map to hex colors
+ * via the named palette. This decouples art from color, enabling
+ * faction recoloring, seasonal variants, and procedural tinting.
+ */
+export interface SPDSLSprite {
+	/** Named palette key from PALETTES (e.g. "otter_default", "croc_default"). */
+	palette: string;
+	/** Compositing layers, stacked by zIndex. */
+	layers: SpriteLayer[];
+	/** Animation definitions — each key maps to an array of layer-override sets per frame. */
+	animations?: Record<string, { layerOverrides?: Record<string, { grid: string[][] }> }[]>;
+	/** Procedural generation hints for the build script. */
+	procedural?: {
+		/** Whether to auto-generate walk cycle by shifting leg layers. */
+		autoWalk?: boolean;
+		/** Whether to generate a damage/hit flash variant. */
+		hitFlash?: boolean;
+		/** Team-color layer IDs that can be recolored per faction. */
+		teamColorLayers?: string[];
+	};
 }
 
 // ─── Resource Cost ───
