@@ -11,6 +11,7 @@
  */
 
 import Phaser from "phaser";
+import { EventBus } from "@/game/EventBus";
 import { GAME_HEIGHT, GAME_WIDTH } from "@/config/constants";
 import type { MissionDef, Placement } from "@/entities/types";
 import { getUnit, getHero, getBuilding, getResource } from "@/entities/registry";
@@ -35,8 +36,8 @@ import { tickAllSystems } from "@/systems/gameLoop";
 import type { GameLoopContext } from "@/systems/gameLoop";
 import { destroyAllSprites } from "@/systems/syncSystem";
 import { WeatherSystem } from "@/systems/weatherSystem";
-import { resourceStore } from "@/stores/resourceStore";
-import { useRTSGameStore } from "@/stores/rtsGameStore";
+import { resetSessionState } from "@/ecs/singletons";
+import { CurrentMission, GamePhase, ResourcePool, PopulationState } from "@/ecs/traits/state";
 
 interface GameData {
 	missionId: number;
@@ -78,11 +79,10 @@ export class GameScene extends Phaser.Scene {
 	create(): void {
 		this.cameras.main.setBackgroundColor("#1a2e1a");
 
-		// Reset stores for new mission
-		resourceStore.getState().reset();
-		useRTSGameStore.getState().resetGame();
-		useRTSGameStore.getState().setMission(String(this.missionData.missionId));
-		useRTSGameStore.getState().setPhase("playing");
+		// Reset session state for new mission
+		resetSessionState(world);
+		world.set(CurrentMission, { missionId: String(this.missionData.missionId) });
+		world.set(GamePhase, { phase: "playing" });
 
 		// Camera setup: enable panning and zooming
 		this.cameras.main.setZoom(1);
@@ -127,19 +127,14 @@ export class GameScene extends Phaser.Scene {
 			new DesktopInput(this, world);
 		}
 
-		// Launch HUD scene in parallel
-		this.scene.launch("HUD", {
-			missionId: this.missionData.missionId,
-			difficulty: this.missionData.difficulty,
-			isMobile: !!isTouchDevice,
-			mobileInput: isTouchDevice ? this.mobileInput : undefined,
-		});
+		// Notify React that GameScene is ready (HUD is now a React overlay)
+		EventBus.emit("current-scene-ready", this);
 
-		// Pause input (ESC key)
+		// Pause input (ESC key) — React handles the pause overlay
 		if (this.input.keyboard) {
 			this.input.keyboard.on("keydown-ESC", () => {
-				this.scene.launch("Pause");
 				this.scene.pause();
+				EventBus.emit("game-paused");
 			});
 		}
 
@@ -164,9 +159,6 @@ export class GameScene extends Phaser.Scene {
 
 		// Mobile input: check for long press each frame
 		this.mobileInput?.update();
-
-		// Update game clock in Zustand store
-		useRTSGameStore.getState().tickClock(delta);
 
 		// Update scenario world query elapsed time
 		if (this.scenarioWorldQuery) {
@@ -256,14 +248,14 @@ export class GameScene extends Phaser.Scene {
 			this.cameras.main.scrollY = startZone.y * TILE_SIZE - GAME_HEIGHT / 2;
 		}
 
-		// 2. Set starting resources from mission definition
+		// 2. Set starting resources from mission definition via Koota
 		const res = mission.startResources;
-		resourceStore.getState().addResources({
+		world.set(ResourcePool, {
 			fish: res.fish ?? 0,
 			timber: res.timber ?? 0,
 			salvage: res.salvage ?? 0,
 		});
-		resourceStore.getState().setPopulation(0, mission.startPopCap);
+		world.set(PopulationState, { current: 0, max: mission.startPopCap });
 
 		// 3. Spawn all entities from placements using the spawner
 		this.spawnPlacements(mission);
@@ -458,7 +450,7 @@ export class GameScene extends Phaser.Scene {
 				}
 				break;
 			case "completeObjective":
-				useRTSGameStore.getState().completeObjective(action.objectiveId);
+				EventBus.emit("objective-completed", { objectiveId: action.objectiveId });
 				break;
 			case "failMission":
 				this.handleDefeat(action.reason);
@@ -478,14 +470,13 @@ export class GameScene extends Phaser.Scene {
 	}
 
 	private handleVictory(): void {
-		useRTSGameStore.getState().setPhase("victory");
+		world.set(GamePhase, { phase: "victory" });
 		const elapsed = Math.floor(this.elapsedTime);
-		const res = resourceStore.getState();
-		const resourcesGathered = res.fish + res.timber + res.salvage;
+		const pool = world.get(ResourcePool);
+		const resourcesGathered = (pool?.fish ?? 0) + (pool?.timber ?? 0) + (pool?.salvage ?? 0);
 		const stars = elapsed < 300 ? 3 : elapsed < 600 ? 2 : 1;
 
-		this.scene.stop("HUD");
-		this.scene.start("Victory", {
+		EventBus.emit("mission-complete", {
 			missionId: this.missionData.missionId,
 			difficulty: this.missionData.difficulty,
 			stars,
@@ -498,9 +489,8 @@ export class GameScene extends Phaser.Scene {
 		});
 	}
 
-	private handleDefeat(_reason: string): void {
-		useRTSGameStore.getState().setPhase("defeat");
-		this.scene.stop("HUD");
-		this.scene.start("Menu");
+	private handleDefeat(reason: string): void {
+		world.set(GamePhase, { phase: "defeat" });
+		EventBus.emit("mission-failed", { reason });
 	}
 }

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { EventBus } from "@/game/EventBus";
 import { renderSprite, registerTextures, getScaleFactor } from "@/entities/renderer";
 import {
 	ALL_UNIT_ENTITIES,
@@ -40,7 +41,8 @@ export class BootScene extends Phaser.Scene {
 	}
 
 	create(): void {
-		this.scene.start("Menu");
+		EventBus.emit("boot-complete");
+		EventBus.emit("current-scene-ready", this);
 	}
 
 	private createLoadingBar(): void {
