@@ -81,7 +81,7 @@ export interface UnitDef {
 	category: "worker" | "infantry" | "ranged" | "siege" | "transport" | "scout" | "support";
 
 	// Visual
-	sprite: SpriteDef;
+	sprite: SpriteDef | SPDSLSprite;
 
 	// Combat stats
 	hp: number;
@@ -159,7 +159,7 @@ export interface BuildingDef {
 	faction: "ura" | "scale_guard";
 	category: "production" | "defense" | "economy" | "wall" | "special";
 
-	sprite: SpriteDef;
+	sprite: SpriteDef | SPDSLSprite;
 
 	hp: number;
 	armor: number;
@@ -204,7 +204,7 @@ export interface ResourceDef {
 	name: string;
 	resourceType: "fish" | "timber" | "salvage";
 
-	sprite: SpriteDef;
+	sprite: SpriteDef | SPDSLSprite;
 
 	yield: {
 		min: number;
@@ -221,7 +221,7 @@ export interface ResourceDef {
 export interface TerrainTileDef {
 	id: string;
 	name: string;
-	sprite: SpriteDef;
+	sprite: SpriteDef | SPDSLSprite;
 
 	movementCost: number;
 	swimCost?: number;
@@ -241,7 +241,7 @@ export interface TerrainTileDef {
 export interface PortraitDef {
 	id: string;
 	name: string;
-	sprite: SpriteDef;
+	sprite: SpriteDef | SPDSLSprite;
 	dialogueColor: string;
 }
 

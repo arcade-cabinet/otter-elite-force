@@ -31,6 +31,13 @@ export const PALETTES: PaletteRecord = {
 		"7": "#b45309", // Wood / gear light
 		"8": "#4b5563", // Stone / metal dark
 		"9": "#9ca3af", // Stone / metal light
+		a: "#ffcc99", // Face / skin light
+		b: "#eebb88", // Face / skin shadow
+		c: "#eab308", // Gold / accent
+		d: "#fef08a", // Gold light / highlight
+		e: "#1f2937", // Dark interior (doors, caves)
+		f: "#0d9488", // Teal (wetsuit, dive gear — NOT body)
+		g: "#5eead4", // Light teal (wetsuit highlights)
 	},
 
 	// Scale-Guard (Croc/Reptile) default — green skin, red uniform
@@ -45,6 +52,58 @@ export const PALETTES: PaletteRecord = {
 		"7": "#b45309", // Wood / gear light
 		"8": "#4b5563", // Stone / metal dark
 		"9": "#9ca3af", // Stone / metal light
+		a: "#eab308", // Gold / accent
+		b: "#fef08a", // Gold light / highlight
+		c: "#7e22ce", // Purple dark (poison)
+		d: "#c084fc", // Purple light
+		e: "#1f2937", // Dark interior (doors, caves)
+		f: "#c2410c", // Orange dark (fire, accent)
+		g: "#fb923c", // Orange light
+	},
+
+	// Resources + props — shared neutral palette
+	resource_default: {
+		"0": "transparent",
+		"1": "#000000", // Outline
+		"2": "#166534", // Dark green (foliage)
+		"3": "#22c55e", // Light green
+		"4": "#78350f", // Dark wood
+		"5": "#b45309", // Light wood
+		"6": "#4b5563", // Dark stone
+		"7": "#9ca3af", // Light stone
+		"8": "#eab308", // Gold
+		"9": "#fef08a", // Gold light
+		a: "#1e3a8a", // Blue dark (water)
+		b: "#3b82f6", // Blue light
+		c: "#0d9488", // Teal
+		d: "#5eead4", // Light teal
+		e: "#7e22ce", // Purple dark
+		f: "#c084fc", // Purple light
+		g: "#1f2937", // Dark interior
+	},
+
+	// Portraits — extended palette for high-detail busts
+	portrait_default: {
+		"0": "transparent",
+		"1": "#000000", // Outline
+		"2": "#5C4033", // Fur dark
+		"3": "#8B7355", // Fur light
+		"4": "#ffcc99", // Skin / face light
+		"5": "#eebb88", // Skin / face shadow
+		"6": "#1e3a8a", // Blue dark (uniform)
+		"7": "#3b82f6", // Blue light
+		"8": "#4b5563", // Stone / metal dark
+		"9": "#9ca3af", // Stone / metal light
+		a: "#166534", // Dark green
+		b: "#22c55e", // Light green
+		c: "#7f1d1d", // Red dark
+		d: "#ef4444", // Red light
+		e: "#0d9488", // Teal
+		f: "#5eead4", // Light teal
+		g: "#eab308", // Gold
+		h: "#c2410c", // Orange
+		i: "#78350f", // Wood dark
+		j: "#b45309", // Wood light
 	},
 } as const;
 
