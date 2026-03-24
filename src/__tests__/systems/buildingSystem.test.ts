@@ -52,14 +52,14 @@ describe("buildingSystem", () => {
 			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const tileMap = createMockTileMap();
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap);
+			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
 			expect(result.valid).toBe(true);
 		});
 
 		it("should reject placement with insufficient resources", () => {
 			const tileMap = createMockTileMap();
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap);
+			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Insufficient resources");
 		});
@@ -68,7 +68,7 @@ describe("buildingSystem", () => {
 			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
 			const tileMap = createMockTileMap({ occupied: new Set(["5,5"]) });
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap);
+			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Tile occupied");
 		});
@@ -78,7 +78,7 @@ describe("buildingSystem", () => {
 			const terrain = new Map([["5,5", "water" as const]]);
 			const tileMap = createMockTileMap({ terrain });
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap);
+			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Cannot build on water");
 		});
@@ -88,7 +88,7 @@ describe("buildingSystem", () => {
 			const terrain = new Map([["5,5", "water" as const]]);
 			const tileMap = createMockTileMap({ terrain });
 
-			const result = canPlaceBuilding("dock", 5, 5, tileMap);
+			const result = canPlaceBuilding("dock", 5, 5, tileMap, world);
 			expect(result.valid).toBe(true);
 		});
 
@@ -96,7 +96,7 @@ describe("buildingSystem", () => {
 			world.set(ResourcePool, { fish: 0, timber: 250, salvage: 50 });
 			const tileMap = createMockTileMap();
 
-			const result = canPlaceBuilding("dock", 5, 5, tileMap);
+			const result = canPlaceBuilding("dock", 5, 5, tileMap, world);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Must be placed on water edge");
 		});
@@ -106,7 +106,7 @@ describe("buildingSystem", () => {
 			const terrain = new Map([["5,5", "mangrove" as const]]);
 			const tileMap = createMockTileMap({ terrain });
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap);
+			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Cannot build on mangrove");
 		});
@@ -114,7 +114,7 @@ describe("buildingSystem", () => {
 		it("should reject unknown building type", () => {
 			const tileMap = createMockTileMap();
 
-			const result = canPlaceBuilding("nonexistent", 5, 5, tileMap);
+			const result = canPlaceBuilding("nonexistent", 5, 5, tileMap, world);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Unknown building type");
 		});

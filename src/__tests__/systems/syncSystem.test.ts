@@ -88,7 +88,7 @@ describe("Koota↔Phaser Sync System", () => {
 			expect(sprite.setInteractive).toHaveBeenCalled();
 		});
 
-		it("should use building_ prefix for building entities", () => {
+		it("should create sprite for building entities using UnitType as texture key", () => {
 			const entity = world.spawn(Position, UnitType, IsBuilding);
 			entity.set(UnitType, { type: "barracks" });
 
@@ -97,7 +97,7 @@ describe("Koota↔Phaser Sync System", () => {
 			expect(scene.add.sprite).toHaveBeenCalledWith(
 				expect.any(Number),
 				expect.any(Number),
-				"building_barracks",
+				"barracks",
 			);
 		});
 

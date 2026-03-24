@@ -101,7 +101,7 @@ describe("productionSystem", () => {
 			world.set(ResourcePool, { fish: 100, timber: 0, salvage: 0 });
 			const cp = spawnCommandPost();
 
-			const result = queueUnit(cp, "river_rat");
+			const result = queueUnit(cp, "river_rat", world);
 
 			expect(result).toBe(true);
 

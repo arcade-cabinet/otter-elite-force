@@ -1,8 +1,9 @@
 import type { SPDSLSprite } from "../types";
 
-// Tall Grass — environmental prop with sway animation.
-// Provides concealment for stealth units. 16x16, 2-frame sway.
-// Palette: resource_default — green '2'/'3'
+/**
+ * Tall Grass — environmental prop with sway animation.
+ * Provides concealment for stealth units. 16x16, 2-frame sway.
+ */
 
 export interface PropDef {
 	id: string;
@@ -13,54 +14,58 @@ export interface PropDef {
 	tags: string[];
 }
 
+// Palette: otter_default
+// Legacy char map: G->f (teal), g->g (light teal)
+
 // prettier-ignore
-const body: string[][] = [
+const foliage: string[][] = [
 	[
 		"0000000000000000",
 		"0000000000000000",
-		"0030003000300000",
-		"0323032303230000",
-		"0323032303230000",
-		"0322332233223000",
-		"0322232223223000",
-		"0322232223223000",
-		"0322222222223000",
-		"0322222222223000",
-		"0032222222230000",
-		"0032222222230000",
-		"0003222222300000",
-		"0000333333000000",
+		"00g000g000g00000",
+		"0gfg0gfg0gfg0000",
+		"0gfg0gfg0gfg0000",
+		"0gffggffggffg000",
+		"0gfffgfffgffg000",
+		"0gfffgfffgffg000",
+		"0gffffffffffffg0",
+		"0gffffffffffffg0",
+		"00gffffffffffg00",
+		"00gffffffffffg00",
+		"000gffffffffg000",
+		"0000gggggg000000",
 		"0000000000000000",
 		"0000000000000000",
 	],
 ];
 
 const sprite: SPDSLSprite = {
-	palette: "resource_default",
-	layers: [{ id: "body", zIndex: 1, grid: body }],
+	palette: "otter_default",
+	layers: [{ id: "foliage", zIndex: 1, grid: foliage }],
 	animations: {
 		idle: [{}],
 		sway: [
 			{},
 			{
 				layerOverrides: {
-					body: {
+					foliage: {
+						// prettier-ignore
 						grid: [
 							[
 								"0000000000000000",
 								"0000000000000000",
-								"0003000300030000",
-								"0032303230323000",
-								"0032303230323000",
-								"0032233223322300",
-								"0032223222322300",
-								"0032223222322300",
-								"0032222222222300",
-								"0032222222222300",
-								"0003222222223000",
-								"0003222222223000",
-								"0000322222230000",
-								"0000033333300000",
+								"000g000g000g0000",
+								"00gfg0gfg0gfg000",
+								"00gfg0gfg0gfg000",
+								"00gffggffggffg00",
+								"00gfffgfffgffg00",
+								"00gfffgfffgffg00",
+								"00gffffffffffffg",
+								"00gffffffffffffg",
+								"000gffffffffffg0",
+								"000gffffffffffg0",
+								"0000gffffffffg00",
+								"00000gggggg00000",
 								"0000000000000000",
 								"0000000000000000",
 							],

@@ -1,34 +1,62 @@
 import type { ResourceDef, SPDSLSprite } from "../types";
 
 // Fish Spot — primary food resource. Blue/teal shimmer in water. 16x16.
-// Palette: resource_default — blue 'a'/'b', stone '6'/'7', teal 'c'/'d'
+// Palette: otter_default
+// Legacy char map: B->4, b->5, c->9, T->f, t->g
 
 // prettier-ignore
 const body: string[][] = [
 	[
 		"0000000000000000",
-		"0000bbaaaabb0000",
-		"000baaaaaaaab000",
-		"00baa7777776aab00",
-		"00ba77777776aab00",
-		"0baa77cccc77aab0",
-		"0ba777cddc777ab0",
-		"0ba777cddc777ab0",
-		"0ba777cddc777ab0",
-		"0baa77cccc77aab0",
-		"00ba77777776aab00",
-		"00baa7777776aab00",
-		"000baaaaaaaab000",
-		"0000bbaaaabb0000",
+		"0000554444550000",
+		"0005444444445000",
+		"0054499999944500",
+		"0054999999944500",
+		"0544999999994450",
+		"0549999999999450",
+		"0549999999999450",
+		"0549999999999450",
+		"0544999999994450",
+		"0054999999944500",
+		"0054499999944500",
+		"0005444444445000",
+		"0000554444550000",
+		"0000000000000000",
+		"0000000000000000",
+	],
+];
+
+// prettier-ignore
+const shimmer: string[][] = [
+	[
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"000000ffffo00000",
+		"000009fggf990000",
+		"000009fggf990000",
+		"000009fggf990000",
+		"000000ffffo00000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
 		"0000000000000000",
 		"0000000000000000",
 	],
 ];
 
 const sprite: SPDSLSprite = {
-	palette: "resource_default",
-	layers: [{ id: "body", zIndex: 1, grid: body }],
-	animations: { idle: [{}] },
+	palette: "otter_default",
+	layers: [
+		{ id: "body", zIndex: 1, grid: body },
+		{ id: "shimmer", zIndex: 2, grid: shimmer },
+	],
+	animations: {
+		idle: [{}],
+	},
 };
 
 export const fishSpot: ResourceDef = {

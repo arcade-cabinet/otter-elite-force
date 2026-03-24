@@ -1,34 +1,37 @@
 import type { ResourceDef, SPDSLSprite } from "../types";
 
 // Salvage Cache — salvage resource. Gold/stone wreckage pile. 16x16.
-// Palette: resource_default — gold '8'/'9', stone '6'/'7'
+// Palette: otter_default
+// Legacy char map: Y->c (gold), y->d (gold light), C->8 (stone dark), c->9 (stone light)
 
 // prettier-ignore
 const body: string[][] = [
 	[
 		"0000000000000000",
 		"0000000000000000",
-		"0000008889000000",
-		"0000088888900000",
-		"0000889966890000",
-		"0008896666890000",
-		"0089966776689000",
-		"0089967777689000",
-		"0089967777689000",
-		"0089966776689000",
-		"0008896666890000",
-		"0000889966890000",
-		"0000088888900000",
-		"0000008889000000",
+		"000000cccd000000",
+		"00000cccccdo0000",
+		"0000ccdd88cd0000",
+		"000ccdd8888cd000",
+		"00ccdd89988ccd00",
+		"00ccdd89998ccd00",
+		"00ccdd89998ccd00",
+		"00ccdd89988ccd00",
+		"000ccdd8888cd000",
+		"0000ccdd88cd0000",
+		"00000cccccd00000",
+		"000000cccd000000",
 		"0000000000000000",
 		"0000000000000000",
 	],
 ];
 
 const sprite: SPDSLSprite = {
-	palette: "resource_default",
+	palette: "otter_default",
 	layers: [{ id: "body", zIndex: 1, grid: body }],
-	animations: { idle: [{}] },
+	animations: {
+		idle: [{}],
+	},
 };
 
 export const salvageCache: ResourceDef = {

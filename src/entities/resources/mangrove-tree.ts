@@ -1,34 +1,62 @@
 import type { ResourceDef, SPDSLSprite } from "../types";
 
-// Mangrove Tree — timber resource. Dark green canopy, brown trunk. 16x16.
-// Palette: resource_default — green '2'/'3', wood '4'/'5'
+// Mangrove Tree — timber resource. Teal-green canopy, brown trunk. 16x16.
+// Palette: otter_default
+// Legacy char map: G->f (teal), g->g (light teal), W->6 (wood dark), w->7 (wood light), #->1
 
 // prettier-ignore
-const body: string[][] = [
+const canopy: string[][] = [
 	[
-		"0000002222000000",
-		"0000022222300000",
-		"0000222322230000",
-		"0002222322223000",
-		"0022232223222300",
-		"0022223222222300",
-		"0002222222222000",
-		"0000222222230000",
-		"0000032223000000",
-		"0000001441000000",
-		"0000001441000000",
-		"0000001441000000",
-		"0000001451000000",
-		"0000001451000000",
-		"0000011441100000",
+		"000000ffff000000",
+		"00000fffffg00000",
+		"0000fffgfffg0000",
+		"000ffffgffffg000",
+		"00fffgfffgfffg00",
+		"00ffffgfffffgg00",
+		"000fffffffffg000",
+		"0000fffffffg0000",
+		"00000gfffg000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+	],
+];
+
+// prettier-ignore
+const trunk: string[][] = [
+	[
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000000000000000",
+		"0000001661000000",
+		"0000001661000000",
+		"0000001661000000",
+		"0000001671000000",
+		"0000001671000000",
+		"0000011661100000",
 		"0000000000000000",
 	],
 ];
 
 const sprite: SPDSLSprite = {
-	palette: "resource_default",
-	layers: [{ id: "body", zIndex: 1, grid: body }],
-	animations: { idle: [{}] },
+	palette: "otter_default",
+	layers: [
+		{ id: "trunk", zIndex: 1, grid: trunk },
+		{ id: "canopy", zIndex: 2, grid: canopy },
+	],
+	animations: {
+		idle: [{}],
+	},
 };
 
 export const mangroveTree: ResourceDef = {
