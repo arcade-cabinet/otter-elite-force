@@ -1,0 +1,93 @@
+import type { UnitDef } from "@/entities/types";
+
+export const raftsman: UnitDef = {
+	id: "raftsman",
+	name: "RAFTSMAN",
+	faction: "ura",
+	category: "transport",
+
+	sprite: {
+		size: 16,
+		frames: {
+			idle: [
+				[
+					"......####......",
+					".....#SSSS#.....",
+					".....#SssS#.....",
+					"......####......",
+					".....#bbbb#.....",
+					"....#bBBBBb#....",
+					"....#bBBBBb#....",
+					"....#bBBBBb#....",
+					".....#BBBB#.....",
+					".....#BBBB#.....",
+					"...##wwwwww##...",
+					"..#WwwwwwwwwW#..",
+					"..#WWWWWWWWWW#..",
+					"..#WWWWWWWWWW#..",
+					"..############..",
+					"................",
+				],
+			],
+			walk: [
+				[
+					"......####......",
+					".....#SSSS#.....",
+					".....#SssS#.....",
+					"......####......",
+					".....#bbbb#.....",
+					"....#bBBBBb#....",
+					"....#bBBBBb#....",
+					"....#bBBBBb#....",
+					".....#BBBB#.....",
+					".....#BBBB#.....",
+					"...##wwwwww##...",
+					"..#WwwwwwwwwW#..",
+					".#WWWWWWWWWWW#..",
+					"..#WWWWWWWWWW#..",
+					"..############..",
+					"................",
+				],
+				[
+					"......####......",
+					".....#SSSS#.....",
+					".....#SssS#.....",
+					"......####......",
+					".....#bbbb#.....",
+					"....#bBBBBb#....",
+					"....#bBBBBb#....",
+					"....#bBBBBb#....",
+					".....#BBBB#.....",
+					".....#BBBB#.....",
+					"...##wwwwww##...",
+					"..#WwwwwwwwwW#..",
+					"..#WWWWWWWWWWW#.",
+					"..#WWWWWWWWWW#..",
+					"..############..",
+					"................",
+				],
+			],
+		},
+		animationRates: { walk: 4 },
+	},
+
+	hp: 100,
+	armor: 3,
+	damage: 0,
+	range: 0,
+	attackCooldown: 0,
+	speed: 6,
+	visionRadius: 5,
+
+	cost: { timber: 60, salvage: 20 },
+	populationCost: 1,
+	trainTime: 25,
+	trainedAt: "dock",
+
+	unlockedAt: "mission_7",
+
+	canSwim: true,
+	carryCapacity: 4,
+
+	tags: ["IsUnit", "IsTransport"],
+};
