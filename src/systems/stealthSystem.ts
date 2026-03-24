@@ -118,7 +118,7 @@ export function detectionSystem(world: World): SpotEvent[] {
 			detector.add(Targeting(nearestTarget));
 
 			// AIState is AoS — direct mutation persists
-			const ai = detector.get(AIState);
+			const ai = detector.get(AIState)!;
 			ai.state = "alert";
 			ai.alertLevel = 1;
 
@@ -168,7 +168,7 @@ export function alertCascadeSystem(world: World): void {
 	// Collect alerted entities first (avoid mutation during iteration)
 	const alerted: Entity[] = [];
 	for (const entity of aiEntities) {
-		const ai = entity.get(AIState);
+		const ai = entity.get(AIState)!;
 		if (ai.state === "alert") {
 			alerted.push(entity);
 		}
@@ -182,7 +182,7 @@ export function alertCascadeSystem(world: World): void {
 		for (const candidate of aiEntities) {
 			if (candidate === source) continue;
 
-			const candidateAi = candidate.get(AIState);
+			const candidateAi = candidate.get(AIState)!;
 			if (candidateAi.state !== "idle") continue;
 
 			const candidateFaction = candidate.get(Faction)!;
