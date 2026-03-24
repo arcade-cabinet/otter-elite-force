@@ -87,7 +87,31 @@ function renderLegacyFrame(frame: string[]): Canvas {
 
 // ─── SP-DSL Renderer (numeric-index layered) ───
 
-function renderSPDSLFrame(layers: SpriteLayer[], paletteName: string, size: number): Canvas {
+/**
+ * Resolve a layer grid to its rows for a given frame index.
+ * SP-DSL grids can be either:
+ *   - string[][] where outer = frames, inner = rows (e.g. [["row1","row2",...]])
+ *   - string[] where each element is a row (flat single-frame grid)
+ * We detect by checking if grid[0] is a string or array.
+ */
+function resolveGrid(grid: string[][], frameIndex: number): string[] {
+	if (grid.length === 0) return [];
+	if (Array.isArray(grid[0]) && typeof grid[0] !== "string") {
+		// grid is frames-of-rows: string[frames][rows]
+		return (
+			(grid as unknown as string[][][])[frameIndex] ?? (grid as unknown as string[][][])[0] ?? []
+		);
+	}
+	// grid is flat rows: string[rows] (single frame)
+	return grid as unknown as string[];
+}
+
+function renderSPDSLFrame(
+	layers: SpriteLayer[],
+	paletteName: string,
+	size: number,
+	frameIndex = 0,
+): Canvas {
 	const palette = PALETTES[paletteName];
 	if (!palette) {
 		throw new Error(`Unknown palette: ${paletteName}`);
@@ -107,8 +131,9 @@ function renderSPDSLFrame(layers: SpriteLayer[], paletteName: string, size: numb
 			ctx.globalCompositeOperation = layer.blendMode;
 		}
 
-		for (let y = 0; y < layer.grid.length; y++) {
-			const row = layer.grid[y];
+		const rows = resolveGrid(layer.grid, frameIndex);
+		for (let y = 0; y < rows.length; y++) {
+			const row = rows[y];
 			for (let x = 0; x < row.length; x++) {
 				const ch = row[x];
 				const color = palette[ch];
@@ -215,8 +240,15 @@ function renderAllFrames(entry: SpriteEntry): FrameResult[] {
 			}
 		}
 	} else {
-		// SP-DSL layered sprite — render base layers as idle frame
-		const size = sprite.layers.length > 0 ? sprite.layers[0].grid.length : 16;
+		// SP-DSL layered sprite — detect size from grid content
+		const firstGrid = sprite.layers[0]?.grid;
+		let size = 16;
+		if (firstGrid && firstGrid.length > 0) {
+			const firstRow = resolveGrid(firstGrid, 0);
+			size = firstRow.length; // width = chars per row
+		}
+
+		// Render base layers as idle frame
 		const canvas = renderSPDSLFrame(sprite.layers, sprite.palette, size);
 		results.push({ key: entry.id, canvas });
 
