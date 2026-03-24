@@ -5,6 +5,7 @@ import { DesktopInput } from "@/input/desktopInput";
 import { loadMission, TILE_SIZE } from "@/maps/loader";
 import { mission01Beachhead } from "@/maps/missions/mission-01-beachhead";
 import type { MissionMapData } from "@/maps/types";
+import { FogOfWarSystem } from "@/systems/fogSystem";
 
 interface GameData {
 	missionId: number;
@@ -16,6 +17,7 @@ export class GameScene extends Phaser.Scene {
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private wasd!: Record<string, Phaser.Input.Keyboard.Key>;
 	private cameraPanSpeed = 400;
+	private fogSystem?: FogOfWarSystem;
 
 	constructor() {
 		super({ key: "Game" });
@@ -66,6 +68,8 @@ export class GameScene extends Phaser.Scene {
 			// Center camera on player start position
 			this.cameras.main.scrollX = mapData.playerStart.tileX * TILE_SIZE - GAME_WIDTH / 2;
 			this.cameras.main.scrollY = mapData.playerStart.tileY * TILE_SIZE - GAME_HEIGHT / 2;
+			// Initialize fog of war overlay
+			this.fogSystem = new FogOfWarSystem(this, world, mapData.cols, mapData.rows);
 		} else {
 			this.drawPlaceholderGrid();
 		}
@@ -90,6 +94,9 @@ export class GameScene extends Phaser.Scene {
 
 	update(_time: number, delta: number): void {
 		this.handleCameraPan(delta);
+
+		// Update fog of war
+		this.fogSystem?.update();
 
 		// ECS system ticking will be added here by the sync layer (Task #6).
 		// Each frame: syncKootaToPhaser(world, this), combatSystem, economySystem, etc.
