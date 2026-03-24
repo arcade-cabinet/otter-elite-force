@@ -20,13 +20,17 @@ let React: typeof import("react");
 let render: typeof import("@testing-library/react").render;
 let screen: typeof import("@testing-library/react").screen;
 let createWorld: typeof import("koota").createWorld;
-let trait: typeof import("koota").trait;
 let WorldProvider: any;
 let ActionBar: any;
+let UnitType: typeof import("@/ecs/traits/identity").UnitType;
+let Selected: typeof import("@/ecs/traits/identity").Selected;
+let IsBuilding: typeof import("@/ecs/traits/identity").IsBuilding;
+let Category: typeof import("@/ecs/traits/identity").Category;
 
 let loadError: string | null = null;
 
 beforeEach(async () => {
+	loadError = null;
 	try {
 		React = await import("react");
 		const rtl = await import("@testing-library/react");
@@ -34,9 +38,13 @@ beforeEach(async () => {
 		screen = rtl.screen;
 		const koota = await import("koota");
 		createWorld = koota.createWorld;
-		trait = koota.trait;
-		const kootaReact = await import("@koota/react");
+		const kootaReact = await import("koota/react");
 		WorldProvider = kootaReact.WorldProvider;
+		const identityTraits = await import("@/ecs/traits/identity");
+		UnitType = identityTraits.UnitType;
+		Selected = identityTraits.Selected;
+		IsBuilding = identityTraits.IsBuilding;
+		Category = identityTraits.Category;
 		const mod = await import("@/ui/hud/ActionBar");
 		ActionBar = mod.ActionBar ?? mod.default;
 	} catch (e) {
@@ -74,15 +82,9 @@ describe("ActionBar", () => {
 		it("shows Build action for a River Rat worker", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Faction = trait({ id: "" });
-				const Selected = trait();
-				const Category = trait({ category: "" });
-
 				world
-					.spawn(UnitType, Faction, Selected, Category)
+						.spawn(UnitType, Selected, Category)
 					.set(UnitType, { type: "river_rat" })
-					.set(Faction, { id: "ura" })
 					.set(Category, { category: "worker" });
 			});
 			expect(screen.getByText(/build/i)).toBeTruthy();
@@ -91,10 +93,6 @@ describe("ActionBar", () => {
 		it("shows Gather action for a worker", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Category = trait({ category: "" });
-
 				world
 					.spawn(UnitType, Selected, Category)
 					.set(UnitType, { type: "river_rat" })
@@ -106,10 +104,6 @@ describe("ActionBar", () => {
 		it("shows Repair action for a worker", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Category = trait({ category: "" });
-
 				world
 					.spawn(UnitType, Selected, Category)
 					.set(UnitType, { type: "river_rat" })
@@ -123,10 +117,6 @@ describe("ActionBar", () => {
 		it("shows Move action for a Mudfoot infantry", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Category = trait({ category: "" });
-
 				world
 					.spawn(UnitType, Selected, Category)
 					.set(UnitType, { type: "mudfoot" })
@@ -138,10 +128,6 @@ describe("ActionBar", () => {
 		it("shows Attack action for military units", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Category = trait({ category: "" });
-
 				world
 					.spawn(UnitType, Selected, Category)
 					.set(UnitType, { type: "mudfoot" })
@@ -153,10 +139,6 @@ describe("ActionBar", () => {
 		it("shows Patrol action for military units", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Category = trait({ category: "" });
-
 				world
 					.spawn(UnitType, Selected, Category)
 					.set(UnitType, { type: "mudfoot" })
@@ -168,10 +150,6 @@ describe("ActionBar", () => {
 		it("shows Hold Position action for military units", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Category = trait({ category: "" });
-
 				world
 					.spawn(UnitType, Selected, Category)
 					.set(UnitType, { type: "mudfoot" })
@@ -185,10 +163,6 @@ describe("ActionBar", () => {
 		it("shows Train button for a Barracks", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const IsBuilding = trait();
-				const Selected = trait();
-
 				world.spawn(UnitType, IsBuilding, Selected).set(UnitType, { type: "barracks" });
 			});
 			expect(screen.getByText(/train/i)).toBeTruthy();
@@ -197,10 +171,6 @@ describe("ActionBar", () => {
 		it("shows Research button for an Armory", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const IsBuilding = trait();
-				const Selected = trait();
-
 				world.spawn(UnitType, IsBuilding, Selected).set(UnitType, { type: "armory" });
 			});
 			expect(screen.getByText(/research/i)).toBeTruthy();
@@ -211,10 +181,6 @@ describe("ActionBar", () => {
 		it("action buttons are not disabled by default", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Category = trait({ category: "" });
-
 				world
 					.spawn(UnitType, Selected, Category)
 					.set(UnitType, { type: "mudfoot" })
@@ -222,7 +188,7 @@ describe("ActionBar", () => {
 			});
 			const buttons = screen.getAllByRole("button");
 			for (const btn of buttons) {
-				expect(btn).not.toHaveAttribute("disabled");
+					expect(btn.getAttribute("disabled")).toBeNull();
 			}
 		});
 	});

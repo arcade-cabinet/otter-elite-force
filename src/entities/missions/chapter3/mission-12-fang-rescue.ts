@@ -7,6 +7,7 @@
 // Par time: 7 min (420s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission12FangRescue: MissionDef = {
 	id: "mission_12",
@@ -120,96 +121,76 @@ export const mission12FangRescue: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "rescue-fang",
-				description: "Rescue Sgt. Fang",
-				type: "rescue",
-				target: "sgt_fang",
-				count: 1,
-			},
-			{
-				id: "extract-south",
-				description: "Extract to southern LZ",
-				type: "explore",
-			},
+			objective("rescue-fang", "Rescue Sgt. Fang"),
+			objective("extract-south", "Extract to southern LZ"),
 		],
-		bonus: [
-			{
-				id: "no-casualties",
-				description: "Complete without losing any units",
-				type: "survive",
-			},
-		],
+		bonus: [objective("no-casualties", "Complete without losing any units")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:Ravine approach is ahead. Use the flanking mangroves for concealment. The stronghold has three layers of defense before the detention block.",
-			once: true,
-		},
-		{
-			id: "outer-compound-entered",
-			condition: "area_entered:ura:outer_compound",
-			action:
-				"dialogue:gen_whiskers:You're past the outer gate. Inner courtyard ahead — Vipers and a Snapper are guarding the passage to the detention block.",
-			once: true,
-		},
-		{
-			id: "courtyard-entered",
-			condition: "area_entered:ura:inner_courtyard",
-			action:
-				"dialogue:gen_whiskers:Inside the courtyard. Detention block is through the north gate. Clear these guards and push through.",
-			once: true,
-		},
-		{
-			id: "detention-reached",
-			condition: "area_entered:ura:detention_block",
-			action:
-				"complete_objective:rescue-fang|spawn:sgt_fang:ura:18:6:1|dialogue:sgt_fang:Bubbles! About time someone showed up. These scale-backs were about to transfer me to their main camp. Let's get out of here — I know a route through the courtyard.",
-			once: true,
-		},
-		{
-			id: "lockdown-triggered",
-			condition: "objective_complete:rescue-fang",
-			action:
-				"dialogue:gen_whiskers:Fang is free! But the compound is going into lockdown — reinforcements inbound from all sides! Fight your way to the southern extraction!|spawn:gator:scale_guard:6:16:3|spawn:gator:scale_guard:30:16:3|spawn:viper:scale_guard:18:26:2|spawn:scout_lizard:scale_guard:10:30:2|spawn:scout_lizard:scale_guard:26:30:2",
-			once: true,
-		},
-		{
-			id: "halfway-out",
-			condition: "area_entered:ura:ravine_approach",
-			action: "dialogue:sgt_fang:Almost there! Ravine's ahead — keep moving, don't stop!",
-			once: true,
-		},
-		{
-			id: "extraction-reached",
-			condition: "area_entered:ura:extraction_lz",
-			action: "complete_objective:extract-south",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"Ravine approach is ahead. Use the flanking mangroves for concealment. The stronghold has three layers of defense before the detention block.",
+			),
+		),
+		trigger(
+			"outer-compound-entered",
+			on.areaEntered("ura", "outer_compound"),
+			act.dialogue(
+				"gen_whiskers",
+				"You're past the outer gate. Inner courtyard ahead — Vipers and a Snapper are guarding the passage to the detention block.",
+			),
+		),
+		trigger(
+			"courtyard-entered",
+			on.areaEntered("ura", "inner_courtyard"),
+			act.dialogue(
+				"gen_whiskers",
+				"Inside the courtyard. Detention block is through the north gate. Clear these guards and push through.",
+			),
+		),
+		trigger("detention-reached", on.areaEntered("ura", "detention_block"), [
+			act.completeObjective("rescue-fang"),
+			act.spawn("sgt_fang", "ura", 18, 6, 1),
+			act.dialogue(
+				"sgt_fang",
+				"Bubbles! About time someone showed up. These scale-backs were about to transfer me to their main camp. Let's get out of here — I know a route through the courtyard.",
+			),
+		]),
+		trigger("lockdown-triggered", on.objectiveComplete("rescue-fang"), [
+			act.dialogue(
+				"gen_whiskers",
+				"Fang is free! But the compound is going into lockdown — reinforcements inbound from all sides! Fight your way to the southern extraction!",
+			),
+			act.spawn("gator", "scale_guard", 6, 16, 3),
+			act.spawn("gator", "scale_guard", 30, 16, 3),
+			act.spawn("viper", "scale_guard", 18, 26, 2),
+			act.spawn("scout_lizard", "scale_guard", 10, 30, 2),
+			act.spawn("scout_lizard", "scale_guard", 26, 30, 2),
+		]),
+		trigger(
+			"halfway-out",
+			on.areaEntered("ura", "ravine_approach"),
+			act.dialogue("sgt_fang", "Almost there! Ravine's ahead — keep moving, don't stop!"),
+		),
+		trigger(
+			"extraction-reached",
+			on.areaEntered("ura", "extraction_lz"),
+			act.completeObjective("extract-south"),
+		),
 		// Hero deaths = mission fail
-		{
-			id: "bubbles-death",
-			condition: "unit_count:ura:sgt_bubbles:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		{
-			id: "fang-death",
-			condition: "unit_count:ura:sgt_fang:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:sgt_fang:Extraction confirmed. Sergeant Fang reporting for duty. Chapter 3 complete — the Blackmarsh is liberated.|victory",
-			once: true,
-		},
+		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
+		trigger("fang-death", on.unitCount("ura", "sgt_fang", "eq", 0), act.failMission()),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"sgt_fang",
+				"Extraction confirmed. Sergeant Fang reporting for duty. Chapter 3 complete — the Blackmarsh is liberated.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {

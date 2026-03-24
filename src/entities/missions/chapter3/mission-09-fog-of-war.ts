@@ -7,6 +7,7 @@
 // Par time: 8 min (480s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission09FogOfWar: MissionDef = {
 	id: "mission_9",
@@ -122,93 +123,57 @@ export const mission09FogOfWar: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "discover-intel-nw",
-				description: "Discover NW intel marker",
-				type: "explore",
-			},
-			{
-				id: "discover-intel-ne",
-				description: "Discover NE intel marker",
-				type: "explore",
-			},
-			{
-				id: "discover-intel-center",
-				description: "Discover central intel marker",
-				type: "explore",
-			},
-			{
-				id: "discover-intel-se",
-				description: "Discover SE intel marker",
-				type: "explore",
-			},
+			objective("discover-intel-nw", "Discover NW intel marker"),
+			objective("discover-intel-ne", "Discover NE intel marker"),
+			objective("discover-intel-center", "Discover central intel marker"),
+			objective("discover-intel-se", "Discover SE intel marker"),
 		],
-		bonus: [
-			{
-				id: "no-losses",
-				description: "Complete without losing any units",
-				type: "survive",
-			},
-		],
+		bonus: [objective("no-losses", "Complete without losing any units")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:Fog's thick. Vision is halved for everyone — use that. Your scouts have better sight range, so put them on point.",
-			once: true,
-		},
-		{
-			id: "intel-nw-found",
-			condition: "area_entered:ura:intel_nw",
-			action:
-				"complete_objective:discover-intel-nw|dialogue:gen_whiskers:Northwest marker found — Scale-Guard supply cache. Three more to go.",
-			once: true,
-		},
-		{
-			id: "intel-ne-found",
-			condition: "area_entered:ura:intel_ne",
-			action:
-				"complete_objective:discover-intel-ne|dialogue:gen_whiskers:Northeast marker located — that's a staging area. They're building up forces here.",
-			once: true,
-		},
-		{
-			id: "intel-center-found",
-			condition: "area_entered:ura:intel_center",
-			action:
-				"complete_objective:discover-intel-center|dialogue:gen_whiskers:Central marker confirmed — communications relay. This is how they're coordinating.",
-			once: true,
-		},
-		{
-			id: "intel-se-found",
-			condition: "area_entered:ura:intel_se",
-			action:
-				"complete_objective:discover-intel-se|dialogue:gen_whiskers:Southeast marker identified — ammunition depot. That completes the picture.",
-			once: true,
-		},
-		{
-			id: "fog-lifting-warning",
-			condition: "timer:300",
-			action:
-				"dialogue:gen_whiskers:Fog's thinning. You have about a minute before full visibility. Finish your recon.",
-			once: true,
-		},
-		{
-			id: "fog-lifted-counterattack",
-			condition: "timer:360",
-			action:
-				"dialogue:gen_whiskers:Fog's lifted — they can see you now! Scale-Guard is mobilizing!|spawn:gator:scale_guard:26:2:4|spawn:viper:scale_guard:2:20:3|spawn:scout_lizard:scale_guard:48:24:3",
-			once: true,
-		},
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:All four intel markers recovered. We have a complete map of their northern positions. Outstanding recon, Sergeant.|victory",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"Fog's thick. Vision is halved for everyone — use that. Your scouts have better sight range, so put them on point.",
+			),
+		),
+		trigger("intel-nw-found", on.areaEntered("ura", "intel_nw"), [
+			act.completeObjective("discover-intel-nw"),
+			act.dialogue("gen_whiskers", "Northwest marker found — Scale-Guard supply cache. Three more to go."),
+		]),
+		trigger("intel-ne-found", on.areaEntered("ura", "intel_ne"), [
+			act.completeObjective("discover-intel-ne"),
+			act.dialogue("gen_whiskers", "Northeast marker located — that's a staging area. They're building up forces here."),
+		]),
+		trigger("intel-center-found", on.areaEntered("ura", "intel_center"), [
+			act.completeObjective("discover-intel-center"),
+			act.dialogue("gen_whiskers", "Central marker confirmed — communications relay. This is how they're coordinating."),
+		]),
+		trigger("intel-se-found", on.areaEntered("ura", "intel_se"), [
+			act.completeObjective("discover-intel-se"),
+			act.dialogue("gen_whiskers", "Southeast marker identified — ammunition depot. That completes the picture."),
+		]),
+		trigger(
+			"fog-lifting-warning",
+			on.timer(300),
+			act.dialogue("gen_whiskers", "Fog's thinning. You have about a minute before full visibility. Finish your recon."),
+		),
+		trigger("fog-lifted-counterattack", on.timer(360), [
+			act.dialogue("gen_whiskers", "Fog's lifted — they can see you now! Scale-Guard is mobilizing!"),
+			act.spawn("gator", "scale_guard", 26, 2, 4),
+			act.spawn("viper", "scale_guard", 2, 20, 3),
+			act.spawn("scout_lizard", "scale_guard", 48, 24, 3),
+		]),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"All four intel markers recovered. We have a complete map of their northern positions. Outstanding recon, Sergeant.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {

@@ -1,13 +1,33 @@
 // src/entities/terrain/tiles.ts
 // Terrain tile definitions with paint rules for procedural map rendering.
 
-import type { TerrainTileDef } from "../types";
+import type { SPDSLSprite, TerrainTileDef } from "../types";
+
+function filledGrid(char: string): string[][] {
+	return [Array.from({ length: 16 }, () => char.repeat(16))];
+}
+
+function makeLayeredTerrainSprite(base: string, noise: string, accent?: string): SPDSLSprite {
+	return {
+		palette: "resource_default",
+		layers: [
+			{ id: "base", zIndex: 1, grid: filledGrid(base) },
+			{ id: "noise", zIndex: 2, grid: filledGrid(noise), blendMode: "multiply" },
+			...(accent
+				? [{ id: "accent", zIndex: 3, grid: filledGrid(accent), blendMode: "screen" as const }]
+				: []),
+		],
+		animations: {
+			idle: [{}],
+		},
+	};
+}
 
 export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 	grass: {
 		id: "grass",
 		name: "Grass",
-		sprite: { size: 16, frames: { idle: [[]] } },
+		sprite: makeLayeredTerrainSprite("2", "3"),
 		movementCost: 1,
 		blocksVision: false,
 		providesConcealment: false,
@@ -20,7 +40,7 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 	dirt: {
 		id: "dirt",
 		name: "Dirt",
-		sprite: { size: 16, frames: { idle: [[]] } },
+		sprite: makeLayeredTerrainSprite("4", "5"),
 		movementCost: 1,
 		blocksVision: false,
 		providesConcealment: false,
@@ -33,7 +53,7 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 	beach: {
 		id: "beach",
 		name: "Beach",
-		sprite: { size: 16, frames: { idle: [[]] } },
+		sprite: makeLayeredTerrainSprite("8", "9"),
 		movementCost: 1,
 		blocksVision: false,
 		providesConcealment: false,
@@ -46,7 +66,7 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 	mud: {
 		id: "mud",
 		name: "Mud",
-		sprite: { size: 16, frames: { idle: [[]] } },
+		sprite: makeLayeredTerrainSprite("4", "6"),
 		movementCost: 2,
 		blocksVision: false,
 		providesConcealment: false,
@@ -59,7 +79,7 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 	water: {
 		id: "water",
 		name: "Water",
-		sprite: { size: 16, frames: { idle: [[]] } },
+		sprite: makeLayeredTerrainSprite("a", "b", "d"),
 		movementCost: Infinity,
 		swimCost: 2,
 		blocksVision: false,
@@ -73,7 +93,7 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 	mangrove: {
 		id: "mangrove",
 		name: "Mangrove",
-		sprite: { size: 16, frames: { idle: [[]] } },
+		sprite: makeLayeredTerrainSprite("2", "3", "5"),
 		movementCost: 3,
 		blocksVision: true,
 		providesConcealment: true,
@@ -86,7 +106,7 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 	toxic_sludge: {
 		id: "toxic_sludge",
 		name: "Toxic Sludge",
-		sprite: { size: 16, frames: { idle: [[]] } },
+		sprite: makeLayeredTerrainSprite("e", "f", "m"),
 		movementCost: 2,
 		blocksVision: false,
 		providesConcealment: false,
@@ -100,7 +120,7 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 	bridge: {
 		id: "bridge",
 		name: "Bridge",
-		sprite: { size: 16, frames: { idle: [[]] } },
+		sprite: makeLayeredTerrainSprite("4", "5", "7"),
 		movementCost: 1,
 		blocksVision: false,
 		providesConcealment: false,

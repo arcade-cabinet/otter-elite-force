@@ -53,7 +53,14 @@ export const Objectives = trait(() => ({
 // App screen routing (replaces rtsGameStore.phase for UI routing)
 // ---------------------------------------------------------------------------
 
-export type AppScreenType = "menu" | "campaign" | "briefing" | "game" | "victory" | "settings";
+export type AppScreenType =
+	| "menu"
+	| "campaign"
+	| "briefing"
+	| "game"
+	| "victory"
+	| "settings"
+	| "canteen";
 
 /** Which screen the app is currently displaying. */
 export const AppScreen = trait({ screen: "menu" as AppScreenType });

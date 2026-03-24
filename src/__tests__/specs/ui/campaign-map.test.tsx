@@ -24,13 +24,14 @@ let render: typeof import("@testing-library/react").render;
 let screen: typeof import("@testing-library/react").screen;
 let fireEvent: typeof import("@testing-library/react").fireEvent;
 let createWorld: typeof import("koota").createWorld;
-let trait: typeof import("koota").trait;
 let WorldProvider: any;
 let CampaignMap: any;
+let CampaignProgress: typeof import("@/ecs/traits/state").CampaignProgress;
 
 let loadError: string | null = null;
 
 beforeEach(async () => {
+	loadError = null;
 	try {
 		React = await import("react");
 		const rtl = await import("@testing-library/react");
@@ -39,9 +40,10 @@ beforeEach(async () => {
 		fireEvent = rtl.fireEvent;
 		const koota = await import("koota");
 		createWorld = koota.createWorld;
-		trait = koota.trait;
-		const kootaReact = await import("@koota/react");
+		const kootaReact = await import("koota/react");
 		WorldProvider = kootaReact.WorldProvider;
+		const stateTraits = await import("@/ecs/traits/state");
+		CampaignProgress = stateTraits.CampaignProgress;
 		const mod = await import("@/ui/command-post/CampaignMap");
 		CampaignMap = mod.CampaignMap ?? mod.default;
 	} catch (e) {
@@ -62,31 +64,27 @@ function renderWithWorld(ui: any, worldSetup?: (world: any) => void) {
 // ---------------------------------------------------------------------------
 
 function freshCampaignSetup(world: any) {
-	// New game: only mission_1 unlocked, rest locked
-	const CampaignProgress = trait(() => ({
+	world.set(CampaignProgress, {
 		missions: {
 			mission_1: { status: "unlocked", stars: 0, bestTime: 0 },
-		} as Record<string, { status: string; stars: number; bestTime: number }>,
-		currentMission: "mission_1" as string | null,
-		difficulty: "tactical" as string,
-	}));
-	world.spawn(CampaignProgress);
+		},
+		currentMission: "mission_1",
+		difficulty: "tactical",
+	});
 }
 
 function midCampaignSetup(world: any) {
-	// Mid-campaign: missions 1-4 completed, mission 5 unlocked
-	const CampaignProgress = trait(() => ({
+	world.set(CampaignProgress, {
 		missions: {
 			mission_1: { status: "completed", stars: 3, bestTime: 420000 },
 			mission_2: { status: "completed", stars: 2, bestTime: 600000 },
 			mission_3: { status: "completed", stars: 2, bestTime: 540000 },
 			mission_4: { status: "completed", stars: 1, bestTime: 780000 },
 			mission_5: { status: "unlocked", stars: 0, bestTime: 0 },
-		} as Record<string, { status: string; stars: number; bestTime: number }>,
-		currentMission: "mission_5" as string | null,
-		difficulty: "tactical" as string,
-	}));
-	world.spawn(CampaignProgress);
+		},
+		currentMission: "mission_5",
+		difficulty: "tactical",
+	});
 }
 
 // ===========================================================================
@@ -138,7 +136,7 @@ describe("CampaignMap", () => {
 			if (lockedMarker) {
 				const btn = lockedMarker.closest("button");
 				if (btn) {
-					expect(btn).toHaveAttribute("disabled");
+						expect(btn.getAttribute("disabled")).not.toBeNull();
 				}
 			}
 		});
@@ -147,9 +145,6 @@ describe("CampaignMap", () => {
 	describe("mission markers — mid campaign", () => {
 		it("shows completed missions with star ratings", () => {
 			if (skip()) return;
-			renderWithWorld(React.createElement(CampaignMap), midCampaignSetup);
-			// Mission 1 has 3 stars — should show star indicators
-			// Look for star rating elements (could be star icons, text, or data attributes)
 			const { container } = renderWithWorld(React.createElement(CampaignMap), midCampaignSetup);
 			const stars = container.querySelectorAll(
 				"[data-stars], [class*='star'], [aria-label*='star']",
@@ -165,7 +160,7 @@ describe("CampaignMap", () => {
 			expect(marker).toBeTruthy();
 			const btn = marker.closest("button");
 			if (btn) {
-				expect(btn).not.toHaveAttribute("disabled");
+					expect(btn.getAttribute("disabled")).toBeNull();
 			}
 		});
 

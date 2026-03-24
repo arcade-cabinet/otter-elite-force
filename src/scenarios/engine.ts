@@ -22,6 +22,8 @@ export interface ScenarioWorldQuery {
 	elapsedTime: number;
 	/** Count units matching faction and optional unitType */
 	countUnits(faction: string, unitType?: string): number;
+	/** Count buildings matching faction and optional buildingType */
+	countBuildings(faction: string, buildingType?: string): number;
 	/** Count units of a faction within a rectangular area */
 	countUnitsInArea(
 		faction: string,
@@ -133,6 +135,19 @@ export class ScenarioEngine {
 				}
 				return false;
 			}
+
+				case "buildingCount": {
+					const count = world.countBuildings(condition.faction, condition.buildingType);
+					switch (condition.operator) {
+						case "gte":
+							return count >= condition.count;
+						case "lte":
+							return count <= condition.count;
+						case "eq":
+							return count === condition.count;
+					}
+					return false;
+				}
 
 			case "areaEntered": {
 				const minUnits = condition.minUnits ?? 1;

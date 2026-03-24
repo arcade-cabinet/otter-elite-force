@@ -7,6 +7,7 @@
 // Par time: 6 min (360s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission02Causeway: MissionDef = {
 	id: "mission_2",
@@ -171,90 +172,43 @@ export const mission02Causeway: MissionDef = {
 	startPopCap: 10,
 
 	objectives: {
-		primary: [
-			{
-				id: "escort-convoy",
-				description: "Escort the supply convoy to the outpost (1/3 wagons minimum)",
-				type: "rescue",
-				target: "supply_wagon",
-				count: 1,
-			},
-		],
-		bonus: [
-			{
-				id: "all-wagons-survive",
-				description: "All 3 wagons survive",
-				type: "rescue",
-				target: "supply_wagon",
-				count: 3,
-			},
-		],
+		primary: [objective("escort-convoy", "Escort the supply convoy to the outpost (1/3 wagons minimum)")],
+		bonus: [objective("all-wagons-survive", "All 3 wagons survive")],
 	},
 
 	triggers: [
-		// Convoy spawns after a brief setup period
-		{
-			id: "convoy-spawn",
-			condition: "timer:10",
-			action:
-				"dialogue:foxhound:Convoy entering the causeway from the west. Three wagons. Keep them alive, Sergeant.|spawn:supply_wagon:ura:1:14:3",
-			once: true,
-		},
-		// Ambush 1: West river crossing
-		{
-			id: "ambush-1",
-			condition: "area_entered:ura:ambush_1",
-			action:
-				"dialogue:foxhound:Contact! Scale-Guard emerging from the treeline at the first crossing!|spawn:gator:scale_guard:4:6:2|spawn:viper:scale_guard:5:22:1",
-			once: true,
-		},
-		// Ambush 2: Center jungle (larger than expected — the memorable moment)
-		{
-			id: "ambush-2",
-			condition: "area_entered:ura:ambush_2",
-			action:
-				"dialogue:foxhound:Second ambush — they're hitting from the tall grass! Watch the flanks!|spawn:gator:scale_guard:18:3:2|spawn:viper:scale_guard:19:24:2",
-			once: true,
-		},
-		// Ambush 3: East crossing — heaviest assault
-		{
-			id: "ambush-3",
-			condition: "area_entered:ura:ambush_3",
-			action:
-				"dialogue:foxhound:Final crossing. Heavy resistance! Push through!|spawn:gator:scale_guard:30:6:3|spawn:viper:scale_guard:32:24:1",
-			once: true,
-		},
-		// Convoy reaches outpost — primary objective complete
-		{
-			id: "convoy-arrived",
-			condition: "area_entered:ura:outpost",
-			action:
-				"complete_objective:escort-convoy|dialogue:foxhound:Supplies are in! Outstanding work, Sergeant.",
-			once: true,
-		},
-		// Bonus: all 3 wagons reach outpost
-		{
-			id: "all-wagons-arrived",
-			condition: "unit_count:ura:supply_wagon:gte:3",
-			action:
-				"complete_objective:all-wagons-survive|dialogue:foxhound:All three wagons accounted for. Full resupply.",
-			once: true,
-		},
-		// All wagons destroyed = mission fail
-		{
-			id: "convoy-destroyed",
-			condition: "unit_count:ura:supply_wagon:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		// Mission complete
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:foxhound:Causeway secured. The Reach just got a lot more interesting for Scale-Guard. FOXHOUND out.|victory",
-			once: true,
-		},
+		trigger("convoy-spawn", on.timer(10), [
+			act.dialogue("foxhound", "Convoy entering the causeway from the west. Three wagons. Keep them alive, Sergeant."),
+			act.spawn("supply_wagon", "ura", 1, 14, 3),
+		]),
+		trigger("ambush-1", on.areaEntered("ura", "ambush_1"), [
+			act.dialogue("foxhound", "Contact! Scale-Guard emerging from the treeline at the first crossing!"),
+			act.spawn("gator", "scale_guard", 4, 6, 2),
+			act.spawn("viper", "scale_guard", 5, 22, 1),
+		]),
+		trigger("ambush-2", on.areaEntered("ura", "ambush_2"), [
+			act.dialogue("foxhound", "Second ambush — they're hitting from the tall grass! Watch the flanks!"),
+			act.spawn("gator", "scale_guard", 18, 3, 2),
+			act.spawn("viper", "scale_guard", 19, 24, 2),
+		]),
+		trigger("ambush-3", on.areaEntered("ura", "ambush_3"), [
+			act.dialogue("foxhound", "Final crossing. Heavy resistance! Push through!"),
+			act.spawn("gator", "scale_guard", 30, 6, 3),
+			act.spawn("viper", "scale_guard", 32, 24, 1),
+		]),
+		trigger("convoy-arrived", on.areaEntered("ura", "outpost"), [
+			act.completeObjective("escort-convoy"),
+			act.dialogue("foxhound", "Supplies are in! Outstanding work, Sergeant."),
+		]),
+		trigger("all-wagons-arrived", on.unitCount("ura", "supply_wagon", "gte", 3), [
+			act.completeObjective("all-wagons-survive"),
+			act.dialogue("foxhound", "All three wagons accounted for. Full resupply."),
+		]),
+		trigger("convoy-destroyed", on.unitCount("ura", "supply_wagon", "eq", 0), act.failMission()),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue("foxhound", "Causeway secured. The Reach just got a lot more interesting for Scale-Guard. FOXHOUND out."),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {

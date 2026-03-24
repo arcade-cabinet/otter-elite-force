@@ -7,11 +7,15 @@
  * Hidden when nothing is selected.
  */
 import { useQuery, useTrait } from "koota/react";
-import { UnitType, Selected, IsHero } from "@/ecs/traits/identity";
-import { Health, Attack, Armor } from "@/ecs/traits/combat";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
+import { IsHero, Selected, UnitType } from "@/ecs/traits/identity";
 import { cn } from "@/ui/lib/utils";
 
-export function UnitPanel() {
+type TraitTarget = Parameters<typeof useTrait>[0];
+
+export function UnitPanel({ compact = false }: { compact?: boolean }) {
 	const selected = useQuery(Selected);
 
 	if (selected.length === 0) {
@@ -19,17 +23,18 @@ export function UnitPanel() {
 	}
 
 	if (selected.length > 1) {
-		return <MultiSelectPanel count={selected.length} />;
+		return <MultiSelectPanel count={selected.length} compact={compact} />;
 	}
 
-	return <SingleUnitPanel entity={selected[0]} />;
+	return <SingleUnitPanel entity={selected[0]} compact={compact} />;
 }
 
-function SingleUnitPanel({ entity }: { entity: any }) {
+function SingleUnitPanel({ entity, compact }: { entity: TraitTarget; compact: boolean }) {
 	const unitType = useTrait(entity, UnitType);
 	const health = useTrait(entity, Health);
 	const attack = useTrait(entity, Attack);
 	const armor = useTrait(entity, Armor);
+	const vision = useTrait(entity, VisionRadius);
 	const isHero = useTrait(entity, IsHero);
 
 	const name = unitType?.type ?? "Unknown";
@@ -39,53 +44,97 @@ function SingleUnitPanel({ entity }: { entity: any }) {
 	const hpPct = hpMax > 0 ? (hp / hpMax) * 100 : 0;
 
 	return (
-		<div
-			data-testid="unit-panel"
-			className={cn("flex items-center gap-4 px-4 py-2", "border-t-2 border-border bg-card")}
-		>
-			{/* Portrait placeholder */}
-			<div className="flex h-12 w-12 items-center justify-center border border-border bg-muted text-xs uppercase text-muted-foreground">
-				{name.slice(0, 2).toUpperCase()}
-			</div>
+		<Card data-testid="unit-panel" className="border-accent/18 bg-card/88">
+			<CardContent
+				className={cn(
+					"flex flex-col sm:flex-row sm:items-center",
+					compact ? "gap-2.5 p-2.5" : "gap-3 p-3 sm:gap-4",
+				)}
+			>
+				<div
+					className={cn(
+						"flex items-center justify-center rounded-lg border border-border bg-background/30 font-heading uppercase tracking-[0.22em] text-muted-foreground",
+						compact ? "h-10 w-10 text-xs" : "h-14 w-14 text-sm",
+					)}
+				>
+					{name.slice(0, 2).toUpperCase()}
+				</div>
 
-			<div className="flex flex-col gap-1">
-				{/* Name + hero badge */}
-				<span className="font-heading text-sm uppercase tracking-wide text-foreground">
-					{isHero !== undefined ? `${displayName}` : displayName}
-				</span>
-
-				{/* HP bar */}
-				<div className="flex items-center gap-2">
-					<div className="h-2 w-24 overflow-hidden border border-border bg-muted">
-						<div
-							className={cn("h-full transition-all", hpPct > 30 ? "bg-accent" : "bg-destructive")}
-							style={{ width: `${hpPct}%` }}
-						/>
+				<div className="flex min-w-0 flex-1 flex-col gap-2">
+					<div className="flex flex-wrap items-center gap-2">
+						<span
+							className={cn(
+								"font-heading uppercase tracking-[0.18em] text-foreground",
+								compact ? "text-xs" : "text-sm",
+							)}
+						>
+							{displayName}
+						</span>
+						{isHero !== undefined ? <Badge variant="primary">HERO</Badge> : null}
 					</div>
-					<span className="font-mono text-xs tabular-nums text-muted-foreground">
-						{hp}/{hpMax}
-					</span>
-				</div>
 
-				{/* Stats row */}
-				<div className="flex gap-3 font-mono text-xs text-muted-foreground">
-					{attack && <span>DMG {attack.damage}</span>}
-					{armor && <span>ARM {armor.value}</span>}
+					<div className="flex w-full items-center gap-3">
+						<div
+							className={cn(
+								"h-2 w-full overflow-hidden rounded-full border border-border bg-muted",
+								compact ? "sm:w-24" : "sm:w-32",
+							)}
+						>
+							<div
+								className={
+									hpPct > 30
+										? "h-full bg-accent transition-all"
+										: "h-full bg-destructive transition-all"
+								}
+								style={{ width: `${hpPct}%` }}
+							/>
+						</div>
+						<span
+							className={cn(
+								"font-mono tabular-nums tracking-[0.18em] text-muted-foreground",
+								compact ? "text-[11px]" : "text-xs",
+							)}
+						>
+							{hp}/{hpMax}
+						</span>
+					</div>
+
+					<div
+						className={cn(
+							"flex flex-wrap gap-2 font-mono uppercase tracking-[0.18em] text-muted-foreground",
+							compact ? "text-[9px]" : "text-[10px]",
+						)}
+					>
+						{attack ? <Badge>DMG {attack.damage}</Badge> : null}
+						{attack ? <Badge>RNG {attack.range}</Badge> : null}
+						{armor ? <Badge>ARM {armor.value}</Badge> : null}
+						{vision ? <Badge>VIS {vision.radius}</Badge> : null}
+					</div>
 				</div>
-			</div>
-		</div>
+			</CardContent>
+		</Card>
 	);
 }
 
-function MultiSelectPanel({ count }: { count: number }) {
+function MultiSelectPanel({ count, compact }: { count: number; compact: boolean }) {
 	return (
-		<div
-			data-testid="unit-panel"
-			className={cn("flex items-center gap-4 px-4 py-2", "border-t-2 border-border bg-card")}
-		>
-			<span className="font-heading text-sm uppercase tracking-wide text-foreground">
-				{count} UNITS SELECTED
-			</span>
-		</div>
+		<Card data-testid="unit-panel" className="border-accent/18 bg-card/88">
+			<CardContent
+				className={cn(
+					"flex flex-col sm:flex-row sm:items-center",
+					compact ? "gap-2 p-2.5" : "gap-2 p-3 sm:gap-4",
+				)}
+			>
+				<span
+					className={cn(
+						"font-heading uppercase tracking-[0.18em] text-foreground",
+						compact ? "text-xs" : "text-sm",
+					)}
+				>
+					{count} units selected
+				</span>
+				<Badge variant="accent">GROUP CONTROL</Badge>
+			</CardContent>
+		</Card>
 	);
 }

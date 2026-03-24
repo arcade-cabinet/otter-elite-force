@@ -7,6 +7,7 @@
 // Par time: 12 min (720s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission11TidalFortress: MissionDef = {
 	id: "mission_11",
@@ -130,88 +131,63 @@ export const mission11TidalFortress: MissionDef = {
 	},
 
 	objectives: {
-		primary: [
-			{
-				id: "destroy-enemy-cp",
-				description: "Destroy the Scale-Guard Command Post",
-				type: "destroy",
-				target: "command_post",
-				count: 1,
-			},
-		],
-		bonus: [
-			{
-				id: "destroy-all-spires",
-				description: "Destroy all 3 Venom Spires",
-				type: "destroy",
-				target: "venom_spire",
-				count: 3,
-			},
-		],
+		primary: [objective("destroy-enemy-cp", "Destroy the Scale-Guard Command Post")],
+		bonus: [objective("destroy-all-spires", "Destroy all 3 Venom Spires")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:Tide is out for the first two minutes. The land bridges are passable — use this window to scout their defenses. Don't commit your main force yet.",
-			once: true,
-		},
-		{
-			id: "tide-rising-1",
-			condition: "timer:120",
-			action:
-				"dialogue:gen_whiskers:Tide is rising! Pull back from the flats or your units will be caught in the water.",
-			once: true,
-		},
-		{
-			id: "tide-low-2",
-			condition: "timer:240",
-			action:
-				"dialogue:gen_whiskers:Low tide again. Two minutes to push across. Make this one count.",
-			once: true,
-		},
-		{
-			id: "tide-rising-2",
-			condition: "timer:360",
-			action: "dialogue:gen_whiskers:Water's coming back in. Get off the flats!",
-			once: true,
-		},
-		{
-			id: "tide-low-3",
-			condition: "timer:480",
-			action:
-				"dialogue:gen_whiskers:Third low tide. If you haven't breached the fortress yet, this is your window. All in, Sergeant.",
-			once: true,
-		},
-		{
-			id: "fortress-breached",
-			condition: "area_entered:ura:fortress_center",
-			action:
-				"dialogue:gen_whiskers:You're inside the fortress! Push for their Command Post. Expect heavy resistance.|spawn:gator:scale_guard:24:8:3|spawn:viper:scale_guard:22:16:2",
-			once: true,
-		},
-		{
-			id: "spire-bonus-check",
-			condition: "building_count:scale_guard:venom_spire:eq:0",
-			action:
-				"complete_objective:destroy-all-spires|dialogue:gen_whiskers:All Venom Spires neutralized. Approaches are clear.",
-			once: true,
-		},
-		{
-			id: "cp-destroyed",
-			condition: "building_count:scale_guard:command_post:eq:0",
-			action: "complete_objective:destroy-enemy-cp",
-			once: true,
-		},
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:Stonebreak Fortress has fallen. Scale-Guard's regional command is shattered. The Blackmarsh campaign is nearly won.|victory",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"Tide is out for the first two minutes. The land bridges are passable — use this window to scout their defenses. Don't commit your main force yet.",
+			),
+		),
+		trigger(
+			"tide-rising-1",
+			on.timer(120),
+			act.dialogue("gen_whiskers", "Tide is rising! Pull back from the flats or your units will be caught in the water."),
+		),
+		trigger(
+			"tide-low-2",
+			on.timer(240),
+			act.dialogue("gen_whiskers", "Low tide again. Two minutes to push across. Make this one count."),
+		),
+		trigger(
+			"tide-rising-2",
+			on.timer(360),
+			act.dialogue("gen_whiskers", "Water's coming back in. Get off the flats!"),
+		),
+		trigger(
+			"tide-low-3",
+			on.timer(480),
+			act.dialogue(
+				"gen_whiskers",
+				"Third low tide. If you haven't breached the fortress yet, this is your window. All in, Sergeant.",
+			),
+		),
+		trigger("fortress-breached", on.areaEntered("ura", "fortress_center"), [
+			act.dialogue("gen_whiskers", "You're inside the fortress! Push for their Command Post. Expect heavy resistance."),
+			act.spawn("gator", "scale_guard", 24, 8, 3),
+			act.spawn("viper", "scale_guard", 22, 16, 2),
+		]),
+		trigger("spire-bonus-check", on.buildingCount("scale_guard", "venom_spire", "eq", 0), [
+			act.completeObjective("destroy-all-spires"),
+			act.dialogue("gen_whiskers", "All Venom Spires neutralized. Approaches are clear."),
+		]),
+		trigger(
+			"cp-destroyed",
+			on.buildingCount("scale_guard", "command_post", "eq", 0),
+			act.completeObjective("destroy-enemy-cp"),
+		),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"Stonebreak Fortress has fallen. Scale-Guard's regional command is shattered. The Blackmarsh campaign is nearly won.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {},

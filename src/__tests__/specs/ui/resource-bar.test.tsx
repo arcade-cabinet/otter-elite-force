@@ -25,13 +25,15 @@ let React: typeof import("react");
 let render: typeof import("@testing-library/react").render;
 let screen: typeof import("@testing-library/react").screen;
 let createWorld: typeof import("koota").createWorld;
-let trait: typeof import("koota").trait;
 let WorldProvider: any;
 let ResourceBar: any;
+let ResourcePool: typeof import("@/ecs/traits/state").ResourcePool;
+let PopulationState: typeof import("@/ecs/traits/state").PopulationState;
 
 let loadError: string | null = null;
 
 beforeEach(async () => {
+	loadError = null;
 	try {
 		React = await import("react");
 		const rtl = await import("@testing-library/react");
@@ -39,9 +41,11 @@ beforeEach(async () => {
 		screen = rtl.screen;
 		const koota = await import("koota");
 		createWorld = koota.createWorld;
-		trait = koota.trait;
-		const kootaReact = await import("@koota/react");
+		const kootaReact = await import("koota/react");
 		WorldProvider = kootaReact.WorldProvider;
+		const stateTraits = await import("@/ecs/traits/state");
+		ResourcePool = stateTraits.ResourcePool;
+		PopulationState = stateTraits.PopulationState;
 		const mod = await import("@/ui/hud/ResourceBar");
 		ResourceBar = mod.ResourceBar ?? mod.default;
 	} catch (e) {
@@ -102,14 +106,7 @@ describe("ResourceBar", () => {
 		it("displays correct fish count from ResourcePool", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ResourceBar), (world: any) => {
-				// Spawn singleton entity with ResourcePool trait
-				const ResourcePool = trait({ fish: 0, timber: 0, salvage: 0 });
-				world.spawn(ResourcePool);
-				// Set fish to 250
-				const entity = world.query(ResourcePool)[0];
-				if (entity) {
-					entity.set(ResourcePool, { fish: 250, timber: 0, salvage: 0 });
-				}
+					world.set(ResourcePool, { fish: 250, timber: 0, salvage: 0 });
 			});
 			expect(screen.getByText("250")).toBeTruthy();
 		});
@@ -117,8 +114,7 @@ describe("ResourceBar", () => {
 		it("displays correct population from PopulationState", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ResourceBar), (world: any) => {
-				const PopulationState = trait({ current: 12, max: 24 });
-				world.spawn(PopulationState);
+					world.set(PopulationState, { current: 12, max: 24 });
 			});
 			expect(screen.getByText(/12\s*\/\s*24/)).toBeTruthy();
 		});

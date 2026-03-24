@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+
 /**
  * scripts/build-sprites.ts
  *
@@ -11,23 +12,41 @@
  * Requires: canvas (node-canvas)
  */
 
-import { createCanvas, type Canvas } from "@napi-rs/canvas";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { type Canvas, createCanvas } from "@napi-rs/canvas";
 
 // ─── Imports from entity system ───
 
-import { PALETTE, PALETTES } from "../src/entities/palettes.js";
-import type { SpriteDef, SPDSLSprite, SpriteLayer } from "../src/entities/types.js";
 import {
-	ALL_UNITS,
-	ALL_HEROES,
+	ASSET_REFERENCE_CONTRACTS,
+	type AssetReferenceContract,
+} from "../src/entities/asset-contracts.js";
+import type { AssetFamilyEntityType } from "../src/entities/asset-families.js";
+import {
+	ASSET_FAMILIES,
+	type AssetFamilyDefinition,
+	getFamilyReferenceContract,
+} from "../src/entities/asset-families.js";
+import { ASSET_GENERATOR_PRESETS } from "../src/entities/asset-generator-presets.js";
+import {
+	ASSET_VARIANT_RECIPES,
+	assertAssetGeneratorPresetsValid,
+	toAssetEntityKey,
+} from "../src/entities/asset-variant-recipes.js";
+import { PALETTE, PALETTES } from "../src/entities/palettes.js";
+import {
 	ALL_BUILDINGS,
+	ALL_HEROES,
 	ALL_PORTRAITS,
-	ALL_RESOURCES,
 	ALL_PROPS,
+	ALL_RESOURCES,
+	ALL_UNITS,
 } from "../src/entities/registry.js";
+import type { SpriteCategory } from "../src/entities/sprite-materialization.js";
+import { getCategoryDimensions } from "../src/entities/sprite-materialization.js";
 import { TERRAIN_TILES } from "../src/entities/terrain/tiles.js";
+import type { SPDSLSprite, SpriteDef, SpriteLayer } from "../src/entities/types.js";
 
 // ─── Configuration ───
 
@@ -39,17 +58,11 @@ const SHEET_MAX_WIDTH = 2048;
 const CATEGORIES = {
 	units: "units",
 	buildings: "buildings",
+	resources: "resources",
+	props: "props",
 	terrain: "terrain",
 	portraits: "portraits",
 } as const;
-
-// ─── Types ───
-
-interface RenderedFrame {
-	canvas: Canvas;
-	width: number;
-	height: number;
-}
 
 interface AtlasEntry {
 	frame: { x: number; y: number; w: number; h: number };
@@ -59,6 +72,17 @@ interface AtlasEntry {
 interface AtlasJSON {
 	meta: { image: string; size: { w: number; h: number }; scale: number };
 	frames: Record<string, AtlasEntry>;
+}
+
+interface BuiltAssetReferenceContract extends AssetReferenceContract {
+	canonicalDimensions: { width: number; height: number; size: number };
+	palette: string | null;
+	primaryFrameKey: string;
+}
+
+interface BuiltAssetFamilyDefinition extends AssetFamilyDefinition {
+	canonicalDimensions: { width: number; height: number; size: number };
+	referenceContractId: string | null;
 }
 
 // ─── Legacy Renderer (char-based PALETTE) ───
@@ -106,10 +130,27 @@ function resolveGrid(grid: string[][], frameIndex: number): string[] {
 	return grid as unknown as string[];
 }
 
+function resolveSpriteDimensions(layers: SpriteLayer[], frameIndex = 0) {
+	let width = 0;
+	let height = 0;
+
+	for (const layer of layers) {
+		const rows = resolveGrid(layer.grid, frameIndex);
+		const offX = layer.offset?.[0] ?? 0;
+		const offY = layer.offset?.[1] ?? 0;
+		height = Math.max(height, rows.length + offY);
+		for (const row of rows) {
+			width = Math.max(width, row.length + offX);
+		}
+	}
+
+	return { width, height };
+}
+
 function renderSPDSLFrame(
 	layers: SpriteLayer[],
 	paletteName: string,
-	size: number,
+	dimensions: { width: number; height: number },
 	frameIndex = 0,
 ): Canvas {
 	const palette = PALETTES[paletteName];
@@ -117,7 +158,7 @@ function renderSPDSLFrame(
 		throw new Error(`Unknown palette: ${paletteName}`);
 	}
 
-	const canvas = createCanvas(size, size);
+	const canvas = createCanvas(dimensions.width, dimensions.height);
 	const ctx = canvas.getContext("2d");
 
 	// Sort layers by zIndex (ascending = back to front)
@@ -162,18 +203,56 @@ function scaleCanvas(src: Canvas, scale: number): Canvas {
 	return dest;
 }
 
+function hexToRgba(hex: string, alpha: number) {
+	const normalized = hex.replace("#", "");
+	const value =
+		normalized.length === 3
+			? normalized
+					.split("")
+					.map((char) => `${char}${char}`)
+					.join("")
+			: normalized;
+	const red = Number.parseInt(value.slice(0, 2), 16);
+	const green = Number.parseInt(value.slice(2, 4), 16);
+	const blue = Number.parseInt(value.slice(4, 6), 16);
+	return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function applyHitFlashCanvas(src: Canvas, overlayColor: string): Canvas {
+	const dest = createCanvas(src.width, src.height);
+	const ctx = dest.getContext("2d");
+	ctx.drawImage(src, 0, 0);
+	ctx.globalCompositeOperation = "source-atop";
+	ctx.fillStyle = hexToRgba(overlayColor, 0.72);
+	ctx.fillRect(0, 0, src.width, src.height);
+	ctx.globalCompositeOperation = "screen";
+	ctx.fillStyle = hexToRgba("#ffffff", 0.2);
+	ctx.fillRect(0, 0, src.width, src.height);
+	ctx.globalCompositeOperation = "source-over";
+	return dest;
+}
+
 // ─── Type Guards ───
 
 function isLegacySprite(sprite: SpriteDef | SPDSLSprite): sprite is SpriteDef {
 	return "frames" in sprite && "size" in sprite;
 }
 
+function resolveSpritePalette(sprite: SpriteDef | SPDSLSprite): string | null {
+	return isLegacySprite(sprite) ? null : sprite.palette;
+}
+
 // ─── Sprite Extraction ───
 
 interface SpriteEntry {
 	id: string;
-	category: string;
+	entityType: string;
+	category: SpriteCategory;
 	sprite: SpriteDef | SPDSLSprite;
+}
+
+function toEntryKey(entityType: string, id: string): string {
+	return `${entityType}:${id}`;
 }
 
 function collectAllSprites(): SpriteEntry[] {
@@ -181,42 +260,94 @@ function collectAllSprites(): SpriteEntry[] {
 
 	// Units + Heroes (16x16)
 	for (const [id, def] of Object.entries(ALL_UNITS)) {
-		entries.push({ id, category: "units", sprite: def.sprite });
+		entries.push({ id, entityType: "unit", category: "units", sprite: def.sprite });
 	}
 	for (const [id, def] of Object.entries(ALL_HEROES)) {
-		entries.push({ id, category: "units", sprite: def.sprite });
+		entries.push({ id, entityType: "hero", category: "units", sprite: def.sprite });
 	}
 
 	// Buildings (32x32)
 	for (const [id, def] of Object.entries(ALL_BUILDINGS)) {
-		entries.push({ id, category: "buildings", sprite: def.sprite });
+		entries.push({ id, entityType: "building", category: "buildings", sprite: def.sprite });
 	}
 
 	// Terrain tiles
 	for (const [id, def] of Object.entries(TERRAIN_TILES)) {
-		entries.push({ id, category: "terrain", sprite: def.sprite });
+		entries.push({ id, entityType: "terrain", category: "terrain", sprite: def.sprite });
 	}
 
 	// Portraits (64x96)
 	for (const [id, def] of Object.entries(ALL_PORTRAITS)) {
-		entries.push({ id, category: "portraits", sprite: def.sprite });
+		entries.push({ id, entityType: "portrait", category: "portraits", sprite: def.sprite });
 	}
 
 	// Resources
 	for (const [id, def] of Object.entries(ALL_RESOURCES)) {
-		entries.push({ id, category: "units", sprite: def.sprite });
+		entries.push({ id, entityType: "resource", category: "resources", sprite: def.sprite });
 	}
 
 	// Props
 	for (const [id, def] of Object.entries(ALL_PROPS)) {
 		entries.push({
 			id,
-			category: "units",
+			entityType: "prop",
+			category: "props",
 			sprite: (def as { sprite: SpriteDef | SPDSLSprite }).sprite,
 		});
 	}
 
 	return entries;
+}
+
+function buildAssetContractManifest(entries: SpriteEntry[]): BuiltAssetReferenceContract[] {
+	const entriesByKey = new Map(
+		entries.map((entry) => [toEntryKey(entry.entityType, entry.id), entry]),
+	);
+
+	return ASSET_REFERENCE_CONTRACTS.map((contract) => {
+		const entry = entriesByKey.get(toEntryKey(contract.entityType, contract.entityId));
+		if (!entry) {
+			throw new Error(`Missing sprite entry for asset contract ${contract.entityId}`);
+		}
+		if (entry.category !== contract.outputCategory) {
+			throw new Error(
+				`Asset contract ${contract.entityId} expected ${contract.outputCategory} but found ${entry.category}`,
+			);
+		}
+
+		return {
+			...contract,
+			canonicalDimensions: getCategoryDimensions(contract.outputCategory),
+			palette: resolveSpritePalette(entry.sprite),
+			primaryFrameKey: contract.entityId,
+		};
+	});
+}
+
+function buildAssetFamilyManifest(entries: SpriteEntry[]): BuiltAssetFamilyDefinition[] {
+	const entriesByKey = new Map(
+		entries.map((entry) => [toEntryKey(entry.entityType, entry.id), entry]),
+	);
+
+	return ASSET_FAMILIES.map((family) => {
+		for (const memberId of family.memberIds) {
+			const entry = entriesByKey.get(toEntryKey(family.entityType, memberId));
+			if (!entry) {
+				throw new Error(`Missing sprite entry for family member ${memberId} in ${family.familyId}`);
+			}
+			if (entry.category !== family.outputCategory) {
+				throw new Error(
+					`Asset family ${family.familyId} member ${memberId} expected ${family.outputCategory} but found ${entry.category}`,
+				);
+			}
+		}
+
+		return {
+			...family,
+			canonicalDimensions: getCategoryDimensions(family.outputCategory),
+			referenceContractId: getFamilyReferenceContract(family)?.entityId ?? null,
+		};
+	});
 }
 
 // ─── Render All Frames ───
@@ -240,16 +371,16 @@ function renderAllFrames(entry: SpriteEntry): FrameResult[] {
 			}
 		}
 	} else {
-		// SP-DSL layered sprite — detect size from grid content
-		const firstGrid = sprite.layers[0]?.grid;
-		let size = 16;
-		if (firstGrid && firstGrid.length > 0) {
-			const firstRow = resolveGrid(firstGrid, 0);
-			size = firstRow.length; // width = chars per row
-		}
+		const fallbackDimensions = resolveSpriteDimensions(sprite.layers, 0);
+		const canonical = getCategoryDimensions(entry.category);
+		const dimensions = canonical ?? {
+			width: fallbackDimensions.width,
+			height: fallbackDimensions.height,
+			size: fallbackDimensions.width,
+		};
 
 		// Render base layers as idle frame
-		const canvas = renderSPDSLFrame(sprite.layers, sprite.palette, size);
+		const canvas = renderSPDSLFrame(sprite.layers, sprite.palette, dimensions);
 		results.push({ key: entry.id, canvas });
 
 		// Render animation frames if present
@@ -264,9 +395,51 @@ function renderAllFrames(entry: SpriteEntry): FrameResult[] {
 						}
 						return layer;
 					});
-					const frameCanvas = renderSPDSLFrame(frameLayers, sprite.palette, size);
+					const frameFallbackDimensions = resolveSpriteDimensions(frameLayers, i);
+					const frameDimensions = canonical ?? {
+						width: frameFallbackDimensions.width,
+						height: frameFallbackDimensions.height,
+						size: frameFallbackDimensions.width,
+					};
+					const frameCanvas = renderSPDSLFrame(frameLayers, sprite.palette, frameDimensions, i);
 					results.push({ key: `${entry.id}_${animName}_${i}`, canvas: frameCanvas });
 				}
+			}
+		}
+	}
+
+	const recipe =
+		entry.entityType === "unit" ||
+		entry.entityType === "hero" ||
+		entry.entityType === "building" ||
+		entry.entityType === "portrait"
+			? ASSET_VARIANT_RECIPES.find(
+					(candidate) =>
+						candidate.entityKey ===
+						toAssetEntityKey(entry.entityType as AssetFamilyEntityType, entry.id),
+				)
+			: undefined;
+
+	if (recipe) {
+		const baseFrames = new Map(results.map((result) => [result.key, result.canvas]));
+		for (const variant of recipe.generatedVariants) {
+			if (variant.variantKind !== "hitflash") {
+				continue;
+			}
+
+			for (let index = 0; index < variant.sourceFrameKeys.length; index++) {
+				const sourceFrameKey = variant.sourceFrameKeys[index];
+				const generatedFrameKey = variant.generatedFrameKeys[index];
+				const sourceCanvas = baseFrames.get(sourceFrameKey);
+				if (!sourceCanvas) {
+					throw new Error(
+						`Missing source frame ${sourceFrameKey} for generated variant ${generatedFrameKey}`,
+					);
+				}
+				results.push({
+					key: generatedFrameKey,
+					canvas: applyHitFlashCanvas(sourceCanvas, variant.overlayColor),
+				});
 			}
 		}
 	}
@@ -332,7 +505,10 @@ function packFrames(frames: FrameResult[], scale: number, sheetName: string): Pa
 	const atlasFrames: Record<string, AtlasEntry> = {};
 
 	for (const p of placements) {
-		const frame = scaled.find((s) => s.key === p.key)!;
+		const frame = scaled.find((s) => s.key === p.key);
+		if (!frame) {
+			throw new Error(`Missing scaled frame for placement ${p.key}`);
+		}
 		ctx.drawImage(frame.canvas, p.x, p.y);
 		atlasFrames[p.key] = {
 			frame: { x: p.x, y: p.y, w: p.w, h: p.h },
@@ -353,8 +529,11 @@ function packFrames(frames: FrameResult[], scale: number, sheetName: string): Pa
 
 async function main() {
 	console.log("[build-sprites] Collecting entity definitions...");
+	assertAssetGeneratorPresetsValid();
 	const allSprites = collectAllSprites();
 	console.log(`[build-sprites] Found ${allSprites.length} entities`);
+	const assetContractManifest = buildAssetContractManifest(allSprites);
+	const assetFamilyManifest = buildAssetFamilyManifest(allSprites);
 
 	// Group by category
 	const grouped: Record<string, SpriteEntry[]> = {};
@@ -368,6 +547,34 @@ async function main() {
 		const dir = path.join(OUTPUT_ROOT, subdir);
 		fs.mkdirSync(dir, { recursive: true });
 	}
+	fs.writeFileSync(
+		path.join(OUTPUT_ROOT, "asset-contracts.json"),
+		JSON.stringify(assetContractManifest, null, 2),
+	);
+	fs.writeFileSync(
+		path.join(OUTPUT_ROOT, "asset-families.json"),
+		JSON.stringify(assetFamilyManifest, null, 2),
+	);
+	fs.writeFileSync(
+		path.join(OUTPUT_ROOT, "asset-generator-presets.json"),
+		JSON.stringify(ASSET_GENERATOR_PRESETS, null, 2),
+	);
+	fs.writeFileSync(
+		path.join(OUTPUT_ROOT, "asset-variant-recipes.json"),
+		JSON.stringify(ASSET_VARIANT_RECIPES, null, 2),
+	);
+	console.log(
+		`[build-sprites] Wrote asset-contracts.json with ${assetContractManifest.length} golden-slice contracts`,
+	);
+	console.log(
+		`[build-sprites] Wrote asset-families.json with ${assetFamilyManifest.length} canonical families`,
+	);
+	console.log(
+		`[build-sprites] Wrote asset-generator-presets.json with ${ASSET_GENERATOR_PRESETS.length} family presets`,
+	);
+	console.log(
+		`[build-sprites] Wrote asset-variant-recipes.json with ${ASSET_VARIANT_RECIPES.length} variant recipes`,
+	);
 
 	let totalSheets = 0;
 	let totalFrames = 0;

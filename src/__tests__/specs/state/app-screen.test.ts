@@ -3,7 +3,7 @@
  *
  * Defines the behavioral contract for AppScreen trait (screen routing).
  * AppScreen replaces Zustand's phase management and drives which React
- * screen is displayed: menu | campaign | briefing | game | victory | settings.
+ * screen is displayed: menu | campaign | briefing | game | victory | settings | canteen.
  *
  * Sources:
  *   - docs/superpowers/specs/2026-03-24-ui-spdsl-architecture-design.md §3, §7
@@ -67,6 +67,11 @@ describe("AppScreen trait", () => {
 			world.set(AppScreen, { screen: "settings" });
 			expect(world.get(AppScreen)!.screen).toBe("settings");
 		});
+
+			it("can transition to canteen screen", () => {
+				world.set(AppScreen, { screen: "canteen" });
+				expect(world.get(AppScreen)!.screen).toBe("canteen");
+			});
 	});
 
 	describe("app flow (menu → campaign → briefing → game → victory)", () => {
@@ -104,9 +109,10 @@ describe("AppScreen trait", () => {
 			"game",
 			"victory",
 			"settings",
+				"canteen",
 		];
 
-		it("accepts all 6 valid screen types", () => {
+			it("accepts all valid screen types", () => {
 			for (const screen of validScreens) {
 				world.set(AppScreen, { screen });
 				expect(world.get(AppScreen)!.screen).toBe(screen);

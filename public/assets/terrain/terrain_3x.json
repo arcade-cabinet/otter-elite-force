@@ -1,108 +1,204 @@
 {
-	"meta": {
-		"image": "terrain_3x.png",
-		"size": {
-			"w": 1051,
-			"h": 3607
-		},
-		"scale": 3
-	},
-	"frames": {
-		"grass": {
-			"frame": {
-				"x": 0,
-				"y": 0,
-				"w": 1050,
-				"h": 450
-			},
-			"sourceSize": {
-				"w": 1050,
-				"h": 450
-			}
-		},
-		"dirt": {
-			"frame": {
-				"x": 0,
-				"y": 451,
-				"w": 1050,
-				"h": 450
-			},
-			"sourceSize": {
-				"w": 1050,
-				"h": 450
-			}
-		},
-		"beach": {
-			"frame": {
-				"x": 0,
-				"y": 902,
-				"w": 1050,
-				"h": 450
-			},
-			"sourceSize": {
-				"w": 1050,
-				"h": 450
-			}
-		},
-		"mud": {
-			"frame": {
-				"x": 0,
-				"y": 1353,
-				"w": 1050,
-				"h": 450
-			},
-			"sourceSize": {
-				"w": 1050,
-				"h": 450
-			}
-		},
-		"water": {
-			"frame": {
-				"x": 0,
-				"y": 1804,
-				"w": 1050,
-				"h": 450
-			},
-			"sourceSize": {
-				"w": 1050,
-				"h": 450
-			}
-		},
-		"mangrove": {
-			"frame": {
-				"x": 0,
-				"y": 2255,
-				"w": 1050,
-				"h": 450
-			},
-			"sourceSize": {
-				"w": 1050,
-				"h": 450
-			}
-		},
-		"toxic_sludge": {
-			"frame": {
-				"x": 0,
-				"y": 2706,
-				"w": 1050,
-				"h": 450
-			},
-			"sourceSize": {
-				"w": 1050,
-				"h": 450
-			}
-		},
-		"bridge": {
-			"frame": {
-				"x": 0,
-				"y": 3157,
-				"w": 1050,
-				"h": 450
-			},
-			"sourceSize": {
-				"w": 1050,
-				"h": 450
-			}
-		}
-	}
+  "meta": {
+    "image": "terrain_3x.png",
+    "size": {
+      "w": 784,
+      "h": 48
+    },
+    "scale": 3
+  },
+  "frames": {
+    "grass": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "grass_idle_0": {
+      "frame": {
+        "x": 49,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "dirt": {
+      "frame": {
+        "x": 98,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "dirt_idle_0": {
+      "frame": {
+        "x": 147,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "beach": {
+      "frame": {
+        "x": 196,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "beach_idle_0": {
+      "frame": {
+        "x": 245,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "mud": {
+      "frame": {
+        "x": 294,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "mud_idle_0": {
+      "frame": {
+        "x": 343,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "water": {
+      "frame": {
+        "x": 392,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "water_idle_0": {
+      "frame": {
+        "x": 441,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "mangrove": {
+      "frame": {
+        "x": 490,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "mangrove_idle_0": {
+      "frame": {
+        "x": 539,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "toxic_sludge": {
+      "frame": {
+        "x": 588,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "toxic_sludge_idle_0": {
+      "frame": {
+        "x": 637,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "bridge": {
+      "frame": {
+        "x": 686,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    },
+    "bridge_idle_0": {
+      "frame": {
+        "x": 735,
+        "y": 0,
+        "w": 48,
+        "h": 48
+      },
+      "sourceSize": {
+        "w": 48,
+        "h": 48
+      }
+    }
+  }
 }

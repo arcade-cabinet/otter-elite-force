@@ -7,6 +7,7 @@
 // Par time: 8 min (tutorial pace).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission01Beachhead: MissionDef = {
 	id: "mission_1",
@@ -98,102 +99,52 @@ export const mission01Beachhead: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "build-command-post",
-				description: "Build a Command Post",
-				type: "build",
-				target: "command_post",
-				count: 1,
-			},
-			{
-				id: "build-barracks",
-				description: "Build a Barracks",
-				type: "build",
-				target: "barracks",
-				count: 1,
-			},
-			{
-				id: "train-mudfoots",
-				description: "Train 4 Mudfoots",
-				type: "build",
-				target: "mudfoot",
-				count: 4,
-			},
+			objective("build-command-post", "Build a Command Post"),
+			objective("build-barracks", "Build a Barracks"),
+			objective("train-mudfoots", "Train 4 Mudfoots"),
 		],
-		bonus: [
-			{
-				id: "gather-salvage",
-				description: "Gather 50 salvage from the northeast cache",
-				type: "collect",
-				target: "salvage",
-				count: 50,
-			},
-		],
+		bonus: [objective("gather-salvage", "Gather 50 salvage from the northeast cache")],
 	},
 
 	triggers: [
-		// Tutorial welcome
-		{
-			id: "tutorial-welcome",
-			condition: "timer:3",
-			action:
-				"dialogue:foxhound:Select your River Rats and right-click on the timber grove to start gathering. We need lumber for construction.",
-			once: true,
-		},
-		// Build hint
-		{
-			id: "tutorial-build-hint",
-			condition: "timer:60",
-			action:
-				"dialogue:foxhound:You've got enough resources to start building. Select a River Rat and open the build menu to place a Command Post.",
-			once: true,
-		},
-		// Command Post built
-		{
-			id: "command-post-built",
-			condition: "building_count:ura:command_post:gte:1",
-			action:
-				"complete_objective:build-command-post|dialogue:foxhound:Command Post is up! Now build a Barracks — we need infantry.",
-			once: true,
-		},
-		// Barracks built
-		{
-			id: "barracks-built",
-			condition: "building_count:ura:barracks:gte:1",
-			action:
-				"complete_objective:build-barracks|dialogue:foxhound:Barracks operational. Start training Mudfoots — we need four for a patrol squad.",
-			once: true,
-		},
-		// Mudfoots trained
-		{
-			id: "mudfoots-trained",
-			condition: "unit_count:ura:mudfoot:gte:4",
-			action: "complete_objective:train-mudfoots",
-			once: true,
-		},
-		// Enemy scout at 5 minutes (the memorable moment)
-		{
-			id: "enemy-scout-arrival",
-			condition: "timer:300",
-			action:
-				"dialogue:foxhound:Heads up — Scale-Guard scouts spotted near your position. Stay sharp, Bubbles.|spawn:scout_lizard:scale_guard:25:2:2",
-			once: true,
-		},
-		// Salvage area entered
-		{
-			id: "salvage-found",
-			condition: "area_entered:ura:salvage_area",
-			action: "dialogue:foxhound:Good find! That wreckage has usable salvage. Strip it clean.",
-			once: true,
-		},
-		// Mission complete
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:foxhound:Beachhead secured, Sergeant. The Copper-Silt Reach campaign begins. FOXHOUND out.|victory",
-			once: true,
-		},
+		trigger(
+			"tutorial-welcome",
+			on.timer(3),
+			act.dialogue(
+				"foxhound",
+				"Select your River Rats and right-click on the timber grove to start gathering. We need lumber for construction.",
+			),
+		),
+		trigger(
+			"tutorial-build-hint",
+			on.timer(60),
+			act.dialogue(
+				"foxhound",
+				"You've got enough resources to start building. Select a River Rat and open the build menu to place a Command Post.",
+			),
+		),
+		trigger("command-post-built", on.buildingCount("ura", "command_post", "gte", 1), [
+			act.completeObjective("build-command-post"),
+			act.dialogue("foxhound", "Command Post is up! Now build a Barracks — we need infantry."),
+		]),
+		trigger("barracks-built", on.buildingCount("ura", "barracks", "gte", 1), [
+			act.completeObjective("build-barracks"),
+			act.dialogue("foxhound", "Barracks operational. Start training Mudfoots — we need four for a patrol squad."),
+		]),
+		trigger("mudfoots-trained", on.unitCount("ura", "mudfoot", "gte", 4), act.completeObjective("train-mudfoots")),
+		trigger("enemy-scout-arrival", on.timer(300), [
+			act.dialogue("foxhound", "Heads up — Scale-Guard scouts spotted near your position. Stay sharp, Bubbles."),
+			act.spawn("scout_lizard", "scale_guard", 25, 2, 2),
+		]),
+		trigger(
+			"salvage-found",
+			on.areaEntered("ura", "salvage_area"),
+			act.dialogue("foxhound", "Good find! That wreckage has usable salvage. Strip it clean."),
+		),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue("foxhound", "Beachhead secured, Sergeant. The Copper-Silt Reach campaign begins. FOXHOUND out."),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {

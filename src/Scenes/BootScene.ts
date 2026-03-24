@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { consumeDeployment } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 
 /**
@@ -14,11 +15,12 @@ function selectScale(): string {
 }
 
 /** Spritesheet categories to load, with their asset subdirectory. */
-const SHEETS = ["units", "buildings", "terrain", "portraits"] as const;
+const SHEETS = ["units", "buildings", "resources", "props", "terrain", "portraits"] as const;
 
 export class BootScene extends Phaser.Scene {
 	private loadingBar!: Phaser.GameObjects.Graphics;
 	private progressBox!: Phaser.GameObjects.Graphics;
+	private atlasScale = "2x";
 
 	constructor() {
 		super({ key: "Boot" });
@@ -48,6 +50,14 @@ export class BootScene extends Phaser.Scene {
 
 	create(): void {
 		EventBus.emit("boot-complete");
+		this.registry.set("atlasScale", this.atlasScale);
+
+		const deployment = consumeDeployment();
+		if (deployment) {
+			this.scene.start("Game", deployment);
+			return;
+		}
+
 		EventBus.emit("current-scene-ready", this);
 	}
 
@@ -76,10 +86,10 @@ export class BootScene extends Phaser.Scene {
 	 * as atlas.frame("mudfoot") or atlas.frame("mudfoot_walk_0").
 	 */
 	private loadSpritesheets(): void {
-		const scale = selectScale();
+		this.atlasScale = selectScale();
 
 		for (const category of SHEETS) {
-			const key = `${category}_${scale}`;
+			const key = `${category}_${this.atlasScale}`;
 			const pngPath = `assets/${category}/${key}.png`;
 			const jsonPath = `assets/${category}/${key}.json`;
 			this.load.atlas(key, pngPath, jsonPath);

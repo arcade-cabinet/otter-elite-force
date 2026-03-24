@@ -1,0 +1,959 @@
+[
+  {
+    "familyId": "oef-line-infantry",
+    "archetypeId": "oef_line_infantry_otter",
+    "lane": "gameplay-sprite",
+    "entityType": "unit",
+    "outputCategory": "units",
+    "faction": "ura",
+    "referenceEntityId": "mudfoot",
+    "referenceContractId": "mudfoot",
+    "memberIds": [
+      "mudfoot",
+      "river_rat",
+      "shellcracker"
+    ],
+    "canonicalDimensions": {
+      "width": 16,
+      "height": 16,
+      "size": 16
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "otter_default",
+    "promptRecipe": {
+      "roleIntent": "Core OEF front-line infantry silhouettes used to establish baseline battlefield readability.",
+      "visualIntent": "Baseline Otter Elite Force rifle infantry silhouette for readable 16px RTS combat.",
+      "silhouette": "compact rifle infantry with forward-ready stance",
+      "materialCues": [
+        "brown fur",
+        "blue field uniform",
+        "dark rifle metal",
+        "otter fur",
+        "field webbing",
+        "military steel"
+      ],
+      "semanticAxes": [
+        "weapon profile",
+        "backpack load",
+        "helmet / headgear"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "body",
+        "uniform",
+        "weapon"
+      ],
+      "requiredAnimations": [
+        "idle",
+        "walk"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": true,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-specialist-support",
+    "archetypeId": "oef_support_specialist_otter",
+    "lane": "gameplay-sprite",
+    "entityType": "unit",
+    "outputCategory": "units",
+    "faction": "ura",
+    "referenceEntityId": "sapper",
+    "referenceContractId": null,
+    "memberIds": [
+      "sapper",
+      "mortar_otter"
+    ],
+    "canonicalDimensions": {
+      "width": 16,
+      "height": 16,
+      "size": 16
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "otter_default",
+    "promptRecipe": {
+      "roleIntent": "Support and engineering silhouettes that must remain readable as non-standard OEF troops.",
+      "visualIntent": "Support and engineering silhouettes that must remain readable as non-standard OEF troops.",
+      "silhouette": "support infantry with tools, packs, or heavy indirect-fire gear",
+      "materialCues": [
+        "field canvas",
+        "engineering kit",
+        "heavy tube / charges"
+      ],
+      "semanticAxes": [
+        "tooling",
+        "backpack bulk",
+        "indirect-fire gear"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "body",
+        "uniform",
+        "weapon"
+      ],
+      "requiredAnimations": [
+        "idle",
+        "walk",
+        "attack"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": true,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-amphibious-ops",
+    "archetypeId": "oef_amphibious_operations",
+    "lane": "gameplay-sprite",
+    "entityType": "unit",
+    "outputCategory": "units",
+    "faction": "ura",
+    "referenceEntityId": "raftsman",
+    "referenceContractId": null,
+    "memberIds": [
+      "raftsman",
+      "diver"
+    ],
+    "canonicalDimensions": {
+      "width": 16,
+      "height": 16,
+      "size": 16
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "otter_default",
+    "promptRecipe": {
+      "roleIntent": "Water-mobile OEF silhouettes for transport and riverine insertion roles.",
+      "visualIntent": "Water-mobile OEF silhouettes for transport and riverine insertion roles.",
+      "silhouette": "riverine operator with boat or dive gear massing",
+      "materialCues": [
+        "flotation gear",
+        "wet kit",
+        "naval accents"
+      ],
+      "semanticAxes": [
+        "mobility gear",
+        "waterline profile",
+        "mask / paddle read"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "weapon",
+        "body",
+        "uniform"
+      ],
+      "requiredAnimations": [
+        "idle",
+        "walk"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": true,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "scale-guard-line-assault",
+    "archetypeId": "scale_guard_brute_infantry",
+    "lane": "gameplay-sprite",
+    "entityType": "unit",
+    "outputCategory": "units",
+    "faction": "scale_guard",
+    "referenceEntityId": "gator",
+    "referenceContractId": "gator",
+    "memberIds": [
+      "skink",
+      "gator",
+      "viper"
+    ],
+    "canonicalDimensions": {
+      "width": 16,
+      "height": 16,
+      "size": 16
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "croc_default",
+    "promptRecipe": {
+      "roleIntent": "Primary Scale-Guard assault silhouettes with obvious reptile threat mass and melee/ranged differentiation.",
+      "visualIntent": "Baseline Scale-Guard front-line bruiser with unmistakable reptile mass and threat read.",
+      "silhouette": "broad-shouldered melee brute with heavy head mass",
+      "materialCues": [
+        "croc hide",
+        "red wargear",
+        "claw-forward attack pose",
+        "scaled hide",
+        "war paint",
+        "toxin gear"
+      ],
+      "semanticAxes": [
+        "head mass",
+        "tail read",
+        "venom / claw loadout"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "body",
+        "uniform",
+        "weapon"
+      ],
+      "requiredAnimations": [
+        "idle",
+        "walk"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": true,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "scale-guard-predator-support",
+    "archetypeId": "scale_guard_support_predators",
+    "lane": "gameplay-sprite",
+    "entityType": "unit",
+    "outputCategory": "units",
+    "faction": "scale_guard",
+    "referenceEntityId": "snapper",
+    "referenceContractId": null,
+    "memberIds": [
+      "snapper",
+      "scout_lizard",
+      "siphon_drone"
+    ],
+    "canonicalDimensions": {
+      "width": 16,
+      "height": 16,
+      "size": 16
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "croc_default",
+    "promptRecipe": {
+      "roleIntent": "Scale-Guard support, scouting, and ranged utility units that expand the reptile roster without losing faction identity.",
+      "visualIntent": "Scale-Guard support, scouting, and ranged utility units that expand the reptile roster without losing faction identity.",
+      "silhouette": "specialized predator shapes with long-range or utility gear cues",
+      "materialCues": [
+        "mud armor",
+        "utility sacs",
+        "siege or scouting equipment"
+      ],
+      "semanticAxes": [
+        "utility rig",
+        "snout length",
+        "payload silhouette"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "body",
+        "uniform"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": true,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "scale-guard-elite-shock",
+    "archetypeId": "scale_guard_elite_shock",
+    "lane": "gameplay-sprite",
+    "entityType": "unit",
+    "outputCategory": "units",
+    "faction": "scale_guard",
+    "referenceEntityId": "croc_champion",
+    "referenceContractId": null,
+    "memberIds": [
+      "croc_champion"
+    ],
+    "canonicalDimensions": {
+      "width": 16,
+      "height": 16,
+      "size": 16
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "croc_default",
+    "promptRecipe": {
+      "roleIntent": "Elite apex-predator silhouettes reserved for high-threat enemy shock units.",
+      "visualIntent": "Elite apex-predator silhouettes reserved for high-threat enemy shock units.",
+      "silhouette": "apex reptile champion with oversized frame and trophy gear",
+      "materialCues": [
+        "heavy scales",
+        "ritual trophies",
+        "command-grade armor"
+      ],
+      "semanticAxes": [
+        "body bulk",
+        "ornamentation",
+        "elite armor density"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "body",
+        "uniform",
+        "weapon"
+      ],
+      "requiredAnimations": [
+        "idle",
+        "walk",
+        "attack"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": true,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-command-hero-units",
+    "archetypeId": "oef_command_hero_unit",
+    "lane": "gameplay-sprite",
+    "entityType": "hero",
+    "outputCategory": "units",
+    "faction": "ura",
+    "referenceEntityId": "sgt_bubbles",
+    "referenceContractId": "sgt_bubbles",
+    "memberIds": [
+      "sgt_bubbles",
+      "gen_whiskers",
+      "sgt_fang"
+    ],
+    "canonicalDimensions": {
+      "width": 16,
+      "height": 16,
+      "size": 16
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "otter_default",
+    "promptRecipe": {
+      "roleIntent": "Hero combat sprites for command-grade OEF characters who need stronger silhouette and presence than baseline infantry.",
+      "visualIntent": "Hero portrait benchmark for painted-briefing tone, expression, and material separation.",
+      "silhouette": "hero bust with bandana, broad jaw, and command presence",
+      "materialCues": [
+        "battle-worn fur",
+        "red bandana",
+        "military kit highlights",
+        "otter fur",
+        "hero gear",
+        "rank-signifying accents"
+      ],
+      "semanticAxes": [
+        "hero posture",
+        "signature gear",
+        "rank silhouette"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "body",
+        "uniform"
+      ],
+      "requiredAnimations": [
+        "idle",
+        "walk"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": true,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-specialist-hero-units",
+    "archetypeId": "oef_specialist_hero_unit",
+    "lane": "gameplay-sprite",
+    "entityType": "hero",
+    "outputCategory": "units",
+    "faction": "ura",
+    "referenceEntityId": "cpl_splash",
+    "referenceContractId": null,
+    "memberIds": [
+      "cpl_splash",
+      "medic_marina",
+      "pvt_muskrat"
+    ],
+    "canonicalDimensions": {
+      "width": 16,
+      "height": 16,
+      "size": 16
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "otter_default",
+    "promptRecipe": {
+      "roleIntent": "Hero combat sprites for rescued OEF specialists whose battlefield role needs to read through unique kit and pose.",
+      "visualIntent": "Hero combat sprites for rescued OEF specialists whose battlefield role needs to read through unique kit and pose.",
+      "silhouette": "specialist hero with stronger role props and readable support-oriented silhouette",
+      "materialCues": [
+        "otter fur",
+        "specialist kit",
+        "field-role props"
+      ],
+      "semanticAxes": [
+        "specialty equipment",
+        "hero stance",
+        "role read"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "body",
+        "uniform"
+      ],
+      "requiredAnimations": [
+        "idle",
+        "walk"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": true,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-command-production",
+    "archetypeId": "oef_forward_bases",
+    "lane": "gameplay-sprite",
+    "entityType": "building",
+    "outputCategory": "buildings",
+    "faction": "ura",
+    "referenceEntityId": "barracks",
+    "referenceContractId": "barracks",
+    "memberIds": [
+      "command_post",
+      "barracks",
+      "armory",
+      "field_hospital",
+      "dock"
+    ],
+    "canonicalDimensions": {
+      "width": 32,
+      "height": 32,
+      "size": 32
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "resource_default",
+    "promptRecipe": {
+      "roleIntent": "The structural language for OEF command, production, and support buildings.",
+      "visualIntent": "Baseline OEF production building with believable military roofline, shadow, and grounded mass.",
+      "silhouette": "fortified square barracks with roof and entry read",
+      "materialCues": [
+        "stone shell",
+        "wood door",
+        "blue command accents",
+        "timber framing"
+      ],
+      "semanticAxes": [
+        "roof shape",
+        "door placement",
+        "support attachments"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "shadow",
+        "structure",
+        "roof"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-economy-logistics",
+    "archetypeId": "oef_logistics_structures",
+    "lane": "gameplay-sprite",
+    "entityType": "building",
+    "outputCategory": "buildings",
+    "faction": "ura",
+    "referenceEntityId": "fish_trap",
+    "referenceContractId": null,
+    "memberIds": [
+      "fish_trap",
+      "burrow"
+    ],
+    "canonicalDimensions": {
+      "width": 32,
+      "height": 32,
+      "size": 32
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "resource_default",
+    "promptRecipe": {
+      "roleIntent": "Economic and supply structures supporting OEF field expansion.",
+      "visualIntent": "Economic and supply structures supporting OEF field expansion.",
+      "silhouette": "low-profile supply structures with practical field utility",
+      "materialCues": [
+        "rope",
+        "wood slats",
+        "mud-stained utility frames"
+      ],
+      "semanticAxes": [
+        "storage mass",
+        "water-contact silhouette",
+        "utility clutter"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "shadow",
+        "structure"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-defensive-emplacements",
+    "archetypeId": "oef_field_defenses",
+    "lane": "gameplay-sprite",
+    "entityType": "building",
+    "outputCategory": "buildings",
+    "faction": "ura",
+    "referenceEntityId": "watchtower",
+    "referenceContractId": null,
+    "memberIds": [
+      "watchtower",
+      "gun_tower",
+      "minefield"
+    ],
+    "canonicalDimensions": {
+      "width": 32,
+      "height": 32,
+      "size": 32
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "resource_default",
+    "promptRecipe": {
+      "roleIntent": "Turrets and trap-like defenses that must read as military function at a glance.",
+      "visualIntent": "Turrets and trap-like defenses that must read as military function at a glance.",
+      "silhouette": "tall watch structures or compact lethal emplacements with obvious threat read",
+      "materialCues": [
+        "sandbags",
+        "gun metal",
+        "warning markers"
+      ],
+      "semanticAxes": [
+        "height",
+        "barrel silhouette",
+        "explosive signature"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "shadow",
+        "structure"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-fortifications",
+    "archetypeId": "oef_fortification_segments",
+    "lane": "gameplay-sprite",
+    "entityType": "building",
+    "outputCategory": "buildings",
+    "faction": "ura",
+    "referenceEntityId": "sandbag_wall",
+    "referenceContractId": null,
+    "memberIds": [
+      "sandbag_wall",
+      "stone_wall"
+    ],
+    "canonicalDimensions": {
+      "width": 32,
+      "height": 32,
+      "size": 32
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "resource_default",
+    "promptRecipe": {
+      "roleIntent": "OEF wall and barricade language for battlefield shaping and cover identity.",
+      "visualIntent": "OEF wall and barricade language for battlefield shaping and cover identity.",
+      "silhouette": "short linear fortifications with immediate cover semantics",
+      "materialCues": [
+        "packed sandbags",
+        "stone blocks",
+        "field wear"
+      ],
+      "semanticAxes": [
+        "segment thickness",
+        "top edge profile",
+        "material density"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "shadow",
+        "structure"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "scale-guard-command-economy",
+    "archetypeId": "scale_guard_command_economy",
+    "lane": "gameplay-sprite",
+    "entityType": "building",
+    "outputCategory": "buildings",
+    "faction": "scale_guard",
+    "referenceEntityId": "sludge_pit",
+    "referenceContractId": null,
+    "memberIds": [
+      "sludge_pit",
+      "siphon"
+    ],
+    "canonicalDimensions": {
+      "width": 32,
+      "height": 32,
+      "size": 32
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "croc_default",
+    "promptRecipe": {
+      "roleIntent": "Scale-Guard strategic structures for command, extraction, and faction economy.",
+      "visualIntent": "Scale-Guard strategic structures for command, extraction, and faction economy.",
+      "silhouette": "hostile industrial-organic structures with basin and stack massing",
+      "materialCues": [
+        "sludge",
+        "rusted plates",
+        "predator-stone"
+      ],
+      "semanticAxes": [
+        "basin footprint",
+        "pipe silhouette",
+        "crest ornament"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "walls",
+        "roof"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "scale-guard-production",
+    "archetypeId": "scale_guard_spawning_structures",
+    "lane": "gameplay-sprite",
+    "entityType": "building",
+    "outputCategory": "buildings",
+    "faction": "scale_guard",
+    "referenceEntityId": "spawning_pool",
+    "referenceContractId": "spawning_pool",
+    "memberIds": [
+      "spawning_pool"
+    ],
+    "canonicalDimensions": {
+      "width": 32,
+      "height": 32,
+      "size": 32
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "croc_default",
+    "promptRecipe": {
+      "roleIntent": "Scale-Guard production structures should feel organic, threatening, and distinct from OEF buildings.",
+      "visualIntent": "Baseline Scale-Guard production structure with organic menace and strong faction separation from OEF buildings.",
+      "silhouette": "organic pool structure with thick roof and hostile footprint",
+      "materialCues": [
+        "croc-stone shell",
+        "red-orange cresting",
+        "murky brood basin",
+        "brood basin",
+        "scale ridges",
+        "red-orange crests"
+      ],
+      "semanticAxes": [
+        "pool opening",
+        "roof armor",
+        "brood detailing"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "foundation",
+        "walls",
+        "roof"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "scale-guard-defenses",
+    "archetypeId": "scale_guard_defensive_structures",
+    "lane": "gameplay-sprite",
+    "entityType": "building",
+    "outputCategory": "buildings",
+    "faction": "scale_guard",
+    "referenceEntityId": "venom_spire",
+    "referenceContractId": null,
+    "memberIds": [
+      "venom_spire"
+    ],
+    "canonicalDimensions": {
+      "width": 32,
+      "height": 32,
+      "size": 32
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "croc_default",
+    "promptRecipe": {
+      "roleIntent": "Venomous and predatory defensive silhouettes for entrenched Scale-Guard territory.",
+      "visualIntent": "Venomous and predatory defensive silhouettes for entrenched Scale-Guard territory.",
+      "silhouette": "needle or turret structure with venom threat signature",
+      "materialCues": [
+        "venom sacs",
+        "toxic stone",
+        "predator iconography"
+      ],
+      "semanticAxes": [
+        "spire height",
+        "venom reservoir",
+        "weapon tip profile"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "shadow",
+        "tower",
+        "spire"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "scale-guard-fortifications",
+    "archetypeId": "scale_guard_fortification_segments",
+    "lane": "gameplay-sprite",
+    "entityType": "building",
+    "outputCategory": "buildings",
+    "faction": "scale_guard",
+    "referenceEntityId": "scale_wall",
+    "referenceContractId": null,
+    "memberIds": [
+      "scale_wall"
+    ],
+    "canonicalDimensions": {
+      "width": 32,
+      "height": 32,
+      "size": 32
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "croc_default",
+    "promptRecipe": {
+      "roleIntent": "Segmented Scale-Guard walls and territorial barriers with hostile reptilian identity.",
+      "visualIntent": "Segmented Scale-Guard walls and territorial barriers with hostile reptilian identity.",
+      "silhouette": "serrated wall segment with reptile plating and strong border read",
+      "materialCues": [
+        "scale plating",
+        "bone spikes",
+        "toxic grime"
+      ],
+      "semanticAxes": [
+        "top spikes",
+        "plate segmentation",
+        "toxin staining"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "shadow",
+        "structure"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": false,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-command-portraits",
+    "archetypeId": "oef_hero_command_portrait",
+    "lane": "premium-portrait",
+    "entityType": "portrait",
+    "outputCategory": "portraits",
+    "faction": "ura",
+    "referenceEntityId": "sgt_bubbles",
+    "referenceContractId": "sgt_bubbles",
+    "memberIds": [
+      "sgt_bubbles",
+      "gen_whiskers",
+      "sgt_fang"
+    ],
+    "canonicalDimensions": {
+      "width": 64,
+      "height": 96,
+      "size": 64
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "portrait_default",
+    "promptRecipe": {
+      "roleIntent": "Senior command and hero portraits with strong painted-briefing presence.",
+      "visualIntent": "Hero portrait benchmark for painted-briefing tone, expression, and material separation.",
+      "silhouette": "hero bust with bandana, broad jaw, and command presence",
+      "materialCues": [
+        "battle-worn fur",
+        "red bandana",
+        "military kit highlights",
+        "fur separation",
+        "combat wear",
+        "rank-signifying accents"
+      ],
+      "semanticAxes": [
+        "expression",
+        "rank styling",
+        "facial silhouette"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "background",
+        "face",
+        "uniform",
+        "details"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": true,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "oef-specialist-portraits",
+    "archetypeId": "oef_specialist_portrait",
+    "lane": "premium-portrait",
+    "entityType": "portrait",
+    "outputCategory": "portraits",
+    "faction": "ura",
+    "referenceEntityId": "cpl_splash",
+    "referenceContractId": null,
+    "memberIds": [
+      "cpl_splash",
+      "medic_marina",
+      "pvt_muskrat"
+    ],
+    "canonicalDimensions": {
+      "width": 64,
+      "height": 96,
+      "size": 64
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "portrait_default",
+    "promptRecipe": {
+      "roleIntent": "Support and rescue specialist portraits that still meet premium dialogue standards.",
+      "visualIntent": "Support and rescue specialist portraits that still meet premium dialogue standards.",
+      "silhouette": "specialist bust with distinctive role kit and expression",
+      "materialCues": [
+        "role-specific gear",
+        "fabric contrast",
+        "painted facial planes"
+      ],
+      "semanticAxes": [
+        "specialty props",
+        "expression tone",
+        "uniform variation"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "background",
+        "face",
+        "uniform",
+        "details"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": true,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  },
+  {
+    "familyId": "briefing-network-portraits",
+    "archetypeId": "briefing_operator_portrait",
+    "lane": "premium-portrait",
+    "entityType": "portrait",
+    "outputCategory": "portraits",
+    "faction": "neutral",
+    "referenceEntityId": "foxhound",
+    "referenceContractId": null,
+    "memberIds": [
+      "foxhound"
+    ],
+    "canonicalDimensions": {
+      "width": 64,
+      "height": 96,
+      "size": 64
+    },
+    "paletteStrategy": "shared-family-palette",
+    "referencePalette": "portrait_default",
+    "promptRecipe": {
+      "roleIntent": "Narrative support portraits for the campaign briefing and transmission layer.",
+      "visualIntent": "Narrative support portraits for the campaign briefing and transmission layer.",
+      "silhouette": "radio-operator bust with clear face and headset / comms read",
+      "materialCues": [
+        "screen glow",
+        "headset tech",
+        "command-net styling"
+      ],
+      "semanticAxes": [
+        "communications gear",
+        "lighting preset",
+        "supportive expression"
+      ]
+    },
+    "qualityProfile": {
+      "requiredLayerIds": [
+        "background",
+        "face",
+        "uniform",
+        "details"
+      ],
+      "requiredAnimations": [
+        "idle"
+      ],
+      "requireExactLayerOrder": true,
+      "requireProceduralTeamColors": false,
+      "requireSharedPalette": true
+    }
+  }
+]

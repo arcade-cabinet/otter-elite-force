@@ -7,6 +7,7 @@
 // Par time: 10 min (600s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission10ScorchedEarth: MissionDef = {
 	id: "mission_10",
@@ -124,109 +125,64 @@ export const mission10ScorchedEarth: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "destroy-tank-nw",
-				description: "Destroy NW fuel tank",
-				type: "destroy",
-				target: "fuel_tank",
-				count: 1,
-			},
-			{
-				id: "destroy-tank-ne",
-				description: "Destroy NE fuel tank",
-				type: "destroy",
-				target: "fuel_tank",
-				count: 1,
-			},
-			{
-				id: "destroy-tank-sw",
-				description: "Destroy SW fuel tank",
-				type: "destroy",
-				target: "fuel_tank",
-				count: 1,
-			},
-			{
-				id: "destroy-tank-se",
-				description: "Destroy SE fuel tank",
-				type: "destroy",
-				target: "fuel_tank",
-				count: 1,
-			},
+			objective("destroy-tank-nw", "Destroy NW fuel tank"),
+			objective("destroy-tank-ne", "Destroy NE fuel tank"),
+			objective("destroy-tank-sw", "Destroy SW fuel tank"),
+			objective("destroy-tank-se", "Destroy SE fuel tank"),
 		],
-		bonus: [
-			{
-				id: "speed-run",
-				description: "Destroy all tanks within 8 minutes",
-				type: "survive",
-				timeLimit: 480,
-			},
-		],
+		bonus: [objective("speed-run", "Destroy all tanks within 8 minutes")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:Four fuel tanks in the depot compound. Sappers can plant charges, or you can pound them with Shellcrackers. Watch for oil slick fires.",
-			once: true,
-		},
-		{
-			id: "depot-approach",
-			condition: "area_entered:ura:fuel_depot",
-			action:
-				"dialogue:gen_whiskers:You're inside the depot perimeter. Guards are spread across all four quadrants. Clear them out before sending in Sappers.",
-			once: true,
-		},
-		{
-			id: "first-tank-destroyed",
-			condition: "building_count:scale_guard:fuel_tank:lte:3",
-			action:
-				"complete_objective:destroy-tank-nw|dialogue:gen_whiskers:First tank down! Fire's spreading — watch your spacing. Three more to go.",
-			once: true,
-		},
-		{
-			id: "second-tank-destroyed",
-			condition: "building_count:scale_guard:fuel_tank:lte:2",
-			action:
-				"complete_objective:destroy-tank-ne|dialogue:gen_whiskers:Second tank destroyed. They know we're here now — expect reinforcements.",
-			once: true,
-		},
-		{
-			id: "third-tank-destroyed",
-			condition: "building_count:scale_guard:fuel_tank:lte:1",
-			action:
-				"complete_objective:destroy-tank-sw|dialogue:gen_whiskers:Three down! One more and their fuel supply is finished.",
-			once: true,
-		},
-		{
-			id: "fourth-tank-destroyed",
-			condition: "building_count:scale_guard:fuel_tank:eq:0",
-			action:
-				"complete_objective:destroy-tank-se|dialogue:gen_whiskers:All fuel tanks destroyed. The Blackmarsh depot is burning.",
-			once: true,
-		},
-		{
-			id: "reinforcements-1",
-			condition: "timer:300",
-			action:
-				"dialogue:gen_whiskers:Scale-Guard reinforcements from the north!|spawn:gator:scale_guard:28:2:4|spawn:viper:scale_guard:26:2:2",
-			once: true,
-		},
-		{
-			id: "reinforcements-2",
-			condition: "timer:540",
-			action:
-				"spawn:gator:scale_guard:2:24:3|spawn:snapper:scale_guard:52:24:2|spawn:viper:scale_guard:28:2:3",
-			once: true,
-		},
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:All four depots are ablaze. Scale-Guard's armor is stranded without fuel. The Blackmarsh is ours.|victory",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"Four fuel tanks in the depot compound. Sappers can plant charges, or you can pound them with Shellcrackers. Watch for oil slick fires.",
+			),
+		),
+		trigger(
+			"depot-approach",
+			on.areaEntered("ura", "fuel_depot"),
+			act.dialogue(
+				"gen_whiskers",
+				"You're inside the depot perimeter. Guards are spread across all four quadrants. Clear them out before sending in Sappers.",
+			),
+		),
+		trigger("first-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 3), [
+			act.completeObjective("destroy-tank-nw"),
+			act.dialogue("gen_whiskers", "First tank down! Fire's spreading — watch your spacing. Three more to go."),
+		]),
+		trigger("second-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 2), [
+			act.completeObjective("destroy-tank-ne"),
+			act.dialogue("gen_whiskers", "Second tank destroyed. They know we're here now — expect reinforcements."),
+		]),
+		trigger("third-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 1), [
+			act.completeObjective("destroy-tank-sw"),
+			act.dialogue("gen_whiskers", "Three down! One more and their fuel supply is finished."),
+		]),
+		trigger("fourth-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "eq", 0), [
+			act.completeObjective("destroy-tank-se"),
+			act.dialogue("gen_whiskers", "All fuel tanks destroyed. The Blackmarsh depot is burning."),
+		]),
+		trigger("reinforcements-1", on.timer(300), [
+			act.dialogue("gen_whiskers", "Scale-Guard reinforcements from the north!"),
+			act.spawn("gator", "scale_guard", 28, 2, 4),
+			act.spawn("viper", "scale_guard", 26, 2, 2),
+		]),
+		trigger("reinforcements-2", on.timer(540), [
+			act.spawn("gator", "scale_guard", 2, 24, 3),
+			act.spawn("snapper", "scale_guard", 52, 24, 2),
+			act.spawn("viper", "scale_guard", 28, 2, 3),
+		]),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"All four depots are ablaze. Scale-Guard's armor is stranded without fuel. The Blackmarsh is ours.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {

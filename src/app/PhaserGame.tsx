@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useLayoutEffect, useRef } from "react";
 import StartGame from "@/game/config";
+import type { DeploymentData } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 
 export interface IRefPhaserGame {
@@ -9,17 +10,18 @@ export interface IRefPhaserGame {
 
 interface PhaserGameProps {
 	currentActiveScene?: (scene: Phaser.Scene) => void;
+	deploymentData?: DeploymentData;
 }
 
 export const PhaserGame = forwardRef<IRefPhaserGame, PhaserGameProps>(function PhaserGame(
-	{ currentActiveScene },
+	{ currentActiveScene, deploymentData },
 	ref,
 ) {
 	const game = useRef<Phaser.Game | undefined>(undefined);
 
 	useLayoutEffect(() => {
 		if (game.current === undefined) {
-			game.current = StartGame("game-container");
+			game.current = StartGame("game-container", deploymentData);
 
 			if (ref !== null && typeof ref !== "function") {
 				ref.current = { game: game.current, scene: null };
@@ -33,6 +35,17 @@ export const PhaserGame = forwardRef<IRefPhaserGame, PhaserGameProps>(function P
 			}
 		};
 	}, [ref]);
+
+	useEffect(() => {
+		const refresh = () => game.current?.scale.refresh();
+		window.addEventListener("resize", refresh);
+		window.addEventListener("orientationchange", refresh);
+
+		return () => {
+			window.removeEventListener("resize", refresh);
+			window.removeEventListener("orientationchange", refresh);
+		};
+	}, []);
 
 	useEffect(() => {
 		EventBus.on("current-scene-ready", (currentScene: Phaser.Scene) => {
@@ -50,5 +63,5 @@ export const PhaserGame = forwardRef<IRefPhaserGame, PhaserGameProps>(function P
 		};
 	}, [currentActiveScene, ref]);
 
-	return <div id="game-container" />;
+		return <div id="game-container" className="game-container" />;
 });

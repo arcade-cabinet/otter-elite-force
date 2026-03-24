@@ -7,6 +7,7 @@
 // Par time: 12 min (720s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission14IronDelta: MissionDef = {
 	id: "mission_14",
@@ -136,97 +137,57 @@ export const mission14IronDelta: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "capture-island-west",
-				description: "Capture Island West outpost",
-				type: "explore",
-			},
-			{
-				id: "capture-island-central",
-				description: "Capture Island Central outpost",
-				type: "explore",
-			},
-			{
-				id: "capture-island-east",
-				description: "Capture Island East outpost",
-				type: "explore",
-			},
+			objective("capture-island-west", "Capture Island West outpost"),
+			objective("capture-island-central", "Capture Island Central outpost"),
+			objective("capture-island-east", "Capture Island East outpost"),
 		],
-		bonus: [
-			{
-				id: "build-3-docks",
-				description: "Build 3 Docks",
-				type: "build",
-				target: "dock",
-				count: 3,
-			},
-		],
+		bonus: [objective("build-3-docks", "Build 3 Docks")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:Three islands, three flag posts. Clear the defenders and move your units into the capture zone to claim each outpost. Use Raftsmen to cross the channels.",
-			once: true,
-		},
-		{
-			id: "west-captured",
-			condition: "area_entered:ura:west_capture",
-			action:
-				"complete_objective:capture-island-west|dialogue:gen_whiskers:Island West is ours! Good staging point for the central assault.",
-			once: true,
-		},
-		{
-			id: "central-captured",
-			condition: "area_entered:ura:central_capture",
-			action:
-				"complete_objective:capture-island-central|dialogue:gen_whiskers:Central island captured! That was the hardest one — well done.",
-			once: true,
-		},
-		{
-			id: "east-captured",
-			condition: "area_entered:ura:east_capture",
-			action:
-				"complete_objective:capture-island-east|dialogue:gen_whiskers:Island East secured! The delta is under our control.",
-			once: true,
-		},
-		{
-			id: "dock-bonus",
-			condition: "building_count:ura:dock:gte:3",
-			action:
-				"complete_objective:build-3-docks|dialogue:gen_whiskers:Three Docks operational. Full naval superiority in the delta.",
-			once: true,
-		},
-		{
-			id: "reinforcements-1",
-			condition: "timer:360",
-			action:
-				"dialogue:gen_whiskers:Scale-Guard reinforcements arriving by water!|spawn:gator:scale_guard:0:10:4|spawn:scout_lizard:scale_guard:58:10:3",
-			once: true,
-		},
-		{
-			id: "reinforcements-2",
-			condition: "timer:600",
-			action:
-				"spawn:gator:scale_guard:30:2:5|spawn:viper:scale_guard:0:18:3|spawn:snapper:scale_guard:58:18:2",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"Three islands, three flag posts. Clear the defenders and move your units into the capture zone to claim each outpost. Use Raftsmen to cross the channels.",
+			),
+		),
+		trigger("west-captured", on.areaEntered("ura", "west_capture"), [
+			act.completeObjective("capture-island-west"),
+			act.dialogue("gen_whiskers", "Island West is ours! Good staging point for the central assault."),
+		]),
+		trigger("central-captured", on.areaEntered("ura", "central_capture"), [
+			act.completeObjective("capture-island-central"),
+			act.dialogue("gen_whiskers", "Central island captured! That was the hardest one — well done."),
+		]),
+		trigger("east-captured", on.areaEntered("ura", "east_capture"), [
+			act.completeObjective("capture-island-east"),
+			act.dialogue("gen_whiskers", "Island East secured! The delta is under our control."),
+		]),
+		trigger("dock-bonus", on.buildingCount("ura", "dock", "gte", 3), [
+			act.completeObjective("build-3-docks"),
+			act.dialogue("gen_whiskers", "Three Docks operational. Full naval superiority in the delta."),
+		]),
+		trigger("reinforcements-1", on.timer(360), [
+			act.dialogue("gen_whiskers", "Scale-Guard reinforcements arriving by water!"),
+			act.spawn("gator", "scale_guard", 0, 10, 4),
+			act.spawn("scout_lizard", "scale_guard", 58, 10, 3),
+		]),
+		trigger("reinforcements-2", on.timer(600), [
+			act.spawn("gator", "scale_guard", 30, 2, 5),
+			act.spawn("viper", "scale_guard", 0, 18, 3),
+			act.spawn("snapper", "scale_guard", 58, 18, 2),
+		]),
 		// Hero death
-		{
-			id: "bubbles-death",
-			condition: "unit_count:ura:sgt_bubbles:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:All three outposts captured. The Iron Delta is ours. Scale-Guard's last defense line is broken — their fortress lies ahead.|victory",
-			once: true,
-		},
+		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"All three outposts captured. The Iron Delta is ours. Scale-Guard's last defense line is broken — their fortress lies ahead.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {},

@@ -10,6 +10,7 @@ function createMockWorldQuery(overrides: Partial<ScenarioWorldQuery> = {}): Scen
 	return {
 		elapsedTime: 0,
 		countUnits: vi.fn(() => 0),
+		countBuildings: vi.fn(() => 0),
 		countUnitsInArea: vi.fn(() => 0),
 		isBuildingDestroyed: vi.fn(() => false),
 		getEntityHealthPercent: vi.fn(() => 100),
@@ -271,6 +272,31 @@ describe("ScenarioEngine", () => {
 			expect(actionHandler).not.toHaveBeenCalled();
 		});
 	});
+
+		describe("BuildingCount trigger", () => {
+			it("should fire when building count meets threshold", () => {
+				const scenario = createScenario({
+					triggers: [
+						createTrigger({
+							condition: {
+								type: "buildingCount",
+								faction: "ura",
+								buildingType: "dock",
+								operator: "gte",
+								count: 3,
+							},
+						}),
+					],
+				});
+				const engine = new ScenarioEngine(scenario, actionHandler);
+				const world = createMockWorldQuery({ countBuildings: vi.fn(() => 3) });
+
+				engine.evaluate(world);
+
+				expect(world.countBuildings).toHaveBeenCalledWith("ura", "dock");
+				expect(actionHandler).toHaveBeenCalledTimes(1);
+			});
+		});
 
 	describe("BuildingDestroyed trigger", () => {
 		it("should fire when building is destroyed", () => {

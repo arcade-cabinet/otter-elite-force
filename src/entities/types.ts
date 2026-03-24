@@ -1,3 +1,5 @@
+import type { TriggerAction, TriggerCondition } from "@/scenarios/types";
+
 // src/entities/types.ts
 // Canonical type system for all entity definitions.
 // Every entity in the game (units, buildings, resources, terrain, portraits,
@@ -266,20 +268,27 @@ export interface ResearchDef {
 
 // ─── Mission Definition ───
 
-export interface Objective {
+export interface MissionObjective {
 	id: string;
 	description: string;
-	type: "destroy" | "survive" | "rescue" | "build" | "collect" | "explore";
-	target?: string;
-	count?: number;
-	timeLimit?: number;
 }
 
-export interface ScenarioTrigger {
+export interface MissionAreaEnteredCondition {
+	type: "areaEntered";
+	faction: string;
+	zoneId: string;
+	unitType?: string;
+	minUnits?: number;
+}
+
+export type MissionTriggerCondition = Exclude<TriggerCondition, { type: "areaEntered" }> | MissionAreaEnteredCondition;
+
+export interface MissionScenarioTrigger {
 	id: string;
-	condition: string;
-	action: string;
+	condition: MissionTriggerCondition;
+	action: TriggerAction | TriggerAction[];
 	once?: boolean;
+	enabled?: boolean;
 }
 
 export interface WeatherSchedule {
@@ -359,11 +368,11 @@ export interface MissionDef {
 	startPopCap: number;
 
 	objectives: {
-		primary: Objective[];
-		bonus: Objective[];
+		primary: MissionObjective[];
+		bonus: MissionObjective[];
 	};
 
-	triggers: ScenarioTrigger[];
+	triggers: MissionScenarioTrigger[];
 
 	weather?: WeatherSchedule;
 

@@ -7,6 +7,7 @@
 // Par time: 15 min (900s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission13GreatSiphon: MissionDef = {
 	id: "mission_13",
@@ -159,109 +160,82 @@ export const mission13GreatSiphon: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "destroy-generator-west",
-				description: "Destroy west shield generator",
-				type: "destroy",
-				target: "shield_generator",
-				count: 1,
-			},
-			{
-				id: "destroy-generator-east",
-				description: "Destroy east shield generator",
-				type: "destroy",
-				target: "shield_generator",
-				count: 1,
-			},
-			{
-				id: "destroy-great-siphon",
-				description: "Destroy the Great Siphon",
-				type: "destroy",
-				target: "great_siphon",
-				count: 1,
-			},
+			objective("destroy-generator-west", "Destroy west shield generator"),
+			objective("destroy-generator-east", "Destroy east shield generator"),
+			objective("destroy-great-siphon", "Destroy the Great Siphon"),
 		],
-		bonus: [
-			{
-				id: "destroy-all-buildings",
-				description: "Destroy all Scale-Guard buildings",
-				type: "destroy",
-				target: "building",
-				count: 8,
-			},
-		],
+		bonus: [objective("destroy-all-buildings", "Destroy all Scale-Guard buildings")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:All heroes on deck. Build up your forces and push northeast. The Siphon is shielded — take out the generators on each flank before hitting the core.",
-			once: true,
-		},
-		{
-			id: "central-field-engaged",
-			condition: "area_entered:ura:central_field",
-			action:
-				"dialogue:gen_whiskers:You've reached the central battlefield. Scale-Guard will contest this ground hard. Secure it before pushing further north.",
-			once: true,
-		},
-		{
-			id: "siphon-approach",
-			condition: "area_entered:ura:siphon_compound",
-			action:
-				"dialogue:gen_whiskers:You're inside the Siphon compound. Five Venom Spires and heavy garrison. Clear the flanks and hit those generators.",
-			once: true,
-		},
-		{
-			id: "generator-west-destroyed",
-			condition: "building_count:scale_guard:shield_generator:lte:1",
-			action:
-				"complete_objective:destroy-generator-west|dialogue:gen_whiskers:West generator down! The Siphon's shields are weakening. One more generator to go.|spawn:gator:scale_guard:50:2:4|spawn:viper:scale_guard:42:12:3",
-			once: true,
-		},
-		{
-			id: "generator-east-destroyed",
-			condition: "building_count:scale_guard:shield_generator:eq:0",
-			action:
-				"complete_objective:destroy-generator-east|dialogue:gen_whiskers:Both generators destroyed! The Siphon core is exposed. Hit it with everything you've got!|spawn:snapper:scale_guard:50:2:3|spawn:gator:scale_guard:58:12:4|spawn:viper:scale_guard:42:4:3",
-			once: true,
-		},
-		{
-			id: "siphon-destroyed",
-			condition: "building_count:scale_guard:great_siphon:eq:0",
-			action: "complete_objective:destroy-great-siphon",
-			once: true,
-		},
-		{
-			id: "counterattack-1",
-			condition: "timer:420",
-			action:
-				"dialogue:gen_whiskers:Scale-Guard counterattack from the east!|spawn:gator:scale_guard:62:30:5|spawn:viper:scale_guard:60:28:3",
-			once: true,
-		},
-		{
-			id: "counterattack-2",
-			condition: "timer:720",
-			action:
-				"dialogue:gen_whiskers:Massive reinforcements! They're throwing everything at us!|spawn:gator:scale_guard:62:20:6|spawn:snapper:scale_guard:62:24:3|spawn:viper:scale_guard:40:2:4",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"All heroes on deck. Build up your forces and push northeast. The Siphon is shielded — take out the generators on each flank before hitting the core.",
+			),
+		),
+		trigger(
+			"central-field-engaged",
+			on.areaEntered("ura", "central_field"),
+			act.dialogue(
+				"gen_whiskers",
+				"You've reached the central battlefield. Scale-Guard will contest this ground hard. Secure it before pushing further north.",
+			),
+		),
+		trigger(
+			"siphon-approach",
+			on.areaEntered("ura", "siphon_compound"),
+			act.dialogue(
+				"gen_whiskers",
+				"You're inside the Siphon compound. Five Venom Spires and heavy garrison. Clear the flanks and hit those generators.",
+			),
+		),
+		trigger("generator-west-destroyed", on.buildingCount("scale_guard", "shield_generator", "lte", 1), [
+			act.completeObjective("destroy-generator-west"),
+			act.dialogue(
+				"gen_whiskers",
+				"West generator down! The Siphon's shields are weakening. One more generator to go.",
+			),
+			act.spawn("gator", "scale_guard", 50, 2, 4),
+			act.spawn("viper", "scale_guard", 42, 12, 3),
+		]),
+		trigger("generator-east-destroyed", on.buildingCount("scale_guard", "shield_generator", "eq", 0), [
+			act.completeObjective("destroy-generator-east"),
+			act.dialogue(
+				"gen_whiskers",
+				"Both generators destroyed! The Siphon core is exposed. Hit it with everything you've got!",
+			),
+			act.spawn("snapper", "scale_guard", 50, 2, 3),
+			act.spawn("gator", "scale_guard", 58, 12, 4),
+			act.spawn("viper", "scale_guard", 42, 4, 3),
+		]),
+		trigger(
+			"siphon-destroyed",
+			on.buildingCount("scale_guard", "great_siphon", "eq", 0),
+			act.completeObjective("destroy-great-siphon"),
+		),
+		trigger("counterattack-1", on.timer(420), [
+			act.dialogue("gen_whiskers", "Scale-Guard counterattack from the east!"),
+			act.spawn("gator", "scale_guard", 62, 30, 5),
+			act.spawn("viper", "scale_guard", 60, 28, 3),
+		]),
+		trigger("counterattack-2", on.timer(720), [
+			act.dialogue("gen_whiskers", "Massive reinforcements! They're throwing everything at us!"),
+			act.spawn("gator", "scale_guard", 62, 20, 6),
+			act.spawn("snapper", "scale_guard", 62, 24, 3),
+			act.spawn("viper", "scale_guard", 40, 2, 4),
+		]),
 		// Hero deaths
-		{
-			id: "bubbles-death",
-			condition: "unit_count:ura:sgt_bubbles:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:The Great Siphon is destroyed! Scale-Guard's central command has fallen. But the war isn't over — their supreme commander has retreated to the Iron Delta.|victory",
-			once: true,
-		},
+		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"The Great Siphon is destroyed! Scale-Guard's central command has fallen. But the war isn't over — their supreme commander has retreated to the Iron Delta.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {},

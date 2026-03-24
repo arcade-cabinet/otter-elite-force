@@ -8,6 +8,7 @@
 // Par time: 18 min (1080s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission16LastStand: MissionDef = {
 	id: "mission_16",
@@ -170,161 +171,133 @@ export const mission16LastStand: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "survive-all-waves",
-				description: "Survive all 10 assault waves",
-				type: "survive",
-			},
-			{
-				id: "destroy-enemy-cp",
-				description: "Destroy the Scale-Guard Command Post",
-				type: "destroy",
-				target: "command_post",
-				count: 1,
-			},
+			objective("survive-all-waves", "Survive all 10 assault waves"),
+			objective("destroy-enemy-cp", "Destroy the Scale-Guard Command Post"),
 		],
-		bonus: [
-			{
-				id: "all-heroes-survive",
-				description: "All heroes survive the campaign",
-				type: "survive",
-			},
-		],
+		bonus: [objective("all-heroes-survive", "All heroes survive the campaign")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:All hands to battle stations. Ten waves incoming, then we counterattack. This is the final mission — everything we've fought for comes down to today.",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"All hands to battle stations. Ten waves incoming, then we counterattack. This is the final mission — everything we've fought for comes down to today.",
+			),
+		),
 		// Wave 1 (1:00)
-		{
-			id: "wave-1",
-			condition: "timer:60",
-			action:
-				"dialogue:gen_whiskers:Wave 1 — scouts from the north!|spawn:scout_lizard:scale_guard:32:18:4|spawn:gator:scale_guard:30:18:3",
-			once: true,
-		},
+		trigger("wave-1", on.timer(60), [
+			act.dialogue("gen_whiskers", "Wave 1 — scouts from the north!"),
+			act.spawn("scout_lizard", "scale_guard", 32, 18, 4),
+			act.spawn("gator", "scale_guard", 30, 18, 3),
+		]),
 		// Wave 2 (2:30)
-		{
-			id: "wave-2",
-			condition: "timer:150",
-			action:
-				"dialogue:gen_whiskers:Wave 2 — west flank!|spawn:gator:scale_guard:2:26:4|spawn:scout_lizard:scale_guard:2:28:3",
-			once: true,
-		},
+		trigger("wave-2", on.timer(150), [
+			act.dialogue("gen_whiskers", "Wave 2 — west flank!"),
+			act.spawn("gator", "scale_guard", 2, 26, 4),
+			act.spawn("scout_lizard", "scale_guard", 2, 28, 3),
+		]),
 		// Wave 3 (4:00)
-		{
-			id: "wave-3",
-			condition: "timer:240",
-			action:
-				"dialogue:gen_whiskers:Wave 3 — east and west pincer!|spawn:gator:scale_guard:2:26:3|spawn:gator:scale_guard:60:28:3|spawn:viper:scale_guard:2:28:2|spawn:viper:scale_guard:60:30:2",
-			once: true,
-		},
+		trigger("wave-3", on.timer(240), [
+			act.dialogue("gen_whiskers", "Wave 3 — east and west pincer!"),
+			act.spawn("gator", "scale_guard", 2, 26, 3),
+			act.spawn("gator", "scale_guard", 60, 28, 3),
+			act.spawn("viper", "scale_guard", 2, 28, 2),
+			act.spawn("viper", "scale_guard", 60, 30, 2),
+		]),
 		// Wave 4 (5:30)
-		{
-			id: "wave-4",
-			condition: "timer:330",
-			action:
-				"dialogue:gen_whiskers:Wave 4 — heavy column from the center!|spawn:gator:scale_guard:32:18:5|spawn:snapper:scale_guard:30:18:3|spawn:viper:scale_guard:34:18:2",
-			once: true,
-		},
+		trigger("wave-4", on.timer(330), [
+			act.dialogue("gen_whiskers", "Wave 4 — heavy column from the center!"),
+			act.spawn("gator", "scale_guard", 32, 18, 5),
+			act.spawn("snapper", "scale_guard", 30, 18, 3),
+			act.spawn("viper", "scale_guard", 34, 18, 2),
+		]),
 		// Wave 5 (7:00)
-		{
-			id: "wave-5",
-			condition: "timer:420",
-			action:
-				"dialogue:gen_whiskers:Wave 5 — all three routes! This is getting intense!|spawn:gator:scale_guard:2:26:3|spawn:gator:scale_guard:32:18:3|spawn:gator:scale_guard:60:28:3|spawn:viper:scale_guard:32:20:2",
-			once: true,
-		},
+		trigger("wave-5", on.timer(420), [
+			act.dialogue("gen_whiskers", "Wave 5 — all three routes! This is getting intense!"),
+			act.spawn("gator", "scale_guard", 2, 26, 3),
+			act.spawn("gator", "scale_guard", 32, 18, 3),
+			act.spawn("gator", "scale_guard", 60, 28, 3),
+			act.spawn("viper", "scale_guard", 32, 20, 2),
+		]),
 		// Wave 6 (8:30)
-		{
-			id: "wave-6",
-			condition: "timer:510",
-			action:
-				"dialogue:gen_whiskers:Wave 6 — elite vipers from the flanks!|spawn:viper:scale_guard:2:26:4|spawn:viper:scale_guard:60:28:4|spawn:snapper:scale_guard:32:18:2",
-			once: true,
-		},
+		trigger("wave-6", on.timer(510), [
+			act.dialogue("gen_whiskers", "Wave 6 — elite vipers from the flanks!"),
+			act.spawn("viper", "scale_guard", 2, 26, 4),
+			act.spawn("viper", "scale_guard", 60, 28, 4),
+			act.spawn("snapper", "scale_guard", 32, 18, 2),
+		]),
 		// Wave 7 (10:00)
-		{
-			id: "wave-7",
-			condition: "timer:600",
-			action:
-				"dialogue:gen_whiskers:Wave 7 — massive push! Hold the bridges!|spawn:gator:scale_guard:2:26:4|spawn:gator:scale_guard:60:28:4|spawn:gator:scale_guard:32:18:4|spawn:viper:scale_guard:30:18:3|spawn:snapper:scale_guard:34:18:2",
-			once: true,
-		},
+		trigger("wave-7", on.timer(600), [
+			act.dialogue("gen_whiskers", "Wave 7 — massive push! Hold the bridges!"),
+			act.spawn("gator", "scale_guard", 2, 26, 4),
+			act.spawn("gator", "scale_guard", 60, 28, 4),
+			act.spawn("gator", "scale_guard", 32, 18, 4),
+			act.spawn("viper", "scale_guard", 30, 18, 3),
+			act.spawn("snapper", "scale_guard", 34, 18, 2),
+		]),
 		// Wave 8 (11:30)
-		{
-			id: "wave-8",
-			condition: "timer:690",
-			action:
-				"dialogue:gen_whiskers:Wave 8 — they're throwing everything!|spawn:gator:scale_guard:2:26:5|spawn:gator:scale_guard:60:28:5|spawn:viper:scale_guard:2:28:3|spawn:snapper:scale_guard:60:30:3",
-			once: true,
-		},
+		trigger("wave-8", on.timer(690), [
+			act.dialogue("gen_whiskers", "Wave 8 — they're throwing everything!"),
+			act.spawn("gator", "scale_guard", 2, 26, 5),
+			act.spawn("gator", "scale_guard", 60, 28, 5),
+			act.spawn("viper", "scale_guard", 2, 28, 3),
+			act.spawn("snapper", "scale_guard", 60, 30, 3),
+		]),
 		// Wave 9 (13:00)
-		{
-			id: "wave-9",
-			condition: "timer:780",
-			action:
-				"dialogue:gen_whiskers:Wave 9 — almost done! One more after this!|spawn:gator:scale_guard:32:18:6|spawn:viper:scale_guard:2:26:4|spawn:viper:scale_guard:60:28:4|spawn:snapper:scale_guard:32:20:3",
-			once: true,
-		},
+		trigger("wave-9", on.timer(780), [
+			act.dialogue("gen_whiskers", "Wave 9 — almost done! One more after this!"),
+			act.spawn("gator", "scale_guard", 32, 18, 6),
+			act.spawn("viper", "scale_guard", 2, 26, 4),
+			act.spawn("viper", "scale_guard", 60, 28, 4),
+			act.spawn("snapper", "scale_guard", 32, 20, 3),
+		]),
 		// Wave 10 (14:30) — FINAL WAVE
-		{
-			id: "wave-10",
-			condition: "timer:870",
-			action:
-				"dialogue:gen_whiskers:FINAL WAVE! Everything they have — this is it!|spawn:gator:scale_guard:2:26:6|spawn:gator:scale_guard:60:28:6|spawn:gator:scale_guard:32:18:6|spawn:viper:scale_guard:2:28:4|spawn:viper:scale_guard:60:30:4|spawn:snapper:scale_guard:32:20:4",
-			once: true,
-		},
+		trigger("wave-10", on.timer(870), [
+			act.dialogue("gen_whiskers", "FINAL WAVE! Everything they have — this is it!"),
+			act.spawn("gator", "scale_guard", 2, 26, 6),
+			act.spawn("gator", "scale_guard", 60, 28, 6),
+			act.spawn("gator", "scale_guard", 32, 18, 6),
+			act.spawn("viper", "scale_guard", 2, 28, 4),
+			act.spawn("viper", "scale_guard", 60, 30, 4),
+			act.spawn("snapper", "scale_guard", 32, 20, 4),
+		]),
 		// Waves cleared (16:00)
-		{
-			id: "waves-cleared",
-			condition: "timer:960",
-			action:
-				"complete_objective:survive-all-waves|dialogue:gen_whiskers:All ten waves repelled! Their assault is broken. Now it's our turn — push north and destroy their Command Post! End this war!",
-			once: true,
-		},
+		trigger("waves-cleared", on.timer(960), [
+			act.completeObjective("survive-all-waves"),
+			act.dialogue(
+				"gen_whiskers",
+				"All ten waves repelled! Their assault is broken. Now it's our turn — push north and destroy their Command Post! End this war!",
+			),
+		]),
 		// Approaching enemy base
-		{
-			id: "enemy-base-approach",
-			condition: "area_entered:ura:enemy_base",
-			action:
-				"dialogue:gen_whiskers:You've reached their last base. Destroy the Command Post and it's over. Four Venom Spires and a heavy garrison — hit them hard.",
-			once: true,
-		},
+		trigger(
+			"enemy-base-approach",
+			on.areaEntered("ura", "enemy_base"),
+			act.dialogue(
+				"gen_whiskers",
+				"You've reached their last base. Destroy the Command Post and it's over. Four Venom Spires and a heavy garrison — hit them hard.",
+			),
+		),
 		// Enemy CP destroyed
-		{
-			id: "enemy-cp-destroyed",
-			condition: "building_count:scale_guard:command_post:eq:0",
-			action: "complete_objective:destroy-enemy-cp",
-			once: true,
-		},
+		trigger(
+			"enemy-cp-destroyed",
+			on.buildingCount("scale_guard", "command_post", "eq", 0),
+			act.completeObjective("destroy-enemy-cp"),
+		),
 		// CP loss = defeat
-		{
-			id: "ura-cp-destroyed",
-			condition: "building_count:ura:command_post:eq:0",
-			action: "defeat",
-			once: true,
-		},
+		trigger("ura-cp-destroyed", on.buildingCount("ura", "command_post", "eq", 0), act.failMission()),
 		// Hero death = defeat
-		{
-			id: "bubbles-death",
-			condition: "unit_count:ura:sgt_bubbles:eq:0",
-			action: "defeat",
-			once: true,
-		},
+		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
 		// Mission complete
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:It's over. The Scale-Guard Command Post is destroyed. Their forces are scattering. The Copper-Silt Reach, the Blackmarsh, the Iron Delta — all liberated. Outstanding work, Sergeant Bubbles. The Otter Elite Force has won the war.|victory",
-			once: true,
-		},
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"It's over. The Scale-Guard Command Post is destroyed. Their forces are scattering. The Copper-Silt Reach, the Blackmarsh, the Iron Delta — all liberated. Outstanding work, Sergeant Bubbles. The Otter Elite Force has won the war.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {},

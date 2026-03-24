@@ -1,5 +1,7 @@
 # 🤖 CLAUDE MISSION CONTROL: OTTER ELITE FORCE
 
+> **Historical note (2026-03-24):** The open-world tactical-simulation direction below is legacy context. Active RTS canon is now defined by `docs/superpowers/specs/2026-03-24-rts-canon-responsive-asset-overhaul-plan.md` and the campaign-first RTS specs.
+
 ## 🎯 Current Operational Goal
 
 Transform from **Technical Demo** to **Open World Tactical Simulation**. The modular foundation is built, now we must implement the persistent open world architecture, game loader interface, and base building systems.

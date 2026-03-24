@@ -1,5 +1,7 @@
 # 🦦 AGENTS.md - Technical Briefing for OTTER: ELITE FORCE
 
+> **Historical note (2026-03-24):** The open-world tactical-shooter direction below is legacy context. Active RTS canon is now defined by `docs/superpowers/specs/2026-03-24-rts-canon-responsive-asset-overhaul-plan.md` and the campaign-first RTS specs.
+
 ## 1. Project Identity & Directive
 
 **Project Name**: OTTER: ELITE FORCE (The Copper-Silt Reach)

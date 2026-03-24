@@ -7,6 +7,7 @@
 // Par time: 8 min (480s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission07RiverRats: MissionDef = {
 	id: "mission_7",
@@ -132,81 +133,64 @@ export const mission07RiverRats: MissionDef = {
 	startPopCap: 20,
 
 	objectives: {
-		primary: [
-			{
-				id: "return-crates",
-				description: "Return 5 supply crates to the base",
-				type: "collect",
-				target: "supply_crate",
-				count: 5,
-			},
-		],
-		bonus: [
-			{
-				id: "build-dock",
-				description: "Build a Dock",
-				type: "build",
-				target: "dock",
-				count: 1,
-			},
-		],
+		primary: [objective("return-crates", "Return 5 supply crates to the base")],
+		bonus: [objective("build-dock", "Build a Dock")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:Five crates scattered across the east bank. Each one needs to be picked up and carried back to our delivery zone. North and south bridges are your main crossing points.",
-			once: true,
-		},
-		{
-			id: "dock-hint",
-			condition: "timer:120",
-			action:
-				"dialogue:gen_whiskers:Consider building a Dock at the riverbank. Raftsmen can cross the water directly — no bridge needed.",
-			once: true,
-		},
-		{
-			id: "dock-built",
-			condition: "building_count:ura:dock:gte:1",
-			action:
-				"complete_objective:build-dock|dialogue:gen_whiskers:Dock constructed. You can now train Raftsmen to cross the river freely. Smart move.",
-			once: true,
-		},
-		{
-			id: "north-bridge-approach",
-			condition: "area_entered:ura:north_bridge",
-			action: "dialogue:gen_whiskers:North bridge ahead. Expect resistance on the other side.",
-			once: true,
-		},
-		{
-			id: "east-territory-entered",
-			condition: "area_entered:ura:east_territory",
-			action:
-				"dialogue:gen_whiskers:You're across the river and in enemy territory. Crates are scattered around — find them and carry them back. Watch for patrols.",
-			once: true,
-		},
-		{
-			id: "enemy-reinforcements-1",
-			condition: "timer:300",
-			action: "spawn:gator:scale_guard:48:19:3|spawn:scout_lizard:scale_guard:48:20:2",
-			once: true,
-		},
-		{
-			id: "enemy-reinforcements-2",
-			condition: "timer:600",
-			action:
-				"dialogue:gen_whiskers:More Scale-Guard reinforcements arriving on the east side. They're defending those crates aggressively.|spawn:gator:scale_guard:48:10:4|spawn:viper:scale_guard:48:28:2|spawn:snapper:scale_guard:48:19:2",
-			once: true,
-		},
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:All five crates recovered. Scale-Guard's supply chain is broken on this front. The Raftsmen and Docks will serve us well.|victory",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"Five crates scattered across the east bank. Each one needs to be picked up and carried back to our delivery zone. North and south bridges are your main crossing points.",
+			),
+		),
+		trigger(
+			"dock-hint",
+			on.timer(120),
+			act.dialogue("gen_whiskers", "Consider building a Dock at the riverbank. Raftsmen can cross the water directly — no bridge needed."),
+		),
+		trigger("dock-built", on.buildingCount("ura", "dock", "gte", 1), [
+			act.completeObjective("build-dock"),
+			act.dialogue(
+				"gen_whiskers",
+				"Dock constructed. You can now train Raftsmen to cross the river freely. Smart move.",
+			),
+		]),
+		trigger(
+			"north-bridge-approach",
+			on.areaEntered("ura", "north_bridge"),
+			act.dialogue("gen_whiskers", "North bridge ahead. Expect resistance on the other side."),
+		),
+		trigger(
+			"east-territory-entered",
+			on.areaEntered("ura", "east_territory"),
+			act.dialogue(
+				"gen_whiskers",
+				"You're across the river and in enemy territory. Crates are scattered around — find them and carry them back. Watch for patrols.",
+			),
+		),
+		trigger("enemy-reinforcements-1", on.timer(300), [
+			act.spawn("gator", "scale_guard", 48, 19, 3),
+			act.spawn("scout_lizard", "scale_guard", 48, 20, 2),
+		]),
+		trigger("enemy-reinforcements-2", on.timer(600), [
+			act.dialogue(
+				"gen_whiskers",
+				"More Scale-Guard reinforcements arriving on the east side. They're defending those crates aggressively.",
+			),
+			act.spawn("gator", "scale_guard", 48, 10, 4),
+			act.spawn("viper", "scale_guard", 48, 28, 2),
+			act.spawn("snapper", "scale_guard", 48, 19, 2),
+		]),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"All five crates recovered. Scale-Guard's supply chain is broken on this front. The Raftsmen and Docks will serve us well.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {

@@ -30,6 +30,18 @@ export interface UnitCountCondition {
 	count: number;
 }
 
+export interface BuildingCountCondition {
+	type: "buildingCount";
+	/** Faction to count buildings for */
+	faction: string;
+	/** Optional building type filter (e.g. "barracks", "siphon") */
+	buildingType?: string;
+	/** Comparison operator */
+	operator: "gte" | "lte" | "eq";
+	/** Count threshold */
+	count: number;
+}
+
 export interface AreaEnteredCondition {
 	type: "areaEntered";
 	/** Faction whose units must enter the area */
@@ -71,6 +83,7 @@ export interface HealthThresholdCondition {
 export type TriggerCondition =
 	| TimerCondition
 	| UnitCountCondition
+	| BuildingCountCondition
 	| AreaEnteredCondition
 	| BuildingDestroyedCondition
 	| ObjectiveCompleteCondition
@@ -159,6 +172,10 @@ export interface CameraAction {
 	duration: number;
 }
 
+export interface VictoryAction {
+	type: "victory";
+}
+
 export type TriggerAction =
 	| SpawnUnitsAction
 	| ShowDialogueAction
@@ -167,7 +184,8 @@ export type TriggerAction =
 	| CompleteObjectiveAction
 	| FailMissionAction
 	| PlaySFXAction
-	| CameraAction;
+	| CameraAction
+	| VictoryAction;
 
 // ---------------------------------------------------------------------------
 // Scenario Trigger

@@ -19,13 +19,19 @@ let React: typeof import("react");
 let render: typeof import("@testing-library/react").render;
 let screen: typeof import("@testing-library/react").screen;
 let createWorld: typeof import("koota").createWorld;
-let trait: typeof import("koota").trait;
 let WorldProvider: any;
 let UnitPanel: any;
+let UnitType: typeof import("@/ecs/traits/identity").UnitType;
+let Selected: typeof import("@/ecs/traits/identity").Selected;
+let IsHero: typeof import("@/ecs/traits/identity").IsHero;
+let Health: typeof import("@/ecs/traits/combat").Health;
+let Attack: typeof import("@/ecs/traits/combat").Attack;
+let Armor: typeof import("@/ecs/traits/combat").Armor;
 
 let loadError: string | null = null;
 
 beforeEach(async () => {
+	loadError = null;
 	try {
 		React = await import("react");
 		const rtl = await import("@testing-library/react");
@@ -33,9 +39,16 @@ beforeEach(async () => {
 		screen = rtl.screen;
 		const koota = await import("koota");
 		createWorld = koota.createWorld;
-		trait = koota.trait;
-		const kootaReact = await import("@koota/react");
+		const kootaReact = await import("koota/react");
 		WorldProvider = kootaReact.WorldProvider;
+		const identityTraits = await import("@/ecs/traits/identity");
+		const combatTraits = await import("@/ecs/traits/combat");
+		UnitType = identityTraits.UnitType;
+		Selected = identityTraits.Selected;
+		IsHero = identityTraits.IsHero;
+		Health = combatTraits.Health;
+		Attack = combatTraits.Attack;
+		Armor = combatTraits.Armor;
 		const mod = await import("@/ui/hud/UnitPanel");
 		UnitPanel = mod.UnitPanel ?? mod.default;
 	} catch (e) {
@@ -73,18 +86,12 @@ describe("UnitPanel", () => {
 		it("displays the unit name when a Mudfoot is selected", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Faction = trait({ id: "" });
-				const Selected = trait();
-				const Health = trait({ current: 80, max: 80 });
-				const Combat = trait({ damage: 12, armor: 2, range: 1, speed: 8 });
-
 				world
-					.spawn(UnitType, Faction, Selected, Health, Combat)
+						.spawn(UnitType, Selected, Health, Attack, Armor)
 					.set(UnitType, { type: "mudfoot" })
-					.set(Faction, { id: "ura" })
 					.set(Health, { current: 80, max: 80 })
-					.set(Combat, { damage: 12, armor: 2, range: 1, speed: 8 });
+						.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
+						.set(Armor, { value: 2 });
 			});
 			expect(screen.getByText(/mudfoot/i)).toBeTruthy();
 		});
@@ -92,10 +99,6 @@ describe("UnitPanel", () => {
 		it("displays HP as a value (e.g. 80/80)", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Health = trait({ current: 65, max: 80 });
-
 				world
 					.spawn(UnitType, Selected, Health)
 					.set(UnitType, { type: "mudfoot" })
@@ -107,36 +110,28 @@ describe("UnitPanel", () => {
 		it("displays armor value", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Health = trait({ current: 80, max: 80 });
-				const Combat = trait({ damage: 12, armor: 2, range: 1, speed: 8 });
-
 				world
-					.spawn(UnitType, Selected, Health, Combat)
+						.spawn(UnitType, Selected, Health, Attack, Armor)
 					.set(UnitType, { type: "mudfoot" })
 					.set(Health, { current: 80, max: 80 })
-					.set(Combat, { damage: 12, armor: 2, range: 1, speed: 8 });
+						.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
+						.set(Armor, { value: 2 });
 			});
 			// Should display armor somewhere in the panel
-			expect(screen.getByText(/2/)).toBeTruthy();
+				expect(screen.getByText(/arm\s*2/i)).toBeTruthy();
 		});
 
 		it("displays damage value", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Health = trait({ current: 80, max: 80 });
-				const Combat = trait({ damage: 12, armor: 2, range: 1, speed: 8 });
-
 				world
-					.spawn(UnitType, Selected, Health, Combat)
+						.spawn(UnitType, Selected, Health, Attack, Armor)
 					.set(UnitType, { type: "mudfoot" })
 					.set(Health, { current: 80, max: 80 })
-					.set(Combat, { damage: 12, armor: 2, range: 1, speed: 8 });
+						.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
+						.set(Armor, { value: 2 });
 			});
-			expect(screen.getByText(/12/)).toBeTruthy();
+				expect(screen.getByText(/dmg\s*12/i)).toBeTruthy();
 		});
 	});
 
@@ -144,10 +139,6 @@ describe("UnitPanel", () => {
 		it("displays count of selected units", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const Health = trait({ current: 80, max: 80 });
-
 				// Select 3 Mudfoots
 				for (let i = 0; i < 3; i++) {
 					world
@@ -165,11 +156,6 @@ describe("UnitPanel", () => {
 		it("indicates hero status for hero units", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				const UnitType = trait({ type: "" });
-				const Selected = trait();
-				const IsHero = trait();
-				const Health = trait({ current: 120, max: 120 });
-
 				world
 					.spawn(UnitType, Selected, IsHero, Health)
 					.set(UnitType, { type: "sgt_bubbles" })

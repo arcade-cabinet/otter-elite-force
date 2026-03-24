@@ -6,6 +6,7 @@
 // Par time: 10 min (600s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission06MonsoonAmbush: MissionDef = {
 	id: "mission_6",
@@ -101,117 +102,79 @@ export const mission06MonsoonAmbush: MissionDef = {
 	},
 
 	objectives: {
-		primary: [
-			{
-				id: "survive-all-waves",
-				description: "Survive all 8 waves",
-				type: "survive",
-			},
-		],
-		bonus: [
-			{
-				id: "cp-health-bonus",
-				description: "Keep Command Post above 50% HP",
-				type: "survive",
-			},
-		],
+		primary: [objective("survive-all-waves", "Survive all 8 waves")],
+		bonus: [objective("cp-health-bonus", "Keep Command Post above 50% HP")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:Position your forces at the approach roads. Mud patches slow movement during rain — bait enemies through them. First wave incoming soon.",
-			once: true,
-		},
-		// Wave 1 (1:30) — NW scouts
-		{
-			id: "wave-1",
-			condition: "timer:90",
-			action:
-				"dialogue:gen_whiskers:Wave 1 — scouts from the northwest road!|spawn:scout_lizard:scale_guard:4:1:3|spawn:gator:scale_guard:4:2:2",
-			once: true,
-		},
-		// Wave 2 (3:30) — SE approach
-		{
-			id: "wave-2",
-			condition: "timer:210",
-			action:
-				"dialogue:gen_whiskers:Wave 2 — southeast road. They're using the rain for cover!|spawn:gator:scale_guard:44:37:4|spawn:scout_lizard:scale_guard:45:37:2",
-			once: true,
-		},
-		// Wave 3 (5:00) — Pincer north
-		{
-			id: "wave-3",
-			condition: "timer:300",
-			action:
-				"dialogue:gen_whiskers:Wave 3 — pincer from both north roads!|spawn:gator:scale_guard:4:1:3|spawn:gator:scale_guard:44:1:3|spawn:viper:scale_guard:4:2:2",
-			once: true,
-		},
-		// Wave 4 (7:00) — SW heavy push
-		{
-			id: "wave-4",
-			condition: "timer:420",
-			action:
-				"dialogue:gen_whiskers:Wave 4 — heavy column from the southwest!|spawn:gator:scale_guard:4:37:4|spawn:snapper:scale_guard:5:37:2|spawn:viper:scale_guard:4:38:2",
-			once: true,
-		},
-		// Wave 5 (9:00) — All four roads
-		{
-			id: "wave-5",
-			condition: "timer:540",
-			action:
-				"dialogue:gen_whiskers:Wave 5 — they're coming from everywhere! All roads!|spawn:gator:scale_guard:4:1:2|spawn:gator:scale_guard:44:1:2|spawn:gator:scale_guard:4:37:2|spawn:gator:scale_guard:44:37:2",
-			once: true,
-		},
-		// Wave 6 (11:00) — Vipers and Snappers
-		{
-			id: "wave-6",
-			condition: "timer:660",
-			action:
-				"dialogue:gen_whiskers:Wave 6 — elite units. Vipers and Snappers from the flanks.|spawn:viper:scale_guard:0:18:3|spawn:snapper:scale_guard:46:18:2|spawn:viper:scale_guard:46:25:2",
-			once: true,
-		},
-		// Wave 7 (13:00) — Rain returns, massive push
-		{
-			id: "wave-7",
-			condition: "timer:780",
-			action:
-				"dialogue:gen_whiskers:Wave 7 — the rain's back and so is the assault!|spawn:gator:scale_guard:4:1:3|spawn:gator:scale_guard:44:37:3|spawn:viper:scale_guard:44:1:2|spawn:snapper:scale_guard:4:37:2",
-			once: true,
-		},
-		// Wave 8 (15:00) — Final wave
-		{
-			id: "wave-8",
-			condition: "timer:900",
-			action:
-				"dialogue:gen_whiskers:FINAL WAVE! Everything they've got — all four roads! Hold that line, Sergeant!|spawn:gator:scale_guard:4:1:4|spawn:gator:scale_guard:44:37:4|spawn:viper:scale_guard:44:1:3|spawn:snapper:scale_guard:4:37:3|spawn:viper:scale_guard:0:18:2|spawn:snapper:scale_guard:46:25:2",
-			once: true,
-		},
-		// Waves cleared (17:00)
-		{
-			id: "waves-cleared",
-			condition: "timer:1020",
-			action:
-				"complete_objective:survive-all-waves|dialogue:gen_whiskers:All waves repelled. The base held. Outstanding defense, Sergeant.",
-			once: true,
-		},
-		// CP destroyed = defeat
-		{
-			id: "cp-destroyed",
-			condition: "building_count:ura:command_post:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		// Mission complete
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:The monsoon assault failed. Scale-Guard is retreating. This position is ours.|victory",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"Position your forces at the approach roads. Mud patches slow movement during rain — bait enemies through them. First wave incoming soon.",
+			),
+		),
+		trigger("wave-1", on.timer(90), [
+			act.dialogue("gen_whiskers", "Wave 1 — scouts from the northwest road!"),
+			act.spawn("scout_lizard", "scale_guard", 4, 1, 3),
+			act.spawn("gator", "scale_guard", 4, 2, 2),
+		]),
+		trigger("wave-2", on.timer(210), [
+			act.dialogue("gen_whiskers", "Wave 2 — southeast road. They're using the rain for cover!"),
+			act.spawn("gator", "scale_guard", 44, 37, 4),
+			act.spawn("scout_lizard", "scale_guard", 45, 37, 2),
+		]),
+		trigger("wave-3", on.timer(300), [
+			act.dialogue("gen_whiskers", "Wave 3 — pincer from both north roads!"),
+			act.spawn("gator", "scale_guard", 4, 1, 3),
+			act.spawn("gator", "scale_guard", 44, 1, 3),
+			act.spawn("viper", "scale_guard", 4, 2, 2),
+		]),
+		trigger("wave-4", on.timer(420), [
+			act.dialogue("gen_whiskers", "Wave 4 — heavy column from the southwest!"),
+			act.spawn("gator", "scale_guard", 4, 37, 4),
+			act.spawn("snapper", "scale_guard", 5, 37, 2),
+			act.spawn("viper", "scale_guard", 4, 38, 2),
+		]),
+		trigger("wave-5", on.timer(540), [
+			act.dialogue("gen_whiskers", "Wave 5 — they're coming from everywhere! All roads!"),
+			act.spawn("gator", "scale_guard", 4, 1, 2),
+			act.spawn("gator", "scale_guard", 44, 1, 2),
+			act.spawn("gator", "scale_guard", 4, 37, 2),
+			act.spawn("gator", "scale_guard", 44, 37, 2),
+		]),
+		trigger("wave-6", on.timer(660), [
+			act.dialogue("gen_whiskers", "Wave 6 — elite units. Vipers and Snappers from the flanks."),
+			act.spawn("viper", "scale_guard", 0, 18, 3),
+			act.spawn("snapper", "scale_guard", 46, 18, 2),
+			act.spawn("viper", "scale_guard", 46, 25, 2),
+		]),
+		trigger("wave-7", on.timer(780), [
+			act.dialogue("gen_whiskers", "Wave 7 — the rain's back and so is the assault!"),
+			act.spawn("gator", "scale_guard", 4, 1, 3),
+			act.spawn("gator", "scale_guard", 44, 37, 3),
+			act.spawn("viper", "scale_guard", 44, 1, 2),
+			act.spawn("snapper", "scale_guard", 4, 37, 2),
+		]),
+		trigger("wave-8", on.timer(900), [
+			act.dialogue("gen_whiskers", "FINAL WAVE! Everything they've got — all four roads! Hold that line, Sergeant!"),
+			act.spawn("gator", "scale_guard", 4, 1, 4),
+			act.spawn("gator", "scale_guard", 44, 37, 4),
+			act.spawn("viper", "scale_guard", 44, 1, 3),
+			act.spawn("snapper", "scale_guard", 4, 37, 3),
+			act.spawn("viper", "scale_guard", 0, 18, 2),
+			act.spawn("snapper", "scale_guard", 46, 25, 2),
+		]),
+		trigger("waves-cleared", on.timer(1020), [
+			act.completeObjective("survive-all-waves"),
+			act.dialogue("gen_whiskers", "All waves repelled. The base held. Outstanding defense, Sergeant."),
+		]),
+		trigger("cp-destroyed", on.buildingCount("ura", "command_post", "eq", 0), act.failMission()),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue("gen_whiskers", "The monsoon assault failed. Scale-Guard is retreating. This position is ours."),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {},

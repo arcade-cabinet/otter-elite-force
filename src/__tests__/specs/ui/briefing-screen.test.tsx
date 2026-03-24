@@ -16,21 +16,20 @@
  *
  * Tests are written BEFORE the component exists.
  */
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 let React: typeof import("react");
 let render: typeof import("@testing-library/react").render;
 let screen: typeof import("@testing-library/react").screen;
 let fireEvent: typeof import("@testing-library/react").fireEvent;
 let act: typeof import("@testing-library/react").act;
-let createWorld: typeof import("koota").createWorld;
-let trait: typeof import("koota").trait;
-let WorldProvider: any;
 let BriefingScreen: any;
 
 let loadError: string | null = null;
 
 beforeEach(async () => {
+	loadError = null;
+	vi.useFakeTimers();
 	try {
 		React = await import("react");
 		const rtl = await import("@testing-library/react");
@@ -38,11 +37,6 @@ beforeEach(async () => {
 		screen = rtl.screen;
 		fireEvent = rtl.fireEvent;
 		act = rtl.act;
-		const koota = await import("koota");
-		createWorld = koota.createWorld;
-		trait = koota.trait;
-		const kootaReact = await import("@koota/react");
-		WorldProvider = kootaReact.WorldProvider;
 		const mod = await import("@/ui/briefing/BriefingScreen");
 		BriefingScreen = mod.BriefingScreen ?? mod.default;
 	} catch (e) {
@@ -50,12 +44,15 @@ beforeEach(async () => {
 	}
 });
 
+afterEach(() => {
+	vi.useRealTimers();
+});
+
 const skip = () => loadError !== null;
 
 function renderWithWorld(ui: any, worldSetup?: (world: any) => void) {
-	const world = createWorld();
-	if (worldSetup) worldSetup(world);
-	return render(React.createElement(WorldProvider, { world }, ui));
+	void worldSetup;
+	return render(ui);
 }
 
 // ---------------------------------------------------------------------------
@@ -148,9 +145,11 @@ describe("BriefingScreen", () => {
 					briefing: MISSION_1_BRIEFING,
 				}),
 			);
-			// At least the first line should be visible (or being typed)
-			// The typewriter may show partial text, so check for a substring
-			const text = screen.getByText(/welcome to the soup/i) ?? screen.getByText(/sergeant/i);
+				act(() => {
+					vi.advanceTimersByTime(600);
+				});
+				const text =
+					screen.queryByText(/welcome to the soup/i) ?? screen.queryByText(/sergeant/i);
 			expect(text).toBeTruthy();
 		});
 
@@ -190,7 +189,7 @@ describe("BriefingScreen", () => {
 				}),
 			);
 			const deployBtn = screen.getByText(/deploy/i);
-			expect(deployBtn.closest("button")).not.toHaveAttribute("disabled");
+				expect(deployBtn.closest("button")?.getAttribute("disabled")).toBeNull();
 		});
 
 		it("calls onDeploy callback when deploy is clicked", () => {

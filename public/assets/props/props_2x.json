@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "image": "props_2x.png",
+    "size": {
+      "w": 198,
+      "h": 32
+    },
+    "scale": 2
+  },
+  "frames": {
+    "tall_grass": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 32
+      }
+    },
+    "tall_grass_idle_0": {
+      "frame": {
+        "x": 33,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 32
+      }
+    },
+    "tall_grass_sway_0": {
+      "frame": {
+        "x": 66,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 32
+      }
+    },
+    "tall_grass_sway_1": {
+      "frame": {
+        "x": 99,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 32
+      }
+    },
+    "toxic_sludge": {
+      "frame": {
+        "x": 132,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 32
+      }
+    },
+    "toxic_sludge_idle_0": {
+      "frame": {
+        "x": 165,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      },
+      "sourceSize": {
+        "w": 32,
+        "h": 32
+      }
+    }
+  }
+}

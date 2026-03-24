@@ -7,6 +7,7 @@
 // Par time: 12 min (720s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission05SiphonValley: MissionDef = {
 	id: "mission_5",
@@ -141,109 +142,73 @@ export const mission05SiphonValley: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "destroy-siphon-west",
-				description: "Destroy Siphon West",
-				type: "destroy",
-				target: "siphon",
-				count: 1,
-			},
-			{
-				id: "destroy-siphon-central",
-				description: "Destroy Siphon Central",
-				type: "destroy",
-				target: "siphon",
-				count: 1,
-			},
-			{
-				id: "destroy-siphon-east",
-				description: "Destroy Siphon East",
-				type: "destroy",
-				target: "siphon",
-				count: 1,
-			},
+			objective("destroy-siphon-west", "Destroy Siphon West"),
+			objective("destroy-siphon-central", "Destroy Siphon Central"),
+			objective("destroy-siphon-east", "Destroy Siphon East"),
 		],
-		bonus: [
-			{
-				id: "speed-bonus",
-				description: "Destroy all 3 siphons within 20 minutes",
-				type: "survive",
-				timeLimit: 1200,
-			},
-		],
+		bonus: [objective("speed-bonus", "Destroy all 3 siphons within 20 minutes")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:Establish your base first. There's timber in the mangroves and fish in the river. Build an Armory to train Sappers — you'll need their charges.",
-			once: true,
-		},
-		{
-			id: "build-reminder",
-			condition: "timer:120",
-			action:
-				"dialogue:gen_whiskers:Get that Command Post up and start expanding. The siphons aren't going to destroy themselves.",
-			once: true,
-		},
-		{
-			id: "approach-siphon-west",
-			condition: "area_entered:ura:siphon_west",
-			action:
-				"dialogue:gen_whiskers:Siphon ahead. Watch for Gators and Snappers guarding the perimeter. Sappers should move in after you clear the guards.",
-			once: true,
-		},
-		{
-			id: "siphon-west-destroyed",
-			condition: "building_count:scale_guard:siphon:lte:2",
-			action:
-				"complete_objective:destroy-siphon-west|dialogue:gen_whiskers:Siphon West is down! The western waterway is clearing. Two more to go.",
-			once: true,
-		},
-		{
-			id: "siphon-central-destroyed",
-			condition: "building_count:scale_guard:siphon:lte:1",
-			action:
-				"complete_objective:destroy-siphon-central|dialogue:gen_whiskers:Central siphon neutralized. That was the most fortified position — well done.",
-			once: true,
-		},
-		{
-			id: "siphon-east-destroyed",
-			condition: "building_count:scale_guard:siphon:eq:0",
-			action:
-				"complete_objective:destroy-siphon-east|dialogue:gen_whiskers:Siphon East is gone. The river's running clean again.",
-			once: true,
-		},
-		{
-			id: "river-crossing-warning",
-			condition: "area_entered:ura:river_crossing",
-			action:
-				"dialogue:gen_whiskers:Bridge crossing ahead. Siphon drones patrol this stretch — keep your forces tight and push through fast.",
-			once: true,
-		},
-		{
-			id: "counterattack-1",
-			condition: "timer:480",
-			action:
-				"dialogue:gen_whiskers:Incoming! Scale-Guard is sending a response force from the north. Defend your base!|spawn:gator:scale_guard:27:2:4|spawn:scout_lizard:scale_guard:20:2:2",
-			once: true,
-		},
-		{
-			id: "counterattack-2",
-			condition: "timer:840",
-			action:
-				"dialogue:gen_whiskers:Another wave from Scale-Guard. They're throwing everything at you — hold the line.|spawn:gator:scale_guard:5:15:3|spawn:viper:scale_guard:50:15:2|spawn:snapper:scale_guard:27:2:2",
-			once: true,
-		},
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:All three siphons are destroyed. The Copper-Silt Reach is breathing again. Outstanding work — Sappers and the Armory are now permanent assets.|victory",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"Establish your base first. There's timber in the mangroves and fish in the river. Build an Armory to train Sappers — you'll need their charges.",
+			),
+		),
+		trigger(
+			"build-reminder",
+			on.timer(120),
+			act.dialogue("gen_whiskers", "Get that Command Post up and start expanding. The siphons aren't going to destroy themselves."),
+		),
+		trigger(
+			"approach-siphon-west",
+			on.areaEntered("ura", "siphon_west"),
+			act.dialogue(
+				"gen_whiskers",
+				"Siphon ahead. Watch for Gators and Snappers guarding the perimeter. Sappers should move in after you clear the guards.",
+			),
+		),
+		trigger("siphon-west-destroyed", on.buildingCount("scale_guard", "siphon", "lte", 2), [
+			act.completeObjective("destroy-siphon-west"),
+			act.dialogue("gen_whiskers", "Siphon West is down! The western waterway is clearing. Two more to go."),
+		]),
+		trigger("siphon-central-destroyed", on.buildingCount("scale_guard", "siphon", "lte", 1), [
+			act.completeObjective("destroy-siphon-central"),
+			act.dialogue("gen_whiskers", "Central siphon neutralized. That was the most fortified position — well done."),
+		]),
+		trigger("siphon-east-destroyed", on.buildingCount("scale_guard", "siphon", "eq", 0), [
+			act.completeObjective("destroy-siphon-east"),
+			act.dialogue("gen_whiskers", "Siphon East is gone. The river's running clean again."),
+		]),
+		trigger(
+			"river-crossing-warning",
+			on.areaEntered("ura", "river_crossing"),
+			act.dialogue(
+				"gen_whiskers",
+				"Bridge crossing ahead. Siphon drones patrol this stretch — keep your forces tight and push through fast.",
+			),
+		),
+		trigger("counterattack-1", on.timer(480), [
+			act.dialogue("gen_whiskers", "Incoming! Scale-Guard is sending a response force from the north. Defend your base!"),
+			act.spawn("gator", "scale_guard", 27, 2, 4),
+			act.spawn("scout_lizard", "scale_guard", 20, 2, 2),
+		]),
+		trigger("counterattack-2", on.timer(840), [
+			act.dialogue("gen_whiskers", "Another wave from Scale-Guard. They're throwing everything at you — hold the line."),
+			act.spawn("gator", "scale_guard", 5, 15, 3),
+			act.spawn("viper", "scale_guard", 50, 15, 2),
+			act.spawn("snapper", "scale_guard", 27, 2, 2),
+		]),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"All three siphons are destroyed. The Copper-Silt Reach is breathing again. Outstanding work — Sappers and the Armory are now permanent assets.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {

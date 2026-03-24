@@ -58,6 +58,15 @@ describe("TERRAIN_TILES", () => {
 		}
 	});
 
+	it("every tile uses layered SP-DSL sprite definitions", () => {
+		for (const [id, tile] of Object.entries(TERRAIN_TILES)) {
+			expect("layers" in tile.sprite, `${id} should use SP-DSL layers`).toBe(true);
+			if ("layers" in tile.sprite) {
+				expect(tile.sprite.layers.length).toBeGreaterThan(0);
+			}
+		}
+	});
+
 	it("water is impassable without swimming", () => {
 		expect(TERRAIN_TILES.water.movementCost).toBe(Infinity);
 		expect(TERRAIN_TILES.water.swimCost).toBe(2);

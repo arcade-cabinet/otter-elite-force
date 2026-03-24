@@ -16,6 +16,7 @@
  * Tests are written BEFORE entity definitions exist.
  */
 import { describe, it, expect, beforeAll } from "vitest";
+import { getCategoryDimensions, materializeSpriteToLegacy } from "@/entities/sprite-materialization";
 import type { UnitDef, HeroDef, BuildingDef, PortraitDef, SpriteDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------
@@ -35,10 +36,33 @@ beforeAll(async () => {
 		PALETTE = paletteModule.PALETTE ?? {};
 
 		const registry = await import("@/entities/registry");
-		units = registry.ALL_UNITS ?? {};
-		heroes = registry.ALL_HEROES ?? {};
-		buildings = registry.ALL_BUILDINGS ?? {};
-		portraits = registry.ALL_PORTRAITS ?? {};
+		const unitDimensions = getCategoryDimensions("units");
+		const buildingDimensions = getCategoryDimensions("buildings");
+		const portraitDimensions = getCategoryDimensions("portraits");
+		units = Object.fromEntries(
+			Object.entries(registry.ALL_UNITS ?? {}).map(([id, unit]) => [
+				id,
+				{ ...unit, sprite: materializeSpriteToLegacy(unit.sprite, unitDimensions) },
+			]),
+		);
+		heroes = Object.fromEntries(
+			Object.entries(registry.ALL_HEROES ?? {}).map(([id, hero]) => [
+				id,
+				{ ...hero, sprite: materializeSpriteToLegacy(hero.sprite, unitDimensions) },
+			]),
+		);
+		buildings = Object.fromEntries(
+			Object.entries(registry.ALL_BUILDINGS ?? {}).map(([id, building]) => [
+				id,
+				{ ...building, sprite: materializeSpriteToLegacy(building.sprite, buildingDimensions) },
+			]),
+		);
+		portraits = Object.fromEntries(
+			Object.entries(registry.ALL_PORTRAITS ?? {}).map(([id, portrait]) => [
+				id,
+				{ ...portrait, sprite: materializeSpriteToLegacy(portrait.sprite, portraitDimensions) },
+			]),
+		);
 	} catch (e) {
 		loadError = (e as Error).message;
 	}
@@ -197,8 +221,8 @@ describe("Palette", () => {
 	it("every value is a valid hex color", () => {
 		if (skip()) return;
 		const hexRegex = /^#[0-9a-fA-F]{6}$/;
-		for (const [key, value] of Object.entries(PALETTE)) {
-			expect(value).toMatch(hexRegex);
+		for (const [, value] of Object.entries(PALETTE)) {
+			expect(value === "transparent" || hexRegex.test(value)).toBe(true);
 		}
 	});
 

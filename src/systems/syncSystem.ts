@@ -16,6 +16,7 @@
 import type { Entity, World } from "koota";
 import { createAdded, createRemoved } from "koota";
 import type Phaser from "phaser";
+import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
 import { UnitType, Selected } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { PhaserSprite } from "../ecs/traits/phaser";
@@ -26,6 +27,37 @@ const TILE_SIZE = 32;
 // Change-detection trackers (one instance per sync system lifecycle).
 const Added = createAdded();
 const Removed = createRemoved();
+
+function resolveAtlasCategory(entityId: string): "units" | "buildings" | "resources" | null {
+	if (getUnit(entityId) || getHero(entityId)) return "units";
+	if (getBuilding(entityId)) return "buildings";
+	if (getResource(entityId)) return "resources";
+	return null;
+}
+
+function createEntitySprite(
+	scene: Phaser.Scene,
+	textureKey: string,
+	x: number,
+	y: number,
+): Phaser.GameObjects.Sprite | null {
+	const category = resolveAtlasCategory(textureKey);
+	const atlasScale = String(scene.registry.get("atlasScale") ?? "2x");
+
+	if (category) {
+		const atlasKey = `${category}_${atlasScale}`;
+		if (scene.textures.exists(atlasKey) && scene.textures.get(atlasKey).has(textureKey)) {
+			return scene.add.sprite(x, y, atlasKey, textureKey);
+		}
+	}
+
+	if (scene.textures.exists(textureKey)) {
+		return scene.add.sprite(x, y, textureKey);
+	}
+
+	console.warn(`[syncSystem] Missing sprite frame for entity '${textureKey}'`);
+	return null;
+}
 
 /**
  * Create Phaser sprites for newly spawned Koota entities that have
@@ -42,11 +74,13 @@ export function syncNewEntities(world: World, scene: Phaser.Scene): void {
 
 		const textureKey = unitType.type;
 
-		const sprite = scene.add.sprite(
-			pos.x * TILE_SIZE + TILE_SIZE / 2,
-			pos.y * TILE_SIZE + TILE_SIZE / 2,
-			textureKey,
-		);
+			const sprite = createEntitySprite(
+				scene,
+				textureKey,
+				pos.x * TILE_SIZE + TILE_SIZE / 2,
+				pos.y * TILE_SIZE + TILE_SIZE / 2,
+			);
+			if (!sprite) continue;
 		sprite.setInteractive();
 		sprite.setData("kootaEntity", entity);
 

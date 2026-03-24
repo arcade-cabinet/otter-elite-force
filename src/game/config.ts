@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { BootScene } from "@/Scenes/BootScene";
 import { GameScene } from "@/Scenes/GameScene";
 import { GAME_WIDTH, GAME_HEIGHT } from "@/config/constants";
+import { queueDeployment, type DeploymentData } from "@/game/deployment";
 
 const config: Phaser.Types.Core.GameConfig = {
 	type: Phaser.AUTO,
@@ -24,7 +25,8 @@ const config: Phaser.Types.Core.GameConfig = {
  * Create and return a new Phaser.Game instance.
  * Called by the PhaserGame React wrapper on mount.
  */
-const StartGame = (parent: string): Phaser.Game => {
+const StartGame = (parent: string, deploymentData?: DeploymentData): Phaser.Game => {
+	queueDeployment(deploymentData);
 	return new Phaser.Game({ ...config, parent });
 };
 

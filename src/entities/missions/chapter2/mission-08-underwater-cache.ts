@@ -6,6 +6,7 @@
 // Par time: 6 min (360s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission08UnderwaterCache: MissionDef = {
 	id: "mission_8",
@@ -110,107 +111,68 @@ export const mission08UnderwaterCache: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "rescue-splash",
-				description: "Rescue Cpl. Splash",
-				type: "rescue",
-				target: "cpl_splash",
-				count: 1,
-			},
-			{
-				id: "recover-cache",
-				description: "Recover the underwater cache",
-				type: "collect",
-				target: "munitions_cache",
-				count: 1,
-			},
-			{
-				id: "extract-north",
-				description: "Extract to northern LZ",
-				type: "explore",
-			},
+			objective("rescue-splash", "Rescue Cpl. Splash"),
+			objective("recover-cache", "Recover the underwater cache"),
+			objective("extract-north", "Extract to northern LZ"),
 		],
-		bonus: [
-			{
-				id: "no-casualties",
-				description: "Complete without losing any units",
-				type: "survive",
-			},
-		],
+		bonus: [objective("no-casualties", "Complete without losing any units")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:You're on the south shore. Splash's cell is to the southeast — use the tall grass for concealment. Scout-Lizards patrol both flanks of the lake.",
-			once: true,
-		},
-		{
-			id: "approach-cell",
-			condition: "area_entered:ura:splash_cell",
-			action:
-				"dialogue:gen_whiskers:Cell ahead. Three guards — two Gators and a Viper. Take them out quickly before they raise the alarm.",
-			once: true,
-		},
-		// Rescue Splash when cell area is clear
-		{
-			id: "splash-rescued",
-			condition: "area_entered:ura:splash_cell",
-			action:
-				"complete_objective:rescue-splash|spawn:cpl_splash:ura:30:24:1|dialogue:cpl_splash:Bubbles! Took you long enough. I can still swim — get me to that lake and I'll dive for the cache.",
-			once: true,
-		},
-		{
-			id: "activate-cache-objective",
-			condition: "objective_complete:rescue-splash",
-			action:
-				"dialogue:gen_whiskers:Splash is free. Move her to the lake shore. She can enter the water and swim to the cache coordinates in the center.",
-			once: true,
-		},
-		// Cache recovered — the memorable moment (discovering underwater path)
-		{
-			id: "cache-recovered",
-			condition: "area_entered:ura:lake_center",
-			action:
-				"complete_objective:recover-cache|dialogue:cpl_splash:Found it! Pre-war munitions, sealed tight. Bringing it up now. Head for the northern extraction — I'll meet you there.",
-			once: true,
-		},
-		{
-			id: "activate-extraction",
-			condition: "objective_complete:recover-cache",
-			action:
-				"dialogue:gen_whiskers:Cache recovered! Extraction point is the north shore. Get everyone there.|spawn:scout_lizard:scale_guard:10:5:2|spawn:gator:scale_guard:24:5:2",
-			once: true,
-		},
-		{
-			id: "extraction-reached",
-			condition: "area_entered:ura:extraction_lz",
-			action: "complete_objective:extract-north",
-			once: true,
-		},
-		// Hero death = fail
-		{
-			id: "bubbles-death",
-			condition: "unit_count:ura:sgt_bubbles:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		{
-			id: "splash-death",
-			condition: "unit_count:ura:cpl_splash:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		// Mission complete
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:cpl_splash:Cache secured, team extracted. Thanks for the rescue, Bubbles. Chapter 2 complete — the Copper-Silt Reach is turning in our favor.|victory",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"You're on the south shore. Splash's cell is to the southeast — use the tall grass for concealment. Scout-Lizards patrol both flanks of the lake.",
+			),
+		),
+		trigger(
+			"approach-cell",
+			on.areaEntered("ura", "splash_cell"),
+			act.dialogue(
+				"gen_whiskers",
+				"Cell ahead. Three guards — two Gators and a Viper. Take them out quickly before they raise the alarm.",
+			),
+		),
+		trigger("splash-rescued", on.areaEntered("ura", "splash_cell"), [
+			act.completeObjective("rescue-splash"),
+			act.spawn("cpl_splash", "ura", 30, 24, 1),
+			act.dialogue(
+				"cpl_splash",
+				"Bubbles! Took you long enough. I can still swim — get me to that lake and I'll dive for the cache.",
+			),
+		]),
+		trigger(
+			"activate-cache-objective",
+			on.objectiveComplete("rescue-splash"),
+			act.dialogue(
+				"gen_whiskers",
+				"Splash is free. Move her to the lake shore. She can enter the water and swim to the cache coordinates in the center.",
+			),
+		),
+		trigger("cache-recovered", on.areaEntered("ura", "lake_center"), [
+			act.completeObjective("recover-cache"),
+			act.dialogue(
+				"cpl_splash",
+				"Found it! Pre-war munitions, sealed tight. Bringing it up now. Head for the northern extraction — I'll meet you there.",
+			),
+		]),
+		trigger("activate-extraction", on.objectiveComplete("recover-cache"), [
+			act.dialogue("gen_whiskers", "Cache recovered! Extraction point is the north shore. Get everyone there."),
+			act.spawn("scout_lizard", "scale_guard", 10, 5, 2),
+			act.spawn("gator", "scale_guard", 24, 5, 2),
+		]),
+		trigger("extraction-reached", on.areaEntered("ura", "extraction_lz"), act.completeObjective("extract-north")),
+		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
+		trigger("splash-death", on.unitCount("ura", "cpl_splash", "eq", 0), act.failMission()),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"cpl_splash",
+				"Cache secured, team extracted. Thanks for the rescue, Bubbles. Chapter 2 complete — the Copper-Silt Reach is turning in our favor.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {

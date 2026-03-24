@@ -7,6 +7,7 @@
 // Par time: 14 min (840s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission15SerpentKing: MissionDef = {
 	id: "mission_15",
@@ -149,80 +150,64 @@ export const mission15SerpentKing: MissionDef = {
 	startPopCap: 30,
 
 	objectives: {
-		primary: [
-			{
-				id: "defeat-serpent-king",
-				description: "Defeat the Serpent King",
-				type: "destroy",
-				target: "serpent_king",
-				count: 1,
-			},
-		],
-		bonus: [
-			{
-				id: "all-heroes-survive",
-				description: "All heroes survive the battle",
-				type: "survive",
-			},
-		],
+		primary: [objective("defeat-serpent-king", "Defeat the Serpent King")],
+		bonus: [objective("all-heroes-survive", "All heroes survive the battle")],
 	},
 
 	triggers: [
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:gen_whiskers:The Iron Citadel. Three rings of defense between you and the Serpent King. Use the flanking routes through the mangroves to split their defenses.",
-			once: true,
-		},
-		{
-			id: "outer-ring-entered",
-			condition: "area_entered:ura:outer_ring",
-			action:
-				"dialogue:gen_whiskers:You've breached the outer ring. Venom Spires are the priority targets — knock them out to open lanes for your infantry.",
-			once: true,
-		},
-		{
-			id: "middle-ring-entered",
-			condition: "area_entered:ura:middle_ring",
-			action:
-				"dialogue:gen_whiskers:Middle ring — elite garrison. Vipers and Snappers. This is where they'll make their stand.|spawn:gator:scale_guard:26:6:4|spawn:viper:scale_guard:18:20:2|spawn:viper:scale_guard:34:20:2",
-			once: true,
-		},
-		{
-			id: "throne-room-entered",
-			condition: "area_entered:ura:throne_room",
-			action:
-				"dialogue:gen_whiskers:The throne room! The Serpent King is here. Engage with all heroes — coordinate your attacks!",
-			once: true,
-		},
-		{
-			id: "serpent-king-wounded",
-			condition: "timer:600",
-			action:
-				"dialogue:gen_whiskers:The Serpent King is summoning reinforcements! Hold the line!|spawn:gator:scale_guard:26:4:6|spawn:viper:scale_guard:10:20:3|spawn:snapper:scale_guard:42:20:3",
-			once: true,
-		},
-		{
-			id: "serpent-king-defeated",
-			condition: "unit_count:scale_guard:serpent_king:eq:0",
-			action: "complete_objective:defeat-serpent-king",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"gen_whiskers",
+				"The Iron Citadel. Three rings of defense between you and the Serpent King. Use the flanking routes through the mangroves to split their defenses.",
+			),
+		),
+		trigger(
+			"outer-ring-entered",
+			on.areaEntered("ura", "outer_ring"),
+			act.dialogue(
+				"gen_whiskers",
+				"You've breached the outer ring. Venom Spires are the priority targets — knock them out to open lanes for your infantry.",
+			),
+		),
+		trigger("middle-ring-entered", on.areaEntered("ura", "middle_ring"), [
+			act.dialogue(
+				"gen_whiskers",
+				"Middle ring — elite garrison. Vipers and Snappers. This is where they'll make their stand.",
+			),
+			act.spawn("gator", "scale_guard", 26, 6, 4),
+			act.spawn("viper", "scale_guard", 18, 20, 2),
+			act.spawn("viper", "scale_guard", 34, 20, 2),
+		]),
+		trigger(
+			"throne-room-entered",
+			on.areaEntered("ura", "throne_room"),
+			act.dialogue(
+				"gen_whiskers",
+				"The throne room! The Serpent King is here. Engage with all heroes — coordinate your attacks!",
+			),
+		),
+		trigger("serpent-king-wounded", on.timer(600), [
+			act.dialogue("gen_whiskers", "The Serpent King is summoning reinforcements! Hold the line!"),
+			act.spawn("gator", "scale_guard", 26, 4, 6),
+			act.spawn("viper", "scale_guard", 10, 20, 3),
+			act.spawn("snapper", "scale_guard", 42, 20, 3),
+		]),
+		trigger(
+			"serpent-king-defeated",
+			on.unitCount("scale_guard", "serpent_king", "eq", 0),
+			act.completeObjective("defeat-serpent-king"),
+		),
 		// Hero deaths
-		{
-			id: "bubbles-death",
-			condition: "unit_count:ura:sgt_bubbles:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:The Serpent King has fallen. Scale-Guard's supreme commander is defeated. But the remaining forces are regrouping for one last desperate stand...|victory",
-			once: true,
-		},
+		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"The Serpent King has fallen. Scale-Guard's supreme commander is defeated. But the remaining forces are regrouping for one last desperate stand...",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {},

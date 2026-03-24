@@ -23,13 +23,14 @@ let render: typeof import("@testing-library/react").render;
 let screen: typeof import("@testing-library/react").screen;
 let fireEvent: typeof import("@testing-library/react").fireEvent;
 let createWorld: typeof import("koota").createWorld;
-let trait: typeof import("koota").trait;
 let WorldProvider: any;
 let MainMenu: any;
+let CampaignProgress: typeof import("@/ecs/traits/state").CampaignProgress;
 
 let loadError: string | null = null;
 
 beforeEach(async () => {
+	loadError = null;
 	try {
 		React = await import("react");
 		const rtl = await import("@testing-library/react");
@@ -38,9 +39,10 @@ beforeEach(async () => {
 		fireEvent = rtl.fireEvent;
 		const koota = await import("koota");
 		createWorld = koota.createWorld;
-		trait = koota.trait;
-		const kootaReact = await import("@koota/react");
+		const kootaReact = await import("koota/react");
 		WorldProvider = kootaReact.WorldProvider;
+		const stateTraits = await import("@/ecs/traits/state");
+		CampaignProgress = stateTraits.CampaignProgress;
 		const mod = await import("@/ui/command-post/MainMenu");
 		MainMenu = mod.MainMenu ?? mod.default;
 	} catch (e) {
@@ -108,15 +110,13 @@ describe("MainMenu", () => {
 		it("shows 'Continue' when campaign progress exists", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(MainMenu), (world: any) => {
-				// CampaignProgress with at least one completed mission
-				const CampaignProgress = trait(() => ({
+					world.set(CampaignProgress, {
 					missions: {
 						mission_1: { status: "completed", stars: 2, bestTime: 480000 },
-					} as Record<string, { status: string; stars: number; bestTime: number }>,
-					currentMission: "mission_2" as string | null,
-					difficulty: "tactical" as string,
-				}));
-				world.spawn(CampaignProgress);
+						},
+						currentMission: "mission_2",
+						difficulty: "tactical",
+					});
 			});
 			expect(screen.getByText(/continue/i)).toBeTruthy();
 		});
@@ -165,7 +165,7 @@ describe("MainMenu", () => {
 			// Should have at least 3 buttons (New Deployment, Canteen, Settings)
 			expect(buttons.length).toBeGreaterThanOrEqual(3);
 			for (const btn of buttons) {
-				expect(btn).not.toHaveAttribute("disabled");
+					expect(btn.getAttribute("disabled")).toBeNull();
 			}
 		});
 	});

@@ -11,6 +11,7 @@
  * They WILL FAIL until the corresponding entity modules are implemented.
  */
 import { describe, it, expect, beforeAll } from "vitest";
+import { getCategoryDimensions, materializeSpriteToLegacy } from "@/entities/sprite-materialization";
 import type { UnitDef, HeroDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------
@@ -24,8 +25,19 @@ let loadError: string | null = null;
 beforeAll(async () => {
 	try {
 		const registry = await import("@/entities/registry");
-		units = registry.ALL_UNITS ?? {};
-		heroes = registry.ALL_HEROES ?? {};
+		const dimensions = getCategoryDimensions("units");
+		units = Object.fromEntries(
+			Object.entries(registry.ALL_UNITS ?? {}).map(([id, unit]) => [
+				id,
+				{ ...unit, sprite: materializeSpriteToLegacy(unit.sprite, dimensions) },
+			]),
+		);
+		heroes = Object.fromEntries(
+			Object.entries(registry.ALL_HEROES ?? {}).map(([id, hero]) => [
+				id,
+				{ ...hero, sprite: materializeSpriteToLegacy(hero.sprite, dimensions) },
+			]),
+		);
 	} catch (e) {
 		loadError = (e as Error).message;
 	}

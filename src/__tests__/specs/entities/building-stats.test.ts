@@ -10,6 +10,7 @@
  * They WILL FAIL until the corresponding entity modules are implemented.
  */
 import { describe, it, expect, beforeAll } from "vitest";
+import { getCategoryDimensions, materializeSpriteToLegacy } from "@/entities/sprite-materialization";
 import type { BuildingDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------
@@ -22,7 +23,13 @@ let loadError: string | null = null;
 beforeAll(async () => {
 	try {
 		const registry = await import("@/entities/registry");
-		buildings = registry.ALL_BUILDINGS ?? {};
+		const dimensions = getCategoryDimensions("buildings");
+		buildings = Object.fromEntries(
+			Object.entries(registry.ALL_BUILDINGS ?? {}).map(([id, building]) => [
+				id,
+				{ ...building, sprite: materializeSpriteToLegacy(building.sprite, dimensions) },
+			]),
+		);
 	} catch (e) {
 		loadError = (e as Error).message;
 	}

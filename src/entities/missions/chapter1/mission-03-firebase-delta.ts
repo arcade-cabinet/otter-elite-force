@@ -7,6 +7,7 @@
 // Par time: 10 min (600s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission03FirebaseDelta: MissionDef = {
 	id: "mission_3",
@@ -134,101 +135,49 @@ export const mission03FirebaseDelta: MissionDef = {
 	startPopCap: 18,
 
 	objectives: {
-		primary: [
-			{
-				id: "hold-all-points",
-				description: "Capture and hold all 3 points for 2 minutes",
-				type: "survive",
-				timeLimit: 120,
-			},
-		],
-		bonus: [
-			{
-				id: "destroy-spawning-pool",
-				description: "Destroy the Scale-Guard Spawning Pool",
-				type: "destroy",
-				target: "spawning_pool",
-				count: 1,
-			},
-		],
+		primary: [objective("hold-all-points", "Capture and hold all 3 points for 2 minutes")],
+		bonus: [objective("destroy-spawning-pool", "Destroy the Scale-Guard Spawning Pool")],
 	},
 
 	triggers: [
-		// Opening hint
-		{
-			id: "opening-hint",
-			condition: "timer:5",
-			action:
-				"dialogue:foxhound:Shellcrackers have range advantage. Position them on high ground and let Mudfoots lead the charge.",
-			once: true,
-		},
-		// Capture point notifications
-		{
-			id: "alpha-captured",
-			condition: "area_entered:ura:point_alpha",
-			action: "dialogue:foxhound:Point Alpha secured. Two to go.",
-			once: true,
-		},
-		{
-			id: "bravo-captured",
-			condition: "area_entered:ura:point_bravo",
-			action: "dialogue:foxhound:Point Bravo is ours. Keep pushing.",
-			once: true,
-		},
-		{
-			id: "charlie-captured",
-			condition: "area_entered:ura:point_charlie",
-			action:
-				"dialogue:foxhound:Point Charlie captured. Hold all three and the clock starts. Two minutes, Bubbles.",
-			once: true,
-		},
-		// Counterattack wave 1 (3 minutes)
-		{
-			id: "counterattack-1",
-			condition: "timer:180",
-			action:
-				"dialogue:foxhound:Scale-Guard counterattack incoming from the north! Reinforce your positions!|spawn:gator:scale_guard:10:1:3|spawn:viper:scale_guard:25:1:2",
-			once: true,
-		},
-		// Counterattack wave 2 (5 minutes)
-		{
-			id: "counterattack-2",
-			condition: "timer:300",
-			action:
-				"spawn:gator:scale_guard:5:0:4|spawn:gator:scale_guard:30:0:4|spawn:viper:scale_guard:18:2:2",
-			once: true,
-		},
-		// Counterattack wave 3 (7 minutes) — the heaviest
-		{
-			id: "counterattack-3",
-			condition: "timer:420",
-			action:
-				"dialogue:foxhound:Heavy reinforcements! They're throwing everything at the points. Dig in!|spawn:gator:scale_guard:3:2:3|spawn:gator:scale_guard:33:2:3|spawn:viper:scale_guard:18:0:3|spawn:scout_lizard:scale_guard:15:1:2",
-			once: true,
-		},
-		// Spawning pool destroyed (bonus)
-		{
-			id: "spawning-pool-destroyed",
-			condition: "building_count:scale_guard:spawning_pool:eq:0",
-			action:
-				"complete_objective:destroy-spawning-pool|dialogue:foxhound:Their spawning pool is down! That'll slow the counterattacks.",
-			once: true,
-		},
-		// Command post destroyed = defeat
-		{
-			id: "cp-destroyed",
-			condition: "building_count:ura:command_post:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		// Mission complete
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:foxhound:Two minutes! Firebase Delta is ours. Scale-Guard is falling back. Outstanding work.|victory",
-			once: true,
-		},
+		trigger(
+			"opening-hint",
+			on.timer(5),
+			act.dialogue("foxhound", "Shellcrackers have range advantage. Position them on high ground and let Mudfoots lead the charge."),
+		),
+		trigger("alpha-captured", on.areaEntered("ura", "point_alpha"), act.dialogue("foxhound", "Point Alpha secured. Two to go.")),
+		trigger("bravo-captured", on.areaEntered("ura", "point_bravo"), act.dialogue("foxhound", "Point Bravo is ours. Keep pushing.")),
+		trigger(
+			"charlie-captured",
+			on.areaEntered("ura", "point_charlie"),
+			act.dialogue("foxhound", "Point Charlie captured. Hold all three and the clock starts. Two minutes, Bubbles."),
+		),
+		trigger("counterattack-1", on.timer(180), [
+			act.dialogue("foxhound", "Scale-Guard counterattack incoming from the north! Reinforce your positions!"),
+			act.spawn("gator", "scale_guard", 10, 1, 3),
+			act.spawn("viper", "scale_guard", 25, 1, 2),
+		]),
+		trigger("counterattack-2", on.timer(300), [
+			act.spawn("gator", "scale_guard", 5, 0, 4),
+			act.spawn("gator", "scale_guard", 30, 0, 4),
+			act.spawn("viper", "scale_guard", 18, 2, 2),
+		]),
+		trigger("counterattack-3", on.timer(420), [
+			act.dialogue("foxhound", "Heavy reinforcements! They're throwing everything at the points. Dig in!"),
+			act.spawn("gator", "scale_guard", 3, 2, 3),
+			act.spawn("gator", "scale_guard", 33, 2, 3),
+			act.spawn("viper", "scale_guard", 18, 0, 3),
+			act.spawn("scout_lizard", "scale_guard", 15, 1, 2),
+		]),
+		trigger("spawning-pool-destroyed", on.buildingCount("scale_guard", "spawning_pool", "eq", 0), [
+			act.completeObjective("destroy-spawning-pool"),
+			act.dialogue("foxhound", "Their spawning pool is down! That'll slow the counterattacks."),
+		]),
+		trigger("cp-destroyed", on.buildingCount("ura", "command_post", "eq", 0), act.failMission()),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue("foxhound", "Two minutes! Firebase Delta is ours. Scale-Guard is falling back. Outstanding work."),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {

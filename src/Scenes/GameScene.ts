@@ -12,22 +12,19 @@
 
 import Phaser from "phaser";
 import { EventBus } from "@/game/EventBus";
-import { GAME_HEIGHT, GAME_WIDTH } from "@/config/constants";
+import type { DeploymentData } from "@/game/deployment";
 import type { MissionDef, Placement } from "@/entities/types";
 import { getUnit, getHero, getBuilding, getResource } from "@/entities/registry";
+import { compileMissionScenario } from "@/entities/missions/compileMissionScenario";
+import { getMissionById } from "@/entities/missions";
 import { spawnUnit, spawnBuilding, spawnResource } from "@/entities/spawner";
 import { paintMap } from "@/entities/terrain/map-painter";
-import { getScaleFactor } from "@/entities/renderer";
-import { Faction, UnitType } from "@/ecs/traits/identity";
+import { Faction, IsBuilding, UnitType } from "@/ecs/traits/identity";
 import { Health } from "@/ecs/traits/combat";
 import { Position } from "@/ecs/traits/spatial";
 import { world } from "@/ecs/world";
 import { DesktopInput } from "@/input/desktopInput";
 import { MobileInput } from "@/input/mobileInput";
-import { mission01Beachhead } from "@/entities/missions/chapter1/mission-01-beachhead";
-import { mission02Causeway } from "@/entities/missions/chapter1/mission-02-causeway";
-import { mission03FirebaseDelta } from "@/entities/missions/chapter1/mission-03-firebase-delta";
-import { mission04PrisonBreak } from "@/entities/missions/chapter1/mission-04-prison-break";
 import { ScenarioEngine } from "@/scenarios/engine";
 import type { ScenarioWorldQuery, ActionHandler } from "@/scenarios/engine";
 import type { TriggerAction } from "@/scenarios/types";
@@ -39,24 +36,23 @@ import { WeatherSystem } from "@/systems/weatherSystem";
 import { resetSessionState } from "@/ecs/singletons";
 import { CurrentMission, GamePhase, ResourcePool, PopulationState } from "@/ecs/traits/state";
 
-interface GameData {
-	missionId: number;
-	difficulty: "support" | "tactical" | "elite";
-}
-
 /** Tile size in pixels — matches the sync layer (32px). */
 const TILE_SIZE = 32;
 
-/** Mission registry — maps missionId to new MissionDef format. */
-const MISSION_DEFS: Record<number, MissionDef> = {
-	1: mission01Beachhead,
-	2: mission02Causeway,
-	3: mission03FirebaseDelta,
-	4: mission04PrisonBreak,
-};
+function resolveMissionKey(missionId: string | number): string {
+	return typeof missionId === "number" ? `mission_${missionId}` : missionId;
+}
+
+function resolveMissionNumber(missionId: string | number): number {
+	if (typeof missionId === "number") {
+		return missionId;
+	}
+	const numeric = Number.parseInt(missionId.replace("mission_", ""), 10);
+	return Number.isNaN(numeric) ? 1 : numeric;
+}
 
 export class GameScene extends Phaser.Scene {
-	private missionData!: GameData;
+	private missionData!: DeploymentData;
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private wasd!: Record<string, Phaser.Input.Keyboard.Key>;
 	private cameraPanSpeed = 400;
@@ -71,8 +67,8 @@ export class GameScene extends Phaser.Scene {
 		super({ key: "Game" });
 	}
 
-	init(data: GameData): void {
-		this.missionData = data;
+	init(data?: DeploymentData): void {
+		this.missionData = data ?? { missionId: "mission_1", difficulty: "support" };
 		this.elapsedTime = 0;
 	}
 
@@ -81,12 +77,12 @@ export class GameScene extends Phaser.Scene {
 
 		// Reset session state for new mission
 		resetSessionState(world);
-		world.set(CurrentMission, { missionId: String(this.missionData.missionId) });
+		world.set(CurrentMission, { missionId: resolveMissionKey(this.missionData.missionId) });
 		world.set(GamePhase, { phase: "playing" });
 
 		// Camera setup: enable panning and zooming
 		this.cameras.main.setZoom(1);
-		this.cameras.main.setBounds(0, 0, GAME_WIDTH * 2, GAME_HEIGHT * 2);
+		this.cameras.main.setBounds(0, 0, this.scale.width * 2, this.scale.height * 2);
 
 		// Keyboard input for camera pan
 		if (this.input.keyboard) {
@@ -110,7 +106,7 @@ export class GameScene extends Phaser.Scene {
 		);
 
 		// Load mission from new MissionDef format
-		const mission = MISSION_DEFS[this.missionData.missionId];
+		const mission = getMissionById(resolveMissionKey(this.missionData.missionId));
 		if (mission) {
 			this.loadMission(mission);
 		} else {
@@ -200,12 +196,13 @@ export class GameScene extends Phaser.Scene {
 
 		// Edge scrolling: pan when mouse is near screen edge
 		const pointer = this.input.activePointer;
-		const edgeThreshold = 30;
+		const edgeThresholdX = Math.max(20, cam.width * 0.03);
+		const edgeThresholdY = Math.max(20, cam.height * 0.04);
 
-		if (pointer.x < edgeThreshold) cam.scrollX -= speed;
-		if (pointer.x > GAME_WIDTH - edgeThreshold) cam.scrollX += speed;
-		if (pointer.y < edgeThreshold) cam.scrollY -= speed;
-		if (pointer.y > GAME_HEIGHT - edgeThreshold) cam.scrollY += speed;
+		if (pointer.x < edgeThresholdX) cam.scrollX -= speed;
+		if (pointer.x > cam.width - edgeThresholdX) cam.scrollX += speed;
+		if (pointer.y < edgeThresholdY) cam.scrollY -= speed;
+		if (pointer.y > cam.height - edgeThresholdY) cam.scrollY += speed;
 	}
 
 	private drawPlaceholderGrid(): void {
@@ -230,9 +227,10 @@ export class GameScene extends Phaser.Scene {
 
 	private loadMission(mission: MissionDef): void {
 		// 1. Paint terrain onto a Canvas and register as background
-		const tileScale = getScaleFactor(16);
-		const terrainTileSize = 16 * tileScale; // e.g., 48 at 3x
-		const terrainCanvas = paintMap(mission.terrain, terrainTileSize);
+		const terrainCanvas = paintMap(mission.terrain, TILE_SIZE);
+		if (this.textures.exists("terrain-bg")) {
+			this.textures.remove("terrain-bg");
+		}
 		this.textures.addCanvas("terrain-bg", terrainCanvas);
 		this.add.image(0, 0, "terrain-bg").setOrigin(0, 0);
 
@@ -244,8 +242,9 @@ export class GameScene extends Phaser.Scene {
 		// Center camera on the ura_start zone if it exists, otherwise center of map
 		const startZone = mission.zones.ura_start;
 		if (startZone) {
-			this.cameras.main.scrollX = startZone.x * TILE_SIZE - GAME_WIDTH / 2;
-			this.cameras.main.scrollY = startZone.y * TILE_SIZE - GAME_HEIGHT / 2;
+			const cam = this.cameras.main;
+			cam.scrollX = startZone.x * TILE_SIZE - cam.width / 2;
+			cam.scrollY = startZone.y * TILE_SIZE - cam.height / 2;
 		}
 
 		// 2. Set starting resources from mission definition via Koota
@@ -295,9 +294,11 @@ export class GameScene extends Phaser.Scene {
 		if (placement.zone) {
 			const zone = mission.zones[placement.zone];
 			if (zone) {
+				const seed = `${placement.type}:${placement.zone}:${index}`;
+				const hash = [...seed].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
 				return {
-					x: zone.x + Math.floor(Math.random() * zone.width),
-					y: zone.y + Math.floor(Math.random() * zone.height),
+					x: zone.x + (hash % zone.width),
+					y: zone.y + (Math.floor(hash / Math.max(1, zone.width)) % zone.height),
 				};
 			}
 		}
@@ -349,21 +350,12 @@ export class GameScene extends Phaser.Scene {
 		};
 
 		const scenario = mission
-			? {
-					id: mission.id,
-					chapter: mission.chapter,
-					mission: mission.mission,
-					name: mission.name,
-					briefing: { title: "", lines: [], objectives: [] },
-					startConditions: {},
-					objectives: [],
-					triggers: [],
-				}
+			? compileMissionScenario(mission)
 			: {
-					id: `mission-${this.missionData.missionId}`,
+						id: `mission-${resolveMissionNumber(this.missionData.missionId)}`,
 					chapter: 1,
-					mission: this.missionData.missionId,
-					name: `Mission ${this.missionData.missionId}`,
+						mission: resolveMissionNumber(this.missionData.missionId),
+						name: `Mission ${resolveMissionNumber(this.missionData.missionId)}`,
 					briefing: { title: "", lines: [], objectives: [] },
 					startConditions: {},
 					objectives: [],
@@ -373,9 +365,7 @@ export class GameScene extends Phaser.Scene {
 		this.scenarioEngine = new ScenarioEngine(scenario, actionHandler);
 
 		this.scenarioEngine.on((event) => {
-			if (event.type === "allObjectivesCompleted") {
-				this.handleVictory();
-			} else if (event.type === "missionFailed") {
+				if (event.type === "missionFailed") {
 				this.handleDefeat(event.reason);
 			}
 		});
@@ -395,6 +385,19 @@ export class GameScene extends Phaser.Scene {
 				});
 				return count;
 			},
+				countBuildings: (faction: string, buildingType?: string) => {
+					let count = 0;
+					world.query(Faction, UnitType, Health, IsBuilding).forEach((entity) => {
+						const entityFaction = entity.get(Faction);
+						if (!entityFaction || entityFaction.id !== faction) return;
+						if (buildingType) {
+							const entityType = entity.get(UnitType);
+							if (!entityType || entityType.type !== buildingType) return;
+						}
+						count++;
+					});
+					return count;
+				},
 			countUnitsInArea: (
 				faction: string,
 				area: { x: number; y: number; width: number; height: number },
@@ -462,6 +465,9 @@ export class GameScene extends Phaser.Scene {
 					action.duration * 1000,
 				);
 				break;
+				case "victory":
+					this.handleVictory();
+					break;
 			case "showDialogue":
 			case "changeWeather":
 			case "playSFX":
@@ -477,7 +483,7 @@ export class GameScene extends Phaser.Scene {
 		const stars = elapsed < 300 ? 3 : elapsed < 600 ? 2 : 1;
 
 		EventBus.emit("mission-complete", {
-			missionId: this.missionData.missionId,
+			missionId: resolveMissionKey(this.missionData.missionId),
 			difficulty: this.missionData.difficulty,
 			stars,
 			stats: {

@@ -7,6 +7,7 @@
 // Par time: 5 min (300s).
 
 import type { MissionDef } from "../../types";
+import { act, objective, on, trigger } from "../dsl";
 
 export const mission04PrisonBreak: MissionDef = {
 	id: "mission_4",
@@ -173,109 +174,78 @@ export const mission04PrisonBreak: MissionDef = {
 
 	objectives: {
 		primary: [
-			{
-				id: "rescue-whiskers",
-				description: "Rescue Gen. Whiskers",
-				type: "rescue",
-				target: "gen_whiskers",
-				count: 1,
-			},
-			{
-				id: "extract-whiskers",
-				description: "Escort Gen. Whiskers to extraction",
-				type: "rescue",
-				target: "gen_whiskers",
-				count: 1,
-			},
+			objective("rescue-whiskers", "Rescue Gen. Whiskers"),
+			objective("extract-whiskers", "Escort Gen. Whiskers to extraction"),
 		],
-		bonus: [
-			{
-				id: "no-alarm",
-				description: "Complete without triggering the alarm",
-				type: "explore",
-			},
-		],
+		bonus: [objective("no-alarm", "Complete without triggering the alarm")],
 	},
 
 	triggers: [
-		// Mission start guidance
-		{
-			id: "mission-start",
-			condition: "timer:3",
-			action:
-				"dialogue:foxhound:You're in position. Use the tall grass along the south for concealment. Detection towers have a radius — watch their coverage.",
-			once: true,
-		},
-		// Approaching the compound
-		{
-			id: "compound-approach",
-			condition: "area_entered:ura:south_approach",
-			action:
-				"dialogue:foxhound:You're near the perimeter. Two Venom Spires cover the east approach. Look for gaps in the patrol routes.",
-			once: true,
-		},
-		// Entering the compound
-		{
-			id: "entered-compound",
-			condition: "area_entered:ura:compound_perimeter",
-			action:
-				"dialogue:foxhound:You're inside the perimeter. The prison cell should be in the center. Two guards flanking the entrance.",
-			once: true,
-		},
-		// Reaching the prison cell — rescue Gen. Whiskers
-		{
-			id: "reached-cell",
-			condition: "area_entered:ura:prison_cell",
-			action:
-				"complete_objective:rescue-whiskers|dialogue:gen_whiskers:About time, Bubbles. I was starting to think Alliance had written me off. Let's move — I know the compound layout.|spawn:gen_whiskers:ura:15:9:1",
-			once: true,
-		},
-		// Activate extraction objective hint
-		{
-			id: "extraction-hint",
-			condition: "objective_complete:rescue-whiskers",
-			action:
-				"dialogue:foxhound:General is free! Extraction point is northwest — the cleared area at the river bend. Move fast.",
-			once: true,
-		},
-		// Extraction reached
-		{
-			id: "extraction-reached",
-			condition: "area_entered:ura:extraction_point",
-			action:
-				"complete_objective:extract-whiskers|dialogue:gen_whiskers:Extraction confirmed. Outstanding work, Sergeant. From now on, I'm running the briefings. FOXHOUND, stand down.",
-			once: true,
-		},
-		// Alarm triggered (detection system fires this)
-		{
-			id: "alarm-triggered",
-			condition: "timer:180",
-			action:
-				"dialogue:foxhound:They've spotted you! Compound is going into lockdown — expect heavy resistance!|spawn:gator:scale_guard:28:3:3|spawn:gator:scale_guard:22:15:2|spawn:scout_lizard:scale_guard:7:5:2",
-			once: true,
-		},
-		// Hero death = mission fail
-		{
-			id: "bubbles-death",
-			condition: "unit_count:ura:sgt_bubbles:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		// Whiskers death after rescue = mission fail (checked after spawn)
-		{
-			id: "whiskers-death",
-			condition: "unit_count:ura:gen_whiskers:eq:0",
-			action: "defeat",
-			once: true,
-		},
-		// Mission complete
-		{
-			id: "mission-complete",
-			condition: "all_primary_complete",
-			action:
-				"dialogue:gen_whiskers:Chapter One complete. The first landing was a success. But the war for the Copper-Silt Reach is only beginning.|victory",
-			once: true,
-		},
+		trigger(
+			"mission-start",
+			on.timer(3),
+			act.dialogue(
+				"foxhound",
+				"You're in position. Use the tall grass along the south for concealment. Detection towers have a radius — watch their coverage.",
+			),
+		),
+		trigger(
+			"compound-approach",
+			on.areaEntered("ura", "south_approach"),
+			act.dialogue(
+				"foxhound",
+				"You're near the perimeter. Two Venom Spires cover the east approach. Look for gaps in the patrol routes.",
+			),
+		),
+		trigger(
+			"entered-compound",
+			on.areaEntered("ura", "compound_perimeter"),
+			act.dialogue(
+				"foxhound",
+				"You're inside the perimeter. The prison cell should be in the center. Two guards flanking the entrance.",
+			),
+		),
+		trigger("reached-cell", on.areaEntered("ura", "prison_cell"), [
+			act.completeObjective("rescue-whiskers"),
+			act.dialogue(
+				"gen_whiskers",
+				"About time, Bubbles. I was starting to think Alliance had written me off. Let's move — I know the compound layout.",
+			),
+			act.spawn("gen_whiskers", "ura", 15, 9, 1),
+		]),
+		trigger(
+			"extraction-hint",
+			on.objectiveComplete("rescue-whiskers"),
+			act.dialogue(
+				"foxhound",
+				"General is free! Extraction point is northwest — the cleared area at the river bend. Move fast.",
+			),
+		),
+		trigger("extraction-reached", on.areaEntered("ura", "extraction_point"), [
+			act.completeObjective("extract-whiskers"),
+			act.dialogue(
+				"gen_whiskers",
+				"Extraction confirmed. Outstanding work, Sergeant. From now on, I'm running the briefings. FOXHOUND, stand down.",
+			),
+		]),
+		trigger("alarm-triggered", on.timer(180), [
+			act.dialogue(
+				"foxhound",
+				"They've spotted you! Compound is going into lockdown — expect heavy resistance!",
+			),
+			act.spawn("gator", "scale_guard", 28, 3, 3),
+			act.spawn("gator", "scale_guard", 22, 15, 2),
+			act.spawn("scout_lizard", "scale_guard", 7, 5, 2),
+		]),
+		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
+		trigger("whiskers-death", on.unitCount("ura", "gen_whiskers", "eq", 0), act.failMission()),
+		trigger("mission-complete", on.allPrimaryComplete(), [
+			act.dialogue(
+				"gen_whiskers",
+				"Chapter One complete. The first landing was a success. But the war for the Copper-Silt Reach is only beginning.",
+			),
+			act.victory(),
+		]),
 	],
 
 	unlocks: {
