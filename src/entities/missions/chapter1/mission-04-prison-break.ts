@@ -9,7 +9,7 @@
 import type { MissionDef } from "../../types";
 
 export const mission04PrisonBreak: MissionDef = {
-	id: "mission-04-prison-break",
+	id: "mission_4",
 	chapter: 1,
 	mission: 4,
 	name: "Prison Break",

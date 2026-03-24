@@ -192,6 +192,13 @@ export function getPortrait(id: string): PortraitDef | undefined {
 	return ALL_PORTRAIT_ENTITIES[id];
 }
 
+// ─── Missions (COMPLETE: 16/16) ───
+
+import { CAMPAIGN, getMissionById, getMission } from "./missions";
+import type { MissionDef } from "./types";
+
+export { CAMPAIGN, getMissionById, getMission };
+
 /**
  * Get any entity by id — searches units, heroes, buildings, resources.
  * Returns the definition and its category, or undefined.

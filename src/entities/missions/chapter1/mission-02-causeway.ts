@@ -9,7 +9,7 @@
 import type { MissionDef } from "../../types";
 
 export const mission02Causeway: MissionDef = {
-	id: "mission-02-causeway",
+	id: "mission_2",
 	chapter: 1,
 	mission: 2,
 	name: "The Causeway",

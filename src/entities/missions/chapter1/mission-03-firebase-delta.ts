@@ -9,7 +9,7 @@
 import type { MissionDef } from "../../types";
 
 export const mission03FirebaseDelta: MissionDef = {
-	id: "mission-03-firebase-delta",
+	id: "mission_3",
 	chapter: 1,
 	mission: 3,
 	name: "Firebase Delta",
