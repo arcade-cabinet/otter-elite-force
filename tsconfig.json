@@ -7,6 +7,9 @@
 		"skipLibCheck": true,
 		"types": ["vite/client"],
 
+		/* JSX */
+		"jsx": "react-jsx",
+
 		/* Bundler mode */
 		"moduleResolution": "bundler",
 		"allowImportingTsExtensions": true,
@@ -29,6 +32,9 @@
 	},
 	"include": [
 		"src/main.ts",
+		"src/app",
+		"src/game",
+		"src/ui",
 		"src/config",
 		"src/ecs",
 		"src/data",

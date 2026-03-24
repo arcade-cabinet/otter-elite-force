@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/*
+ * OEF shared color palette — exposed as Tailwind v4 theme tokens
+ * and CSS custom properties for runtime theme switching.
+ *
+ * Themes switch via data-theme attribute on <html>.
+ */
+@theme {
+	--color-jungle-depth: #0f2f1c;
+	--color-khaki: #c2b28a;
+	--color-rust: #3a2f1e;
+	--color-gunmetal: #6b4e3a;
+	--color-phosphor: #00ff41;
+	--color-blood-orange: #ff4500;
+	--color-faded-yellow: #d4a574;
+	--color-parchment: #f5e6c8;
+}
+
+/* Theme CSS variables — overridden per data-theme */
+:root {
+	--theme-bg: var(--color-jungle-depth);
+	--theme-text: var(--color-khaki);
+	--theme-accent: var(--color-phosphor);
+	--theme-alert: var(--color-blood-orange);
+	--theme-border: var(--color-gunmetal);
+}
+
+/* Theme 1: Tactical HUD (gameplay) */
+[data-theme="tactical"] {
+	--theme-bg: var(--color-jungle-depth);
+	--theme-text: var(--color-khaki);
+	--theme-accent: var(--color-phosphor);
+	--theme-alert: var(--color-blood-orange);
+	--theme-border: var(--color-gunmetal);
+}
+
+/* Theme 2: Command Post (menus, campaign map, settings) */
+[data-theme="command-post"] {
+	--theme-bg: var(--color-rust);
+	--theme-text: var(--color-faded-yellow);
+	--theme-accent: var(--color-khaki);
+	--theme-alert: var(--color-blood-orange);
+	--theme-border: var(--color-gunmetal);
+}
+
+/* Theme 3: Mission Briefing */
+[data-theme="briefing"] {
+	--theme-bg: #0a0a0a;
+	--theme-text: var(--color-parchment);
+	--theme-accent: var(--color-phosphor);
+	--theme-alert: var(--color-blood-orange);
+	--theme-border: var(--color-gunmetal);
+}
+
+/* Base reset */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html,
+body {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	background: #000;
+	font-family: monospace;
+}
+
+#root {
+	width: 100%;
+	height: 100%;
+}
+
+#game-container {
+	width: 100%;
+	height: 100%;
+}
