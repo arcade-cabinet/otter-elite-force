@@ -24,5 +24,8 @@ export const IsVillage = trait();
 /** Tag: entity is a siphon (Scale-Guard area denial structure) */
 export const IsSiphon = trait();
 
+/** Unit category: 'worker', 'infantry', 'ranged', 'siege', 'special' */
+export const Category = trait({ category: "" });
+
 /** Tag: entity is currently selected by the player */
 export const Selected = trait();
