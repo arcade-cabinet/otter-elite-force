@@ -99,12 +99,18 @@ function spawnTrainedUnit(
 
 	if (building.has(RallyPoint)) {
 		const rally = building.get(RallyPoint);
-		spawnX = rally.x;
-		spawnY = rally.y;
+		if (rally) {
+			spawnX = rally.x;
+			spawnY = rally.y;
+		} else {
+			const bPos = building.get(Position);
+			spawnX = (bPos?.x ?? 0) + 1;
+			spawnY = bPos?.y ?? 0;
+		}
 	} else {
 		const bPos = building.get(Position);
-		spawnX = bPos.x + 1; // Offset to not overlap building
-		spawnY = bPos.y;
+		spawnX = (bPos?.x ?? 0) + 1;
+		spawnY = bPos?.y ?? 0;
 	}
 
 	// Get the owner faction entity

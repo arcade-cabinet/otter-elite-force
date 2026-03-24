@@ -19,9 +19,6 @@ import { FacingDirection, Position, Velocity } from "../ecs/traits/spatial";
 import type { SteeringVehicle } from "../ai/steeringFactory";
 import { isPathComplete, setVehiclePath } from "../ai/steeringFactory";
 
-/** Arrival threshold — if within this distance, consider unit arrived. */
-const ARRIVAL_THRESHOLD = 0.5;
-
 /**
  * Main movement system tick.
  */
@@ -82,7 +79,7 @@ function processArrival(world: World): void {
 		if (!agent?.vehicle) continue;
 
 		const orders = entity.get(OrderQueue);
-		if (orders.length === 0) continue;
+		if (!orders || orders.length === 0) continue;
 
 		const currentOrder = orders[0];
 
@@ -128,5 +125,9 @@ export function assignSteeringAgent(
 	agent.vehicle.position.set(initialX, 0, initialY);
 
 	// Store the SteeringVehicle on the entity
-	entity.set(SteeringAgent, agent as unknown);
+	// SteeringAgent AoS trait stores opaque data — type erase via intermediate cast
+	entity.set(
+		SteeringAgent,
+		agent as unknown as ReturnType<typeof entity.get<typeof SteeringAgent>>,
+	);
 }
