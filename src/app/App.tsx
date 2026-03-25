@@ -14,6 +14,7 @@ import { CAMPAIGN } from "@/entities/missions";
 import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
 import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
+import { saveMission } from "@/systems/saveLoadSystem";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
 import { CampaignView } from "@/ui/command-post/CampaignView";
