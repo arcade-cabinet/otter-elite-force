@@ -48,6 +48,12 @@ android/
 ios/
 .capacitor/
 
+# ralph-tui ephemeral session state (config.toml is tracked)
+.ralph-tui/session.json
+.ralph-tui/session-meta.json
+.ralph-tui/progress.md
+.ralph-tui/reports/
+
 # Lock files (pnpm only)
 package-lock.json
 
