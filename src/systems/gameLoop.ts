@@ -5,37 +5,46 @@
  * This is the backbone of the game tick: GameScene.update() delegates here.
  *
  * Execution order:
- *   1. scenarioSystem   — evaluate win/loss triggers, spawn scripted events
- *   2. orderSystem       — translate player/AI commands into ECS state
- *   3. aiSystem          — enemy FSM decisions
- *   4. movementSystem    — Yuka steering sync, arrival detection
- *   5. combatSystem      — melee damage + ranged projectile spawning
- *      aggroSystem       — auto-acquire nearest enemy within vision
- *      projectileSystem  — move projectiles, apply damage on arrival
- *      deathSystem       — destroy dead entities, clear targeting
- *   6. economySystem     — resource gathering + fish trap passive income
- *   7. productionSystem  — unit training queue progression
- *   8. buildingSystem    — construction progress for incomplete buildings
- *   9. stealthSystem     — detection checks + alert cascade
- *  10. waterSystem       — garrison position sync for raft passengers
- *  11. weatherSystem     — advance weather schedule
- *  12. fogSystem         — update fog of war overlay
- *  13. syncSystem        — sync Koota ECS → Phaser sprites (always last)
+ *   1. scenarioSystem     — evaluate win/loss triggers, spawn scripted events
+ *   2. orderSystem         — translate player/AI commands into ECS state
+ *   3. aiSystem            — enemy FSM decisions
+ *   4. movementSystem      — Yuka steering sync, arrival detection
+ *   5. combatSystem        — melee damage + ranged projectile spawning
+ *  5b. siegeCombatSystem   — bonus damage vs buildings (Sapper, Sgt. Fang)
+ *      aoeSplashSystem     — AoE splash for mortar projectiles
+ *  5c. chargeTickSystem    — demolition charge countdowns + explosions
+ *      aggroSystem         — auto-acquire nearest enemy within vision
+ *      projectileSystem    — move projectiles, apply damage on arrival
+ *      deathSystem         — destroy dead entities, clear targeting
+ *  5d. cleanupAIRunners   — remove stale FSM runners for dead entities
+ *   6. economySystem       — resource gathering + fish trap passive income
+ *   7. productionSystem    — unit training queue progression
+ *  7b. researchSystem      — armory research progress
+ *   8. buildingSystem      — construction progress for incomplete buildings
+ *   9. stealthSystem       — detection checks + alert cascade
+ *  10. waterSystem         — garrison position sync for raft passengers
+ *  11. weatherSystem       — advance weather schedule
+ *  12. fogSystem           — update fog of war overlay
+ *  13. syncSystem          — sync Koota ECS → Phaser sprites (always last)
  */
 
 import type { World } from "koota";
 import type Phaser from "phaser";
+import { CompletedResearch } from "../ecs/traits/state";
 import type { ScenarioEngine, ScenarioWorldQuery } from "../scenarios/engine";
-import { aiSystem } from "./aiSystem";
+import { aiSystem, cleanupAIRunners } from "./aiSystem";
 import { buildingSystem } from "./buildingSystem";
 import { aggroSystem, combatSystem, deathSystem, projectileSystem } from "./combatSystem";
-import { economySystem } from "./economySystem";
 import type { DayNightSystem } from "./dayNightSystem";
+import { chargeTickSystem } from "./demolitionSystem";
+import { economySystem } from "./economySystem";
 import type { FogOfWarSystem } from "./fogSystem";
 import { movementSystem } from "./movementSystem";
 import { orderSystem } from "./orderSystem";
 import { productionSystem } from "./productionSystem";
+import { researchSystem } from "./researchSystem";
 import { scenarioSystem } from "./scenarioSystem";
+import { aoeSplashSystem, siegeCombatSystem } from "./siegeSystem";
 import { alertCascadeSystem, detectionSystem } from "./stealthSystem";
 import { syncKootaToPhaser } from "./syncSystem";
 import { waterSystem } from "./waterSystem";
@@ -87,15 +96,30 @@ export function tickAllSystems(ctx: GameLoopContext): void {
 
 	// 5. Combat — damage resolution pipeline
 	combatSystem(world, delta);
+
+	// 5b. Siege — bonus damage vs buildings + AoE splash
+	const completedResearch = world.get(CompletedResearch)?.ids ?? new Set<string>();
+	siegeCombatSystem(world, delta, completedResearch);
+	aoeSplashSystem(world);
+
+	// 5c. Demolition — timed charge countdowns + explosions
+	chargeTickSystem(world, delta);
+
 	aggroSystem(world);
 	projectileSystem(world, delta);
 	deathSystem(world);
+
+	// 5d. AI cleanup — remove stale FSM runners for dead entities
+	cleanupAIRunners(world);
 
 	// 6. Economy — resource gathering + passive income
 	economySystem(world, delta);
 
 	// 7. Production — unit training queue
 	productionSystem(world, delta);
+
+	// 7b. Research — armory research progress
+	researchSystem(world, delta);
 
 	// 8. Building — construction progress
 	buildingSystem(world, delta);
