@@ -1,5 +1,4 @@
 import { forwardRef, useEffect, useLayoutEffect, useRef } from "react";
-import StartGame from "@/game/config";
 import type { DeploymentData } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 
@@ -13,6 +12,13 @@ interface PhaserGameProps {
 	deploymentData?: DeploymentData;
 }
 
+/**
+ * PhaserGame — React wrapper that lazy-loads the Phaser game engine.
+ *
+ * US-089: Phaser is loaded via dynamic import() so it is NOT included
+ * in the initial bundle. The game engine only loads when this component
+ * mounts (i.e., when the user enters the game screen).
+ */
 export const PhaserGame = forwardRef<IRefPhaserGame, PhaserGameProps>(function PhaserGame(
 	{ currentActiveScene, deploymentData },
 	ref,
@@ -21,21 +27,27 @@ export const PhaserGame = forwardRef<IRefPhaserGame, PhaserGameProps>(function P
 	const containerRef = useRef<HTMLDivElement | null>(null);
 
 	useLayoutEffect(() => {
-		if (game.current === undefined) {
+		if (game.current !== undefined) return;
+
+		// Lazy-load Phaser game config (and transitively, Phaser itself)
+		let destroyed = false;
+		import("@/game/config").then(({ default: StartGame }) => {
+			if (destroyed) return;
 			game.current = StartGame("game-container", deploymentData);
 
 			if (ref !== null && typeof ref !== "function") {
 				ref.current = { game: game.current, scene: null };
 			}
-		}
+		});
 
 		return () => {
+			destroyed = true;
 			if (game.current) {
 				game.current.destroy(true);
 				game.current = undefined;
 			}
 		};
-	}, [ref]);
+	}, [ref, deploymentData]);
 
 	useEffect(() => {
 		const refresh = () => game.current?.scale.refresh();

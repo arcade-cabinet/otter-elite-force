@@ -10,30 +10,41 @@
  * or re-initialize the engine. Call it once in the root App component.
  *
  * US-029: Audio unlock on first user gesture
+ * US-089: Lazy-loads Tone.js via dynamic import (not in initial bundle)
  */
 
 import { useEffect, useRef, useState } from "react";
-import { audioEngine } from "@/audio/engine";
+
+// Lazy reference to the audio engine — loaded on first user gesture
+let audioEngineRef: Awaited<typeof import("@/audio/engine")>["audioEngine"] | null = null;
 
 /**
  * Hook that unlocks the Web Audio context on first user gesture.
  * Returns a boolean indicating whether audio is ready.
  */
 export function useAudioUnlock(): boolean {
-	const [ready, setReady] = useState(audioEngine.isReady);
+	const [ready, setReady] = useState(false);
 	const initializingRef = useRef(false);
 
 	useEffect(() => {
-		if (audioEngine.isReady) {
+		if (audioEngineRef?.isReady) {
 			setReady(true);
 			return;
 		}
 
 		const handleGesture = async () => {
-			if (initializingRef.current || audioEngine.isReady) return;
+			if (initializingRef.current) return;
+			if (audioEngineRef?.isReady) {
+				setReady(true);
+				removeListeners();
+				return;
+			}
 			initializingRef.current = true;
 
 			try {
+				// Lazy-load the audio engine (and Tone.js) on first user gesture
+				const { audioEngine } = await import("@/audio/engine");
+				audioEngineRef = audioEngine;
 				await audioEngine.init();
 				setReady(true);
 			} catch {
@@ -43,7 +54,7 @@ export function useAudioUnlock(): boolean {
 			}
 
 			// Remove listeners after successful init
-			if (audioEngine.isReady) {
+			if (audioEngineRef?.isReady) {
 				removeListeners();
 			}
 		};
