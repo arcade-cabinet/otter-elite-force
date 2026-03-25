@@ -16,10 +16,7 @@ import { ProductionQueue, ResearchSlot } from "@/ecs/traits/economy";
 import { Faction, IsBuilding, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 import { PopulationState, ResourcePool } from "@/ecs/traits/state";
-import {
-	getProductionProgress,
-	getResearchProgress,
-} from "@/rendering/ProductionOverlay";
+import { getProductionProgress, getResearchProgress } from "@/rendering/ProductionOverlay";
 import { productionSystem, queueUnit } from "@/systems/productionSystem";
 
 describe("US-017: Building training queue progress", () => {

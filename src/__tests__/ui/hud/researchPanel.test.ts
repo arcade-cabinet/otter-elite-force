@@ -56,9 +56,7 @@ describe("US-018: Research UI panel", () => {
 		});
 
 		it("should have all armory research items with required fields", () => {
-			const armoryResearch = Object.values(ALL_RESEARCH).filter(
-				(r) => r.researchAt === "armory",
-			);
+			const armoryResearch = Object.values(ALL_RESEARCH).filter((r) => r.researchAt === "armory");
 
 			for (const research of armoryResearch) {
 				expect(research.id).toBeTruthy();
@@ -71,9 +69,7 @@ describe("US-018: Research UI panel", () => {
 		});
 
 		it("each research should have a salvage cost", () => {
-			const armoryResearch = Object.values(ALL_RESEARCH).filter(
-				(r) => r.researchAt === "armory",
-			);
+			const armoryResearch = Object.values(ALL_RESEARCH).filter((r) => r.researchAt === "armory");
 
 			for (const research of armoryResearch) {
 				expect((research.cost.salvage ?? 0) > 0).toBe(true);
@@ -96,7 +92,7 @@ describe("US-018: Research UI panel", () => {
 
 			const completed = world.get(CompletedResearch);
 			expect(completed).toBeDefined();
-			expect(completed!.ids.has("hardshell_armor")).toBe(true);
+			expect(completed?.ids.has("hardshell_armor")).toBe(true);
 		});
 
 		it("should not allow re-researching completed items", () => {
@@ -126,7 +122,7 @@ describe("US-018: Research UI panel", () => {
 
 			const slot = armory.get(ResearchSlot);
 			expect(slot).not.toBeNull();
-			expect(slot!.researchId).toBe("fish_oil_arrows");
+			expect(slot?.researchId).toBe("fish_oil_arrows");
 		});
 	});
 
@@ -151,7 +147,7 @@ describe("US-018: Research UI panel", () => {
 			queueResearch(armory, "hardshell_armor", world);
 
 			// Hardshell Armor costs 150 salvage
-			expect(world.get(ResourcePool)!.salvage).toBe(50);
+			expect(world.get(ResourcePool)?.salvage).toBe(50);
 		});
 
 		it("should not deduct resources when research is rejected", () => {
@@ -161,7 +157,7 @@ describe("US-018: Research UI panel", () => {
 			// Hardshell Armor costs 150 salvage — not enough
 			const result = queueResearch(armory, "hardshell_armor", world);
 			expect(result).toBe(false);
-			expect(world.get(ResourcePool)!.salvage).toBe(50);
+			expect(world.get(ResourcePool)?.salvage).toBe(50);
 		});
 	});
 
@@ -176,15 +172,15 @@ describe("US-018: Research UI panel", () => {
 			queueResearch(armory, "hardshell_armor", world);
 
 			const slot = armory.get(ResearchSlot);
-			expect(slot!.progress).toBe(0);
+			expect(slot?.progress).toBe(0);
 
 			// 5 seconds of a 20-second research = 25%
 			researchSystem(world, 5);
-			expect(slot!.progress).toBeCloseTo(25, 0);
+			expect(slot?.progress).toBeCloseTo(25, 0);
 
 			// 10 more seconds = 75%
 			researchSystem(world, 10);
-			expect(slot!.progress).toBeCloseTo(75, 0);
+			expect(slot?.progress).toBeCloseTo(75, 0);
 		});
 
 		it("should clear research slot on completion", () => {
@@ -214,9 +210,7 @@ describe("US-018: Research UI panel", () => {
 
 	describe("UI data contract", () => {
 		it("research items for armory should include all expected fields for UI", () => {
-			const armoryResearch = Object.values(ALL_RESEARCH).filter(
-				(r) => r.researchAt === "armory",
-			);
+			const armoryResearch = Object.values(ALL_RESEARCH).filter((r) => r.researchAt === "armory");
 
 			expect(armoryResearch.length).toBeGreaterThan(0);
 
@@ -241,10 +235,11 @@ describe("US-018: Research UI panel", () => {
 		it("CompletedResearch ids Set should be serializable via spread", () => {
 			const completed = world.get(CompletedResearch);
 			expect(completed).toBeDefined();
-			expect(completed!.ids).toBeInstanceOf(Set);
+			expect(completed?.ids).toBeInstanceOf(Set);
 
-			completed!.ids.add("test_research");
-			const serialized = [...completed!.ids];
+			completed?.ids.add("test_research");
+			const ids = completed?.ids ?? new Set<string>();
+			const serialized = [...ids];
 			expect(serialized).toContain("test_research");
 		});
 	});

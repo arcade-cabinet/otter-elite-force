@@ -341,39 +341,43 @@ function renderDetailPanel({
 							}}
 							side="top"
 						>
-						<Button
-							type="button"
-							variant="hud"
-							size="sm"
-							title={`Cost: ${formatCost(unit.cost)} | Pop: ${unit.pop ?? 1}`}
-							className="h-auto items-start justify-start rounded-md border border-accent/15 bg-background/25 px-3 py-2 text-left"
-							disabled={
-								(resources?.fish ?? 0) < (unit.cost.fish ?? 0) ||
-								(resources?.timber ?? 0) < (unit.cost.timber ?? 0) ||
-								(resources?.salvage ?? 0) < (unit.cost.salvage ?? 0) ||
-								(population?.current ?? 0) + (unit.pop ?? 0) >
-									(population?.max ?? Number.POSITIVE_INFINITY)
-							}
-							onClick={() => {
-								const queued = queueUnit(entity as ReturnType<typeof world.spawn>, unit.id, world);
-								EventBus.emit("hud-alert", {
-									message: queued
-										? `${unit.name} added to queue.`
-										: `Unable to queue ${unit.name}. Check supplies and population.`,
-									severity: queued ? "info" : "warning",
-								});
-							}}
-						>
-							<div className="font-heading text-[11px] uppercase tracking-[0.16em] text-foreground">
-								{unit.name}
-							</div>
-							<div className="mt-1 font-body text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-								{unit.role}
-							</div>
-							<div className="mt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-accent/85">
-								{formatCost(unit.cost)}
-							</div>
-						</Button>
+							<Button
+								type="button"
+								variant="hud"
+								size="sm"
+								title={`Cost: ${formatCost(unit.cost)} | Pop: ${unit.pop ?? 1}`}
+								className="h-auto items-start justify-start rounded-md border border-accent/15 bg-background/25 px-3 py-2 text-left"
+								disabled={
+									(resources?.fish ?? 0) < (unit.cost.fish ?? 0) ||
+									(resources?.timber ?? 0) < (unit.cost.timber ?? 0) ||
+									(resources?.salvage ?? 0) < (unit.cost.salvage ?? 0) ||
+									(population?.current ?? 0) + (unit.pop ?? 0) >
+										(population?.max ?? Number.POSITIVE_INFINITY)
+								}
+								onClick={() => {
+									const queued = queueUnit(
+										entity as ReturnType<typeof world.spawn>,
+										unit.id,
+										world,
+									);
+									EventBus.emit("hud-alert", {
+										message: queued
+											? `${unit.name} added to queue.`
+											: `Unable to queue ${unit.name}. Check supplies and population.`,
+										severity: queued ? "info" : "warning",
+									});
+								}}
+							>
+								<div className="font-heading text-[11px] uppercase tracking-[0.16em] text-foreground">
+									{unit.name}
+								</div>
+								<div className="mt-1 font-body text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+									{unit.role}
+								</div>
+								<div className="mt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-accent/85">
+									{formatCost(unit.cost)}
+								</div>
+							</Button>
 						</MilitaryTooltip>
 					))}
 				</div>
@@ -445,70 +449,70 @@ function renderDetailPanel({
 							}}
 							side="top"
 						>
-						<Button
-							type="button"
-							variant="hud"
-							size="sm"
-							data-testid={`research-btn-${research.id}`}
-							disabled={!canStart}
-							onClick={() => {
-								if (!canStart) return;
-								const started = queueResearch(
-									entity as ReturnType<typeof world.spawn>,
-									research.id,
-									world,
-								);
-								EventBus.emit("hud-alert", {
-									message: started
-										? `Researching ${research.name}.`
-										: `Unable to start ${research.name}. Check supplies.`,
-									severity: started ? "info" : "warning",
-								});
-							}}
-							className={cn(
-								"h-auto items-start justify-start rounded-md border px-3 py-2 text-left",
-								isCompleted
-									? "border-accent/30 bg-accent/8 opacity-70"
-									: isActive
-										? "border-primary/30 bg-primary/8"
-										: affordable
-											? "border-accent/15 bg-background/25"
-											: "border-border/50 bg-background/15 opacity-50",
-							)}
-						>
-							<div className="w-full">
-								<div className="flex items-center justify-between gap-2">
-									<div className="flex items-center gap-1.5">
-										{isCompleted ? (
-											<span className="font-mono text-[11px] text-accent">[OK]</span>
+							<Button
+								type="button"
+								variant="hud"
+								size="sm"
+								data-testid={`research-btn-${research.id}`}
+								disabled={!canStart}
+								onClick={() => {
+									if (!canStart) return;
+									const started = queueResearch(
+										entity as ReturnType<typeof world.spawn>,
+										research.id,
+										world,
+									);
+									EventBus.emit("hud-alert", {
+										message: started
+											? `Researching ${research.name}.`
+											: `Unable to start ${research.name}. Check supplies.`,
+										severity: started ? "info" : "warning",
+									});
+								}}
+								className={cn(
+									"h-auto items-start justify-start rounded-md border px-3 py-2 text-left",
+									isCompleted
+										? "border-accent/30 bg-accent/8 opacity-70"
+										: isActive
+											? "border-primary/30 bg-primary/8"
+											: affordable
+												? "border-accent/15 bg-background/25"
+												: "border-border/50 bg-background/15 opacity-50",
+								)}
+							>
+								<div className="w-full">
+									<div className="flex items-center justify-between gap-2">
+										<div className="flex items-center gap-1.5">
+											{isCompleted ? (
+												<span className="font-mono text-[11px] text-accent">[OK]</span>
+											) : null}
+											<span
+												className={cn(
+													"font-heading text-[11px] uppercase tracking-[0.16em]",
+													isCompleted ? "text-accent/80" : "text-foreground",
+												)}
+											>
+												{research.name}
+											</span>
+										</div>
+										{!isCompleted ? (
+											<span className="font-mono text-[9px] uppercase tracking-[0.18em] text-accent/85">
+												{formatCost(research.cost)}
+											</span>
 										) : null}
-										<span
-											className={cn(
-												"font-heading text-[11px] uppercase tracking-[0.16em]",
-												isCompleted ? "text-accent/80" : "text-foreground",
-											)}
-										>
-											{research.name}
-										</span>
 									</div>
-									{!isCompleted ? (
-										<span className="font-mono text-[9px] uppercase tracking-[0.18em] text-accent/85">
-											{formatCost(research.cost)}
+									<div className="mt-1 flex items-center gap-2">
+										<span className="font-body text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+											{research.effect}
 										</span>
-									) : null}
+										{!isCompleted ? (
+											<span className="ml-auto shrink-0 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground/70">
+												{research.time}s
+											</span>
+										) : null}
+									</div>
 								</div>
-								<div className="mt-1 flex items-center gap-2">
-									<span className="font-body text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-										{research.effect}
-									</span>
-									{!isCompleted ? (
-										<span className="ml-auto shrink-0 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground/70">
-											{research.time}s
-										</span>
-									) : null}
-								</div>
-							</div>
-						</Button>
+							</Button>
 						</MilitaryTooltip>
 					);
 				})}
