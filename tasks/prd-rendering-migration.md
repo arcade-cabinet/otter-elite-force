@@ -6,7 +6,25 @@ Replace Phaser 3 (~500KB, fighting React lifecycle) with react-konva (~40KB, nat
 
 This is a **rendering-layer-only migration**. The 20 Phaser-free ECS systems (combat, economy, orders, movement, production, building, AI, steering, pathfinding, scenarios, scoring, research, demolition, siege, territory, waves, difficulty, stealth, water, siphon) and the Yuka AI layer are untouched.
 
-**Reference implementation:** `docs/references/poc_final.html` — a single-file vanilla RTS that achieves playable gameplay with procedural sprites, continuous coordinates, canvas fog-of-war, day/night lighting, and responsive layout in ~1180 lines.
+**Reference implementation:** `docs/references/poc_final.html` — a single-file vanilla RTS that achieves playable gameplay with procedural sprites, continuous coordinates, canvas fog-of-war, day/night lighting, and responsive layout in ~1180 lines. This POC is the gold standard for what the game should look and feel like.
+
+## What the POC Gets Right That We Must Match
+
+### Sprites
+The POC's procedural sprites at 16x16 scaled 2.5x produce **significantly more readable, characterful units** than our SP-DSL pixel grids. Otters have visible eyes, noses, bellies, held items. Gators are recognizably reptilian with scales, yellow eyes, long snouts. Buildings are mud lodges with scattered texture. All in ~20 lines of pixel-drawing code per entity type. Our SP-DSL sprites have 238 rows with wrong widths, missing animation frames, and palette reference bugs. The new sprite approach should follow the POC's `SpriteGen` pattern — direct `fillRect`/`fillStyle` procedural drawing into canvas, not a grid-of-palette-chars abstraction.
+
+### HUD Layout
+The POC uses a **dead-simple responsive layout** that gives the game 75%+ of screen:
+- `flex-col-reverse md:flex-row` — on mobile the UI panel goes to bottom, on desktop it's a left sidebar
+- UI panel is exactly `w-64` (desktop) or `h-48` (mobile) — **fixed size, never grows**
+- Inside the panel: minimap (1/3), selection info (1/3), action buttons (1/3) — stacked vertically on desktop, horizontal on mobile
+- Resource bar is a thin `h-10 md:h-12` absolute-positioned strip at the top of the game area
+- **No** separate left dock, right dock, center dock, bottom dock, tactical rail, command console, objectives list, CO feed, speaker feed, tactical feed labels, or any other HUD chrome
+
+Our current HUD (`TacticalShell` with `hudTop`, `leftDock`, `centerDock`, `rightDock`, `alerts`) creates an **overcrowded command center UI** that eats 70% of the screen and leaves a postage stamp for gameplay. The entire `src/ui/hud/` directory (CommandConsole, TacticalRail, GameplayTopBar, ResponsiveHUD) should be replaced with the POC's approach: one UI panel component with three sections.
+
+### Game Area
+The POC's game container is `flex-1 relative cursor-crosshair overflow-hidden bg-black` — it takes ALL remaining space after the UI panel. The canvas fills this container via `canvas.width = container.clientWidth`. No decorative borders, no "Tactical Feed" labels, no inner inset shadows, no camo overlays on the game viewport.
 
 ## Goals
 
@@ -15,6 +33,8 @@ This is a **rendering-layer-only migration**. The 20 Phaser-free ECS systems (co
 - Bundle size reduction: drop ~500KB Phaser, add ~40KB Konva
 - Eliminate the `syncSystem.ts` bridge layer (182 lines) — Koota state IS render state
 - Eliminate the `pnpm build:sprites` pipeline — sprites rendered at init
+- **Replace the entire HUD** with the POC's simple panel layout
+- **Replace SP-DSL sprite rendering** with POC-style procedural `SpriteGen` drawing
 - Zero changes to any of the 20 Phaser-free ECS systems
 - Zero changes to Yuka AI/steering/pathfinding
 - Zero changes to entity definitions, mission scripts, or campaign data
@@ -37,6 +57,12 @@ This is a **rendering-layer-only migration**. The 20 Phaser-free ECS systems (co
 | `src/rendering/*.ts` (9 files) | 1,154 | Phaser-specific renderers — rewritten for Konva/canvas |
 | `scripts/build-sprites.ts` | ~200 | PNG bake pipeline — sprites rendered at runtime |
 | `public/assets/*.png, *.json` | — | Baked sprite atlases — not needed |
+| `src/ui/hud/CommandConsole.tsx` | ~400 | Bloated command console — replaced by POC-style action panel |
+| `src/ui/hud/TacticalRail.tsx` | ~200 | Left sidebar dock — eliminated |
+| `src/ui/hud/GameplayTopBar.tsx` | ~150 | Multi-row top bar — replaced by thin resource strip |
+| `src/ui/hud/ResponsiveHUD.tsx` | ~325 | Overcomplicated responsive layout — replaced by POC's `flex-col-reverse md:flex-row` |
+| `src/ui/layout/shells.tsx` | ~300 | TacticalShell with 5 dock slots — replaced by simple flex layout |
+| `src/ui/hud/PanelFrame.tsx` | ~90 | Decorative rivet frame — not needed in POC layout |
 
 ### Files to KEEP UNTOUCHED (~2,500+ lines)
 
@@ -81,7 +107,8 @@ All 20 Phaser-free systems, all ECS traits, all entity definitions, all AI, all 
 | `src/canvas/useGameLoop.ts` | Hook: `requestAnimationFrame` → `tickAllSystems()` → trigger Konva redraw |
 | `src/canvas/useCamera.ts` | Hook: camera position, edge scroll, WASD, zoom, bounds clamping |
 | `src/canvas/usePointerInput.ts` | Hook: unified pointer events (click/drag/right-click/touch) |
-| `src/canvas/spriteCache.ts` | Generate all SP-DSL sprites to `HTMLCanvasElement` at init |
+| `src/canvas/spriteGen.ts` | POC-style procedural sprite generator (direct canvas drawing) |
+| `src/ui/GameLayout.tsx` | POC's flex layout replacing TacticalShell + all dock components |
 | `src/canvas/terrainPainter.ts` | Procedural world background generator (like POC's `buildMap`) |
 
 ## Quality Gates
@@ -130,23 +157,29 @@ US-R15 -> US-R16 (delete Phaser, tile system, sprite pipeline, dead code)
 
 ---
 
-### US-R01: Runtime SP-DSL sprite cache
+### US-R01: POC-style procedural sprite generator
 
-As a developer, I want all entity sprites generated at runtime into an in-memory cache so that no PNG build step is needed.
+As a developer, I want entity sprites generated procedurally at runtime using direct canvas drawing (like the POC's `SpriteGen`) so that sprites are readable, characterful, and require no build pipeline.
 
 **Dependencies:** none
 
 **Quality gate:** `pnpm typecheck && pnpm test:unit`
 
+**Reference:** POC `SpriteGen.generate()` (lines 177-248 of `poc_final.html`) — each entity type is 15-25 lines of `fillRect`/`fillStyle`/`circle` calls on a 16x16 or 32x32 canvas, scaled 2.5-3x.
+
 **Acceptance Criteria:**
-- [ ] Create `src/canvas/spriteCache.ts`
-- [ ] `initSpriteCache()` iterates all entries in `ALL_UNITS`, `ALL_HEROES`, `ALL_BUILDINGS`, `ALL_RESOURCES` from the entity registry
-- [ ] For each entity, call the existing SP-DSL renderer (`src/entities/renderer.ts` → `renderEntitySprite()`) to produce an `HTMLCanvasElement`
-- [ ] Store results in a `Map<string, HTMLCanvasElement>` keyed by entity ID
-- [ ] For entities with animation frames (walk, attack), generate each frame as a separate canvas entry keyed `{id}_walk_0`, `{id}_walk_1`, etc.
-- [ ] Export `getSpriteCanvas(entityId: string, animation?: string, frame?: number): HTMLCanvasElement | null`
-- [ ] Cache init completes in <100ms for all ~40 entity types
-- [ ] Unit test verifying cache contains entries for every registered entity
+- [ ] Create `src/canvas/spriteGen.ts` following the POC's `SpriteGen` pattern
+- [ ] Each entity type gets a dedicated drawing function using direct Canvas2D calls (`fillRect`, `fillStyle`, pixel placement)
+- [ ] **Otter units** (gatherer/brawler/sniper): brown body, amber belly, black dot eyes, black nose, visible arms/legs. Gatherer holds tool, brawler has club + helmet, sniper has long stick weapon. Must look recognizably like otters at game zoom.
+- [ ] **Gator enemies**: long green body, lighter belly scales, yellow eyes, visible snout. Must look recognizably reptilian.
+- [ ] **Snake enemies**: coiled body with stripes, visible head with eyes.
+- [ ] **Buildings**: mud lodge (dome with twig texture + dark door), burrow (smaller dome), armory (structured rectangle), tower (tall with platform). Buildings are 32x32 scaled 3x.
+- [ ] **Resources**: cattail (tall reed with brown top), clambed (shallow water circle with shells).
+- [ ] Units are 16x16 scaled 2.5x, buildings are 32x32 scaled 3x (matching POC proportions)
+- [ ] Store all generated sprites in a `Map<string, HTMLCanvasElement>` keyed by entity ID
+- [ ] `initSprites()` generates all sprites at init in <50ms
+- [ ] Existing SP-DSL grid definitions in `src/entities/` are kept as data but the rendering path is replaced
+- [ ] Unit test verifying every registered entity has a generated sprite
 
 ---
 
@@ -368,21 +401,34 @@ As a player, I want a minimap showing the full battlefield with unit pips and ca
 
 ---
 
-### US-R13: HUD layout — game canvas dominant
+### US-R13: Replace HUD with POC's layout
 
-As a player, I want the game canvas to take up 75%+ of the screen with a compact HUD bar.
+As a player, I want the game canvas to take up 75%+ of the screen with a compact fixed-size UI panel, exactly like the POC.
 
 **Dependencies:** US-R11
 
 **Quality gate:** visual confirmation at 1920x1080, 1280x720, and 375x667
 
+**Reference:** POC layout (lines 53-115 of `poc_final.html`):
+- `body` is `flex flex-col-reverse md:flex-row h-screen w-screen`
+- UI panel: `w-full md:w-64 h-48 md:h-full` — fixed size, never grows
+- Inside panel: minimap (1/3 or `md:h-64`), selection info (1/3 flex-1), action buttons (1/3 or `md:h-64`)
+- Game container: `flex-1 relative` — takes ALL remaining space
+- Resource bar: `absolute top-0 left-0 w-full h-10 md:h-12` inside game container
+
 **Acceptance Criteria:**
-- [ ] Restructure `TacticalShell` layout: game canvas is the dominant area, HUD is a compact bottom bar
-- [ ] Resource bar is a single thin row at the top (mission name + resources + pop + clock)
-- [ ] Bottom bar contains: minimap (left), unit panel (center), action buttons (right) — all compact
-- [ ] No left sidebar, no expanded objectives list, no "Tactical Feed" labels
-- [ ] Phone layout: resource bar top, game canvas middle, action bar bottom (thumb-reachable)
-- [ ] Reference: StarCraft/Warcraft II layout proportions
+- [ ] **Delete** `TacticalShell`, `CommandConsole`, `TacticalRail`, `GameplayTopBar`, `ResponsiveHUD`, `PanelFrame`
+- [ ] Create `src/ui/GameLayout.tsx` — the POC's flex layout: `flex-col-reverse md:flex-row h-screen`
+- [ ] UI panel component: fixed `w-full md:w-64 h-48 md:h-full` with three sections (minimap, selection, actions)
+- [ ] Resource bar: thin absolute strip inside the game container (`h-10 md:h-12`) showing resources + pop + clock
+- [ ] Game container: `flex-1 relative overflow-hidden bg-black` — holds the Konva Stage
+- [ ] Selection info panel reads from Koota `Selected` trait — shows name, HP bar, stats (like POC lines 67-74)
+- [ ] Action panel shows context-sensitive buttons: build options for workers, train for buildings (like POC lines 602-624)
+- [ ] Buttons have costs displayed, greyed out when unaffordable (like POC `addBtn`)
+- [ ] Mobile: UI panel at bottom (`h-48`), three sections horizontal (`flex-row`)
+- [ ] Desktop: UI panel at left (`w-64`), three sections vertical (`flex-col`)
+- [ ] No shell wrappers, no dock slots, no decorative frames, no expanded objectives list
+- [ ] Game canvas gets `cursor-crosshair` class
 
 ---
 
