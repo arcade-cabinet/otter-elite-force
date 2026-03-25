@@ -1,0 +1,636 @@
+{
+  "version": 1,
+  "sessionId": "a6136950-57f4-4c48-8c45-0bcfbf314dac",
+  "status": "failed",
+  "startedAt": "2026-03-25T01:54:40.924Z",
+  "updatedAt": "2026-03-25T01:54:40.965Z",
+  "currentIteration": 0,
+  "maxIterations": 0,
+  "tasksCompleted": 0,
+  "isPaused": false,
+  "agentPlugin": "claude",
+  "trackerState": {
+    "plugin": "json",
+    "prdPath": "./tasks/prd.json",
+    "totalTasks": 102,
+    "tasks": [
+      {
+        "id": "US-001",
+        "title": "Wire AI FSM system to game loop",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-002",
+        "title": "End-to-end gather loop in browser",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-003",
+        "title": "End-to-end build loop in browser",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-004",
+        "title": "End-to-end train loop in browser",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-005",
+        "title": "End-to-end combat loop in browser",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-006",
+        "title": "Victory and defeat detection with overlay",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-007",
+        "title": "Selection rectangle visual in Phaser",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-008",
+        "title": "Right-click context-sensitive commands",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-009",
+        "title": "Minimap camera sync and interaction",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-010",
+        "title": "Edge scroll and camera zoom limits",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-011",
+        "title": "Keyboard hotkeys for commands",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-012",
+        "title": "ResourceBar live Koota binding validation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-013",
+        "title": "UnitPanel selection to ECS trait binding",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-014",
+        "title": "ActionBar context-sensitive commands",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-015",
+        "title": "BuildMenu affordability gating and ghost trigger",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-016",
+        "title": "AlertBanner event wiring",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-017",
+        "title": "Building training queue progress indicator",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-018",
+        "title": "Research UI panel",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-019",
+        "title": "Game clock and objective tracker in top bar",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-020",
+        "title": "Pause menu during gameplay",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-021",
+        "title": "Floating damage and resource text",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-022",
+        "title": "Building placement ghost with affordability overlay",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-023",
+        "title": "Construction progress visual",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-024",
+        "title": "Rally point visualization",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-025",
+        "title": "HP bar color gradient",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-026",
+        "title": "Resource carrying indicator",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-027",
+        "title": "Projectile particle trails",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-028",
+        "title": "Day/night cycle visual overlay",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-029",
+        "title": "Audio unlock on first user gesture",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-030",
+        "title": "Wire SFX to all gameplay events",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-031",
+        "title": "Wire music to screen and combat state",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-032",
+        "title": "Audio polish — concurrent SFX limit and crossfade",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-033",
+        "title": "Unit voice barks on select and command",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-034",
+        "title": "Map Copilot palette to Tailwind CSS variables",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-035",
+        "title": "Manila folder briefing treatment",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-036",
+        "title": "Typewriter character-by-character animation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-037",
+        "title": "Phosphor-green minimap CRT styling",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-038",
+        "title": "Canvas/metal texture overlays on HUD panels",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-039",
+        "title": "Rivet and bracket panel corner decorations",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-040",
+        "title": "Stencil and typewriter typography verification",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-041",
+        "title": "Enforce border-radius: 0 across all tactical components",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-042",
+        "title": "Wire save/load to game state",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-043",
+        "title": "Auto-save on mission complete",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-044",
+        "title": "Manual save slots (1-3)",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-045",
+        "title": "Continue button loads latest save",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-046",
+        "title": "Campaign progress persistence across sessions",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-047",
+        "title": "Settings persistence across sessions",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-048",
+        "title": "Unlock state persistence (units, buildings, research)",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-049",
+        "title": "Mission 1 (Beachhead) full playthrough validation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-050",
+        "title": "Campaign progression UI",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-051",
+        "title": "Difficulty mode selection",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-052",
+        "title": "Mission briefing dialogue via CommandTransmissionPanel",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-053",
+        "title": "Star rating display on mission completion",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-054",
+        "title": "Missions 2-4 scripting and validation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-055",
+        "title": "Missions 5-8 scripting and validation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-056",
+        "title": "Missions 9-12 scripting and validation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-057",
+        "title": "Missions 13-16 scripting and validation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-058",
+        "title": "Touch to game command dispatch integration",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-059",
+        "title": "Two-finger camera pan and pinch-to-zoom",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-060",
+        "title": "Long-press for mobile commands and minimap enlarge",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-061",
+        "title": "Touch target sizing validation (44px minimum)",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-062",
+        "title": "HUD layout at phone breakpoint (< 600px)",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-063",
+        "title": "HUD layout at tablet breakpoint (600-1024px)",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-064",
+        "title": "HUD layout at desktop breakpoint (> 1024px)",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-065",
+        "title": "Wire Yuka FSM profiles to game entities",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-066",
+        "title": "Enemy AI behavior — Gator and Croc Champion",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-067",
+        "title": "Enemy AI behavior — Viper, Scout Lizard, Siphon Drone",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-068",
+        "title": "Wave spawner escalation for defense missions",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-069",
+        "title": "AI difficulty scaling per mode",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-070",
+        "title": "Playtester — full Mission 1 automated playthrough",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-071",
+        "title": "Playtester strategy profiles",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-072",
+        "title": "Balance validation automation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-073",
+        "title": "Visual QC — render all sprites at game zoom",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-074",
+        "title": "Portrait quality consistency check",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-075",
+        "title": "Verify all entity animations exist",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-076",
+        "title": "Tile seam QC at game zoom",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-077",
+        "title": "Recon photo images and TOP SECRET stamp for briefings",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-078",
+        "title": "Skirmish map selection UI",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-079",
+        "title": "Procedural map generation for skirmish",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-080",
+        "title": "AI opponent for single-player skirmish",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-081",
+        "title": "Skirmish victory condition and star unlocks",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-082",
+        "title": "Fix pre-existing test failures",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-083",
+        "title": "E2E — menu to new game to mission loads",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-084",
+        "title": "E2E — settings panel opens and saves",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-085",
+        "title": "Browser tests — gather, combat, building, training loops",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-086",
+        "title": "Pathfinding performance — stagger queue",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-087",
+        "title": "Path caching for group movement",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-088",
+        "title": "Large battle performance profiling",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-089",
+        "title": "Bundle size audit and optimization",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-090",
+        "title": "Loading screen with progress bar",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-091",
+        "title": "WCAG AA contrast validation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-092",
+        "title": "Reduced motion and screen reader support",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-093",
+        "title": "Capacitor iOS and Android builds",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-094",
+        "title": "SQLite persistence via Capacitor",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-095",
+        "title": "Touch haptics for combat and selection",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-096",
+        "title": "Tutorial prompts for missions 1-4",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-097",
+        "title": "Tooltip system for units, buildings, and abilities",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-098",
+        "title": "Error feedback for invalid commands",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-099",
+        "title": "Delete obsolete documentation",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-100",
+        "title": "Keep canonical docs accurate",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-101",
+        "title": "Per-mission Yuka GOAP behavioral/steering profiles",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-102",
+        "title": "E2E automated playthrough for all 16 missions",
+        "status": "open",
+        "completedInSession": false
+      }
+    ]
+  },
+  "iterations": [],
+  "skippedTaskIds": [],
+  "cwd": "/Users/jbogaty/src/arcade-cabinet/otter-elite-force",
+  "activeTaskIds": [],
+  "subagentPanelVisible": false
+}

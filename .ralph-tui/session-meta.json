@@ -1,0 +1,15 @@
+{
+  "id": "a6136950-57f4-4c48-8c45-0bcfbf314dac",
+  "status": "failed",
+  "startedAt": "2026-03-25T01:54:40.874Z",
+  "updatedAt": "2026-03-25T01:54:40.967Z",
+  "agentPlugin": "claude",
+  "trackerPlugin": "json",
+  "prdPath": "./tasks/prd.json",
+  "currentIteration": 0,
+  "maxIterations": 0,
+  "totalTasks": 0,
+  "tasksCompleted": 0,
+  "cwd": "/Users/jbogaty/src/arcade-cabinet/otter-elite-force",
+  "endedAt": "2026-03-25T01:54:40.967Z"
+}

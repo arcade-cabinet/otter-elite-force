@@ -77,7 +77,7 @@ Status key: `[ ]` not started · `[~]` partially done · `[x]` done
 - [ ] Mission 10 — Healer's Grove liberation + validation
 - [ ] Mission 11 — Entrenchment defense waves + validation
 - [ ] Mission 12 — The Stronghold siege + validation
-- [ ] Mission 13 — Supply Lines multi-base + returning base from M11
+- [ ] Mission 13 — Supply Lines multi-base + canonical "good enough" base state (not M11 save)
 - [ ] Mission 14 — Gas Depot demolition hero + validation
 - [ ] Mission 15 — Sacred Sludge sludge flood + validation
 - [ ] Mission 16 — The Reckoning 3-phase boss + validation
@@ -211,7 +211,25 @@ Status key: `[ ]` not started · `[~]` partially done · `[x]` done
 - [ ] Wave spawner escalation for defense missions
 - [ ] AI difficulty scaling per mode (Support/Tactical/Elite)
 
-### 8.2 AI playtester
+### 8.2 Per-mission Yuka GOAP profiles
+- [ ] M1: gather/build/attack goal graph
+- [ ] M2: escort-protect steering
+- [ ] M3: capture-zone occupation
+- [ ] M4: stealth avoidance (hero solo)
+- [ ] M5: multi-objective destroy
+- [ ] M6: wave defense + weather awareness
+- [ ] M7: CTF flag-carry + water traversal
+- [ ] M8: submerged stealth
+- [ ] M9: fog-of-war cautious advance
+- [ ] M10: liberation sweep (5 villages)
+- [ ] M11: 12-wave defense + fortify/repair
+- [ ] M12: siege assault + breach walls
+- [ ] M13: multi-base logistics
+- [ ] M14: hero demolition (Sapper)
+- [ ] M15: evacuation under sludge timer
+- [ ] M16: 3-phase boss coordination
+
+### 8.3 AI playtester
 - [x] AIPlaytester framework with tick timing
 - [x] GameStateReader from Koota singletons
 - [x] Scene attachment bridge
@@ -219,14 +237,17 @@ Status key: `[ ]` not started · `[~]` partially done · `[x]` done
 - [ ] Playtester strategy profiles (aggressive, defensive, economic)
 - [ ] Automated balance validation from balance-framework.md
 - [ ] Combat simulation tests (3 Mudfoots vs 2 Gators, etc.)
+- [ ] E2E automated playthrough for ALL 16 missions (3× par time timeout)
 
 ---
 
 ## 9 · SKIRMISH MODE (Macro)
 
 - [ ] Skirmish map selection UI
+- [ ] 3 hand-tuned map templates (small/medium/large)
 - [ ] Procedural map generation (terrain noise + resource seeding + symmetry)
-- [ ] AI opponent for single-player skirmish
+- [ ] Shareable map seeds (display on results, allow seed input)
+- [ ] AI opponent for single-player skirmish (shares FSM base, adds economy/tech layer)
 - [ ] Difficulty selection (Easy/Medium/Hard/Brutal)
 - [ ] Play-as-Scale-Guard option (mirror units)
 - [ ] Win condition: destroy enemy Command Post

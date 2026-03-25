@@ -103,6 +103,10 @@ US-047 → US-094
 # Accessibility + Native (late dependencies)
 US-066 → US-104, US-105, US-106, US-107
 US-062 → US-108, US-109, US-110, US-111
+
+# Per-mission AI + Full E2E (depends on AI + all missions)
+US-065, US-049 → US-101 (per-mission GOAP profiles)
+US-101, US-054, US-055, US-056, US-057 → US-102 (E2E all 16 missions)
 ```
 
 ## User Stories
@@ -1123,7 +1127,7 @@ As a player, I want Missions 13-16 (Supply Lines, Gas Depot, Sacred Sludge, The 
 **Quality gate:** `pnpm typecheck && pnpm test:unit`
 
 **Acceptance Criteria:**
-- [ ] Mission 13: Multi-base mission — reuses base from Mission 11, multi-base resource pooling
+- [ ] Mission 13: Multi-base mission — uses canonical "good enough" base state (not M11 save), multi-base resource pooling
 - [ ] Mission 14: Hero demolition mission — Sapper-focused, destroy gas depot objectives
 - [ ] Mission 15: Sludge flood mechanic — rising sludge on timer, evacuation pressure
 - [ ] Mission 16: 3-phase boss fight — escalating phases, all player capabilities needed
@@ -1889,6 +1893,57 @@ As a developer, I want canonical docs to stay aligned with the implementation so
 
 ---
 
+### TRACK R: PER-MISSION AI & FULL E2E
+
+---
+
+### US-101: Per-mission Yuka GOAP behavioral/steering profiles
+As a developer, I want each of the 16 missions to have a corresponding Yuka GOAP behavioral and steering structure that covers its unique challenges, so that the AI playtester and E2E harness can exercise every mission's mechanics.
+
+**Dependencies:** US-065, US-049
+
+**Quality gate:** `pnpm typecheck && pnpm test:unit`
+
+**Acceptance Criteria:**
+- [ ] Mission 1 (Beachhead): basic gather/build/attack GOAP goal graph
+- [ ] Mission 2 (Causeway): escort-protect steering — keep units near convoy, intercept ambushers
+- [ ] Mission 3 (Firebase Delta): capture-zone occupation — move squads to zones, hold position
+- [ ] Mission 4 (Prison Break): stealth avoidance steering — path around detection radii, hero solo
+- [ ] Mission 5 (Siphon Valley): multi-objective destroy — prioritize targets, split forces
+- [ ] Mission 6 (Monsoon Ambush): wave defense with weather awareness — reposition during monsoon
+- [ ] Mission 7 (River Rats): CTF flag-carry steering — grab-and-return with water traversal
+- [ ] Mission 8 (Underwater Cache): submerged stealth — CanSwim pathfinding, avoid patrols
+- [ ] Mission 9 (Dense Canopy): fog-of-war skirmish — cautious advance, recon-before-engage
+- [ ] Mission 10 (Healer's Grove): liberation sweep — visit all 5 villages, clear defenders
+- [ ] Mission 11 (Entrenchment): 12-wave defense — fortify, repair, triage reinforcements
+- [ ] Mission 12 (The Stronghold): siege assault — breach walls, focus fire on defenses
+- [ ] Mission 13 (Supply Lines): multi-base logistics — split economy across bases
+- [ ] Mission 14 (Gas Depot): hero demolition — Sapper pathfinding to objectives, avoid patrols
+- [ ] Mission 15 (Sacred Sludge): evacuation under time pressure — retreat steering as sludge rises
+- [ ] Mission 16 (The Reckoning): 3-phase boss — phase-aware target switching, full army coordination
+- [ ] Each profile is a composable GOAP goal graph, not a hardcoded script
+- [ ] Each profile has a unit test verifying goal selection under representative game state
+
+---
+
+### US-102: E2E automated playthrough for all 16 missions
+As a developer, I want E2E tests that play through every mission from start to victory using the per-mission GOAP profiles, so that the entire campaign is validated end-to-end.
+
+**Dependencies:** US-101, US-054, US-055, US-056, US-057
+
+**Quality gate:** `pnpm typecheck && pnpm test:e2e`
+
+**Acceptance Criteria:**
+- [ ] E2E test for each mission (16 total) that boots the mission, runs the GOAP playtester, and asserts victory
+- [ ] Each test completes within 3× par time (timeout guard)
+- [ ] Each test verifies: all objectives completed, victory overlay shown, star rating calculated
+- [ ] Tests run headless in CI (Playwright + Phaser headless or browser mode)
+- [ ] Failure produces a game-state snapshot log for debugging
+- [ ] Tests can run in parallel (one mission per worker) for CI speed
+- [ ] All 16 tests pass on the default (Tactical) difficulty
+
+---
+
 ## Functional Requirements
 
 - FR-1: All 14 ECS systems must execute in the correct order each frame via `tickAllSystems()`
@@ -1904,6 +1959,8 @@ As a developer, I want canonical docs to stay aligned with the implementation so
 - FR-11: All interactive elements must meet 44px minimum touch targets on mobile
 - FR-12: Performance must sustain 30fps+ on mobile for 20+ unit battles
 - FR-13: `pnpm typecheck`, `pnpm lint`, `pnpm test:unit`, and `pnpm build` must pass at all times
+- FR-14: Each mission must have a per-mission Yuka GOAP behavioral/steering profile covering its unique mechanics
+- FR-15: E2E automated playthroughs must validate all 16 missions from start to victory
 
 ## Non-Goals (Out of Scope)
 
@@ -1939,14 +1996,15 @@ As a developer, I want canonical docs to stay aligned with the implementation so
 - Game maintains 30fps+ on iPhone 12 equivalent during 20-unit battles
 - Initial page load to interactive menu < 3 seconds on desktop
 - Production bundle < 500KB gzipped (excluding game assets)
-- AI playtester can complete Mission 1 autonomously
+- AI playtester can complete all 16 missions autonomously via per-mission GOAP profiles
+- E2E automated playthroughs pass for all 16 missions on Tactical difficulty
 - All text meets WCAG AA contrast ratios
 
-## Open Questions
+## Resolved Questions
 
-1. Should the skirmish AI share code with the campaign enemy AI, or be a separate system optimized for skirmish-style play (economy management, tech decisions)?
-2. What is the target number of procedurally generated skirmish maps, and should map seeds be shareable?
-3. Should Mission 13's "reuse base from Mission 11" feature require a Mission 11 save, or should it use a canonical "good enough" base state?
-4. How detailed should recon photos be — full SP-DSL rendered scene captures, or simpler stylized overlays?
-5. Is there a performance budget for Tone.js on mobile? Some older devices may struggle with real-time synthesis.
-6. Should the tutorial be a separate "Tutorial Mission" or integrated as prompts into Mission 1?
+1. **Skirmish AI vs campaign AI?** → Share the FSM base (patrol/chase/attack/flee profiles are identical), extend with an economy/tech planning layer for skirmish. US-080 already structures it this way.
+2. **Skirmish map count + shareable seeds?** → 3 hand-tuned templates (small/medium/large) + procedural generation with shareable seeds. Display seed on results screen, allow seed input on map select.
+3. **Mission 13 base reuse?** → Use a canonical "good enough" base state, not a Mission 11 save. Avoids save dependency, ensures M13 is always playable regardless of M11 performance.
+4. **Recon photos?** → Simpler stylized overlays. Greyscale + grain CSS filter on SP-DSL terrain snapshots. No full scene captures.
+5. **Tone.js mobile budget?** → Max 4 simultaneous synth voices (US-032). If frame drops detected, fall back to pre-rendered AudioBuffer samples. Add "Low Quality Audio" setting.
+6. **Tutorial?** → Integrated as contextual prompts into Missions 1-4 (US-096), not a separate tutorial mission.
