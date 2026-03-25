@@ -15,10 +15,10 @@
 import type { Entity, World } from "koota";
 import { Vector3 } from "yuka";
 import type { SteeringVehicle } from "../ai/steeringFactory";
-import { GatheringFrom, Targeting } from "../ecs/relations";
+import { ConstructingAt, GatheringFrom, Targeting } from "../ecs/relations";
 import { AIState, SteeringAgent } from "../ecs/traits/ai";
 import { Attack } from "../ecs/traits/combat";
-import { Gatherer } from "../ecs/traits/economy";
+import { ConstructionProgress, Gatherer } from "../ecs/traits/economy";
 import type { Order } from "../ecs/traits/orders";
 import { OrderQueue } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
@@ -51,6 +51,20 @@ function resolveEntity(world: World, entityId: number): Entity | null {
 	const candidates = world.query(Position);
 	for (const candidate of candidates) {
 		if (candidate.id() === entityId) return candidate;
+	}
+	return null;
+}
+
+/**
+ * Find an incomplete building at the given tile position.
+ */
+function findBuildingAt(world: World, x: number, y: number): Entity | null {
+	const buildings = world.query(Position, ConstructionProgress);
+	for (const building of buildings) {
+		const pos = building.get(Position)!;
+		if (Math.abs(pos.x - x) < 0.5 && Math.abs(pos.y - y) < 0.5) {
+			return building;
+		}
 	}
 	return null;
 }
@@ -144,10 +158,37 @@ function handleGather(
 	}
 }
 
-function handleBuild(entity: Entity, order: Order, agent: SteeringVehicle): void {
+function handleBuild(
+	world: World,
+	entity: Entity,
+	order: Order,
+	agent: SteeringVehicle,
+	orders: Order[],
+): void {
 	entity.set(AIState, (prev) => ({ ...prev, state: "building" }));
 
-	if (order.targetX !== undefined && order.targetY !== undefined) {
+	if (order.targetX === undefined || order.targetY === undefined) return;
+
+	// Find the building at the target location
+	const building = order.targetEntity !== undefined
+		? resolveEntity(world, order.targetEntity)
+		: findBuildingAt(world, order.targetX, order.targetY);
+
+	if (!building || !building.has(ConstructionProgress)) {
+		// Building doesn't exist or already finished — discard order
+		orders.shift();
+		entity.set(AIState, (prev) => ({ ...prev, state: "idle" }));
+		return;
+	}
+
+	// If close enough, set ConstructingAt relation so buildingSystem processes us
+	const pos = entity.get(Position)!;
+	const dist = distanceBetween(pos.x, pos.y, order.targetX, order.targetY);
+	if (dist <= 1.5) {
+		if (!entity.has(ConstructingAt("*"))) {
+			entity.add(ConstructingAt(building));
+		}
+	} else {
 		dispatchPath(agent, order.targetX, order.targetY);
 	}
 }
@@ -210,7 +251,7 @@ export function orderSystem(world: World, _delta: number): void {
 				break;
 
 			case "build":
-				if (agent) handleBuild(entity, order, agent);
+				if (agent) handleBuild(world, entity, order, agent, orders);
 				break;
 
 			case "stop":
