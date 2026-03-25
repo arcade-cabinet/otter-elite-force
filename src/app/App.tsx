@@ -5,7 +5,7 @@
  */
 
 import { useTrait, useWorld, WorldProvider } from "koota/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { initSingletons } from "@/ecs/singletons";
 import {
@@ -38,7 +38,7 @@ import { CommandConsole } from "@/ui/hud/CommandConsole";
 import { ErrorFeedback } from "@/ui/hud/ErrorFeedback";
 import { GameplayTopBar } from "@/ui/hud/GameplayTopBar";
 import { PauseOverlay } from "@/ui/hud/PauseOverlay";
-import { TacticalRail } from "@/ui/hud/TacticalRail";
+
 import { TutorialOverlay } from "@/ui/hud/TutorialOverlay";
 import { BriefingShell, TacticalShell } from "@/ui/layout/shells";
 import { resolveTacticalHudLayout, useViewportProfile } from "@/ui/layout/viewport";
@@ -109,14 +109,11 @@ function GameplayScreen() {
 	const hudLayout = resolveTacticalHudLayout(viewport);
 	const currentMission = campaign?.currentMission ?? "mission_1";
 	const difficulty = (campaign?.difficulty ?? "support") as DifficultyMode;
-	const deploymentData: DeploymentData = { missionId: currentMission, difficulty };
+	const deploymentData = useMemo<DeploymentData>(
+		() => ({ missionId: currentMission, difficulty }),
+		[currentMission, difficulty],
+	);
 	const needsLandscapePrompt = viewport.isPhone && viewport.isPortrait;
-	const [activeTransmission, setActiveTransmission] = useState<{
-		speaker: string;
-		text: string;
-		portraitId?: string;
-		isScenario: boolean;
-	} | null>(null);
 	const [pauseView, setPauseView] = useState<"pause" | "settings">("pause");
 
 	// US-020: Pause/Resume wiring
@@ -197,7 +194,7 @@ function GameplayScreen() {
 			className={cn(needsLandscapePrompt && "tactical-shell--mobile-portrait")}
 			hudTop={
 				needsLandscapePrompt ? null : (
-					<GameplayTopBar missionId={currentMission} compact={hudLayout !== "desktop"} />
+					<GameplayTopBar missionId={currentMission} compact />
 				)
 			}
 			alerts={
@@ -211,24 +208,14 @@ function GameplayScreen() {
 					<AlertBanner />
 				)
 			}
-			leftDock={
-				needsLandscapePrompt ? null : (
-					<TacticalRail
-						missionId={currentMission}
-						activeSpeaker={activeTransmission?.speaker}
-						activePortraitId={activeTransmission?.portraitId}
-						compact={hudLayout !== "desktop"}
-					/>
-				)
-			}
 			centerDock={
 				needsLandscapePrompt ? null : (
 					<CommandConsole
 						missionId={currentMission}
-						compact={hudLayout !== "desktop"}
+						compact
 						showUnitPanel={false}
 						showMinimap={false}
-						onActiveTransmissionChange={setActiveTransmission}
+						onActiveTransmissionChange={() => {}}
 					/>
 				)
 			}

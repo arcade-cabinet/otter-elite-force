@@ -97,8 +97,9 @@ export function AlertBanner() {
 				severity: "info",
 			});
 
-		const onSceneReady = () =>
-			push({ message: "Scene sync green", severity: "info" });
+		const onSceneReady = () => {
+			// Scene ready — no alert needed (was debug noise)
+		};
 
 		const onMissionFailed = () =>
 			push({ message: "Mission pressure spiking", severity: "critical" });
