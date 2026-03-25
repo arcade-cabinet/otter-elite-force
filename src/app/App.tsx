@@ -32,16 +32,12 @@ import {
 	ToggleSetting,
 } from "@/ui/command-post/SettingsControls";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
-import { AlertBanner } from "@/ui/hud/AlertBanner";
 import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
-import { CommandConsole } from "@/ui/hud/CommandConsole";
 import { ErrorFeedback } from "@/ui/hud/ErrorFeedback";
-import { GameplayTopBar } from "@/ui/hud/GameplayTopBar";
 import { PauseOverlay } from "@/ui/hud/PauseOverlay";
-
 import { TutorialOverlay } from "@/ui/hud/TutorialOverlay";
-import { BriefingShell, TacticalShell } from "@/ui/layout/shells";
-import { resolveTacticalHudLayout, useViewportProfile } from "@/ui/layout/viewport";
+import { GameLayout } from "@/ui/GameLayout";
+import { BriefingShell } from "@/ui/layout/shells";
 import { cn } from "@/ui/lib/utils";
 import { GameCanvas } from "@/canvas/GameCanvas";
 
@@ -106,15 +102,12 @@ function GameplayScreen() {
 	const campaign = useTrait(w, CampaignProgress);
 	const gamePhase = useTrait(w, GamePhase);
 	const isPaused = gamePhase?.phase === "paused";
-	const viewport = useViewportProfile();
-	const hudLayout = resolveTacticalHudLayout(viewport);
 	const currentMission = campaign?.currentMission ?? "mission_1";
 	const difficulty = (campaign?.difficulty ?? "support") as DifficultyMode;
 	const deploymentData = useMemo<DeploymentData>(
 		() => ({ missionId: currentMission, difficulty }),
 		[currentMission, difficulty],
 	);
-	const needsLandscapePrompt = viewport.isPhone && viewport.isPortrait;
 	const [pauseView, setPauseView] = useState<"pause" | "settings">("pause");
 
 	// US-020: Pause/Resume wiring
@@ -186,33 +179,7 @@ function GameplayScreen() {
 	}, [w]);
 
 	return (
-		<TacticalShell
-			hudLayout={hudLayout}
-			className={cn(needsLandscapePrompt && "tactical-shell--mobile-portrait")}
-			hudTop={needsLandscapePrompt ? null : <GameplayTopBar missionId={currentMission} compact />}
-			alerts={
-				needsLandscapePrompt ? (
-					<RotateDeviceNotice
-						width={viewport.width}
-						height={viewport.height}
-						onReturn={() => w.set(AppScreen, { screen: "menu" })}
-					/>
-				) : (
-					<AlertBanner />
-				)
-			}
-			centerDock={
-				needsLandscapePrompt ? null : (
-					<CommandConsole
-						missionId={currentMission}
-						compact
-						showUnitPanel={false}
-						showMinimap={false}
-						onActiveTransmissionChange={() => {}}
-					/>
-				)
-			}
-		>
+		<GameLayout>
 			<GameCanvas deploymentData={deploymentData} />
 			<CombatTextOverlay />
 			<TutorialOverlay missionId={currentMission} />
@@ -236,7 +203,7 @@ function GameplayScreen() {
 			{isPaused && pauseView === "settings" ? (
 				<InGameSettingsOverlay onBack={() => setPauseView("pause")} />
 			) : null}
-		</TacticalShell>
+		</GameLayout>
 	);
 }
 
@@ -313,40 +280,6 @@ function InGameSettingsOverlay({ onBack }: { onBack: () => void }) {
 	);
 }
 
-function RotateDeviceNotice({
-	width,
-	height,
-	onReturn,
-}: {
-	width: number;
-	height: number;
-	onReturn: () => void;
-}) {
-	return (
-		<div className="gameplay-viewport-card w-full rounded-none border border-accent/25 bg-card/82 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.4)] sm:max-w-sm">
-			<div className="flex flex-wrap items-center gap-2">
-				<span className="rounded-none border border-accent/25 bg-accent/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-					Rotate to Landscape
-				</span>
-				<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-					{width} × {height}
-				</span>
-			</div>
-			<div className="mt-3 font-heading text-sm uppercase tracking-[0.18em] text-foreground">
-				Tactical play is landscape-first on phone.
-			</div>
-			<p className="mt-2 font-body text-[11px] uppercase tracking-[0.14em] leading-relaxed text-muted-foreground">
-				Rotate your device to keep the battlefield clear, preserve touch-safe command zones, and
-				avoid fighting the HUD.
-			</p>
-			<div className="mt-3 flex flex-wrap gap-2">
-				<Button variant="accent" onClick={onReturn}>
-					Back to Menu
-				</Button>
-			</div>
-		</div>
-	);
-}
 
 function MissionResultOverlay() {
 	const w = useWorld();
