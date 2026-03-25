@@ -32,17 +32,19 @@ interface Action {
 }
 
 const WORKER_ACTIONS: Action[] = [
-	{ id: "build", label: "Build", hint: "Open the field build palette for this worker." },
+	{ id: "move", label: "Move", hint: "Right-click terrain to redeploy this worker." },
+	{ id: "stop", label: "Stop", hint: "Cancel all orders and halt movement." },
 	{
 		id: "gather",
 		label: "Gather",
 		hint: "Right-click fish, timber, or salvage to start harvesting.",
 	},
-	{ id: "repair", label: "Repair", hint: "Assign this worker to damaged field structures." },
+	{ id: "build", label: "Build", hint: "Open the field build palette for this worker." },
 ];
 
 const MILITARY_ACTIONS: Action[] = [
 	{ id: "move", label: "Move", hint: "Right-click terrain to redeploy this squad." },
+	{ id: "stop", label: "Stop", hint: "Cancel all orders and halt movement." },
 	{ id: "attack", label: "Attack", hint: "Right-click hostiles to focus fire and push the line." },
 	{ id: "patrol", label: "Patrol", hint: "Set a lane to screen crossings and guard approaches." },
 	{ id: "hold", label: "Hold", hint: "Lock the unit in place to anchor the formation." },
@@ -189,6 +191,7 @@ function ActionBarFrame({
 							type="button"
 							variant="hud"
 							size="sm"
+							title={action.hint}
 							onClick={() => onSelectAction?.(action.id)}
 							className={cn(
 								"justify-between",
@@ -214,14 +217,14 @@ function ActionBarFrame({
 function resolveHotkey(id: string) {
 	if (id === "build") return "Q";
 	if (id === "gather") return "W";
-	if (id === "repair") return "E";
+	if (id === "stop") return "S";
 	if (id === "move") return "M";
 	if (id === "attack") return "A";
 	if (id === "patrol") return "P";
 	if (id === "hold") return "H";
 	if (id === "train") return "T";
 	if (id === "research") return "R";
-	return "•";
+	return "\u2022";
 }
 
 function resolveActions(type: string, category: string, building: boolean): Action[] {
@@ -319,6 +322,7 @@ function renderDetailPanel({
 							type="button"
 							variant="hud"
 							size="sm"
+							title={`Cost: ${formatCost(unit.cost)} | Pop: ${unit.pop ?? 1}`}
 							className="h-auto items-start justify-start rounded-md border border-accent/15 bg-background/25 px-3 py-2 text-left"
 							disabled={
 								(resources?.fish ?? 0) < (unit.cost.fish ?? 0) ||
