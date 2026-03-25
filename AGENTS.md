@@ -33,10 +33,22 @@ The old open-world tactical-shooter / chunk-persistence direction is **legacy**.
 
 Key runtime files:
 
-- `src/app/App.tsx` — screen routing + theme switching
+- `src/app/App.tsx` — screen routing + theme switching + gameplay shell
 - `src/ui/command-post/MainMenu.tsx` — landing page and dossier overlays
+- `src/ui/hud/TutorialOverlay.tsx` — dismissible tutorial prompts (missions 1-4)
+- `src/ui/hud/MilitaryTooltip.tsx` — Radix UI tooltip with military theme
+- `src/ui/hud/ErrorFeedback.tsx` — command error visual/audio feedback
 - `src/Scenes/BootScene.ts` — atlas loading
 - `scripts/build-sprites.ts` — sprite build pipeline
+
+### Accessibility
+
+- WCAG AA contrast validated (see `docs/architecture/wcag-contrast-audit.md`)
+- `prefers-reduced-motion` disables typewriter, floating text, decorative animations
+- `aria-label` on major UI elements (menu, resource bar, settings)
+- Keyboard navigation: Tab/Enter for buttons, Escape to close panels
+- Focus indicators on all interactive elements
+- "Skip Tutorials" toggle in Settings
 
 ## UX Direction
 

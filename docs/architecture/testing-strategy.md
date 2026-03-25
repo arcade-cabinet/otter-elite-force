@@ -25,16 +25,19 @@ These catch routing breakage, deleted-screen fallout, import drift, and typing r
 
 Use Vitest for:
 
-- ECS state traits
+- ECS state traits and singleton state
 - app screen transitions
 - menu/front-door behavior
 - mission compiler/runtime helpers
 - entity and asset-pipeline logic
+- AI FSM and pathfinding behavior
+- combat, economy, and research systems
 
 Prefer focused runs during iteration, for example:
 
 - `pnpm vitest run src/__tests__/specs/state/app-screen.test.ts`
 - `pnpm vitest run src/__tests__/specs/ui/main-menu.test.tsx`
+- `pnpm vitest run src/__tests__/systems/combatSystem.test.ts`
 
 ### 3. Browser-mode UI verification
 
