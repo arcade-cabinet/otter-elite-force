@@ -55,14 +55,10 @@ const PAL = {
   crateSienna: '#a0522d',
 } as const;
 
-// ─── Seeded PRNG for deterministic sprite decoration ───
+import { createNoise, hashString } from "@/utils/noise";
 
-let _seed = 42;
-function seedRng(s: number): void { _seed = s; }
-function srand(): number {
-  _seed = (_seed * 16807 + 0) % 2147483647;
-  return (_seed - 1) / 2147483646;
-}
+// Design noise instance — reset per entity type in generateSprite()
+let _noise = createNoise(1);
 
 // ─── Drawing helpers ───
 
@@ -186,14 +182,14 @@ function drawWall(ctx: Ctx, color: string): void {
 
 function drawLodge(ctx: Ctx): void {
   circle(ctx, 16, 20, 14, PAL.mudDark);
-  for (let i = 0; i < 80; i++) p(ctx, 4 + srand() * 24, 8 + srand() * 24, PAL.mudLight);
-  for (let i = 0; i < 40; i++) rect(ctx, 4 + srand() * 22, 10 + srand() * 18, 6, 2, PAL.otterBase);
+  for (let i = 0; i < 80; i++) p(ctx, 4 + _noise.next() * 24, 8 + _noise.next() * 24, PAL.mudLight);
+  for (let i = 0; i < 40; i++) rect(ctx, 4 + _noise.next() * 22, 10 + _noise.next() * 18, 6, 2, PAL.otterBase);
   rect(ctx, 12, 22, 8, 8, PAL.black);
 }
 
 function drawTower(ctx: Ctx): void {
   rect(ctx, 8, 16, 16, 14, PAL.mudLight);
-  for (let i = 0; i < 30; i++) p(ctx, 8 + srand() * 16, 16 + srand() * 14, PAL.mudDark);
+  for (let i = 0; i < 30; i++) p(ctx, 8 + _noise.next() * 16, 16 + _noise.next() * 14, PAL.mudDark);
   rect(ctx, 6, 8, 20, 8, PAL.mudDark);
   rect(ctx, 10, 4, 12, 4, PAL.reedGreen);
   rect(ctx, 14, 22, 4, 8, PAL.black);
@@ -202,7 +198,7 @@ function drawTower(ctx: Ctx): void {
 
 function drawBurrow(ctx: Ctx): void {
   circle(ctx, 16, 24, 8, PAL.mudDark);
-  for (let i = 0; i < 20; i++) p(ctx, 8 + srand() * 16, 16 + srand() * 8, PAL.mudLight);
+  for (let i = 0; i < 20; i++) p(ctx, 8 + _noise.next() * 16, 16 + _noise.next() * 8, PAL.mudLight);
   rect(ctx, 14, 24, 4, 6, PAL.black);
 }
 
@@ -213,8 +209,8 @@ function drawArmory(ctx: Ctx): void {
   rect(ctx, 26, 10, 4, 20, PAL.mudDark);
   rect(ctx, 2, 26, 28, 4, PAL.mudDark);
   for (let i = 0; i < 30; i++) {
-    p(ctx, 2 + srand() * 28, 10 + srand() * 4, PAL.otterBase);
-    p(ctx, 2 + srand() * 28, 26 + srand() * 4, PAL.otterBase);
+    p(ctx, 2 + _noise.next() * 28, 10 + _noise.next() * 4, PAL.otterBase);
+    p(ctx, 2 + _noise.next() * 28, 26 + _noise.next() * 4, PAL.otterBase);
   }
   rect(ctx, 12, 24, 8, 8, PAL.waterShallow);
 }
@@ -530,7 +526,7 @@ const DRAW_FNS: Record<SpriteType, (ctx: Ctx) => void> = {
   barracks: (ctx) => {
     // Military training hall — long wooden structure with peaked roof
     rect(ctx, 4, 16, 24, 12, PAL.mudLight);     // walls
-    for (let i = 0; i < 20; i++) p(ctx, 4 + srand() * 24, 16 + srand() * 12, PAL.mudDark); // wood grain
+    for (let i = 0; i < 20; i++) p(ctx, 4 + _noise.next() * 24, 16 + _noise.next() * 12, PAL.mudDark); // wood grain
     rect(ctx, 2, 12, 28, 4, PAL.uraBldg);       // roof base
     // Peaked roof (triangle)
     for (let y = 0; y < 6; y++) {
@@ -600,7 +596,7 @@ const DRAW_FNS: Record<SpriteType, (ctx: Ctx) => void> = {
   minefield: (ctx) => {
     // Buried mines — dirt mounds with warning signs
     rect(ctx, 2, 20, 28, 10, PAL.mudDark);       // dirt patch
-    for (let i = 0; i < 15; i++) p(ctx, 4 + srand() * 24, 20 + srand() * 10, PAL.mudLight);
+    for (let i = 0; i < 15; i++) p(ctx, 4 + _noise.next() * 24, 20 + _noise.next() * 10, PAL.mudLight);
     // Mine shapes (dome bumps)
     circle(ctx, 10, 24, 3, PAL.stone);
     circle(ctx, 22, 22, 3, PAL.stone);
@@ -786,8 +782,8 @@ export function generateSprite(type: SpriteType): HTMLCanvasElement {
   const ctx = c.getContext('2d');
   if (!ctx) throw new Error(`Canvas2D context unavailable for sprite "${type}"`);
 
-  // Seed RNG deterministically per entity type for consistent decoration
-  seedRng(type.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0));
+  // Design noise — seeded per entity type for consistent decoration
+  _noise = createNoise(hashString(type));
 
   // Draw at native resolution
   const drawFn = DRAW_FNS[type];
