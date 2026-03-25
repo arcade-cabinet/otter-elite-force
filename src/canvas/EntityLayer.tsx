@@ -197,7 +197,7 @@ function EntityNode({ entity }: EntityNodeProps) {
   // Health state
   const health = entity.has(Health) ? entity.get(Health) : null;
   const isDamaged = health != null && health.current < health.max;
-  const hpRatio = health ? health.current / health.max : 1;
+  const hpRatio = health && health.max > 0 ? health.current / health.max : 1;
 
   // Resource carrying state (workers)
   const gatherer = entity.has(Gatherer) ? entity.get(Gatherer) : null;

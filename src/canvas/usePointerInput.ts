@@ -90,11 +90,16 @@ export function usePointerInput({
   // Force re-render when drag state changes (for OverlayLayer)
   const [, setDragTick] = useState(0);
 
-  // Cleanup on unmount
+  // Track active pointer captures for cleanup
+  const capturedPointersRef = useRef<Set<number>>(new Set());
+
+  // Cleanup on unmount — release pointer captures and destroy managers
   useEffect(() => {
     return () => {
       selectionManager.destroy();
       commandDispatcher.destroy();
+      // Release any lingering pointer captures
+      capturedPointersRef.current.clear();
     };
   }, [selectionManager, commandDispatcher]);
 

@@ -1,0 +1,118 @@
+{
+  "scripts": [
+    {
+      "name": "dev",
+      "command": "pnpm dev",
+      "mode": "service",
+      "category": "dev"
+    },
+    {
+      "name": "build",
+      "command": "pnpm build",
+      "mode": "command",
+      "category": "build"
+    },
+    {
+      "name": "build:analyze",
+      "command": "pnpm build:analyze",
+      "mode": "command",
+      "category": "build"
+    },
+    {
+      "name": "preview",
+      "command": "pnpm preview",
+      "mode": "service",
+      "category": "dev"
+    },
+    {
+      "name": "lint",
+      "command": "pnpm lint",
+      "mode": "command",
+      "category": "lint"
+    },
+    {
+      "name": "lint:fix",
+      "command": "pnpm lint:fix",
+      "mode": "command",
+      "category": "lint"
+    },
+    {
+      "name": "format",
+      "command": "pnpm format",
+      "mode": "command",
+      "category": "format"
+    },
+    {
+      "name": "typecheck",
+      "command": "pnpm typecheck",
+      "mode": "command",
+      "category": "typecheck"
+    },
+    {
+      "name": "test",
+      "command": "pnpm test",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:unit",
+      "command": "pnpm test:unit",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:unit:watch",
+      "command": "pnpm test:unit:watch",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:coverage",
+      "command": "pnpm test:coverage",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:e2e",
+      "command": "pnpm test:e2e",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:e2e:ui",
+      "command": "pnpm test:e2e:ui",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:e2e:headed",
+      "command": "pnpm test:e2e:headed",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:browser",
+      "command": "pnpm test:browser",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "test:all",
+      "command": "pnpm test:all",
+      "mode": "command",
+      "category": "test"
+    },
+    {
+      "name": "build:sprites",
+      "command": "pnpm build:sprites",
+      "mode": "command",
+      "category": "build"
+    },
+    {
+      "name": "playwright:install",
+      "command": "pnpm playwright:install",
+      "mode": "command",
+      "category": "other"
+    }
+  ]
+}

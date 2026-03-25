@@ -54,6 +54,15 @@ const PAL = {
   crateSienna: '#a0522d',
 } as const;
 
+// ─── Seeded PRNG for deterministic sprite decoration ───
+
+let _seed = 42;
+function seedRng(s: number): void { _seed = s; }
+function srand(): number {
+  _seed = (_seed * 16807 + 0) % 2147483647;
+  return (_seed - 1) / 2147483646;
+}
+
 // ─── Drawing helpers ───
 
 type Ctx = CanvasRenderingContext2D;
@@ -190,14 +199,14 @@ function drawFallbackResource(ctx: Ctx, color: string): void {
 
 function drawLodge(ctx: Ctx): void {
   circle(ctx, 16, 20, 14, PAL.mudDark);
-  for (let i = 0; i < 80; i++) p(ctx, 4 + Math.random() * 24, 8 + Math.random() * 24, PAL.mudLight);
-  for (let i = 0; i < 40; i++) rect(ctx, 4 + Math.random() * 22, 10 + Math.random() * 18, 6, 2, PAL.otterBase);
+  for (let i = 0; i < 80; i++) p(ctx, 4 + srand() * 24, 8 + srand() * 24, PAL.mudLight);
+  for (let i = 0; i < 40; i++) rect(ctx, 4 + srand() * 22, 10 + srand() * 18, 6, 2, PAL.otterBase);
   rect(ctx, 12, 22, 8, 8, PAL.black);
 }
 
 function drawTower(ctx: Ctx): void {
   rect(ctx, 8, 16, 16, 14, PAL.mudLight);
-  for (let i = 0; i < 30; i++) p(ctx, 8 + Math.random() * 16, 16 + Math.random() * 14, PAL.mudDark);
+  for (let i = 0; i < 30; i++) p(ctx, 8 + srand() * 16, 16 + srand() * 14, PAL.mudDark);
   rect(ctx, 6, 8, 20, 8, PAL.mudDark);
   rect(ctx, 10, 4, 12, 4, PAL.reedGreen);
   rect(ctx, 14, 22, 4, 8, PAL.black);
@@ -206,7 +215,7 @@ function drawTower(ctx: Ctx): void {
 
 function drawBurrow(ctx: Ctx): void {
   circle(ctx, 16, 24, 8, PAL.mudDark);
-  for (let i = 0; i < 20; i++) p(ctx, 8 + Math.random() * 16, 16 + Math.random() * 8, PAL.mudLight);
+  for (let i = 0; i < 20; i++) p(ctx, 8 + srand() * 16, 16 + srand() * 8, PAL.mudLight);
   rect(ctx, 14, 24, 4, 6, PAL.black);
 }
 
@@ -217,8 +226,8 @@ function drawArmory(ctx: Ctx): void {
   rect(ctx, 26, 10, 4, 20, PAL.mudDark);
   rect(ctx, 2, 26, 28, 4, PAL.mudDark);
   for (let i = 0; i < 30; i++) {
-    p(ctx, 2 + Math.random() * 28, 10 + Math.random() * 4, PAL.otterBase);
-    p(ctx, 2 + Math.random() * 28, 26 + Math.random() * 4, PAL.otterBase);
+    p(ctx, 2 + srand() * 28, 10 + srand() * 4, PAL.otterBase);
+    p(ctx, 2 + srand() * 28, 26 + srand() * 4, PAL.otterBase);
   }
   rect(ctx, 12, 24, 8, 8, PAL.waterShallow);
 }
@@ -353,6 +362,9 @@ export function generateSprite(type: SpriteType): HTMLCanvasElement {
   c.height = size;
   const ctx = c.getContext('2d');
   if (!ctx) throw new Error(`Canvas2D context unavailable for sprite "${type}"`);
+
+  // Seed RNG deterministically per entity type for consistent decoration
+  seedRng(type.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0));
 
   // Draw at native resolution
   const drawFn = DRAW_FNS[type];

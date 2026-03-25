@@ -166,7 +166,9 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
   return (
     <div
       ref={containerRef}
-      style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", touchAction: "none" }}
+      role="application"
+      aria-label="Game battlefield — click to select units, right-click to issue commands"
+      style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", touchAction: "none", cursor: "crosshair" }}
       {...containerProps}
     >
       <Stage width={size.width} height={size.height}>
@@ -188,7 +190,7 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
         />
 
         {/* Layer 4: Fog of War */}
-        <FogLayer camX={camera.x} camY={camera.y} viewportW={size.width} viewportH={size.height} />
+        <FogLayer camX={camera.x} camY={camera.y} viewportW={size.width} viewportH={size.height} worldTilesW={Math.ceil(worldW / 32)} worldTilesH={Math.ceil(worldH / 32)} />
       </Stage>
 
       {/* Minimap — positioned absolutely over the game canvas */}

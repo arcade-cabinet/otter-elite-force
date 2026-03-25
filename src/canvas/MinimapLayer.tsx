@@ -156,6 +156,9 @@ export function MinimapLayer({
       width={mw}
       height={mh}
       onPointerDown={handlePointerDown}
+      tabIndex={0}
+      aria-label="Minimap — click or drag to move camera"
+      role="img"
       style={{
         position: "absolute",
         bottom: MARGIN,

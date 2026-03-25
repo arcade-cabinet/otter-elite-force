@@ -1,14 +1,16 @@
 /**
  * FogLayer — canvas-compositing fog of war rendered via Konva Shape.
  *
- * Draws a tiled procedural noise texture, then punches radial-gradient
- * vision holes for each player-faction entity using Canvas2D
- * `destination-out` compositing.
+ * Three fog states:
+ * 1. Unexplored — full fog texture (never seen)
+ * 2. Explored — dimmed fog (seen before, units left)
+ * 3. Visible — clear (unit currently has vision)
  *
- * Performance: listening={false} disables hit detection on this layer.
+ * Uses a tile grid to track explored state persistently.
+ * Renders via Canvas2D `destination-out` compositing on a tiled noise texture.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Layer, Shape } from "react-konva";
 import { useQuery } from "koota/react";
 import type { Context } from "konva/lib/Context";
@@ -20,166 +22,194 @@ import { Position } from "@/ecs/traits/spatial";
 
 // ─── Constants ───
 
-/** Grid cell size in pixels — consistent with other layers. */
 const CELL_SIZE = 32;
-
-/** Size of the seamless fog noise texture tile (px). */
 const FOG_NOISE_SIZE = 256;
-
-/** Base fog colour — dark slate blue matching POC. */
 const FOG_BASE = "#0f172a";
-
-/** Cloud accent colour (slate-700). */
 const FOG_CLOUD = "rgba(51, 65, 85, 0.5)";
 const FOG_CLOUD_EDGE = "rgba(51, 65, 85, 0)";
-
-/** Number of cloud blobs in the noise tile. */
 const CLOUD_COUNT = 150;
-
-/** Player faction identifier. */
 const PLAYER_FACTION = "ura";
 
-// ─── Fog noise texture (built once) ───
+/** Resolution of the explored-state grid (in world tiles). */
+const FOG_GRID_CELL = 2; // each fog cell covers 2x2 tiles
 
-/**
- * Build a seamless tileable fog noise canvas — mirrors POC `buildFogTexture`.
- * Uses seeded-ish random (Math.random) since the pattern is decorative.
- */
+// ─── Fog noise texture ───
+
 function buildFogTexture(): HTMLCanvasElement {
-  const size = FOG_NOISE_SIZE;
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext("2d")!;
+	const size = FOG_NOISE_SIZE;
+	const canvas = document.createElement("canvas");
+	canvas.width = size;
+	canvas.height = size;
+	const ctx = canvas.getContext("2d")!;
 
-  ctx.fillStyle = FOG_BASE;
-  ctx.fillRect(0, 0, size, size);
+	ctx.fillStyle = FOG_BASE;
+	ctx.fillRect(0, 0, size, size);
 
-  // Procedural seamless cloudy noise — draw 9× for wrap-around tiling
-  const offsets = [
-    [-1, -1], [0, -1], [1, -1],
-    [-1, 0],  [0, 0],  [1, 0],
-    [-1, 1],  [0, 1],  [1, 1],
-  ];
+	const offsets = [
+		[-1, -1], [0, -1], [1, -1],
+		[-1, 0], [0, 0], [1, 0],
+		[-1, 1], [0, 1], [1, 1],
+	];
 
-  for (let i = 0; i < CLOUD_COUNT; i++) {
-    const x = Math.random() * size;
-    const y = Math.random() * size;
-    const r = 15 + Math.random() * 30;
-    const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-    grad.addColorStop(0, FOG_CLOUD);
-    grad.addColorStop(1, FOG_CLOUD_EDGE);
-    ctx.fillStyle = grad;
+	for (let i = 0; i < CLOUD_COUNT; i++) {
+		const x = Math.random() * size;
+		const y = Math.random() * size;
+		const r = 15 + Math.random() * 30;
+		const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
+		grad.addColorStop(0, FOG_CLOUD);
+		grad.addColorStop(1, FOG_CLOUD_EDGE);
+		ctx.fillStyle = grad;
 
-    for (const [ox, oy] of offsets) {
-      ctx.beginPath();
-      ctx.arc(x + ox * size, y + oy * size, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
+		for (const [ox, oy] of offsets) {
+			ctx.beginPath();
+			ctx.arc(x + ox * size, y + oy * size, r, 0, Math.PI * 2);
+			ctx.fill();
+		}
+	}
 
-  return canvas;
+	return canvas;
 }
 
 // ─── Props ───
 
 export interface FogLayerProps {
-  /** Camera X offset in pixels. */
-  camX: number;
-  /** Camera Y offset in pixels. */
-  camY: number;
-  /** Viewport width in pixels. */
-  viewportW: number;
-  /** Viewport height in pixels. */
-  viewportH: number;
+	camX: number;
+	camY: number;
+	viewportW: number;
+	viewportH: number;
+	/** World dimensions in tiles. */
+	worldTilesW: number;
+	worldTilesH: number;
 }
 
 // ─── Component ───
 
-/**
- * Renders fog of war as a single Konva Shape with custom sceneFunc.
- *
- * 1. Fills viewport with tiled fog noise pattern (with slow drift).
- * 2. Switches to `destination-out` compositing.
- * 3. Punches soft radial-gradient holes for each player entity's vision.
- */
-export function FogLayer({ camX, camY, viewportW, viewportH }: FogLayerProps) {
-  // Build fog noise tile once
-  const fogTile = useMemo(() => buildFogTexture(), []);
+export function FogLayer({ camX, camY, viewportW, viewportH, worldTilesW, worldTilesH }: Readonly<FogLayerProps>) {
+	const fogTile = useMemo(() => buildFogTexture(), []);
 
-  // Query player entities with vision
-  const visibleEntities = useQuery(Position, Faction, VisionRadius);
+	// Explored-state grid: 0 = unexplored, 1 = explored (seen before), 2 = currently visible
+	const gridW = Math.ceil(worldTilesW / FOG_GRID_CELL);
+	const gridH = Math.ceil(worldTilesH / FOG_GRID_CELL);
+	const exploredGrid = useRef<Uint8Array | null>(null);
 
-  const sceneFunc = (ctx: Context, shape: KonvaShape) => {
-    const canvas2d = ctx._context as CanvasRenderingContext2D;
+	// Initialize grid on first render or world size change
+	useEffect(() => {
+		exploredGrid.current = new Uint8Array(gridW * gridH);
+	}, [gridW, gridH]);
 
-    // ── 1. Fill with tiled fog pattern ──
-    const pattern = canvas2d.createPattern(fogTile, "repeat");
-    if (pattern) {
-      canvas2d.save();
-      // Slow atmospheric drift (mirrors POC)
-      const driftX = -(camX * 0.2) % FOG_NOISE_SIZE;
-      const driftY = -(camY * 0.2) % FOG_NOISE_SIZE;
-      canvas2d.translate(driftX, driftY);
-      canvas2d.fillStyle = pattern;
-      // Overdraw to prevent clipping during drift
-      canvas2d.fillRect(-FOG_NOISE_SIZE, -FOG_NOISE_SIZE, viewportW + FOG_NOISE_SIZE * 2, viewportH + FOG_NOISE_SIZE * 2);
-      canvas2d.restore();
-    }
+	const visibleEntities = useQuery(Position, Faction, VisionRadius);
 
-    // ── 2. Punch vision holes with destination-out ──
-    canvas2d.globalCompositeOperation = "destination-out";
+	const sceneFunc = (ctx: Context, shape: KonvaShape) => {
+		const canvas2d = ctx._context as CanvasRenderingContext2D;
+		const grid = exploredGrid.current;
+		if (!grid) return;
 
-    for (const entity of visibleEntities) {
-      const pos = entity.get(Position);
-      const faction = entity.get(Faction);
-      const vision = entity.get(VisionRadius);
+		// ── Mark currently visible cells ──
+		// Reset all cells from "visible" (2) to "explored" (1)
+		for (let i = 0; i < grid.length; i++) {
+			if (grid[i] === 2) grid[i] = 1;
+		}
 
-      if (!pos || !faction || !vision) continue;
-      if (faction.id !== PLAYER_FACTION) continue;
+		// Mark cells within each player unit's vision as visible (2)
+		for (const entity of visibleEntities) {
+			const pos = entity.get(Position);
+			const faction = entity.get(Faction);
+			const vision = entity.get(VisionRadius);
+			if (!pos || !faction || !vision || faction.id !== PLAYER_FACTION) continue;
 
-      // Convert tile coords → pixel coords → screen coords
-      const screenX = pos.x * CELL_SIZE - camX;
-      const screenY = pos.y * CELL_SIZE - camY;
-      const radiusPx = vision.radius * CELL_SIZE;
+			const cx = Math.floor(pos.x / FOG_GRID_CELL);
+			const cy = Math.floor(pos.y / FOG_GRID_CELL);
+			const r = Math.ceil(vision.radius / FOG_GRID_CELL);
 
-      // Frustum cull — skip entities whose vision circle is off-screen
-      if (
-        screenX + radiusPx < 0 || screenX - radiusPx > viewportW ||
-        screenY + radiusPx < 0 || screenY - radiusPx > viewportH
-      ) continue;
+			for (let dy = -r; dy <= r; dy++) {
+				for (let dx = -r; dx <= r; dx++) {
+					if (dx * dx + dy * dy > r * r) continue;
+					const gx = cx + dx;
+					const gy = cy + dy;
+					if (gx < 0 || gx >= gridW || gy < 0 || gy >= gridH) continue;
+					grid[gy * gridW + gx] = 2;
+				}
+			}
+		}
 
-      // Soft feathered radial gradient (mirrors POC)
-      const grad = canvas2d.createRadialGradient(
-        screenX, screenY, radiusPx * 0.2,
-        screenX, screenY, radiusPx,
-      );
-      grad.addColorStop(0, "rgba(0,0,0,1)");
-      grad.addColorStop(0.6, "rgba(0,0,0,0.8)");
-      grad.addColorStop(1, "rgba(0,0,0,0)");
+		// ── 1. Fill viewport with tiled fog pattern ──
+		const pattern = canvas2d.createPattern(fogTile, "repeat");
+		if (pattern) {
+			canvas2d.save();
+			const driftX = -(camX * 0.2) % FOG_NOISE_SIZE;
+			const driftY = -(camY * 0.2) % FOG_NOISE_SIZE;
+			canvas2d.translate(driftX, driftY);
+			canvas2d.fillStyle = pattern;
+			canvas2d.fillRect(-FOG_NOISE_SIZE, -FOG_NOISE_SIZE, viewportW + FOG_NOISE_SIZE * 2, viewportH + FOG_NOISE_SIZE * 2);
+			canvas2d.restore();
+		}
 
-      canvas2d.fillStyle = grad;
-      canvas2d.beginPath();
-      canvas2d.arc(screenX, screenY, radiusPx, 0, Math.PI * 2);
-      canvas2d.fill();
-    }
+		// ── 2. Punch holes for explored and visible cells ──
+		canvas2d.globalCompositeOperation = "destination-out";
 
-    // Reset compositing
-    canvas2d.globalCompositeOperation = "source-over";
+		const cellPx = FOG_GRID_CELL * CELL_SIZE;
 
-    // Tell Konva we drew something
-    ctx.fillStrokeShape(shape);
-  };
+		// First pass: explored cells get partial punch-through (dimmed, not black)
+		for (let gy = 0; gy < gridH; gy++) {
+			for (let gx = 0; gx < gridW; gx++) {
+				const state = grid[gy * gridW + gx];
+				if (state === 0) continue; // unexplored — leave full fog
 
-  return (
-    <Layer listening={false} opacity={0.6}>
-      <Shape
-        sceneFunc={sceneFunc}
-        width={viewportW}
-        height={viewportH}
-        listening={false}
-      />
-    </Layer>
-  );
+				const screenX = gx * cellPx - camX + cellPx / 2;
+				const screenY = gy * cellPx - camY + cellPx / 2;
+
+				// Skip off-screen cells
+				if (screenX + cellPx < 0 || screenX - cellPx > viewportW ||
+					screenY + cellPx < 0 || screenY - cellPx > viewportH) continue;
+
+				if (state === 1) {
+					// Explored but not visible — punch 50% (leaves dimmed fog)
+					canvas2d.fillStyle = "rgba(0,0,0,0.5)";
+					canvas2d.fillRect(screenX - cellPx / 2, screenY - cellPx / 2, cellPx, cellPx);
+				}
+			}
+		}
+
+		// Second pass: currently visible — punch with soft radial gradients per unit
+		for (const entity of visibleEntities) {
+			const pos = entity.get(Position);
+			const faction = entity.get(Faction);
+			const vision = entity.get(VisionRadius);
+			if (!pos || !faction || !vision || faction.id !== PLAYER_FACTION) continue;
+
+			const screenX = pos.x * CELL_SIZE - camX;
+			const screenY = pos.y * CELL_SIZE - camY;
+			const radiusPx = vision.radius * CELL_SIZE;
+
+			if (screenX + radiusPx < 0 || screenX - radiusPx > viewportW ||
+				screenY + radiusPx < 0 || screenY - radiusPx > viewportH) continue;
+
+			const grad = canvas2d.createRadialGradient(
+				screenX, screenY, radiusPx * 0.2,
+				screenX, screenY, radiusPx,
+			);
+			grad.addColorStop(0, "rgba(0,0,0,1)");
+			grad.addColorStop(0.6, "rgba(0,0,0,0.8)");
+			grad.addColorStop(1, "rgba(0,0,0,0)");
+
+			canvas2d.fillStyle = grad;
+			canvas2d.beginPath();
+			canvas2d.arc(screenX, screenY, radiusPx, 0, Math.PI * 2);
+			canvas2d.fill();
+		}
+
+		canvas2d.globalCompositeOperation = "source-over";
+		ctx.fillStrokeShape(shape);
+	};
+
+	return (
+		<Layer listening={false} opacity={0.6}>
+			<Shape
+				sceneFunc={sceneFunc}
+				width={viewportW}
+				height={viewportH}
+				listening={false}
+			/>
+		</Layer>
+	);
 }
-

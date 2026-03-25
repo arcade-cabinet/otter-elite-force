@@ -6,7 +6,7 @@
  * Cleans up the animation frame on unmount.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { World } from "koota";
 import { GamePhase } from "@/ecs/traits/state";
 import { type GameLoopContext, tickAllSystems } from "@/systems/gameLoop";
@@ -49,9 +49,9 @@ export interface UseGameLoopResult {
  * @returns Frame count, FPS, and pause state for HUD display.
  */
 export function useGameLoop(world: World, options: UseGameLoopOptions): UseGameLoopResult {
-	const [frameCount, setFrameCount] = useState(0);
-	const [fps, setFps] = useState(0);
-	const [isPaused, setIsPaused] = useState(true);
+	// All state stored in refs to avoid triggering React re-renders every frame.
+	// Consumers read .current directly or use the returned snapshot at their cadence.
+	const resultRef = useRef<UseGameLoopResult>({ frameCount: 0, fps: 0, isPaused: true });
 
 	const rafRef = useRef<number>(0);
 	const lastTimeRef = useRef<number>(0);
@@ -73,7 +73,7 @@ export function useGameLoop(world: World, options: UseGameLoopOptions): UseGameL
 			// Check game phase — pause if not "playing"
 			const phase = world.get(GamePhase)?.phase ?? "loading";
 			const paused = phase !== "playing";
-			setIsPaused(paused);
+			resultRef.current.isPaused = paused;
 
 			if (!paused) {
 				const deltaSec = deltaMs / 1000;
@@ -96,18 +96,18 @@ export function useGameLoop(world: World, options: UseGameLoopOptions): UseGameL
 				tickAllSystems(ctx);
 			}
 
-			// Update frame count + FPS
+			// Update frame count + FPS in refs (no React re-render)
 			frameCountRef.current += 1;
-			setFrameCount(frameCountRef.current);
+			resultRef.current.frameCount = frameCountRef.current;
 
-			// Rolling FPS (last 30 samples)
 			if (deltaMs > 0) {
 				const instantFps = 1000 / deltaMs;
 				const samples = fpsAccRef.current;
 				samples.push(instantFps);
 				if (samples.length > 30) samples.shift();
-				const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
-				setFps(Math.round(avg));
+				resultRef.current.fps = Math.round(
+					samples.reduce((a, b) => a + b, 0) / samples.length,
+				);
 			}
 
 			rafRef.current = requestAnimationFrame(tick);
@@ -130,6 +130,6 @@ export function useGameLoop(world: World, options: UseGameLoopOptions): UseGameL
 		};
 	}, [tick]);
 
-	return { frameCount, fps, isPaused };
+	return resultRef.current;
 }
 
