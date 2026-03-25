@@ -228,6 +228,8 @@ describe("saveRepo", () => {
 
 	it("should return latest save by saved_at", async () => {
 		await saveGame(1, "ch1-m1", "{}");
+		// Small delay so saved_at timestamps differ
+		await new Promise((r) => setTimeout(r, 5));
 		await saveGame(2, "ch2-m5", "{}");
 
 		const latest = await getLatestSave();

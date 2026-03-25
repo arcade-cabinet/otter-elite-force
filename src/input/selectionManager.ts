@@ -132,7 +132,8 @@ export class SelectionManager {
 
 		if (closestEntity) {
 			(closestEntity as Entity).add(Selected);
-			EventBus.emit("unit-selected");
+			const unitTypeData = (closestEntity as Entity).get(UnitType);
+			EventBus.emit("unit-selected", { unitType: unitTypeData?.type ?? "" });
 		}
 	}
 

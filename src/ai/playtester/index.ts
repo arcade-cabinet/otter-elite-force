@@ -285,3 +285,14 @@ export {
 	isBaseUnderThreat,
 	PerceptionBuilder,
 } from "./perception";
+export type { StrategyProfileName, StrategyProfile } from "./profiles";
+export { createPlaytesterBrainWithProfile, STRATEGY_PROFILES } from "./profiles";
+export type { Mission1Result, SimLogEntry, SimState, CombatResult } from "./simulation";
+export {
+	createMission1Sim,
+	runMission1Simulation,
+	simulateGroupCombat,
+	simulateKitingCombat,
+	simulateMortarSplash,
+	simulateSiege,
+} from "./simulation";
