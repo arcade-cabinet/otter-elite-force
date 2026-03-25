@@ -11,11 +11,11 @@ import { initSingletons } from "@/ecs/singletons";
 import { AppScreen, type AppScreenType, CampaignProgress, GamePhase } from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
 import { CAMPAIGN } from "@/entities/missions";
+import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
 import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
-import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
 import { CampaignView } from "@/ui/command-post/CampaignView";
 import { MainMenu } from "@/ui/command-post/MainMenu";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
@@ -288,7 +288,11 @@ function MissionResultOverlay() {
 	const missionResult = completedMissionId ? campaign?.missions[completedMissionId] : null;
 	const stars = (missionResult?.stars ?? 0) as 0 | 1 | 2 | 3;
 
-	const primaryLabel = isDefeat ? "Retry Mission" : finalMissionComplete ? "Return to Menu" : "Next Mission";
+	const primaryLabel = isDefeat
+		? "Retry Mission"
+		: finalMissionComplete
+			? "Return to Menu"
+			: "Next Mission";
 	const primaryTarget: AppScreenType = isDefeat ? "game" : finalMissionComplete ? "menu" : "game";
 
 	return (
