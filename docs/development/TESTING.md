@@ -1,337 +1,87 @@
-# Testing Strategy for OTTER: ELITE FORCE
+# Testing
 
-This document outlines the comprehensive testing strategy for the game, including unit tests, integration tests, and end-to-end tests.
+This is the command-oriented testing reference for the current repo. For deeper architecture guidance, see `docs/architecture/testing-strategy.md`.
 
-## Test Coverage Summary
-
-### Unit Tests
-Located in `src/__tests__/unit/` and `src/**/*.test.{ts,tsx}`
-
-- **Game Store Tests** (`src/__tests__/unit/gameStore.test.ts`): 45+ tests
-  - Player state management (health, damage, healing)
-  - Mode transitions
-  - World generation and discovery
-  - Character management and unlocks
-  - Economy and upgrades
-  - XP and ranking system
-  - Base building
-
-- **Persistence Tests** (`src/stores/persistence.ts`): Schema validation and migration
-  - Save/Load functionality
-  - Data migration between versions
-  - Validation of save data structure
-
-- **Core Systems Tests**:
-  - `src/Core/AudioEngine.test.ts` - Audio synthesis and playback
-  - `src/Core/InputSystem.test.ts` - Touch and keyboard input
-  - `src/utils/math.test.ts` - Math utilities
-
-- **Entity Tests**:
-  - `src/Entities/Enemies/__tests__/GatorAI.test.ts` - Enemy AI behaviors
-
-### Integration Tests
-Located in `src/__tests__/integration/`
-
-- **Game Flow Tests** (`game-flow.test.ts`): 15+ tests
-  - Complete game loops (menu → cutscene → game → victory)
-  - Combat scenarios
-  - Character progression
-  - World exploration
-  - Economy loops
-  - Base building
-  - Difficulty modes
-  - State persistence
-
-### End-to-End Tests
-Located in `e2e/`
-
-- **Smoke Tests** (`smoke.spec.ts`): 6 tests
-  - App loading and title display
-  - Console error monitoring
-  - Navigation basics
-  - localStorage availability
-
-- **Menu Tests** (`menu.spec.ts`): 20+ tests
-  - Main menu rendering
-  - Character selection
-  - Navigation to canteen
-  - Campaign start
-  - Cutscene display
-  - Accessibility checks
-
-- **Game Tests** (`game.spec.ts`): 15+ tests
-  - WebGL capability detection
-  - Canvas rendering
-  - Game flow progression
-  - State persistence
-
-- **Visual Regression Tests** (`visual-regression.spec.ts`): 12+ tests
-  - Main menu snapshots
-  - Character cards
-  - Canteen screen
-  - Cutscene rendering
-  - Responsive design (mobile/tablet)
-
-## Running Tests
-
-### Unit and Integration Tests
+## Core Commands
 
 ```bash
-# Run all tests once
+pnpm typecheck
+pnpm lint
 pnpm test:unit
-
-# Watch mode for development
-pnpm test:unit:watch
-
-# With UI (Vitest UI)
-pnpm test:unit:ui
-
-# With coverage report
-pnpm test:coverage
-```
-
-### End-to-End Tests
-
-#### Headless Mode (CI)
-
-```bash
-# Basic E2E tests (works in headless/CI environments)
+pnpm test:browser
 pnpm test:e2e
-```
-
-Note: WebGL-dependent tests are automatically skipped in headless mode to prevent false failures.
-
-#### Full WebGL Testing (MCP Mode)
-
-```bash
-# Full tests with WebGL/GPU support (requires display)
-pnpm test:e2e:mcp
-
-# Or with UI
-pnpm test:e2e:ui
-
-# Headed mode (see browser)
-pnpm test:e2e:headed
-```
-
-This mode requires:
-- Display server (X11 or Wayland)
-- GPU acceleration
-- Full browser environment
-
-#### Visual Regression Testing
-
-```bash
-# Run visual regression tests
-pnpm test:e2e:visual
-
-# Update baseline snapshots (when intentional visual changes are made)
-pnpm test:e2e:update-snapshots
-```
-
-Visual regression tests use Playwright's screenshot comparison to validate:
-- 3D rendering accuracy
-- Character model appearances
-- UI component rendering
-- Responsive design across viewports
-
-**First Run:** Generates baseline snapshots in `e2e/*.spec.ts-snapshots/`
-**Subsequent Runs:** Compares against baselines, highlights pixel differences
-**On Failure:** Creates `-actual.png` and `-diff.png` files for review
-
-#### All Tests
-
-```bash
-# Run both unit and E2E tests
 pnpm test:all
+pnpm build
+pnpm build:sprites
 ```
 
-## Test Structure
+## What Each Command Covers
 
-### Unit Tests
+| Command | Purpose |
+|---|---|
+| `pnpm typecheck` | TypeScript correctness |
+| `pnpm lint` | Biome linting across the repo |
+| `pnpm test:unit` | Vitest spec tests in the default config |
+| `pnpm test:browser` | browser-mode Vitest coverage via `vitest.browser.config.ts` |
+| `pnpm test:e2e` | Playwright end-to-end coverage |
+| `pnpm test:all` | unit + browser + e2e |
+| `pnpm build` | production build verification |
+| `pnpm build:sprites` | SP-DSL / sprite atlas pipeline verification |
 
-Unit tests focus on isolated components and pure logic:
-- ✅ Zustand store mutations
-- ✅ Game constants and configuration
-- ✅ Character and weapon balance
-- ✅ Scoring and progression logic
-- ✅ Save data persistence
-- ✅ World generation determinism
-- ✅ AI behavior logic
+## Recommended Validation Path
 
-### Integration Tests
+### For UI work
 
-Integration tests verify systems working together:
-- ✅ Complete game flow (menu → cutscene → game → victory)
-- ✅ Combat mechanics (damage, healing, kills)
-- ✅ Character-specific gameplay
-- ✅ World exploration and territory control
-- ✅ Economy loops (earn/spend/upgrade)
-- ✅ Base building system
-- ✅ Difficulty modes and their effects
-- ✅ State transitions
+1. `pnpm typecheck`
+2. `pnpm lint`
+3. focused Vitest file or `pnpm test:browser` when relevant
+4. `pnpm build`
 
-### E2E Tests
+### For mission / ECS / gameplay work
 
-E2E tests verify the complete user experience:
-- ✅ Page loading and initialization
-- ✅ Character selection UI
-- ⚠️ Movement (WASD keys) - requires WebGL
-- ⚠️ Shooting mechanics - requires WebGL
-- ⚠️ Enemy spawning and AI - requires WebGL
-- ✅ Touch controls (UI buttons)
-- ✅ Score tracking
-- ✅ Game state persistence
+1. `pnpm typecheck`
+2. focused `pnpm vitest run ...`
+3. `pnpm test:browser` if the change affects runtime rendering
+4. `pnpm build`
 
-⚠️ = Tests that require full GPU/WebGL support
+### For sprite / portrait / pipeline work
 
-## Test Environment
+1. `pnpm build:sprites`
+2. focused entity/pipeline Vitest coverage
+3. `pnpm test:browser` when visual/runtime loading is affected
+4. `pnpm build`
 
-### Vitest Configuration (`vitest.config.ts`)
+## Asset Pipeline Validation
 
-- Environment: `happy-dom` (lightweight DOM implementation)
-- Setup file: `src/test/setup.ts`
-- Coverage provider: V8
-- Mocked APIs:
-  - localStorage
-  - matchMedia
-  - ResizeObserver
-  - WebGL context
-  - Tone.js (audio synthesis)
-  - Yuka (AI library)
-  - Three.js WebGLRenderer
+`pnpm build:sprites` validates the current sprite pipeline by:
 
-### Playwright Configuration (`playwright.config.ts`)
+- importing entity definitions from `src/entities/`
+- rendering legacy and SP-DSL sprite sources
+- packing atlases for `units`, `buildings`, `resources`, `props`, `terrain`, and `portraits`
+- writing manifest files to `public/assets/`
 
-- Browser: Chromium (optimized for WebGL)
-- Two modes:
-  1. **Headless** (default): Software WebGL via SwiftShader
-  2. **MCP** (`PLAYWRIGHT_MCP=true`): Full GPU, headed mode
-- Timeout: 60s (MCP) / 30s (headless)
-- Screenshots on failure
-- Video recording (MCP mode only)
-- Visual regression: 20% diff tolerance
+When the asset system changes, this command is part of the required verification path.
 
-## Coverage Reporting
+## Focused Testing Patterns
 
-### Local Coverage
+Examples:
 
 ```bash
-# Generate coverage report
-pnpm test:coverage
-
-# View HTML report
-open coverage/index.html  # macOS
-xdg-open coverage/index.html  # Linux
-start coverage/index.html  # Windows
+pnpm vitest run src/__tests__/specs/entities/
+pnpm vitest run src/__tests__/specs/ui/main-menu.test.tsx
+pnpm vitest run src/__tests__/specs/entities/sprite-quality.test.ts
 ```
 
-### CI Coverage
+Prefer the smallest meaningful test target before widening scope.
 
-Coverage is automatically:
-- Generated during CI test runs
-- Uploaded to Coveralls (if configured)
-- Tracked over time
-- Reported on pull requests
+## Browser and E2E Notes
 
-### Coverage Goals
+- `pnpm test:browser` uses the dedicated browser Vitest config
+- `pnpm test:e2e` uses Playwright
+- `pnpm playwright:install` installs Chromium for Playwright when needed
 
-- **Lines**: 25% minimum → **Target: 50%+**
-- **Functions**: 25% minimum
-- **Branches**: 25% minimum
-- **Statements**: 25% minimum
+## Current Caveat
 
-Current coverage focus areas:
-- Game Store: ~90%
-- Core Systems: ~70%
-- UI Components: 30-50%
-- **3D Components**: 0% (traditional) → **Functional via visual testing**
+Some focused UI spec files currently assume `@testing-library/react`, but that dependency is not installed in the repo yet. Typecheck/build/lint can still pass while those specific tests remain blocked.
 
-## Known Limitations
-
-### WebGL in CI/Headless
-
-WebGL and Three.js require GPU acceleration to fully function. In headless/CI environments:
-- Software rendering (SwiftShader) provides basic WebGL
-- Complex 3D scenes may perform poorly
-- Some rendering tests must be skipped
-
-**Solutions:**
-1. Mock Three.js for unit tests ✅
-2. Skip GPU-dependent E2E tests in headless mode ✅
-3. Run full E2E tests with MCP/GPU in dev environment ✅
-4. Use visual regression testing for critical rendering
-
-### Test Performance
-
-- Unit tests: ~1-2s (fast, run often)
-- Integration tests: ~2-3s (medium, run per commit)
-- E2E tests: ~30-60s (slow, run before PR)
-
-## Best Practices
-
-1. **Test Pyramid**: More unit tests, fewer E2E tests
-2. **Isolation**: Each test should be independent
-3. **Cleanup**: Always reset state between tests
-4. **Descriptive Names**: Tests should document behavior
-5. **Fast Feedback**: Keep unit tests under 100ms each
-6. **Realistic Data**: Use production-like test data
-7. **Error Messages**: Clear assertions with context
-
-## Debugging Tests
-
-### Vitest
-
-```bash
-# Run specific test file
-pnpm vitest src/__tests__/unit/gameStore.test.ts
-
-# Run tests matching pattern
-pnpm vitest -t "should take damage"
-
-# Run with debugger
-pnpm vitest --inspect-brk
-
-# Update snapshots
-pnpm vitest -u
-```
-
-### Playwright
-
-```bash
-# Run specific test
-pnpm playwright test -g "should display main menu"
-
-# Debug mode (opens browser)
-pnpm playwright test --debug
-
-# Generate test code
-pnpm playwright codegen http://localhost:4173
-
-# Show trace viewer
-pnpm playwright show-trace test-results/trace.zip
-```
-
-## Contributing
-
-When adding new features:
-1. Write unit tests first (TDD)
-2. Add integration tests for feature interactions
-3. Update E2E tests if UI changes
-4. Ensure coverage doesn't decrease
-5. Update this README if test strategy changes
-
-## Test File Naming Conventions
-
-- Unit tests: `*.test.ts` or `*.test.tsx`
-- Integration tests: `*.test.ts` in `__tests__/integration/`
-- E2E tests: `*.spec.ts` in `e2e/`
-- Test fixtures: `__fixtures__/` directory
-
-## Resources
-
-- [Vitest Documentation](https://vitest.dev/)
-- [Playwright Documentation](https://playwright.dev/)
-- [Testing Library](https://testing-library.com/)
-- [React Three Fiber Testing](https://docs.pmnd.rs/react-three-fiber/advanced/testing)
-- [Zustand Testing Patterns](https://docs.pmnd.rs/zustand/guides/testing)
+If that test path needs to be fully re-enabled, install the dependency through the package manager rather than editing manifests manually.

@@ -1,0 +1,2145 @@
+[
+	{
+		"entityKey": "unit:mudfoot",
+		"entityId": "mudfoot",
+		"entityType": "unit",
+		"entityName": "MUDFOOT",
+		"familyId": "oef-line-infantry",
+		"archetypeId": "oef_line_infantry_otter",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "mudfoot",
+		"referenceContractId": "mudfoot",
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "attack"],
+		"sourceFrameKeys": [
+			"mudfoot",
+			"mudfoot_idle_0",
+			"mudfoot_walk_0",
+			"mudfoot_walk_1",
+			"mudfoot_attack_0",
+			"mudfoot_attack_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["infantry", "IsUnit", "IsCombat"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"mudfoot",
+					"mudfoot_idle_0",
+					"mudfoot_walk_0",
+					"mudfoot_walk_1",
+					"mudfoot_attack_0",
+					"mudfoot_attack_1"
+				],
+				"generatedFrameKeys": [
+					"mudfoot__proc_hitflash",
+					"mudfoot_idle_0__proc_hitflash",
+					"mudfoot_walk_0__proc_hitflash",
+					"mudfoot_walk_1__proc_hitflash",
+					"mudfoot_attack_0__proc_hitflash",
+					"mudfoot_attack_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Core OEF front-line infantry silhouettes used to establish baseline battlefield readability.",
+			"visualIntent": "Baseline Otter Elite Force rifle infantry silhouette for readable 16px RTS combat.",
+			"silhouette": "compact rifle infantry with forward-ready stance",
+			"materialCues": [
+				"brown fur",
+				"blue field uniform",
+				"dark rifle metal",
+				"otter fur",
+				"field webbing",
+				"military steel"
+			],
+			"semanticAxes": ["weapon profile", "backpack load", "helmet / headgear"],
+			"entityName": "MUDFOOT",
+			"variantDescriptors": ["infantry", "IsUnit", "IsCombat"]
+		}
+	},
+	{
+		"entityKey": "unit:river_rat",
+		"entityId": "river_rat",
+		"entityType": "unit",
+		"entityName": "RIVER RAT",
+		"familyId": "oef-line-infantry",
+		"archetypeId": "oef_line_infantry_otter",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "mudfoot",
+		"referenceContractId": "mudfoot",
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "gather"],
+		"sourceFrameKeys": [
+			"river_rat",
+			"river_rat_idle_0",
+			"river_rat_walk_0",
+			"river_rat_walk_1",
+			"river_rat_gather_0",
+			"river_rat_gather_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["worker", "IsUnit", "IsWorker"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"river_rat",
+					"river_rat_idle_0",
+					"river_rat_walk_0",
+					"river_rat_walk_1",
+					"river_rat_gather_0",
+					"river_rat_gather_1"
+				],
+				"generatedFrameKeys": [
+					"river_rat__proc_hitflash",
+					"river_rat_idle_0__proc_hitflash",
+					"river_rat_walk_0__proc_hitflash",
+					"river_rat_walk_1__proc_hitflash",
+					"river_rat_gather_0__proc_hitflash",
+					"river_rat_gather_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Core OEF front-line infantry silhouettes used to establish baseline battlefield readability.",
+			"visualIntent": "Baseline Otter Elite Force rifle infantry silhouette for readable 16px RTS combat.",
+			"silhouette": "compact rifle infantry with forward-ready stance",
+			"materialCues": [
+				"brown fur",
+				"blue field uniform",
+				"dark rifle metal",
+				"otter fur",
+				"field webbing",
+				"military steel"
+			],
+			"semanticAxes": ["weapon profile", "backpack load", "helmet / headgear"],
+			"entityName": "RIVER RAT",
+			"variantDescriptors": ["worker", "IsUnit", "IsWorker"]
+		}
+	},
+	{
+		"entityKey": "unit:shellcracker",
+		"entityId": "shellcracker",
+		"entityType": "unit",
+		"entityName": "SHELLCRACKER",
+		"familyId": "oef-line-infantry",
+		"archetypeId": "oef_line_infantry_otter",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "mudfoot",
+		"referenceContractId": "mudfoot",
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "attack"],
+		"sourceFrameKeys": [
+			"shellcracker",
+			"shellcracker_idle_0",
+			"shellcracker_walk_0",
+			"shellcracker_walk_1",
+			"shellcracker_attack_0",
+			"shellcracker_attack_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["ranged", "IsUnit", "IsCombat", "IsRanged"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"shellcracker",
+					"shellcracker_idle_0",
+					"shellcracker_walk_0",
+					"shellcracker_walk_1",
+					"shellcracker_attack_0",
+					"shellcracker_attack_1"
+				],
+				"generatedFrameKeys": [
+					"shellcracker__proc_hitflash",
+					"shellcracker_idle_0__proc_hitflash",
+					"shellcracker_walk_0__proc_hitflash",
+					"shellcracker_walk_1__proc_hitflash",
+					"shellcracker_attack_0__proc_hitflash",
+					"shellcracker_attack_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Core OEF front-line infantry silhouettes used to establish baseline battlefield readability.",
+			"visualIntent": "Baseline Otter Elite Force rifle infantry silhouette for readable 16px RTS combat.",
+			"silhouette": "compact rifle infantry with forward-ready stance",
+			"materialCues": [
+				"brown fur",
+				"blue field uniform",
+				"dark rifle metal",
+				"otter fur",
+				"field webbing",
+				"military steel"
+			],
+			"semanticAxes": ["weapon profile", "backpack load", "helmet / headgear"],
+			"entityName": "SHELLCRACKER",
+			"variantDescriptors": ["ranged", "IsUnit", "IsCombat", "IsRanged"]
+		}
+	},
+	{
+		"entityKey": "unit:sapper",
+		"entityId": "sapper",
+		"entityType": "unit",
+		"entityName": "SAPPER",
+		"familyId": "oef-specialist-support",
+		"archetypeId": "oef_support_specialist_otter",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "sapper",
+		"referenceContractId": null,
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "attack"],
+		"sourceFrameKeys": [
+			"sapper",
+			"sapper_idle_0",
+			"sapper_walk_0",
+			"sapper_walk_1",
+			"sapper_attack_0"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["siege", "IsUnit", "IsCombat", "IsSiege"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"sapper",
+					"sapper_idle_0",
+					"sapper_walk_0",
+					"sapper_walk_1",
+					"sapper_attack_0"
+				],
+				"generatedFrameKeys": [
+					"sapper__proc_hitflash",
+					"sapper_idle_0__proc_hitflash",
+					"sapper_walk_0__proc_hitflash",
+					"sapper_walk_1__proc_hitflash",
+					"sapper_attack_0__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Support and engineering silhouettes that must remain readable as non-standard OEF troops.",
+			"visualIntent": "Support and engineering silhouettes that must remain readable as non-standard OEF troops.",
+			"silhouette": "support infantry with tools, packs, or heavy indirect-fire gear",
+			"materialCues": ["field canvas", "engineering kit", "heavy tube / charges"],
+			"semanticAxes": ["tooling", "backpack bulk", "indirect-fire gear"],
+			"entityName": "SAPPER",
+			"variantDescriptors": ["siege", "IsUnit", "IsCombat", "IsSiege"]
+		}
+	},
+	{
+		"entityKey": "unit:mortar_otter",
+		"entityId": "mortar_otter",
+		"entityType": "unit",
+		"entityName": "MORTAR OTTER",
+		"familyId": "oef-specialist-support",
+		"archetypeId": "oef_support_specialist_otter",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "sapper",
+		"referenceContractId": null,
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "attack"],
+		"sourceFrameKeys": [
+			"mortar_otter",
+			"mortar_otter_idle_0",
+			"mortar_otter_walk_0",
+			"mortar_otter_walk_1",
+			"mortar_otter_attack_0",
+			"mortar_otter_attack_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["siege", "IsUnit", "IsCombat", "IsSiege", "IsRanged"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"mortar_otter",
+					"mortar_otter_idle_0",
+					"mortar_otter_walk_0",
+					"mortar_otter_walk_1",
+					"mortar_otter_attack_0",
+					"mortar_otter_attack_1"
+				],
+				"generatedFrameKeys": [
+					"mortar_otter__proc_hitflash",
+					"mortar_otter_idle_0__proc_hitflash",
+					"mortar_otter_walk_0__proc_hitflash",
+					"mortar_otter_walk_1__proc_hitflash",
+					"mortar_otter_attack_0__proc_hitflash",
+					"mortar_otter_attack_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Support and engineering silhouettes that must remain readable as non-standard OEF troops.",
+			"visualIntent": "Support and engineering silhouettes that must remain readable as non-standard OEF troops.",
+			"silhouette": "support infantry with tools, packs, or heavy indirect-fire gear",
+			"materialCues": ["field canvas", "engineering kit", "heavy tube / charges"],
+			"semanticAxes": ["tooling", "backpack bulk", "indirect-fire gear"],
+			"entityName": "MORTAR OTTER",
+			"variantDescriptors": ["siege", "IsUnit", "IsCombat", "IsSiege", "IsRanged"]
+		}
+	},
+	{
+		"entityKey": "unit:raftsman",
+		"entityId": "raftsman",
+		"entityType": "unit",
+		"entityName": "RAFTSMAN",
+		"familyId": "oef-amphibious-ops",
+		"archetypeId": "oef_amphibious_operations",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "raftsman",
+		"referenceContractId": null,
+		"palette": "otter_default",
+		"layerIds": ["weapon", "body", "uniform"],
+		"animationIds": ["idle", "walk"],
+		"sourceFrameKeys": ["raftsman", "raftsman_idle_0", "raftsman_walk_0", "raftsman_walk_1"],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["transport", "IsUnit", "IsTransport"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": ["raftsman", "raftsman_idle_0", "raftsman_walk_0", "raftsman_walk_1"],
+				"generatedFrameKeys": [
+					"raftsman__proc_hitflash",
+					"raftsman_idle_0__proc_hitflash",
+					"raftsman_walk_0__proc_hitflash",
+					"raftsman_walk_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Water-mobile OEF silhouettes for transport and riverine insertion roles.",
+			"visualIntent": "Water-mobile OEF silhouettes for transport and riverine insertion roles.",
+			"silhouette": "riverine operator with boat or dive gear massing",
+			"materialCues": ["flotation gear", "wet kit", "naval accents"],
+			"semanticAxes": ["mobility gear", "waterline profile", "mask / paddle read"],
+			"entityName": "RAFTSMAN",
+			"variantDescriptors": ["transport", "IsUnit", "IsTransport"]
+		}
+	},
+	{
+		"entityKey": "unit:diver",
+		"entityId": "diver",
+		"entityType": "unit",
+		"entityName": "DIVER",
+		"familyId": "oef-amphibious-ops",
+		"archetypeId": "oef_amphibious_operations",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "raftsman",
+		"referenceContractId": null,
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "attack"],
+		"sourceFrameKeys": ["diver", "diver_idle_0", "diver_walk_0", "diver_walk_1", "diver_attack_0"],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["scout", "IsUnit", "IsCombat", "IsScout"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"diver",
+					"diver_idle_0",
+					"diver_walk_0",
+					"diver_walk_1",
+					"diver_attack_0"
+				],
+				"generatedFrameKeys": [
+					"diver__proc_hitflash",
+					"diver_idle_0__proc_hitflash",
+					"diver_walk_0__proc_hitflash",
+					"diver_walk_1__proc_hitflash",
+					"diver_attack_0__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Water-mobile OEF silhouettes for transport and riverine insertion roles.",
+			"visualIntent": "Water-mobile OEF silhouettes for transport and riverine insertion roles.",
+			"silhouette": "riverine operator with boat or dive gear massing",
+			"materialCues": ["flotation gear", "wet kit", "naval accents"],
+			"semanticAxes": ["mobility gear", "waterline profile", "mask / paddle read"],
+			"entityName": "DIVER",
+			"variantDescriptors": ["scout", "IsUnit", "IsCombat", "IsScout"]
+		}
+	},
+	{
+		"entityKey": "unit:skink",
+		"entityId": "skink",
+		"entityType": "unit",
+		"entityName": "SKINK",
+		"familyId": "scale-guard-line-assault",
+		"archetypeId": "scale_guard_brute_infantry",
+		"outputCategory": "units",
+		"faction": "scale_guard",
+		"referenceEntityId": "gator",
+		"referenceContractId": "gator",
+		"palette": "croc_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk"],
+		"sourceFrameKeys": ["skink", "skink_idle_0", "skink_walk_0", "skink_walk_1"],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["worker", "IsUnit", "IsWorker"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": ["skink", "skink_idle_0", "skink_walk_0", "skink_walk_1"],
+				"generatedFrameKeys": [
+					"skink__proc_hitflash",
+					"skink_idle_0__proc_hitflash",
+					"skink_walk_0__proc_hitflash",
+					"skink_walk_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Primary Scale-Guard assault silhouettes with obvious reptile threat mass and melee/ranged differentiation.",
+			"visualIntent": "Baseline Scale-Guard front-line bruiser with unmistakable reptile mass and threat read.",
+			"silhouette": "broad-shouldered melee brute with heavy head mass",
+			"materialCues": [
+				"croc hide",
+				"red wargear",
+				"claw-forward attack pose",
+				"scaled hide",
+				"war paint",
+				"toxin gear"
+			],
+			"semanticAxes": ["head mass", "tail read", "venom / claw loadout"],
+			"entityName": "SKINK",
+			"variantDescriptors": ["worker", "IsUnit", "IsWorker"]
+		}
+	},
+	{
+		"entityKey": "unit:gator",
+		"entityId": "gator",
+		"entityType": "unit",
+		"entityName": "GATOR",
+		"familyId": "scale-guard-line-assault",
+		"archetypeId": "scale_guard_brute_infantry",
+		"outputCategory": "units",
+		"faction": "scale_guard",
+		"referenceEntityId": "gator",
+		"referenceContractId": "gator",
+		"palette": "croc_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "attack"],
+		"sourceFrameKeys": [
+			"gator",
+			"gator_idle_0",
+			"gator_walk_0",
+			"gator_walk_1",
+			"gator_attack_0",
+			"gator_attack_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["infantry", "IsUnit", "IsCombat"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": [
+					"gator",
+					"gator_idle_0",
+					"gator_walk_0",
+					"gator_walk_1",
+					"gator_attack_0",
+					"gator_attack_1"
+				],
+				"generatedFrameKeys": [
+					"gator__proc_hitflash",
+					"gator_idle_0__proc_hitflash",
+					"gator_walk_0__proc_hitflash",
+					"gator_walk_1__proc_hitflash",
+					"gator_attack_0__proc_hitflash",
+					"gator_attack_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Primary Scale-Guard assault silhouettes with obvious reptile threat mass and melee/ranged differentiation.",
+			"visualIntent": "Baseline Scale-Guard front-line bruiser with unmistakable reptile mass and threat read.",
+			"silhouette": "broad-shouldered melee brute with heavy head mass",
+			"materialCues": [
+				"croc hide",
+				"red wargear",
+				"claw-forward attack pose",
+				"scaled hide",
+				"war paint",
+				"toxin gear"
+			],
+			"semanticAxes": ["head mass", "tail read", "venom / claw loadout"],
+			"entityName": "GATOR",
+			"variantDescriptors": ["infantry", "IsUnit", "IsCombat"]
+		}
+	},
+	{
+		"entityKey": "unit:viper",
+		"entityId": "viper",
+		"entityType": "unit",
+		"entityName": "VIPER",
+		"familyId": "scale-guard-line-assault",
+		"archetypeId": "scale_guard_brute_infantry",
+		"outputCategory": "units",
+		"faction": "scale_guard",
+		"referenceEntityId": "gator",
+		"referenceContractId": "gator",
+		"palette": "croc_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "attack"],
+		"sourceFrameKeys": [
+			"viper",
+			"viper_idle_0",
+			"viper_walk_0",
+			"viper_walk_1",
+			"viper_attack_0",
+			"viper_attack_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["ranged", "IsUnit", "IsCombat", "IsRanged"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": [
+					"viper",
+					"viper_idle_0",
+					"viper_walk_0",
+					"viper_walk_1",
+					"viper_attack_0",
+					"viper_attack_1"
+				],
+				"generatedFrameKeys": [
+					"viper__proc_hitflash",
+					"viper_idle_0__proc_hitflash",
+					"viper_walk_0__proc_hitflash",
+					"viper_walk_1__proc_hitflash",
+					"viper_attack_0__proc_hitflash",
+					"viper_attack_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Primary Scale-Guard assault silhouettes with obvious reptile threat mass and melee/ranged differentiation.",
+			"visualIntent": "Baseline Scale-Guard front-line bruiser with unmistakable reptile mass and threat read.",
+			"silhouette": "broad-shouldered melee brute with heavy head mass",
+			"materialCues": [
+				"croc hide",
+				"red wargear",
+				"claw-forward attack pose",
+				"scaled hide",
+				"war paint",
+				"toxin gear"
+			],
+			"semanticAxes": ["head mass", "tail read", "venom / claw loadout"],
+			"entityName": "VIPER",
+			"variantDescriptors": ["ranged", "IsUnit", "IsCombat", "IsRanged"]
+		}
+	},
+	{
+		"entityKey": "unit:snapper",
+		"entityId": "snapper",
+		"entityType": "unit",
+		"entityName": "SNAPPER",
+		"familyId": "scale-guard-predator-support",
+		"archetypeId": "scale_guard_support_predators",
+		"outputCategory": "units",
+		"faction": "scale_guard",
+		"referenceEntityId": "snapper",
+		"referenceContractId": null,
+		"palette": "croc_default",
+		"layerIds": ["body", "uniform"],
+		"animationIds": ["idle", "attack"],
+		"sourceFrameKeys": ["snapper", "snapper_idle_0", "snapper_attack_0", "snapper_attack_1"],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["ranged", "IsUnit", "IsCombat", "IsRanged", "IsStationary"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": ["snapper", "snapper_idle_0", "snapper_attack_0", "snapper_attack_1"],
+				"generatedFrameKeys": [
+					"snapper__proc_hitflash",
+					"snapper_idle_0__proc_hitflash",
+					"snapper_attack_0__proc_hitflash",
+					"snapper_attack_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Scale-Guard support, scouting, and ranged utility units that expand the reptile roster without losing faction identity.",
+			"visualIntent": "Scale-Guard support, scouting, and ranged utility units that expand the reptile roster without losing faction identity.",
+			"silhouette": "specialized predator shapes with long-range or utility gear cues",
+			"materialCues": ["mud armor", "utility sacs", "siege or scouting equipment"],
+			"semanticAxes": ["utility rig", "snout length", "payload silhouette"],
+			"entityName": "SNAPPER",
+			"variantDescriptors": ["ranged", "IsUnit", "IsCombat", "IsRanged", "IsStationary"]
+		}
+	},
+	{
+		"entityKey": "unit:scout_lizard",
+		"entityId": "scout_lizard",
+		"entityType": "unit",
+		"entityName": "SCOUT LIZARD",
+		"familyId": "scale-guard-predator-support",
+		"archetypeId": "scale_guard_support_predators",
+		"outputCategory": "units",
+		"faction": "scale_guard",
+		"referenceEntityId": "snapper",
+		"referenceContractId": null,
+		"palette": "croc_default",
+		"layerIds": ["body", "uniform"],
+		"animationIds": ["idle", "walk"],
+		"sourceFrameKeys": [
+			"scout_lizard",
+			"scout_lizard_idle_0",
+			"scout_lizard_walk_0",
+			"scout_lizard_walk_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["scout", "IsUnit", "IsScout"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": [
+					"scout_lizard",
+					"scout_lizard_idle_0",
+					"scout_lizard_walk_0",
+					"scout_lizard_walk_1"
+				],
+				"generatedFrameKeys": [
+					"scout_lizard__proc_hitflash",
+					"scout_lizard_idle_0__proc_hitflash",
+					"scout_lizard_walk_0__proc_hitflash",
+					"scout_lizard_walk_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Scale-Guard support, scouting, and ranged utility units that expand the reptile roster without losing faction identity.",
+			"visualIntent": "Scale-Guard support, scouting, and ranged utility units that expand the reptile roster without losing faction identity.",
+			"silhouette": "specialized predator shapes with long-range or utility gear cues",
+			"materialCues": ["mud armor", "utility sacs", "siege or scouting equipment"],
+			"semanticAxes": ["utility rig", "snout length", "payload silhouette"],
+			"entityName": "SCOUT LIZARD",
+			"variantDescriptors": ["scout", "IsUnit", "IsScout"]
+		}
+	},
+	{
+		"entityKey": "unit:siphon_drone",
+		"entityId": "siphon_drone",
+		"entityType": "unit",
+		"entityName": "SIPHON DRONE",
+		"familyId": "scale-guard-predator-support",
+		"archetypeId": "scale_guard_support_predators",
+		"outputCategory": "units",
+		"faction": "scale_guard",
+		"referenceEntityId": "snapper",
+		"referenceContractId": null,
+		"palette": "croc_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk"],
+		"sourceFrameKeys": [
+			"siphon_drone",
+			"siphon_drone_idle_0",
+			"siphon_drone_walk_0",
+			"siphon_drone_walk_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["support", "IsUnit", "IsDrainer"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": [
+					"siphon_drone",
+					"siphon_drone_idle_0",
+					"siphon_drone_walk_0",
+					"siphon_drone_walk_1"
+				],
+				"generatedFrameKeys": [
+					"siphon_drone__proc_hitflash",
+					"siphon_drone_idle_0__proc_hitflash",
+					"siphon_drone_walk_0__proc_hitflash",
+					"siphon_drone_walk_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Scale-Guard support, scouting, and ranged utility units that expand the reptile roster without losing faction identity.",
+			"visualIntent": "Scale-Guard support, scouting, and ranged utility units that expand the reptile roster without losing faction identity.",
+			"silhouette": "specialized predator shapes with long-range or utility gear cues",
+			"materialCues": ["mud armor", "utility sacs", "siege or scouting equipment"],
+			"semanticAxes": ["utility rig", "snout length", "payload silhouette"],
+			"entityName": "SIPHON DRONE",
+			"variantDescriptors": ["support", "IsUnit", "IsDrainer"]
+		}
+	},
+	{
+		"entityKey": "unit:croc_champion",
+		"entityId": "croc_champion",
+		"entityType": "unit",
+		"entityName": "CROC CHAMPION",
+		"familyId": "scale-guard-elite-shock",
+		"archetypeId": "scale_guard_elite_shock",
+		"outputCategory": "units",
+		"faction": "scale_guard",
+		"referenceEntityId": "croc_champion",
+		"referenceContractId": null,
+		"palette": "croc_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "attack"],
+		"sourceFrameKeys": [
+			"croc_champion",
+			"croc_champion_idle_0",
+			"croc_champion_walk_0",
+			"croc_champion_walk_1",
+			"croc_champion_attack_0",
+			"croc_champion_attack_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["infantry", "IsUnit", "IsCombat", "IsElite"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": [
+					"croc_champion",
+					"croc_champion_idle_0",
+					"croc_champion_walk_0",
+					"croc_champion_walk_1",
+					"croc_champion_attack_0",
+					"croc_champion_attack_1"
+				],
+				"generatedFrameKeys": [
+					"croc_champion__proc_hitflash",
+					"croc_champion_idle_0__proc_hitflash",
+					"croc_champion_walk_0__proc_hitflash",
+					"croc_champion_walk_1__proc_hitflash",
+					"croc_champion_attack_0__proc_hitflash",
+					"croc_champion_attack_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Elite apex-predator silhouettes reserved for high-threat enemy shock units.",
+			"visualIntent": "Elite apex-predator silhouettes reserved for high-threat enemy shock units.",
+			"silhouette": "apex reptile champion with oversized frame and trophy gear",
+			"materialCues": ["heavy scales", "ritual trophies", "command-grade armor"],
+			"semanticAxes": ["body bulk", "ornamentation", "elite armor density"],
+			"entityName": "CROC CHAMPION",
+			"variantDescriptors": ["infantry", "IsUnit", "IsCombat", "IsElite"]
+		}
+	},
+	{
+		"entityKey": "hero:sgt_bubbles",
+		"entityId": "sgt_bubbles",
+		"entityType": "hero",
+		"entityName": "SGT. BUBBLES",
+		"familyId": "oef-command-hero-units",
+		"archetypeId": "oef_command_hero_unit",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "sgt_bubbles",
+		"referenceContractId": "sgt_bubbles",
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform", "weapon"],
+		"animationIds": ["idle", "walk", "attack"],
+		"sourceFrameKeys": [
+			"sgt_bubbles",
+			"sgt_bubbles_idle_0",
+			"sgt_bubbles_walk_0",
+			"sgt_bubbles_walk_1",
+			"sgt_bubbles_attack_0",
+			"sgt_bubbles_attack_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["infantry", "IsUnit", "IsHero", "IsCombat", "hero", "mission_1"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"sgt_bubbles",
+					"sgt_bubbles_idle_0",
+					"sgt_bubbles_walk_0",
+					"sgt_bubbles_walk_1",
+					"sgt_bubbles_attack_0",
+					"sgt_bubbles_attack_1"
+				],
+				"generatedFrameKeys": [
+					"sgt_bubbles__proc_hitflash",
+					"sgt_bubbles_idle_0__proc_hitflash",
+					"sgt_bubbles_walk_0__proc_hitflash",
+					"sgt_bubbles_walk_1__proc_hitflash",
+					"sgt_bubbles_attack_0__proc_hitflash",
+					"sgt_bubbles_attack_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Hero combat sprites for command-grade OEF characters who need stronger silhouette and presence than baseline infantry.",
+			"visualIntent": "Hero portrait benchmark for painted-briefing tone, expression, and material separation.",
+			"silhouette": "hero bust with bandana, broad jaw, and command presence",
+			"materialCues": [
+				"battle-worn fur",
+				"red bandana",
+				"military kit highlights",
+				"otter fur",
+				"hero gear",
+				"rank-signifying accents"
+			],
+			"semanticAxes": ["hero posture", "signature gear", "rank silhouette"],
+			"entityName": "SGT. BUBBLES",
+			"variantDescriptors": ["infantry", "IsUnit", "IsHero", "IsCombat", "hero", "mission_1"]
+		}
+	},
+	{
+		"entityKey": "hero:gen_whiskers",
+		"entityId": "gen_whiskers",
+		"entityType": "hero",
+		"entityName": "GEN. WHISKERS",
+		"familyId": "oef-command-hero-units",
+		"archetypeId": "oef_command_hero_unit",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "sgt_bubbles",
+		"referenceContractId": "sgt_bubbles",
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform"],
+		"animationIds": ["idle", "walk"],
+		"sourceFrameKeys": [
+			"gen_whiskers",
+			"gen_whiskers_idle_0",
+			"gen_whiskers_walk_0",
+			"gen_whiskers_walk_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["infantry", "IsUnit", "IsHero", "IsCombat", "hero", "mission_4"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"gen_whiskers",
+					"gen_whiskers_idle_0",
+					"gen_whiskers_walk_0",
+					"gen_whiskers_walk_1"
+				],
+				"generatedFrameKeys": [
+					"gen_whiskers__proc_hitflash",
+					"gen_whiskers_idle_0__proc_hitflash",
+					"gen_whiskers_walk_0__proc_hitflash",
+					"gen_whiskers_walk_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Hero combat sprites for command-grade OEF characters who need stronger silhouette and presence than baseline infantry.",
+			"visualIntent": "Hero portrait benchmark for painted-briefing tone, expression, and material separation.",
+			"silhouette": "hero bust with bandana, broad jaw, and command presence",
+			"materialCues": [
+				"battle-worn fur",
+				"red bandana",
+				"military kit highlights",
+				"otter fur",
+				"hero gear",
+				"rank-signifying accents"
+			],
+			"semanticAxes": ["hero posture", "signature gear", "rank silhouette"],
+			"entityName": "GEN. WHISKERS",
+			"variantDescriptors": ["infantry", "IsUnit", "IsHero", "IsCombat", "hero", "mission_4"]
+		}
+	},
+	{
+		"entityKey": "hero:sgt_fang",
+		"entityId": "sgt_fang",
+		"entityType": "hero",
+		"entityName": "SGT. FANG",
+		"familyId": "oef-command-hero-units",
+		"archetypeId": "oef_command_hero_unit",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "sgt_bubbles",
+		"referenceContractId": "sgt_bubbles",
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform"],
+		"animationIds": ["idle", "walk"],
+		"sourceFrameKeys": ["sgt_fang", "sgt_fang_idle_0", "sgt_fang_walk_0", "sgt_fang_walk_1"],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": [
+			"siege",
+			"IsUnit",
+			"IsHero",
+			"IsCombat",
+			"IsSiege",
+			"hero",
+			"mission_12"
+		],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": ["sgt_fang", "sgt_fang_idle_0", "sgt_fang_walk_0", "sgt_fang_walk_1"],
+				"generatedFrameKeys": [
+					"sgt_fang__proc_hitflash",
+					"sgt_fang_idle_0__proc_hitflash",
+					"sgt_fang_walk_0__proc_hitflash",
+					"sgt_fang_walk_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Hero combat sprites for command-grade OEF characters who need stronger silhouette and presence than baseline infantry.",
+			"visualIntent": "Hero portrait benchmark for painted-briefing tone, expression, and material separation.",
+			"silhouette": "hero bust with bandana, broad jaw, and command presence",
+			"materialCues": [
+				"battle-worn fur",
+				"red bandana",
+				"military kit highlights",
+				"otter fur",
+				"hero gear",
+				"rank-signifying accents"
+			],
+			"semanticAxes": ["hero posture", "signature gear", "rank silhouette"],
+			"entityName": "SGT. FANG",
+			"variantDescriptors": [
+				"siege",
+				"IsUnit",
+				"IsHero",
+				"IsCombat",
+				"IsSiege",
+				"hero",
+				"mission_12"
+			]
+		}
+	},
+	{
+		"entityKey": "hero:cpl_splash",
+		"entityId": "cpl_splash",
+		"entityType": "hero",
+		"entityName": "CPL. SPLASH",
+		"familyId": "oef-specialist-hero-units",
+		"archetypeId": "oef_specialist_hero_unit",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "cpl_splash",
+		"referenceContractId": null,
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform"],
+		"animationIds": ["idle", "walk"],
+		"sourceFrameKeys": [
+			"cpl_splash",
+			"cpl_splash_idle_0",
+			"cpl_splash_walk_0",
+			"cpl_splash_walk_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": [
+			"scout",
+			"IsUnit",
+			"IsHero",
+			"IsCombat",
+			"CanSwim",
+			"CanSubmerge",
+			"hero",
+			"mission_8"
+		],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"cpl_splash",
+					"cpl_splash_idle_0",
+					"cpl_splash_walk_0",
+					"cpl_splash_walk_1"
+				],
+				"generatedFrameKeys": [
+					"cpl_splash__proc_hitflash",
+					"cpl_splash_idle_0__proc_hitflash",
+					"cpl_splash_walk_0__proc_hitflash",
+					"cpl_splash_walk_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Hero combat sprites for rescued OEF specialists whose battlefield role needs to read through unique kit and pose.",
+			"visualIntent": "Hero combat sprites for rescued OEF specialists whose battlefield role needs to read through unique kit and pose.",
+			"silhouette": "specialist hero with stronger role props and readable support-oriented silhouette",
+			"materialCues": ["otter fur", "specialist kit", "field-role props"],
+			"semanticAxes": ["specialty equipment", "hero stance", "role read"],
+			"entityName": "CPL. SPLASH",
+			"variantDescriptors": [
+				"scout",
+				"IsUnit",
+				"IsHero",
+				"IsCombat",
+				"CanSwim",
+				"CanSubmerge",
+				"hero",
+				"mission_8"
+			]
+		}
+	},
+	{
+		"entityKey": "hero:medic_marina",
+		"entityId": "medic_marina",
+		"entityType": "hero",
+		"entityName": "MEDIC MARINA",
+		"familyId": "oef-specialist-hero-units",
+		"archetypeId": "oef_specialist_hero_unit",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "cpl_splash",
+		"referenceContractId": null,
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform"],
+		"animationIds": ["idle", "walk"],
+		"sourceFrameKeys": [
+			"medic_marina",
+			"medic_marina_idle_0",
+			"medic_marina_walk_0",
+			"medic_marina_walk_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": ["support", "IsUnit", "IsHero", "IsSupport", "hero", "mission_10"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"medic_marina",
+					"medic_marina_idle_0",
+					"medic_marina_walk_0",
+					"medic_marina_walk_1"
+				],
+				"generatedFrameKeys": [
+					"medic_marina__proc_hitflash",
+					"medic_marina_idle_0__proc_hitflash",
+					"medic_marina_walk_0__proc_hitflash",
+					"medic_marina_walk_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Hero combat sprites for rescued OEF specialists whose battlefield role needs to read through unique kit and pose.",
+			"visualIntent": "Hero combat sprites for rescued OEF specialists whose battlefield role needs to read through unique kit and pose.",
+			"silhouette": "specialist hero with stronger role props and readable support-oriented silhouette",
+			"materialCues": ["otter fur", "specialist kit", "field-role props"],
+			"semanticAxes": ["specialty equipment", "hero stance", "role read"],
+			"entityName": "MEDIC MARINA",
+			"variantDescriptors": ["support", "IsUnit", "IsHero", "IsSupport", "hero", "mission_10"]
+		}
+	},
+	{
+		"entityKey": "hero:pvt_muskrat",
+		"entityId": "pvt_muskrat",
+		"entityType": "hero",
+		"entityName": "PVT. MUSKRAT",
+		"familyId": "oef-specialist-hero-units",
+		"archetypeId": "oef_specialist_hero_unit",
+		"outputCategory": "units",
+		"faction": "ura",
+		"referenceEntityId": "cpl_splash",
+		"referenceContractId": null,
+		"palette": "otter_default",
+		"layerIds": ["body", "uniform"],
+		"animationIds": ["idle", "walk"],
+		"sourceFrameKeys": [
+			"pvt_muskrat",
+			"pvt_muskrat_idle_0",
+			"pvt_muskrat_walk_0",
+			"pvt_muskrat_walk_1"
+		],
+		"teamColorLayerIds": ["uniform"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"variantDescriptors": [
+			"siege",
+			"IsUnit",
+			"IsHero",
+			"IsCombat",
+			"IsSiege",
+			"hero",
+			"mission_14"
+		],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fef08a",
+				"sourceFrameKeys": [
+					"pvt_muskrat",
+					"pvt_muskrat_idle_0",
+					"pvt_muskrat_walk_0",
+					"pvt_muskrat_walk_1"
+				],
+				"generatedFrameKeys": [
+					"pvt_muskrat__proc_hitflash",
+					"pvt_muskrat_idle_0__proc_hitflash",
+					"pvt_muskrat_walk_0__proc_hitflash",
+					"pvt_muskrat_walk_1__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Hero combat sprites for rescued OEF specialists whose battlefield role needs to read through unique kit and pose.",
+			"visualIntent": "Hero combat sprites for rescued OEF specialists whose battlefield role needs to read through unique kit and pose.",
+			"silhouette": "specialist hero with stronger role props and readable support-oriented silhouette",
+			"materialCues": ["otter fur", "specialist kit", "field-role props"],
+			"semanticAxes": ["specialty equipment", "hero stance", "role read"],
+			"entityName": "PVT. MUSKRAT",
+			"variantDescriptors": [
+				"siege",
+				"IsUnit",
+				"IsHero",
+				"IsCombat",
+				"IsSiege",
+				"hero",
+				"mission_14"
+			]
+		}
+	},
+	{
+		"entityKey": "building:command_post",
+		"entityId": "command_post",
+		"entityType": "building",
+		"entityName": "Command Post",
+		"familyId": "oef-command-production",
+		"archetypeId": "oef_forward_bases",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "barracks",
+		"referenceContractId": "barracks",
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "roof", "windows"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["command_post", "command_post_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["production", "building", "production", "ura", "depot"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "The structural language for OEF command, production, and support buildings.",
+			"visualIntent": "Baseline OEF production building with believable military roofline, shadow, and grounded mass.",
+			"silhouette": "fortified square barracks with roof and entry read",
+			"materialCues": ["stone shell", "wood door", "blue command accents", "timber framing"],
+			"semanticAxes": ["roof shape", "door placement", "support attachments"],
+			"entityName": "Command Post",
+			"variantDescriptors": ["production", "building", "production", "ura", "depot"]
+		}
+	},
+	{
+		"entityKey": "building:barracks",
+		"entityId": "barracks",
+		"entityType": "building",
+		"entityName": "Barracks",
+		"familyId": "oef-command-production",
+		"archetypeId": "oef_forward_bases",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "barracks",
+		"referenceContractId": "barracks",
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "roof", "door"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["barracks", "barracks_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["production", "building", "production", "ura"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "The structural language for OEF command, production, and support buildings.",
+			"visualIntent": "Baseline OEF production building with believable military roofline, shadow, and grounded mass.",
+			"silhouette": "fortified square barracks with roof and entry read",
+			"materialCues": ["stone shell", "wood door", "blue command accents", "timber framing"],
+			"semanticAxes": ["roof shape", "door placement", "support attachments"],
+			"entityName": "Barracks",
+			"variantDescriptors": ["production", "building", "production", "ura"]
+		}
+	},
+	{
+		"entityKey": "building:armory",
+		"entityId": "armory",
+		"entityType": "building",
+		"entityName": "Armory",
+		"familyId": "oef-command-production",
+		"archetypeId": "oef_forward_bases",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "barracks",
+		"referenceContractId": "barracks",
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "roof", "windows"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["armory", "armory_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["production", "building", "production", "ura", "research"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "The structural language for OEF command, production, and support buildings.",
+			"visualIntent": "Baseline OEF production building with believable military roofline, shadow, and grounded mass.",
+			"silhouette": "fortified square barracks with roof and entry read",
+			"materialCues": ["stone shell", "wood door", "blue command accents", "timber framing"],
+			"semanticAxes": ["roof shape", "door placement", "support attachments"],
+			"entityName": "Armory",
+			"variantDescriptors": ["production", "building", "production", "ura", "research"]
+		}
+	},
+	{
+		"entityKey": "building:field_hospital",
+		"entityId": "field_hospital",
+		"entityType": "building",
+		"entityName": "Field Hospital",
+		"familyId": "oef-command-production",
+		"archetypeId": "oef_forward_bases",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "barracks",
+		"referenceContractId": "barracks",
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "roof", "windows"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["field_hospital", "field_hospital_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["special", "building", "special", "ura", "healing"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "The structural language for OEF command, production, and support buildings.",
+			"visualIntent": "Baseline OEF production building with believable military roofline, shadow, and grounded mass.",
+			"silhouette": "fortified square barracks with roof and entry read",
+			"materialCues": ["stone shell", "wood door", "blue command accents", "timber framing"],
+			"semanticAxes": ["roof shape", "door placement", "support attachments"],
+			"entityName": "Field Hospital",
+			"variantDescriptors": ["special", "building", "special", "ura", "healing"]
+		}
+	},
+	{
+		"entityKey": "building:dock",
+		"entityId": "dock",
+		"entityType": "building",
+		"entityName": "Dock",
+		"familyId": "oef-command-production",
+		"archetypeId": "oef_forward_bases",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "barracks",
+		"referenceContractId": "barracks",
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "roof", "windows"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["dock", "dock_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": [
+			"production",
+			"building",
+			"production",
+			"ura",
+			"naval",
+			"requires_water"
+		],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "The structural language for OEF command, production, and support buildings.",
+			"visualIntent": "Baseline OEF production building with believable military roofline, shadow, and grounded mass.",
+			"silhouette": "fortified square barracks with roof and entry read",
+			"materialCues": ["stone shell", "wood door", "blue command accents", "timber framing"],
+			"semanticAxes": ["roof shape", "door placement", "support attachments"],
+			"entityName": "Dock",
+			"variantDescriptors": [
+				"production",
+				"building",
+				"production",
+				"ura",
+				"naval",
+				"requires_water"
+			]
+		}
+	},
+	{
+		"entityKey": "building:fish_trap",
+		"entityId": "fish_trap",
+		"entityType": "building",
+		"entityName": "Fish Trap",
+		"familyId": "oef-economy-logistics",
+		"archetypeId": "oef_logistics_structures",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "fish_trap",
+		"referenceContractId": null,
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "windows"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["fish_trap", "fish_trap_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["economy", "building", "economy", "ura", "passive_income"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Economic and supply structures supporting OEF field expansion.",
+			"visualIntent": "Economic and supply structures supporting OEF field expansion.",
+			"silhouette": "low-profile supply structures with practical field utility",
+			"materialCues": ["rope", "wood slats", "mud-stained utility frames"],
+			"semanticAxes": ["storage mass", "water-contact silhouette", "utility clutter"],
+			"entityName": "Fish Trap",
+			"variantDescriptors": ["economy", "building", "economy", "ura", "passive_income"]
+		}
+	},
+	{
+		"entityKey": "building:burrow",
+		"entityId": "burrow",
+		"entityType": "building",
+		"entityName": "Burrow",
+		"familyId": "oef-economy-logistics",
+		"archetypeId": "oef_logistics_structures",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "fish_trap",
+		"referenceContractId": null,
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "roof", "door"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["burrow", "burrow_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["economy", "building", "economy", "ura", "population"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Economic and supply structures supporting OEF field expansion.",
+			"visualIntent": "Economic and supply structures supporting OEF field expansion.",
+			"silhouette": "low-profile supply structures with practical field utility",
+			"materialCues": ["rope", "wood slats", "mud-stained utility frames"],
+			"semanticAxes": ["storage mass", "water-contact silhouette", "utility clutter"],
+			"entityName": "Burrow",
+			"variantDescriptors": ["economy", "building", "economy", "ura", "population"]
+		}
+	},
+	{
+		"entityKey": "building:watchtower",
+		"entityId": "watchtower",
+		"entityType": "building",
+		"entityName": "Watchtower",
+		"familyId": "oef-defensive-emplacements",
+		"archetypeId": "oef_field_defenses",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "watchtower",
+		"referenceContractId": null,
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "roof", "windows"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["watchtower", "watchtower_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["defense", "building", "defense", "ura", "detection"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Turrets and trap-like defenses that must read as military function at a glance.",
+			"visualIntent": "Turrets and trap-like defenses that must read as military function at a glance.",
+			"silhouette": "tall watch structures or compact lethal emplacements with obvious threat read",
+			"materialCues": ["sandbags", "gun metal", "warning markers"],
+			"semanticAxes": ["height", "barrel silhouette", "explosive signature"],
+			"entityName": "Watchtower",
+			"variantDescriptors": ["defense", "building", "defense", "ura", "detection"]
+		}
+	},
+	{
+		"entityKey": "building:gun_tower",
+		"entityId": "gun_tower",
+		"entityType": "building",
+		"entityName": "Gun Tower",
+		"familyId": "oef-defensive-emplacements",
+		"archetypeId": "oef_field_defenses",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "watchtower",
+		"referenceContractId": null,
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "roof", "windows"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["gun_tower", "gun_tower_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["defense", "building", "defense", "ura", "upgraded"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Turrets and trap-like defenses that must read as military function at a glance.",
+			"visualIntent": "Turrets and trap-like defenses that must read as military function at a glance.",
+			"silhouette": "tall watch structures or compact lethal emplacements with obvious threat read",
+			"materialCues": ["sandbags", "gun metal", "warning markers"],
+			"semanticAxes": ["height", "barrel silhouette", "explosive signature"],
+			"entityName": "Gun Tower",
+			"variantDescriptors": ["defense", "building", "defense", "ura", "upgraded"]
+		}
+	},
+	{
+		"entityKey": "building:minefield",
+		"entityId": "minefield",
+		"entityType": "building",
+		"entityName": "Minefield",
+		"familyId": "oef-defensive-emplacements",
+		"archetypeId": "oef_field_defenses",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "watchtower",
+		"referenceContractId": null,
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure", "triggers"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["minefield", "minefield_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["defense", "building", "defense", "ura", "trap", "invisible"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Turrets and trap-like defenses that must read as military function at a glance.",
+			"visualIntent": "Turrets and trap-like defenses that must read as military function at a glance.",
+			"silhouette": "tall watch structures or compact lethal emplacements with obvious threat read",
+			"materialCues": ["sandbags", "gun metal", "warning markers"],
+			"semanticAxes": ["height", "barrel silhouette", "explosive signature"],
+			"entityName": "Minefield",
+			"variantDescriptors": ["defense", "building", "defense", "ura", "trap", "invisible"]
+		}
+	},
+	{
+		"entityKey": "building:sandbag_wall",
+		"entityId": "sandbag_wall",
+		"entityType": "building",
+		"entityName": "Sandbag Wall",
+		"familyId": "oef-fortifications",
+		"archetypeId": "oef_fortification_segments",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "sandbag_wall",
+		"referenceContractId": null,
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["sandbag_wall", "sandbag_wall_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["wall", "building", "wall", "ura", "barrier"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "OEF wall and barricade language for battlefield shaping and cover identity.",
+			"visualIntent": "OEF wall and barricade language for battlefield shaping and cover identity.",
+			"silhouette": "short linear fortifications with immediate cover semantics",
+			"materialCues": ["packed sandbags", "stone blocks", "field wear"],
+			"semanticAxes": ["segment thickness", "top edge profile", "material density"],
+			"entityName": "Sandbag Wall",
+			"variantDescriptors": ["wall", "building", "wall", "ura", "barrier"]
+		}
+	},
+	{
+		"entityKey": "building:stone_wall",
+		"entityId": "stone_wall",
+		"entityType": "building",
+		"entityName": "Stone Wall",
+		"familyId": "oef-fortifications",
+		"archetypeId": "oef_fortification_segments",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"referenceEntityId": "sandbag_wall",
+		"referenceContractId": null,
+		"palette": "resource_default",
+		"layerIds": ["shadow", "structure"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["stone_wall", "stone_wall_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["wall", "building", "wall", "ura", "barrier", "reinforced"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "OEF wall and barricade language for battlefield shaping and cover identity.",
+			"visualIntent": "OEF wall and barricade language for battlefield shaping and cover identity.",
+			"silhouette": "short linear fortifications with immediate cover semantics",
+			"materialCues": ["packed sandbags", "stone blocks", "field wear"],
+			"semanticAxes": ["segment thickness", "top edge profile", "material density"],
+			"entityName": "Stone Wall",
+			"variantDescriptors": ["wall", "building", "wall", "ura", "barrier", "reinforced"]
+		}
+	},
+	{
+		"entityKey": "building:sludge_pit",
+		"entityId": "sludge_pit",
+		"entityType": "building",
+		"entityName": "Sludge Pit",
+		"familyId": "scale-guard-command-economy",
+		"archetypeId": "scale_guard_command_economy",
+		"outputCategory": "buildings",
+		"faction": "scale_guard",
+		"referenceEntityId": "sludge_pit",
+		"referenceContractId": null,
+		"palette": "croc_default",
+		"layerIds": ["foundation", "walls", "roof"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["sludge_pit", "sludge_pit_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["production", "building", "production", "scale_guard", "depot"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": ["sludge_pit", "sludge_pit_idle_0"],
+				"generatedFrameKeys": ["sludge_pit__proc_hitflash", "sludge_pit_idle_0__proc_hitflash"]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Scale-Guard strategic structures for command, extraction, and faction economy.",
+			"visualIntent": "Scale-Guard strategic structures for command, extraction, and faction economy.",
+			"silhouette": "hostile industrial-organic structures with basin and stack massing",
+			"materialCues": ["sludge", "rusted plates", "predator-stone"],
+			"semanticAxes": ["basin footprint", "pipe silhouette", "crest ornament"],
+			"entityName": "Sludge Pit",
+			"variantDescriptors": ["production", "building", "production", "scale_guard", "depot"]
+		}
+	},
+	{
+		"entityKey": "building:siphon",
+		"entityId": "siphon",
+		"entityType": "building",
+		"entityName": "Siphon",
+		"familyId": "scale-guard-command-economy",
+		"archetypeId": "scale_guard_command_economy",
+		"outputCategory": "buildings",
+		"faction": "scale_guard",
+		"referenceEntityId": "sludge_pit",
+		"referenceContractId": null,
+		"palette": "croc_default",
+		"layerIds": ["pool", "walls", "roof"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["siphon", "siphon_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["special", "building", "special", "scale_guard", "objective"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": ["siphon", "siphon_idle_0"],
+				"generatedFrameKeys": ["siphon__proc_hitflash", "siphon_idle_0__proc_hitflash"]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Scale-Guard strategic structures for command, extraction, and faction economy.",
+			"visualIntent": "Scale-Guard strategic structures for command, extraction, and faction economy.",
+			"silhouette": "hostile industrial-organic structures with basin and stack massing",
+			"materialCues": ["sludge", "rusted plates", "predator-stone"],
+			"semanticAxes": ["basin footprint", "pipe silhouette", "crest ornament"],
+			"entityName": "Siphon",
+			"variantDescriptors": ["special", "building", "special", "scale_guard", "objective"]
+		}
+	},
+	{
+		"entityKey": "building:spawning_pool",
+		"entityId": "spawning_pool",
+		"entityType": "building",
+		"entityName": "Spawning Pool",
+		"familyId": "scale-guard-production",
+		"archetypeId": "scale_guard_spawning_structures",
+		"outputCategory": "buildings",
+		"faction": "scale_guard",
+		"referenceEntityId": "spawning_pool",
+		"referenceContractId": "spawning_pool",
+		"palette": "croc_default",
+		"layerIds": ["foundation", "walls", "roof"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["spawning_pool", "spawning_pool_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["production", "building", "production", "scale_guard"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": ["spawning_pool", "spawning_pool_idle_0"],
+				"generatedFrameKeys": [
+					"spawning_pool__proc_hitflash",
+					"spawning_pool_idle_0__proc_hitflash"
+				]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Scale-Guard production structures should feel organic, threatening, and distinct from OEF buildings.",
+			"visualIntent": "Baseline Scale-Guard production structure with organic menace and strong faction separation from OEF buildings.",
+			"silhouette": "organic pool structure with thick roof and hostile footprint",
+			"materialCues": [
+				"croc-stone shell",
+				"red-orange cresting",
+				"murky brood basin",
+				"brood basin",
+				"scale ridges",
+				"red-orange crests"
+			],
+			"semanticAxes": ["pool opening", "roof armor", "brood detailing"],
+			"entityName": "Spawning Pool",
+			"variantDescriptors": ["production", "building", "production", "scale_guard"]
+		}
+	},
+	{
+		"entityKey": "building:venom_spire",
+		"entityId": "venom_spire",
+		"entityType": "building",
+		"entityName": "Venom Spire",
+		"familyId": "scale-guard-defenses",
+		"archetypeId": "scale_guard_defensive_structures",
+		"outputCategory": "buildings",
+		"faction": "scale_guard",
+		"referenceEntityId": "venom_spire",
+		"referenceContractId": null,
+		"palette": "croc_default",
+		"layerIds": ["shadow", "tower", "spire"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["venom_spire", "venom_spire_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["defense", "building", "defense", "scale_guard", "poison"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": ["venom_spire", "venom_spire_idle_0"],
+				"generatedFrameKeys": ["venom_spire__proc_hitflash", "venom_spire_idle_0__proc_hitflash"]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Venomous and predatory defensive silhouettes for entrenched Scale-Guard territory.",
+			"visualIntent": "Venomous and predatory defensive silhouettes for entrenched Scale-Guard territory.",
+			"silhouette": "needle or turret structure with venom threat signature",
+			"materialCues": ["venom sacs", "toxic stone", "predator iconography"],
+			"semanticAxes": ["spire height", "venom reservoir", "weapon tip profile"],
+			"entityName": "Venom Spire",
+			"variantDescriptors": ["defense", "building", "defense", "scale_guard", "poison"]
+		}
+	},
+	{
+		"entityKey": "building:scale_wall",
+		"entityId": "scale_wall",
+		"entityType": "building",
+		"entityName": "Scale Wall",
+		"familyId": "scale-guard-fortifications",
+		"archetypeId": "scale_guard_fortification_segments",
+		"outputCategory": "buildings",
+		"faction": "scale_guard",
+		"referenceEntityId": "scale_wall",
+		"referenceContractId": null,
+		"palette": "croc_default",
+		"layerIds": ["shadow", "structure"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["scale_wall", "scale_wall_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"variantDescriptors": ["wall", "building", "wall", "scale_guard", "barrier"],
+		"generatedVariants": [
+			{
+				"variantId": "hitflash",
+				"variantKind": "hitflash",
+				"frameSuffix": "__proc_hitflash",
+				"overlayColor": "#fb923c",
+				"sourceFrameKeys": ["scale_wall", "scale_wall_idle_0"],
+				"generatedFrameKeys": ["scale_wall__proc_hitflash", "scale_wall_idle_0__proc_hitflash"]
+			}
+		],
+		"promptRecipe": {
+			"roleIntent": "Segmented Scale-Guard walls and territorial barriers with hostile reptilian identity.",
+			"visualIntent": "Segmented Scale-Guard walls and territorial barriers with hostile reptilian identity.",
+			"silhouette": "serrated wall segment with reptile plating and strong border read",
+			"materialCues": ["scale plating", "bone spikes", "toxic grime"],
+			"semanticAxes": ["top spikes", "plate segmentation", "toxin staining"],
+			"entityName": "Scale Wall",
+			"variantDescriptors": ["wall", "building", "wall", "scale_guard", "barrier"]
+		}
+	},
+	{
+		"entityKey": "portrait:sgt_bubbles",
+		"entityId": "sgt_bubbles",
+		"entityType": "portrait",
+		"entityName": "Sgt. Bubbles",
+		"familyId": "oef-command-portraits",
+		"archetypeId": "oef_hero_command_portrait",
+		"outputCategory": "portraits",
+		"faction": "ura",
+		"referenceEntityId": "sgt_bubbles",
+		"referenceContractId": "sgt_bubbles",
+		"palette": "portrait_default",
+		"layerIds": ["background", "face", "uniform", "details"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["sgt_bubbles", "sgt_bubbles_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 64,
+			"height": 96,
+			"size": 64
+		},
+		"variantDescriptors": ["#5eead4", "portrait"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Senior command and hero portraits with strong painted-briefing presence.",
+			"visualIntent": "Hero portrait benchmark for painted-briefing tone, expression, and material separation.",
+			"silhouette": "hero bust with bandana, broad jaw, and command presence",
+			"materialCues": [
+				"battle-worn fur",
+				"red bandana",
+				"military kit highlights",
+				"fur separation",
+				"combat wear",
+				"rank-signifying accents"
+			],
+			"semanticAxes": ["expression", "rank styling", "facial silhouette"],
+			"entityName": "Sgt. Bubbles",
+			"variantDescriptors": ["#5eead4", "portrait"]
+		}
+	},
+	{
+		"entityKey": "portrait:gen_whiskers",
+		"entityId": "gen_whiskers",
+		"entityType": "portrait",
+		"entityName": "Gen. Whiskers",
+		"familyId": "oef-command-portraits",
+		"archetypeId": "oef_hero_command_portrait",
+		"outputCategory": "portraits",
+		"faction": "ura",
+		"referenceEntityId": "sgt_bubbles",
+		"referenceContractId": "sgt_bubbles",
+		"palette": "portrait_default",
+		"layerIds": ["background", "face", "uniform", "details"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["gen_whiskers", "gen_whiskers_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 64,
+			"height": 96,
+			"size": 64
+		},
+		"variantDescriptors": ["#22c55e", "portrait"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Senior command and hero portraits with strong painted-briefing presence.",
+			"visualIntent": "Hero portrait benchmark for painted-briefing tone, expression, and material separation.",
+			"silhouette": "hero bust with bandana, broad jaw, and command presence",
+			"materialCues": [
+				"battle-worn fur",
+				"red bandana",
+				"military kit highlights",
+				"fur separation",
+				"combat wear",
+				"rank-signifying accents"
+			],
+			"semanticAxes": ["expression", "rank styling", "facial silhouette"],
+			"entityName": "Gen. Whiskers",
+			"variantDescriptors": ["#22c55e", "portrait"]
+		}
+	},
+	{
+		"entityKey": "portrait:sgt_fang",
+		"entityId": "sgt_fang",
+		"entityType": "portrait",
+		"entityName": "Sgt. Fang",
+		"familyId": "oef-command-portraits",
+		"archetypeId": "oef_hero_command_portrait",
+		"outputCategory": "portraits",
+		"faction": "ura",
+		"referenceEntityId": "sgt_bubbles",
+		"referenceContractId": "sgt_bubbles",
+		"palette": "portrait_default",
+		"layerIds": ["background", "face", "uniform", "details"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["sgt_fang", "sgt_fang_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 64,
+			"height": 96,
+			"size": 64
+		},
+		"variantDescriptors": ["#78350f", "portrait"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Senior command and hero portraits with strong painted-briefing presence.",
+			"visualIntent": "Hero portrait benchmark for painted-briefing tone, expression, and material separation.",
+			"silhouette": "hero bust with bandana, broad jaw, and command presence",
+			"materialCues": [
+				"battle-worn fur",
+				"red bandana",
+				"military kit highlights",
+				"fur separation",
+				"combat wear",
+				"rank-signifying accents"
+			],
+			"semanticAxes": ["expression", "rank styling", "facial silhouette"],
+			"entityName": "Sgt. Fang",
+			"variantDescriptors": ["#78350f", "portrait"]
+		}
+	},
+	{
+		"entityKey": "portrait:cpl_splash",
+		"entityId": "cpl_splash",
+		"entityType": "portrait",
+		"entityName": "Cpl. Splash",
+		"familyId": "oef-specialist-portraits",
+		"archetypeId": "oef_specialist_portrait",
+		"outputCategory": "portraits",
+		"faction": "ura",
+		"referenceEntityId": "cpl_splash",
+		"referenceContractId": null,
+		"palette": "portrait_default",
+		"layerIds": ["background", "face", "uniform", "details"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["cpl_splash", "cpl_splash_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 64,
+			"height": 96,
+			"size": 64
+		},
+		"variantDescriptors": ["#0d9488", "portrait"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Support and rescue specialist portraits that still meet premium dialogue standards.",
+			"visualIntent": "Support and rescue specialist portraits that still meet premium dialogue standards.",
+			"silhouette": "specialist bust with distinctive role kit and expression",
+			"materialCues": ["role-specific gear", "fabric contrast", "painted facial planes"],
+			"semanticAxes": ["specialty props", "expression tone", "uniform variation"],
+			"entityName": "Cpl. Splash",
+			"variantDescriptors": ["#0d9488", "portrait"]
+		}
+	},
+	{
+		"entityKey": "portrait:medic_marina",
+		"entityId": "medic_marina",
+		"entityType": "portrait",
+		"entityName": "Medic Marina",
+		"familyId": "oef-specialist-portraits",
+		"archetypeId": "oef_specialist_portrait",
+		"outputCategory": "portraits",
+		"faction": "ura",
+		"referenceEntityId": "cpl_splash",
+		"referenceContractId": null,
+		"palette": "portrait_default",
+		"layerIds": ["background", "face", "uniform", "details"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["medic_marina", "medic_marina_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 64,
+			"height": 96,
+			"size": 64
+		},
+		"variantDescriptors": ["#ef4444", "portrait"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Support and rescue specialist portraits that still meet premium dialogue standards.",
+			"visualIntent": "Support and rescue specialist portraits that still meet premium dialogue standards.",
+			"silhouette": "specialist bust with distinctive role kit and expression",
+			"materialCues": ["role-specific gear", "fabric contrast", "painted facial planes"],
+			"semanticAxes": ["specialty props", "expression tone", "uniform variation"],
+			"entityName": "Medic Marina",
+			"variantDescriptors": ["#ef4444", "portrait"]
+		}
+	},
+	{
+		"entityKey": "portrait:pvt_muskrat",
+		"entityId": "pvt_muskrat",
+		"entityType": "portrait",
+		"entityName": "Pvt. Muskrat",
+		"familyId": "oef-specialist-portraits",
+		"archetypeId": "oef_specialist_portrait",
+		"outputCategory": "portraits",
+		"faction": "ura",
+		"referenceEntityId": "cpl_splash",
+		"referenceContractId": null,
+		"palette": "portrait_default",
+		"layerIds": ["background", "face", "uniform", "details"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["pvt_muskrat", "pvt_muskrat_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 64,
+			"height": 96,
+			"size": 64
+		},
+		"variantDescriptors": ["#fb923c", "portrait"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Support and rescue specialist portraits that still meet premium dialogue standards.",
+			"visualIntent": "Support and rescue specialist portraits that still meet premium dialogue standards.",
+			"silhouette": "specialist bust with distinctive role kit and expression",
+			"materialCues": ["role-specific gear", "fabric contrast", "painted facial planes"],
+			"semanticAxes": ["specialty props", "expression tone", "uniform variation"],
+			"entityName": "Pvt. Muskrat",
+			"variantDescriptors": ["#fb923c", "portrait"]
+		}
+	},
+	{
+		"entityKey": "portrait:foxhound",
+		"entityId": "foxhound",
+		"entityType": "portrait",
+		"entityName": "FOXHOUND",
+		"familyId": "briefing-network-portraits",
+		"archetypeId": "briefing_operator_portrait",
+		"outputCategory": "portraits",
+		"faction": "neutral",
+		"referenceEntityId": "foxhound",
+		"referenceContractId": null,
+		"palette": "portrait_default",
+		"layerIds": ["background", "face", "uniform", "details"],
+		"animationIds": ["idle"],
+		"sourceFrameKeys": ["foxhound", "foxhound_idle_0"],
+		"teamColorLayerIds": [],
+		"canonicalDimensions": {
+			"width": 64,
+			"height": 96,
+			"size": 64
+		},
+		"variantDescriptors": ["#3b82f6", "portrait"],
+		"generatedVariants": [],
+		"promptRecipe": {
+			"roleIntent": "Narrative support portraits for the campaign briefing and transmission layer.",
+			"visualIntent": "Narrative support portraits for the campaign briefing and transmission layer.",
+			"silhouette": "radio-operator bust with clear face and headset / comms read",
+			"materialCues": ["screen glow", "headset tech", "command-net styling"],
+			"semanticAxes": ["communications gear", "lighting preset", "supportive expression"],
+			"entityName": "FOXHOUND",
+			"variantDescriptors": ["#3b82f6", "portrait"]
+		}
+	}
+]

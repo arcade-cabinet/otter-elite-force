@@ -1,200 +1,147 @@
 # OTTER: ELITE FORCE
 
-> "Defend the River. Fear the Clam."
+Campaign-first RTS set in the Copper-Silt Reach: a river-jungle war between the **Otter Elite Force** and the entrenched **Scale-Guard**. The game targets a classic 90s RTS rhythm with authored briefings, premium portraits, mobile-aware tactical UX, and a procedural asset pipeline that compiles SP-DSL sprite definitions into runtime atlases.
 
-OTTER: ELITE FORCE is a mobile-first, procedurally generated 3rd-person tactical shooter set in a **persistent open world**. You play as Sgt. Bubbles, a battle-hardened otter deployed to the Copper-Silt Reach to liberate territory from the Scale-Guard Militia.
+## Current Product Direction
 
-## 🎮 Game Concept
+- **Primary mode:** authored campaign RTS missions
+- **Primary player-facing faction:** **Otter Elite Force (OEF)**
+- **Conflict:** control, occupation, logistics, liberation, and survival in the Reach
+- **Not the core thesis anymore:** open-world shooter framing, LZ/base-building campaign structure, or a “water theft / siphon theology” plot
+- **UX direction:** pulp jungle military, riverine warfare, manila-dossier command surfaces, and clearer action hierarchy
 
-### Open World, Not Levels
+## Design Pillars
 
-This is a **single persistent world** — not a collection of discrete levels:
+1. **Campaign-first RTS** — authored missions are the flagship product
+2. **Cross-platform clarity** — phone, tablet, and desktop must all feel intentional
+3. **One coherent war fantasy** — OEF vs Scale-Guard, not competing canon layers
+4. **Procedural asset production** — source art stays code-authored and build-generated
+5. **Readable tactical drama** — strong silhouettes, premium portraits, concise UI, clear hierarchy
 
-- 🌍 **Infinite Exploration**: The world generates chunk-by-chunk as you explore
-- 📌 **Fixed on Discovery**: Once visited, terrain is permanent and never regenerates
-- 🏴 **Territory Control**: Destroy enemy siphons to capture and secure territory
-- 🏗️ **Base Building**: Build and expand your Forward Operating Base at the LZ
+## Tech Stack
 
-### Three Victory Verticals
+| Layer | Current stack |
+|---|---|
+| UI | React 19 + shadcn/ui + Tailwind v4 |
+| Game rendering | Phaser 3 |
+| State | Koota ECS + singleton traits |
+| AI / simulation support | Yuka + authored scenario systems |
+| Audio | Tone.js |
+| Build | Vite + TypeScript + pnpm |
+| Quality | Biome + Vitest + Playwright |
 
-1. **Platoon Rescues**: Find and rescue specialists at specific world coordinates
-2. **Arsenal Upgrades**: Spend credits at the Canteen for permanent gear improvements
-3. **Intel Rewards**: High peacekeeping scores reveal map Points of Interest
+## Runtime Architecture
 
-### Three Difficulty Modes
+- `src/app/App.tsx` routes between `menu`, `campaign`, `briefing`, `game`, `victory`, `settings`, and `canteen`
+- `src/ui/` owns the React UI layer, including the redesigned command-post landing page and dossier overlays
+- `src/Scenes/BootScene.ts` loads prebuilt sprite atlases from `public/assets`
+- `src/entities/` holds campaign content, sprites, palettes, asset contracts, families, presets, and variant recipes
+- `src/ecs/` and `src/scenarios/` hold gameplay state and authored mission flow
 
-| Mode | Description |
-|------|-------------|
-| **SUPPORT** | Supply drops anywhere, extract from any coordinate |
-| **TACTICAL** | "The Fall" at 30% HP — must return to LZ for extraction |
-| **ELITE** | Permadeath — one death ends your campaign |
+## UI Direction
 
-*Difficulty can go UP but never DOWN.*
+The front door is now a cleaner **New Game / Continue Game / Settings** landing page with supporting flows moved into **dossier-style overlays** instead of extra full-screen hops.
 
-## 🎮 How to Play
+Visual target:
 
-### Mobile Controls (Touch)
+- jungle camo meets riverine warfare with animals
+- manila dossier tabs, stamped labels, typewriter copy
+- clearer information hierarchy, less menu churn, fewer walls of text
+- shadcn added as a component baseline, not as a generic visual replacement
 
-- **Left Stick**: Move & Strafe
-- **Right Stick**: Aim & Auto-Fire
-- **GRIP Button**: Hold to climb surfaces
-- **JUMP Button**: Vertical movement
-- **SCOPE Button**: Toggle zoom for long-range
+Typography currently centers on:
 
-### Desktop Controls
+- `Black Ops One`
+- `Special Elite`
+- `Share Tech Mono`
 
-- Mouse/Keyboard fallback for testing
-- WASD movement, Mouse aim
+## SP-DSL Asset Pipeline
 
-## 🌟 Features
+The sprite pipeline is code-authored and build-generated.
 
-### Procedural Everything
+### Source
 
-- **Zero External Assets**: All geometry is code-generated primitives
-- **Synthesized Audio**: Music and SFX via Tone.js (Web Audio API)
-- **Infinite World**: Deterministic seed-based chunk generation
+- entity definitions in `src/entities/**`
+- palettes in `src/entities/palettes.ts`
+- contracts / families / presets / variant recipes in:
+  - `src/entities/asset-contracts.ts`
+  - `src/entities/asset-families.ts`
+  - `src/entities/asset-generator-presets.ts`
+  - `src/entities/asset-variant-recipes.ts`
 
-### Tactical Depth
+### Build
 
-- **Three-Faction Conflict**: URA Peacekeepers vs Scale-Guard Militia vs Native Inhabitants
-- **Environmental Hazards**: Oil slicks (flammable), mud pits (slowing), toxic sludge
-- **Pack Hunting AI**: Predators coordinate with YUKA steering behaviors
-
-### Persistent Progression
-
-- **Open World Persistence**: Discovered territory stays fixed forever
-- **Base Building**: Modular construction at your Landing Zone
-- **Meta-Progression**: Permanent upgrades at the Canteen between sessions
-
-## 🛠️ Technical Stack
-
-- **Framework**: React 19 + TypeScript
-- **3D Engine**: Three.js r160 via @react-three/fiber
-- **Audio**: Tone.js (procedural synthesis)
-- **AI**: YUKA (steering behaviors, FSM)
-- **State**: Zustand (with localStorage persistence)
-- **Build**: Vite + pnpm
-- **Quality**: Biome (lint/format), Vitest (unit), Playwright (E2E)
-
-## 📜 Lore
-
-The year is unimportant. The location is **The Copper-Silt Reach**, a bleached, humid hellscape known to the grunts as the **"Emerald Meat-Grinder."**
-
-The **Scale-Guard Militia**—a brutal cult of biological river predators—has seized the ancestral clam beds, clear-cutting the mangroves and siphoning the river's lifeblood into their industrial sludge-pits.
-
-**Sgt. Bubbles**, a battle-hardened veteran of the early campaigns, has been recalled to lead a ragtag platoon of specialists into the soup. Navigate through burnt mangroves and murky silt to dismantle Scale-Guard siphons, rescue trapped allies, and liberate the native villages.
-
-Lock and load. We're going in hot.
-
-## 🚀 Installation & Development
-
-### Prerequisites
-
-- Node.js 20+
-- pnpm 10+
-
-### Setup
+Run:
 
 ```bash
-# Install dependencies
-pnpm install
+pnpm build:sprites
+```
 
-# Run development server
+This script:
+
+1. imports the entity registry
+2. resolves legacy and SP-DSL sprite definitions
+3. renders frames at `1x`, `2x`, and `3x`
+4. packs category atlases for `units`, `buildings`, `resources`, `props`, `terrain`, and `portraits`
+5. emits manifest files:
+   - `public/assets/asset-contracts.json`
+   - `public/assets/asset-families.json`
+   - `public/assets/asset-generator-presets.json`
+   - `public/assets/asset-variant-recipes.json`
+6. emits scale-specific atlas PNG + JSON files in `public/assets/<category>/`
+
+`BootScene` then selects the best atlas scale for the device and loads the generated atlases at runtime.
+
+## Development Commands
+
+```bash
 pnpm dev
-
-# Build for production
 pnpm build
-
-# Run tests
-pnpm test        # Unit tests
-pnpm test:e2e    # End-to-end tests
-
-# Lint & format
+pnpm typecheck
 pnpm lint
+pnpm test:unit
+pnpm test:browser
+pnpm test:e2e
+pnpm build:sprites
 ```
 
-## 📁 Project Structure
+## Documentation Map
 
-```
-src/
-├── Core/           # Engine systems (Audio, Input, GameLoop)
-├── Entities/       # Game objects
-│   ├── Enemies/    # Gator, Snake, Snapper AI
-│   ├── Environment/# Hazards, Decorations, Objectives
-│   └── ...
-├── Scenes/         # Application states (Menu, Level, Canteen, Victory)
-├── stores/         # Zustand state management
-│   ├── gameStore.ts      # Main FSM and game state
-│   ├── worldGenerator.ts # Chunk generation
-│   └── persistence.ts    # Save/Load logic
-└── UI/             # HUD components
+### Canonical / start here
 
-memory-bank/        # Agent documentation
-├── projectbrief.md # Core requirements and open world design
-├── productContext.md # UX goals and game loader interface
-├── systemPatterns.md # Architecture and chunk persistence
-├── activeContext.md  # Current work focus
-├── progress.md       # Feature checklist
-└── techContext.md    # Technology details
-```
+- `docs/superpowers/specs/2026-03-24-rts-canon-responsive-asset-overhaul-plan.md`
+- `docs/references/Copilot-Copilot_Chat_VT91k21R.md`
+- `docs/README.md`
+- `AGENTS.md`
+- `CLAUDE.md`
 
-## 🎯 Roadmap
+### Supporting docs
 
-### Completed ✅
-- [x] Modular TypeScript architecture
-- [x] Procedural otter rig and enemies
-- [x] Combat system with projectiles
-- [x] Environmental hazards (oil ignition, mud)
-- [x] Basic Canteen meta-progression
-- [x] Victory extraction sequence
+- `docs/architecture/overview.md`
+- `docs/architecture/testing-strategy.md`
+- `docs/design/game-design-document.md`
+- `TESTING.md`
+- `LORE.md`
 
-### In Progress 🔄
-- [ ] Main Menu → Game Loader redesign (New Game / Continue / Canteen)
-- [ ] Chunk persistence (fixed-on-discovery)
-- [ ] Territory control tracking
-- [ ] Difficulty mode implementation
+### Historical / non-authoritative unless explicitly revived
 
-### Planned ⏳
-- [ ] Base building at LZ
-- [ ] Character rescue system
-- [ ] Pack hunting AI coordination
-- [ ] Weather effects
-- [ ] Boss encounters
+- `CHUNK_PERSISTENCE.md`
+- `docs/superpowers/specs/2026-03-23-rts-pivot-design.md`
+- `docs/superpowers/plans/2026-03-23-*.md`
 
-## 🚢 Deployment
+If two docs disagree, prefer the **2026-03-24 RTS canon spec** and the **current implementation**.
 
-This project includes deployment configurations for:
-- **Render**: `render.yaml` blueprint for static site
-- **GitHub Pages**: CI/CD workflow in `.github/workflows/`
+## Repo Priorities Right Now
 
-## 📚 Documentation
+1. keep the RTS canon and wording coherent across the repo
+2. continue polishing the responsive command-post / tactical UI
+3. improve portrait and sprite quality while preserving the SP-DSL pipeline
+4. keep authored missions, campaign flow, and asset manifests aligned
 
-### For Contributors
-- [`docs/guides/CONTRIBUTING.md`](./docs/guides/CONTRIBUTING.md) - Contribution guidelines
-- [`docs/development/TESTING.md`](./docs/development/TESTING.md) - Testing philosophy and patterns
-- [`docs/README.md`](./docs/README.md) - Full documentation index
+## Guidance For Contributors
 
-### For AI Agents
-- `AGENTS.md` - Technical briefing and design principles
-- `CLAUDE.md` - Mission control and tactical priorities
-- `memory-bank/` - Comprehensive project context files
-- `WORKLOG.md` - Formal development activity log
-
-### Technical Documentation
-- [`docs/architecture/CHUNK_PERSISTENCE.md`](./docs/architecture/CHUNK_PERSISTENCE.md) - Open world chunk system design
-- [`docs/development/OTTERS_HTML_ANALYSIS.md`](./docs/development/OTTERS_HTML_ANALYSIS.md) - POC comparative analysis
-- [`docs/development/BUNDLE_SIZE.md`](./docs/development/BUNDLE_SIZE.md) - Bundle size monitoring guide
-
-## 📊 Performance Monitoring
-
-The project includes comprehensive bundle size monitoring:
-- Automatic bundle analysis on every build
-- PR comments with size comparisons
-- Visual bundle analyzer (`pnpm build:analyze`)
-- Historical tracking in CI artifacts
-
-See `docs/BUNDLE_SIZE.md` for details.
-
----
-
-*Built with procedural love by the River-Rats of the Copper-Silt Reach.*
+- Do not reintroduce the old open-world shooter as active canon
+- Do not make `siphons`, `sludge`, or `water` the sole metaphysical reason for the war
+- Prefer **Otter Elite Force** in player-facing copy; treat `URA` as background lore only
+- Keep mobile-first responsiveness and play-surface clarity as blocking quality bars
+- When changing the pipeline or product direction, update docs in the same pass

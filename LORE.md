@@ -1,45 +1,61 @@
-# 🦦 THE COPPER-SILT REACH: TECHNICAL BRIEFING
+# 🦦 The Copper-Silt Reach — Lore Brief
 
-## 🌎 The Theater of War
-**Name**: The Copper-Silt Reach
-**Moniker**: "The Emerald Meat-Grinder"
-**Atmosphere**: High-noon, 110-degree humidity. The sky is bleached Ektachrome white. The air tastes of burnt fuel and decaying mangroves.
+## Theater
 
-## 🛡️ The Factions
+**The Copper-Silt Reach** is a humid river-jungle war zone of mangroves, crossings, settlements, depots, mud flats, and fortified chokepoints. The sky is bleached bright, the ground is wet and bruised, and every campaign route feels temporary even when it becomes strategically vital.
 
-### 1. United River Alliance (URA) - "The Peacekeepers"
-A multi-specialist elite force of Mustelids (Otters) recalled from the northern territories. 
-*   **Doctrine**: Liberation through verticality. We occupy to restore peace.
-*   **Goal**: Dismantle Scale-Guard siphons and return territory to the villagers.
+## Core Conflict
 
-### 3. The Mustelid Civilians - "The Villagers"
-The original inhabitants of the Reach. They live in simple river hamlets and thatched huts.
-*   **Status**: Under Scale-Guard occupation. They lack the ballistics to fight back but provide the URA with intel and credits once their hamlets are secured.
-*   **Healers**: Rare, ancient villagers who still know the ways of the river. They can patch up a River-Rat's integrity in seconds if protected.
+The war is not about one mystical resource or one species-level obsession with water.
 
-### 4. The Scale-Guard Militia
-A biological cult of apex crocodilians and reptilian predators.
-*   **Doctrine**: Ambush, area-denial, and attrition.
-*   **Tech**: Stolen URA webbing, heavy industrial siphons, and biological "Periscope" mimicry.
-*   **Goal**: The "Sacred Sludge"—turning the river into a stagnant, oxygen-free bog where only scales can breathe.
+It is about:
 
-## 🐚 Strategic Objectives vs. Spoils of War
+- control of crossings
+- control of supply routes and depots
+- occupation of settlements and river towns
+- salvage, food, and marsh survival
+- defending or breaking fortified strongpoints
 
-The URA differentiates between high-priority targets and the resources harvested from the Reach.
+Some missions may feature siphons, poisonworks, gas depots, flooding, or sludge hazards, but those are **local expressions of the war**, not the entire metaphysical reason it exists.
 
-### 1. Strategic Objectives (The Mission)
-These are critical to the occupation and peacekeeping effort. Dismantling these secures territory and earns massive XP.
-*   **Industrial Siphons**: Large metal structures draining the ancestral clam beds. Dismantle them to secure the coordinate.
-*   **Marsh Gas Stockpiles**: Hidden caches of volatile marsh gas used by the Militia. Capture them to cripple enemy logistics.
-*   **Village Liberation**: Every hut secured return a coordinate to Alliance law.
+## Factions
 
-### 2. Spoils of War (The Bonus)
-These are resources used to fund the platoon's upgrades and equipment at the FOB.
-*   **Clam Baskets**: Found in river hamlets. They may contain a high concentration of supply credits... or they could be **Booby Traps**.
-*   **Enemy Intel**: Rescuing villagers provides valuable intel and credits.
+### Otter Elite Force (player-facing)
 
-## 🪖 Grunt Slang
-*   **"The Soup"**: The water of the Reach.
-*   **"Slick-Skin"**: Slur used by Gators for Otters.
-*   **"Scale-Bait"**: New recruits.
-*   **"Clam-Happy"**: A soldier who has spent too long in the Reach.
+The **Otter Elite Force (OEF)** is the player-facing military identity: disciplined, mobile, and tactically adaptable. `URA` can remain as background geopolitical context, but front-facing copy should prefer **OEF**.
+
+- **Doctrine:** flexible combined arms, mobility, river-jungle fighting, mission discipline
+- **Strength:** versatility, cohesion, battlefield adaptability
+- **Weakness:** must win through coordination, not brute dominance
+
+### Scale-Guard
+
+The **Scale-Guard** are the occupying crocodilian military power in the Reach: entrenched, attritional, and brutal.
+
+- **Doctrine:** fortifications, chokepoints, ambushes, pressure, and denial
+- **Strength:** strong positions and punishing local superiority
+- **Weakness:** less flexible, more dependent on holding ground through force
+
+### Reach Civilians
+
+The villagers and river settlements of the Reach live under occupation, coercion, and supply pressure.
+
+- they provide rescue stakes, intel, and narrative grounding
+- liberation should feel material and human, not abstract
+- they reinforce why the campaign is about reclaiming territory and routes, not just killing enemies
+
+## Tone
+
+Think:
+
+- **Full Metal Jacket meets Wind in the Willows**
+- animal soldiers, but not comedy-fantasy mush
+- analog military grit, not sci-fi chrome
+- pulp river war, not clean heroic pageantry
+
+## Grunt Slang
+
+- **The Soup** — the mud, floodwater, and foul runoff of the Reach
+- **Slick-Skin** — a hostile slur for the enemy
+- **Scale-Bait** — a dangerously green recruit
+- **Clam-Happy** — someone who has spent too long in the Reach and started talking like it makes sense

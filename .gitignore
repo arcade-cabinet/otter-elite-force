@@ -1,65 +1,80 @@
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-
-# npm artifacts (ALWAYS use pnpm, not npm)
-package-lock.json
-npm-debug.log*
-.npm/
-
-# Testing
-coverage/
-playwright-report/
-test-results/
-blob-report/
-visual-audit-results/
-visual-audit-results-combat/
-
-# Production
-dist/
-build/
-
-# Expo
-.expo/
-.expo-shared/
-web-build/
-
-# React Native / Metro
-.metro-health-check*
-
-# Temporary POC and extracted files (keep only in public/sprites/)
-/otters.html
-/otter.zip
-/otter.svg
-/keyframes/
-/spriter_file_png_parts/
-
-# Misc
-.DS_Store
-*.pem
-.env
-.env.local
-.env.production.local
-.env.development.local
-.env.test.local
-
 # Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 lerna-debug.log*
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Dependencies
+node_modules
 
-# TypeScript
+# Build output
+dist
+dist-ssr
+*.local
 *.tsbuildinfo
 
-# Temporary
-tmp/
-temp/
+# Test artifacts
+coverage
+.vitest-attachments/
+src/__tests__/browser/__screenshots__/
+
+# Bundle analysis
+stats.html
+bundle-size.json
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+html-report/
+
+# Capacitor / native platform build artifacts (track platform structure, ignore builds)
+.capacitor/
+
+# Android build artifacts
+android/app/build/
+android/.gradle/
+android/build/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+
+# iOS build artifacts
+ios/App/build/
+ios/App/Pods/
+ios/DerivedData/
+
+# Superpowers brainstorm artifacts
+.superpowers/
+
+# Ralph local state
+.ralph/
+.ralphrc
+
+# ralph-tui ephemeral session state (config.toml is tracked)
+.ralph-tui/session.json
+.ralph-tui/session-meta.json
+.ralph-tui/progress.md
+.ralph-tui/reports/
+
+# Lock files (pnpm only)
+package-lock.json
+
+# Environment
+.env
+.env.*
+!.env.example

@@ -1,0 +1,107 @@
+[
+	{
+		"entityId": "mudfoot",
+		"lane": "gameplay-sprite",
+		"entityType": "unit",
+		"outputCategory": "units",
+		"faction": "ura",
+		"archetypeId": "oef_line_infantry_otter",
+		"referenceClass": "golden/oef-line-infantry",
+		"benchmarkRole": "golden-reference",
+		"visualIntent": "Baseline Otter Elite Force rifle infantry silhouette for readable 16px RTS combat.",
+		"silhouette": "compact rifle infantry with forward-ready stance",
+		"materialCues": ["brown fur", "blue field uniform", "dark rifle metal"],
+		"qualityGateTags": ["unit-readable", "oef-identity", "combat-baseline"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"palette": "otter_default",
+		"primaryFrameKey": "mudfoot"
+	},
+	{
+		"entityId": "gator",
+		"lane": "gameplay-sprite",
+		"entityType": "unit",
+		"outputCategory": "units",
+		"faction": "scale_guard",
+		"archetypeId": "scale_guard_brute_infantry",
+		"referenceClass": "golden/scale-guard-brute-infantry",
+		"benchmarkRole": "golden-reference",
+		"visualIntent": "Baseline Scale-Guard front-line bruiser with unmistakable reptile mass and threat read.",
+		"silhouette": "broad-shouldered melee brute with heavy head mass",
+		"materialCues": ["croc hide", "red wargear", "claw-forward attack pose"],
+		"qualityGateTags": ["unit-readable", "scale-guard-identity", "melee-brute"],
+		"canonicalDimensions": {
+			"width": 16,
+			"height": 16,
+			"size": 16
+		},
+		"palette": "croc_default",
+		"primaryFrameKey": "gator"
+	},
+	{
+		"entityId": "barracks",
+		"lane": "gameplay-sprite",
+		"entityType": "building",
+		"outputCategory": "buildings",
+		"faction": "ura",
+		"archetypeId": "oef_forward_barracks",
+		"referenceClass": "golden/oef-production-structure",
+		"benchmarkRole": "golden-reference",
+		"visualIntent": "Baseline OEF production building with believable military roofline, shadow, and grounded mass.",
+		"silhouette": "fortified square barracks with roof and entry read",
+		"materialCues": ["stone shell", "wood door", "blue command accents"],
+		"qualityGateTags": ["building-readable", "oef-identity", "production-structure"],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"palette": "resource_default",
+		"primaryFrameKey": "barracks"
+	},
+	{
+		"entityId": "spawning_pool",
+		"lane": "gameplay-sprite",
+		"entityType": "building",
+		"outputCategory": "buildings",
+		"faction": "scale_guard",
+		"archetypeId": "scale_guard_spawning_pool",
+		"referenceClass": "golden/scale-guard-production-structure",
+		"benchmarkRole": "golden-reference",
+		"visualIntent": "Baseline Scale-Guard production structure with organic menace and strong faction separation from OEF buildings.",
+		"silhouette": "organic pool structure with thick roof and hostile footprint",
+		"materialCues": ["croc-stone shell", "red-orange cresting", "murky brood basin"],
+		"qualityGateTags": ["building-readable", "scale-guard-identity", "production-structure"],
+		"canonicalDimensions": {
+			"width": 32,
+			"height": 32,
+			"size": 32
+		},
+		"palette": "croc_default",
+		"primaryFrameKey": "spawning_pool"
+	},
+	{
+		"entityId": "sgt_bubbles",
+		"lane": "premium-portrait",
+		"entityType": "portrait",
+		"outputCategory": "portraits",
+		"faction": "ura",
+		"archetypeId": "oef_hero_command_portrait",
+		"referenceClass": "golden/oef-hero-portrait",
+		"benchmarkRole": "golden-reference",
+		"visualIntent": "Hero portrait benchmark for painted-briefing tone, expression, and material separation.",
+		"silhouette": "hero bust with bandana, broad jaw, and command presence",
+		"materialCues": ["battle-worn fur", "red bandana", "military kit highlights"],
+		"qualityGateTags": ["portrait-premium", "hero-read", "briefing-tone"],
+		"canonicalDimensions": {
+			"width": 64,
+			"height": 96,
+			"size": 64
+		},
+		"palette": "portrait_default",
+		"primaryFrameKey": "sgt_bubbles"
+	}
+]

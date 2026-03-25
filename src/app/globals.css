@@ -1,0 +1,335 @@
+@import url("https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Share+Tech+Mono&family=Special+Elite&display=swap");
+@import "tailwindcss";
+
+/*
+ * Otter Elite Force — Global Styles
+ *
+ * Three visual themes controlled via `data-theme` attribute on <html>:
+ *   - "tactical"     → gameplay HUD (jungle depth, phosphor green)
+ *   - "command-post"  → menus, campaign map, settings (rust brown, manila)
+ *   - "briefing"      → mission briefing screens (dark spotlight, typewriter)
+ *
+ * Theme CSS files define CSS custom properties scoped to [data-theme="..."].
+ * Components read these via Tailwind utilities (e.g. bg-background, text-foreground).
+ */
+
+@import "../ui/themes/tactical.css";
+@import "../ui/themes/command-post.css";
+@import "../ui/themes/briefing.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/*
+ ---break---
+ */
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------ */
+/* Custom theme                                                        */
+/* ------------------------------------------------------------------ */
+
+@theme {
+  /* --- Color palette (shared across all themes) --- */
+  --color-jungle-950: #07140d;
+  --color-jungle-900: #0d2416;
+  --color-jungle-800: #12311f;
+  --color-jungle-700: #1a4229;
+  --color-jungle-600: #235535;
+  --color-jungle-500: #2f6b44;
+
+  --color-khaki-900: #3b3524;
+  --color-khaki-800: #4a432f;
+  --color-khaki-700: #5a523a;
+  --color-khaki-600: #6c6447;
+  --color-khaki-500: #7f7755;
+  --color-khaki-400: #9a916c;
+  --color-khaki-300: #b8ad85;
+  --color-khaki-200: #d3c89e;
+  --color-khaki-100: #e8dfc1;
+
+  --color-rust-900: #3a1f14;
+  --color-rust-800: #4d2a1b;
+  --color-rust-700: #6b3a26;
+  --color-rust-600: #8a4c32;
+  --color-rust-500: #a85e3e;
+
+  --color-steel-900: #1a1a1c;
+  --color-steel-800: #232326;
+  --color-steel-700: #2e2e32;
+  --color-steel-600: #3a3a3f;
+  --color-steel-500: #4a4a50;
+  --color-steel-400: #5c5c63;
+
+  --color-phosphor: #00ff41;
+  --color-phosphor-dim: #8aff9c;
+  --color-blood-orange: #ff4500;
+  --color-alert: #d9533f;
+  --color-highlight: #ffe28a;
+  --color-parchment: #f5e6c8;
+  --color-faded-yellow: #d4a574;
+
+  /* --- Semantic tokens (resolved per-theme via CSS vars) --- */
+  --color-background: var(--theme-background);
+  --color-foreground: var(--theme-foreground);
+  --color-card: var(--theme-card);
+  --color-card-foreground: var(--theme-card-foreground);
+  --color-popover: var(--theme-popover);
+  --color-popover-foreground: var(--theme-popover-foreground);
+  --color-primary: var(--theme-primary);
+  --color-primary-foreground: var(--theme-primary-foreground);
+  --color-secondary: var(--theme-secondary);
+  --color-secondary-foreground: var(--theme-secondary-foreground);
+  --color-muted: var(--theme-muted);
+  --color-muted-foreground: var(--theme-muted-foreground);
+  --color-accent: var(--theme-accent);
+  --color-accent-foreground: var(--theme-accent-foreground);
+  --color-destructive: var(--theme-destructive);
+  --color-destructive-foreground: var(--theme-destructive-foreground);
+  --color-border: var(--theme-border);
+  --color-input: var(--theme-input);
+  --color-ring: var(--theme-ring);
+
+  /* --- Typography --- */
+  --font-heading: "Black Ops One", "Stencil Std", sans-serif;
+  --font-body: "Special Elite", "Courier New", monospace;
+  --font-mono: "Share Tech Mono", "Courier New", monospace;
+
+  /* --- Radius (military = sharp corners) --- */
+  --radius-sm: 0px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Base layer                                                          */
+/* ------------------------------------------------------------------ */
+
+@layer base {
+	*,
+	*::before,
+	*::after {
+		border-color: var(--color-border);
+	}
+
+	html {
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		background-color: var(--color-background);
+		font-family: var(--font-body);
+	}
+
+	body {
+		margin: 0;
+		min-height: 100vh;
+		background-color: var(--color-background);
+		background-image:
+			radial-gradient(circle at top, rgba(255, 226, 138, 0.08), transparent 30%),
+			radial-gradient(circle at 20% 10%, rgba(47, 107, 68, 0.22), transparent 28%),
+			linear-gradient(180deg, rgba(7, 20, 13, 0.18), rgba(58, 31, 20, 0.12));
+		color: var(--color-foreground);
+		font-family: var(--font-body);
+		@apply bg-background text-foreground;
+	}
+
+	#root {
+		min-height: 100vh;
+	}
+	* {
+		@apply border-border outline-ring/50;
+	}
+}
+
+@keyframes cursor-blink {
+	0%,
+	48% {
+		opacity: 1;
+	}
+	50%,
+	100% {
+		opacity: 0;
+	}
+}
+
+@keyframes subtle-pan {
+	0% {
+		transform: translate3d(0, 0, 0);
+	}
+	50% {
+		transform: translate3d(0, -4px, 0);
+	}
+	100% {
+		transform: translate3d(0, 0, 0);
+	}
+}
+
+@keyframes radar-sweep {
+	0% {
+		transform: translateX(-140%) skewX(-16deg);
+		opacity: 0;
+	}
+	15% {
+		opacity: 1;
+	}
+	100% {
+		transform: translateX(220%) skewX(-16deg);
+		opacity: 0;
+	}
+}
+
+.screen-noise {
+	background-image:
+		radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03), transparent 18%),
+		radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.02), transparent 24%),
+		repeating-linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.03) 0px,
+			rgba(255, 255, 255, 0.03) 1px,
+			transparent 1px,
+			transparent 3px
+		);
+	pointer-events: none;
+}
+
+.marsh-shader {
+	background-image:
+		radial-gradient(circle at 20% 20%, rgba(255, 226, 138, 0.18), transparent 18%),
+		radial-gradient(circle at 82% 16%, rgba(47, 107, 68, 0.42), transparent 24%),
+		linear-gradient(135deg, rgba(7, 20, 13, 0.2), rgba(58, 31, 20, 0.08) 45%, rgba(18, 49, 31, 0.2));
+}
+
+.dossier-paper {
+	background-image:
+		linear-gradient(180deg, rgba(245, 230, 200, 0.98), rgba(232, 223, 193, 0.92)),
+		repeating-linear-gradient(
+			0deg,
+			rgba(58, 31, 20, 0.04) 0px,
+			rgba(58, 31, 20, 0.04) 1px,
+			transparent 1px,
+			transparent 26px
+		);
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.45),
+		0 32px 80px rgba(0, 0, 0, 0.45);
+}
+
+.command-post-grid {
+	background-image:
+		linear-gradient(rgba(255, 226, 138, 0.08) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(255, 226, 138, 0.08) 1px, transparent 1px);
+	background-size: 28px 28px;
+	mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent);
+}
+
+.dossier-tab-ink {
+	background-image: linear-gradient(180deg, rgba(212, 165, 116, 0.24), rgba(245, 230, 200, 0));
+}
+
+.command-post-shell::after,
+.briefing-shell::after,
+.tactical-shell::after {
+	content: "";
+	position: absolute;
+	inset: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.05);
+	pointer-events: none;
+	border-radius: 10px;
+}
+
+.game-container {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+}
+
+#game-container canvas {
+	display: block;
+	max-width: 100%;
+	max-height: 100%;
+	image-rendering: pixelated;
+	touch-action: none;
+}
+
+.gameplay-viewport-card {
+	backdrop-filter: blur(10px);
+}
+
+.battlefield-well {
+	backdrop-filter: blur(8px);
+}
+
+.tactical-shell--mobile-portrait .game-container {
+	filter: saturate(0.72) brightness(0.72);
+}
+
+@media (max-width: 767px) and (orientation: portrait) {
+	.tactical-shell::after {
+		inset: 6px;
+	}
+}
+
+.briefing-portrait-silhouette {
+	animation: subtle-pan 7s ease-in-out infinite;
+	box-shadow: 0 0 40px rgba(245, 230, 200, 0.08);
+}
+
+.briefing-portrait-sprite {
+	background-repeat: no-repeat;
+	image-rendering: pixelated;
+	box-shadow: 0 0 32px rgba(245, 230, 200, 0.1);
+}
+
+.radar-sweep {
+	animation: radar-sweep 3.2s linear infinite;
+}
+
+.typewriter-cursor {
+	animation: cursor-blink 1s step-end infinite;
+}
+
+.riverine-camo {
+	background-image:
+		radial-gradient(circle at 18% 24%, rgba(123, 89, 58, 0.2), transparent 18%),
+		radial-gradient(circle at 78% 18%, rgba(72, 126, 102, 0.18), transparent 22%),
+		radial-gradient(circle at 62% 72%, rgba(29, 67, 58, 0.24), transparent 26%),
+		repeating-linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.02) 0,
+			rgba(255, 255, 255, 0.02) 8px,
+			transparent 8px,
+			transparent 22px
+		),
+		repeating-linear-gradient(
+			35deg,
+			rgba(0, 0, 0, 0.12) 0,
+			rgba(0, 0, 0, 0.12) 12px,
+			transparent 12px,
+			transparent 30px
+		);
+	animation: river-camo-drift 20s ease-in-out infinite;
+	background-size: 120% 120%;
+}
+
+.command-landing-hero::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background:
+		linear-gradient(120deg, rgba(212, 165, 116, 0.08), transparent 22%),
+		radial-gradient(circle at center, rgba(255, 255, 255, 0.04), transparent 44%);
+	pointer-events: none;
+	opacity: 0.85;
+}
+
+@keyframes river-camo-drift {
+	0% {
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+	50% {
+		transform: translate3d(-1.5%, 1%, 0) scale(1.03);
+	}
+	100% {
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+}

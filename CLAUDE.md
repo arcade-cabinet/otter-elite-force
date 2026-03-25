@@ -1,42 +1,80 @@
-# Claude Mission Control
+# 🤖 CLAUDE MISSION CONTROL — OTTER: ELITE FORCE
 
-**OTTER: ELITE FORCE** - Mobile-first tactical shooter with Expo + Babylon.js + Reactylon
+## Active Mission
 
-## 📚 Primary Documentation
+Keep the repo aligned around a **campaign-first RTS** with a strong river-jungle war identity, responsive tactical UX, premium portrait ambitions, and a coherent SP-DSL asset pipeline.
 
-**For complete project context, architecture, game mechanics, and coding guidelines:**
+Primary references:
 
-👉 **[AGENTS.md](./AGENTS.md)** in repository root
+- `docs/superpowers/specs/2026-03-24-rts-canon-responsive-asset-overhaul-plan.md`
+- `docs/references/Copilot-Copilot_Chat_VT91k21R.md`
+- `docs/README.md`
 
-This file is a brief wrapper pointing to the central technical briefing.
+## Strategic Truths
 
-## 🎯 Quick Reference
+1. **The game is an RTS first**
+2. **Otter Elite Force is the player-facing faction**
+3. **Scale-Guard is the entrenched occupier / enemy bloc**
+4. **The war is about crossings, depots, settlements, salvage, and control**
+5. **Siphons and sludge may exist, but they are not the entire cosmology of the setting**
+6. **UI must be clearer, tighter, and more responsive than before**
 
-- **Tech Stack**: Expo 52 + React Native 0.76 + Babylon.js 8.52 + Reactylon 3.5
-- **Build System**: Metro bundler (NOT Vite)
-- **Package Manager**: **pnpm ONLY** (never npm or yarn)
-- **Procedural**: No external assets - all runtime generation
-- **Mobile-First**: Touch controls, 60fps target, responsive design
-- **Vietnam-Era**: Gritty tactical realism ("Full Metal Jacket" meets "Wind in the Willows")
+## Current Stack
 
-## 🚀 Commands
+- React 19 + shadcn/ui + Tailwind v4
+- Phaser 3 for tactical rendering
+- Koota ECS for app/game state
+- Tone.js for procedural audio
+- Yuka for AI/simulation support
+- Biome + Vitest + Playwright for quality
 
-```bash
-pnpm dev          # Metro dev server (port 8081)
-pnpm build        # expo export:web
-pnpm lint         # Biome linter
-pnpm lint:fix     # Auto-fix linting
-pnpm test         # Vitest unit tests
-pnpm test:e2e     # Playwright E2E
-```
+## UI Command Intent
 
-## 📖 Complete Documentation
+The menu/front door should communicate:
 
-See **[AGENTS.md](./AGENTS.md)** for:
-- Complete architecture and design philosophy
-- Open world chunk persistence system
-- Difficulty modes and game mechanics
-- Coding standards and patterns
-- Performance optimization guidelines
-- Testing strategies
-- All technical details
+- **New Game**
+- **Continue Game**
+- **Settings**
+
+Complex setup belongs in **dossier-style overlays**, not page mazes.
+
+Visual bar:
+
+- jungle camo
+- riverine military grit
+- manila dossier tabs
+- stamped labels
+- typewriter typography
+- strong action hierarchy
+
+## Narrative Guardrails
+
+Prefer these terms:
+
+- **Otter Elite Force / OEF**
+- **Scale-Guard**
+- **Copper-Silt Reach**
+
+Avoid making the entire setting hinge on:
+
+- mystical water logic
+- species-wide water theology
+- open-world LZ/base-building campaign assumptions
+
+## Operational Checks For Changes
+
+Before landing work, ask:
+
+1. does this reinforce the campaign-first RTS direction?
+2. does it improve phone/tablet/desktop clarity?
+3. does it preserve the repo’s analog military tone?
+4. does it keep docs aligned with the code?
+5. does it help rather than muddy the OEF vs Scale-Guard fantasy?
+
+## Red Flags
+
+- reviving the old open-world shooter as active truth
+- using `URA` everywhere in player-facing copy instead of OEF
+- centering the war on siphons/water rather than logistics and occupation
+- describing outdated architecture as if it is current
+- letting build-pipeline docs drift away from `scripts/build-sprites.ts`

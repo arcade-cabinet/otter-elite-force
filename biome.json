@@ -18,19 +18,7 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
-			"correctness": {
-				"useExhaustiveDependencies": "warn"
-			},
-			"style": {
-				"noNonNullAssertion": "off"
-			},
-			"suspicious": {
-				"noArrayIndexKey": "off"
-			},
-			"complexity": {
-				"noImportantStyles": "off"
-			}
+			"recommended": true
 		}
 	},
 	"overrides": [
@@ -52,6 +40,7 @@
 				"**/*.test.ts",
 				"**/*.test.tsx",
 				"**/test/**/*.ts",
+				"**/test/**/*.tsx",
 				"**/__tests__/**/*.ts",
 				"**/__tests__/**/*.tsx"
 			],

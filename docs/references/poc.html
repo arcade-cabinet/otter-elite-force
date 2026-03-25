@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas RTS: Pond Warfare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; user-select: none; }
+        #game-canvas, #fog-canvas {
+            image-rendering: pixelated;
+            display: block;
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none;
+        }
+        #fog-canvas { opacity: 0.85; mix-blend-mode: multiply; }
+        .ui-panel {
+            background-color: #1e293b; /* Darker Slate */
+            border: 4px inset #334155;
+            color: #e2e8f0;
+            font-family: 'Courier New', Courier, monospace;
+            text-shadow: 1px 1px 0 #000;
+        }
+        .action-btn {
+            background: linear-gradient(to bottom, #334155, #1e293b);
+            border: 2px solid #64748b;
+            border-bottom-color: #0f172a; border-right-color: #0f172a;
+            cursor: pointer; transition: filter 0.1s;
+        }
+        .action-btn:active {
+            border: 2px solid #0f172a;
+            border-bottom-color: #64748b; border-right-color: #64748b;
+            background: #1e293b;
+        }
+        .action-btn:hover:not(:disabled) { filter: brightness(1.2); }
+        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+        
+        #game-over-banner {
+            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+        }
+    </style>
+</head>
+<body class="flex h-screen w-screen text-sm">
+
+    <!-- Left UI Sidebar -->
+    <div class="w-64 flex flex-col ui-panel z-20 h-full shadow-2xl">
+        <!-- Minimap -->
+        <div class="h-64 p-2 bg-black flex justify-center items-center border-b-4 border-slate-700">
+            <div id="minimap-container" class="relative w-full h-full max-w-[200px] max-h-[200px] cursor-crosshair">
+                <canvas id="minimap" width="200" height="200" class="border-2 border-slate-600 w-full h-full block" style="image-rendering: pixelated;"></canvas>
+                <div id="minimap-cam" class="absolute border border-white pointer-events-none hidden box-border" style="left:0; top:0;"></div>
+            </div>
+        </div>
+        
+        <!-- Selection Info -->
+        <div id="selection-info" class="flex-1 p-4 border-b-4 border-slate-700 flex flex-col gap-2 overflow-y-auto bg-slate-900">
+            <h2 id="sel-name" class="text-xl font-bold text-sky-300">Nothing Selected</h2>
+            <div id="sel-hp-bar" class="w-full h-4 bg-red-900 hidden border border-slate-900">
+                <div id="sel-hp-fill" class="h-full bg-green-500 transition-all duration-200" style="width: 100%;"></div>
+            </div>
+            <p id="sel-stats" class="text-slate-300"></p>
+            <p id="sel-desc" class="text-xs text-slate-400 mt-2"></p>
+        </div>
+
+        <!-- Action Panel -->
+        <div id="action-panel" class="h-64 p-3 grid grid-cols-2 gap-2 bg-slate-800"></div>
+    </div>
+
+    <!-- Main Game Area -->
+    <div id="game-container" class="flex-1 relative cursor-crosshair overflow-hidden bg-black">
+        <!-- Top Resource Bar -->
+        <div class="absolute top-0 left-0 w-full h-12 ui-panel border-0 border-b-4 flex items-center justify-between px-6 z-20 bg-opacity-95">
+            <div class="flex space-x-6">
+                <div class="flex items-center space-x-2">
+                    <div class="w-4 h-4 bg-slate-300 border border-slate-100 shadow-sm rounded-full"></div>
+                    <span>Clams: <span id="res-clams" class="text-slate-200 font-bold">500</span></span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-4 h-4 bg-amber-700 border border-amber-500 shadow-sm"></div>
+                    <span>Twigs: <span id="res-twigs" class="text-amber-600 font-bold">150</span></span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-4 h-4 bg-red-600 border border-red-400 shadow-sm rounded-sm"></div>
+                    <span>Food: <span id="res-food" class="text-red-400 font-bold">0/0</span></span>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div id="status-display" class="text-green-400 font-bold uppercase tracking-widest">Peaceful</div>
+                <div id="clock-display" class="text-sky-200 font-bold">Day 1 - 08:00</div>
+            </div>
+        </div>
+
+        <canvas id="game-canvas"></canvas>
+        <canvas id="fog-canvas"></canvas>
+        <div id="day-night-overlay" class="absolute inset-0 pointer-events-none bg-sky-900 mix-blend-multiply opacity-0 transition-opacity duration-1000 z-10"></div>
+        
+        <!-- Game Over Banner -->
+        <div id="game-over-banner" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none hidden z-30 bg-black bg-opacity-50">
+            <h1 id="go-title" class="text-6xl font-black text-yellow-400 mb-4 tracking-widest uppercase">Victory</h1>
+            <p id="go-desc" class="text-2xl text-white font-bold">The Pond is Safe!</p>
+        </div>
+    </div>
+
+<script>
+/**
+ * --- GAME CONFIGURATION ---
+ */
+const TILE_SIZE = 32;
+const MAP_WIDTH = 80; 
+const MAP_HEIGHT = 80;
+const WORLD_WIDTH = MAP_WIDTH * TILE_SIZE;
+const WORLD_HEIGHT = MAP_HEIGHT * TILE_SIZE;
+
+const PALETTE = {
+    otterBase: '#78350f', otterBelly: '#b45309', otterNose: '#000000',
+    gatorBase: '#166534', gatorLight: '#22c55e', gatorEye: '#fef08a',
+    snakeBase: '#65a30d', snakeStripe: '#facc15',
+    waterDeep: '#0f2b32', waterMid: '#11525c', waterShallow: '#1e3a5f',
+    mudDark: '#451a03', mudLight: '#713f12',
+    clamShell: '#cbd5e1', clamMeat: '#f87171',
+    reedGreen: '#4ade80', reedBrown: '#92400e',
+    stone: '#4b5563', stoneL: '#9ca3af',
+    shadow: 'rgba(0,0,0,0.3)', black: '#000000'
+};
+
+/**
+ * --- SYNTH AUDIO ENGINE ---
+ */
+const AudioSys = {
+    ctx: null,
+    init() { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); },
+    play(freq, type, duration, vol=0.1, slideFreq=null) {
+        if(!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type; 
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        if(slideFreq) osc.frequency.exponentialRampToValueAtTime(slideFreq, this.ctx.currentTime + duration);
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + duration);
+    },
+    sfx: {
+        chop: () => AudioSys.play(200, 'square', 0.1, 0.05, 100), // Snap twigs
+        mine: () => AudioSys.play(400, 'sine', 0.1, 0.05, 300), // Splash/Dig clams
+        build: () => AudioSys.play(150, 'sawtooth', 0.15, 0.05, 50), // Pat mud
+        hit: () => AudioSys.play(90, 'sawtooth', 0.2, 0.1, 40), // Bite/Whack
+        shoot: () => AudioSys.play(700, 'triangle', 0.1, 0.05, 1200), // Sling pebble
+        alert: () => AudioSys.play(400, 'square', 0.8, 0.2, 300),
+        click: () => AudioSys.play(800, 'sine', 0.05, 0.05),
+        win: () => { AudioSys.play(400, 'sine', 0.2, 0.1, 600); setTimeout(()=>AudioSys.play(600, 'sine', 0.4, 0.1, 800), 200); },
+        lose: () => { AudioSys.play(200, 'sawtooth', 0.4, 0.1, 100); setTimeout(()=>AudioSys.play(100, 'sawtooth', 0.6, 0.1, 50), 400); }
+    }
+};
+
+/**
+ * --- POND PROCEDURAL SPRITE GENERATOR ---
+ */
+const SpriteGen = {
+    generate(type) {
+        const size = ['lodge', 'burrow', 'armory', 'tower', 'predator_nest'].includes(type) ? 32 : 16;
+        const c = document.createElement('canvas');
+        c.width = size; c.height = size;
+        const ctx = c.getContext('2d');
+        
+        const p = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(Math.floor(x), Math.floor(y), 1, 1); };
+        const rect = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x, y, w, h); };
+        const circle = (cx, cy, r, color) => {
+            for(let y=-r; y<=r; y++) for(let x=-r; x<=r; x++) 
+                if(x*x + y*y <= r*r) p(cx+x, cy+y, color);
+        };
+
+        if (['gatherer', 'brawler', 'sniper'].includes(type)) {
+            // Shadow
+            rect(4, 14, 8, 2, PALETTE.shadow);
+            // Otter Body
+            rect(5, 4, 6, 8, PALETTE.otterBase); // body
+            rect(6, 5, 4, 6, PALETTE.otterBelly); // belly
+            rect(5, 2, 6, 4, PALETTE.otterBase); // head
+            p(6, 3, PALETTE.black); p(9, 3, PALETTE.black); // eyes
+            p(7, 4, PALETTE.otterNose); p(8, 4, PALETTE.otterNose); // cute nose
+            
+            rect(4, 5, 1, 4, PALETTE.otterBase); rect(11, 5, 1, 4, PALETTE.otterBase); // arms
+            rect(5, 12, 2, 2, PALETTE.otterBase); rect(9, 12, 2, 2, PALETTE.otterBase); // legs
+            rect(11, 10, 3, 2, PALETTE.otterBase); // tail
+
+            if (type === 'gatherer') { rect(3, 5, 2, 2, PALETTE.clamShell); } // holding a clam
+            if (type === 'brawler') { rect(12, 4, 2, 7, PALETTE.reedBrown); rect(6, 1, 4, 2, PALETTE.clamShell); } // stick club + shell helmet
+            if (type === 'sniper') { rect(13, 4, 1, 8, PALETTE.reedBrown); rect(12, 4, 1, 1, PALETTE.stoneL); rect(12, 11, 1, 1, PALETTE.stoneL); } // slingshot
+        }
+        else if (type === 'gator') {
+            rect(2, 12, 12, 2, PALETTE.shadow);
+            rect(3, 10, 10, 4, PALETTE.gatorBase); // body
+            for(let i=3; i<12; i+=2) p(i, 9, PALETTE.gatorLight); // scutes
+            rect(13, 11, 3, 2, PALETTE.gatorBase); // tail
+            rect(0, 11, 4, 3, PALETTE.gatorLight); // snout
+            p(3, 10, PALETTE.gatorEye); // eye
+            rect(3, 14, 2, 1, PALETTE.gatorLight); rect(9, 14, 2, 1, PALETTE.gatorLight); // legs
+        }
+        else if (type === 'snake') {
+            rect(2, 12, 12, 2, PALETTE.shadow);
+            // S curve
+            rect(4, 12, 8, 2, PALETTE.snakeBase);
+            rect(2, 10, 4, 2, PALETTE.snakeBase);
+            rect(10, 10, 4, 2, PALETTE.snakeBase);
+            rect(12, 8, 2, 2, PALETTE.snakeBase); // head
+            p(13, 8, PALETTE.black); // eye
+            p(14, 9, PALETTE.clamMeat); // tongue
+            // Stripes
+            p(5,12, PALETTE.snakeStripe); p(7,12, PALETTE.snakeStripe); p(9,12, PALETTE.snakeStripe);
+        }
+        else if (type === 'cattail') {
+            rect(6, 14, 4, 2, PALETTE.shadow); 
+            rect(7, 4, 2, 10, PALETTE.reedGreen); // stalk
+            rect(6, 2, 4, 6, PALETTE.reedBrown); // brown top
+            p(7, 1, PALETTE.otterBase); p(8, 1, PALETTE.otterBase); // tip
+            p(8, 12, PALETTE.reedGreen); p(9, 11, PALETTE.reedGreen); // side leaf
+        }
+        else if (type === 'clambed') {
+            circle(8, 10, 6, PALETTE.waterShallow); // shallow pool
+            // clams
+            rect(5, 9, 2, 2, PALETTE.clamShell); p(6,9, PALETTE.stone);
+            rect(9, 11, 3, 2, PALETTE.clamShell); p(10,11, PALETTE.stone);
+            rect(7, 13, 2, 2, PALETTE.clamShell); 
+        }
+        else if (['lodge', 'burrow', 'armory', 'tower', 'predator_nest'].includes(type)) {
+            rect(2, 28, 28, 4, PALETTE.shadow);
+            
+            if (type === 'tower') {
+                rect(8, 16, 16, 14, PALETTE.mudLight); // mud pillar base
+                for(let i=0;i<30;i++) p(8+Math.random()*16,16+Math.random()*14, PALETTE.mudDark);
+                rect(6, 8, 20, 8, PALETTE.mudDark); // top platform
+                rect(10, 4, 12, 4, PALETTE.reedGreen); // leaf roof
+                rect(14, 22, 4, 8, PALETTE.black); // door
+                rect(14, 12, 4, 2, PALETTE.black); // slit
+            } else if (type === 'predator_nest') {
+                rect(4, 16, 24, 12, PALETTE.black); // base shadow
+                circle(16, 16, 12, PALETTE.mudDark); // mud mound
+                circle(16, 18, 8, PALETTE.black); // dark cave
+                // Roots wrapping it
+                rect(6, 10, 2, 16, PALETTE.gatorBase); rect(24, 12, 2, 14, PALETTE.gatorBase);
+                rect(10, 6, 2, 12, PALETTE.gatorBase);
+                p(14,16, PALETTE.gatorEye); p(18,16, PALETTE.gatorEye); // glowing eyes inside
+            } else if (type === 'lodge') {
+                // Giant beaver/otter dam style lodge
+                circle(16, 20, 14, PALETTE.mudDark);
+                for(let i=0; i<80; i++) p(4+Math.random()*24, 8+Math.random()*24, PALETTE.mudLight);
+                for(let i=0; i<40; i++) rect(4+Math.random()*22, 10+Math.random()*18, 6, 2, PALETTE.otterBase); // sticks
+                rect(12, 22, 8, 8, PALETTE.black); // entrance hole
+            } else if (type === 'burrow') {
+                circle(16, 24, 8, PALETTE.mudDark); // smaller mud mound
+                for(let i=0; i<20; i++) p(8+Math.random()*16, 16+Math.random()*8, PALETTE.mudLight);
+                rect(14, 24, 4, 6, PALETTE.black); // hole
+            } else if (type === 'armory') {
+                // A training pool surrounded by sticks
+                rect(4, 12, 24, 16, PALETTE.waterMid);
+                rect(2, 10, 28, 4, PALETTE.mudDark); // back wall
+                rect(2, 10, 4, 20, PALETTE.mudDark); // left wall
+                rect(26, 10, 4, 20, PALETTE.mudDark); // right wall
+                rect(2, 26, 28, 4, PALETTE.mudDark); // front wall
+                // Sticks on walls
+                for(let i=0; i<30; i++) {
+                    p(2+Math.random()*28, 10+Math.random()*4, PALETTE.otterBase);
+                    p(2+Math.random()*28, 26+Math.random()*4, PALETTE.otterBase);
+                }
+                rect(12, 24, 8, 8, PALETTE.waterShallow); // entrance ramp
+            }
+        }
+
+        const scale = ['lodge', 'burrow', 'armory', 'tower', 'predator_nest'].includes(type) ? 3 : 2.5; 
+        const sCanvas = document.createElement('canvas');
+        sCanvas.width = size * scale; sCanvas.height = size * scale;
+        const sCtx = sCanvas.getContext('2d');
+        sCtx.imageSmoothingEnabled = false;
+        sCtx.drawImage(c, 0, 0, size * scale, size * scale);
+        return sCanvas;
+    }
+};
+
+class Projectile {
+    constructor(x, y, tx, ty, targetEnt, dmg, owner) {
+        this.x = x; this.y = y; this.tx = tx; this.ty = ty; 
+        this.target = targetEnt; this.dmg = dmg; this.owner = owner;
+        this.speed = 6;
+    }
+    update() {
+        if (this.target && this.target.hp > 0) { this.tx = this.target.x; this.ty = this.target.y; }
+        const dx = this.tx - this.x, dy = this.ty - this.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if (dist < this.speed) {
+            if (this.target && this.target.hp > 0) {
+                AudioSys.sfx.hit();
+                this.target.hp -= this.dmg;
+                for(let i=0;i<5;i++) GAME.particles.push({x:this.x, y:this.y, vx:(Math.random()-.5)*2, vy:Math.random()*2, life:15, c:PALETTE.clamMeat, s:3});
+            }
+            return true; 
+        }
+        this.x += (dx/dist)*this.speed; this.y += (dy/dist)*this.speed;
+        GAME.particles.push({x:this.x, y:this.y, vx:0, vy:0, life:5, c:PALETTE.stoneL, s:2}); // pebble trail
+        return false;
+    }
+    draw(c) { c.fillStyle = PALETTE.stone; c.fillRect(this.x-2, this.y-2, 4, 4); }
+}
+
+const GAME = {
+    container: document.getElementById('game-container'),
+    canvas: document.getElementById('game-canvas'),
+    fogCanvas: document.getElementById('fog-canvas'),
+    ctx: null, fogCtx: null, minimap: document.getElementById('minimap'), minimapCtx: null,
+    sprites: {}, bgCanvas: null, 
+    entities: [], particles: [], projectiles: [], floatingTexts: [],
+    
+    // Tightened starting economy
+    resources: { clams: 500, twigs: 150, food: 0, maxFood: 0 },
+    
+    camX: 0, camY: 0, width: 0, height: 0,
+    mouse: { x: 0, y: 0, worldX: 0, worldY: 0, isDown: false, startX: 0, startY: 0, in: false },
+    keys: {}, selection: [], placingBuilding: null,
+    
+    lastTime: 0, frameCount: 0, timeOfDay: 8 * 60,
+    state: 'playing', 
+    peaceTimer: 7200, 
+    
+    init() {
+        this.ctx = this.canvas.getContext('2d', { alpha: false });
+        this.fogCtx = this.fogCanvas.getContext('2d');
+        this.minimapCtx = this.minimap.getContext('2d', { alpha: false });
+        
+        const types = ['gatherer', 'brawler', 'gator', 'snake', 'sniper', 'cattail', 'clambed', 'lodge', 'burrow', 'armory', 'tower', 'predator_nest'];
+        types.forEach(t => this.sprites[t] = SpriteGen.generate(t));
+        
+        this.buildMap();
+        this.setupInput();
+        
+        // Player Base setup (Center)
+        const sx = WORLD_WIDTH/2, sy = WORLD_HEIGHT/2;
+        new Entity('lodge', sx, sy, 'player');
+        new Entity('gatherer', sx - 50, sy + 50, 'player');
+        new Entity('gatherer', sx + 50, sy + 50, 'player');
+        new Entity('gatherer', sx, sy + 60, 'player');
+        
+        new Entity('clambed', sx - 300, sy - 100, 'neutral');
+        for(let i=0; i<12; i++) new Entity('cattail', sx + 200 + Math.random()*150, sy - 200 + Math.random()*200, 'neutral');
+        
+        // World Map (Swamp)
+        for(let i=0; i<300; i++) new Entity('cattail', Math.random()*WORLD_WIDTH, Math.random()*WORLD_HEIGHT, 'neutral');
+        for(let i=0; i<15; i++) new Entity('clambed', Math.random()*WORLD_WIDTH, Math.random()*WORLD_HEIGHT, 'neutral');
+        
+        // Predator Nests (The Objectives) - placed away from center
+        const campLocs = [
+            {x: 800, y: 800}, {x: WORLD_WIDTH-800, y: 800}, {x: WORLD_WIDTH/2, y: WORLD_HEIGHT-800}
+        ];
+        campLocs.forEach(loc => {
+            new Entity('predator_nest', loc.x, loc.y, 'enemy');
+            for(let j=0; j<2; j++) new Entity('gator', loc.x + (Math.random()-.5)*150, loc.y + (Math.random()-.5)*150, 'enemy');
+            for(let j=0; j<2; j++) new Entity('snake', loc.x + (Math.random()-.5)*150, loc.y + (Math.random()-.5)*150, 'enemy');
+        });
+
+        this.camX = sx - this.canvas.width/2;
+        this.camY = sy - this.canvas.height/2;
+        
+        requestAnimationFrame((t) => this.loop(t));
+    },
+
+    buildMap() {
+        this.bgCanvas = document.createElement('canvas');
+        this.bgCanvas.width = WORLD_WIDTH; this.bgCanvas.height = WORLD_HEIGHT;
+        const ctx = this.bgCanvas.getContext('2d', { alpha: false });
+        
+        // Swampy water base
+        ctx.fillStyle = PALETTE.waterDeep; 
+        ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+        for(let i=0; i<50000; i++) {
+            ctx.fillStyle = Math.random() > 0.5 ? PALETTE.waterMid : '#0a1d22';
+            ctx.fillRect(Math.random()*WORLD_WIDTH, Math.random()*WORLD_HEIGHT, 4, 4);
+        }
+        // Muddy land masses / shallow banks
+        for(let p=0; p<100; p++) {
+            const px = Math.random()*WORLD_WIDTH, py = Math.random()*WORLD_HEIGHT, r = 50 + Math.random()*200;
+            for(let i=0; i<r*15; i++) {
+                const ang = Math.random()*Math.PI*2, dist = Math.random()*r;
+                ctx.fillStyle = Math.random() > 0.4 ? PALETTE.waterShallow : PALETTE.mudDark;
+                ctx.fillRect(px + Math.cos(ang)*dist, py + Math.sin(ang)*dist, 6, 6);
+            }
+        }
+    },
+
+    setupInput() {
+        window.addEventListener('resize', () => this.resize());
+        this.resize();
+        
+        this.container.addEventListener('mouseenter', () => this.mouse.in = true);
+        this.container.addEventListener('mouseleave', () => this.mouse.in = false);
+
+        this.container.addEventListener('mousedown', e => {
+            if(e.button === 0) { AudioSys.init(); } 
+            if(this.state !== 'playing') return;
+
+            const rect = this.canvas.getBoundingClientRect();
+            this.mouse.x = e.clientX - rect.left; this.mouse.y = e.clientY - rect.top;
+            this.mouse.worldX = this.mouse.x + this.camX; this.mouse.worldY = this.mouse.y + this.camY;
+            
+            if (this.placingBuilding && e.button === 0) { this.placeBuilding(); return; }
+            if (e.button === 0) { this.mouse.isDown = true; this.mouse.startX = this.mouse.worldX; this.mouse.startY = this.mouse.worldY; } 
+            else if (e.button === 2) { this.handleRightClick(); }
+        });
+        
+        this.container.addEventListener('mousemove', e => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.mouse.x = e.clientX - rect.left; this.mouse.y = e.clientY - rect.top;
+            this.mouse.worldX = this.mouse.x + this.camX; this.mouse.worldY = this.mouse.y + this.camY;
+        });
+        
+        this.container.addEventListener('mouseup', e => {
+            if (e.button === 0 && this.mouse.isDown) { this.mouse.isDown = false; this.handleSelect(); }
+        });
+        this.container.addEventListener('contextmenu', e => e.preventDefault());
+        window.addEventListener('keydown', e => this.keys[e.key.toLowerCase()] = true);
+        window.addEventListener('keyup', e => this.keys[e.key.toLowerCase()] = false);
+
+        const mmap = document.getElementById('minimap-container');
+        let mmapDrag = false, mmapPanOffset = { x: 0, y: 0 };
+
+        mmap.addEventListener('mousedown', e => { 
+            mmapDrag = true; 
+            const rect = this.minimap.getBoundingClientRect();
+            const clickX = (e.clientX - rect.left) / rect.width * WORLD_WIDTH;
+            const clickY = (e.clientY - rect.top) / rect.height * WORLD_HEIGHT;
+
+            if (clickX >= this.camX && clickX <= this.camX + this.width && clickY >= this.camY && clickY <= this.camY + this.height) {
+                mmapPanOffset.x = clickX - this.camX; mmapPanOffset.y = clickY - this.camY;
+            } else {
+                mmapPanOffset.x = this.width / 2; mmapPanOffset.y = this.height / 2;
+                this.moveCamMinimap(e, mmapPanOffset);
+            }
+        });
+        window.addEventListener('mousemove', e => { if(mmapDrag) this.moveCamMinimap(e, mmapPanOffset); });
+        window.addEventListener('mouseup', () => mmapDrag = false);
+    },
+
+    resize() {
+        this.width = this.container.clientWidth; this.height = this.container.clientHeight;
+        this.canvas.width = this.width; this.canvas.height = this.height;
+        this.fogCanvas.width = this.width; this.fogCanvas.height = this.height;
+        this.ctx.imageSmoothingEnabled = false; this.fogCtx.imageSmoothingEnabled = false;
+    },
+
+    moveCamMinimap(e, offset) {
+        const rect = this.minimap.getBoundingClientRect();
+        const xPercent = (e.clientX - rect.left) / rect.width, yPercent = (e.clientY - rect.top) / rect.height;
+        this.camX = Math.max(0, Math.min(WORLD_WIDTH - this.width, xPercent * WORLD_WIDTH - offset.x));
+        this.camY = Math.max(0, Math.min(WORLD_HEIGHT - this.height, yPercent * WORLD_HEIGHT - offset.y));
+    },
+
+    handleSelect() {
+        AudioSys.sfx.click();
+        const dx = this.mouse.worldX - this.mouse.startX, dy = this.mouse.worldY - this.mouse.startY;
+        this.selection.forEach(e => e.selected = false); this.selection = [];
+        
+        if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+            const sorted = [...this.entities].sort((a,b) => b.y - a.y); 
+            for(const e of sorted) {
+                if (Math.abs(e.x - this.mouse.worldX) < e.radius+10 && Math.abs(e.y - this.mouse.worldY) < e.height/2+10) {
+                    e.selected = true; this.selection.push(e); break;
+                }
+            }
+        } else {
+            const minX = Math.min(this.mouse.startX, this.mouse.worldX), maxX = Math.max(this.mouse.startX, this.mouse.worldX);
+            const minY = Math.min(this.mouse.startY, this.mouse.worldY), maxY = Math.max(this.mouse.startY, this.mouse.worldY);
+            this.entities.forEach(e => {
+                if (e.faction === 'player' && !e.isBuilding && e.x >= minX && e.x <= maxX && e.y >= minY && e.y <= maxY) {
+                    e.selected = true; this.selection.push(e);
+                }
+            });
+        }
+        this.updateUI();
+    },
+
+    handleRightClick() {
+        if (this.placingBuilding) { this.placingBuilding = null; return; }
+        if (this.selection.length === 1 && this.selection[0].isBuilding && this.selection[0].faction === 'player') {
+            AudioSys.sfx.click(); this.selection[0].rallyPos = { x: this.mouse.worldX, y: this.mouse.worldY }; return;
+        }
+        if (this.selection.length === 0) return;
+        
+        AudioSys.sfx.click();
+        let target = null;
+        const sorted = [...this.entities].sort((a,b) => b.y - a.y);
+        for(const e of sorted) {
+            if (Math.abs(e.x - this.mouse.worldX) < e.radius+10 && Math.abs(e.y - this.mouse.worldY) < e.height/2+10) { target = e; break; }
+        }
+        
+        this.selection.forEach((unit, idx) => {
+            if (unit.faction !== 'player' || unit.isBuilding) return;
+            if (target) {
+                if (target.faction === 'enemy') unit.cmdAtk(target);
+                else if (target.isResource && unit.type === 'gatherer') unit.cmdGather(target);
+                else if (target.faction === 'player' && target.isBuilding && target.progress < 100 && unit.type === 'gatherer') unit.cmdBuild(target);
+                else if (target.type === 'lodge' && unit.type === 'gatherer' && unit.heldRes) unit.cmdReturn(target);
+                else unit.cmdMove(this.mouse.worldX + (Math.random()-.5)*20, this.mouse.worldY + (Math.random()-.5)*20);
+            } else {
+                const row = Math.floor(idx / 4), col = idx % 4;
+                unit.cmdMove(this.mouse.worldX + (col-1.5)*30, this.mouse.worldY + (row-1.5)*30);
+            }
+        });
+    },
+
+    updateUI() {
+        const els = {
+            name: document.getElementById('sel-name'), stats: document.getElementById('sel-stats'),
+            desc: document.getElementById('sel-desc'), hpBar: document.getElementById('sel-hp-bar'),
+            hpFill: document.getElementById('sel-hp-fill'), panel: document.getElementById('action-panel')
+        };
+        
+        els.panel.innerHTML = '';
+        if (this.selection.length === 0) {
+            els.name.textContent = "Nothing Selected"; els.name.className = "text-xl font-bold text-slate-500";
+            els.stats.textContent = ""; els.desc.textContent = ""; els.hpBar.classList.add('hidden'); return;
+        }
+        
+        const ent = this.selection[0];
+        if (this.selection.length > 1) {
+            els.name.textContent = `Multiple Units (${this.selection.length})`; els.name.className = "text-xl font-bold text-white";
+            els.stats.textContent = "Mixed selection"; els.desc.textContent = "Right-click to command";
+            els.hpBar.classList.add('hidden');
+        } else {
+            els.name.textContent = ent.type.replace('_', ' ').toUpperCase();
+            els.name.className = `text-xl font-bold ${ent.faction==='player'?'text-sky-300':(ent.faction==='enemy'?'text-red-400':'text-amber-300')}`;
+            els.hpBar.classList.remove('hidden'); els.hpFill.style.width = `${Math.max(0, (ent.hp/ent.maxHp)*100)}%`;
+            
+            if (ent.isResource) {
+                els.stats.textContent = `Resources: ${ent.resAmount}`; els.desc.textContent = ent.type==='cattail' ? "Twigs." : "Clams.";
+                els.hpBar.classList.add('hidden');
+            } else {
+                els.stats.textContent = `HP: ${Math.floor(ent.hp)}/${ent.maxHp} ${ent.dmg ? `| Dmg: ${ent.dmg}` : ''}`;
+                els.desc.textContent = `Status: ${ent.progress < 100 ? `Constructing ${Math.floor(ent.progress)}%` : ent.state}`;
+            }
+        }
+
+        const isPlayer = this.selection.every(e => e.faction === 'player');
+        if (!isPlayer) return;
+
+        const addBtn = (title, cost, fn, afford) => {
+            const b = document.createElement('button');
+            b.className = `action-btn flex flex-col items-center justify-center p-2 rounded text-xs font-bold shadow-md ${!afford?'opacity-50 grayscale cursor-not-allowed':''}`;
+            b.innerHTML = `<span>${title}</span><span class="text-sky-200 font-normal text-[10px] mt-1 whitespace-pre-line">${cost}</span>`;
+            if (afford) b.onclick = (e) => { e.stopPropagation(); AudioSys.sfx.click(); fn(); };
+            els.panel.appendChild(b);
+        };
+
+        if (this.selection.some(e => e.type === 'gatherer')) {
+            addBtn("Build Burrow", "500 T", () => this.placingBuilding='burrow', this.resources.twigs >= 500);
+            addBtn("Build Armory", "600 C\n400 T", () => this.placingBuilding='armory', this.resources.clams >= 600 && this.resources.twigs >= 400);
+            addBtn("Build Tower", "700 C\n300 T", () => this.placingBuilding='tower', this.resources.clams >= 700 && this.resources.twigs >= 300);
+        }
+        if (this.selection.length === 1 && ent.type === 'lodge' && ent.progress >= 100) {
+            addBtn("Train Gatherer", "400 C\n1 Food", () => this.train(ent, 'gatherer', 400, 0, 1), this.resources.clams >= 400 && this.resources.food < this.resources.maxFood);
+        }
+        if (this.selection.length === 1 && ent.type === 'armory' && ent.progress >= 100) {
+            addBtn("Train Brawler", "600 C, 200 T\n1 Food", () => this.train(ent, 'brawler', 600, 200, 1), this.resources.clams >= 600 && this.resources.twigs >= 200 && this.resources.food < this.resources.maxFood);
+            addBtn("Train Sniper", "500 C, 300 T\n1 Food", () => this.train(ent, 'sniper', 500, 300, 1), this.resources.clams >= 500 && this.resources.twigs >= 300 && this.resources.food < this.resources.maxFood);
+        }
+    },
+
+    placeBuilding() {
+        let type = this.placingBuilding, cg = 0, cw = 0;
+        if(type==='burrow') cw=500; if(type==='armory'){cg=600; cw=400;} if(type==='tower'){cg=700; cw=300;}
+        if (this.resources.clams >= cg && this.resources.twigs >= cw) {
+            this.resources.clams -= cg; this.resources.twigs -= cw;
+            const bx = Math.round(this.mouse.worldX/TILE_SIZE)*TILE_SIZE, by = Math.round(this.mouse.worldY/TILE_SIZE)*TILE_SIZE;
+            const b = new Entity(type, bx, by, 'player');
+            this.selection.forEach(u => { if(u.type === 'gatherer') u.cmdBuild(b); });
+            this.placingBuilding = null; this.updateUI();
+        }
+    },
+
+    train(b, type, cg, cw, cf) {
+        if (this.resources.clams >= cg && this.resources.twigs >= cw && this.resources.food < this.resources.maxFood) {
+            this.resources.clams -= cg; this.resources.twigs -= cw; this.resources.food += cf; 
+            b.q = b.q || []; b.q.push(type); if (!b.qTimer) b.qTimer = 180;
+            this.updateUI();
+        }
+    },
+
+    setGameOver(result) {
+        if (this.state !== 'playing') return;
+        this.state = result;
+        const banner = document.getElementById('game-over-banner');
+        const title = document.getElementById('go-title');
+        const desc = document.getElementById('go-desc');
+        banner.classList.remove('hidden');
+        
+        if (result === 'win') {
+            AudioSys.sfx.win();
+            title.textContent = 'Victory'; title.className = 'text-6xl font-black text-amber-400 mb-4 tracking-widest uppercase';
+            desc.textContent = 'The Pond is Safe!';
+        } else {
+            AudioSys.sfx.lose();
+            title.textContent = 'Defeat'; title.className = 'text-6xl font-black text-red-600 mb-4 tracking-widest uppercase';
+            desc.textContent = 'Your Lodge was destroyed.';
+        }
+    },
+
+    loop(timestamp) {
+        const dt = timestamp - this.lastTime;
+        if (dt > 1000/60) {
+            if (this.state === 'playing') this.updateLogic();
+            this.draw();
+            this.lastTime = timestamp;
+        }
+        requestAnimationFrame((t) => this.loop(t));
+    },
+
+    updateLogic() {
+        this.frameCount++;
+        
+        this.timeOfDay += 0.05; 
+        if (this.timeOfDay >= 24*60) this.timeOfDay = 0;
+        const hrs = Math.floor(this.timeOfDay/60), mins = Math.floor(this.timeOfDay%60);
+        document.getElementById('clock-display').textContent = `Day ${Math.floor(this.frameCount/28800)+1} - ${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}`;
+        
+        const overlay = document.getElementById('day-night-overlay');
+        if (hrs >= 20 || hrs < 5) overlay.style.opacity = '0.7';
+        else if (hrs === 5 || hrs === 19) overlay.style.opacity = '0.35';
+        else overlay.style.opacity = '0';
+
+        const s = 12, e = 20;
+        if (this.keys['w'] || this.keys['arrowup'] || (this.mouse.in && this.mouse.y < e && !this.mouse.isDown)) this.camY -= s;
+        if (this.keys['s'] || this.keys['arrowdown'] || (this.mouse.in && this.mouse.y > this.height-e && !this.mouse.isDown)) this.camY += s;
+        if (this.keys['a'] || this.keys['arrowleft'] || (this.mouse.in && this.mouse.x < e && !this.mouse.isDown)) this.camX -= s;
+        if (this.keys['d'] || this.keys['arrowright'] || (this.mouse.in && this.mouse.x > this.width-e && !this.mouse.isDown)) this.camX += s;
+        this.camX = Math.max(0, Math.min(WORLD_WIDTH - this.width, this.camX));
+        this.camY = Math.max(0, Math.min(WORLD_HEIGHT - this.height, this.camY));
+
+        for (let i = this.entities.length - 1; i >= 0; i--) this.entities[i].update();
+        for (let i = this.projectiles.length - 1; i >= 0; i--) if (this.projectiles[i].update()) this.projectiles.splice(i, 1);
+        for (let i = this.particles.length - 1; i >= 0; i--) { const p = this.particles[i]; p.life--; p.y -= p.vy; p.x += p.vx; if (p.life <= 0) this.particles.splice(i, 1); }
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) { const f = this.floatingTexts[i]; f.life--; f.y -= 0.5; if (f.life <= 0) this.floatingTexts.splice(i, 1); }
+
+        const statusEl = document.getElementById('status-display');
+        const isPeaceful = this.frameCount < this.peaceTimer;
+        
+        if (isPeaceful) {
+            statusEl.textContent = `Peaceful (${Math.ceil((this.peaceTimer - this.frameCount)/60)}s)`;
+            statusEl.className = 'text-green-400 font-bold uppercase tracking-widest';
+        } else {
+            statusEl.textContent = 'Predators Hunting!';
+            statusEl.className = 'text-red-500 font-bold uppercase tracking-widest animate-pulse';
+            
+            if (this.frameCount % 1200 === 0) { 
+                const nests = this.entities.filter(e => e.type === 'predator_nest');
+                const th = this.entities.find(e => e.type === 'lodge' && e.faction === 'player');
+                
+                if (nests.length > 0 && th) {
+                    AudioSys.sfx.alert();
+                    const waveSize = Math.min(4, 1 + Math.floor((this.frameCount - this.peaceTimer) / 3600)); 
+                    nests.forEach(nest => {
+                        for(let i=0; i<waveSize; i++) {
+                            const type = Math.random() > 0.5 ? 'gator' : 'snake';
+                            const o = new Entity(type, nest.x + (Math.random()-.5)*60, nest.y + 30 + (Math.random()-.5)*30, 'enemy');
+                            o.cmdAtk(th);
+                        }
+                    });
+                }
+            }
+        }
+
+        if (this.frameCount % 60 === 0) {
+            const playerTH = this.entities.some(e => e.type === 'lodge' && e.faction === 'player');
+            const nestsLeft = this.entities.some(e => e.type === 'predator_nest');
+            if (!playerTH) this.setGameOver('lose');
+            else if (!nestsLeft) this.setGameOver('win');
+        }
+
+        if (this.frameCount % 30 === 0) {
+            let maxF = 0, curF = 0;
+            this.entities.forEach(e => {
+                if (e.faction === 'player') {
+                    if (e.type==='lodge' && e.progress>=100) maxF += 2;
+                    if (e.type==='burrow' && e.progress>=100) maxF += 4;
+                    if (!e.isBuilding && !e.isResource) curF++;
+                }
+            });
+            this.resources.food = curF; this.resources.maxFood = maxF;
+            document.getElementById('res-clams').textContent = this.resources.clams;
+            document.getElementById('res-twigs').textContent = this.resources.twigs;
+            const fEl = document.getElementById('res-food'); fEl.textContent = `${curF}/${maxF}`;
+            fEl.className = curF >= maxF ? 'text-red-500 font-bold' : 'text-red-400 font-bold';
+            if (this.selection.length === 1) this.updateUI();
+        }
+    },
+
+    draw() {
+        const c = this.ctx;
+        c.fillStyle = '#000'; c.fillRect(0, 0, this.width, this.height);
+        
+        c.save(); c.translate(-Math.floor(this.camX), -Math.floor(this.camY));
+        c.drawImage(this.bgCanvas, 0, 0);
+        
+        const sorted = [...this.entities].sort((a,b) => a.y - b.y);
+        for (const e of sorted) {
+            if (e.x + 100 > this.camX && e.x - 100 < this.camX + this.width &&
+                e.y + 100 > this.camY && e.y - 100 < this.camY + this.height) {
+                e.draw(c);
+            }
+        }
+
+        for (const p of this.particles) { c.fillStyle = p.c; c.fillRect(p.x, p.y, p.s, p.s); }
+        for (const p of this.projectiles) p.draw(c);
+
+        if (this.selection.length === 1 && this.selection[0].isBuilding && this.selection[0].rallyPos) {
+            const b = this.selection[0], rp = b.rallyPos;
+            c.strokeStyle = '#38bdf8'; c.lineWidth = 2; c.setLineDash([5, 5]);
+            c.beginPath(); c.moveTo(b.x, b.y); c.lineTo(rp.x, rp.y); c.stroke();
+            c.setLineDash([]); c.fillStyle = '#38bdf8'; c.beginPath(); c.arc(rp.x, rp.y, 4, 0, Math.PI*2); c.fill();
+        }
+
+        c.font = "bold 14px 'Courier New'"; c.textAlign = "center";
+        for (const f of this.floatingTexts) {
+            c.fillStyle = f.c; c.globalAlpha = Math.min(1, f.life / 30);
+            c.fillText(f.t, f.x, f.y);
+            c.lineWidth = 1; c.strokeStyle = '#000'; c.strokeText(f.t, f.x, f.y);
+        }
+        c.globalAlpha = 1.0;
+
+        if (this.mouse.isDown && !this.placingBuilding) {
+            c.strokeStyle = '#22c55e'; c.lineWidth = 1;
+            const x = Math.min(this.mouse.startX, this.mouse.worldX), y = Math.min(this.mouse.startY, this.mouse.worldY);
+            const w = Math.abs(this.mouse.worldX - this.mouse.startX), h = Math.abs(this.mouse.worldY - this.mouse.startY);
+            c.strokeRect(x, y, w, h); c.fillStyle = 'rgba(34, 197, 94, 0.2)'; c.fillRect(x, y, w, h);
+        }
+
+        if (this.placingBuilding) {
+            const bx = Math.round(this.mouse.worldX/TILE_SIZE)*TILE_SIZE, by = Math.round(this.mouse.worldY/TILE_SIZE)*TILE_SIZE;
+            const spr = this.sprites[this.placingBuilding];
+            const ok = (this.placingBuilding==='burrow' && this.resources.twigs>=500) || 
+                     (this.placingBuilding==='armory' && this.resources.clams>=600 && this.resources.twigs>=400) ||
+                     (this.placingBuilding==='tower' && this.resources.clams>=700 && this.resources.twigs>=300);
+            c.globalAlpha = 0.5; c.drawImage(spr, bx - spr.width/2, by - spr.height/2);
+            c.fillStyle = ok ? 'rgba(0,255,0,0.3)' : 'rgba(255,0,0,0.5)';
+            c.fillRect(bx - spr.width/2, by - spr.height/2, spr.width, spr.height);
+            c.globalAlpha = 1.0;
+        }
+        c.restore();
+
+        const fc = this.fogCtx;
+        fc.clearRect(0,0,this.width, this.height);
+        fc.fillStyle = '#000000'; fc.fillRect(0,0,this.width, this.height);
+        fc.globalCompositeOperation = 'destination-out';
+        
+        for (const e of this.entities) {
+            if (e.faction === 'player' && e.x + 400 > this.camX && e.x - 400 < this.camX + this.width &&
+                e.y + 400 > this.camY && e.y - 400 < this.camY + this.height) {
+                const sx = e.x - this.camX, sy = e.y - this.camY, rad = e.isBuilding ? 250 : 150;
+                const grad = fc.createRadialGradient(sx, sy, rad*0.3, sx, sy, rad);
+                grad.addColorStop(0, 'rgba(0,0,0,1)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
+                fc.fillStyle = grad; fc.beginPath(); fc.arc(sx, sy, rad, 0, Math.PI*2); fc.fill();
+            }
+        }
+        fc.globalCompositeOperation = 'source-over';
+
+        const mc = this.minimapCtx;
+        mc.fillStyle = PALETTE.waterDeep; mc.fillRect(0, 0, 200, 200);
+        const sx = 200/WORLD_WIDTH, sy = 200/WORLD_HEIGHT;
+        
+        for (const e of this.entities) {
+            if(e.type==='cattail') mc.fillStyle = PALETTE.reedGreen;
+            else if(e.type==='clambed') mc.fillStyle = PALETTE.clamShell;
+            else if(e.faction==='player') mc.fillStyle = '#38bdf8';
+            else if(e.type==='predator_nest') mc.fillStyle = '#7f1d1d';
+            else if(e.faction==='enemy') mc.fillStyle = '#ef4444';
+            else mc.fillStyle = '#fff';
+            const s = e.isBuilding ? 4 : 2; mc.fillRect(e.x*sx - s/2, e.y*sy - s/2, s, s);
+        }
+        
+        const mCam = document.getElementById('minimap-cam');
+        mCam.classList.remove('hidden');
+        mCam.style.left = `${this.camX * sx}px`; mCam.style.top = `${this.camY * sy}px`;
+        mCam.style.width = `${this.width * sx}px`; mCam.style.height = `${this.height * sy}px`;
+    }
+};
+
+class Entity {
+    constructor(type, x, y, faction) {
+        this.type = type; this.x = x; this.y = y; this.faction = faction;
+        this.sprite = GAME.sprites[type];
+        this.width = this.sprite.width; this.height = this.sprite.height;
+        this.radius = this.width/2.5;
+        this.selected = false; this.state = 'idle'; this.facingLeft = false;
+        
+        this.isBuilding = ['lodge', 'burrow', 'armory', 'tower', 'predator_nest'].includes(type);
+        this.isResource = ['cattail', 'clambed'].includes(type);
+        this.rallyPos = null;
+        
+        this.hp = this.maxHp = type==='lodge'?1200 : type==='predator_nest'?1000 : type==='tower'?600 : type==='burrow'?400 : type==='armory'?800 : type==='gatherer'?30 : type==='sniper'?40 : 60;
+        
+        if (!this.isBuilding && !this.isResource) {
+            this.speed = type==='gatherer'? 1.5 : type==='snake'? 2.0 : 1.8;
+            this.dmg = type==='gatherer'? 2 : type==='sniper'? 8 : type==='snake'? 4 : 6;
+            this.atkRange = (type==='sniper' || type==='tower') ? 180 : 40; 
+            this.atkCD = 0;
+        }
+        if (type === 'tower') { this.atkRange = 200; this.atkCD = 0; }
+        
+        if (this.isResource) this.resAmount = type==='cattail' ? 500 : 25000;
+        
+        this.progress = 100;
+        if (this.isBuilding && faction === 'player' && type !== 'lodge') { this.progress = 1; this.hp = 1; }
+        
+        GAME.entities.push(this);
+    }
+    
+    update() {
+        if (this.hp <= 0 && !this.isResource) { this.die(); return; }
+        if (this.atkCD > 0) this.atkCD--;
+
+        if (this.type === 'tower' && this.progress >= 100 && this.atkCD <= 0) {
+            const targets = GAME.entities.filter(e => e.faction !== this.faction && e.hp > 0 && !e.isResource);
+            let closest = null, minDist = this.atkRange;
+            for(const t of targets) {
+                const d = Math.sqrt((t.x-this.x)**2 + (t.y-this.y)**2);
+                if (d < minDist) { minDist = d; closest = t; }
+            }
+            if (closest) {
+                AudioSys.sfx.shoot();
+                GAME.projectiles.push(new Projectile(this.x, this.y-20, closest.x, closest.y, closest, 10, this));
+                this.atkCD = 50;
+            }
+        }
+
+        if (!this.isBuilding && !this.isResource) {
+            if (['move', 'g_move', 'r_move', 'a_move'].includes(this.state) && this.tPos) {
+                const dx = this.tPos.x - this.x, dy = this.tPos.y - this.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dx !== 0) this.facingLeft = dx < 0; 
+                
+                if (dist < this.speed) {
+                    this.x = this.tPos.x; this.y = this.tPos.y; this.arrive();
+                } else {
+                    this.x += (dx/dist)*this.speed; this.y += (dy/dist)*this.speed;
+                    this.yOff = Math.sin(GAME.frameCount*(this.type==='snake'?0.6:0.3))*3; 
+                }
+            }
+            
+            if (this.state === 'gath') {
+                if (!this.tEnt || this.tEnt.resAmount <= 0) { this.state = 'idle'; return; }
+                if (GAME.frameCount % 30 === 0) { AudioSys.sfx[this.tEnt.type==='cattail'?'chop':'mine'](); this.part(this.tEnt.type==='cattail'?PALETTE.reedBrown:PALETTE.clamMeat); }
+                if (--this.gTimer <= 0) {
+                    this.heldRes = this.tEnt.type==='cattail'?'twigs':'clams';
+                    this.tEnt.resAmount -= 10; if(this.tEnt.resAmount<=0) this.tEnt.die();
+                    const h = GAME.entities.find(e=>e.type==='lodge' && e.faction==='player');
+                    if (h) { this.tPos={x:h.x,y:h.y}; this.state='r_move'; } else this.state='idle';
+                }
+            }
+            if (this.state === 'build') {
+                if (!this.tEnt || this.tEnt.hp >= this.tEnt.maxHp) { this.state = 'idle'; return; }
+                if (GAME.frameCount % 20 === 0) { AudioSys.sfx.build(); this.part(PALETTE.mudLight); }
+                if (--this.gTimer <= 0) {
+                    this.tEnt.hp += 10; this.tEnt.progress = (this.tEnt.hp/this.tEnt.maxHp)*100;
+                    if (this.tEnt.hp >= this.tEnt.maxHp) { this.tEnt.hp=this.tEnt.maxHp; this.tEnt.progress=100; this.state='idle'; }
+                    this.gTimer = 30;
+                }
+            }
+            if (this.state === 'atk') {
+                if (!this.tEnt || this.tEnt.hp <= 0) { this.state = 'idle'; return; }
+                const dx = this.tEnt.x - this.x, dy = this.tEnt.y - this.y;
+                this.facingLeft = dx < 0;
+                if (Math.sqrt(dx*dx + dy*dy) <= this.atkRange) {
+                    if (this.atkCD <= 0) {
+                        if (this.type === 'sniper') {
+                            AudioSys.sfx.shoot();
+                            GAME.projectiles.push(new Projectile(this.x, this.y-10, this.tEnt.x, this.tEnt.y, this.tEnt, this.dmg, this));
+                        } else {
+                            AudioSys.sfx.hit();
+                            this.tEnt.hp -= this.dmg; 
+                            for(let i=0;i<5;i++) GAME.particles.push({x:this.tEnt.x, y:this.tEnt.y-10, vx:(Math.random()-.5)*2, vy:Math.random()*2, life:15, c:PALETTE.clamMeat, s:3});
+                        }
+                        this.atkCD = 60;
+                    }
+                } else { this.tPos={x:this.tEnt.x,y:this.tEnt.y}; this.state='a_move'; }
+            }
+
+            if (this.faction === 'enemy' && this.state === 'idle' && Math.random()<0.02) {
+                const isPeaceful = GAME.frameCount < GAME.peaceTimer;
+                const targets = GAME.entities.filter(e=>e.faction==='player');
+                const closeTarget = targets.find(t => Math.sqrt((t.x - this.x)**2 + (t.y - this.y)**2) < 300);
+
+                if (closeTarget) {
+                    this.cmdAtk(closeTarget);
+                } else if (!isPeaceful && targets.length) {
+                    const th = targets.find(t => t.type === 'lodge');
+                    if(th && Math.random() < 0.5) this.cmdAtk(th);
+                    else this.cmdAtk(targets[Math.floor(Math.random()*targets.length)]);
+                }
+                else {
+                    this.cmdMove(this.x+(Math.random()-.5)*100, this.y+(Math.random()-.5)*100);
+                }
+            }
+
+            for (const o of GAME.entities) {
+                if (o===this || o.isBuilding || o.isResource) continue;
+                const dx = this.x - o.x, dy = this.y - o.y, distSq = dx*dx + dy*dy, md = this.radius+o.radius;
+                if (distSq < md*md && distSq>0) {
+                    const f = (md - Math.sqrt(distSq))*0.1;
+                    this.x += (dx/Math.sqrt(distSq))*f; this.y += (dy/Math.sqrt(distSq))*f;
+                }
+            }
+        }
+
+        if (this.isBuilding && this.faction === 'player' && this.q && this.q.length > 0) {
+            if (--this.qTimer <= 0) {
+                const t = this.q.shift(), sx = this.x + (Math.random()>.5?1:-1)*30, sy = this.y + this.height/2 + 20;
+                const newEnt = new Entity(t, sx, sy, 'player');
+                if (this.rallyPos) newEnt.cmdMove(this.rallyPos.x, this.rallyPos.y); 
+                this.qTimer = 180;
+            }
+        }
+    }
+    
+    arrive() {
+        this.yOff = 0;
+        if (this.state === 'move') this.state = 'idle';
+        else if (this.state === 'g_move') { this.state = 'gath'; this.gTimer = 120; }
+        else if (this.state === 'r_move') {
+            if (this.heldRes) {
+                const color = this.heldRes === 'clams' ? '#fde047' : '#f97316';
+                const txt = `+10 ${this.heldRes.charAt(0).toUpperCase() + this.heldRes.slice(1)}`;
+                GAME.floatingTexts.push({x: this.x, y: this.y - 20, t: txt, c: color, life: 60});
+                
+                GAME.resources[this.heldRes] += 10; 
+                this.heldRes = null;
+                if (this.tEnt && this.tEnt.resAmount>0) { this.tPos={x:this.tEnt.x,y:this.tEnt.y}; this.state='g_move'; }
+                else this.state='idle';
+            }
+        }
+        else if (this.state === 'a_move') this.state = 'atk';
+    }
+
+    cmdMove(x, y) { this.tPos={x,y}; this.state='move'; this.tEnt=null; }
+    cmdGather(ent) { this.tEnt=ent; this.tPos={x:ent.x, y:ent.y}; this.state='g_move'; }
+    cmdBuild(ent) { this.tEnt=ent; this.tPos={x:ent.x, y:ent.y+ent.height/2+10}; this.state='a_move'; this.arrive=()=>{this.state='build';this.gTimer=30;this.yOff=0;}; }
+    cmdAtk(ent) { this.tEnt=ent; this.tPos={x:ent.x, y:ent.y}; this.state='a_move'; }
+    cmdReturn(ent) { this.tPos={x:ent.x, y:ent.y}; this.state='r_move'; }
+    
+    part(color) { GAME.particles.push({x:this.tEnt.x+(Math.random()-.5)*20, y:this.tEnt.y-10, vx:0, vy:1, life:10, c:color, s:2}); }
+
+    die() {
+        let i = GAME.entities.indexOf(this); if(i>-1) GAME.entities.splice(i,1);
+        i = GAME.selection.indexOf(this); if(i>-1) GAME.selection.splice(i,1);
+        for(let j=0; j<20; j++) GAME.particles.push({x:this.x, y:this.y, vx:(Math.random()-.5)*4, vy:(Math.random()-.5)*4+2, life:30, c: this.isBuilding?PALETTE.mudLight:PALETTE.clamMeat, s:4});
+        if(this.selected) GAME.updateUI();
+    }
+
+    draw(c) {
+        const dx = this.x - this.width/2, dy = this.y - this.height/2 + (this.yOff||0);
+        
+        if (this.selected) {
+            c.beginPath(); c.ellipse(this.x, this.y + this.height/2 - 5, this.radius+5, this.radius/2+2, 0, 0, Math.PI*2);
+            c.strokeStyle = '#38bdf8'; c.lineWidth = 2; c.stroke();
+        }
+
+        c.save();
+        if (this.facingLeft && !this.isBuilding) {
+            c.translate(this.x, this.y); c.scale(-1, 1); c.translate(-this.x, -this.y);
+        }
+
+        if (this.isBuilding && this.progress < 100) {
+            c.globalAlpha = 0.5 + (this.progress/200);
+            c.drawImage(this.sprite, 0, this.sprite.height*(1-this.progress/100), this.width, this.height*(this.progress/100), dx, dy + this.height*(1-this.progress/100), this.width, this.height*(this.progress/100));
+            c.globalAlpha = 1.0; c.strokeStyle = '#b45309'; c.strokeRect(dx, dy, this.width, this.height); 
+        } else {
+            c.drawImage(this.sprite, dx, dy);
+        }
+        c.restore();
+        
+        if (this.heldRes) { c.fillStyle = this.heldRes==='clams'?PALETTE.clamShell:PALETTE.reedBrown; c.fillRect(this.x+5, this.y-20, 6, 6); }
+
+        if (this.selected || (this.hp < this.maxHp && !this.isResource)) {
+            const bw = this.width*0.8, bh = 4;
+            c.fillStyle = '#7f1d1d'; c.fillRect(this.x-bw/2, dy-8, bw, bh);
+            c.fillStyle = '#22c55e'; c.fillRect(this.x-bw/2, dy-8, bw*(this.hp/this.maxHp), bh);
+        }
+
+        if (this.isBuilding && this.q && this.q.length) {
+            const p = 1-(this.qTimer/180);
+            c.fillStyle='#0f172a'; c.fillRect(this.x-15, this.y+this.height/2+5, 30, 4);
+            c.fillStyle='#38bdf8'; c.fillRect(this.x-15, this.y+this.height/2+5, 30*p, 4);
+        }
+    }
+}
+
+// Start
+window.onload = () => GAME.init();
+
+</script>
+</body>
+</html>

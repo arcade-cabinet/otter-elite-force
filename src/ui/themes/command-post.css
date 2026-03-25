@@ -1,0 +1,40 @@
+/*
+ * Theme 2: Command Post
+ *
+ * Active during menus, campaign map, settings, canteen.
+ * Visual: rust brown, manila folder aesthetic, typewriter headers,
+ *         scratched metal panels, riveted edges, parchment substrate.
+ *
+ * Selector: [data-theme="command-post"]
+ */
+
+[data-theme="command-post"] {
+	/* Semantic color mapping */
+	--theme-background: #3a2f1e;
+	--theme-foreground: #e8dfc1;
+
+	--theme-card: #4d2a1b;
+	--theme-card-foreground: #d3c89e;
+
+	--theme-popover: #3a1f14;
+	--theme-popover-foreground: #e8dfc1;
+
+	--theme-primary: #d4a574;
+	--theme-primary-foreground: #3a1f14;
+
+	--theme-secondary: #6b3a26;
+	--theme-secondary-foreground: #e8dfc1;
+
+	--theme-muted: #4d2a1b;
+	--theme-muted-foreground: #b8ad85;
+
+	--theme-accent: #ffe28a;
+	--theme-accent-foreground: #3a1f14;
+
+	--theme-destructive: #d9533f;
+	--theme-destructive-foreground: #e8dfc1;
+
+	--theme-border: #6b3a26;
+	--theme-input: #4d2a1b;
+	--theme-ring: #d4a574;
+}

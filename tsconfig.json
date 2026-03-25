@@ -7,6 +7,9 @@
 		"skipLibCheck": true,
 		"types": ["vite/client"],
 
+		/* JSX */
+		"jsx": "react-jsx",
+
 		/* Bundler mode */
 		"moduleResolution": "bundler",
 		"allowImportingTsExtensions": true,
@@ -14,7 +17,12 @@
 		"isolatedModules": true,
 		"moduleDetection": "force",
 		"noEmit": true,
-		"jsx": "react-jsx",
+
+		/* Paths */
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		},
 
 		/* Linting */
 		"strict": true,
@@ -22,6 +30,40 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["src"],
-	"exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/__tests__/**"]
+	"include": [
+		"src/main.tsx",
+		"src/app",
+		"src/game",
+		"src/ui",
+		"src/config",
+		"src/ecs",
+		"src/data",
+		"src/systems/combatSystem.ts",
+		"src/systems/economySystem.ts",
+		"src/systems/productionSystem.ts",
+		"src/systems/buildingSystem.ts",
+		"src/systems/fogSystem.ts",
+		"src/systems/syncSystem.ts",
+		"src/systems/movementSystem.ts",
+		"src/systems/orderSystem.ts",
+		"src/systems/scenarioSystem.ts",
+		"src/systems/stealthSystem.ts",
+		"src/systems/waterSystem.ts",
+		"src/systems/weatherSystem.ts",
+		"src/systems/gameLoop.ts",
+		"src/ai",
+		"src/audio",
+		"src/Scenes",
+		"src/maps",
+		"src/input",
+		"src/persistence",
+		"src/stores",
+		"src/sprites/parser.ts",
+		"src/sprites/compiler.ts",
+		"src/sprites/atlas.ts",
+		"src/sprites/types.ts",
+		"src/scenarios",
+		"src/types"
+	],
+	"exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
 }
