@@ -10,12 +10,12 @@
  *   - docs/superpowers/specs/2026-03-24-ui-spdsl-architecture-design.md §5, §7, §10
  *   - docs/design/game-design-document.md (unit stats)
  *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
- *
- * Tests are written BEFORE the component exists.
  */
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { initSingletons } from "@/ecs/singletons";
 
 let React: typeof import("react");
+let cleanup: typeof import("@testing-library/react").cleanup;
 let render: typeof import("@testing-library/react").render;
 let screen: typeof import("@testing-library/react").screen;
 let createWorld: typeof import("koota").createWorld;
@@ -27,6 +27,7 @@ let IsHero: typeof import("@/ecs/traits/identity").IsHero;
 let Health: typeof import("@/ecs/traits/combat").Health;
 let Attack: typeof import("@/ecs/traits/combat").Attack;
 let Armor: typeof import("@/ecs/traits/combat").Armor;
+let sharedWorld: { reset: () => void; spawn: (...args: any[]) => any } | null = null;
 
 let loadError: string | null = null;
 
@@ -35,10 +36,14 @@ beforeEach(async () => {
 	try {
 		React = await import("react");
 		const rtl = await import("@testing-library/react");
+		cleanup = rtl.cleanup;
 		render = rtl.render;
 		screen = rtl.screen;
 		const koota = await import("koota");
 		createWorld = koota.createWorld;
+		if (!sharedWorld) {
+			sharedWorld = createWorld();
+		}
 		const kootaReact = await import("koota/react");
 		WorldProvider = kootaReact.WorldProvider;
 		const identityTraits = await import("@/ecs/traits/identity");
@@ -54,12 +59,22 @@ beforeEach(async () => {
 	} catch (e) {
 		loadError = (e as Error).message;
 	}
+
+	sharedWorld?.reset();
+	if (sharedWorld) initSingletons(sharedWorld as never);
+});
+
+afterEach(() => {
+	if (!skip()) cleanup();
 });
 
 const skip = () => loadError !== null;
 
 function renderWithWorld(ui: any, worldSetup?: (world: any) => void) {
-	const world = createWorld();
+	const world = sharedWorld;
+	if (!world) {
+		throw new Error("Shared test world was not initialized");
+	}
 	if (worldSetup) worldSetup(world);
 	return render(React.createElement(WorldProvider, { world }, ui));
 }
@@ -86,12 +101,11 @@ describe("UnitPanel", () => {
 		it("displays the unit name when a Mudfoot is selected", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				world
-					.spawn(UnitType, Selected, Health, Attack, Armor)
-					.set(UnitType, { type: "mudfoot" })
-					.set(Health, { current: 80, max: 80 })
-					.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
-					.set(Armor, { value: 2 });
+				const entity = world.spawn(UnitType, Selected, Health, Attack, Armor);
+				entity.set(UnitType, { type: "mudfoot" });
+				entity.set(Health, { current: 80, max: 80 });
+				entity.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 });
+				entity.set(Armor, { value: 2 });
 			});
 			expect(screen.getByText(/mudfoot/i)).toBeTruthy();
 		});
@@ -99,10 +113,9 @@ describe("UnitPanel", () => {
 		it("displays HP as a value (e.g. 80/80)", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				world
-					.spawn(UnitType, Selected, Health)
-					.set(UnitType, { type: "mudfoot" })
-					.set(Health, { current: 65, max: 80 });
+				const entity = world.spawn(UnitType, Selected, Health);
+				entity.set(UnitType, { type: "mudfoot" });
+				entity.set(Health, { current: 65, max: 80 });
 			});
 			expect(screen.getByText(/65\s*\/\s*80/)).toBeTruthy();
 		});
@@ -110,12 +123,11 @@ describe("UnitPanel", () => {
 		it("displays armor value", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				world
-					.spawn(UnitType, Selected, Health, Attack, Armor)
-					.set(UnitType, { type: "mudfoot" })
-					.set(Health, { current: 80, max: 80 })
-					.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
-					.set(Armor, { value: 2 });
+				const entity = world.spawn(UnitType, Selected, Health, Attack, Armor);
+				entity.set(UnitType, { type: "mudfoot" });
+				entity.set(Health, { current: 80, max: 80 });
+				entity.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 });
+				entity.set(Armor, { value: 2 });
 			});
 			// Should display armor somewhere in the panel
 			expect(screen.getByText(/arm\s*2/i)).toBeTruthy();
@@ -124,12 +136,11 @@ describe("UnitPanel", () => {
 		it("displays damage value", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				world
-					.spawn(UnitType, Selected, Health, Attack, Armor)
-					.set(UnitType, { type: "mudfoot" })
-					.set(Health, { current: 80, max: 80 })
-					.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 })
-					.set(Armor, { value: 2 });
+				const entity = world.spawn(UnitType, Selected, Health, Attack, Armor);
+				entity.set(UnitType, { type: "mudfoot" });
+				entity.set(Health, { current: 80, max: 80 });
+				entity.set(Attack, { damage: 12, range: 1, cooldown: 1, timer: 0 });
+				entity.set(Armor, { value: 2 });
 			});
 			expect(screen.getByText(/dmg\s*12/i)).toBeTruthy();
 		});
@@ -141,10 +152,9 @@ describe("UnitPanel", () => {
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
 				// Select 3 Mudfoots
 				for (let i = 0; i < 3; i++) {
-					world
-						.spawn(UnitType, Selected, Health)
-						.set(UnitType, { type: "mudfoot" })
-						.set(Health, { current: 80, max: 80 });
+					const entity = world.spawn(UnitType, Selected, Health);
+					entity.set(UnitType, { type: "mudfoot" });
+					entity.set(Health, { current: 80, max: 80 });
 				}
 			});
 			// Should indicate 3 units selected
@@ -156,10 +166,9 @@ describe("UnitPanel", () => {
 		it("indicates hero status for hero units", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
-				world
-					.spawn(UnitType, Selected, IsHero, Health)
-					.set(UnitType, { type: "sgt_bubbles" })
-					.set(Health, { current: 120, max: 120 });
+				const entity = world.spawn(UnitType, Selected, IsHero, Health);
+				entity.set(UnitType, { type: "sgt_bubbles" });
+				entity.set(Health, { current: 120, max: 120 });
 			});
 			expect(screen.getByText(/sgt.*bubbles/i)).toBeTruthy();
 		});

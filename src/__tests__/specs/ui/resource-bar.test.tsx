@@ -9,19 +9,12 @@
  *   - docs/superpowers/specs/2026-03-24-ui-spdsl-architecture-design.md §5, §7, §10
  *   - docs/design/game-design-document.md (three resources + population)
  *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
- *
- * Tests are written BEFORE the component exists.
- * They WILL FAIL until ResourceBar.tsx and Koota singleton traits are implemented.
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-// ---------------------------------------------------------------------------
-// We need React + testing-library + Koota. These may not be installed yet.
-// Guard every test with skipIfNotLoaded so the suite still runs (and skips)
-// when dependencies are missing.
-// ---------------------------------------------------------------------------
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { initSingletons } from "@/ecs/singletons";
 
 let React: typeof import("react");
+let cleanup: typeof import("@testing-library/react").cleanup;
 let render: typeof import("@testing-library/react").render;
 let screen: typeof import("@testing-library/react").screen;
 let createWorld: typeof import("koota").createWorld;
@@ -29,6 +22,7 @@ let WorldProvider: any;
 let ResourceBar: any;
 let ResourcePool: typeof import("@/ecs/traits/state").ResourcePool;
 let PopulationState: typeof import("@/ecs/traits/state").PopulationState;
+let sharedWorld: { reset: () => void } | null = null;
 
 let loadError: string | null = null;
 
@@ -37,10 +31,14 @@ beforeEach(async () => {
 	try {
 		React = await import("react");
 		const rtl = await import("@testing-library/react");
+		cleanup = rtl.cleanup;
 		render = rtl.render;
 		screen = rtl.screen;
 		const koota = await import("koota");
 		createWorld = koota.createWorld;
+		if (!sharedWorld) {
+			sharedWorld = createWorld();
+		}
 		const kootaReact = await import("koota/react");
 		WorldProvider = kootaReact.WorldProvider;
 		const stateTraits = await import("@/ecs/traits/state");
@@ -51,16 +49,22 @@ beforeEach(async () => {
 	} catch (e) {
 		loadError = (e as Error).message;
 	}
+
+	sharedWorld?.reset();
+	if (sharedWorld) initSingletons(sharedWorld as never);
+});
+
+afterEach(() => {
+	if (!skip()) cleanup();
 });
 
 const skip = () => loadError !== null;
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function renderWithWorld(ui: any, worldSetup?: (world: any) => void) {
-	const world = createWorld();
+	const world = sharedWorld;
+	if (!world) {
+		throw new Error("Shared test world was not initialized");
+	}
 	if (worldSetup) worldSetup(world);
 	return render(React.createElement(WorldProvider, { world }, ui));
 }
@@ -88,7 +92,7 @@ describe("ResourceBar", () => {
 		it("displays population as current/max", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ResourceBar));
-			// Should show population in some format like "4/24" or "POP: 4/24"
+			// Should show population in some format like "0/4" (default PopulationState)
 			expect(screen.getByText(/\d+\s*\/\s*\d+/)).toBeTruthy();
 		});
 	});
@@ -98,7 +102,6 @@ describe("ResourceBar", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ResourceBar));
 			// Default ResourcePool is { fish: 0, timber: 0, salvage: 0 }
-			// Should display 0 for each resource
 			const zeros = screen.getAllByText("0");
 			expect(zeros.length).toBeGreaterThanOrEqual(3);
 		});
@@ -124,7 +127,6 @@ describe("ResourceBar", () => {
 		it("has accessible labels for screen readers", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ResourceBar));
-			// Resource values should be labeled for assistive technology
 			const container = screen.getByRole("status") ?? screen.getByTestId("resource-bar");
 			expect(container).toBeTruthy();
 		});
@@ -134,7 +136,6 @@ describe("ResourceBar", () => {
 		it("applies tactical HUD styling class", () => {
 			if (skip()) return;
 			const { container } = renderWithWorld(React.createElement(ResourceBar));
-			// Should have a class that identifies it as part of the tactical HUD
 			const bar =
 				container.querySelector("[class*='resource']") ??
 				container.querySelector("[data-testid='resource-bar']");

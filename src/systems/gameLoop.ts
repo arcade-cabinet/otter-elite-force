@@ -7,7 +7,7 @@
  * Execution order:
  *   1. scenarioSystem   — evaluate win/loss triggers, spawn scripted events
  *   2. orderSystem       — translate player/AI commands into ECS state
- *   3. (aiSystem)        — enemy FSM decisions (placeholder until Task #25 lands)
+ *   3. aiSystem          — enemy FSM decisions
  *   4. movementSystem    — Yuka steering sync, arrival detection
  *   5. combatSystem      — melee damage + ranged projectile spawning
  *      aggroSystem       — auto-acquire nearest enemy within vision
@@ -26,6 +26,7 @@
 import type { World } from "koota";
 import type Phaser from "phaser";
 import type { ScenarioEngine, ScenarioWorldQuery } from "../scenarios/engine";
+import { aiSystem } from "./aiSystem";
 import { buildingSystem } from "./buildingSystem";
 import { aggroSystem, combatSystem, deathSystem, projectileSystem } from "./combatSystem";
 import { economySystem } from "./economySystem";
@@ -73,8 +74,8 @@ export function tickAllSystems(ctx: GameLoopContext): void {
 	// 2. Orders — translate queued commands into ECS state
 	orderSystem(world, delta);
 
-	// 3. AI — enemy FSM decisions (TODO: wire when Task #25 aiSystem lands)
-	// aiSystem(world, delta);
+	// 3. AI — enemy FSM decisions
+	aiSystem(world, delta);
 
 	// 4. Movement — Yuka steering sync + arrival detection
 	movementSystem(world, delta);
