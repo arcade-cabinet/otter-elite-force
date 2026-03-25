@@ -108,7 +108,7 @@ export function AlertBanner() {
 		EventBus.on("building-complete", onBuildingComplete);
 		EventBus.on("training-complete", onTrainingComplete);
 		EventBus.on("enemy-spotted", onEnemySpotted);
-		EventBus.on("objective-complete", onObjectiveComplete);
+		EventBus.on("objective-completed", onObjectiveComplete);
 		EventBus.on("current-scene-ready", onSceneReady);
 		EventBus.on("mission-failed", onMissionFailed);
 
@@ -118,7 +118,7 @@ export function AlertBanner() {
 			EventBus.off("building-complete", onBuildingComplete);
 			EventBus.off("training-complete", onTrainingComplete);
 			EventBus.off("enemy-spotted", onEnemySpotted);
-			EventBus.off("objective-complete", onObjectiveComplete);
+			EventBus.off("objective-completed", onObjectiveComplete);
 			EventBus.off("current-scene-ready", onSceneReady);
 			EventBus.off("mission-failed", onMissionFailed);
 		};

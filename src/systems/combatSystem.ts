@@ -14,7 +14,7 @@
 import type { Entity, World } from "koota";
 import { Targeting } from "../ecs/relations";
 import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
-import { Faction, IsProjectile } from "../ecs/traits/identity";
+import { Faction, IsProjectile, UnitType } from "../ecs/traits/identity";
 import { Position, Velocity } from "../ecs/traits/spatial";
 import { EventBus } from "../game/EventBus";
 import {
@@ -22,6 +22,7 @@ import {
 	getDifficultyModifiers,
 	type DifficultyModifiers,
 } from "./difficultyScaling";
+import { MORTAR_SPLASH_RADIUS, SplashRadius } from "./siegeSystem";
 
 /** Projectile speed in tiles per second. */
 const PROJECTILE_SPEED = 8;
@@ -117,9 +118,14 @@ export function combatSystem(world: World, delta: number): void {
 			const dmg = calculateDamage(effectiveDamage, armorValue);
 			target.set(Health, (prev) => ({ current: prev.current - dmg }));
 			EventBus.emit("melee-hit");
+
+			// Alert HUD when a player unit takes damage
+			if (targetFaction?.id === "ura") {
+				EventBus.emit("under-attack", { x: targetPos.x, y: targetPos.y });
+			}
 		} else {
 			// Ranged: spawn projectile (carries effective damage for difficulty scaling)
-			world.spawn(
+			const proj = world.spawn(
 				IsProjectile(),
 				Position({ x: attackerPos.x, y: attackerPos.y }),
 				Velocity({ x: 0, y: 0 }),
@@ -131,6 +137,16 @@ export function combatSystem(world: World, delta: number): void {
 				}),
 				Targeting(target),
 			);
+
+			// Mortar Otter projectiles carry splash radius + faction for AoE system
+			const unitType = entity.has(UnitType) ? entity.get(UnitType)!.type : "";
+			if (unitType === "mortar_otter") {
+				proj.add(SplashRadius({ radius: MORTAR_SPLASH_RADIUS }));
+			}
+			if (entity.has(Faction)) {
+				proj.add(Faction({ id: entity.get(Faction)!.id }));
+			}
+
 			EventBus.emit("ranged-fire");
 		}
 	}
@@ -179,6 +195,12 @@ export function aggroSystem(world: World): void {
 
 		if (nearestTarget !== null) {
 			entity.add(Targeting(nearestTarget));
+
+			// Alert HUD when a player unit spots an enemy for the first time
+			if (faction.id === "ura") {
+				const enemyPos = nearestTarget.get(Position)!;
+				EventBus.emit("enemy-spotted", { x: enemyPos.x, y: enemyPos.y });
+			}
 		}
 	}
 }
@@ -221,6 +243,11 @@ export function projectileSystem(world: World, delta: number): void {
 				const armorValue = target.has(Armor) ? target.get(Armor)!.value : 0;
 				const dmg = calculateDamage(attack.damage, armorValue);
 				target.set(Health, (prev) => ({ current: prev.current - dmg }));
+
+				// Alert HUD when a player unit takes projectile damage
+				if (target.has(Faction) && target.get(Faction)?.id === "ura") {
+					EventBus.emit("under-attack", { x: targetPos.x, y: targetPos.y });
+				}
 			}
 			proj.destroy();
 		} else {

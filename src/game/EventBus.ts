@@ -16,6 +16,8 @@
  *   - "hud-alert" ({ message, severity })
  *   - "start-build-placement" ({ workerEntityId, buildingId })
  *   - "objective-completed" ({ objectiveId, description })
+ *   - "under-attack" ({ x, y }) — player unit took damage
+ *   - "enemy-spotted" ({ x, y }) — player unit acquired new enemy target
  *   - "mission-complete" (data: { missionId, stars, stats })
  *   - "mission-failed"  (data: { reason })
  *   - "game-paused"
