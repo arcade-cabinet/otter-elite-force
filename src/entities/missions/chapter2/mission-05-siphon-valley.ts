@@ -21,19 +21,27 @@ export const mission05SiphonValley: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "Listen up. Scale-Guard has deployed three siphon installations along the river valley. They're pumping toxic sludge into the waterways — killing everything downstream.",
+				text: "Scale-Guard has three siphon installations pumping toxic sludge into the river valley. Everything downstream is dying. This ends today.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Three targets. What do I have to work with?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "You'll establish a forward base at the southern end of the valley. Full resource access — fish, timber, and salvage. Build up, then push north.",
+				text: "Full forward base at the south end of the valley. Fish, timber, salvage — all accessible. Build up, then push north through the valley.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "The siphons are hardened. Standard arms won't cut it.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Three targets: Siphon West at the river bend, Siphon Central north of the bridges, and Siphon East near the mangrove coast. Each one is guarded.",
+				text: "Which is why the Armory is unlocked. Train Sappers — combat engineers with demolition charges. They'll crack those siphon casings. Take all three, Sergeant.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "New gear from the Armory: Sappers are combat engineers with demolition charges. They'll crack those siphon casings. Get it done, Sergeant.",
+				speaker: "Sgt. Bubbles",
+				text: "West, central, east. I'll work the river bend first. Bubbles out.",
 			},
 		],
 	},

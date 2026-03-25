@@ -21,19 +21,31 @@ export const mission02Causeway: MissionDef = {
 		lines: [
 			{
 				speaker: "FOXHOUND",
-				text: "Bubbles, we have a supply convoy en route from the western staging area. Three wagons carrying critical munitions and construction materials.",
+				text: "Bubbles, supply convoy inbound from the western staging area. Three wagons — munitions and construction materials. Without them we can't hold the beachhead.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Route?",
 			},
 			{
 				speaker: "FOXHOUND",
-				text: "Problem is, the only road through the jungle is the Old Causeway — and Scale-Guard knows it. Expect ambushes at the river crossings.",
+				text: "The Old Causeway. Only road through the jungle. Scale-Guard knows it — intercepted chatter mentions Captain Scalebreak setting ambushes at the river crossings.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "How many troops do I have?",
 			},
 			{
 				speaker: "FOXHOUND",
-				text: "Your outpost garrison has four Mudfoots and two River Rats. Position your troops along the road. The convoy cannot defend itself.",
+				text: "Four Mudfoots and two River Rats. Position them along the road before the convoy arrives. The wagons cannot defend themselves.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "And if we lose all three?",
 			},
 			{
 				speaker: "FOXHOUND",
-				text: "At least one wagon must reach the outpost. Losing all three means we starve. Don't let that happen.",
+				text: "Then we starve. At least one must reach the outpost. Move fast, Sergeant.",
 			},
 		],
 	},

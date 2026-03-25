@@ -20,19 +20,31 @@ export const mission06MonsoonAmbush: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "Intel says Scale-Guard is massing for a full assault on our forward operating base. Monsoon season is rolling in — rain hits in 3 minutes, and it's going to get worse.",
+				text: "Big push coming. Scale-Guard is massing for a full assault on our forward base. And monsoon season just decided to show up.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "How bad?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Your base is pre-built: Command Post, two Barracks, Armory, four Watchtowers, and sandbag walls. Garrison is already in position. Use what you've got.",
+				text: "Eight waves from all four approach roads. The mud is going to slow everyone — ranged accuracy drops, movement bogs down. Use the terrain, not just your walls.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "What's my garrison?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Eight waves are coming from all four approach roads. Mud patches will slow everyone during the rain — use that to your advantage. Position Shellcrackers at the chokepoints.",
+				text: "Pre-built base: Command Post, two Barracks, Armory, four towers, sandbag perimeter. You've got troops in position. No time to build more — they're already moving.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Shellcrackers at the chokepoints. Mudfoots behind the walls. We hold or we lose the Reach.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Survive all 8 waves and keep your Command Post standing. If it falls, we lose the Reach. Dig in, Sergeant.",
+				text: "That's the spirit. Dig in, Sergeant.",
 			},
 		],
 	},

@@ -21,19 +21,31 @@ export const mission04PrisonBreak: MissionDef = {
 		lines: [
 			{
 				speaker: "FOXHOUND",
-				text: "Bubbles, we've located Gen. Whiskers. He's being held in a Scale-Guard detention compound northeast of the river bend.",
+				text: "We found him. Gen. Whiskers is alive — held in a Scale-Guard detention compound northeast of the river bend. Warden Fangrot's operation.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Force composition?",
 			},
 			{
 				speaker: "FOXHOUND",
-				text: "This is a stealth operation. No base, no reinforcements. Just you and two scouts. The compound is heavily patrolled with detection towers.",
+				text: "This isn't that kind of mission. Stealth only. Just you and two scouts. The compound has detection towers and regular patrols. If they see you, Fangrot locks it down.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Cover?",
 			},
 			{
 				speaker: "FOXHOUND",
-				text: "Use the tall grass and mangroves for concealment. If you trip an alarm, they'll lock down and call reinforcements. Avoid detection if you can.",
+				text: "Tall grass and mangroves along the southeast approach. Stay in the green, avoid the open ground. Reach the prison cell, free the General, then extract northwest.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "And if I trip the alarm?",
 			},
 			{
 				speaker: "FOXHOUND",
-				text: "Infiltrate from the southeast, reach the prison cell, free the General, and get everyone to the extraction point in the northwest. Good luck, Sergeant.",
+				text: "Reinforcements flood the compound. The mission gets much harder. But not impossible — the General is worth the fight either way. Good luck, Sergeant.",
 			},
 		],
 	},

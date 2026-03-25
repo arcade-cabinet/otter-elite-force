@@ -21,19 +21,27 @@ export const mission03FirebaseDelta: MissionDef = {
 		lines: [
 			{
 				speaker: "FOXHOUND",
-				text: "Bubbles, Firebase Delta is a triangle of three strategic hilltops controlling the river crossings. Scale-Guard holds all three.",
+				text: "Firebase Delta. Three hilltops in a triangle formation controlling the river crossings. Scale-Guard holds all three. We need them.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Three simultaneous assaults?",
 			},
 			{
 				speaker: "FOXHOUND",
-				text: "Intel designates them Point Alpha — northwest hilltop, Point Bravo — northeast hilltop, and Point Charlie — the southern ridge. You need all three.",
+				text: "Negative. Take them one at a time — Alpha northwest, Bravo northeast, Charlie south. But you need to hold all three at once for two minutes to lock them down.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "They'll counterattack the ones I'm not defending.",
 			},
 			{
 				speaker: "FOXHOUND",
-				text: "We're deploying Shellcrackers with this operation — ranged infantry. Use them to soften defenses before your Mudfoots close in.",
+				text: "Exactly. That's why we're deploying Shellcrackers — ranged infantry. Use them to soften positions before your Mudfoots close in, then leave a garrison at each point.",
 			},
 			{
-				speaker: "FOXHOUND",
-				text: "Capture all three points and hold them simultaneously for two minutes. Scale-Guard will throw everything they have at you to take them back.",
+				speaker: "Sgt. Bubbles",
+				text: "Understood. Hit Alpha first, then sweep east. Bubbles out.",
 			},
 		],
 	},
