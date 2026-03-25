@@ -5,7 +5,7 @@ import { initSingletons } from "../../ecs/singletons";
 import { Gatherer, ResourceNode } from "../../ecs/traits/economy";
 import { IsBuilding, IsResource, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
-import { ResourcePool } from "../../ecs/traits/state";
+import { CampaignProgress, ResourcePool } from "../../ecs/traits/state";
 import { economySystem, resetFishTrapTimer } from "../../systems/economySystem";
 
 describe("economySystem", () => {
@@ -17,6 +17,8 @@ describe("economySystem", () => {
 	beforeEach(() => {
 		world = createWorld();
 		initSingletons(world);
+		// Set tactical difficulty (1.0x baseline) so economy tests are unaffected by scaling
+		world.set(CampaignProgress, { missions: {}, currentMission: null, difficulty: "tactical" });
 		uraFaction = world.spawn();
 		resetFishTrapTimer();
 	});

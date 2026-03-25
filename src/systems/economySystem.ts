@@ -15,6 +15,7 @@ import { Gatherer, ResourceNode } from "../ecs/traits/economy";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { ResourcePool } from "../ecs/traits/state";
+import { applyPlayerIncomeModifier, getDifficultyModifiers } from "./difficultyScaling";
 
 /** Distance (in tiles) at which a gatherer can interact with a node or building. */
 const GATHER_RANGE = 1.5;
@@ -99,8 +100,10 @@ function processGatherers(world: World, delta: number): void {
 			const dist = tileDistance(position.x, position.y, cpPos.x, cpPos.y);
 
 			if (dist <= GATHER_RANGE) {
-				// Deposit resources
-				addResources(world, gatherer.carrying, gatherer.amount);
+				// Deposit resources (apply difficulty income modifier)
+				const mods = getDifficultyModifiers(world);
+				const scaledAmount = applyPlayerIncomeModifier(gatherer.amount, mods);
+				addResources(world, gatherer.carrying, scaledAmount);
 				gatherer.amount = 0;
 				gatherer.carrying = "";
 			} else {
@@ -209,7 +212,8 @@ function processFishTrapIncome(world: World, delta: number): void {
 	}
 
 	if (fishTrapCount > 0) {
-		const income = fishTrapCount * FISH_TRAP_INCOME;
+		const mods = getDifficultyModifiers(world);
+		const income = applyPlayerIncomeModifier(fishTrapCount * FISH_TRAP_INCOME, mods);
 		addResources(world, "fish", income);
 	}
 

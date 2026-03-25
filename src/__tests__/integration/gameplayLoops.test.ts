@@ -19,7 +19,7 @@ import {
 import { Faction, IsBuilding, IsResource, UnitType } from "../../ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "../../ecs/traits/orders";
 import { Position } from "../../ecs/traits/spatial";
-import { PopulationState, ResourcePool } from "../../ecs/traits/state";
+import { CampaignProgress, PopulationState, ResourcePool } from "../../ecs/traits/state";
 import { buildingSystem } from "../../systems/buildingSystem";
 import {
 	aggroSystem,
@@ -44,6 +44,8 @@ beforeEach(() => {
 	// Set starting resources for building/training
 	world.set(ResourcePool, { fish: 200, timber: 200, salvage: 200 });
 	world.set(PopulationState, { current: 0, max: 30 });
+	// Set tactical difficulty (1.0x baseline) so tests are unaffected by scaling
+	world.set(CampaignProgress, { missions: {}, currentMission: null, difficulty: "tactical" });
 	uraFaction = world.spawn(Faction({ id: "ura" }));
 	resetFishTrapTimer();
 });

@@ -16,6 +16,11 @@ import { Targeting } from "../ecs/relations";
 import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
 import { Faction, IsProjectile } from "../ecs/traits/identity";
 import { Position, Velocity } from "../ecs/traits/spatial";
+import {
+	applyEnemyDamageModifier,
+	getDifficultyModifiers,
+	type DifficultyModifiers,
+} from "./difficultyScaling";
 
 /** Projectile speed in tiles per second. */
 const PROJECTILE_SPEED = 8;
@@ -45,9 +50,14 @@ export function calculateDamage(attackDamage: number, armorValue: number): numbe
  * Ticks combat for all entities that have an Attack trait and a Targeting relation.
  * Melee (range <= 1): apply damage directly.
  * Ranged (range > 1): spawn a projectile entity.
+ *
+ * Difficulty scaling: When a Scale-Guard entity attacks a player entity,
+ * enemy damage is multiplied by the difficulty modifier.
  */
 export function combatSystem(world: World, delta: number): void {
 	const attackers = world.query(Attack, Position, Targeting("*"));
+	// Read difficulty modifiers once per frame (not per entity)
+	let modifiers: DifficultyModifiers | null = null;
 
 	for (const entity of attackers) {
 		// Skip projectiles — they have their own system
@@ -90,19 +100,29 @@ export function combatSystem(world: World, delta: number): void {
 		// Reset cooldown timer (attack fires)
 		entity.set(Attack, { timer: 0 });
 
+		// Determine effective damage with difficulty scaling:
+		// If attacker is Scale-Guard and target is player (ura), apply enemy damage modifier.
+		let effectiveDamage = attack.damage;
+		const attackerFaction = entity.has(Faction) ? entity.get(Faction) : null;
+		const targetFaction = target.has(Faction) ? target.get(Faction) : null;
+		if (attackerFaction?.id === "scale_guard" && targetFaction?.id === "ura") {
+			if (!modifiers) modifiers = getDifficultyModifiers(world);
+			effectiveDamage = applyEnemyDamageModifier(attack.damage, modifiers);
+		}
+
 		if (attack.range <= 1) {
 			// Melee: direct damage
 			const armorValue = target.has(Armor) ? target.get(Armor)!.value : 0;
-			const dmg = calculateDamage(attack.damage, armorValue);
+			const dmg = calculateDamage(effectiveDamage, armorValue);
 			target.set(Health, (prev) => ({ current: prev.current - dmg }));
 		} else {
-			// Ranged: spawn projectile
+			// Ranged: spawn projectile (carries effective damage for difficulty scaling)
 			world.spawn(
 				IsProjectile(),
 				Position({ x: attackerPos.x, y: attackerPos.y }),
 				Velocity({ x: 0, y: 0 }),
 				Attack({
-					damage: attack.damage,
+					damage: effectiveDamage,
 					range: attack.range,
 					cooldown: 0,
 					timer: 0,
