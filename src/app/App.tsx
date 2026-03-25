@@ -8,26 +8,38 @@ import { useTrait, useWorld, WorldProvider } from "koota/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { initSingletons } from "@/ecs/singletons";
-import { AppScreen, type AppScreenType, CampaignProgress, GamePhase } from "@/ecs/traits/state";
+import {
+	AppScreen,
+	type AppScreenType,
+	CampaignProgress,
+	CurrentMission,
+	GamePhase,
+	UserSettings,
+} from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
 import { CAMPAIGN } from "@/entities/missions";
 import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
 import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
-import { saveMission } from "@/systems/saveLoadSystem";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
+import { saveMission } from "@/systems/saveLoadSystem";
 import { CampaignView } from "@/ui/command-post/CampaignView";
 import { MainMenu } from "@/ui/command-post/MainMenu";
+import {
+	DEFAULT_USER_SETTINGS,
+	SliderSetting,
+	ToggleSetting,
+} from "@/ui/command-post/SettingsControls";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
 import { AlertBanner } from "@/ui/hud/AlertBanner";
 import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
 import { CommandConsole } from "@/ui/hud/CommandConsole";
+import { ErrorFeedback } from "@/ui/hud/ErrorFeedback";
 import { GameplayTopBar } from "@/ui/hud/GameplayTopBar";
 import { PauseOverlay } from "@/ui/hud/PauseOverlay";
 import { TacticalRail } from "@/ui/hud/TacticalRail";
 import { TutorialOverlay } from "@/ui/hud/TutorialOverlay";
-import { ErrorFeedback } from "@/ui/hud/ErrorFeedback";
 import { BriefingShell, TacticalShell } from "@/ui/layout/shells";
 import { resolveTacticalHudLayout, useViewportProfile } from "@/ui/layout/viewport";
 import { cn } from "@/ui/lib/utils";
@@ -105,9 +117,11 @@ function GameplayScreen() {
 		portraitId?: string;
 		isScenario: boolean;
 	} | null>(null);
+	const [pauseView, setPauseView] = useState<"pause" | "settings">("pause");
 
 	// US-020: Pause/Resume wiring
 	const handleResume = useCallback(() => {
+		setPauseView("pause");
 		w.set(GamePhase, { phase: "playing" });
 		const scene = phaserRef.current?.scene ?? phaserRef.current?.game?.scene.getScene("GameScene");
 		if (scene) {
@@ -223,22 +237,99 @@ function GameplayScreen() {
 			<CombatTextOverlay />
 			<TutorialOverlay missionId={currentMission} />
 			<ErrorFeedback />
-			{isPaused ? (
+			{isPaused && pauseView === "pause" ? (
 				<PauseOverlay
 					onResume={handleResume}
 					onSaveGame={() => {
-						/* TODO: wire save system */
+						const missionId = w.get(CurrentMission)?.missionId ?? currentMission;
+						saveMission(w, 1, missionId).then(() => {
+							EventBus.emit("hud-alert", { message: "Game saved.", severity: "info" });
+						});
 					}}
-					onSettings={() => {
-						/* TODO: in-game settings */
-					}}
+					onSettings={() => setPauseView("settings")}
 					onQuitToMenu={() => {
 						w.set(GamePhase, { phase: "loading" });
 						w.set(AppScreen, { screen: "menu" });
 					}}
 				/>
 			) : null}
+			{isPaused && pauseView === "settings" ? (
+				<InGameSettingsOverlay onBack={() => setPauseView("pause")} />
+			) : null}
 		</TacticalShell>
+	);
+}
+
+/** Inline settings overlay shown from the pause menu (stays on game screen). */
+function InGameSettingsOverlay({ onBack }: { onBack: () => void }) {
+	const w = useWorld();
+	const settings = useTrait(w, UserSettings);
+	const resolved = settings ?? DEFAULT_USER_SETTINGS;
+
+	const update = (patch: Partial<typeof resolved>) => {
+		w.set(UserSettings, { ...resolved, ...patch });
+	};
+
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") {
+				e.preventDefault();
+				onBack();
+			}
+		};
+		window.addEventListener("keydown", onKeyDown);
+		return () => window.removeEventListener("keydown", onKeyDown);
+	}, [onBack]);
+
+	return (
+		<div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+			<div className="relative w-full max-w-md border border-accent/25 bg-[linear-gradient(180deg,rgba(13,22,20,0.98),rgba(7,12,12,0.99))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+				<div className="riverine-camo absolute inset-0 opacity-30" />
+				<div className="relative z-10 grid gap-4">
+					<div className="text-center">
+						<div className="inline-block border border-accent/25 bg-accent/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.28em] text-accent">
+							Field Controls
+						</div>
+						<h2 className="mt-3 font-heading text-2xl uppercase tracking-[0.22em] text-primary">
+							Settings
+						</h2>
+					</div>
+					<div className="flex max-w-xl flex-col gap-3">
+						<SliderSetting
+							label="Music Volume"
+							value={resolved.musicVolume}
+							onChange={(v) => update({ musicVolume: v })}
+						/>
+						<SliderSetting
+							label="SFX Volume"
+							value={resolved.sfxVolume}
+							onChange={(v) => update({ sfxVolume: v })}
+						/>
+						<SliderSetting
+							label="Camera Speed"
+							value={resolved.cameraSpeed}
+							onChange={(v) => update({ cameraSpeed: v })}
+						/>
+						<ToggleSetting
+							label="Show Grid"
+							value={resolved.showGrid}
+							onChange={(v) => update({ showGrid: v })}
+						/>
+						<ToggleSetting
+							label="Reduce FX"
+							value={resolved.reduceFx}
+							onChange={(v) => update({ reduceFx: v })}
+						/>
+					</div>
+					<Button variant="command" onClick={onBack} className="w-full justify-center">
+						Back
+					</Button>
+					<div className="text-center font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+						Press ESC to return
+					</div>
+				</div>
+			</div>
+		</div>
 	);
 }
 

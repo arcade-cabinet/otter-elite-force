@@ -889,12 +889,12 @@ export class GameScene extends Phaser.Scene {
 		// Count units lost and enemies defeated from ECS world
 		let unitsLost = 0;
 		let enemiesDefeated = 0;
-		for (const eid of world.query(Faction, Health)) {
-			const f = world.get(eid, Faction);
-			const h = world.get(eid, Health);
+		for (const entity of world.query(Faction, Health)) {
+			const f = entity.get(Faction);
+			const h = entity.get(Health);
 			if (!f || !h) continue;
-			if (f.faction === "ura" && h.current <= 0) unitsLost++;
-			if (f.faction === "scale_guard" && h.current <= 0) enemiesDefeated++;
+			if (f.id === "ura" && h.current <= 0) unitsLost++;
+			if (f.id === "scale_guard" && h.current <= 0) enemiesDefeated++;
 		}
 
 		// Use the scoring system with mission par time
@@ -902,14 +902,14 @@ export class GameScene extends Phaser.Scene {
 		const bonusObjectives = world.get(Objectives);
 		const bonusTotal = bonusObjectives?.list.filter((o) => o.bonus).length ?? 0;
 		const bonusCompleted =
-			bonusObjectives?.list.filter((o) => o.bonus && o.status === "complete").length ?? 0;
+			bonusObjectives?.list.filter((o) => o.bonus && o.status === "completed").length ?? 0;
 
 		// Estimate total units spawned as surviving friendly units + units lost
 		let survivingFriendly = 0;
-		for (const eid of world.query(Faction, Health)) {
-			const f = world.get(eid, Faction);
-			const h = world.get(eid, Health);
-			if (f?.faction === "ura" && h && h.current > 0) survivingFriendly++;
+		for (const entity of world.query(Faction, Health)) {
+			const f = entity.get(Faction);
+			const h = entity.get(Health);
+			if (f?.id === "ura" && h && h.current > 0) survivingFriendly++;
 		}
 		const unitsSpawned = survivingFriendly + unitsLost;
 
