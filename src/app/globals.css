@@ -1,4 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Share+Tech+Mono&family=Special+Elite&display=swap");
+@import "@fontsource/black-ops-one/400.css";
+@import "@fontsource/special-elite/400.css";
+@import "@fontsource/share-tech-mono/400.css";
 @import "tailwindcss";
 
 /*
