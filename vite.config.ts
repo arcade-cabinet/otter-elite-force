@@ -19,11 +19,11 @@ export default defineConfig(({ mode: _mode }) => ({
 			output: {
 				manualChunks: {
 					// Heavy game dependencies — loaded lazily via dynamic import
-					phaser: ["phaser"],
 					tone: ["tone"],
 					// Lighter deps — loaded with the initial bundle or game chunk
 					yuka: ["yuka"],
 					koota: ["koota"],
+					konva: ["konva"],
 				},
 			},
 		},

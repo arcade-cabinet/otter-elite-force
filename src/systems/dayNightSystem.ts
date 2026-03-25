@@ -1,5 +1,5 @@
 /**
- * Day/Night Cycle System — Phaser overlay with semi-transparent color tint.
+ * Day/Night Cycle System — overlay with semi-transparent color tint.
  *
  * US-028: Visual overlay tied to GameClock singleton.
  *
@@ -13,7 +13,22 @@
  * Night reduces fog-of-war vision radius via a multiplier.
  */
 
-import type Phaser from "phaser";
+/** Minimal graphics-like object for the day/night overlay. */
+interface DayNightGraphics {
+	setDepth(d: number): void;
+	setScrollFactor(f: number): void;
+	setVisible(v: boolean): void;
+	clear(): void;
+	fillStyle(color: number, alpha: number): void;
+	fillRect(x: number, y: number, w: number, h: number): void;
+	destroy(): void;
+}
+
+/** Scene-like object providing factory methods and camera info. */
+export interface DayNightScene {
+	add: { graphics(): DayNightGraphics };
+	cameras: { main: { width: number; height: number } };
+}
 
 /** Time-of-day phase identifiers. */
 export enum TimeOfDay {
@@ -113,15 +128,15 @@ export function getVisionMultiplier(phase: TimeOfDay): number {
 }
 
 /**
- * Day/Night Cycle System — manages the Phaser overlay and vision effects.
+ * Day/Night Cycle System — manages the overlay and vision effects.
  */
 export class DayNightSystem {
-	private scene: Phaser.Scene | null;
-	private overlay: Phaser.GameObjects.Graphics | null = null;
+	private scene: DayNightScene | null;
+	private overlay: DayNightGraphics | null = null;
 	private _currentPhase: TimeOfDay = TimeOfDay.DAWN;
 	private config: DayNightConfig;
 
-	constructor(scene: Phaser.Scene | null, config: Partial<DayNightConfig> = {}) {
+	constructor(scene: DayNightScene | null, config: Partial<DayNightConfig> = {}) {
 		this.scene = scene;
 		this.config = { ...DEFAULT_CONFIG, ...config };
 
@@ -165,9 +180,9 @@ export class DayNightSystem {
 		this.overlay = null;
 	}
 
-	// --- Internal Phaser rendering ---
+	// --- Internal rendering ---
 
-	private createOverlay(scene: Phaser.Scene): void {
+	private createOverlay(scene: DayNightScene): void {
 		this.overlay = scene.add.graphics();
 		this.overlay.setDepth(980); // Below fog (1000), above weather (900)
 		this.overlay.setScrollFactor(0); // Fixed to camera

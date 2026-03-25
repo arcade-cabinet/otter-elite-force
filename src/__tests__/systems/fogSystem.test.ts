@@ -35,7 +35,8 @@ function createMockScene() {
 		},
 		_mockRenderTexture: mockRenderTexture,
 		_mockGraphics: mockGraphics,
-	} as unknown as import("phaser").Scene & {
+	} as unknown as {
+		add: { renderTexture: ReturnType<typeof vi.fn>; graphics: ReturnType<typeof vi.fn> };
 		_mockRenderTexture: typeof mockRenderTexture;
 		_mockGraphics: typeof mockGraphics;
 	};

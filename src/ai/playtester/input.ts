@@ -14,7 +14,7 @@
  * so Phaser's input system processes them identically.
  */
 
-import { TILE_SIZE } from "@/maps/loader";
+import { TILE_SIZE } from "@/maps/constants";
 
 // ---------------------------------------------------------------------------
 // Action types

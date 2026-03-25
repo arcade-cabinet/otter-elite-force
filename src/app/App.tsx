@@ -5,7 +5,7 @@
  */
 
 import { useTrait, useWorld, WorldProvider } from "koota/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { initSingletons } from "@/ecs/singletons";
 import {
@@ -43,7 +43,7 @@ import { TutorialOverlay } from "@/ui/hud/TutorialOverlay";
 import { BriefingShell, TacticalShell } from "@/ui/layout/shells";
 import { resolveTacticalHudLayout, useViewportProfile } from "@/ui/layout/viewport";
 import { cn } from "@/ui/lib/utils";
-import { type IRefPhaserGame, PhaserGame } from "./PhaserGame";
+import { GameCanvas } from "@/canvas/GameCanvas";
 
 initSingletons(world);
 
@@ -102,7 +102,6 @@ function AppRouter() {
 }
 
 function GameplayScreen() {
-	const phaserRef = useRef<IRefPhaserGame>(null);
 	const w = useWorld();
 	const campaign = useTrait(w, CampaignProgress);
 	const gamePhase = useTrait(w, GamePhase);
@@ -122,10 +121,6 @@ function GameplayScreen() {
 	const handleResume = useCallback(() => {
 		setPauseView("pause");
 		w.set(GamePhase, { phase: "playing" });
-		const scene = phaserRef.current?.scene ?? phaserRef.current?.game?.scene.getScene("GameScene");
-		if (scene) {
-			scene.scene.resume("GameScene");
-		}
 	}, [w]);
 
 	const handlePause = useCallback(() => {
@@ -218,7 +213,7 @@ function GameplayScreen() {
 				)
 			}
 		>
-			<PhaserGame ref={phaserRef} deploymentData={deploymentData} />
+			<GameCanvas deploymentData={deploymentData} />
 			<CombatTextOverlay />
 			<TutorialOverlay missionId={currentMission} />
 			<ErrorFeedback />

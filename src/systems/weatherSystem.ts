@@ -6,12 +6,40 @@
  *   RAIN:    Visibility -30%, ranged accuracy -20%
  *   MONSOON: Visibility -60%, ranged accuracy -40%, movement speed -15%
  *
- * Visual effects (Phaser):
+ * Visual effects:
  *   RAIN:    ParticleEmitter with downward rain drops + screen darkening (alpha 0.15)
  *   MONSOON: Heavier particles + alpha 0.35 + camera shake
  */
 
-import type Phaser from "phaser";
+/** Minimal graphics-like object for weather overlays. */
+interface WeatherGraphics {
+	setDepth(d: number): void;
+	setScrollFactor(f: number): void;
+	setVisible(v: boolean): void;
+	clear(): void;
+	fillStyle(color: number, alpha: number): void;
+	fillRect(x: number, y: number, w: number, h: number): void;
+	destroy(): void;
+}
+
+/** Minimal particle emitter interface. */
+interface WeatherParticleEmitter {
+	setDepth(d: number): void;
+	setScrollFactor(f: number): void;
+	setQuantity(q: number): void;
+	start(): void;
+	stop(): void;
+	destroy(): void;
+}
+
+/** Scene-like object providing factory methods for weather visuals. */
+export interface WeatherScene {
+	add: {
+		graphics(): WeatherGraphics;
+		particles(x: number, y: number, key: string, config: Record<string, unknown>): WeatherParticleEmitter;
+	};
+	cameras: { main: { width: number; height: number; shake(duration: number, intensity: number, force: boolean): void } };
+}
 
 export enum WeatherState {
 	CLEAR = "clear",
@@ -56,17 +84,17 @@ const OVERLAY_ALPHA: Record<WeatherState, number> = {
 };
 
 export class WeatherSystem {
-	private scene: Phaser.Scene | null;
+	private scene: WeatherScene | null;
 	private _currentState: WeatherState = WeatherState.CLEAR;
 	private schedule: WeatherScheduleEntry[] = [];
 	private elapsedTime = 0;
 	private scheduleIndex = 0;
 
-	// Phaser visual objects (null when running headless/tests)
-	private overlay: Phaser.GameObjects.Graphics | null = null;
-	private rainEmitter: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
+	// Visual objects (null when running headless/tests)
+	private overlay: WeatherGraphics | null = null;
+	private rainEmitter: WeatherParticleEmitter | null = null;
 
-	constructor(scene: Phaser.Scene | null) {
+	constructor(scene: WeatherScene | null) {
 		this.scene = scene;
 
 		if (scene) {
@@ -137,9 +165,9 @@ export class WeatherSystem {
 		this.rainEmitter = null;
 	}
 
-	// --- Phaser visual effects (only when scene is available) ---
+	// --- Visual effects (only when scene is available) ---
 
-	private createVisuals(scene: Phaser.Scene): void {
+	private createVisuals(scene: WeatherScene): void {
 		// Screen darkening overlay — fills entire camera viewport
 		this.overlay = scene.add.graphics();
 		this.overlay.setDepth(900); // Below fog (1000), above game objects

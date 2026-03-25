@@ -1,5 +1,5 @@
 /**
- * Fog of War system — Phaser RenderTexture overlay with three states:
+ * Fog of War system — RenderTexture overlay with three states:
  *   - Unexplored: fully black (never seen)
  *   - Explored: dark tint (terrain visible, no units)
  *   - Visible: fully clear (real-time view within friendly unit vision)
@@ -10,11 +10,38 @@
  */
 
 import type { World } from "koota";
-import type Phaser from "phaser";
 import { VisionRadius } from "@/ecs/traits/combat";
 import { Faction } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
-import { TILE_SIZE } from "@/maps/loader";
+import { TILE_SIZE } from "@/maps/constants";
+
+/** Minimal graphics-like object used by the fog system. */
+interface FogGraphics {
+	setVisible(v: boolean): void;
+	clear(): void;
+	fillStyle(color: number, alpha: number): void;
+	fillRect(x: number, y: number, w: number, h: number): void;
+	destroy(): void;
+}
+
+/** Minimal render-texture-like object used by the fog system. */
+interface FogRenderTexture {
+	setOrigin(x: number, y: number): void;
+	setDepth(d: number): void;
+	fill(color: number, alpha: number): void;
+	clear(): void;
+	erase(obj: FogGraphics): void;
+	draw(obj: FogGraphics): void;
+	destroy(): void;
+}
+
+/** Scene-like object providing factory methods for fog rendering. */
+export interface FogScene {
+	add: {
+		renderTexture(x: number, y: number, w: number, h: number): FogRenderTexture;
+		graphics(): FogGraphics;
+	};
+}
 
 /** Fog state for each tile */
 export enum FogState {
@@ -30,9 +57,9 @@ export class FogOfWarSystem {
 	private world: World;
 	private cols: number;
 	private rows: number;
-	private fogTexture: Phaser.GameObjects.RenderTexture;
+	private fogTexture: FogRenderTexture;
 	private exploredGrid: FogState[][];
-	private eraserGraphics: Phaser.GameObjects.Graphics;
+	private eraserGraphics: FogGraphics;
 
 	/** Color for unexplored fog */
 	private static readonly FOG_COLOR_UNEXPLORED = 0x000000;
@@ -44,7 +71,7 @@ export class FogOfWarSystem {
 	private playerFaction: string;
 
 	constructor(
-		scene: Phaser.Scene,
+		scene: FogScene,
 		world: World,
 		cols: number,
 		rows: number,

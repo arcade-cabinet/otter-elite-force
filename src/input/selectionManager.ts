@@ -9,7 +9,7 @@ import type { Entity, World } from "koota";
 import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 import { EventBus } from "@/game/EventBus";
-import { TILE_SIZE } from "@/maps/loader";
+import { TILE_SIZE } from "@/maps/constants";
 
 export class SelectionManager {
 	private world: World;

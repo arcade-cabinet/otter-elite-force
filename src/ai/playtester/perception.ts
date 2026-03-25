@@ -18,7 +18,7 @@ import { Faction, IsBuilding, IsResource, Selected, UnitType } from "@/ecs/trait
 import { OrderQueue } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
 import { GameClock, PopulationState, ResourcePool } from "@/ecs/traits/state";
-import { TILE_SIZE } from "@/maps/loader";
+import { TILE_SIZE } from "@/maps/constants";
 import type { FogOfWarSystem } from "@/systems/fogSystem";
 
 // ---------------------------------------------------------------------------

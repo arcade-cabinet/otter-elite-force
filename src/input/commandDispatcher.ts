@@ -15,7 +15,7 @@ import { Faction, IsResource, Selected } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
 import { EventBus } from "@/game/EventBus";
-import { TILE_SIZE } from "@/maps/loader";
+import { TILE_SIZE } from "@/maps/constants";
 
 export class CommandDispatcher {
 	private world: World;

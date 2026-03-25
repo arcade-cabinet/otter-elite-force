@@ -21,7 +21,7 @@ interface Floater {
 
 export function CombatTextOverlay() {
 	const world = useWorld();
-	const sceneRef = useRef<Phaser.Scene | null>(null);
+	const sceneRef = useRef<{ cameras: { main: { scrollX: number; scrollY: number; zoom: number; width: number; height: number; worldView: { x: number; y: number; width: number; height: number } } }; scene: { key: string } } | null>(null);
 	const previousHealth = useRef(new Map<number, number>());
 	const previousResources = useRef(new Map<number, number>());
 	const previousPool = useRef<{ fish: number; timber: number; salvage: number } | null>(null);
@@ -30,7 +30,7 @@ export function CombatTextOverlay() {
 	const floaterId = useRef(0);
 
 	useEffect(() => {
-		const onSceneReady = (scene: Phaser.Scene) => {
+		const onSceneReady = (scene: { scene: { key: string }; cameras: { main: { scrollX: number; scrollY: number; zoom: number; width: number; height: number; worldView: { x: number; y: number; width: number; height: number } } } }) => {
 			if (scene.scene.key === "Game") {
 				sceneRef.current = scene;
 			}

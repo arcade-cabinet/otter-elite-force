@@ -135,7 +135,9 @@ describe("DayNightSystem", () => {
 				main: { width: 1280, height: 720 },
 			},
 			_mockGraphics: mockGraphics,
-		} as unknown as import("phaser").Scene & {
+		} as unknown as {
+			add: { graphics: ReturnType<typeof vi.fn> };
+			cameras: { main: { width: number; height: number } };
 			_mockGraphics: typeof mockGraphics;
 		};
 	}
