@@ -17,7 +17,15 @@ export type SFXType =
 	| "buildStart"
 	| "buildComplete"
 	| "resourceGather"
-	| "resourceDeposit";
+	| "resourceDeposit"
+	| "gatherWood"
+	| "gatherFish"
+	| "gatherSalvage"
+	| "meleeHit"
+	| "rangedFire"
+	| "trainingComplete"
+	| "researchComplete"
+	| "errorAction";
 
 export interface SFXPlayer {
 	play(type: SFXType, volume: number): void;
@@ -136,6 +144,38 @@ export function createSFXPlayer(): SFXPlayer {
 		resourceDeposit: (vol) => {
 			setVolume(gatherSynth, vol);
 			gatherSynth.triggerAttack("E4");
+		},
+		gatherWood: (vol) => {
+			setVolume(gatherSynth, vol);
+			gatherSynth.triggerAttack("B3");
+		},
+		gatherFish: (vol) => {
+			setVolume(gatherSynth, vol);
+			gatherSynth.triggerAttack("D4");
+		},
+		gatherSalvage: (vol) => {
+			setVolume(gatherSynth, vol);
+			gatherSynth.triggerAttack("F#3");
+		},
+		meleeHit: (vol) => {
+			setVolume(attackSynth, vol);
+			attackSynth.triggerAttackRelease(0.06);
+		},
+		rangedFire: (vol) => {
+			setVolume(attackSynth, vol * 0.7);
+			attackSynth.triggerAttackRelease(0.04);
+		},
+		trainingComplete: (vol) => {
+			setVolume(buildSynth, vol * 0.7);
+			buildSynth.triggerAttackRelease("E4", 0.12);
+		},
+		researchComplete: (vol) => {
+			setVolume(selectSynth, vol);
+			selectSynth.triggerAttackRelease("C6", 0.15);
+		},
+		errorAction: (vol) => {
+			setVolume(deathSynth, vol * 0.5);
+			deathSynth.triggerAttackRelease("E2", 0.15);
 		},
 	};
 

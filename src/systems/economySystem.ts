@@ -15,6 +15,7 @@ import { Gatherer, ResourceNode } from "../ecs/traits/economy";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { ResourcePool } from "../ecs/traits/state";
+import { EventBus } from "../game/EventBus";
 import { applyPlayerIncomeModifier, getDifficultyModifiers } from "./difficultyScaling";
 
 /** Distance (in tiles) at which a gatherer can interact with a node or building. */
@@ -104,6 +105,7 @@ function processGatherers(world: World, delta: number): void {
 				const mods = getDifficultyModifiers(world);
 				const scaledAmount = applyPlayerIncomeModifier(gatherer.amount, mods);
 				addResources(world, gatherer.carrying, scaledAmount);
+				EventBus.emit("resource-deposited", { resourceType: gatherer.carrying });
 				gatherer.amount = 0;
 				gatherer.carrying = "";
 			} else {
