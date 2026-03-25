@@ -1,23 +1,29 @@
 import { cn } from "@/ui/lib/utils";
 
 export interface SettingsValues {
+	masterVolume: number;
 	musicVolume: number;
 	sfxVolume: number;
 	hapticsEnabled: boolean;
 	cameraSpeed: number;
+	uiScale: number;
 	touchMode: string;
 	showGrid: boolean;
 	reduceFx: boolean;
+	skipTutorials: boolean;
 }
 
 export const DEFAULT_USER_SETTINGS: SettingsValues = {
+	masterVolume: 1.0,
 	musicVolume: 0.7,
 	sfxVolume: 1,
 	hapticsEnabled: true,
 	cameraSpeed: 1,
+	uiScale: 1.0,
 	touchMode: "auto",
 	showGrid: false,
 	reduceFx: false,
+	skipTutorials: false,
 };
 
 type ControlTone = "command" | "dossier";

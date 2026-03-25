@@ -2,9 +2,10 @@
  * SettingsPanel — Game settings (command-post theme).
  *
  * Controls: music volume, SFX volume, haptics toggle, camera speed,
- * touch mode, show grid, reduce FX.
+ * touch mode, show grid, reduce FX, skip tutorials.
  */
 import { useTrait, useWorld } from "koota/react";
+import { useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AppScreen, UserSettings } from "@/ecs/traits/state";
 import { CommandPostShell, ShellPanel } from "@/ui/layout/shells";
@@ -24,6 +25,21 @@ export function SettingsPanel() {
 		world.set(UserSettings, { ...resolvedSettings, ...patch });
 	};
 
+	// US-092: Keyboard navigation — Escape returns to menu
+	const handleKeyDown = useCallback(
+		(event: KeyboardEvent) => {
+			if (event.key === "Escape") {
+				world.set(AppScreen, { screen: "menu" });
+			}
+		},
+		[world],
+	);
+
+	useEffect(() => {
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [handleKeyDown]);
+
 	return (
 		<CommandPostShell
 			title="Settings"
@@ -34,7 +50,12 @@ export function SettingsPanel() {
 				</Button>
 			}
 		>
-			<div data-testid="settings-panel" className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+			<div
+				data-testid="settings-panel"
+				role="form"
+				aria-label="Game Settings"
+				className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]"
+			>
 				<ShellPanel
 					title="Field Controls"
 					description="Readable on desktop and touch-first on mobile."
@@ -69,6 +90,11 @@ export function SettingsPanel() {
 							label="Reduce FX"
 							value={resolvedSettings.reduceFx}
 							onChange={(v) => update({ reduceFx: v })}
+						/>
+						<ToggleSetting
+							label="Skip Tutorials"
+							value={resolvedSettings.skipTutorials}
+							onChange={(v) => update({ skipTutorials: v })}
 						/>
 					</div>
 				</ShellPanel>

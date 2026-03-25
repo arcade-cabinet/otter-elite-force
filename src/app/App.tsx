@@ -15,6 +15,7 @@ import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
+import { CampaignView } from "@/ui/command-post/CampaignView";
 import { MainMenu } from "@/ui/command-post/MainMenu";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
 import { AlertBanner } from "@/ui/hud/AlertBanner";
@@ -32,6 +33,7 @@ initSingletons(world);
 
 const SCREEN_THEMES: Record<AppScreenType, string> = {
 	menu: "command-post",
+	campaign: "command-post",
 	settings: "command-post",
 	game: "tactical",
 	victory: "tactical",
@@ -64,6 +66,8 @@ function AppRouter() {
 	switch (screen) {
 		case "menu":
 			return <MainMenu />;
+		case "campaign":
+			return <CampaignView />;
 		case "settings":
 			return <SettingsPanel />;
 		case "game":

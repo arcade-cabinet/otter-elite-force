@@ -3,18 +3,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AppScreen, CampaignProgress, CompletedResearch } from "@/ecs/traits/state";
 import { CAMPAIGN, getMissionById } from "@/entities/missions";
-
-type DifficultyChoice = {
-	id: "support" | "tactical" | "elite";
-	label: string;
-	note: string;
-};
-
-const DIFFICULTIES: DifficultyChoice[] = [
-	{ id: "support", label: "Support", note: "Forgiving landing for first deployment." },
-	{ id: "tactical", label: "Tactical", note: "The intended campaign difficulty." },
-	{ id: "elite", label: "Elite", note: "Hard campaign pressure from the first mission." },
-];
+import { DIFFICULTIES, type DifficultyId } from "@/game/difficulty";
 
 export function MainMenu() {
 	const world = useWorld();
@@ -33,23 +22,42 @@ export function MainMenu() {
 		return `Resume ${currentMission.name}`;
 	}, [currentMission]);
 
-	const startNewGame = (difficulty: DifficultyChoice["id"]) => {
+	const startNewGame = (difficulty: DifficultyId) => {
 		world.set(CampaignProgress, {
 			missions: {},
 			currentMission: CAMPAIGN[0]?.id ?? "mission_1",
 			difficulty,
 		});
 		world.set(CompletedResearch, { ids: new Set<string>() });
-		world.set(AppScreen, { screen: "game" });
+		world.set(AppScreen, { screen: "campaign" });
 	};
 
 	const continueCampaign = () => {
 		if (!hasSave) return;
-		world.set(AppScreen, { screen: "game" });
+		world.set(AppScreen, { screen: "campaign" });
 	};
 
+	// US-092: Keyboard navigation — Escape closes difficulty panel
+	const handleKeyDown = useCallback(
+		(event: KeyboardEvent) => {
+			if (event.key === "Escape" && showDifficultyChoices) {
+				setShowDifficultyChoices(false);
+			}
+		},
+		[showDifficultyChoices],
+	);
+
+	useEffect(() => {
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [handleKeyDown]);
+
 	return (
-		<div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#1c362c_0%,#0d1614_42%,#080c0c_100%)] text-foreground">
+		<div
+			role="main"
+			aria-label="Main Menu"
+			className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,#1c362c_0%,#0d1614_42%,#080c0c_100%)] text-foreground"
+		>
 			<div className="riverine-camo absolute inset-0 opacity-70" />
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(212,165,116,0.18),transparent_20%),radial-gradient(circle_at_80%_28%,rgba(74,128,108,0.16),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.06),rgba(0,0,0,0.3))]" />
 
@@ -67,11 +75,16 @@ export function MainMenu() {
 				</header>
 
 				<div className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(18rem,24rem)_minmax(0,1fr)] lg:gap-12 lg:py-10">
-					<section className="mx-auto flex w-full max-w-md flex-col justify-center gap-4 lg:mx-0 lg:min-h-[32rem]">
-						<div className="grid gap-3">
+					<section
+						aria-label="Campaign Actions"
+						className="mx-auto flex w-full max-w-md flex-col justify-center gap-4 lg:mx-0 lg:min-h-[32rem]"
+					>
+						<nav aria-label="Main Navigation" className="grid gap-3">
 							<Button
 								variant="command"
 								size="lg"
+								aria-expanded={showDifficultyChoices}
+								aria-controls="difficulty-choices"
 								className="justify-between px-5 py-6 text-left"
 								onClick={() => setShowDifficultyChoices((value) => !value)}
 							>
@@ -82,7 +95,12 @@ export function MainMenu() {
 							</Button>
 
 							{showDifficultyChoices ? (
-								<div className="grid gap-2 rounded-lg border border-accent/20 bg-black/30 p-3 backdrop-blur-sm">
+								<div
+									id="difficulty-choices"
+									role="group"
+									aria-label="Difficulty Selection"
+									className="grid gap-2 rounded-lg border border-accent/20 bg-black/30 p-3 backdrop-blur-sm"
+								>
 									{DIFFICULTIES.map((option) => (
 										<button
 											key={option.id}
@@ -118,6 +136,18 @@ export function MainMenu() {
 								variant="command"
 								size="lg"
 								className="justify-between px-5 py-6 text-left"
+								onClick={() => world.set(AppScreen, { screen: "skirmish" })}
+							>
+								<span className="font-heading text-xl uppercase tracking-[0.18em]">Skirmish</span>
+								<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+									Single-Player Battle
+								</span>
+							</Button>
+
+							<Button
+								variant="command"
+								size="lg"
+								className="justify-between px-5 py-6 text-left"
 								onClick={() => world.set(AppScreen, { screen: "settings" })}
 							>
 								<span className="font-heading text-xl uppercase tracking-[0.18em]">Settings</span>
@@ -125,7 +155,7 @@ export function MainMenu() {
 									Audio • Controls • Readability
 								</span>
 							</Button>
-						</div>
+						</nav>
 
 						<div className="rounded-lg border border-border/70 bg-black/24 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-sm">
 							{completedCount} / {totalMissions} missions completed

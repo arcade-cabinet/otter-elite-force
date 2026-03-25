@@ -23,6 +23,7 @@ export function ResourceBar() {
 	return (
 		<Card
 			role="status"
+			aria-label={`Resources: ${fish} Fish, ${timber} Timber, ${salvage} Salvage. Population: ${popCurrent} of ${popMax}`}
 			data-testid="resource-bar"
 			className="resource-bar canvas-grain border-accent/20 bg-card/86 shadow-[0_0_0_1px_rgba(0,255,65,0.06),0_18px_40px_rgba(0,0,0,0.34)]"
 		>

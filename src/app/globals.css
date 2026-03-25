@@ -390,3 +390,56 @@
 		transform: translate3d(0, 0, 0) scale(1);
 	}
 }
+
+/* ------------------------------------------------------------------ */
+/* US-092: Reduced motion support                                      */
+/* Disable typewriter, floating text, particles, and decorative        */
+/* animations when the user prefers reduced motion.                    */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+	.typewriter-cursor {
+		animation: none;
+		opacity: 1;
+	}
+
+	.briefing-portrait-silhouette {
+		animation: none;
+	}
+
+	.riverine-camo {
+		animation: none;
+	}
+
+	.radar-sweep {
+		animation: none;
+		opacity: 0;
+	}
+
+	.canvas-grain::after {
+		display: none;
+	}
+
+	.screen-noise {
+		display: none;
+	}
+
+	/* Disable all transitions and animations globally */
+	*,
+	*::before,
+	*::after {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
+}
+
+/* ------------------------------------------------------------------ */
+/* US-092: Focus indicators for keyboard navigation                    */
+/* Strong visible focus ring on all interactive elements.               */
+/* ------------------------------------------------------------------ */
+
+:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: 2px;
+}

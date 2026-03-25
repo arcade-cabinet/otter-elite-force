@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { audioEngine } from "@/audio/engine";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 /** Characters per second for normal reveal */
 const CHARS_PER_SECOND = 40;
@@ -58,6 +59,7 @@ export function useTypewriter({
 	const [revealedCount, setRevealedCount] = useState(0);
 	const clackCounterRef = useRef(0);
 	const prevKeyRef = useRef(key);
+	const reducedMotion = useReducedMotion();
 
 	// Reset when key changes (new line of dialogue)
 	if (prevKeyRef.current !== key) {
@@ -66,14 +68,14 @@ export function useTypewriter({
 		clackCounterRef.current = 0;
 	}
 
-	// Reset when disabled
+	// Reset when disabled or prefers-reduced-motion (US-092)
 	useEffect(() => {
-		if (!enabled) {
+		if (!enabled || reducedMotion) {
 			setRevealedCount(text.length);
 		}
-	}, [enabled, text.length]);
+	}, [enabled, reducedMotion, text.length]);
 
-	const isRevealing = enabled && revealedCount < text.length;
+	const isRevealing = enabled && !reducedMotion && revealedCount < text.length;
 	const isComplete = revealedCount >= text.length;
 
 	// Character-by-character reveal timer
