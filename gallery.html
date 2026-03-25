@@ -31,7 +31,7 @@
 
     <script type="module">
         // Import from the actual source — Vite resolves these
-        import { initPortraits, getPortraitCanvas, getPortraitIds } from '/src/canvas/portraitRenderer.ts';
+        import { initPortraits, getPortraitCanvas, getPortraitIds, getSplashCanvas } from '/src/canvas/portraitRenderer.ts';
         import { initSprites, getSprite, spriteCache } from '/src/canvas/spriteGen.ts';
 
         const gallery = document.getElementById('gallery');
@@ -70,6 +70,23 @@
             card.appendChild(label);
             grid.appendChild(card);
         }
+
+        // ── Splash Art ──
+        const splashHeader = document.createElement('h2');
+        splashHeader.textContent = 'CONFRONTATION — Landing Page Splash';
+        splashHeader.className = 'res-header';
+        gallery.appendChild(splashHeader);
+
+        const splashFrame = document.createElement('div');
+        Object.assign(splashFrame.style, { border: '2px solid #fbbf24', background: '#000', padding: '4px', marginBottom: '16px' });
+        const splashCanvas = getSplashCanvas();
+        const splashClone = document.createElement('canvas');
+        splashClone.width = splashCanvas.width;
+        splashClone.height = splashCanvas.height;
+        splashClone.getContext('2d').drawImage(splashCanvas, 0, 0);
+        Object.assign(splashClone.style, { display: 'block', imageRendering: 'pixelated', width: '100%', maxWidth: '640px' });
+        splashFrame.appendChild(splashClone);
+        gallery.appendChild(splashFrame);
 
         const oefGrid = addSection('OTTER ELITE FORCE — Portraits', 'oef-header');
         for (const id of ['foxhound', 'sgt_bubbles', 'gen_whiskers', 'cpl_splash', 'sgt_fang', 'medic_marina', 'pvt_muskrat']) {

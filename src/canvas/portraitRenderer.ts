@@ -54,6 +54,15 @@ const P = {
 	bg: "#0f172a",
 };
 
+// ─── Seeded PRNG (local copy — used for splash art background noise) ───
+
+let _seed = 42;
+function seedRng(s: number): void { _seed = s; }
+function srand(): number {
+	_seed = (_seed * 16807 + 0) % 2147483647;
+	return (_seed - 1) / 2147483646;
+}
+
 // ─── Drawing helpers ───
 
 type Ctx = CanvasRenderingContext2D;
@@ -584,6 +593,173 @@ function drawBroodmother(c: Ctx): void {
 	for (let i = 0; i < 4; i++) {
 		rect(c, 40, 50 + i * 3, 8, 1, P.metalDark);
 	}
+}
+
+// ============================================================================
+// SPLASH ART — Wide confrontation scene for landing page
+// ============================================================================
+
+/**
+ * Draw the Warcraft-style confrontation splash: Sgt. Bubbles (left profile)
+ * vs Kommandant Ironjaw (right profile), glaring across dark water.
+ *
+ * Native: 160x64. Scaled 3x to 480x192.
+ * Left half warm brown tones. Right half cold green tones.
+ */
+function drawConfrontationSplash(c: CanvasRenderingContext2D): void {
+	const W = 160, H = 64;
+
+	// ── Background: split warm/cold with dark water divide ──
+	// Left half — warm dark (otter territory)
+	for (let x = 0; x < W / 2 - 4; x++) {
+		for (let y = 0; y < H; y++) {
+			const shade = 8 + Math.floor(srand() * 6);
+			px(c, x, y, `rgb(${shade + 4},${shade},${shade - 2})`);
+		}
+	}
+	// Right half — cold dark (reptile territory)
+	for (let x = W / 2 + 4; x < W; x++) {
+		for (let y = 0; y < H; y++) {
+			const shade = 6 + Math.floor(srand() * 6);
+			px(c, x, y, `rgb(${shade - 2},${shade + 3},${shade}`);
+		}
+	}
+	// Center divide — dark water
+	rect(c, W / 2 - 4, 0, 8, H, "#0a1520");
+	for (let y = 0; y < H; y += 3) {
+		rect(c, W / 2 - 3, y, 6, 1, "#0d1e2a");
+	}
+
+	// ── SGT. BUBBLES — left side profile, facing right ──
+	const bx = 20; // center of Bubbles
+	const by = 20; // head y
+
+	// Head — side profile otter snout pointing right
+	ellipse(c, bx, by + 8, 12, 10, P.furMid);        // head mass
+	rect(c, bx, by + 4, 14, 12, P.furMid);             // snout extension right
+	ellipse(c, bx - 2, by + 10, 8, 7, P.skinLight);   // lighter face
+	rect(c, bx + 8, by + 8, 8, 6, P.skinLight);        // snout front
+	rect(c, bx + 14, by + 10, 3, 3, P.skinShadow);     // nose tip
+	px(c, bx + 15, by + 11, P.nose);                    // nostril
+
+	// Eye — fierce, looking right
+	rect(c, bx + 4, by + 5, 4, 3, P.eyeWhite);
+	rect(c, bx + 6, by + 5, 2, 3, P.eyeBlack);
+	px(c, bx + 7, by + 5, P.eyeTeal);                   // teal glint
+
+	// Ear
+	ellipse(c, bx - 8, by + 2, 3, 3, P.furDark);
+	ellipse(c, bx - 8, by + 2, 1, 1, P.skinShadow);
+
+	// Red bandana — trailing behind
+	rect(c, bx - 10, by + 1, 16, 3, P.bandanaRed);
+	rect(c, bx - 12, by + 2, 4, 2, P.bandanaDark);     // trailing tail
+	rect(c, bx - 14, by + 3, 3, 3, P.bandanaDark);     // trailing end
+	rect(c, bx - 16, by + 5, 2, 3, P.bandanaRed);      // wind flutter
+
+	// Mouth — slight snarl
+	rect(c, bx + 10, by + 14, 6, 1, P.nose);
+	px(c, bx + 9, by + 13, P.nose);
+
+	// Body/shoulder
+	rect(c, bx - 14, by + 18, 28, 30, P.uniformGreen);
+	rect(c, bx - 12, by + 20, 24, 26, P.uniformGreenLt);
+
+	// Whiskers
+	rect(c, bx + 12, by + 12, 4, 1, P.furLight);
+	rect(c, bx + 13, by + 14, 3, 1, P.furLight);
+
+	// Battle scar on cheek
+	rect(c, bx + 2, by + 10, 1, 3, P.scarRed);
+
+	// ── KOMMANDANT IRONJAW — right side profile, facing left ──
+	const ix = W - 22; // center of Ironjaw
+	const iy = 16;     // head y
+
+	// Head — side profile croc snout pointing left
+	ellipse(c, ix, iy + 10, 14, 12, SG.scalesDark);    // head mass (bigger than Bubbles)
+	rect(c, ix - 16, iy + 6, 16, 14, SG.scalesDark);   // snout extension left
+	rect(c, ix - 20, iy + 8, 6, 8, SG.scalesDark);     // snout tip
+	// Jaw — the IRON prosthetic, lower half
+	rect(c, ix - 18, iy + 14, 20, 6, SG.jawIronDark);
+	rect(c, ix - 16, iy + 15, 16, 4, SG.jawIron);
+	// Rivets
+	for (let i = 0; i < 4; i++) {
+		px(c, ix - 14 + i * 4, iy + 15, SG.jawIronLight);
+	}
+	// Iron teeth along jaw
+	for (let i = 0; i < 5; i++) {
+		rect(c, ix - 17 + i * 3, iy + 20, 2, 2, SG.jawIronLight);
+	}
+
+	// Upper jaw — real teeth visible
+	for (let i = 0; i < 4; i++) {
+		px(c, ix - 16 + i * 3, iy + 13, P.eyeWhite);
+	}
+
+	// Dorsal ridges along top of head
+	for (let i = 0; i < 6; i++) {
+		px(c, ix - 4 + i * 3, iy + 2, SG.scalesLight);
+	}
+
+	// Eye — cold, calculating, slit pupil
+	rect(c, ix - 6, iy + 6, 5, 4, SG.eyeYellow);
+	rect(c, ix - 5, iy + 6, 2, 4, SG.eyeSlitBlack);
+	px(c, ix - 4, iy + 6, SG.eyeYellow);               // highlight
+
+	// Brow ridge
+	rect(c, ix - 8, iy + 4, 8, 2, SG.scalesDark);
+
+	// Scar tissue around iron jaw attachment
+	rect(c, ix + 4, iy + 14, 1, 4, P.scarRed);
+	rect(c, ix + 6, iy + 13, 1, 3, P.scarRed);
+
+	// Body/shoulder
+	rect(c, ix - 8, iy + 22, 28, 30, SG.sgUniformRed);
+	rect(c, ix - 6, iy + 24, 24, 26, SG.sgUniformRedLt);
+	// Shoulder insignia
+	px(c, ix + 12, iy + 26, SG.sgMedal);
+	px(c, ix + 11, iy + 27, SG.sgMedal);
+	px(c, ix + 12, iy + 27, SG.sgMedal);
+	px(c, ix + 13, iy + 27, SG.sgMedal);
+	px(c, ix + 12, iy + 28, SG.sgMedal);
+
+	// Scale texture on visible skin
+	for (let i = 0; i < 4; i++) {
+		px(c, ix - 2 + i * 3, iy + 4, SG.scalesLight);
+	}
+}
+
+const SPLASH_W = 160;
+const SPLASH_H = 64;
+const SPLASH_SCALE = 3;
+
+let _splashCache: HTMLCanvasElement | null = null;
+
+/**
+ * Get the confrontation splash art canvas (480x192).
+ * Rendered once and cached.
+ */
+export function getSplashCanvas(): HTMLCanvasElement {
+	if (_splashCache) return _splashCache;
+
+	seedRng(999); // deterministic for the background noise
+
+	const native = document.createElement("canvas");
+	native.width = SPLASH_W;
+	native.height = SPLASH_H;
+	const ctx = native.getContext("2d")!;
+	drawConfrontationSplash(ctx);
+
+	const scaled = document.createElement("canvas");
+	scaled.width = SPLASH_W * SPLASH_SCALE;
+	scaled.height = SPLASH_H * SPLASH_SCALE;
+	const sCtx = scaled.getContext("2d")!;
+	sCtx.imageSmoothingEnabled = false;
+	sCtx.drawImage(native, 0, 0, SPLASH_W * SPLASH_SCALE, SPLASH_H * SPLASH_SCALE);
+
+	_splashCache = scaled;
+	return scaled;
 }
 
 // ─── Registry ───
