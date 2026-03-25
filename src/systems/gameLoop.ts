@@ -105,7 +105,7 @@ export function tickAllSystems(ctx: GameLoopContext): void {
 	// 5c. Demolition — timed charge countdowns + explosions
 	chargeTickSystem(world, delta);
 
-	aggroSystem(world);
+	aggroSystem(world, ctx.fogSystem);
 	projectileSystem(world, delta);
 	deathSystem(world);
 

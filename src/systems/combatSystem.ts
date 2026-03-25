@@ -16,12 +16,14 @@ import { Targeting } from "../ecs/relations";
 import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
 import { Faction, IsProjectile, UnitType } from "../ecs/traits/identity";
 import { Position, Velocity } from "../ecs/traits/spatial";
+import { CanSwim, Submerged } from "../ecs/traits/water";
 import { EventBus } from "../game/EventBus";
 import {
 	applyEnemyDamageModifier,
 	getDifficultyModifiers,
 	type DifficultyModifiers,
 } from "./difficultyScaling";
+import type { FogOfWarSystem } from "./fogSystem";
 import { MORTAR_SPLASH_RADIUS, SplashRadius } from "./siegeSystem";
 
 /** Projectile speed in tiles per second. */
@@ -160,7 +162,7 @@ export function combatSystem(world: World, delta: number): void {
  * For units with Attack + VisionRadius that are NOT already targeting something,
  * find the nearest enemy within vision range and set Targeting.
  */
-export function aggroSystem(world: World): void {
+export function aggroSystem(world: World, fogSystem?: FogOfWarSystem | null): void {
 	const combatants = world.query(Attack, Position, Faction, VisionRadius);
 	const potentialTargets = world.query(Position, Faction, Health);
 
@@ -171,6 +173,7 @@ export function aggroSystem(world: World): void {
 		const pos = entity.get(Position)!;
 		const faction = entity.get(Faction)!;
 		const vision = entity.get(VisionRadius)!;
+		const attackerCanSwim = entity.has(CanSwim);
 
 		let nearestDist = Number.POSITIVE_INFINITY;
 		let nearestTarget: Entity | null = null;
@@ -183,8 +186,19 @@ export function aggroSystem(world: World): void {
 			const candidateFaction = candidate.get(Faction)!;
 			if (candidateFaction.id === faction.id) continue;
 
-			// Check distance
+			// Don't target Submerged entities unless attacker has CanSwim
+			if (candidate.has(Submerged) && !attackerCanSwim) continue;
+
 			const candidatePos = candidate.get(Position)!;
+
+			// Don't target entities hidden by fog of war
+			if (fogSystem) {
+				const tileX = Math.floor(candidatePos.x);
+				const tileY = Math.floor(candidatePos.y);
+				if (!fogSystem.isTileVisible(tileX, tileY)) continue;
+			}
+
+			// Check distance
 			const dist = distanceBetween(pos.x, pos.y, candidatePos.x, candidatePos.y);
 
 			if (dist <= vision.radius && dist < nearestDist) {

@@ -156,18 +156,18 @@ describe("US-088: Large battle performance profiling", () => {
 
 		// Warm up
 		for (let i = 0; i < 10; i++) {
-			aggroSystem(world, TICK_DELTA);
+			aggroSystem(world);
 			combatSystem(world, TICK_DELTA);
 			projectileSystem(world, TICK_DELTA);
-			deathSystem(world, TICK_DELTA);
+			deathSystem(world);
 			movementSystem(world, TICK_DELTA);
 		}
 
 		// Benchmark each system individually
-		const aggroResult = benchmarkSystem("aggroSystem", () => aggroSystem(world, TICK_DELTA), BENCHMARK_TICKS);
+		const aggroResult = benchmarkSystem("aggroSystem", () => aggroSystem(world), BENCHMARK_TICKS);
 		const combatResult = benchmarkSystem("combatSystem", () => combatSystem(world, TICK_DELTA), BENCHMARK_TICKS);
 		const projectileResult = benchmarkSystem("projectileSystem", () => projectileSystem(world, TICK_DELTA), BENCHMARK_TICKS);
-		const deathResult = benchmarkSystem("deathSystem", () => deathSystem(world, TICK_DELTA), BENCHMARK_TICKS);
+		const deathResult = benchmarkSystem("deathSystem", () => deathSystem(world), BENCHMARK_TICKS);
 		const movementResult = benchmarkSystem("movementSystem", () => movementSystem(world, TICK_DELTA), BENCHMARK_TICKS);
 
 		const results = [aggroResult, combatResult, projectileResult, deathResult, movementResult];
@@ -218,10 +218,10 @@ describe("US-088: Large battle performance profiling", () => {
 
 		// Run the battle for 600 ticks (10 seconds of gameplay)
 		for (let i = 0; i < 600; i++) {
-			aggroSystem(world, TICK_DELTA);
+			aggroSystem(world);
 			combatSystem(world, TICK_DELTA);
 			projectileSystem(world, TICK_DELTA);
-			deathSystem(world, TICK_DELTA);
+			deathSystem(world);
 			movementSystem(world, TICK_DELTA);
 		}
 
@@ -254,7 +254,7 @@ describe("US-088: Large battle performance profiling", () => {
 
 		for (let i = 0; i < 100; i++) {
 			let start = performance.now();
-			aggroSystem(world, TICK_DELTA);
+			aggroSystem(world);
 			systemTimings.aggro.push(performance.now() - start);
 
 			start = performance.now();
@@ -266,7 +266,7 @@ describe("US-088: Large battle performance profiling", () => {
 			systemTimings.projectile.push(performance.now() - start);
 
 			start = performance.now();
-			deathSystem(world, TICK_DELTA);
+			deathSystem(world);
 			systemTimings.death.push(performance.now() - start);
 
 			start = performance.now();

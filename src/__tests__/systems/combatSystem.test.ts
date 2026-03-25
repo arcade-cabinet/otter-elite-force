@@ -1,15 +1,17 @@
 import { createWorld } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Targeting } from "../../ecs/relations";
 import { Armor, Attack, Health, VisionRadius } from "../../ecs/traits/combat";
 import { Faction, IsProjectile, UnitType } from "../../ecs/traits/identity";
 import { Position, Velocity } from "../../ecs/traits/spatial";
+import { CanSwim, Submerged } from "../../ecs/traits/water";
 import {
 	aggroSystem,
 	combatSystem,
 	deathSystem,
 	projectileSystem,
 } from "../../systems/combatSystem";
+import type { FogOfWarSystem } from "../../systems/fogSystem";
 
 describe("combatSystem", () => {
 	let world: ReturnType<typeof createWorld>;
@@ -446,4 +448,39 @@ describe("combatSystem", () => {
 			expect(defender.get(Health)!.current).toBe(104);
 		});
 	});
+
+	describe("aggroSystem fog+submerged", () => {
+		it("rejects targets hidden by fog", () => {
+			const u = world.spawn(UnitType({ type: "mudfoot" }), Faction({ id: "ura" }), Position({ x: 0, y: 0 }), Health({ current: 80, max: 80 }), Attack({ damage: 12, range: 1, cooldown: 1, timer: 0 }), VisionRadius({ radius: 10 }));
+			world.spawn(UnitType({ type: "gator" }), Faction({ id: "scale_guard" }), Position({ x: 2, y: 0 }), Health({ current: 120, max: 120 }));
+			const fog = { isTileVisible: vi.fn(() => false) } as unknown as FogOfWarSystem;
+			aggroSystem(world, fog);
+			expect(u.has(Targeting("*"))).toBe(false);
+		});
+		it("acquires visible targets through fog", () => {
+			const u = world.spawn(UnitType({ type: "mudfoot" }), Faction({ id: "ura" }), Position({ x: 0, y: 0 }), Health({ current: 80, max: 80 }), Attack({ damage: 12, range: 1, cooldown: 1, timer: 0 }), VisionRadius({ radius: 10 }));
+			const e = world.spawn(UnitType({ type: "gator" }), Faction({ id: "scale_guard" }), Position({ x: 2, y: 0 }), Health({ current: 120, max: 120 }));
+			aggroSystem(world, { isTileVisible: vi.fn(() => true) } as unknown as FogOfWarSystem);
+			expect(u.has(Targeting(e))).toBe(true);
+		});
+		it("works without fog (null)", () => {
+			const u = world.spawn(UnitType({ type: "mudfoot" }), Faction({ id: "ura" }), Position({ x: 0, y: 0 }), Health({ current: 80, max: 80 }), Attack({ damage: 12, range: 1, cooldown: 1, timer: 0 }), VisionRadius({ radius: 10 }));
+			const e = world.spawn(UnitType({ type: "gator" }), Faction({ id: "scale_guard" }), Position({ x: 2, y: 0 }), Health({ current: 120, max: 120 }));
+			aggroSystem(world, null);
+			expect(u.has(Targeting(e))).toBe(true);
+		});
+		it("ignores Submerged from surface", () => {
+			const u = world.spawn(UnitType({ type: "mudfoot" }), Faction({ id: "ura" }), Position({ x: 0, y: 0 }), Health({ current: 80, max: 80 }), Attack({ damage: 12, range: 1, cooldown: 1, timer: 0 }), VisionRadius({ radius: 10 }));
+			world.spawn(UnitType({ type: "gator" }), Faction({ id: "scale_guard" }), Position({ x: 2, y: 0 }), Health({ current: 120, max: 120 }), Submerged);
+			aggroSystem(world);
+			expect(u.has(Targeting("*"))).toBe(false);
+		});
+		it("CanSwim targets Submerged", () => {
+			const u = world.spawn(UnitType({ type: "river_rat" }), Faction({ id: "ura" }), Position({ x: 0, y: 0 }), Health({ current: 40, max: 40 }), Attack({ damage: 5, range: 1, cooldown: 0.8, timer: 0 }), VisionRadius({ radius: 5 }), CanSwim);
+			const e = world.spawn(UnitType({ type: "gator" }), Faction({ id: "scale_guard" }), Position({ x: 2, y: 0 }), Health({ current: 120, max: 120 }), Submerged);
+			aggroSystem(world);
+			expect(u.has(Targeting(e))).toBe(true);
+		});
+	});
+
 });
