@@ -21,7 +21,7 @@ import type {
 	UnitDef,
 } from "./types";
 
-// ─── Buildings (COMPLETE: 17/17) ───
+// ─── Buildings (COMPLETE: 21/21) ───
 
 import { ALL_BUILDING_ENTITIES } from "./buildings";
 
@@ -37,7 +37,7 @@ import { ALL_RESEARCH_ENTITIES } from "./research";
 export { ALL_RESEARCH_ENTITIES };
 export const ALL_RESEARCH = ALL_RESEARCH_ENTITIES;
 
-// ─── Resources (COMPLETE: 3/3) ───
+// ─── Resources (COMPLETE: 5/5) ───
 
 import { ALL_RESOURCES } from "./resources";
 
@@ -76,11 +76,12 @@ const URA_UNIT_ENTITIES: Record<string, UnitDef> = {
 	diver,
 };
 
-// ─── Scale-Guard Units (COMPLETE: 7/7) ───
+// ─── Scale-Guard Units (COMPLETE: 8/8) ───
 
 import { crocChampion } from "./units/scale-guard/croc-champion";
 import { gator } from "./units/scale-guard/gator";
 import { scoutLizard } from "./units/scale-guard/scout-lizard";
+import { serpentKing } from "./units/scale-guard/serpent-king";
 import { siphonDrone } from "./units/scale-guard/siphon-drone";
 import { skink } from "./units/scale-guard/skink";
 import { snapper } from "./units/scale-guard/snapper";
@@ -94,9 +95,10 @@ const SCALE_GUARD_UNIT_ENTITIES: Record<string, UnitDef> = {
 	scout_lizard: scoutLizard,
 	croc_champion: crocChampion,
 	siphon_drone: siphonDrone,
+	serpent_king: serpentKing,
 };
 
-/** All 14 unit definitions (7 URA + 7 Scale-Guard) keyed by id. */
+/** All 15 unit definitions (7 URA + 8 Scale-Guard) keyed by id. */
 export const ALL_UNIT_ENTITIES: Record<string, UnitDef> = {
 	...URA_UNIT_ENTITIES,
 	...SCALE_GUARD_UNIT_ENTITIES,
@@ -155,6 +157,7 @@ export const ALL_PORTRAITS = ALL_PORTRAIT_ENTITIES;
 
 /** Get a unit definition by id. Returns undefined if not found. */
 export function getUnit(id: string): UnitDef | undefined {
+	if (id === "scout_otter") return ALL_UNIT_ENTITIES.diver;
 	return ALL_UNIT_ENTITIES[id];
 }
 

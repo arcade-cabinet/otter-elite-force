@@ -2,7 +2,7 @@ import type { MissionMapData } from "../types";
 import { TerrainType as T } from "../types";
 
 /**
- * Mission 15: Sacred Sludge — All-out War
+ * Mission 15: Serpent's Lair — All-out War
  * ~70×55 tiles — LARGEST MAP in the game.
  * Full army vs full army. Sludge flood timer creates urgency.
  * Player base (south), enemy base (north-center), Great Siphon preview (far north).
@@ -93,7 +93,7 @@ const rows = terrain.length;
 
 export const mission15SacredSludge: MissionMapData = {
 	missionId: 15,
-	name: "Sacred Sludge",
+	name: "Serpent's Lair",
 	cols,
 	rows,
 	terrain,

@@ -40,6 +40,7 @@ These should stay concise and consistent with the canon doc above.
 
 - `docs/architecture/overview.md` — current runtime and pipeline architecture
 - `docs/architecture/testing-strategy.md` — deeper testing guidance
+- `docs/architecture/wcag-contrast-audit.md` — WCAG AA contrast validation results
 - `TESTING.md` — command-oriented testing quick reference
 - `docs/design/game-design-document.md` — gameplay framing and mission fantasy
 - `LORE.md` — world framing and faction language

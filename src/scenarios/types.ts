@@ -176,6 +176,12 @@ export interface VictoryAction {
 	type: "victory";
 }
 
+export interface EnableTriggerAction {
+	type: "enableTrigger";
+	/** ID of the trigger to enable */
+	triggerId: string;
+}
+
 export type TriggerAction =
 	| SpawnUnitsAction
 	| ShowDialogueAction
@@ -185,7 +191,8 @@ export type TriggerAction =
 	| FailMissionAction
 	| PlaySFXAction
 	| CameraAction
-	| VictoryAction;
+	| VictoryAction
+	| EnableTriggerAction;
 
 // ---------------------------------------------------------------------------
 // Scenario Trigger

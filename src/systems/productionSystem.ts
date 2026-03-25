@@ -21,6 +21,7 @@ import { PopulationState, ResourcePool } from "../ecs/traits/state";
 import { world as defaultWorld } from "../ecs/world";
 import { getBuilding, getUnit } from "../entities/registry";
 import { spawnUnit } from "../entities/spawner";
+import { EventBus } from "../game/EventBus";
 
 /**
  * Queue a unit for training at a building.
@@ -98,6 +99,7 @@ export function productionSystem(world: World, delta: number): void {
 			// Training complete — spawn the unit
 			spawnTrainedUnit(world, building, current.unitType);
 			queue.shift();
+			EventBus.emit("training-complete", { unitType: current.unitType });
 		}
 	}
 }

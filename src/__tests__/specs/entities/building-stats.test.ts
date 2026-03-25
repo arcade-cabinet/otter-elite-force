@@ -1,7 +1,7 @@
 /**
  * Building Stat Specification Tests
  *
- * These tests define the SPEC for all 17 building types (12 URA + 5 Scale-Guard).
+ * These tests define the SPEC for all 21 building types (12 URA + 9 Scale-Guard).
  * Values are sourced from:
  *   - docs/superpowers/specs/2026-03-23-rts-pivot-design.md §4
  *   - docs/superpowers/specs/2026-03-24-entity-architecture-design.md
@@ -492,7 +492,7 @@ describe("URA Buildings", () => {
 });
 
 // ===========================================================================
-// SCALE-GUARD BUILDINGS (5)
+// SCALE-GUARD BUILDINGS (9)
 // ===========================================================================
 
 describe("Scale-Guard Buildings", () => {
@@ -633,15 +633,15 @@ describe("Building aggregates", () => {
 		expect(ura).toHaveLength(12);
 	});
 
-	it("has 5 Scale-Guard buildings", () => {
+	it("has 9 Scale-Guard buildings", () => {
 		if (skip()) return;
 		const sg = Object.values(buildings).filter((b) => b.faction === "scale_guard");
-		expect(sg).toHaveLength(5);
+		expect(sg).toHaveLength(9);
 	});
 
-	it("total is 17 buildings", () => {
+	it("total is 21 buildings", () => {
 		if (skip()) return;
-		expect(Object.keys(buildings)).toHaveLength(17);
+		expect(Object.keys(buildings)).toHaveLength(21);
 	});
 
 	it("every building id matches its key", () => {
@@ -719,7 +719,17 @@ describe("Building aggregates", () => {
 
 	it("all Scale-Guard buildings are faction scale_guard", () => {
 		if (skip()) return;
-		const sgIds = ["sludge_pit", "spawning_pool", "venom_spire", "siphon", "scale_wall"];
+		const sgIds = [
+			"sludge_pit",
+			"spawning_pool",
+			"venom_spire",
+			"siphon",
+			"scale_wall",
+			"flag_post",
+			"fuel_tank",
+			"great_siphon",
+			"shield_generator",
+		];
 		for (const id of sgIds) {
 			expect(buildings[id]?.faction).toBe("scale_guard");
 		}

@@ -2,17 +2,21 @@
  * Skirmish AI — Goal-based decision loop for AI opponent in Skirmish mode.
  *
  * Sits above unit-level FSMs (FSMRunner) and dispatches high-level orders:
- *   1. Build workers until 5
+ *   1. Build workers until target count
  *   2. Send workers to gather
  *   3. Build Spawning Pool (barracks) when affordable
- *   4. Train army with ~60% melee / 40% ranged mix
- *   5. Expand (second base) when army > 10
- *   6. Attack when army > 15
+ *   4. Scout with early units
+ *   5. Train army with ~60% melee / 40% ranged mix
+ *   6. Expand (second base) when army > threshold
+ *   7. Attack when army reaches threshold (varies by difficulty)
  *
- * Difficulty scales think interval and resource bonus:
- *   Easy:   5s think time, no bonus
- *   Hard:   1s think time, +25% resources
- *   Brutal: instant think, +50% resources
+ * Difficulty tiers (US-080):
+ *   Easy:   5s think, no bonus, high attack threshold, slow/small/predictable
+ *   Medium: 3s think, +10% resources, moderate attack threshold
+ *   Hard:   1s think, +25% resources, lower attack threshold
+ *   Brutal: instant, +50% resources, low attack threshold, multi-prong attacks
+ *
+ * Win condition: destroy enemy Command Post.
  *
  * The AI communicates with the game world exclusively through a GameAdapter
  * interface, keeping it testable without Koota/Phaser dependencies.
@@ -22,7 +26,7 @@
 // Types
 // ---------------------------------------------------------------------------
 
-export type SkirmishDifficulty = "easy" | "hard" | "brutal";
+export type SkirmishDifficulty = "easy" | "medium" | "hard" | "brutal";
 
 export type SkirmishPhase = "economy" | "military" | "attack";
 
@@ -30,11 +34,19 @@ export interface SkirmishState {
 	thinkTimer: number;
 	phase: SkirmishPhase;
 	attackCooldown: number;
+	/** Whether the AI has sent a scout unit to explore. */
+	hasScouted: boolean;
 }
 
 export interface DifficultyConfig {
 	thinkInterval: number;
 	resourceBonus: number;
+	/** Army size required before the AI launches its first attack. */
+	attackThreshold: number;
+	/** Whether the AI sends a scout unit early in the game. */
+	scoutsEarly: boolean;
+	/** Whether Brutal-level multi-prong attack is used. */
+	multiProngAttack: boolean;
 }
 
 export interface GameAdapter {
@@ -60,10 +72,16 @@ export interface GameAdapter {
 	sendAttack(x: number, y: number): void;
 	/** Order idle workers to gather resources. */
 	sendGather(): void;
+	/** Send a scout unit to explore the map. */
+	sendScout(x: number, y: number): void;
 	/** Get the enemy (player) base position for attack targeting. */
 	getEnemyBasePosition(): { x: number; y: number };
 	/** Get a valid build position for a new building. */
 	getBuildPosition(buildingType?: string): { x: number; y: number };
+	/** Check whether the enemy Command Post has been destroyed (win condition). */
+	isEnemyCommandPostDestroyed(): boolean;
+	/** Check whether our own Command Post has been destroyed (lose condition). */
+	isOwnCommandPostDestroyed(): boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -73,7 +91,6 @@ export interface GameAdapter {
 const WORKER_TARGET = 5;
 const WORKERS_BEFORE_BARRACKS = 3;
 const ARMY_EXPAND_THRESHOLD = 10;
-const ARMY_ATTACK_THRESHOLD = 15;
 const ATTACK_COOLDOWN = 30; // seconds between attack waves
 const MAX_BASES = 2;
 const MELEE_RATIO = 0.6;
@@ -82,13 +99,39 @@ const MELEE_RATIO = 0.6;
 const WORKER_UNIT = "skink";
 const MELEE_UNIT = "gator";
 const RANGED_UNIT = "viper";
+// const _SCOUT_UNIT = "scout_lizard"; // reserved for future scouting behavior
 const TOWN_HALL = "sludge_pit";
 const BARRACKS = "spawning_pool";
 
 export const DIFFICULTY_CONFIG: Record<SkirmishDifficulty, DifficultyConfig> = {
-	easy: { thinkInterval: 5, resourceBonus: 0 },
-	hard: { thinkInterval: 1, resourceBonus: 0.25 },
-	brutal: { thinkInterval: 0, resourceBonus: 0.5 },
+	easy: {
+		thinkInterval: 5,
+		resourceBonus: 0,
+		attackThreshold: 20,
+		scoutsEarly: false,
+		multiProngAttack: false,
+	},
+	medium: {
+		thinkInterval: 3,
+		resourceBonus: 0.1,
+		attackThreshold: 15,
+		scoutsEarly: true,
+		multiProngAttack: false,
+	},
+	hard: {
+		thinkInterval: 1,
+		resourceBonus: 0.25,
+		attackThreshold: 12,
+		scoutsEarly: true,
+		multiProngAttack: false,
+	},
+	brutal: {
+		thinkInterval: 0,
+		resourceBonus: 0.5,
+		attackThreshold: 10,
+		scoutsEarly: true,
+		multiProngAttack: true,
+	},
 };
 
 // ---------------------------------------------------------------------------
@@ -109,6 +152,7 @@ export class SkirmishAI {
 			thinkTimer: 0,
 			phase: "economy",
 			attackCooldown: 0,
+			hasScouted: false,
 		};
 	}
 
@@ -151,6 +195,13 @@ export class SkirmishAI {
 		// Always send idle workers to gather
 		this.adapter.sendGather();
 
+		// Scout with early units if difficulty calls for it
+		if (this.config.scoutsEarly && !this.state.hasScouted && armyCount >= 1) {
+			const target = this.adapter.getEnemyBasePosition();
+			this.adapter.sendScout(target.x, target.y);
+			this.state.hasScouted = true;
+		}
+
 		// Phase evaluation: determine current phase based on game state
 		this.evaluatePhase(workerCount, armyCount);
 
@@ -171,9 +222,11 @@ export class SkirmishAI {
 	 * Evaluate and transition phases based on game state.
 	 */
 	private evaluatePhase(workerCount: number, armyCount: number): void {
+		const threshold = this.config.attackThreshold;
+
 		if (this.state.phase === "attack") {
 			// Stay in attack phase until cooldown expires and army is depleted
-			if (this.state.attackCooldown <= 0 && armyCount <= ARMY_ATTACK_THRESHOLD) {
+			if (this.state.attackCooldown <= 0 && armyCount <= threshold) {
 				this.state.phase = "military";
 			}
 			return;
@@ -189,7 +242,7 @@ export class SkirmishAI {
 		}
 
 		// Transition: military → attack when army is large enough
-		if (this.state.phase === "military" && armyCount > ARMY_ATTACK_THRESHOLD) {
+		if (this.state.phase === "military" && armyCount > threshold) {
 			this.state.phase = "attack";
 		}
 	}
@@ -251,11 +304,18 @@ export class SkirmishAI {
 
 	/**
 	 * Attack phase: send army to enemy base, then cooldown.
+	 * Brutal difficulty uses multi-prong attacks (offset targets).
 	 */
 	private attackDecisions(): void {
 		if (this.state.attackCooldown <= 0) {
 			const target = this.adapter.getEnemyBasePosition();
 			this.adapter.sendAttack(target.x, target.y);
+
+			// Brutal: send a second attack wave offset from the main target
+			if (this.config.multiProngAttack) {
+				this.adapter.sendAttack(target.x + 5, target.y + 5);
+			}
+
 			this.state.attackCooldown = ATTACK_COOLDOWN;
 		}
 

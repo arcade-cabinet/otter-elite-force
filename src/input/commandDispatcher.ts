@@ -8,7 +8,7 @@
 
 import type { Entity, World } from "koota";
 import type Phaser from "phaser";
-import { Gatherer } from "@/ecs/traits/economy";
+import { Gatherer, ResourceNode } from "@/ecs/traits/economy";
 import { Faction, IsResource, Selected } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
@@ -38,7 +38,12 @@ export class CommandDispatcher {
 	 * @param mode - "context" for smart right-click behavior,
 	 *               "move" for explicit move, "attack" for explicit attack
 	 */
-	issueCommandAt(worldX: number, worldY: number, mode: "context" | "move" | "attack"): void {
+	issueCommandAt(
+		worldX: number,
+		worldY: number,
+		mode: "context" | "move" | "attack",
+		append = false,
+	): void {
 		if (!this.enabled) return;
 		const tileX = Math.floor(worldX / TILE_SIZE);
 		const tileY = Math.floor(worldY / TILE_SIZE);
@@ -49,33 +54,34 @@ export class CommandDispatcher {
 		}
 
 		if (mode === "move") {
-			this.issueMoveCommand(tileX, tileY);
+			this.issueMoveCommand(tileX, tileY, append);
 			return;
 		}
 
 		if (mode === "attack") {
 			const target = this.findEntityAtTile(tileX, tileY);
 			if (target) {
-				this.issueAttackCommand(target);
+				this.issueAttackCommand(target, append);
 			} else {
 				// Attack-move to ground
-				this.issueMoveCommand(tileX, tileY);
+				this.issueMoveCommand(tileX, tileY, append);
 			}
 			return;
 		}
 
 		// Context mode: same as right-click logic
-		this.handleContextCommand(tileX, tileY);
+		this.handleContextCommand(tileX, tileY, append);
 	}
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
 		if (!this.enabled) return;
 		if (!pointer.rightButtonDown()) return;
 
-		this.issueCommandAt(pointer.worldX, pointer.worldY, "context");
+		const shiftKey = "shiftKey" in pointer.event && !!(pointer.event as MouseEvent).shiftKey;
+		this.issueCommandAt(pointer.worldX, pointer.worldY, "context", shiftKey);
 	}
 
-	private handleContextCommand(tileX: number, tileY: number): void {
+	private handleContextCommand(tileX: number, tileY: number, append = false): void {
 		const target = this.findEntityAtTile(tileX, tileY);
 
 		if (target) {
@@ -83,14 +89,14 @@ export class CommandDispatcher {
 			const targetIsResource = target.has(IsResource);
 
 			if (targetIsResource) {
-				this.issueGatherCommand(tileX, tileY, target);
+				this.issueGatherCommand(tileX, tileY, target, append);
 			} else if (targetFaction && targetFaction.id !== "ura") {
-				this.issueAttackCommand(target);
+				this.issueAttackCommand(target, append);
 			} else {
-				this.issueMoveCommand(tileX, tileY);
+				this.issueMoveCommand(tileX, tileY, append);
 			}
 		} else {
-			this.issueMoveCommand(tileX, tileY);
+			this.issueMoveCommand(tileX, tileY, append);
 		}
 	}
 
@@ -117,26 +123,26 @@ export class CommandDispatcher {
 	}
 
 	/** Move all selected units to a tile position. */
-	private issueMoveCommand(tileX: number, tileY: number): void {
+	private issueMoveCommand(tileX: number, tileY: number, append = false): void {
 		let issued = 0;
 		this.world.query(Selected, OrderQueue, Faction).forEach((entity) => {
 			if (entity.get(Faction)?.id !== "ura") return;
 			const queue = entity.get(OrderQueue);
 			if (!queue) return;
 
-			// Replace current orders with the new move command
-			queue.length = 0;
+			if (!append) queue.length = 0;
 			queue.push({ type: "move", targetX: tileX, targetY: tileY });
 			issued += 1;
 		});
 
 		if (issued > 0) {
 			this.showCommandMarker(tileX, tileY, 0x00ff00);
+			EventBus.emit("move-command");
 		}
 	}
 
 	/** Order all selected units to attack a target entity. */
-	private issueAttackCommand(target: Entity): void {
+	private issueAttackCommand(target: Entity, append = false): void {
 		const targetId = target.id();
 		let issued = 0;
 
@@ -145,7 +151,7 @@ export class CommandDispatcher {
 			const queue = entity.get(OrderQueue);
 			if (!queue) return;
 
-			queue.length = 0;
+			if (!append) queue.length = 0;
 			queue.push({ type: "attack", targetEntity: targetId });
 			issued += 1;
 		});
@@ -153,11 +159,12 @@ export class CommandDispatcher {
 		const targetPos = target.get(Position);
 		if (targetPos && issued > 0) {
 			this.showCommandMarker(targetPos.x, targetPos.y, 0xff0000);
+			EventBus.emit("attack-command");
 		}
 	}
 
 	/** Order selected workers to gather from a resource node. */
-	private issueGatherCommand(tileX: number, tileY: number, resource: Entity): void {
+	private issueGatherCommand(tileX: number, tileY: number, resource: Entity, append = false): void {
 		const resourceId = resource.id();
 		let issued = 0;
 
@@ -169,7 +176,7 @@ export class CommandDispatcher {
 			const queue = entity.get(OrderQueue);
 			if (!queue) return;
 
-			queue.length = 0;
+			if (!append) queue.length = 0;
 			queue.push({
 				type: "gather",
 				targetX: tileX,
@@ -181,6 +188,8 @@ export class CommandDispatcher {
 
 		if (issued > 0) {
 			this.showCommandMarker(tileX, tileY, 0xfbbf24);
+			const nodeData = resource.has(ResourceNode) ? resource.get(ResourceNode) : null;
+			EventBus.emit("gather-command", { resourceType: nodeData?.type ?? "" });
 		}
 	}
 

@@ -231,4 +231,58 @@ describe("movementSystem", () => {
 			expect(() => movementSystem(world, 0.016)).not.toThrow();
 		});
 	});
+
+	describe("patrol waypoint cycling", () => {
+		it("advances to next waypoint on arrival", () => {
+			const a = makeMockSteeringVehicle(5, 5);
+			a._setPathFinished(true);
+			const e = world.spawn(Position({ x: 5, y: 5 }), OrderQueue, SteeringAgent);
+			e.set(SteeringAgent, a as unknown);
+			e.get(OrderQueue).push({
+				type: "patrol",
+				waypoints: [
+					{ x: 5, y: 5 },
+					{ x: 10, y: 10 },
+				],
+			});
+			movementSystem(world, 0.016);
+			expect(e.get(OrderQueue).length).toBe(1);
+			expect(e.get(OrderQueue)[0].type).toBe("patrol");
+		});
+		it("cycles back to first waypoint", () => {
+			const a = makeMockSteeringVehicle(10, 10);
+			a._setPathFinished(true);
+			const e = world.spawn(Position({ x: 10, y: 10 }), OrderQueue, SteeringAgent);
+			e.set(SteeringAgent, a as unknown);
+			e.get(OrderQueue).push({
+				type: "patrol",
+				waypoints: [
+					{ x: 5, y: 5 },
+					{ x: 10, y: 10 },
+				],
+			});
+			movementSystem(world, 0.016);
+			a._setPathFinished(true);
+			movementSystem(world, 0.016);
+			expect(e.get(OrderQueue).length).toBe(1);
+		});
+		it("persists after many cycles", () => {
+			const a = makeMockSteeringVehicle(5, 5);
+			a._setPathFinished(true);
+			const e = world.spawn(Position({ x: 5, y: 5 }), OrderQueue, SteeringAgent);
+			e.set(SteeringAgent, a as unknown);
+			e.get(OrderQueue).push({
+				type: "patrol",
+				waypoints: [
+					{ x: 5, y: 5 },
+					{ x: 15, y: 15 },
+				],
+			});
+			for (let i = 0; i < 10; i++) {
+				a._setPathFinished(true);
+				movementSystem(world, 0.016);
+			}
+			expect(e.get(OrderQueue).length).toBe(1);
+		});
+	});
 });

@@ -5,7 +5,7 @@ import { initSingletons } from "../../ecs/singletons";
 import { Gatherer, ResourceNode } from "../../ecs/traits/economy";
 import { IsBuilding, IsResource, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
-import { ResourcePool } from "../../ecs/traits/state";
+import { CampaignProgress, ResourcePool } from "../../ecs/traits/state";
 import { economySystem, resetFishTrapTimer } from "../../systems/economySystem";
 
 describe("economySystem", () => {
@@ -17,6 +17,8 @@ describe("economySystem", () => {
 	beforeEach(() => {
 		world = createWorld();
 		initSingletons(world);
+		// Set tactical difficulty (1.0x baseline) so economy tests are unaffected by scaling
+		world.set(CampaignProgress, { missions: {}, currentMission: null, difficulty: "tactical" });
 		uraFaction = world.spawn();
 		resetFishTrapTimer();
 	});
@@ -219,6 +221,59 @@ describe("economySystem", () => {
 			economySystem(world, 10);
 
 			expect(world.get(ResourcePool)!.fish).toBe(0);
+		});
+	});
+
+	describe("gatherer steering", () => {
+		it("dispatches via SteeringAgent", async () => {
+			const { vi: v } = await import("vitest");
+			const { SteeringAgent } = await import("../../ecs/traits/ai");
+			const pa = v.fn(),
+				pc = v.fn();
+			const ma = {
+				vehicle: {
+					position: { x: 0, y: 0, z: 0, set: v.fn() },
+					velocity: { x: 0, y: 0, z: 0 },
+					update: v.fn(),
+					steering: { add: v.fn() },
+				},
+				followPath: {
+					active: true,
+					path: { clear: pc, add: pa, finished: () => false, current: v.fn(() => undefined) },
+					weight: 1,
+				},
+				separation: { weight: 0.5 },
+				obstacleAvoidance: { weight: 1 },
+			};
+			const n = world.spawn(
+				IsResource,
+				Position({ x: 10, y: 0 }),
+				ResourceNode({ type: "timber", remaining: 100 }),
+			);
+			const w = world.spawn(
+				Position({ x: 0, y: 0 }),
+				Gatherer({ carrying: "", amount: 0, capacity: 10 }),
+				GatheringFrom(n),
+				SteeringAgent,
+			);
+			w.set(SteeringAgent, ma as unknown);
+			economySystem(world, 1);
+			expect(pc).toHaveBeenCalled();
+			expect(w.get(Position).x).toBe(0);
+		});
+		it("falls back to direct movement without SteeringAgent", () => {
+			const n = world.spawn(
+				IsResource,
+				Position({ x: 10, y: 0 }),
+				ResourceNode({ type: "timber", remaining: 100 }),
+			);
+			const w = world.spawn(
+				Position({ x: 0, y: 0 }),
+				Gatherer({ carrying: "", amount: 0, capacity: 10 }),
+				GatheringFrom(n),
+			);
+			economySystem(world, 1);
+			expect(w.get(Position).x).toBeGreaterThan(0);
 		});
 	});
 });

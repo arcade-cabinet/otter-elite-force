@@ -128,14 +128,14 @@ describe("ActionBar", () => {
 			expect(screen.getByText(/gather/i)).toBeTruthy();
 		});
 
-		it("shows Repair action for a worker", () => {
+		it("shows Stop action for a worker", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(ActionBar), (world: any) => {
 				const entity = world.spawn(UnitType, Selected, Category);
 				entity.set(UnitType, { type: "river_rat" });
 				entity.set(Category, { category: "worker" });
 			});
-			expect(screen.getByText(/repair/i)).toBeTruthy();
+			expect(screen.getByText(/stop/i)).toBeTruthy();
 		});
 
 		it("shows the build palette when Build is pressed", () => {

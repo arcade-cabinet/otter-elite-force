@@ -9,12 +9,18 @@
  * Runs every game tick via `economySystem(world, delta)`.
  */
 
-import type { World } from "koota";
+import type { Entity, World } from "koota";
+import { Vector3 } from "yuka";
+import type { SteeringVehicle } from "../ai/steeringFactory";
+import { setVehiclePath } from "../ai/steeringFactory";
 import { GatheringFrom, OwnedBy } from "../ecs/relations";
+import { SteeringAgent } from "../ecs/traits/ai";
 import { Gatherer, ResourceNode } from "../ecs/traits/economy";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
 import { ResourcePool } from "../ecs/traits/state";
+import { EventBus } from "../game/EventBus";
+import { applyPlayerIncomeModifier, getDifficultyModifiers } from "./difficultyScaling";
 
 /** Distance (in tiles) at which a gatherer can interact with a node or building. */
 const GATHER_RANGE = 1.5;
@@ -99,13 +105,16 @@ function processGatherers(world: World, delta: number): void {
 			const dist = tileDistance(position.x, position.y, cpPos.x, cpPos.y);
 
 			if (dist <= GATHER_RANGE) {
-				// Deposit resources
-				addResources(world, gatherer.carrying, gatherer.amount);
+				// Deposit resources (apply difficulty income modifier)
+				const mods = getDifficultyModifiers(world);
+				const scaledAmount = applyPlayerIncomeModifier(gatherer.amount, mods);
+				addResources(world, gatherer.carrying, scaledAmount);
+				EventBus.emit("resource-deposited", { resourceType: gatherer.carrying });
 				gatherer.amount = 0;
 				gatherer.carrying = "";
 			} else {
 				// Move toward Command Post (simplified: direct move)
-				moveToward(position, cpPos.x, cpPos.y, delta);
+				moveEntityToward(entity, position, cpPos.x, cpPos.y, delta);
 			}
 			return;
 		}
@@ -134,7 +143,7 @@ function processGatherers(world: World, delta: number): void {
 			target.set(ResourceNode, { remaining: nodeData.remaining - gatherAmount });
 		} else {
 			// Move toward the resource node
-			moveToward(position, nodePos.x, nodePos.y, delta);
+			moveEntityToward(entity, position, nodePos.x, nodePos.y, delta);
 		}
 	});
 }
@@ -170,12 +179,20 @@ function findCommandPost(world: World, gathererEntity: ReturnType<World["spawn"]
  * Move a position toward a target coordinate.
  * Simple linear interpolation — the real pathfinding is in the AI system.
  */
-function moveToward(
+export function moveEntityToward(
+	entity: Entity,
 	position: { x: number; y: number },
 	targetX: number,
 	targetY: number,
 	delta: number,
 ): void {
+	if (entity.has(SteeringAgent)) {
+		const agent = entity.get(SteeringAgent) as SteeringVehicle | null;
+		if (agent) {
+			setVehiclePath(agent, [new Vector3(targetX, 0, targetY)]);
+			return;
+		}
+	}
 	const speed = 5; // tiles per second (placeholder, real speed comes from unit data)
 	const dx = targetX - position.x;
 	const dy = targetY - position.y;
@@ -209,7 +226,8 @@ function processFishTrapIncome(world: World, delta: number): void {
 	}
 
 	if (fishTrapCount > 0) {
-		const income = fishTrapCount * FISH_TRAP_INCOME;
+		const mods = getDifficultyModifiers(world);
+		const income = applyPlayerIncomeModifier(fishTrapCount * FISH_TRAP_INCOME, mods);
 		addResources(world, "fish", income);
 	}
 

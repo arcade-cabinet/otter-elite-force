@@ -300,8 +300,8 @@ export class EngageState implements AIState {
 		} else {
 			ctx.requestMoveTo(ctx.nearestEnemy.x, ctx.nearestEnemy.y);
 		}
-		// Go berserk at low HP
-		if (ctx.hp < ctx.maxHp * 0.3) {
+		// Go berserk below 50% HP — increased speed/damage, no flee
+		if (ctx.hp < ctx.maxHp * 0.5) {
 			return STATE.BERSERK;
 		}
 		return null;

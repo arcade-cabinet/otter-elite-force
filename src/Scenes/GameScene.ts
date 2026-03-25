@@ -15,7 +15,7 @@ import { ConstructingAt, GatheringFrom, OwnedBy, Targeting } from "@/ecs/relatio
 import { resetSessionState } from "@/ecs/singletons";
 import { Health } from "@/ecs/traits/combat";
 import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
-import { type Order, OrderQueue, RallyPoint } from "@/ecs/traits/orders";
+import { type Order, OrderQueue } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
 import {
 	CurrentMission,
@@ -34,8 +34,19 @@ import { paintMap } from "@/entities/terrain/map-painter";
 import type { MissionDef, Placement } from "@/entities/types";
 import type { DeploymentData } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
+import {
+	clampZoom,
+	type DeviceClass,
+	detectDeviceClass,
+	EDGE_SCROLL_THRESHOLD,
+	getZoomRange,
+	lerpZoom,
+} from "@/input/cameraLimits";
 import { DesktopInput } from "@/input/desktopInput";
 import { MobileInput } from "@/input/mobileInput";
+import { FloatingTextManager } from "@/rendering/FloatingTextManager";
+import { renderHPBars } from "@/rendering/HPBarRenderer";
+import { renderRallyPoints } from "@/rendering/RallyPointRenderer";
 import type { ActionHandler, ScenarioWorldQuery } from "@/scenarios/engine";
 import { ScenarioEngine } from "@/scenarios/engine";
 import type { ObjectiveStatus, TriggerAction } from "@/scenarios/types";
@@ -45,9 +56,11 @@ import {
 	type TerrainType,
 	type TileMap,
 } from "@/systems/buildingSystem";
+import type { DayNightSystem } from "@/systems/dayNightSystem";
 import { FogOfWarSystem } from "@/systems/fogSystem";
 import type { GameLoopContext } from "@/systems/gameLoop";
 import { tickAllSystems } from "@/systems/gameLoop";
+import { calculateMissionScore } from "@/systems/scoringSystem";
 import { destroyAllSprites } from "@/systems/syncSystem";
 import { WeatherSystem } from "@/systems/weatherSystem";
 
@@ -73,6 +86,7 @@ export class GameScene extends Phaser.Scene {
 	private cameraPanSpeed = 400;
 	private fogSystem: FogOfWarSystem | null = null;
 	private weatherSystem: WeatherSystem | null = null;
+	private dayNightSystem: DayNightSystem | null = null;
 	private desktopInput?: DesktopInput;
 	private mobileInput?: MobileInput;
 	private scenarioEngine: ScenarioEngine | null = null;
@@ -81,6 +95,9 @@ export class GameScene extends Phaser.Scene {
 	private placementMode: { workerEntityId: number; buildingId: string } | null = null;
 	private battlefieldOverlay: Phaser.GameObjects.Graphics | null = null;
 	private placementPreview: Phaser.GameObjects.Graphics | null = null;
+	private deviceClass: DeviceClass = "desktop";
+	private zoomTarget = 1;
+	private floatingTextManager: FloatingTextManager | null = null;
 
 	private setScenarioObjectives(
 		objectives: Array<{
@@ -146,8 +163,13 @@ export class GameScene extends Phaser.Scene {
 		world.set(CurrentMission, { missionId: resolveMissionKey(this.missionData.missionId) });
 		world.set(GamePhase, { phase: "playing" });
 
+		// Detect device class for zoom limits
+		const isTouchCapable = this.sys.game.device.input.touch;
+		this.deviceClass = detectDeviceClass(this.scale.width, isTouchCapable);
+
 		// Camera setup: enable panning and zooming
 		this.cameras.main.setZoom(1);
+		this.zoomTarget = 1;
 		this.cameras.main.setBounds(0, 0, this.scale.width * 2, this.scale.height * 2);
 
 		// Keyboard input for camera pan
@@ -161,13 +183,12 @@ export class GameScene extends Phaser.Scene {
 			};
 		}
 
-		// Mouse wheel zoom
+		// Mouse wheel zoom — sets target; actual zoom is lerped in update()
 		this.input.on(
 			"wheel",
 			(_pointer: Phaser.Input.Pointer, _gos: unknown[], _dx: number, dy: number) => {
-				const cam = this.cameras.main;
-				const newZoom = Phaser.Math.Clamp(cam.zoom - dy * 0.001, 0.5, 2.0);
-				cam.setZoom(newZoom);
+				const range = getZoomRange(this.deviceClass);
+				this.zoomTarget = Phaser.Math.Clamp(this.zoomTarget - dy * 0.001, range.min, range.max);
 			},
 		);
 
@@ -191,6 +212,7 @@ export class GameScene extends Phaser.Scene {
 
 		this.battlefieldOverlay = this.add.graphics();
 		this.battlefieldOverlay.setDepth(950);
+		this.floatingTextManager = new FloatingTextManager(this);
 		this.placementPreview = this.add.graphics();
 		this.placementPreview.setDepth(1200);
 		this.input.on("pointermove", this.handlePlacementPointerMove, this);
@@ -200,12 +222,25 @@ export class GameScene extends Phaser.Scene {
 		// Notify React that GameScene is ready (HUD is now a React overlay)
 		EventBus.emit("current-scene-ready", this);
 
-		// Pause input (ESC key) — React handles the pause overlay
+		// Pause input (ESC key) — React handles the pause overlay.
+		// The keyboard hotkeys module handles ESC for deselect/cancel-pending-action.
+		// If the hotkeys module consumed the ESC (pending action or selection), we skip pause.
+		// Build placement mode takes priority over everything.
 		if (this.input.keyboard) {
 			this.input.keyboard.on("keydown-ESC", () => {
 				if (this.placementMode) {
 					this.cancelBuildPlacement();
 					return;
+				}
+				// If hotkeys have a pending action, let them consume ESC (already handled in hotkeys)
+				if (this.desktopInput?.hotkeys.pendingAction !== "none") {
+					return;
+				}
+				// If there are selected entities, deselect first (handled by hotkeys)
+				// Only pause if nothing else consumed the ESC
+				const hasSelection = world.query(Selected).length > 0;
+				if (hasSelection) {
+					return; // hotkeys already cleared selection
 				}
 				this.scene.pause();
 				EventBus.emit("game-paused");
@@ -216,8 +251,10 @@ export class GameScene extends Phaser.Scene {
 		this.events.on("shutdown", () => {
 			this.fogSystem?.destroy();
 			this.weatherSystem?.destroy();
+			this.dayNightSystem?.destroy();
 			this.desktopInput?.destroy();
 			this.mobileInput?.destroy();
+			this.floatingTextManager?.destroy();
 			this.battlefieldOverlay?.destroy();
 			this.placementPreview?.destroy();
 			this.input.off("pointermove", this.handlePlacementPointerMove, this);
@@ -228,10 +265,12 @@ export class GameScene extends Phaser.Scene {
 			this.mobileInput = undefined;
 			this.activeMission = null;
 			this.placementMode = null;
+			this.floatingTextManager = null;
 			this.battlefieldOverlay = null;
 			this.placementPreview = null;
 			this.fogSystem = null;
 			this.weatherSystem = null;
+			this.dayNightSystem = null;
 			this.scenarioEngine = null;
 			this.scenarioWorldQuery = null;
 		});
@@ -253,6 +292,7 @@ export class GameScene extends Phaser.Scene {
 
 		// Camera controls (not part of ECS tick)
 		this.handleCameraPan(delta);
+		this.handleSmoothZoom();
 
 		// Mobile input: check for long press each frame
 		this.mobileInput?.update();
@@ -271,8 +311,14 @@ export class GameScene extends Phaser.Scene {
 			scenarioWorldQuery: this.scenarioWorldQuery,
 			fogSystem: this.fogSystem,
 			weatherSystem: this.weatherSystem,
+			dayNightSystem: this.dayNightSystem,
+			elapsedMs: nextElapsedMs,
 		};
 		tickAllSystems(ctx);
+
+		// Update rendering modules
+		this.floatingTextManager?.update(deltaSec);
+
 		this.renderBattlefieldReadabilityOverlay();
 	}
 
@@ -319,15 +365,25 @@ export class GameScene extends Phaser.Scene {
 			cam.scrollY += speed;
 		}
 
-		// Edge scrolling: pan when mouse is near screen edge
+		// Edge scrolling: pan when mouse is within EDGE_SCROLL_THRESHOLD px of screen edge
 		const pointer = this.input.activePointer;
-		const edgeThresholdX = Math.max(20, cam.width * 0.03);
-		const edgeThresholdY = Math.max(20, cam.height * 0.04);
+		const edgeThreshold = EDGE_SCROLL_THRESHOLD;
 
-		if (pointer.x < edgeThresholdX) cam.scrollX -= speed;
-		if (pointer.x > cam.width - edgeThresholdX) cam.scrollX += speed;
-		if (pointer.y < edgeThresholdY) cam.scrollY -= speed;
-		if (pointer.y > cam.height - edgeThresholdY) cam.scrollY += speed;
+		if (pointer.x < edgeThreshold) cam.scrollX -= speed;
+		if (pointer.x > cam.width - edgeThreshold) cam.scrollX += speed;
+		if (pointer.y < edgeThreshold) cam.scrollY -= speed;
+		if (pointer.y > cam.height - edgeThreshold) cam.scrollY += speed;
+	}
+
+	/** Smoothly interpolate camera zoom toward target each frame. */
+	private handleSmoothZoom(): void {
+		const cam = this.cameras.main;
+		if (Math.abs(cam.zoom - this.zoomTarget) < 0.001) {
+			cam.setZoom(this.zoomTarget);
+			return;
+		}
+		const smoothed = lerpZoom(cam.zoom, this.zoomTarget, 0.15);
+		cam.setZoom(clampZoom(smoothed, this.deviceClass));
 	}
 
 	private renderBattlefieldReadabilityOverlay(): void {
@@ -336,7 +392,8 @@ export class GameScene extends Phaser.Scene {
 		this.battlefieldOverlay.clear();
 		this.renderSelectedOrderIndicators();
 		this.renderSelectionIndicators();
-		this.renderSelectedRallyIndicators();
+		renderRallyPoints(world, this.battlefieldOverlay);
+		renderHPBars(world, this.battlefieldOverlay);
 	}
 
 	private renderSelectedOrderIndicators(): void {
@@ -382,30 +439,6 @@ export class GameScene extends Phaser.Scene {
 				this.battlefieldOverlay.lineStyle(1, 0x16301a, 0.9);
 				this.battlefieldOverlay.strokeCircle(centerX, centerY, Math.max(6, radius - 3));
 			}
-		}
-	}
-
-	private renderSelectedRallyIndicators(): void {
-		if (!this.battlefieldOverlay) return;
-
-		for (const building of world.query(Selected, IsBuilding, Position, RallyPoint)) {
-			const pos = building.get(Position);
-			const rally = building.get(RallyPoint);
-			if (!pos || !rally) continue;
-
-			const startX = pos.x * TILE_SIZE + TILE_SIZE / 2;
-			const startY = pos.y * TILE_SIZE + TILE_SIZE / 2;
-			const targetX = rally.x * TILE_SIZE + TILE_SIZE / 2;
-			const targetY = rally.y * TILE_SIZE + TILE_SIZE / 2;
-
-			this.battlefieldOverlay.lineStyle(2, 0x5fd0ff, 0.88);
-			this.battlefieldOverlay.lineBetween(startX, startY, targetX, targetY);
-			this.battlefieldOverlay.fillStyle(0x08131a, 0.72);
-			this.battlefieldOverlay.fillCircle(targetX, targetY, 6);
-			this.battlefieldOverlay.lineStyle(2, 0x5fd0ff, 0.95);
-			this.battlefieldOverlay.strokeCircle(targetX, targetY, 10);
-			this.battlefieldOverlay.lineStyle(1, 0xbcecff, 0.8);
-			this.battlefieldOverlay.strokeCircle(targetX, targetY, 16);
 		}
 	}
 
@@ -848,15 +881,50 @@ export class GameScene extends Phaser.Scene {
 		const elapsed = Math.floor(elapsedMs / 1000);
 		const pool = world.get(ResourcePool);
 		const resourcesGathered = (pool?.fish ?? 0) + (pool?.timber ?? 0) + (pool?.salvage ?? 0);
-		const stars = elapsed < 300 ? 3 : elapsed < 600 ? 2 : 1;
+
+		// Count units lost and enemies defeated from ECS world
+		let unitsLost = 0;
+		let enemiesDefeated = 0;
+		for (const entity of world.query(Faction, Health)) {
+			const f = entity.get(Faction);
+			const h = entity.get(Health);
+			if (!f || !h) continue;
+			if (f.id === "ura" && h.current <= 0) unitsLost++;
+			if (f.id === "scale_guard" && h.current <= 0) enemiesDefeated++;
+		}
+
+		// Use the scoring system with mission par time
+		const parTime = this.activeMission?.parTime ?? 300;
+		const bonusObjectives = world.get(Objectives);
+		const bonusTotal = bonusObjectives?.list.filter((o) => o.bonus).length ?? 0;
+		const bonusCompleted =
+			bonusObjectives?.list.filter((o) => o.bonus && o.status === "completed").length ?? 0;
+
+		// Estimate total units spawned as surviving friendly units + units lost
+		let survivingFriendly = 0;
+		for (const entity of world.query(Faction, Health)) {
+			const f = entity.get(Faction);
+			const h = entity.get(Health);
+			if (f?.id === "ura" && h && h.current > 0) survivingFriendly++;
+		}
+		const unitsSpawned = survivingFriendly + unitsLost;
+
+		const scoreResult = calculateMissionScore({
+			elapsedSeconds: elapsed,
+			parTimeSeconds: parTime,
+			unitsLost,
+			unitsSpawned,
+			bonusCompleted,
+			bonusTotal,
+		});
 
 		EventBus.emit("mission-complete", {
 			missionId: resolveMissionKey(this.missionData.missionId),
 			difficulty: this.missionData.difficulty,
-			stars,
+			stars: scoreResult.stars,
 			stats: {
-				unitsLost: 0,
-				enemiesDefeated: 0,
+				unitsLost,
+				enemiesDefeated,
 				timeElapsedMs: elapsedMs,
 				timeElapsed: elapsed,
 				resourcesGathered,

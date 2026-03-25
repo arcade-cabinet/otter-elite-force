@@ -8,6 +8,7 @@ import { useTrait, useWorld } from "koota/react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PopulationState, ResourcePool } from "@/ecs/traits/state";
+import { PanelFrame } from "@/ui/hud/PanelFrame";
 
 export function ResourceBar() {
 	const world = useWorld();
@@ -21,31 +22,34 @@ export function ResourceBar() {
 	const popMax = population?.max ?? 0;
 
 	return (
-		<Card
-			role="status"
-			data-testid="resource-bar"
-			className="resource-bar border-accent/20 bg-card/86 shadow-[0_0_0_1px_rgba(0,255,65,0.06),0_18px_40px_rgba(0,0,0,0.34)]"
-		>
-			<CardContent className="flex flex-wrap items-center gap-2 p-2.5 sm:gap-4 sm:p-3">
-				<div className="flex items-center gap-2 pr-1 sm:pr-2">
-					<Badge variant="accent">TACTICAL NET</Badge>
-					<span className="hidden font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground sm:inline">
-						FIELD ECONOMY
-					</span>
-				</div>
-				<div className="flex flex-1 flex-wrap items-center gap-2 sm:gap-3">
-					<ResourceItem label="Fish" value={fish} />
-					<ResourceItem label="Timber" value={timber} />
-					<ResourceItem label="Salvage" value={salvage} />
-				</div>
-				<div className="flex w-full items-center justify-between gap-2 rounded-md border border-border/70 bg-background/18 px-3 py-2 sm:ml-auto sm:w-auto sm:justify-start">
-					<Badge variant="accent">POP</Badge>
-					<span className="font-mono text-sm tracking-[0.18em] text-foreground">
-						{popCurrent}/{popMax}
-					</span>
-				</div>
-			</CardContent>
-		</Card>
+		<PanelFrame>
+			<Card
+				role="status"
+				aria-label={`Resources: ${fish} Fish, ${timber} Timber, ${salvage} Salvage. Population: ${popCurrent} of ${popMax}`}
+				data-testid="resource-bar"
+				className="resource-bar canvas-grain border-accent/20 bg-card/86 shadow-[0_0_0_1px_rgba(0,255,65,0.06),0_18px_40px_rgba(0,0,0,0.34)]"
+			>
+				<CardContent className="flex flex-wrap items-center gap-2 p-2.5 sm:gap-4 sm:p-3">
+					<div className="flex items-center gap-2 pr-1 sm:pr-2">
+						<Badge variant="accent">TACTICAL NET</Badge>
+						<span className="hidden font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground sm:inline">
+							FIELD ECONOMY
+						</span>
+					</div>
+					<div className="flex flex-1 flex-wrap items-center gap-2 sm:gap-3">
+						<ResourceItem label="Fish" value={fish} />
+						<ResourceItem label="Timber" value={timber} />
+						<ResourceItem label="Salvage" value={salvage} />
+					</div>
+					<div className="flex w-full items-center justify-between gap-2 rounded-md border border-border/70 bg-background/18 px-3 py-2 sm:ml-auto sm:w-auto sm:justify-start">
+						<Badge variant="accent">POP</Badge>
+						<span className="font-mono text-sm tracking-[0.18em] text-foreground">
+							{popCurrent}/{popMax}
+						</span>
+					</div>
+				</CardContent>
+			</Card>
+		</PanelFrame>
 	);
 }
 

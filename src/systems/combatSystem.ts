@@ -14,8 +14,17 @@
 import type { Entity, World } from "koota";
 import { Targeting } from "../ecs/relations";
 import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
-import { Faction, IsProjectile } from "../ecs/traits/identity";
+import { Faction, IsProjectile, UnitType } from "../ecs/traits/identity";
 import { Position, Velocity } from "../ecs/traits/spatial";
+import { CanSwim, Submerged } from "../ecs/traits/water";
+import { EventBus } from "../game/EventBus";
+import {
+	applyEnemyDamageModifier,
+	type DifficultyModifiers,
+	getDifficultyModifiers,
+} from "./difficultyScaling";
+import type { FogOfWarSystem } from "./fogSystem";
+import { MORTAR_SPLASH_RADIUS, SplashRadius } from "./siegeSystem";
 
 /** Projectile speed in tiles per second. */
 const PROJECTILE_SPEED = 8;
@@ -45,9 +54,14 @@ export function calculateDamage(attackDamage: number, armorValue: number): numbe
  * Ticks combat for all entities that have an Attack trait and a Targeting relation.
  * Melee (range <= 1): apply damage directly.
  * Ranged (range > 1): spawn a projectile entity.
+ *
+ * Difficulty scaling: When a Scale-Guard entity attacks a player entity,
+ * enemy damage is multiplied by the difficulty modifier.
  */
 export function combatSystem(world: World, delta: number): void {
 	const attackers = world.query(Attack, Position, Targeting("*"));
+	// Read difficulty modifiers once per frame (not per entity)
+	let modifiers: DifficultyModifiers | null = null;
 
 	for (const entity of attackers) {
 		// Skip projectiles — they have their own system
@@ -90,25 +104,52 @@ export function combatSystem(world: World, delta: number): void {
 		// Reset cooldown timer (attack fires)
 		entity.set(Attack, { timer: 0 });
 
+		// Determine effective damage with difficulty scaling:
+		// If attacker is Scale-Guard and target is player (ura), apply enemy damage modifier.
+		let effectiveDamage = attack.damage;
+		const attackerFaction = entity.has(Faction) ? entity.get(Faction) : null;
+		const targetFaction = target.has(Faction) ? target.get(Faction) : null;
+		if (attackerFaction?.id === "scale_guard" && targetFaction?.id === "ura") {
+			if (!modifiers) modifiers = getDifficultyModifiers(world);
+			effectiveDamage = applyEnemyDamageModifier(attack.damage, modifiers);
+		}
+
 		if (attack.range <= 1) {
 			// Melee: direct damage
 			const armorValue = target.has(Armor) ? target.get(Armor)!.value : 0;
-			const dmg = calculateDamage(attack.damage, armorValue);
+			const dmg = calculateDamage(effectiveDamage, armorValue);
 			target.set(Health, (prev) => ({ current: prev.current - dmg }));
+			EventBus.emit("melee-hit");
+
+			// Alert HUD when a player unit takes damage
+			if (targetFaction?.id === "ura") {
+				EventBus.emit("under-attack", { x: targetPos.x, y: targetPos.y });
+			}
 		} else {
-			// Ranged: spawn projectile
-			world.spawn(
+			// Ranged: spawn projectile (carries effective damage for difficulty scaling)
+			const proj = world.spawn(
 				IsProjectile(),
 				Position({ x: attackerPos.x, y: attackerPos.y }),
 				Velocity({ x: 0, y: 0 }),
 				Attack({
-					damage: attack.damage,
+					damage: effectiveDamage,
 					range: attack.range,
 					cooldown: 0,
 					timer: 0,
 				}),
 				Targeting(target),
 			);
+
+			// Mortar Otter projectiles carry splash radius + faction for AoE system
+			const unitType = entity.has(UnitType) ? entity.get(UnitType)!.type : "";
+			if (unitType === "mortar_otter") {
+				proj.add(SplashRadius({ radius: MORTAR_SPLASH_RADIUS }));
+			}
+			if (entity.has(Faction)) {
+				proj.add(Faction({ id: entity.get(Faction)!.id }));
+			}
+
+			EventBus.emit("ranged-fire");
 		}
 	}
 }
@@ -121,7 +162,7 @@ export function combatSystem(world: World, delta: number): void {
  * For units with Attack + VisionRadius that are NOT already targeting something,
  * find the nearest enemy within vision range and set Targeting.
  */
-export function aggroSystem(world: World): void {
+export function aggroSystem(world: World, fogSystem?: FogOfWarSystem | null): void {
 	const combatants = world.query(Attack, Position, Faction, VisionRadius);
 	const potentialTargets = world.query(Position, Faction, Health);
 
@@ -132,6 +173,7 @@ export function aggroSystem(world: World): void {
 		const pos = entity.get(Position)!;
 		const faction = entity.get(Faction)!;
 		const vision = entity.get(VisionRadius)!;
+		const attackerCanSwim = entity.has(CanSwim);
 
 		let nearestDist = Number.POSITIVE_INFINITY;
 		let nearestTarget: Entity | null = null;
@@ -144,8 +186,19 @@ export function aggroSystem(world: World): void {
 			const candidateFaction = candidate.get(Faction)!;
 			if (candidateFaction.id === faction.id) continue;
 
-			// Check distance
+			// Don't target Submerged entities unless attacker has CanSwim
+			if (candidate.has(Submerged) && !attackerCanSwim) continue;
+
 			const candidatePos = candidate.get(Position)!;
+
+			// Don't target entities hidden by fog of war
+			if (fogSystem) {
+				const tileX = Math.floor(candidatePos.x);
+				const tileY = Math.floor(candidatePos.y);
+				if (!fogSystem.isTileVisible(tileX, tileY)) continue;
+			}
+
+			// Check distance
 			const dist = distanceBetween(pos.x, pos.y, candidatePos.x, candidatePos.y);
 
 			if (dist <= vision.radius && dist < nearestDist) {
@@ -156,6 +209,12 @@ export function aggroSystem(world: World): void {
 
 		if (nearestTarget !== null) {
 			entity.add(Targeting(nearestTarget));
+
+			// Alert HUD when a player unit spots an enemy for the first time
+			if (faction.id === "ura") {
+				const enemyPos = nearestTarget.get(Position)!;
+				EventBus.emit("enemy-spotted", { x: enemyPos.x, y: enemyPos.y });
+			}
 		}
 	}
 }
@@ -198,6 +257,11 @@ export function projectileSystem(world: World, delta: number): void {
 				const armorValue = target.has(Armor) ? target.get(Armor)!.value : 0;
 				const dmg = calculateDamage(attack.damage, armorValue);
 				target.set(Health, (prev) => ({ current: prev.current - dmg }));
+
+				// Alert HUD when a player unit takes projectile damage
+				if (target.has(Faction) && target.get(Faction)?.id === "ura") {
+					EventBus.emit("under-attack", { x: targetPos.x, y: targetPos.y });
+				}
 			}
 			proj.destroy();
 		} else {
@@ -255,6 +319,7 @@ export function deathSystem(world: World): Entity[] {
 		}
 
 		for (const entity of dead) {
+			EventBus.emit("unit-died");
 			entity.destroy();
 		}
 	}

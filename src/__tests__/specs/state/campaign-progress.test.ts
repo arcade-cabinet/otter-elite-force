@@ -2,10 +2,10 @@
  * CampaignProgress Serialization Specification Tests
  *
  * Defines the behavioral contract for CampaignProgress trait and
- * its serialization/deserialization lifecycle (Koota ↔ persistence).
+ * its serialization/deserialization lifecycle (Koota <-> persistence).
  *
  * Sources:
- *   - docs/superpowers/specs/2026-03-24-ui-spdsl-architecture-design.md §7
+ *   - docs/superpowers/specs/2026-03-24-ui-spdsl-architecture-design.md SS7
  *   - src/ecs/traits/state.ts (CampaignProgress, UserSettings, TerritoryState)
  *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
  */
@@ -13,7 +13,12 @@
 import { createWorld, type World } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { initSingletons, resetSessionState } from "@/ecs/singletons";
-import { CampaignProgress, TerritoryState, UserSettings } from "@/ecs/traits/state";
+import {
+	CampaignProgress,
+	TerritoryState,
+	UserSettings,
+	WeatherCondition,
+} from "@/ecs/traits/state";
 
 let world: World;
 
@@ -167,9 +172,12 @@ describe("UserSettings trait", () => {
 	describe("initialization", () => {
 		it("has sensible defaults", () => {
 			const settings = world.get(UserSettings)!;
+			expect(settings.masterVolume).toBe(1.0);
 			expect(settings.musicVolume).toBe(0.7);
 			expect(settings.sfxVolume).toBe(1.0);
 			expect(settings.hapticsEnabled).toBe(true);
+			expect(settings.cameraSpeed).toBe(1.0);
+			expect(settings.uiScale).toBe(1.0);
 			expect(settings.touchMode).toBe("auto");
 			expect(settings.showGrid).toBe(false);
 		});
@@ -188,6 +196,14 @@ describe("UserSettings trait", () => {
 			const settings = world.get(UserSettings)!;
 			settings.hapticsEnabled = false;
 			expect(world.get(UserSettings)!.hapticsEnabled).toBe(false);
+		});
+
+		it("can update masterVolume and uiScale", () => {
+			const settings = world.get(UserSettings)!;
+			settings.masterVolume = 0.5;
+			settings.uiScale = 1.5;
+			expect(world.get(UserSettings)!.masterVolume).toBe(0.5);
+			expect(world.get(UserSettings)!.uiScale).toBe(1.5);
 		});
 	});
 
@@ -237,6 +253,35 @@ describe("TerritoryState trait", () => {
 			expect(territory.totalVillages).toBe(0);
 			expect(territory.liberatedCount).toBe(0);
 			expect(territory.occupiedCount).toBe(0);
+		});
+	});
+});
+
+describe("WeatherCondition trait", () => {
+	describe("initialization", () => {
+		it("defaults to clear", () => {
+			const weather = world.get(WeatherCondition)!;
+			expect(weather.state).toBe("clear");
+		});
+	});
+
+	describe("mutations", () => {
+		it("can set weather to rain", () => {
+			world.set(WeatherCondition, { state: "rain" });
+			expect(world.get(WeatherCondition)!.state).toBe("rain");
+		});
+
+		it("can set weather to monsoon", () => {
+			world.set(WeatherCondition, { state: "monsoon" });
+			expect(world.get(WeatherCondition)!.state).toBe("monsoon");
+		});
+	});
+
+	describe("reset", () => {
+		it("resetSessionState resets weather to clear", () => {
+			world.set(WeatherCondition, { state: "monsoon" });
+			resetSessionState(world);
+			expect(world.get(WeatherCondition)!.state).toBe("clear");
 		});
 	});
 });

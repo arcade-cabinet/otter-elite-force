@@ -11,6 +11,7 @@
  * - Relations stored as { type, targetEntityIndex } referencing the
  *   serialized entity array (not raw Entity IDs, which change on reload)
  * - saveMission/loadMission integrate with the saveRepo persistence layer
+ * - CompletedResearch (Set) uses custom serialization (Set → Array → Set)
  *
  * Spec reference: §11 Persistence, §14 Save/Load
  */
@@ -45,6 +46,7 @@ import { OrderQueue } from "../ecs/traits/orders";
 import { PhaserSprite } from "../ecs/traits/phaser";
 import { FacingDirection, Position, Velocity } from "../ecs/traits/spatial";
 import {
+	CompletedResearch,
 	CurrentMission,
 	GameClock,
 	GamePhase,
@@ -52,6 +54,7 @@ import {
 	PopulationState,
 	ResourcePool,
 	TerritoryState,
+	WeatherCondition,
 } from "../ecs/traits/state";
 import { Concealed, Crouching, DetectionRadius } from "../ecs/traits/stealth";
 import { CanSwim, Submerged } from "../ecs/traits/water";
@@ -62,7 +65,7 @@ import { CanSwim, Submerged } from "../ecs/traits/water";
 
 /**
  * SoA traits: .get() returns a plain object snapshot. We serialize the snapshot.
- * Map from name → Trait reference.
+ * Map from name -> Trait reference.
  */
 const SOA_TRAITS: Record<string, Trait> = {
 	Position,
@@ -82,7 +85,7 @@ const SOA_TRAITS: Record<string, Trait> = {
 
 /**
  * AoS traits: .get() returns a live reference. We deep-copy the value.
- * Map from name → Trait reference.
+ * Map from name -> Trait reference.
  */
 const AOS_TRAITS: Record<string, Trait> = {
 	AIState,
@@ -91,7 +94,7 @@ const AOS_TRAITS: Record<string, Trait> = {
 
 /**
  * Tag traits: no data, just presence/absence.
- * Map from name → Trait reference.
+ * Map from name -> Trait reference.
  */
 const TAG_TRAITS: Record<string, Trait> = {
 	IsBuilding,
@@ -109,8 +112,15 @@ const TAG_TRAITS: Record<string, Trait> = {
 
 /**
  * Traits to NEVER serialize (runtime-only, recreated on load).
+ * Used by serializeWorld to skip traits like PhaserSprite and SteeringAgent.
  */
-const SKIP_TRAITS: Set<Trait> = new Set([PhaserSprite, SteeringAgent]);
+/**
+ * Non-serializable traits (runtime-only, recreated on load):
+ * - PhaserSprite — recreated by syncSystem
+ * - SteeringAgent — recreated by movement system
+ */
+void PhaserSprite;
+void SteeringAgent;
 
 /**
  * Relations we know how to serialize.
@@ -146,6 +156,7 @@ export interface SerializedWorld {
 	entities: SerializedEntity[];
 }
 
+/** Standard singletons — plain JSON-serializable via cloneSerializable. */
 const SINGLETON_TRAITS: Record<string, Trait> = {
 	ResourcePool,
 	PopulationState,
@@ -154,6 +165,7 @@ const SINGLETON_TRAITS: Record<string, Trait> = {
 	CurrentMission,
 	Objectives,
 	TerritoryState,
+	WeatherCondition,
 };
 
 function cloneSerializable<T>(value: T): T {
@@ -168,16 +180,24 @@ function cloneSerializable<T>(value: T): T {
  * Serialize the entire Koota world into a JSON-safe structure.
  */
 export function serializeWorld(world: World): SerializedWorld {
-	const singletons = Object.fromEntries(
+	const singletons: Record<string, unknown> = Object.fromEntries(
 		Object.entries(SINGLETON_TRAITS)
 			.filter(([, trait]) => world.has(trait))
 			.map(([name, trait]) => [name, cloneSerializable(world.get(trait))]),
 	);
 
+	// Custom: CompletedResearch uses Set — serialize as array
+	if (world.has(CompletedResearch)) {
+		const research = world.get(CompletedResearch);
+		if (research) {
+			singletons.CompletedResearch = { ids: [...research.ids] };
+		}
+	}
+
 	// Filter out entity 0 (Koota's internal world entity)
 	const allEntities = world.entities.filter((e) => e.id() !== 0);
 
-	// Build a map from Entity → index for relation target resolution
+	// Build a map from Entity -> index for relation target resolution
 	const entityToIndex = new Map<number, number>();
 	for (let i = 0; i < allEntities.length; i++) {
 		entityToIndex.set(allEntities[i].id(), i);
@@ -249,6 +269,7 @@ export function serializeWorld(world: World): SerializedWorld {
  */
 export function deserializeWorld(world: World, data: SerializedWorld): void {
 	if (data.singletons) {
+		// Standard singletons
 		for (const [name, trait] of Object.entries(SINGLETON_TRAITS)) {
 			const singletonData = data.singletons[name];
 			if (singletonData === undefined) continue;
@@ -256,6 +277,21 @@ export function deserializeWorld(world: World, data: SerializedWorld): void {
 				world.add(trait);
 			}
 			world.set(trait, cloneSerializable(singletonData));
+		}
+
+		// Custom: CompletedResearch — array back to Set
+		const researchData = data.singletons.CompletedResearch as { ids: string[] } | undefined;
+		if (researchData) {
+			if (!world.has(CompletedResearch)) {
+				world.add(CompletedResearch);
+			}
+			const research = world.get(CompletedResearch);
+			if (research) {
+				research.ids.clear();
+				for (const id of researchData.ids) {
+					research.ids.add(id);
+				}
+			}
 		}
 	}
 

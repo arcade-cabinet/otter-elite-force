@@ -209,7 +209,7 @@ export const mission04PrisonBreak: MissionDef = {
 			act.completeObjective("rescue-whiskers"),
 			act.dialogue(
 				"gen_whiskers",
-				"About time, Bubbles. I was starting to think Alliance had written me off. Let's move — I know the compound layout.",
+				"About time, Bubbles. I was starting to think command had written me off. Let's move — I know the compound layout.",
 			),
 			act.spawn("gen_whiskers", "ura", 15, 9, 1),
 		]),

@@ -20,6 +20,7 @@ import {
 	ResourcePool,
 	TerritoryState,
 	UserSettings,
+	WeatherCondition,
 } from "./traits/state";
 
 /**
@@ -38,6 +39,7 @@ export function initSingletons(world: World): void {
 	world.add(CampaignProgress);
 	world.add(TerritoryState);
 	world.add(UserSettings);
+	world.add(WeatherCondition);
 }
 
 /**
@@ -56,4 +58,5 @@ export function resetSessionState(world: World): void {
 		liberatedCount: 0,
 		occupiedCount: 0,
 	});
+	world.set(WeatherCondition, { state: "clear" });
 }

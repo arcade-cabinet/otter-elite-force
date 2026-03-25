@@ -9,6 +9,7 @@ import * as Tone from "tone";
 
 export type SFXType =
 	| "click"
+	| "typewriterClack"
 	| "unitSelect"
 	| "unitMove"
 	| "unitAttack"
@@ -16,7 +17,15 @@ export type SFXType =
 	| "buildStart"
 	| "buildComplete"
 	| "resourceGather"
-	| "resourceDeposit";
+	| "resourceDeposit"
+	| "gatherWood"
+	| "gatherFish"
+	| "gatherSalvage"
+	| "meleeHit"
+	| "rangedFire"
+	| "trainingComplete"
+	| "researchComplete"
+	| "errorAction";
 
 export interface SFXPlayer {
 	play(type: SFXType, volume: number): void;
@@ -68,6 +77,12 @@ export function createSFXPlayer(): SFXPlayer {
 	}).toDestination();
 	buildSynth.frequency.value = 300;
 
+	// Typewriter clack — short percussive noise burst (US-036)
+	const typewriterSynth = new Tone.NoiseSynth({
+		noise: { type: "brown" },
+		envelope: { attack: 0.001, decay: 0.018, sustain: 0, release: 0.006 },
+	}).toDestination();
+
 	const gatherSynth = new Tone.PluckSynth({
 		attackNoise: 1,
 		dampening: 4000,
@@ -76,6 +91,7 @@ export function createSFXPlayer(): SFXPlayer {
 
 	const synths = [
 		clickSynth,
+		typewriterSynth,
 		selectSynth,
 		moveSynth,
 		attackSynth,
@@ -92,6 +108,10 @@ export function createSFXPlayer(): SFXPlayer {
 		click: (vol) => {
 			setVolume(clickSynth, vol);
 			clickSynth.triggerAttackRelease("C2", 0.05);
+		},
+		typewriterClack: (vol) => {
+			setVolume(typewriterSynth, vol * 0.3);
+			typewriterSynth.triggerAttackRelease(0.018);
 		},
 		unitSelect: (vol) => {
 			setVolume(selectSynth, vol);
@@ -124,6 +144,38 @@ export function createSFXPlayer(): SFXPlayer {
 		resourceDeposit: (vol) => {
 			setVolume(gatherSynth, vol);
 			gatherSynth.triggerAttack("E4");
+		},
+		gatherWood: (vol) => {
+			setVolume(gatherSynth, vol);
+			gatherSynth.triggerAttack("B3");
+		},
+		gatherFish: (vol) => {
+			setVolume(gatherSynth, vol);
+			gatherSynth.triggerAttack("D4");
+		},
+		gatherSalvage: (vol) => {
+			setVolume(gatherSynth, vol);
+			gatherSynth.triggerAttack("F#3");
+		},
+		meleeHit: (vol) => {
+			setVolume(attackSynth, vol);
+			attackSynth.triggerAttackRelease(0.06);
+		},
+		rangedFire: (vol) => {
+			setVolume(attackSynth, vol * 0.7);
+			attackSynth.triggerAttackRelease(0.04);
+		},
+		trainingComplete: (vol) => {
+			setVolume(buildSynth, vol * 0.7);
+			buildSynth.triggerAttackRelease("E4", 0.12);
+		},
+		researchComplete: (vol) => {
+			setVolume(selectSynth, vol);
+			selectSynth.triggerAttackRelease("C6", 0.15);
+		},
+		errorAction: (vol) => {
+			setVolume(deathSynth, vol * 0.5);
+			deathSynth.triggerAttackRelease("E2", 0.15);
 		},
 	};
 

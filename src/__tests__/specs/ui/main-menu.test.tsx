@@ -77,7 +77,7 @@ describe("MainMenu", () => {
 		expect(world.get(traits.CampaignProgress)?.currentMission).toBe("mission_1");
 		expect(world.get(traits.CampaignProgress)?.difficulty).toBe("tactical");
 		expect(world.get(traits.CompletedResearch)?.ids.size).toBe(0);
-		expect(world.get(traits.AppScreen)?.screen).toBe("game");
+		expect(world.get(traits.AppScreen)?.screen).toBe("campaign");
 	});
 
 	it("keeps continue disabled when there is no active campaign", () => {
@@ -100,7 +100,16 @@ describe("MainMenu", () => {
 		});
 		render(React.createElement(WorldProvider, { world }, React.createElement(MainMenu)));
 		fireEvent.click(screen.getByRole("button", { name: /continue/i }));
-		expect(world.get(traits.AppScreen)?.screen).toBe("game");
+		expect(world.get(traits.AppScreen)?.screen).toBe("campaign");
+	});
+
+	it("routes skirmish to the skirmish screen", async () => {
+		if (skip()) return;
+		const world = createInitializedWorld();
+		const traits = await import("@/ecs/traits/state");
+		render(React.createElement(WorldProvider, { world }, React.createElement(MainMenu)));
+		fireEvent.click(screen.getByRole("button", { name: /skirmish/i }));
+		expect(world.get(traits.AppScreen)?.screen).toBe("skirmish");
 	});
 
 	it("routes settings to the settings screen", async () => {

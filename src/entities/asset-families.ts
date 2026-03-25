@@ -129,7 +129,7 @@ export const ASSET_FAMILIES = [
 		archetypeId: "scale_guard_elite_shock",
 		referenceEntityId: "croc_champion",
 		roleIntent: "Elite apex-predator silhouettes reserved for high-threat enemy shock units.",
-		memberIds: ["croc_champion"],
+		memberIds: ["croc_champion", "serpent_king"],
 		generatorHints: {
 			silhouette: "apex reptile champion with oversized frame and trophy gear",
 			materialCues: ["heavy scales", "ritual trophies", "command-grade armor"],
@@ -323,6 +323,25 @@ export const ASSET_FAMILIES = [
 			semanticAxes: ["top spikes", "plate segmentation", "toxin staining"],
 		},
 		qualityGateTags: ["building-readable", "scale-guard-identity", "fortification"],
+	},
+	{
+		familyId: "scale-guard-mission-objectives",
+		displayName: "Scale-Guard Mission Objectives",
+		lane: "gameplay-sprite",
+		entityType: "building",
+		outputCategory: "buildings",
+		faction: "scale_guard",
+		archetypeId: "scale_guard_mission_objectives",
+		referenceEntityId: "great_siphon",
+		roleIntent:
+			"Mission-specific Scale-Guard structures placed on the map as objectives, destructibles, and control points.",
+		memberIds: ["flag_post", "fuel_tank", "great_siphon", "shield_generator"],
+		generatorHints: {
+			silhouette: "distinct mission-objective structures with clear tactical read at zoom",
+			materialCues: ["rusted plates", "industrial piping", "enemy faction markers"],
+			semanticAxes: ["objective silhouette", "destructibility cues", "faction color accent"],
+		},
+		qualityGateTags: ["building-readable", "scale-guard-identity", "mission-objective"],
 	},
 	{
 		familyId: "oef-command-portraits",

@@ -26,7 +26,19 @@ Primary references:
 - Koota ECS for app/game state
 - Tone.js for procedural audio
 - Yuka for AI/simulation support
+- Radix UI for tooltips and dialogs
 - Biome + Vitest + Playwright for quality
+
+## Accessibility Systems
+
+- WCAG AA contrast validated across tactical, command-post, briefing themes
+- `prefers-reduced-motion` support (disables typewriter, animations, particles)
+- `aria-label` on major UI regions and live resource readouts
+- Keyboard navigation (Tab, Enter, Escape) for menus and settings
+- Focus-visible indicators on all interactive elements
+- Tutorial prompts for missions 1-4 (dismissible, skip in settings)
+- MilitaryTooltip for hover data on train/build/research buttons
+- ErrorFeedback for invalid command buzzes (1-second auto-dismiss)
 
 ## UI Command Intent
 

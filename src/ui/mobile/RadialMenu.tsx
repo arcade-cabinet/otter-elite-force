@@ -1,10 +1,14 @@
 /**
  * RadialMenu — Mobile context radial menu (long-press).
  *
- * Fan-out radial menu for contextual actions on mobile.
- * Opens on long-press, actions fan out in a semicircle.
- * Touch-friendly with 48px+ hit areas.
+ * US-060: Long-press triggers radial command menu after 500ms.
+ * Actions fan out in a semicircle above the press point.
+ * Touch-friendly with 48px+ hit areas (exceeds 44px minimum from US-061).
+ *
+ * Ground long-press actions: Move, Attack-Move, Patrol, Rally
+ * Unit long-press actions: unit-specific options
  */
+import type { ReactNode } from "react";
 import { cn } from "@/ui/lib/utils";
 
 interface RadialAction {
@@ -20,6 +24,22 @@ interface RadialMenuProps {
 	onClose: () => void;
 }
 
+/** Default ground actions for US-060 radial menu. */
+export const GROUND_RADIAL_ACTIONS: RadialAction[] = [
+	{ id: "move", label: "Move" },
+	{ id: "attack-move", label: "Atk Move" },
+	{ id: "patrol", label: "Patrol" },
+	{ id: "rally", label: "Rally" },
+];
+
+/** Default unit actions for US-060 radial menu. */
+export const UNIT_RADIAL_ACTIONS: RadialAction[] = [
+	{ id: "move", label: "Move" },
+	{ id: "stop", label: "Stop" },
+	{ id: "attack", label: "Attack" },
+	{ id: "hold", label: "Hold" },
+];
+
 export function RadialMenu({ actions, open, position, onAction, onClose }: RadialMenuProps) {
 	if (!open) return null;
 
@@ -27,14 +47,7 @@ export function RadialMenu({ actions, open, position, onAction, onClose }: Radia
 	const radius = 72;
 
 	return (
-		<div
-			data-testid="radial-menu"
-			className="fixed inset-0 z-50"
-			onClick={onClose}
-			onKeyDown={(e) => e.key === "Escape" && onClose()}
-			role="button"
-			tabIndex={0}
-		>
+		<RadialBackdrop onClose={onClose}>
 			<div className="absolute" style={{ left: position.x, top: position.y }}>
 				{actions.map((action, i) => {
 					const angle = Math.PI + i * angleStep;
@@ -50,9 +63,9 @@ export function RadialMenu({ actions, open, position, onAction, onClose }: Radia
 								onAction(action.id);
 							}}
 							className={cn(
-								"absolute flex h-12 w-12 -translate-x-1/2 -translate-y-1/2",
-								"items-center justify-center",
-								"border-2 border-border bg-card",
+								"absolute flex min-h-[48px] min-w-[48px] -translate-x-1/2 -translate-y-1/2",
+								"items-center justify-center rounded-none px-2",
+								"border-2 border-border bg-card shadow-[0_4px_12px_rgba(0,0,0,0.3)]",
 								"font-heading text-[9px] uppercase tracking-wider text-card-foreground",
 								"active:border-accent active:text-accent",
 							)}
@@ -66,6 +79,20 @@ export function RadialMenu({ actions, open, position, onAction, onClose }: Radia
 					);
 				})}
 			</div>
-		</div>
+		</RadialBackdrop>
+	);
+}
+
+/** Full-screen dismiss backdrop for the radial menu. */
+function RadialBackdrop({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+	return (
+		<button
+			type="button"
+			data-testid="radial-menu"
+			className="fixed inset-0 z-50 cursor-default bg-transparent"
+			onClick={onClose}
+		>
+			{children}
+		</button>
 	);
 }

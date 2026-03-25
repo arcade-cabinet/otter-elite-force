@@ -26,9 +26,15 @@ importers:
       '@capacitor/ios':
         specifier: ^8.2.0
         version: 8.2.0(@capacitor/core@8.2.0)
-      '@fontsource-variable/figtree':
-        specifier: ^5.2.10
-        version: 5.2.10
+      '@fontsource/black-ops-one':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource/share-tech-mono':
+        specifier: ^5.2.7
+        version: 5.2.7
+      '@fontsource/special-elite':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@hugeicons/core-free-icons':
         specifier: ^4.0.0
         version: 4.0.0
@@ -572,8 +578,14 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
-  '@fontsource-variable/figtree@5.2.10':
-    resolution: {integrity: sha512-a5Gumbpy3mdd+Yg31g6Qb7CmjYbrfyutJa3bWfP5q8A4GclIOwX7mI+ZuSHsJnw/mHvW6r9oh1AHJcJTIxK4JA==}
+  '@fontsource/black-ops-one@5.2.8':
+    resolution: {integrity: sha512-u0uUmsjlUEjNxneuRmA6HeGBaOc9Y8SimSm/E2MQlZ9GczsHLqwx5M63f5g2ST8ZGXG1ncmJPMHJjT9C5d7jMw==}
+
+  '@fontsource/share-tech-mono@5.2.7':
+    resolution: {integrity: sha512-1JBJ6CU9u5av8aFEUOGOJkq60/IEVVOZDCmiU8X3i0skk0Pp69GngDwlBUHaTZa4G6pbF1UDrC+Fm7XSckW6TQ==}
+
+  '@fontsource/special-elite@5.2.8':
+    resolution: {integrity: sha512-tJRYZ6dZK3wiGvMS5NMOg6fqctWimNUUrYtLfPGJYqidaFeI2QqFUE0rbn16DjqID0DrnZSHYfqz1jGdctd5ew==}
 
   '@hono/node-server@1.19.11':
     resolution: {integrity: sha512-dr8/3zEaB+p0D2n/IUrlPF1HZm586qgJNXK1a9fhg/PzdtkK7Ksd5l312tJX2yBuALqDYBlG20QEbayqPyxn+g==}
@@ -3687,7 +3699,11 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@fontsource-variable/figtree@5.2.10': {}
+  '@fontsource/black-ops-one@5.2.8': {}
+
+  '@fontsource/share-tech-mono@5.2.7': {}
+
+  '@fontsource/special-elite@5.2.8': {}
 
   '@hono/node-server@1.19.11(hono@4.12.9)':
     dependencies:

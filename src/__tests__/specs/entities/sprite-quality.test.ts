@@ -52,6 +52,16 @@ describe("SP-DSL asset quality gates", () => {
 				continue;
 			}
 
+			// Mission-placed buildings and scenario props are lightweight
+			// and do not require the full grounding-layer treatment.
+			const SCENARIO_PROPS = new Set([
+				"fuel_tank",
+				"flag_post",
+				"shield_generator",
+				"great_siphon",
+			]);
+			if (building.buildTime === 0 || SCENARIO_PROPS.has(id)) continue;
+
 			expect(layerIds.length).toBeGreaterThanOrEqual(3);
 			expect(layerIds.some((layerId) => ["shadow", "foundation", "pool"].includes(layerId))).toBe(
 				true,

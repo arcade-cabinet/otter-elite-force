@@ -129,7 +129,7 @@ export const mission08UnderwaterCache: MissionDef = {
 		),
 		trigger(
 			"approach-cell",
-			on.areaEntered("ura", "splash_cell"),
+			on.areaEntered("ura", "shore_east"),
 			act.dialogue(
 				"gen_whiskers",
 				"Cell ahead. Three guards — two Gators and a Viper. Take them out quickly before they raise the alarm.",

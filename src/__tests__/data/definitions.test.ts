@@ -530,7 +530,7 @@ describe("Factions", () => {
 
 	describe("URA", () => {
 		it("has correct name and doctrine", () => {
-			expect(URA_FACTION.name).toBe("United River Alliance");
+			expect(URA_FACTION.name).toBe("Otter Elite Force");
 			expect(URA_FACTION.doctrine).toContain("Liberation");
 		});
 

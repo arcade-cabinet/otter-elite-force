@@ -50,6 +50,7 @@
 		"src/systems/stealthSystem.ts",
 		"src/systems/waterSystem.ts",
 		"src/systems/weatherSystem.ts",
+		"src/systems/dayNightSystem.ts",
 		"src/systems/gameLoop.ts",
 		"src/ai",
 		"src/audio",
@@ -63,7 +64,9 @@
 		"src/sprites/atlas.ts",
 		"src/sprites/types.ts",
 		"src/scenarios",
-		"src/types"
+		"src/types",
+		"src/rendering",
+		"src/features"
 	],
 	"exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
 }

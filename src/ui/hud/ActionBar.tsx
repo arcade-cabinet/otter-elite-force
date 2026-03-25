@@ -15,12 +15,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ALL_BUILDINGS } from "@/data/buildings";
 import { ALL_RESEARCH } from "@/data/research";
 import { ALL_HEROES, ALL_UNITS } from "@/data/units";
-import { ConstructionProgress, ProductionQueue } from "@/ecs/traits/economy";
+import { ConstructionProgress, ProductionQueue, ResearchSlot } from "@/ecs/traits/economy";
 import { Category, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
-import { PopulationState, ResourcePool } from "@/ecs/traits/state";
+import { CompletedResearch, PopulationState, ResourcePool } from "@/ecs/traits/state";
 import { EventBus } from "@/game/EventBus";
 import { queueUnit } from "@/systems/productionSystem";
+import { queueResearch } from "@/systems/researchSystem";
 import { BuildMenu } from "@/ui/hud/BuildMenu";
+import { MilitaryTooltip } from "@/ui/hud/MilitaryTooltip";
+import { PanelFrame } from "@/ui/hud/PanelFrame";
 import { cn } from "@/ui/lib/utils";
 
 type TraitTarget = Parameters<typeof useTrait>[0];
@@ -32,17 +35,19 @@ interface Action {
 }
 
 const WORKER_ACTIONS: Action[] = [
-	{ id: "build", label: "Build", hint: "Open the field build palette for this worker." },
+	{ id: "move", label: "Move", hint: "Right-click terrain to redeploy this worker." },
+	{ id: "stop", label: "Stop", hint: "Cancel all orders and halt movement." },
 	{
 		id: "gather",
 		label: "Gather",
 		hint: "Right-click fish, timber, or salvage to start harvesting.",
 	},
-	{ id: "repair", label: "Repair", hint: "Assign this worker to damaged field structures." },
+	{ id: "build", label: "Build", hint: "Open the field build palette for this worker." },
 ];
 
 const MILITARY_ACTIONS: Action[] = [
 	{ id: "move", label: "Move", hint: "Right-click terrain to redeploy this squad." },
+	{ id: "stop", label: "Stop", hint: "Cancel all orders and halt movement." },
 	{ id: "attack", label: "Attack", hint: "Right-click hostiles to focus fire and push the line." },
 	{ id: "patrol", label: "Patrol", hint: "Set a lane to screen crossings and guard approaches." },
 	{ id: "hold", label: "Hold", hint: "Lock the unit in place to anchor the formation." },
@@ -94,6 +99,8 @@ function SelectedActionBar({
 	const population = useTrait(world, PopulationState);
 	const productionQueue = useTrait(entity, ProductionQueue) ?? [];
 	const constructionProgress = useTrait(entity, ConstructionProgress);
+	const researchSlot = useTrait(entity, ResearchSlot);
+	const completedResearch = useTrait(world, CompletedResearch);
 	const type = unitType?.type ?? "";
 	const resolvedCategory =
 		category?.category ??
@@ -133,6 +140,8 @@ function SelectedActionBar({
 				population,
 				queueLength: productionQueue.length,
 				isUnderConstruction: constructionProgress !== undefined,
+				researchSlot,
+				completedResearch,
 			})}
 		</ActionBarFrame>
 	);
@@ -155,13 +164,13 @@ function ActionBarFrame({
 	onSelectAction?: (actionId: string) => void;
 	children: ReactNode;
 }) {
-	return (
+	const card = (
 		<Card
 			data-testid="action-bar"
 			className={cn(
 				embedded
 					? "rounded-none border-0 bg-transparent shadow-none"
-					: "border-accent/18 bg-card/88",
+					: "canvas-grain border-accent/18 bg-card/88",
 			)}
 		>
 			<CardContent
@@ -189,6 +198,7 @@ function ActionBarFrame({
 							type="button"
 							variant="hud"
 							size="sm"
+							title={action.hint}
 							onClick={() => onSelectAction?.(action.id)}
 							className={cn(
 								"justify-between",
@@ -209,19 +219,21 @@ function ActionBarFrame({
 			</CardContent>
 		</Card>
 	);
+
+	return embedded ? card : <PanelFrame>{card}</PanelFrame>;
 }
 
 function resolveHotkey(id: string) {
 	if (id === "build") return "Q";
 	if (id === "gather") return "W";
-	if (id === "repair") return "E";
+	if (id === "stop") return "S";
 	if (id === "move") return "M";
 	if (id === "attack") return "A";
 	if (id === "patrol") return "P";
 	if (id === "hold") return "H";
 	if (id === "train") return "T";
 	if (id === "research") return "R";
-	return "•";
+	return "\u2022";
 }
 
 function resolveActions(type: string, category: string, building: boolean): Action[] {
@@ -257,6 +269,8 @@ function renderDetailPanel({
 	population,
 	queueLength,
 	isUnderConstruction,
+	researchSlot,
+	completedResearch,
 }: {
 	action: Action | null;
 	type: string;
@@ -267,6 +281,8 @@ function renderDetailPanel({
 	population: { current: number; max: number } | undefined;
 	queueLength: number;
 	isUnderConstruction: boolean;
+	researchSlot: { researchId: string; progress: number; researchTime: number } | null | undefined;
+	completedResearch: { ids: Set<string> } | undefined;
 }) {
 	if (!action) {
 		return <ContextHint title="Field Orders" body={EMPTY_HINT} />;
@@ -314,39 +330,55 @@ function renderDetailPanel({
 				</div>
 				<div className={cn("grid gap-2", compact ? "grid-cols-1" : "grid-cols-2")}>
 					{trainables.map((unit) => (
-						<Button
+						<MilitaryTooltip
 							key={unit.id}
-							type="button"
-							variant="hud"
-							size="sm"
-							className="h-auto items-start justify-start rounded-md border border-accent/15 bg-background/25 px-3 py-2 text-left"
-							disabled={
-								(resources?.fish ?? 0) < (unit.cost.fish ?? 0) ||
-								(resources?.timber ?? 0) < (unit.cost.timber ?? 0) ||
-								(resources?.salvage ?? 0) < (unit.cost.salvage ?? 0) ||
-								(population?.current ?? 0) + (unit.pop ?? 0) >
-									(population?.max ?? Number.POSITIVE_INFINITY)
-							}
-							onClick={() => {
-								const queued = queueUnit(entity as ReturnType<typeof world.spawn>, unit.id, world);
-								EventBus.emit("hud-alert", {
-									message: queued
-										? `${unit.name} added to queue.`
-										: `Unable to queue ${unit.name}. Check supplies and population.`,
-									severity: queued ? "info" : "warning",
-								});
+							data={{
+								name: unit.name,
+								cost: formatCost(unit.cost),
+								hp: unit.hp,
+								damage: unit.damage,
+								description: unit.role,
 							}}
+							side="top"
 						>
-							<div className="font-heading text-[11px] uppercase tracking-[0.16em] text-foreground">
-								{unit.name}
-							</div>
-							<div className="mt-1 font-body text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-								{unit.role}
-							</div>
-							<div className="mt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-accent/85">
-								{formatCost(unit.cost)}
-							</div>
-						</Button>
+							<Button
+								type="button"
+								variant="hud"
+								size="sm"
+								title={`Cost: ${formatCost(unit.cost)} | Pop: ${unit.pop ?? 1}`}
+								className="h-auto items-start justify-start rounded-md border border-accent/15 bg-background/25 px-3 py-2 text-left"
+								disabled={
+									(resources?.fish ?? 0) < (unit.cost.fish ?? 0) ||
+									(resources?.timber ?? 0) < (unit.cost.timber ?? 0) ||
+									(resources?.salvage ?? 0) < (unit.cost.salvage ?? 0) ||
+									(population?.current ?? 0) + (unit.pop ?? 0) >
+										(population?.max ?? Number.POSITIVE_INFINITY)
+								}
+								onClick={() => {
+									const queued = queueUnit(
+										entity as ReturnType<typeof world.spawn>,
+										unit.id,
+										world,
+									);
+									EventBus.emit("hud-alert", {
+										message: queued
+											? `${unit.name} added to queue.`
+											: `Unable to queue ${unit.name}. Check supplies and population.`,
+										severity: queued ? "info" : "warning",
+									});
+								}}
+							>
+								<div className="font-heading text-[11px] uppercase tracking-[0.16em] text-foreground">
+									{unit.name}
+								</div>
+								<div className="mt-1 font-body text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+									{unit.role}
+								</div>
+								<div className="mt-2 font-mono text-[9px] uppercase tracking-[0.18em] text-accent/85">
+									{formatCost(unit.cost)}
+								</div>
+							</Button>
+						</MilitaryTooltip>
 					))}
 				</div>
 			</div>
@@ -357,26 +389,133 @@ function renderDetailPanel({
 		const researchItems = Object.values(ALL_RESEARCH).filter(
 			(research) => research.researchAt === type,
 		);
+		const completedIds = completedResearch?.ids ?? new Set<string>();
+		const activeResearchId = researchSlot?.researchId ?? null;
+		const hasActiveResearch = researchSlot !== null && researchSlot !== undefined;
+
 		return (
-			<div className="grid gap-2">
-				{researchItems.slice(0, compact ? 2 : 3).map((research) => (
+			<div data-testid="research-panel" className="grid gap-2">
+				<div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+					Field Upgrades
+				</div>
+
+				{/* Active research progress */}
+				{researchSlot ? (
 					<div
-						key={research.id}
-						className="rounded-md border border-accent/15 bg-background/25 px-3 py-2"
+						data-testid="active-research"
+						className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2"
 					>
 						<div className="flex items-center justify-between gap-2">
 							<div className="font-heading text-[11px] uppercase tracking-[0.16em] text-foreground">
-								{research.name}
+								{ALL_RESEARCH[researchSlot.researchId]?.name ?? researchSlot.researchId}
 							</div>
-							<div className="font-mono text-[9px] uppercase tracking-[0.18em] text-accent/85">
-								{formatCost(research.cost)}
-							</div>
+							<span className="font-mono text-[9px] tabular-nums tracking-[0.18em] text-primary">
+								{Math.min(100, Math.round(researchSlot.progress))}%
+							</span>
+						</div>
+						<div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full border border-border bg-muted">
+							<div
+								data-testid="active-research-progress"
+								className="h-full bg-primary transition-all"
+								style={{
+									width: `${Math.min(100, researchSlot.progress)}%`,
+								}}
+							/>
 						</div>
 						<div className="mt-1 font-body text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
-							{research.effect}
+							{ALL_RESEARCH[researchSlot.researchId]?.effect ?? "Upgrading..."}
 						</div>
 					</div>
-				))}
+				) : null}
+
+				{/* Research list */}
+				{researchItems.map((research) => {
+					const isCompleted = completedIds.has(research.id);
+					const isActive = activeResearchId === research.id;
+					const affordable =
+						(resources?.fish ?? 0) >= (research.cost.fish ?? 0) &&
+						(resources?.timber ?? 0) >= (research.cost.timber ?? 0) &&
+						(resources?.salvage ?? 0) >= (research.cost.salvage ?? 0);
+					const canStart = !isCompleted && !isActive && !hasActiveResearch && affordable;
+
+					return (
+						<MilitaryTooltip
+							key={research.id}
+							data={{
+								name: research.name,
+								cost: formatCost(research.cost),
+								time: research.time,
+								description: research.effect,
+							}}
+							side="top"
+						>
+							<Button
+								type="button"
+								variant="hud"
+								size="sm"
+								data-testid={`research-btn-${research.id}`}
+								disabled={!canStart}
+								onClick={() => {
+									if (!canStart) return;
+									const started = queueResearch(
+										entity as ReturnType<typeof world.spawn>,
+										research.id,
+										world,
+									);
+									EventBus.emit("hud-alert", {
+										message: started
+											? `Researching ${research.name}.`
+											: `Unable to start ${research.name}. Check supplies.`,
+										severity: started ? "info" : "warning",
+									});
+								}}
+								className={cn(
+									"h-auto items-start justify-start rounded-md border px-3 py-2 text-left",
+									isCompleted
+										? "border-accent/30 bg-accent/8 opacity-70"
+										: isActive
+											? "border-primary/30 bg-primary/8"
+											: affordable
+												? "border-accent/15 bg-background/25"
+												: "border-border/50 bg-background/15 opacity-50",
+								)}
+							>
+								<div className="w-full">
+									<div className="flex items-center justify-between gap-2">
+										<div className="flex items-center gap-1.5">
+											{isCompleted ? (
+												<span className="font-mono text-[11px] text-accent">[OK]</span>
+											) : null}
+											<span
+												className={cn(
+													"font-heading text-[11px] uppercase tracking-[0.16em]",
+													isCompleted ? "text-accent/80" : "text-foreground",
+												)}
+											>
+												{research.name}
+											</span>
+										</div>
+										{!isCompleted ? (
+											<span className="font-mono text-[9px] uppercase tracking-[0.18em] text-accent/85">
+												{formatCost(research.cost)}
+											</span>
+										) : null}
+									</div>
+									<div className="mt-1 flex items-center gap-2">
+										<span className="font-body text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
+											{research.effect}
+										</span>
+										{!isCompleted ? (
+											<span className="ml-auto shrink-0 font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground/70">
+												{research.time}s
+											</span>
+										) : null}
+									</div>
+								</div>
+							</Button>
+						</MilitaryTooltip>
+					);
+				})}
 			</div>
 		);
 	}

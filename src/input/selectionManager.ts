@@ -9,6 +9,7 @@ import type { Entity, World } from "koota";
 import Phaser from "phaser";
 import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
+import { EventBus } from "@/game/EventBus";
 import { TILE_SIZE } from "@/maps/loader";
 
 const DRAG_THRESHOLD = 5;
@@ -62,11 +63,12 @@ export class SelectionManager {
 		if (pointer.rightButtonReleased()) return;
 
 		this.selectionRect.clear();
+		const shiftKey = "shiftKey" in pointer.event && !!(pointer.event as MouseEvent).shiftKey;
 
 		if (this.isDragging) {
-			this.boxSelect(this.dragStart.x, this.dragStart.y, pointer.worldX, pointer.worldY);
+			this.boxSelect(this.dragStart.x, this.dragStart.y, pointer.worldX, pointer.worldY, shiftKey);
 		} else {
-			this.clickSelect(pointer.worldX, pointer.worldY);
+			this.clickSelect(pointer.worldX, pointer.worldY, shiftKey);
 		}
 
 		this.isDragging = false;
@@ -74,8 +76,8 @@ export class SelectionManager {
 
 	private drawSelectionRect(x1: number, y1: number, x2: number, y2: number): void {
 		this.selectionRect.clear();
-		this.selectionRect.lineStyle(1, 0x00ff00, 0.8);
-		this.selectionRect.fillStyle(0x00ff00, 0.15);
+		this.selectionRect.lineStyle(2, 0x00ff00, 0.9);
+		this.selectionRect.fillStyle(0x00ff00, 0.2);
 
 		const x = Math.min(x1, x2);
 		const y = Math.min(y1, y2);
@@ -105,9 +107,7 @@ export class SelectionManager {
 	}
 
 	/** Single-click: find the nearest friendly entity under the cursor. */
-	private clickSelect(worldX: number, worldY: number): void {
-		this.clearSelection();
-
+	private clickSelect(worldX: number, worldY: number, shiftKey = false): void {
 		const tileX = Math.floor(worldX / TILE_SIZE);
 		const tileY = Math.floor(worldY / TILE_SIZE);
 		let closestEntity: Entity | null = null;
@@ -129,14 +129,28 @@ export class SelectionManager {
 			}
 		});
 
-		if (closestEntity) {
-			(closestEntity as Entity).add(Selected);
+		if (shiftKey && closestEntity) {
+			// Toggle: if already selected, deselect; otherwise add to selection
+			if ((closestEntity as Entity).has(Selected)) {
+				(closestEntity as Entity).remove(Selected);
+			} else {
+				(closestEntity as Entity).add(Selected);
+				const unitTypeData = (closestEntity as Entity).get(UnitType);
+				EventBus.emit("unit-selected", { unitType: unitTypeData?.type ?? "" });
+			}
+		} else {
+			this.clearSelection();
+			if (closestEntity) {
+				(closestEntity as Entity).add(Selected);
+				const unitTypeData = (closestEntity as Entity).get(UnitType);
+				EventBus.emit("unit-selected", { unitType: unitTypeData?.type ?? "" });
+			}
 		}
 	}
 
 	/** Box-select: select all friendly entities within the drag rectangle. */
-	private boxSelect(x1: number, y1: number, x2: number, y2: number): void {
-		this.clearSelection();
+	private boxSelect(x1: number, y1: number, x2: number, y2: number, shiftKey = false): void {
+		if (!shiftKey) this.clearSelection();
 
 		const minX = Math.min(x1, x2);
 		const maxX = Math.max(x1, x2);
@@ -162,6 +176,31 @@ export class SelectionManager {
 				entity.add(Selected);
 			}
 		});
+	}
+
+	/**
+	 * US-058: Check if a friendly (URA) entity exists near a world position.
+	 * Used by MobileInput to decide between re-selecting and issuing commands.
+	 */
+	hasFriendlyAt(worldX: number, worldY: number): boolean {
+		const tileX = Math.floor(worldX / TILE_SIZE);
+		const tileY = Math.floor(worldY / TILE_SIZE);
+		let found = false;
+
+		this.world.query(UnitType, Position, Faction).forEach((entity) => {
+			if (found) return;
+			const pos = entity.get(Position);
+			const faction = entity.get(Faction);
+			if (!pos || !faction) return;
+			if (faction.id !== "ura") return;
+
+			const dx = pos.x - tileX;
+			const dy = pos.y - tileY;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			if (dist < 2) found = true;
+		});
+
+		return found;
 	}
 
 	/** Remove Selected trait from all entities. */

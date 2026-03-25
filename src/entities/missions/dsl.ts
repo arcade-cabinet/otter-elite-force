@@ -7,6 +7,8 @@ const SPEAKER_NAMES: Record<string, string> = {
 	sgt_fang: "Sgt. Fang",
 	cpl_splash: "Cpl. Splash",
 	sgt_bubbles: "Sgt. Bubbles",
+	medic_marina: "Medic Marina",
+	pvt_muskrat: "Pvt. Muskrat",
 };
 
 function toSpeakerName(id: string): string {
@@ -99,5 +101,8 @@ export const act = {
 	},
 	victory(): TriggerAction {
 		return { type: "victory" };
+	},
+	enableTrigger(triggerId: string): TriggerAction {
+		return { type: "enableTrigger", triggerId };
 	},
 };

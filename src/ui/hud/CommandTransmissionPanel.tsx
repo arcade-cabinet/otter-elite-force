@@ -14,6 +14,7 @@ export function CommandTransmissionPanel({
 	isLastLine,
 	advanceLabel,
 	onAdvance,
+	onSkipAll,
 }: {
 	missionName: string;
 	speaker: string;
@@ -25,6 +26,8 @@ export function CommandTransmissionPanel({
 	isLastLine: boolean;
 	advanceLabel?: string;
 	onAdvance: () => void;
+	/** Skip all remaining dialogue lines instantly (US-036) */
+	onSkipAll?: () => void;
 }) {
 	const portrait = portraitId ? getPortrait(portraitId) : undefined;
 	const speakerTone = portrait?.dialogueColor;
@@ -105,7 +108,20 @@ export function CommandTransmissionPanel({
 						</p>
 					</div>
 
-					<div className="flex justify-end">
+					<div className="flex items-center justify-end gap-2">
+						{onSkipAll ? (
+							<Button
+								variant="ghost"
+								size="sm"
+								className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+								onClick={(event) => {
+									event.stopPropagation();
+									onSkipAll();
+								}}
+							>
+								Skip All
+							</Button>
+						) : null}
 						<Button
 							variant="accent"
 							size="sm"

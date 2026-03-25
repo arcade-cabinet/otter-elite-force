@@ -54,10 +54,18 @@ describe("AudioEngine", () => {
 		expect(() => engine.playSFX("unitMove")).not.toThrow();
 		expect(() => engine.playSFX("unitAttack")).not.toThrow();
 		expect(() => engine.playSFX("unitDeath")).not.toThrow();
+		expect(() => engine.playSFX("meleeHit")).not.toThrow();
+		expect(() => engine.playSFX("rangedFire")).not.toThrow();
 		expect(() => engine.playSFX("buildStart")).not.toThrow();
 		expect(() => engine.playSFX("buildComplete")).not.toThrow();
+		expect(() => engine.playSFX("trainingComplete")).not.toThrow();
+		expect(() => engine.playSFX("researchComplete")).not.toThrow();
 		expect(() => engine.playSFX("resourceGather")).not.toThrow();
+		expect(() => engine.playSFX("gatherWood")).not.toThrow();
+		expect(() => engine.playSFX("gatherFish")).not.toThrow();
+		expect(() => engine.playSFX("gatherSalvage")).not.toThrow();
 		expect(() => engine.playSFX("resourceDeposit")).not.toThrow();
+		expect(() => engine.playSFX("errorAction")).not.toThrow();
 	});
 
 	it("should call sfxPlayer.play with correct type", async () => {

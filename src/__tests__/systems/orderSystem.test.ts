@@ -272,7 +272,16 @@ describe("orderSystem — Gather", () => {
 // ---------------------------------------------------------------------------
 
 describe("orderSystem — Build", () => {
-	it("should set AIState to 'building' and move to build site", () => {
+	it("should set AIState to 'building' and move to build site when building exists", () => {
+		// Spawn an incomplete building at the target location
+		world.spawn(
+			Position({ x: 8, y: 8 }),
+			ConstructionProgress({ progress: 0, buildTime: 30 }),
+			IsBuilding,
+			UnitType({ type: "barracks" }),
+			Faction({ id: "ura" }),
+		);
+
 		const unit = spawnUnit({
 			x: 0,
 			y: 0,
@@ -288,6 +297,21 @@ describe("orderSystem — Build", () => {
 
 		const agent = unit.get(SteeringAgent) as ReturnType<typeof mockSteering>;
 		expect(agent.followPath.path.add).toHaveBeenCalled();
+	});
+
+	it("should discard build order and go idle if no building exists at target", () => {
+		const unit = spawnUnit({
+			x: 0,
+			y: 0,
+			withSteering: true,
+			orders: [{ type: "build", targetX: 8, targetY: 8, buildingType: "barracks" }],
+		});
+
+		orderSystem(world, 0.016);
+
+		const ai = unit.get(AIState);
+		expect(ai.state).toBe("idle");
+		expect(unit.get(OrderQueue).length).toBe(0);
 	});
 });
 

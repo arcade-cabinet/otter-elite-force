@@ -54,7 +54,14 @@ export const Objectives = trait(() => ({
 // App screen routing (replaces rtsGameStore.phase for UI routing)
 // ---------------------------------------------------------------------------
 
-export type AppScreenType = "menu" | "game" | "victory" | "settings";
+export type AppScreenType =
+	| "menu"
+	| "campaign"
+	| "game"
+	| "victory"
+	| "settings"
+	| "skirmish"
+	| "skirmish_result";
 
 /** Which screen the app is currently displaying. */
 export const AppScreen = trait({ screen: "menu" as AppScreenType });
@@ -69,6 +76,15 @@ export const CampaignProgress = trait(() => ({
 	currentMission: null as string | null,
 	difficulty: "support" as string,
 }));
+
+// ---------------------------------------------------------------------------
+// Weather state (ECS-serializable mirror of the WeatherSystem class state)
+// ---------------------------------------------------------------------------
+
+/** Current weather condition — serializable snapshot for save/load. */
+export const WeatherCondition = trait({
+	state: "clear" as "clear" | "rain" | "monsoon",
+});
 
 // ---------------------------------------------------------------------------
 // Territory state (replaces territoryStore)
@@ -87,11 +103,14 @@ export const TerritoryState = trait({
 
 /** User preferences — serialized to SQLite. */
 export const UserSettings = trait(() => ({
+	masterVolume: 1.0,
 	musicVolume: 0.7,
 	sfxVolume: 1.0,
 	hapticsEnabled: true,
 	cameraSpeed: 1.0,
+	uiScale: 1.0,
 	touchMode: "auto" as string,
 	showGrid: false,
 	reduceFx: false,
+	skipTutorials: false,
 }));

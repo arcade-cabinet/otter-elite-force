@@ -92,10 +92,21 @@ function processArrival(world: World): void {
 		const currentOrder = orders[0];
 
 		// Only process move orders for arrival detection
-		if (currentOrder.type !== "move") continue;
+		if (currentOrder.type !== "move" && currentOrder.type !== "patrol") continue;
 
 		// Check if path is complete
 		if (!isPathComplete(agent)) continue;
+
+		if (currentOrder.type === "patrol") {
+			const waypoints = currentOrder.waypoints;
+			if (!waypoints || waypoints.length === 0) continue;
+			const prevIndex = (currentOrder as PatrolOrderState)._patrolIndex ?? 0;
+			const nextIndex = (prevIndex + 1) % waypoints.length;
+			(currentOrder as PatrolOrderState)._patrolIndex = nextIndex;
+			const wp = waypoints[nextIndex];
+			dispatchMoveOrder(agent, wp.x, wp.y);
+			continue;
+		}
 
 		// Arrival detected — remove completed order
 		orders.shift();
@@ -108,6 +119,11 @@ function processArrival(world: World): void {
 			}
 		}
 	}
+}
+
+/** Runtime patrol waypoint index. */
+interface PatrolOrderState {
+	_patrolIndex?: number;
 }
 
 /**

@@ -20,9 +20,10 @@ import { ConstructionProgress, ProductionQueue } from "../ecs/traits/economy";
 import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
-import { ResourcePool } from "../ecs/traits/state";
+import { PopulationState, ResourcePool } from "../ecs/traits/state";
 import { world as defaultWorld } from "../ecs/world";
 import { getBuilding } from "../entities/registry";
+import { EventBus } from "../game/EventBus";
 
 const BUILD_RANGE = 1.5;
 const BASE_BUILD_RATE = 100;
@@ -87,7 +88,7 @@ export function placeBuilding(
 		timber: pool.timber - (def.cost.timber ?? 0),
 		salvage: pool.salvage - (def.cost.salvage ?? 0),
 	});
-	return world.spawn(
+	const building = world.spawn(
 		IsBuilding,
 		UnitType({ type: buildingId }),
 		Faction({ id: ownerFaction.get(Faction)?.id ?? runtimeDef?.faction ?? def.faction }),
@@ -97,6 +98,8 @@ export function placeBuilding(
 		ConstructionProgress({ progress: 0, buildTime: def.buildTime }),
 		OwnedBy(ownerFaction),
 	);
+	EventBus.emit("building-placed", { buildingId });
+	return building;
 }
 
 export function buildingSystem(world: World, delta: number): void {
@@ -114,14 +117,15 @@ export function buildingSystem(world: World, delta: number): void {
 		const newProgress = Math.min(100, cp.progress + (BASE_BUILD_RATE / cp.buildTime) * delta);
 		building.set(ConstructionProgress, { progress: newProgress });
 		if (newProgress >= 100) {
-			activateBuilding(building);
+			activateBuilding(world, building);
 			building.remove(ConstructionProgress);
 			releaseBuilders(world, building);
+			EventBus.emit("building-complete");
 		}
 	}
 }
 
-function activateBuilding(building: ReturnType<World["spawn"]>): void {
+function activateBuilding(world: World, building: ReturnType<World["spawn"]>): void {
 	const unitType = building.get(UnitType);
 	if (!unitType) return;
 	const runtimeDef = getBuilding(unitType.type);
@@ -140,6 +144,12 @@ function activateBuilding(building: ReturnType<World["spawn"]>): void {
 				timer: 0,
 			}),
 		);
+	}
+	if (runtimeDef.populationCapacity != null && runtimeDef.populationCapacity > 0) {
+		const pop = world.get(PopulationState);
+		if (pop) {
+			world.set(PopulationState, { max: pop.max + runtimeDef.populationCapacity });
+		}
 	}
 }
 

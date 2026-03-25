@@ -1,8 +1,8 @@
 /**
  * CommandButtons — Mobile command button strip.
  *
- * Large, touch-friendly (56px) command buttons for mobile HUD.
- * Bold Lyra-style icons. Thick outlines for mobile readability.
+ * US-061: All interactive buttons enforce minimum 44x44px touch targets.
+ * Bold labels with thick outlines for mobile readability.
  */
 import { cn } from "@/ui/lib/utils";
 
@@ -26,8 +26,8 @@ export function CommandButtons({ commands, onCommand }: CommandButtonsProps) {
 					type="button"
 					onClick={() => onCommand(cmd.id)}
 					className={cn(
-						"flex h-14 w-14 flex-col items-center justify-center",
-						"border-2 border-border bg-secondary",
+						"flex min-h-[44px] min-w-[44px] flex-col items-center justify-center",
+						"rounded-none border-2 border-border bg-secondary px-3",
 						"font-heading text-[10px] uppercase tracking-wider text-secondary-foreground",
 						"active:border-accent active:text-accent",
 					)}

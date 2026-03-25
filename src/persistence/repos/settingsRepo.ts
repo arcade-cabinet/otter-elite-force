@@ -10,41 +10,50 @@ import { getDatabase } from "../database";
 
 export interface Settings {
 	id: number;
+	master_volume: number;
 	music_volume: number;
 	sfx_volume: number;
 	haptics_enabled: number;
 	camera_speed: number;
+	ui_scale: number;
 	touch_mode: "auto" | "one_finger_select" | "two_finger_pan";
 	show_grid: number;
 	reduce_fx: number;
 }
 
 const DEFAULTS: Omit<Settings, "id"> = {
+	master_volume: 1.0,
 	music_volume: 0.7,
 	sfx_volume: 1.0,
 	haptics_enabled: 1,
 	camera_speed: 1.0,
+	ui_scale: 1.0,
 	touch_mode: "auto",
 	show_grid: 0,
 	reduce_fx: 0,
 };
 
+const ALL_COLUMNS =
+	"id, master_volume, music_volume, sfx_volume, haptics_enabled, camera_speed, ui_scale, touch_mode, show_grid, reduce_fx";
+
 /** Ensure the singleton settings row exists with defaults. */
 export async function ensureSettings(): Promise<void> {
 	const db = getDatabase();
 	const existing = await db.query<Settings>(
-		"SELECT id, music_volume, sfx_volume, haptics_enabled, camera_speed, touch_mode, show_grid, reduce_fx FROM settings WHERE id = ?",
+		`SELECT ${ALL_COLUMNS} FROM settings WHERE id = ?`,
 		[1],
 	);
 	if (existing.length === 0) {
 		await db.execute(
-			"INSERT INTO settings (id, music_volume, sfx_volume, haptics_enabled, camera_speed, touch_mode, show_grid, reduce_fx) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO settings (id, master_volume, music_volume, sfx_volume, haptics_enabled, camera_speed, ui_scale, touch_mode, show_grid, reduce_fx) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			[
 				1,
+				DEFAULTS.master_volume,
 				DEFAULTS.music_volume,
 				DEFAULTS.sfx_volume,
 				DEFAULTS.haptics_enabled,
 				DEFAULTS.camera_speed,
+				DEFAULTS.ui_scale,
 				DEFAULTS.touch_mode,
 				DEFAULTS.show_grid,
 				DEFAULTS.reduce_fx,
@@ -56,10 +65,7 @@ export async function ensureSettings(): Promise<void> {
 /** Load the settings row. Returns undefined if not yet seeded. */
 export async function loadSettings(): Promise<Settings | undefined> {
 	const db = getDatabase();
-	const rows = await db.query<Settings>(
-		"SELECT id, music_volume, sfx_volume, haptics_enabled, camera_speed, touch_mode, show_grid, reduce_fx FROM settings WHERE id = ?",
-		[1],
-	);
+	const rows = await db.query<Settings>(`SELECT ${ALL_COLUMNS} FROM settings WHERE id = ?`, [1]);
 	return rows[0];
 }
 

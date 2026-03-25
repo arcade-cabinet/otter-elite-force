@@ -46,13 +46,16 @@ Owns command-post and front-door UX, especially:
 
 Owns tactical overlays such as:
 
-- resource bar
-- action bar
+- resource bar (with screen reader aria-labels)
+- action bar (with MilitaryTooltip on train/research buttons)
 - minimap
 - unit panel
 - alert banner
 - combat text
 - command transmission panel for diegetic mission intro dialogue
+- tutorial overlay (dismissible prompts for missions 1-4)
+- error feedback (command-error event listener, auto-dismissing)
+- military tooltip (Radix UI with dark bg / stencil header / typewriter body)
 
 ## Gameplay Layer
 
@@ -97,9 +100,21 @@ Key singleton traits include:
 Current product-facing screens are:
 
 - `menu`
+- `campaign`
 - `game`
 - `victory`
 - `settings`
+
+### Accessibility Traits
+
+- `UserSettings.skipTutorials` — disables tutorial prompts
+- `UserSettings.reduceFx` — reduces visual effects
+
+### CSS Accessibility
+
+- `prefers-reduced-motion: reduce` disables typewriter, camo drift, radar sweep, canvas grain, screen noise, and all transitions/animations
+- `:focus-visible` shows accent-colored outline on interactive elements
+- WCAG AA contrast validated across all three themes (see `docs/architecture/wcag-contrast-audit.md`)
 
 ## Asset Pipeline
 

@@ -1,5 +1,5 @@
 /**
- * Mission 15: Sacred Sludge — All-out War
+ * Mission 15: Serpent's Lair — All-out War
  *
  * Largest map in the game. Full army vs full army.
  * Sludge flood timer creates urgency — toxic terrain spreads from
@@ -11,13 +11,13 @@
 import type { Scenario } from "../../types";
 
 export const mission15SacredSludge: Scenario = {
-	id: "mission-15-sacred-sludge",
+	id: "mission-15-serpents-lair",
 	chapter: 4,
 	mission: 15,
-	name: "Sacred Sludge",
+	name: "Serpent's Lair",
 
 	briefing: {
-		title: "Operation Sacred Sludge",
+		title: "Operation Serpent's Lair",
 		lines: [
 			{
 				portrait: "gen-whiskers",

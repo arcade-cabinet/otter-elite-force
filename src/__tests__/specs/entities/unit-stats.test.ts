@@ -735,12 +735,12 @@ describe("URA Heroes", () => {
 // ===========================================================================
 
 describe("Unit aggregates", () => {
-	it("has 14 trainable units (7 URA + 7 Scale-Guard)", () => {
+	it("has 15 trainable units (7 URA + 8 Scale-Guard)", () => {
 		if (skipIfNotLoaded()) return;
 		const uraUnits = Object.values(units).filter((u) => u.faction === "ura");
 		const sgUnits = Object.values(units).filter((u) => u.faction === "scale_guard");
 		expect(uraUnits).toHaveLength(7);
-		expect(sgUnits).toHaveLength(7);
+		expect(sgUnits).toHaveLength(8);
 	});
 
 	it("has 6 heroes", () => {
@@ -817,6 +817,7 @@ describe("Unit aggregates", () => {
 			"scout_lizard",
 			"croc_champion",
 			"siphon_drone",
+			"serpent_king",
 		];
 		for (const id of sgIds) {
 			expect(units[id]?.faction).toBe("scale_guard");

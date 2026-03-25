@@ -3,7 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-export default defineConfig({
+export default defineConfig(({ mode: _mode }) => ({
 	plugins: [react(), tailwindcss()],
 	base: "./",
 	resolve: {
@@ -18,12 +18,16 @@ export default defineConfig({
 		rollupOptions: {
 			output: {
 				manualChunks: {
+					// Heavy game dependencies — loaded lazily via dynamic import
 					phaser: ["phaser"],
 					tone: ["tone"],
+					// Lighter deps — loaded with the initial bundle or game chunk
 					yuka: ["yuka"],
 					koota: ["koota"],
 				},
 			},
 		},
+		// US-089: Report gzip sizes for audit
+		reportCompressedSize: true,
 	},
-});
+}));

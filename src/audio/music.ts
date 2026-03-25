@@ -7,7 +7,7 @@
 
 import * as Tone from "tone";
 
-export type MusicTrackId = "menuTrack" | "combatTrack";
+export type MusicTrackId = "menuTrack" | "ambientTrack" | "combatTrack" | "briefingTrack";
 
 export interface MusicPlayer {
 	play(track: MusicTrackId, volume: number): void;
@@ -140,6 +140,69 @@ export function createMusicPlayer(): MusicPlayer {
 		transport.start();
 	}
 
+	function startAmbientTrack(volume: number): void {
+		const transport = Tone.getTransport();
+		transport.bpm.value = 60;
+
+		// Sparse ambient pads — calm riverine atmosphere
+		const padSynth = new Tone.PolySynth(Tone.Synth, {
+			oscillator: { type: "sine" },
+			envelope: { attack: 1.2, decay: 2.0, sustain: 0.3, release: 3.0 },
+		}).toDestination();
+		padSynth.volume.value = Tone.gainToDb(Math.max(0.001, volume * 0.7));
+		synths.push(padSynth);
+
+		const chords = [
+			["G3", "B3", "D4"],
+			["F3", "A3", "C4"],
+			["E3", "G3", "B3"],
+			["D3", "F3", "A3"],
+		];
+
+		const padSequence = new Tone.Sequence(
+			(time, chord) => {
+				if (chord) {
+					padSynth.triggerAttackRelease(chord, "1n", time);
+				}
+			},
+			chords,
+			"1n",
+		);
+		padSequence.loop = true;
+		activeParts.push(padSequence);
+		padSequence.start(0);
+		transport.start();
+	}
+
+	function startBriefingTrack(volume: number): void {
+		const transport = Tone.getTransport();
+		transport.bpm.value = 80;
+
+		// Military snare march feel with muted brass-like synth
+		const brassSynth = new Tone.PolySynth(Tone.Synth, {
+			oscillator: { type: "sawtooth" },
+			envelope: { attack: 0.3, decay: 0.8, sustain: 0.2, release: 1.0 },
+		}).toDestination();
+		brassSynth.volume.value = Tone.gainToDb(Math.max(0.001, volume * 0.5));
+		synths.push(brassSynth);
+
+		const notes = [["D3", "F3"], null, ["C3", "E3"], null, ["Bb2", "D3"], null, ["A2", "C3"], null];
+
+		const brassSequence = new Tone.Sequence(
+			(time, chord) => {
+				if (chord) {
+					brassSynth.triggerAttackRelease(chord, "4n", time);
+				}
+			},
+			notes,
+			"4n",
+		);
+		brassSequence.loop = true;
+		activeParts.push(brassSequence);
+		brassSequence.start(0);
+		transport.start();
+	}
+
 	return {
 		play(track: MusicTrackId, volume: number): void {
 			if (currentTrack === track) return;
@@ -148,8 +211,12 @@ export function createMusicPlayer(): MusicPlayer {
 
 			if (track === "menuTrack") {
 				startMenuTrack(volume);
+			} else if (track === "ambientTrack") {
+				startAmbientTrack(volume);
 			} else if (track === "combatTrack") {
 				startCombatTrack(volume);
+			} else if (track === "briefingTrack") {
+				startBriefingTrack(volume);
 			}
 		},
 
