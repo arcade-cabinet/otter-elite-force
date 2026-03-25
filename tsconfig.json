@@ -64,7 +64,8 @@
 		"src/sprites/atlas.ts",
 		"src/sprites/types.ts",
 		"src/scenarios",
-		"src/types"
+		"src/types",
+		"src/rendering"
 	],
 	"exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
 }
