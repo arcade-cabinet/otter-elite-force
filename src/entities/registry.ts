@@ -74,7 +74,6 @@ const URA_UNIT_ENTITIES: Record<string, UnitDef> = {
 	raftsman,
 	mortar_otter: mortarOtter,
 	diver,
-	scout_otter: diver,
 };
 
 // ─── Scale-Guard Units (COMPLETE: 7/7) ───
@@ -158,6 +157,7 @@ export const ALL_PORTRAITS = ALL_PORTRAIT_ENTITIES;
 
 /** Get a unit definition by id. Returns undefined if not found. */
 export function getUnit(id: string): UnitDef | undefined {
+	if (id === "scout_otter") return ALL_UNIT_ENTITIES.diver;
 	return ALL_UNIT_ENTITIES[id];
 }
 

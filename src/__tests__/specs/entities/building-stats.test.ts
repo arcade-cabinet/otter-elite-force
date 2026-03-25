@@ -633,15 +633,15 @@ describe("Building aggregates", () => {
 		expect(ura).toHaveLength(12);
 	});
 
-	it("has 5 Scale-Guard buildings", () => {
+	it("has 9 Scale-Guard buildings", () => {
 		if (skip()) return;
 		const sg = Object.values(buildings).filter((b) => b.faction === "scale_guard");
-		expect(sg).toHaveLength(5);
+		expect(sg).toHaveLength(9);
 	});
 
-	it("total is 17 buildings", () => {
+	it("total is 21 buildings", () => {
 		if (skip()) return;
-		expect(Object.keys(buildings)).toHaveLength(17);
+		expect(Object.keys(buildings)).toHaveLength(21);
 	});
 
 	it("every building id matches its key", () => {
