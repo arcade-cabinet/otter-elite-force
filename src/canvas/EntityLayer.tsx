@@ -16,10 +16,11 @@
 
 import { useQuery } from "koota/react";
 import { useMemo } from "react";
-import { Ellipse, Group, Image, Rect } from "react-konva";
+import { Circle, Ellipse, Group, Image, Line, Rect } from "react-konva";
 import { Health } from "@/ecs/traits/combat";
-import { ConstructionProgress } from "@/ecs/traits/economy";
-import { Selected, UnitType } from "@/ecs/traits/identity";
+import { ConstructionProgress, Gatherer } from "@/ecs/traits/economy";
+import { IsBuilding, IsProjectile, Selected, UnitType } from "@/ecs/traits/identity";
+import { RallyPoint } from "@/ecs/traits/orders";
 import { FacingDirection, Position } from "@/ecs/traits/spatial";
 import { getSprite } from "@/canvas/spriteGen";
 
@@ -42,6 +43,25 @@ const SELECTION_RY = 8;
 
 /** Viewport padding for frustum culling (pixels beyond viewport edge). */
 const CULL_PADDING = 64;
+
+/** Projectile rendering. */
+const PROJECTILE_RADIUS = 3;
+const PROJECTILE_COLOR = "#facc15";
+
+/** Resource carrying pip. */
+const PIP_WIDTH = 6;
+const PIP_HEIGHT = 4;
+const PIP_OFFSET_Y = -10;
+
+/** Resource type → pip color. */
+const RESOURCE_COLORS: Record<string, string> = {
+  fish: "#38bdf8",
+  timber: "#a3e635",
+  salvage: "#fb923c",
+};
+
+/** Rally line styling. */
+const RALLY_DASH = [4, 4];
 
 // ─── HP bar color helper ───
 
@@ -74,6 +94,7 @@ export interface EntityLayerProps {
  */
 export function EntityLayer({ camX, camY, viewportW, viewportH }: EntityLayerProps) {
   const entities = useQuery(Position, UnitType);
+  const projectiles = useQuery(Position, IsProjectile);
 
   // Sort by Y for depth ordering + frustum cull
   const visible = useMemo(() => {
@@ -97,11 +118,41 @@ export function EntityLayer({ camX, camY, viewportW, viewportH }: EntityLayerPro
       });
   }, [entities, camX, camY, viewportW, viewportH]);
 
+  // Frustum-cull projectiles
+  const visibleProjectiles = useMemo(() => {
+    const minX = camX - CULL_PADDING;
+    const maxX = camX + viewportW + CULL_PADDING;
+    const minY = camY - CULL_PADDING;
+    const maxY = camY + viewportH + CULL_PADDING;
+
+    return [...projectiles].filter((e) => {
+      const pos = e.get(Position);
+      if (!pos) return false;
+      const wx = pos.x * TILE_SIZE;
+      const wy = pos.y * TILE_SIZE;
+      return wx >= minX && wx <= maxX && wy >= minY && wy <= maxY;
+    });
+  }, [projectiles, camX, camY, viewportW, viewportH]);
+
   return (
     <Group x={-camX} y={-camY}>
       {visible.map((entity) => (
         <EntityNode key={entity.id()} entity={entity} />
       ))}
+      {visibleProjectiles.map((proj) => {
+        const pos = proj.get(Position);
+        if (!pos) return null;
+        return (
+          <Circle
+            key={proj.id()}
+            x={pos.x * TILE_SIZE + TILE_SIZE / 2}
+            y={pos.y * TILE_SIZE + TILE_SIZE / 2}
+            radius={PROJECTILE_RADIUS}
+            fill={PROJECTILE_COLOR}
+            listening={false}
+          />
+        );
+      })}
     </Group>
   );
 }
@@ -147,6 +198,15 @@ function EntityNode({ entity }: EntityNodeProps) {
   const health = entity.has(Health) ? entity.get(Health) : null;
   const isDamaged = health != null && health.current < health.max;
   const hpRatio = health ? health.current / health.max : 1;
+
+  // Resource carrying state (workers)
+  const gatherer = entity.has(Gatherer) ? entity.get(Gatherer) : null;
+  const isCarrying = gatherer != null && gatherer.amount > 0 && gatherer.carrying !== "";
+  const pipColor = isCarrying ? (RESOURCE_COLORS[gatherer.carrying] ?? "#a1a1aa") : "";
+
+  // Rally point (selected buildings only)
+  const isBuilding = entity.has(IsBuilding);
+  const rallyPoint = isSelected && isBuilding && entity.has(RallyPoint) ? entity.get(RallyPoint) : null;
 
   // Touch hitbox: ensure minimum 50×50
   const hitW = Math.max(spriteW, MIN_HITBOX);
@@ -210,6 +270,36 @@ function EntityNode({ entity }: EntityNodeProps) {
             listening={false}
           />
         </Group>
+      )}
+
+      {/* Resource carrying pip (above HP bar) */}
+      {isCarrying && (
+        <Rect
+          x={(spriteW - PIP_WIDTH) / 2}
+          y={PIP_OFFSET_Y}
+          width={PIP_WIDTH}
+          height={PIP_HEIGHT}
+          fill={pipColor}
+          cornerRadius={1}
+          listening={false}
+        />
+      )}
+
+      {/* Rally point line (dashed, from building center to rally point) */}
+      {rallyPoint && (
+        <Line
+          points={[
+            spriteW / 2,
+            spriteH / 2,
+            rallyPoint.x * TILE_SIZE - wx + TILE_SIZE / 2,
+            rallyPoint.y * TILE_SIZE - wy + TILE_SIZE / 2,
+          ]}
+          stroke="#22c55e"
+          strokeWidth={1}
+          dash={RALLY_DASH}
+          opacity={0.7}
+          listening={false}
+        />
       )}
     </Group>
   );

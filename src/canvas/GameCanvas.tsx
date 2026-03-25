@@ -22,6 +22,8 @@ import { spawnBuilding, spawnResource, spawnUnit } from "@/entities/spawner";
 import type { MissionDef, Placement } from "@/entities/types";
 import type { DeploymentData } from "@/game/deployment";
 
+import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
+
 import { EntityLayer } from "./EntityLayer";
 import { MinimapLayer } from "./MinimapLayer";
 import { OverlayLayer } from "./OverlayLayer";
@@ -197,6 +199,14 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
         worldH={worldH}
         terrainCanvas={terrainCanvas}
         setPosition={setPosition}
+      />
+
+      {/* Floating combat/resource text — positioned absolutely over canvas */}
+      <CombatTextOverlay
+        camX={camera.x}
+        camY={camera.y}
+        viewportW={size.width}
+        viewportH={size.height}
       />
     </div>
   );

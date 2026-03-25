@@ -32,7 +32,6 @@ import {
 	ToggleSetting,
 } from "@/ui/command-post/SettingsControls";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
-import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
 import { ErrorFeedback } from "@/ui/hud/ErrorFeedback";
 import { PauseOverlay } from "@/ui/hud/PauseOverlay";
 import { TutorialOverlay } from "@/ui/hud/TutorialOverlay";
@@ -181,7 +180,6 @@ function GameplayScreen() {
 	return (
 		<GameLayout>
 			<GameCanvas deploymentData={deploymentData} />
-			<CombatTextOverlay />
 			<TutorialOverlay missionId={currentMission} />
 			<ErrorFeedback />
 			{isPaused && pauseView === "pause" ? (

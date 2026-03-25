@@ -5,7 +5,6 @@ import { ResourceNode } from "@/ecs/traits/economy";
 import { IsBuilding, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 import { ResourcePool } from "@/ecs/traits/state";
-import { EventBus } from "@/game/EventBus";
 
 const TILE_SIZE = 32;
 const FLOAT_LIFETIME_MS = 900;
@@ -19,28 +18,25 @@ interface Floater {
 	createdAt: number;
 }
 
-export function CombatTextOverlay() {
+export interface CombatTextOverlayProps {
+	/** Camera X offset in world pixels. */
+	camX: number;
+	/** Camera Y offset in world pixels. */
+	camY: number;
+	/** Viewport width in pixels. */
+	viewportW: number;
+	/** Viewport height in pixels. */
+	viewportH: number;
+}
+
+export function CombatTextOverlay({ camX, camY, viewportW, viewportH }: CombatTextOverlayProps) {
 	const world = useWorld();
-	const sceneRef = useRef<{ cameras: { main: { scrollX: number; scrollY: number; zoom: number; width: number; height: number; worldView: { x: number; y: number; width: number; height: number } } }; scene: { key: string } } | null>(null);
 	const previousHealth = useRef(new Map<number, number>());
 	const previousResources = useRef(new Map<number, number>());
 	const previousPool = useRef<{ fish: number; timber: number; salvage: number } | null>(null);
 	const floatersRef = useRef<Floater[]>([]);
 	const [floaters, setFloaters] = useState<Floater[]>([]);
 	const floaterId = useRef(0);
-
-	useEffect(() => {
-		const onSceneReady = (scene: { scene: { key: string }; cameras: { main: { scrollX: number; scrollY: number; zoom: number; width: number; height: number; worldView: { x: number; y: number; width: number; height: number } } } }) => {
-			if (scene.scene.key === "Game") {
-				sceneRef.current = scene;
-			}
-		};
-
-		EventBus.on("current-scene-ready", onSceneReady);
-		return () => {
-			EventBus.off("current-scene-ready", onSceneReady);
-		};
-	}, []);
 
 	useEffect(() => {
 		let frameId = 0;
@@ -160,22 +156,19 @@ export function CombatTextOverlay() {
 		return () => cancelAnimationFrame(frameId);
 	}, [world]);
 
-	const camera = sceneRef.current?.cameras.main;
-
 	return (
 		<div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
 			{floaters.map((floater) => {
-				if (!camera) return null;
 				const age = performance.now() - floater.createdAt;
 				const progress = age / FLOAT_LIFETIME_MS;
-				const screenX = (floater.worldX * TILE_SIZE - camera.worldView.x) * camera.zoom;
-				const screenY = (floater.worldY * TILE_SIZE - camera.worldView.y) * camera.zoom;
+				const screenX = floater.worldX * TILE_SIZE - camX;
+				const screenY = floater.worldY * TILE_SIZE - camY;
 
 				if (
 					screenX < -32 ||
 					screenY < -32 ||
-					screenX > camera.width + 32 ||
-					screenY > camera.height + 32
+					screenX > viewportW + 32 ||
+					screenY > viewportH + 32
 				) {
 					return null;
 				}
