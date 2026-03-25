@@ -9,18 +9,24 @@
  * - Spawns entities from deploymentData on mount
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Layer, Stage } from "react-konva";
 import { useWorld } from "koota/react";
 import type { World } from "koota";
 
 import { resetSessionState } from "@/ecs/singletons";
-import { CurrentMission, GamePhase, PopulationState, ResourcePool } from "@/ecs/traits/state";
+import { Health } from "@/ecs/traits/combat";
+import { Faction, IsBuilding, UnitType } from "@/ecs/traits/identity";
+import { CurrentMission, DialogueState, GamePhase, Objectives, PopulationState, ResourcePool } from "@/ecs/traits/state";
 import { getMissionById } from "@/entities/missions";
+import { compileMissionScenario } from "@/entities/missions/compileMissionScenario";
 import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
 import { spawnBuilding, spawnResource, spawnUnit } from "@/entities/spawner";
 import type { MissionDef, Placement } from "@/entities/types";
 import type { DeploymentData } from "@/game/deployment";
+import { EventBus } from "@/game/EventBus";
+import { ScenarioEngine, type ActionHandler, type ScenarioWorldQuery } from "@/scenarios/engine";
+import type { TriggerAction } from "@/scenarios/types";
 
 import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
 
@@ -153,15 +159,109 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
     [mission],
   );
 
+  // ─── Scenario Engine ───
+
+  const scenarioRef = useRef<{ engine: ScenarioEngine; worldQuery: ScenarioWorldQuery } | null>(null);
+
+  // Action handler for scenario trigger actions
+  const handleAction = useCallback((action: TriggerAction) => {
+    if (action.type === "spawnUnits") {
+      const unitDef = getUnit(action.unitType) ?? getHero(action.unitType);
+      if (unitDef) {
+        for (let i = 0; i < (action.count ?? 1); i++) {
+          spawnUnit(world, unitDef, action.position.x + (Math.random() - 0.5) * 2, action.position.y + (Math.random() - 0.5) * 2, action.faction);
+        }
+      }
+    } else if (action.type === "showDialogue") {
+      EventBus.emit("hud-alert", { message: `${action.speaker}: ${action.text}`, severity: "info" });
+    } else if (action.type === "showDialogueExchange") {
+      world.set(DialogueState, {
+        active: true,
+        lines: action.lines,
+        currentLine: 0,
+        pauseGame: action.pauseGame ?? true,
+        triggerId: null,
+      });
+      if (action.pauseGame !== false) {
+        world.set(GamePhase, { phase: "paused" });
+      }
+    } else if (action.type === "victory") {
+      EventBus.emit("mission-complete", { missionId: missionKey, stars: 1, stats: {} });
+    } else if (action.type === "failMission") {
+      EventBus.emit("mission-failed", { reason: action.reason });
+    }
+  }, [world, missionKey]);
+
   useEffect(() => {
     if (initRef.current || !mission) return;
     initRef.current = true;
     initMission(world, mission);
     setBounds({ worldW: worldW, worldH: worldH });
-  }, [world, mission, setBounds, worldW, worldH]);
 
-  // Game loop
-  useGameLoop(world, { width: size.width, height: size.height });
+    // Compile and start scenario engine
+    const scenario = compileMissionScenario(mission);
+    const engine = new ScenarioEngine(scenario, handleAction as ActionHandler);
+
+    // Set objectives in ECS
+    world.set(Objectives, {
+      list: scenario.objectives.map((o) => ({
+        id: o.id,
+        description: o.description,
+        status: o.status,
+        bonus: o.type === "bonus",
+      })),
+    });
+
+    // Create world query adapter for the scenario engine
+    const worldQuery: ScenarioWorldQuery = {
+      elapsedTime: 0,
+      countUnits: (faction, unitType) => {
+        let count = 0;
+        for (const e of world.query(Faction, Health)) {
+          if (e.get(Faction)?.id !== faction) continue;
+          if (unitType && e.get(UnitType)?.type !== unitType) continue;
+          count++;
+        }
+        return count;
+      },
+      countBuildings: (faction, buildingType) => {
+        let count = 0;
+        for (const e of world.query(Faction, UnitType, Health, IsBuilding)) {
+          if (e.get(Faction)?.id !== faction) continue;
+          if (buildingType && e.get(UnitType)?.type !== buildingType) continue;
+          count++;
+        }
+        return count;
+      },
+      countUnitsInArea: () => 0, // TODO: implement with zone lookup
+      isBuildingDestroyed: () => false,
+      getEntityHealthPercent: () => null,
+    };
+
+    // Listen for scenario events
+    engine.on((event) => {
+      if (event.type === "objectiveCompleted") {
+        EventBus.emit("hud-alert", { message: `Objective: ${event.objectiveId}`, severity: "info" });
+      } else if (event.type === "allObjectivesCompleted") {
+        EventBus.emit("hud-alert", { message: "All objectives complete!", severity: "info" });
+      } else if (event.type === "missionFailed") {
+        EventBus.emit("hud-alert", { message: `Mission failed: ${event.reason}`, severity: "critical" });
+      }
+    });
+
+    scenarioRef.current = { engine, worldQuery };
+  }, [world, mission, setBounds, worldW, worldH, handleAction]);
+
+  // Game loop — pass scenario engine to tickAllSystems
+  const scenarioEngine = scenarioRef.current?.engine ?? null;
+  const scenarioWorldQuery = scenarioRef.current?.worldQuery ?? null;
+
+  useGameLoop(world, {
+    width: size.width,
+    height: size.height,
+    scenarioEngine,
+    scenarioWorldQuery,
+  });
 
   return (
     <div

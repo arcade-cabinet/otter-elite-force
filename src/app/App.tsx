@@ -32,13 +32,16 @@ import {
 	ToggleSetting,
 } from "@/ui/command-post/SettingsControls";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
+import { AlertBanner } from "@/ui/hud/AlertBanner";
 import { ErrorFeedback } from "@/ui/hud/ErrorFeedback";
 import { PauseOverlay } from "@/ui/hud/PauseOverlay";
-import { TutorialOverlay } from "@/ui/hud/TutorialOverlay";
+import { BriefingDialogue } from "@/ui/BriefingDialogue";
 import { GameLayout } from "@/ui/GameLayout";
 import { BriefingShell } from "@/ui/layout/shells";
 import { cn } from "@/ui/lib/utils";
 import { GameCanvas } from "@/canvas/GameCanvas";
+import { DialogueState } from "@/ecs/traits/state";
+import { getMissionById } from "@/entities/missions";
 
 initSingletons(world);
 
@@ -100,6 +103,7 @@ function GameplayScreen() {
 	const w = useWorld();
 	const campaign = useTrait(w, CampaignProgress);
 	const gamePhase = useTrait(w, GamePhase);
+	const dialogueState = useTrait(w, DialogueState);
 	const isPaused = gamePhase?.phase === "paused";
 	const currentMission = campaign?.currentMission ?? "mission_1";
 	const difficulty = (campaign?.difficulty ?? "support") as DifficultyMode;
@@ -108,6 +112,17 @@ function GameplayScreen() {
 		[currentMission, difficulty],
 	);
 	const [pauseView, setPauseView] = useState<"pause" | "settings">("pause");
+
+	// Mission briefing state — shows before gameplay starts
+	const [briefingDone, setBriefingDone] = useState(false);
+	const mission = useMemo(() => getMissionById(currentMission), [currentMission]);
+	const briefingLines = useMemo(
+		() => mission?.briefing?.lines?.map((l) => ({
+			speaker: l.speaker,
+			text: l.text,
+		})) ?? [],
+		[mission],
+	);
 
 	// US-020: Pause/Resume wiring
 	const handleResume = useCallback(() => {
@@ -177,10 +192,48 @@ function GameplayScreen() {
 		};
 	}, [w]);
 
+	// Handle mission start: show briefing before gameplay
+	if (!briefingDone && briefingLines.length > 0) {
+		return (
+			<BriefingDialogue
+				missionName={mission?.name ?? "Mission"}
+				subtitle={mission?.subtitle}
+				lines={briefingLines}
+				onComplete={() => {
+					setBriefingDone(true);
+					w.set(GamePhase, { phase: "playing" });
+				}}
+				isMissionBriefing
+			/>
+		);
+	}
+
+	// Handle mid-mission dialogue exchanges (from scenario triggers)
+	if (dialogueState?.active && dialogueState.lines.length > 0) {
+		return (
+			<>
+				<GameLayout>
+					<GameCanvas deploymentData={deploymentData} />
+				</GameLayout>
+				<BriefingDialogue
+					missionName={mission?.name ?? ""}
+					lines={dialogueState.lines}
+					onComplete={() => {
+						w.set(DialogueState, { active: false, lines: [], currentLine: 0, pauseGame: true, triggerId: null });
+						if (dialogueState.pauseGame) {
+							w.set(GamePhase, { phase: "playing" });
+						}
+					}}
+					isMissionBriefing={false}
+				/>
+			</>
+		);
+	}
+
 	return (
 		<GameLayout>
 			<GameCanvas deploymentData={deploymentData} />
-			<TutorialOverlay missionId={currentMission} />
+			<AlertBanner />
 			<ErrorFeedback />
 			{isPaused && pauseView === "pause" ? (
 				<PauseOverlay
