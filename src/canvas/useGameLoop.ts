@@ -12,7 +12,7 @@ import { GamePhase } from "@/ecs/traits/state";
 import { type GameLoopContext, tickAllSystems } from "@/systems/gameLoop";
 import type { FogOfWarSystem } from "@/systems/fogSystem";
 import type { WeatherSystem } from "@/systems/weatherSystem";
-import type { DayNightSystem } from "@/systems/dayNightSystem";
+
 import type { ScenarioEngine, ScenarioWorldQuery } from "@/scenarios/engine";
 
 export interface UseGameLoopOptions {
@@ -28,8 +28,6 @@ export interface UseGameLoopOptions {
 	fogSystem?: FogOfWarSystem | null;
 	/** Weather system instance. Null if weather is disabled. */
 	weatherSystem?: WeatherSystem | null;
-	/** Day/night cycle system instance. Null if disabled. */
-	dayNightSystem?: DayNightSystem | null;
 }
 
 export interface UseGameLoopResult {
@@ -89,7 +87,6 @@ export function useGameLoop(world: World, options: UseGameLoopOptions): UseGameL
 					scenarioWorldQuery: opts.scenarioWorldQuery ?? null,
 					fogSystem: opts.fogSystem ?? null,
 					weatherSystem: opts.weatherSystem ?? null,
-					dayNightSystem: opts.dayNightSystem ?? null,
 					elapsedMs: elapsedMsRef.current,
 				};
 

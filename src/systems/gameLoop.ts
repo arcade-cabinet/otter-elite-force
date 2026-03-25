@@ -35,7 +35,7 @@ import type { ScenarioEngine, ScenarioWorldQuery } from "../scenarios/engine";
 import { aiSystem, cleanupAIRunners } from "./aiSystem";
 import { buildingSystem } from "./buildingSystem";
 import { aggroSystem, combatSystem, deathSystem, projectileSystem } from "./combatSystem";
-import type { DayNightSystem } from "./dayNightSystem";
+
 import { chargeTickSystem } from "./demolitionSystem";
 import { economySystem } from "./economySystem";
 import type { FogOfWarSystem } from "./fogSystem";
@@ -69,8 +69,6 @@ export interface GameLoopContext {
 	fogSystem: FogOfWarSystem | null;
 	/** Weather system instance. Null if weather is disabled. */
 	weatherSystem: WeatherSystem | null;
-	/** Day/night cycle system instance. Null if disabled. */
-	dayNightSystem: DayNightSystem | null;
 	/** Current game clock elapsed time in ms (for day/night cycle). */
 	elapsedMs: number;
 }
@@ -138,10 +136,7 @@ export function tickAllSystems(ctx: GameLoopContext): void {
 		ctx.weatherSystem.updateSchedule(delta);
 	}
 
-	// 12. Day/Night — update cycle overlay and vision multiplier
-	if (ctx.dayNightSystem) {
-		ctx.dayNightSystem.update(ctx.elapsedMs);
-	}
+	// 12. (Day/Night removed — bright battlefield, fog handles visibility)
 
 	// 13. Fog of War — update visibility overlay
 	if (ctx.fogSystem) {

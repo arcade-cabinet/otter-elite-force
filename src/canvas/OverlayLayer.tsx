@@ -2,14 +2,14 @@
  * OverlayLayer — visual overlays rendered above entities.
  *
  * Responsibilities:
- * - Day/night tint: full-screen color rect interpolated from GameClock time
  * - Weather particles: rain/monsoon lines when WeatherCondition is active
  * - Selection box: green translucent rect during drag-select
  * - Placement ghost: semi-transparent building tile following cursor with validity tint
  *
- * All overlays are pointer-events-none (listening={false} on the Layer).
+ * Day/night cycle REMOVED — classic RTS keeps the battlefield bright and readable.
+ * Fog of war handles "unknown territory" without dimming the whole screen.
  *
- * NOTE: react-konva is not yet installed (US-R11) — expect module resolution errors.
+ * All overlays are pointer-events-none (listening={false} on the Layer).
  */
 
 import { useMemo } from "react";
@@ -19,65 +19,8 @@ import { GameClock, WeatherCondition } from "@/ecs/traits/state";
 
 // ─── Constants ───
 
-/** Full day/night cycle length in game-milliseconds. */
-const DAY_CYCLE_MS = 600_000; // 10 minutes
-
 /** Grid cell size in pixels — consistent with other canvas layers. */
 const CELL_SIZE = 32;
-
-// ─── Day/Night color table ───
-
-interface TintStop {
-  /** Fraction of day cycle [0, 1). */
-  t: number;
-  /** RGBA overlay color. */
-  color: string;
-}
-
-/**
- * Tint stops around a 24-hour cycle mapped to [0,1).
- * Dawn ≈ 0.25, noon ≈ 0.5, dusk ≈ 0.75, midnight ≈ 0.0.
- */
-const TINT_STOPS: TintStop[] = [
-  { t: 0.0, color: "rgba(10,10,40,0.55)" },   // midnight
-  { t: 0.2, color: "rgba(10,10,40,0.45)" },   // pre-dawn
-  { t: 0.3, color: "rgba(60,40,20,0.2)" },    // dawn
-  { t: 0.4, color: "rgba(0,0,0,0)" },         // morning
-  { t: 0.5, color: "rgba(0,0,0,0)" },         // noon
-  { t: 0.6, color: "rgba(0,0,0,0)" },         // afternoon
-  { t: 0.7, color: "rgba(60,30,10,0.2)" },    // dusk
-  { t: 0.8, color: "rgba(10,10,40,0.45)" },   // evening
-  { t: 1.0, color: "rgba(10,10,40,0.55)" },   // wrap to midnight
-];
-
-function lerpColor(a: string, b: string, t: number): string {
-  const parse = (c: string) => {
-    const m = c.match(/[\d.]+/g);
-    return m ? m.map(Number) : [0, 0, 0, 0];
-  };
-  const ca = parse(a);
-  const cb = parse(b);
-  const r = Math.round(ca[0] + (cb[0] - ca[0]) * t);
-  const g = Math.round(ca[1] + (cb[1] - ca[1]) * t);
-  const bl = Math.round(ca[2] + (cb[2] - ca[2]) * t);
-  const al = ca[3] + (cb[3] - ca[3]) * t;
-  return `rgba(${r},${g},${bl},${al.toFixed(3)})`;
-}
-
-function getDayNightTint(elapsedMs: number): string {
-  // Offset so elapsedMs=0 maps to noon (t=0.5) instead of midnight (t=0.0)
-  const adjustedMs = elapsedMs + DAY_CYCLE_MS / 2;
-  const frac = (adjustedMs % DAY_CYCLE_MS) / DAY_CYCLE_MS;
-  for (let i = 0; i < TINT_STOPS.length - 1; i++) {
-    const cur = TINT_STOPS[i];
-    const nxt = TINT_STOPS[i + 1];
-    if (frac >= cur.t && frac < nxt.t) {
-      const local = (frac - cur.t) / (nxt.t - cur.t);
-      return lerpColor(cur.color, nxt.color, local);
-    }
-  }
-  return TINT_STOPS[0].color;
-}
 
 // ─── Weather particle generation ───
 
@@ -171,11 +114,9 @@ export function OverlayLayer({
   const clock = useTrait(world, GameClock);
   const weather = useTrait(world, WeatherCondition);
 
-  // Day/night tint color
-  const tintColor = useMemo(
-    () => getDayNightTint(clock?.elapsedMs ?? 0),
-    [clock?.elapsedMs],
-  );
+  // Day/night cycle REMOVED — bright, clear battlefield always.
+  // Classic 90s RTS (StarCraft, WC2, C&C) keeps visibility consistent.
+  // Fog of war handles "unknown territory" without dimming the whole screen.
 
   // Weather rain drops (regenerated each frame via seed from elapsed time)
   const rainDrops = useMemo(() => {
@@ -209,8 +150,7 @@ export function OverlayLayer({
 
   return (
     <Layer listening={false}>
-      {/* Day/night tint overlay */}
-      <Rect x={0} y={0} width={width} height={height} fill={tintColor} listening={false} />
+      {/* No day/night tint — battlefield is always bright and readable */}
 
       {/* Weather particles */}
       {rainDrops.length > 0 && (
