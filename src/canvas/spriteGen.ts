@@ -1,27 +1,33 @@
 /**
  * Procedural sprite generator — Canvas2D fillRect/fillStyle drawing.
  *
- * Follows the POC's SpriteGen.generate() pattern (docs/references/poc_final.html L177-248).
- * Each entity type gets a dedicated drawing function producing pixel-art on an
+ * Maps ALL entity IDs from the ECS registry (src/entities/registry.ts) to
+ * procedural drawing functions. Each entity type gets a dedicated or
+ * category-based fallback drawing function producing pixel-art on an
  * off-screen canvas, then scaled up (units 2.5×, buildings 3×).
  *
  * Usage:
  *   import { initSprites, getSprite, spriteCache } from '@/canvas/spriteGen';
  *   initSprites();            // call once at boot
- *   const canvas = getSprite('gatherer');
+ *   const canvas = getSprite('river_rat');
  */
 
-// ─── POC Palette (matches docs/references/poc_final.html L125-135) ───
+// ─── Palette ───
 
 const PAL = {
+  // Otter / URA faction
   otterBase: '#78350f',
   otterBelly: '#b45309',
   otterNose: '#000000',
+  uraFaction: '#4a7c59',
+  // Scale-Guard faction
   gatorBase: '#166534',
   gatorLight: '#22c55e',
   gatorEye: '#fef08a',
   snakeBase: '#65a30d',
   snakeStripe: '#facc15',
+  sgFaction: '#8b4513',
+  // Environment
   waterDeep: '#0f2b32',
   waterMid: '#11525c',
   waterShallow: '#1e3a5f',
@@ -35,6 +41,17 @@ const PAL = {
   stoneL: '#9ca3af',
   shadow: 'rgba(0,0,0,0.3)',
   black: '#000000',
+  // Building faction tints
+  uraBldg: '#5a5a3a',
+  sgBldg: '#6b3a3a',
+  // Hero accent
+  gold: '#ffd700',
+  // Resource colors
+  fishBlue: '#4488cc',
+  intelGold: '#ffcc00',
+  timberGreen: '#2d5a1e',
+  salvageTan: '#8a7b6b',
+  crateSienna: '#a0522d',
 } as const;
 
 // ─── Drawing helpers ───
@@ -59,9 +76,9 @@ function circle(ctx: Ctx, cx: number, cy: number, r: number, color: string): voi
   }
 }
 
-// ─── Entity drawing functions ───
+// ─── Detailed drawing functions (ported from POC, adapted to real IDs) ───
 
-function drawOtterUnit(ctx: Ctx, type: 'gatherer' | 'brawler' | 'sniper'): void {
+function drawOtterWorker(ctx: Ctx): void {
   rect(ctx, 5, 4, 6, 8, PAL.otterBase);
   rect(ctx, 6, 5, 4, 6, PAL.otterBelly);
   rect(ctx, 5, 2, 6, 4, PAL.otterBase);
@@ -72,16 +89,36 @@ function drawOtterUnit(ctx: Ctx, type: 'gatherer' | 'brawler' | 'sniper'): void 
   rect(ctx, 5, 12, 2, 2, PAL.otterBase);
   rect(ctx, 9, 12, 2, 2, PAL.otterBase);
   rect(ctx, 11, 10, 3, 2, PAL.otterBase);
-  if (type === 'gatherer') { rect(ctx, 3, 5, 2, 2, PAL.clamShell); }
-  if (type === 'brawler') {
-    rect(ctx, 12, 4, 2, 7, PAL.reedBrown);
-    rect(ctx, 6, 1, 4, 2, PAL.clamShell);
-  }
-  if (type === 'sniper') {
-    rect(ctx, 13, 4, 1, 8, PAL.reedBrown);
-    rect(ctx, 12, 4, 1, 1, PAL.stoneL);
-    rect(ctx, 12, 11, 1, 1, PAL.stoneL);
-  }
+  rect(ctx, 3, 5, 2, 2, PAL.clamShell); // carrying basket
+}
+
+function drawOtterInfantry(ctx: Ctx): void {
+  rect(ctx, 5, 4, 6, 8, PAL.otterBase);
+  rect(ctx, 6, 5, 4, 6, PAL.otterBelly);
+  rect(ctx, 5, 2, 6, 4, PAL.otterBase);
+  p(ctx, 6, 3, PAL.black); p(ctx, 9, 3, PAL.black);
+  p(ctx, 7, 4, PAL.otterNose); p(ctx, 8, 4, PAL.otterNose);
+  rect(ctx, 4, 5, 1, 4, PAL.otterBase);
+  rect(ctx, 11, 5, 1, 4, PAL.otterBase);
+  rect(ctx, 5, 12, 2, 2, PAL.otterBase);
+  rect(ctx, 9, 12, 2, 2, PAL.otterBase);
+  rect(ctx, 12, 4, 2, 7, PAL.reedBrown); // weapon
+  rect(ctx, 6, 1, 4, 2, PAL.clamShell);  // helmet
+}
+
+function drawOtterRanged(ctx: Ctx): void {
+  rect(ctx, 5, 4, 6, 8, PAL.otterBase);
+  rect(ctx, 6, 5, 4, 6, PAL.otterBelly);
+  rect(ctx, 5, 2, 6, 4, PAL.otterBase);
+  p(ctx, 6, 3, PAL.black); p(ctx, 9, 3, PAL.black);
+  p(ctx, 7, 4, PAL.otterNose); p(ctx, 8, 4, PAL.otterNose);
+  rect(ctx, 4, 5, 1, 4, PAL.otterBase);
+  rect(ctx, 11, 5, 1, 4, PAL.otterBase);
+  rect(ctx, 5, 12, 2, 2, PAL.otterBase);
+  rect(ctx, 9, 12, 2, 2, PAL.otterBase);
+  rect(ctx, 13, 4, 1, 8, PAL.reedBrown); // rifle
+  rect(ctx, 12, 4, 1, 1, PAL.stoneL);
+  rect(ctx, 12, 11, 1, 1, PAL.stoneL);
 }
 
 function drawGator(ctx: Ctx): void {
@@ -94,7 +131,7 @@ function drawGator(ctx: Ctx): void {
   rect(ctx, 9, 14, 2, 1, PAL.gatorLight);
 }
 
-function drawSnake(ctx: Ctx): void {
+function drawViper(ctx: Ctx): void {
   rect(ctx, 4, 12, 8, 2, PAL.snakeBase);
   rect(ctx, 2, 10, 4, 2, PAL.snakeBase);
   rect(ctx, 10, 10, 4, 2, PAL.snakeBase);
@@ -106,18 +143,56 @@ function drawSnake(ctx: Ctx): void {
   p(ctx, 9, 12, PAL.snakeStripe);
 }
 
-function drawCattail(ctx: Ctx): void {
-  rect(ctx, 7, 4, 2, 10, PAL.reedGreen);
-  rect(ctx, 6, 2, 4, 6, PAL.reedBrown);
-  p(ctx, 7, 1, PAL.otterBase); p(ctx, 8, 1, PAL.otterBase);
-  p(ctx, 8, 12, PAL.reedGreen); p(ctx, 9, 11, PAL.reedGreen);
+// ─── Category-based fallback drawing functions ───
+
+/** Generic unit: colored circle with faction tint + size indicator. */
+function drawFallbackUnit(ctx: Ctx, color: string, size: 'sm' | 'md' | 'lg'): void {
+  const r = size === 'sm' ? 4 : size === 'md' ? 5 : 6;
+  circle(ctx, 8, 8, r, color);
+  p(ctx, 7, 6, PAL.black); p(ctx, 9, 6, PAL.black); // eyes
 }
 
-function drawClambed(ctx: Ctx): void {
-  circle(ctx, 8, 10, 6, PAL.waterShallow);
-  rect(ctx, 5, 9, 2, 2, PAL.clamShell); p(ctx, 6, 9, PAL.stone);
-  rect(ctx, 9, 11, 3, 2, PAL.clamShell); p(ctx, 10, 11, PAL.stone);
-  rect(ctx, 7, 13, 2, 2, PAL.clamShell);
+/** Hero unit: same as faction unit but with gold border. */
+function drawHeroUnit(ctx: Ctx, factionColor: string): void {
+  circle(ctx, 8, 8, 6, factionColor);
+  // Gold border ring
+  for (let a = 0; a < 24; a++) {
+    const angle = (a / 24) * Math.PI * 2;
+    p(ctx, Math.round(8 + Math.cos(angle) * 6), Math.round(8 + Math.sin(angle) * 6), PAL.gold);
+  }
+  p(ctx, 7, 6, PAL.black); p(ctx, 9, 6, PAL.black); // eyes
+  p(ctx, 8, 4, PAL.gold); // star marker
+}
+
+/** Generic building: colored rectangle with faction tint. */
+function drawFallbackBuilding(ctx: Ctx, color: string, size: 'sm' | 'md' | 'lg'): void {
+  const s = size === 'sm' ? 12 : size === 'md' ? 18 : 24;
+  const off = (32 - s) / 2;
+  rect(ctx, off, off, s, s, color);
+  // Door
+  rect(ctx, 14, off + s - 4, 4, 4, PAL.black);
+}
+
+/** Wall segment. */
+function drawWall(ctx: Ctx, color: string): void {
+  rect(ctx, 4, 12, 24, 8, color);
+  rect(ctx, 4, 12, 24, 2, PAL.mudDark);
+}
+
+/** Resource: colored diamond/circle. */
+function drawFallbackResource(ctx: Ctx, color: string): void {
+  circle(ctx, 8, 8, 5, color);
+  // Sparkle
+  p(ctx, 6, 5, '#ffffff'); p(ctx, 10, 5, '#ffffff');
+}
+
+// ─── Detailed building drawing functions (ported from POC) ───
+
+function drawLodge(ctx: Ctx): void {
+  circle(ctx, 16, 20, 14, PAL.mudDark);
+  for (let i = 0; i < 80; i++) p(ctx, 4 + Math.random() * 24, 8 + Math.random() * 24, PAL.mudLight);
+  for (let i = 0; i < 40; i++) rect(ctx, 4 + Math.random() * 22, 10 + Math.random() * 18, 6, 2, PAL.otterBase);
+  rect(ctx, 12, 22, 8, 8, PAL.black);
 }
 
 function drawTower(ctx: Ctx): void {
@@ -128,24 +203,6 @@ function drawTower(ctx: Ctx): void {
   rect(ctx, 14, 22, 4, 8, PAL.black);
   rect(ctx, 14, 12, 4, 2, PAL.black);
 }
-
-function drawPredatorNest(ctx: Ctx): void {
-  circle(ctx, 16, 16, 12, PAL.mudDark);
-  circle(ctx, 16, 18, 8, PAL.black);
-  rect(ctx, 6, 10, 2, 16, PAL.gatorBase);
-  rect(ctx, 24, 12, 2, 14, PAL.gatorBase);
-  rect(ctx, 10, 6, 2, 12, PAL.gatorBase);
-  p(ctx, 14, 16, PAL.gatorEye); p(ctx, 18, 16, PAL.gatorEye);
-}
-
-function drawLodge(ctx: Ctx): void {
-  circle(ctx, 16, 20, 14, PAL.mudDark);
-  for (let i = 0; i < 80; i++) p(ctx, 4 + Math.random() * 24, 8 + Math.random() * 24, PAL.mudLight);
-  for (let i = 0; i < 40; i++) rect(ctx, 4 + Math.random() * 22, 10 + Math.random() * 18, 6, 2, PAL.otterBase);
-  rect(ctx, 12, 22, 8, 8, PAL.black);
-}
-
-
 
 function drawBurrow(ctx: Ctx): void {
   circle(ctx, 16, 24, 8, PAL.mudDark);
@@ -166,34 +223,115 @@ function drawArmory(ctx: Ctx): void {
   rect(ctx, 12, 24, 8, 8, PAL.waterShallow);
 }
 
-// ─── Sprite type registry ───
+function drawPredatorNest(ctx: Ctx): void {
+  circle(ctx, 16, 16, 12, PAL.mudDark);
+  circle(ctx, 16, 18, 8, PAL.black);
+  rect(ctx, 6, 10, 2, 16, PAL.gatorBase);
+  rect(ctx, 24, 12, 2, 14, PAL.gatorBase);
+  rect(ctx, 10, 6, 2, 12, PAL.gatorBase);
+  p(ctx, 14, 16, PAL.gatorEye); p(ctx, 18, 16, PAL.gatorEye);
+}
+
+// ─── Resource drawing functions (ported from POC) ───
+
+function drawFishSpot(ctx: Ctx): void {
+  circle(ctx, 8, 10, 6, PAL.waterShallow);
+  rect(ctx, 5, 9, 2, 2, PAL.clamShell); p(ctx, 6, 9, PAL.stone);
+  rect(ctx, 9, 11, 3, 2, PAL.clamShell); p(ctx, 10, 11, PAL.stone);
+  rect(ctx, 7, 13, 2, 2, PAL.clamShell);
+}
+
+function drawMangroveTree(ctx: Ctx): void {
+  rect(ctx, 7, 4, 2, 10, PAL.reedGreen);
+  rect(ctx, 6, 2, 4, 6, PAL.reedBrown);
+  p(ctx, 7, 1, PAL.otterBase); p(ctx, 8, 1, PAL.otterBase);
+  p(ctx, 8, 12, PAL.reedGreen); p(ctx, 9, 11, PAL.reedGreen);
+}
+
+// ─── Sprite type registry (all 47 IDs from src/entities/registry.ts) ───
 
 /** All entity types that have procedural sprites. */
 export const SPRITE_TYPES = [
-  'gatherer', 'brawler', 'sniper',
-  'gator', 'snake',
-  'cattail', 'clambed',
-  'lodge', 'burrow', 'armory', 'tower', 'predator_nest',
+  // URA units (7)
+  'river_rat', 'mudfoot', 'shellcracker', 'sapper', 'raftsman', 'mortar_otter', 'diver',
+  // Scale-Guard units (8)
+  'skink', 'gator', 'viper', 'snapper', 'scout_lizard', 'croc_champion', 'siphon_drone', 'serpent_king',
+  // Heroes (6)
+  'sgt_bubbles', 'gen_whiskers', 'cpl_splash', 'sgt_fang', 'medic_marina', 'pvt_muskrat',
+  // URA buildings (12)
+  'command_post', 'barracks', 'armory', 'watchtower', 'fish_trap', 'burrow', 'dock',
+  'field_hospital', 'sandbag_wall', 'stone_wall', 'gun_tower', 'minefield',
+  // Scale-Guard buildings (9)
+  'flag_post', 'fuel_tank', 'great_siphon', 'sludge_pit', 'spawning_pool',
+  'venom_spire', 'siphon', 'scale_wall', 'shield_generator',
+  // Resources (5)
+  'fish_spot', 'intel_marker', 'mangrove_tree', 'salvage_cache', 'supply_crate',
 ] as const;
 
 export type SpriteType = (typeof SPRITE_TYPES)[number];
 
-const BUILDING_TYPES = new Set<string>(['lodge', 'burrow', 'armory', 'tower', 'predator_nest']);
+const BUILDING_TYPES = new Set<string>([
+  'command_post', 'barracks', 'armory', 'watchtower', 'fish_trap', 'burrow', 'dock',
+  'field_hospital', 'sandbag_wall', 'stone_wall', 'gun_tower', 'minefield',
+  'flag_post', 'fuel_tank', 'great_siphon', 'sludge_pit', 'spawning_pool',
+  'venom_spire', 'siphon', 'scale_wall', 'shield_generator',
+]);
 
 /** Draw functions keyed by entity type. */
 const DRAW_FNS: Record<SpriteType, (ctx: Ctx) => void> = {
-  gatherer: (ctx) => drawOtterUnit(ctx, 'gatherer'),
-  brawler: (ctx) => drawOtterUnit(ctx, 'brawler'),
-  sniper: (ctx) => drawOtterUnit(ctx, 'sniper'),
+  // URA units — detailed drawings where available, fallbacks for the rest
+  river_rat: drawOtterWorker,
+  mudfoot: drawOtterInfantry,
+  shellcracker: drawOtterRanged,
+  sapper: (ctx) => drawFallbackUnit(ctx, PAL.otterBase, 'md'),
+  raftsman: (ctx) => drawFallbackUnit(ctx, PAL.otterBelly, 'md'),
+  mortar_otter: (ctx) => drawFallbackUnit(ctx, PAL.otterBase, 'lg'),
+  diver: (ctx) => drawFallbackUnit(ctx, PAL.waterMid, 'sm'),
+  // Scale-Guard units
+  skink: (ctx) => drawFallbackUnit(ctx, PAL.gatorLight, 'sm'),
   gator: drawGator,
-  snake: drawSnake,
-  cattail: drawCattail,
-  clambed: drawClambed,
-  lodge: drawLodge,
-  burrow: drawBurrow,
+  viper: drawViper,
+  snapper: (ctx) => drawFallbackUnit(ctx, PAL.gatorBase, 'lg'),
+  scout_lizard: (ctx) => drawFallbackUnit(ctx, PAL.snakeBase, 'sm'),
+  croc_champion: (ctx) => drawFallbackUnit(ctx, PAL.gatorBase, 'lg'),
+  siphon_drone: (ctx) => drawFallbackUnit(ctx, PAL.waterDeep, 'sm'),
+  serpent_king: (ctx) => drawFallbackUnit(ctx, PAL.snakeBase, 'lg'),
+  // Heroes — gold-rimmed faction units
+  sgt_bubbles: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
+  gen_whiskers: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
+  cpl_splash: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
+  sgt_fang: (ctx) => drawHeroUnit(ctx, PAL.sgFaction),
+  medic_marina: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
+  pvt_muskrat: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
+  // URA buildings — detailed where available, fallbacks for rest
+  command_post: drawLodge,
+  barracks: (ctx) => drawFallbackBuilding(ctx, PAL.uraBldg, 'lg'),
   armory: drawArmory,
-  tower: drawTower,
-  predator_nest: drawPredatorNest,
+  watchtower: drawTower,
+  fish_trap: (ctx) => drawFallbackBuilding(ctx, PAL.waterShallow, 'sm'),
+  burrow: drawBurrow,
+  dock: (ctx) => drawFallbackBuilding(ctx, PAL.otterBase, 'md'),
+  field_hospital: (ctx) => drawFallbackBuilding(ctx, PAL.uraBldg, 'md'),
+  sandbag_wall: (ctx) => drawWall(ctx, PAL.mudLight),
+  stone_wall: (ctx) => drawWall(ctx, PAL.stone),
+  gun_tower: drawTower,
+  minefield: (ctx) => drawFallbackBuilding(ctx, PAL.mudDark, 'sm'),
+  // Scale-Guard buildings
+  flag_post: (ctx) => drawFallbackBuilding(ctx, PAL.sgBldg, 'sm'),
+  fuel_tank: (ctx) => drawFallbackBuilding(ctx, PAL.sgBldg, 'md'),
+  great_siphon: (ctx) => drawFallbackBuilding(ctx, PAL.waterDeep, 'lg'),
+  sludge_pit: (ctx) => drawFallbackBuilding(ctx, PAL.mudDark, 'md'),
+  spawning_pool: drawPredatorNest,
+  venom_spire: (ctx) => drawFallbackBuilding(ctx, PAL.snakeBase, 'md'),
+  siphon: (ctx) => drawFallbackBuilding(ctx, PAL.waterDeep, 'sm'),
+  scale_wall: (ctx) => drawWall(ctx, PAL.gatorBase),
+  shield_generator: (ctx) => drawFallbackBuilding(ctx, PAL.sgBldg, 'lg'),
+  // Resources
+  fish_spot: drawFishSpot,
+  intel_marker: (ctx) => drawFallbackResource(ctx, PAL.intelGold),
+  mangrove_tree: drawMangroveTree,
+  salvage_cache: (ctx) => drawFallbackResource(ctx, PAL.salvageTan),
+  supply_crate: (ctx) => drawFallbackResource(ctx, PAL.crateSienna),
 };
 
 // ─── Sprite cache ───
