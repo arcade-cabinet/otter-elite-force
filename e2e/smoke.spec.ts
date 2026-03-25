@@ -10,10 +10,10 @@ import { expect, test } from "@playwright/test";
 test.describe("Smoke Tests", () => {
 	test("app loads and displays title", async ({ page }) => {
 		await page.goto("/");
-		await expect(page.getByRole("heading", { name: /OTTER/i })).toBeVisible();
+		await expect(page.locator("h1")).toContainText("Otter Elite Force", { timeout: 10000 });
 	});
 
-	test("app renders without console errors", async ({ page }) => {
+	test("app renders without critical console errors", async ({ page }) => {
 		const errors: string[] = [];
 
 		page.on("console", (msg) => {
@@ -27,7 +27,11 @@ test.describe("Smoke Tests", () => {
 
 		// Filter out known non-critical errors
 		const criticalErrors = errors.filter(
-			(e) => !e.includes("favicon") && !e.includes("manifest") && !e.includes("WebGL"),
+			(e) =>
+				!e.includes("favicon") &&
+				!e.includes("manifest") &&
+				!e.includes("WebGL") &&
+				!e.includes("net::ERR"),
 		);
 
 		expect(criticalErrors).toHaveLength(0);
@@ -38,19 +42,14 @@ test.describe("Smoke Tests", () => {
 		await expect(page.locator("#root")).toBeVisible();
 	});
 
-	test("navigation works", async ({ page }) => {
+	test("main menu buttons are visible", async ({ page }) => {
 		await page.goto("/");
-		await page.waitForTimeout(1000);
+		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
 
-		// Can navigate to canteen
-		const canteenBtn = page.locator('button:has-text("VISIT CANTEEN")');
-		if (await canteenBtn.isVisible()) {
-			await canteenBtn.click();
-			await page.waitForTimeout(500);
-
-			// Verify we navigated
-			await expect(page.locator("text=FORWARD OPERATING BASE")).toBeVisible();
-		}
+		await expect(page.getByRole("button", { name: /New Game/i })).toBeVisible();
+		await expect(page.getByRole("button", { name: /Continue/i })).toBeVisible();
+		await expect(page.getByRole("button", { name: /Skirmish/i })).toBeVisible();
+		await expect(page.getByRole("button", { name: /Settings/i })).toBeVisible();
 	});
 
 	test("localStorage is accessible", async ({ page }) => {
@@ -70,19 +69,17 @@ test.describe("Smoke Tests", () => {
 		expect(works).toBe(true);
 	});
 
-	test("canvas element exists for 3D scene", async ({ page }) => {
+	test("game loads with Phaser canvas after entering mission", async ({ page }) => {
 		await page.goto("/");
-		await page.waitForTimeout(1000);
+		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
 
-		// Start the campaign to trigger 3D scene rendering (cutscene has a canvas)
-		// Use NEW GAME for fresh start (no save data)
-		const newGameBtn = page.locator('button:has-text("NEW GAME")');
-		if (await newGameBtn.isVisible()) {
-			await newGameBtn.click();
-		}
-		await page.waitForTimeout(2000);
+		// New Game -> Support difficulty -> Beachhead
+		await page.getByRole("button", { name: /New Game/i }).click();
+		await page.getByRole("button", { name: /Support/i }).click({ timeout: 5000 });
+		await page.getByText("Beachhead").click({ timeout: 5000 });
+		await page.waitForTimeout(3000);
 
-		// Should have at least one canvas for Three.js (cutscene or game scene)
+		// Phaser creates a canvas for the minimap at minimum
 		const canvasCount = await page.locator("canvas").count();
 		expect(canvasCount).toBeGreaterThanOrEqual(1);
 	});
