@@ -14,6 +14,7 @@ import { CAMPAIGN } from "@/entities/missions";
 import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
+import { useMusicWiring } from "@/hooks/useMusicWiring";
 import { MainMenu } from "@/ui/command-post/MainMenu";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
 import { AlertBanner } from "@/ui/hud/AlertBanner";
@@ -50,6 +51,9 @@ function AppRouter() {
 
 	// Initialize audio on first user gesture (US-029)
 	useAudioUnlock();
+
+	// Wire music to screen and combat state (US-031)
+	useMusicWiring();
 
 	useEffect(() => {
 		const theme = SCREEN_THEMES[screen] ?? "command-post";

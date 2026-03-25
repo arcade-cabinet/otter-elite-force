@@ -12,7 +12,7 @@ import * as Tone from "tone";
 import { createMusicPlayer, type MusicPlayer } from "./music";
 import { createSFXPlayer, type SFXPlayer, type SFXType } from "./sfx";
 
-export type MusicTrack = "menuTrack" | "combatTrack";
+export type MusicTrack = "menuTrack" | "ambientTrack" | "combatTrack" | "briefingTrack";
 
 export class AudioEngine {
 	private sfxPlayer: SFXPlayer | null = null;
