@@ -33,22 +33,27 @@ const DEFAULTS: Omit<Settings, "id"> = {
 	reduce_fx: 0,
 };
 
+const ALL_COLUMNS =
+	"id, master_volume, music_volume, sfx_volume, haptics_enabled, camera_speed, ui_scale, touch_mode, show_grid, reduce_fx";
+
 /** Ensure the singleton settings row exists with defaults. */
 export async function ensureSettings(): Promise<void> {
 	const db = getDatabase();
 	const existing = await db.query<Settings>(
-		"SELECT id, music_volume, sfx_volume, haptics_enabled, camera_speed, touch_mode, show_grid, reduce_fx FROM settings WHERE id = ?",
+		`SELECT ${ALL_COLUMNS} FROM settings WHERE id = ?`,
 		[1],
 	);
 	if (existing.length === 0) {
 		await db.execute(
-			"INSERT INTO settings (id, music_volume, sfx_volume, haptics_enabled, camera_speed, touch_mode, show_grid, reduce_fx) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO settings (id, master_volume, music_volume, sfx_volume, haptics_enabled, camera_speed, ui_scale, touch_mode, show_grid, reduce_fx) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 			[
 				1,
+				DEFAULTS.master_volume,
 				DEFAULTS.music_volume,
 				DEFAULTS.sfx_volume,
 				DEFAULTS.haptics_enabled,
 				DEFAULTS.camera_speed,
+				DEFAULTS.ui_scale,
 				DEFAULTS.touch_mode,
 				DEFAULTS.show_grid,
 				DEFAULTS.reduce_fx,
@@ -61,7 +66,7 @@ export async function ensureSettings(): Promise<void> {
 export async function loadSettings(): Promise<Settings | undefined> {
 	const db = getDatabase();
 	const rows = await db.query<Settings>(
-		"SELECT id, music_volume, sfx_volume, haptics_enabled, camera_speed, touch_mode, show_grid, reduce_fx FROM settings WHERE id = ?",
+		`SELECT ${ALL_COLUMNS} FROM settings WHERE id = ?`,
 		[1],
 	);
 	return rows[0];
