@@ -45,6 +45,7 @@ import {
 	type TerrainType,
 	type TileMap,
 } from "@/systems/buildingSystem";
+import { DayNightSystem } from "@/systems/dayNightSystem";
 import { FogOfWarSystem } from "@/systems/fogSystem";
 import type { GameLoopContext } from "@/systems/gameLoop";
 import { tickAllSystems } from "@/systems/gameLoop";
@@ -73,6 +74,7 @@ export class GameScene extends Phaser.Scene {
 	private cameraPanSpeed = 400;
 	private fogSystem: FogOfWarSystem | null = null;
 	private weatherSystem: WeatherSystem | null = null;
+	private dayNightSystem: DayNightSystem | null = null;
 	private desktopInput?: DesktopInput;
 	private mobileInput?: MobileInput;
 	private scenarioEngine: ScenarioEngine | null = null;
@@ -216,6 +218,7 @@ export class GameScene extends Phaser.Scene {
 		this.events.on("shutdown", () => {
 			this.fogSystem?.destroy();
 			this.weatherSystem?.destroy();
+			this.dayNightSystem?.destroy();
 			this.desktopInput?.destroy();
 			this.mobileInput?.destroy();
 			this.battlefieldOverlay?.destroy();
@@ -232,6 +235,7 @@ export class GameScene extends Phaser.Scene {
 			this.placementPreview = null;
 			this.fogSystem = null;
 			this.weatherSystem = null;
+			this.dayNightSystem = null;
 			this.scenarioEngine = null;
 			this.scenarioWorldQuery = null;
 		});
@@ -271,6 +275,8 @@ export class GameScene extends Phaser.Scene {
 			scenarioWorldQuery: this.scenarioWorldQuery,
 			fogSystem: this.fogSystem,
 			weatherSystem: this.weatherSystem,
+			dayNightSystem: this.dayNightSystem,
+			elapsedMs: nextElapsedMs,
 		};
 		tickAllSystems(ctx);
 		this.renderBattlefieldReadabilityOverlay();

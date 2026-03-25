@@ -30,6 +30,7 @@ import { aiSystem } from "./aiSystem";
 import { buildingSystem } from "./buildingSystem";
 import { aggroSystem, combatSystem, deathSystem, projectileSystem } from "./combatSystem";
 import { economySystem } from "./economySystem";
+import type { DayNightSystem } from "./dayNightSystem";
 import type { FogOfWarSystem } from "./fogSystem";
 import { movementSystem } from "./movementSystem";
 import { orderSystem } from "./orderSystem";
@@ -57,6 +58,10 @@ export interface GameLoopContext {
 	fogSystem: FogOfWarSystem | null;
 	/** Weather system instance. Null if weather is disabled. */
 	weatherSystem: WeatherSystem | null;
+	/** Day/night cycle system instance. Null if disabled. */
+	dayNightSystem: DayNightSystem | null;
+	/** Current game clock elapsed time in ms (for day/night cycle). */
+	elapsedMs: number;
 }
 
 /**
@@ -107,11 +112,16 @@ export function tickAllSystems(ctx: GameLoopContext): void {
 		ctx.weatherSystem.updateSchedule(delta);
 	}
 
-	// 12. Fog of War — update visibility overlay
+	// 12. Day/Night — update cycle overlay and vision multiplier
+	if (ctx.dayNightSystem) {
+		ctx.dayNightSystem.update(ctx.elapsedMs);
+	}
+
+	// 13. Fog of War — update visibility overlay
 	if (ctx.fogSystem) {
 		ctx.fogSystem.update();
 	}
 
-	// 13. Sync — Koota ECS → Phaser sprites (always last)
+	// 14. Sync — Koota ECS → Phaser sprites (always last)
 	syncKootaToPhaser(world, scene);
 }
