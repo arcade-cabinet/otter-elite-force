@@ -114,8 +114,13 @@ const TAG_TRAITS: Record<string, Trait> = {
  * Traits to NEVER serialize (runtime-only, recreated on load).
  * Used by serializeWorld to skip traits like PhaserSprite and SteeringAgent.
  */
-// biome-ignore lint/correctness/noUnusedVariables: reserved for serialization filter
-const _SKIP_TRAITS: Set<unknown> = new Set([PhaserSprite, SteeringAgent]);
+/**
+ * Non-serializable traits (runtime-only, recreated on load):
+ * - PhaserSprite — recreated by syncSystem
+ * - SteeringAgent — recreated by movement system
+ */
+void PhaserSprite;
+void SteeringAgent;
 
 /**
  * Relations we know how to serialize.

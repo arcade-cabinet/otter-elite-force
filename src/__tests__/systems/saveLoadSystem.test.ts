@@ -4,9 +4,10 @@
  * Verifies:
  * - serializeWorld captures all serializable traits and relations
  * - deserializeWorld recreates entities with correct trait values
- * - Round-trip: spawn → serialize → reset → deserialize → verify
+ * - Round-trip: spawn -> serialize -> reset -> deserialize -> verify
  * - Non-serializable traits (PhaserSprite, SteeringAgent) are skipped
  * - Relations (Targeting, GatheringFrom, OwnedBy) survive round-trip
+ * - CompletedResearch (Set) and WeatherCondition survive round-trip
  *
  * NOTE: Koota has a 16-world limit, so we reuse the same world via
  * world.reset() instead of creating new worlds for deserialization.
@@ -32,11 +33,13 @@ import {
 import { OrderQueue } from "../../ecs/traits/orders";
 import { FacingDirection, Position, Velocity } from "../../ecs/traits/spatial";
 import {
+	CompletedResearch,
 	GameClock,
 	GamePhase,
 	Objectives,
 	PopulationState,
 	ResourcePool,
+	WeatherCondition,
 } from "../../ecs/traits/state";
 import { Concealed, Crouching, DetectionRadius } from "../../ecs/traits/stealth";
 import { CanSwim, Submerged } from "../../ecs/traits/water";
@@ -64,6 +67,17 @@ afterEach(() => {
 function gameEntityCount(w: World): number {
 	return w.entities.filter((e) => e.id() !== 0).length;
 }
+
+// Suppress unused-variable warnings for trait references used only in registries
+void FacingDirection;
+void Velocity;
+void VisionRadius;
+void ConstructionProgress;
+void IsHero;
+void IsProjectile;
+void IsVillage;
+void Selected;
+void Crouching;
 
 // ---------------------------------------------------------------------------
 // serializeWorld
@@ -495,5 +509,77 @@ describe("saveLoadSystem — Edge cases", () => {
 		const entities = world.query(Position);
 		expect(entities).toHaveLength(1);
 		expect(entities[0].has(SteeringAgent)).toBe(false);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// CompletedResearch singleton (Set serialization)
+// ---------------------------------------------------------------------------
+
+describe("saveLoadSystem — CompletedResearch round-trip", () => {
+	it("should serialize CompletedResearch Set as array and restore it", () => {
+		initSingletons(world);
+		const research = world.get(CompletedResearch);
+		research.ids.add("hardshell_armor");
+		research.ids.add("fish_oil_arrows");
+
+		const data = serializeWorld(world);
+
+		// Verify serialized form uses an array
+		const crData = data.singletons?.CompletedResearch as { ids: string[] };
+		expect(Array.isArray(crData.ids)).toBe(true);
+		expect(crData.ids).toContain("hardshell_armor");
+		expect(crData.ids).toContain("fish_oil_arrows");
+
+		// Deserialize into the reset world
+		world.reset();
+		initSingletons(world);
+		deserializeWorld(world, data);
+
+		const restored = world.get(CompletedResearch);
+		expect(restored.ids.has("hardshell_armor")).toBe(true);
+		expect(restored.ids.has("fish_oil_arrows")).toBe(true);
+		expect(restored.ids.size).toBe(2);
+	});
+
+	it("should handle empty CompletedResearch set", () => {
+		initSingletons(world);
+
+		const data = serializeWorld(world);
+		const crData = data.singletons?.CompletedResearch as { ids: string[] };
+		expect(crData.ids).toEqual([]);
+
+		world.reset();
+		initSingletons(world);
+		deserializeWorld(world, data);
+
+		const restored = world.get(CompletedResearch);
+		expect(restored.ids.size).toBe(0);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// WeatherCondition singleton
+// ---------------------------------------------------------------------------
+
+describe("saveLoadSystem — WeatherCondition round-trip", () => {
+	it("should serialize and restore WeatherCondition", () => {
+		initSingletons(world);
+		world.set(WeatherCondition, { state: "monsoon" });
+
+		const data = serializeWorld(world);
+		expect(data.singletons?.WeatherCondition).toEqual({ state: "monsoon" });
+
+		world.reset();
+		initSingletons(world);
+		deserializeWorld(world, data);
+
+		expect(world.get(WeatherCondition)).toEqual({ state: "monsoon" });
+	});
+
+	it("should default WeatherCondition to clear", () => {
+		initSingletons(world);
+		const data = serializeWorld(world);
+		expect(data.singletons?.WeatherCondition).toEqual({ state: "clear" });
 	});
 });
