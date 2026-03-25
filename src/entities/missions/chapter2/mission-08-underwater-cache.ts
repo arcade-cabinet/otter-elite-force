@@ -146,10 +146,12 @@ export const mission08UnderwaterCache: MissionDef = {
 		trigger("splash-rescued", on.areaEntered("ura", "splash_cell"), [
 			act.completeObjective("rescue-splash"),
 			act.spawn("cpl_splash", "ura", 30, 24, 1),
-			act.dialogue(
-				"cpl_splash",
-				"Bubbles! Took you long enough. I can still swim — get me to that lake and I'll dive for the cache.",
-			),
+			act.exchange([
+				{ speaker: "Cpl. Splash", text: "Bubbles! About time. These lizards don't feed their prisoners well." },
+				{ speaker: "Sgt. Bubbles", text: "Can you swim?" },
+				{ speaker: "Cpl. Splash", text: "Can I swim? Get me to that lake and I'll dive for the cache myself. The water's the one place they can't follow." },
+				{ speaker: "Sgt. Bubbles", text: "That's the plan. Stay close, Corporal." },
+			]),
 		]),
 		trigger(
 			"activate-cache-objective",

@@ -191,10 +191,12 @@ export const mission15SerpentKing: MissionDef = {
 		trigger(
 			"throne-room-entered",
 			on.areaEntered("ura", "throne_room"),
-			act.dialogue(
-				"gen_whiskers",
-				"The throne room! The Serpent King is here. Engage with all heroes — coordinate your attacks!",
-			),
+			act.exchange([
+				{ speaker: "Gen. Whiskers", text: "There he is. Kommandant Ironjaw. The one who started all of this." },
+				{ speaker: "Sgt. Bubbles", text: "Bigger than I expected." },
+				{ speaker: "Gen. Whiskers", text: "I took his jaw in the First Reach War. He took my freedom. Today we settle it." },
+				{ speaker: "Sgt. Bubbles", text: "All units — converge on the throne room. Everything we've got." },
+			]),
 		),
 		trigger("serpent-king-wounded", on.timer(600), [
 			act.dialogue("gen_whiskers", "The Serpent King is summoning reinforcements! Hold the line!"),

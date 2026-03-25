@@ -163,10 +163,13 @@ export const mission12FangRescue: MissionDef = {
 		trigger("detention-reached", on.areaEntered("ura", "detention_block"), [
 			act.completeObjective("rescue-fang"),
 			act.spawn("sgt_fang", "ura", 18, 6, 1),
-			act.dialogue(
-				"sgt_fang",
-				"Bubbles! About time someone showed up. These scale-backs were about to transfer me to their main camp. Let's get out of here — I know a route through the courtyard.",
-			),
+			act.exchange([
+				{ speaker: "Sgt. Fang", text: "Bubbles. Took your sweet time." },
+				{ speaker: "Sgt. Bubbles", text: "You're welcome. Can you fight?" },
+				{ speaker: "Sgt. Fang", text: "Can I fight? I've been breaking rocks with my bare hands for two weeks. Give me something to hit." },
+				{ speaker: "Sgt. Bubbles", text: "You'll get your chance. They're about to lock this place down." },
+				{ speaker: "Sgt. Fang", text: "Good. I know a route through the courtyard. Stay behind me." },
+			]),
 		]),
 		trigger("lockdown-triggered", on.objectiveComplete("rescue-fang"), [
 			act.dialogue(

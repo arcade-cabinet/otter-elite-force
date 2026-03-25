@@ -193,10 +193,15 @@ export const mission16LastStand: MissionDef = {
 		trigger(
 			"mission-start",
 			on.timer(3),
-			act.dialogue(
-				"gen_whiskers",
-				"All hands to battle stations. Ten waves incoming, then we counterattack. This is the final mission — everything we've fought for comes down to today.",
-			),
+			act.exchange([
+				{ speaker: "Gen. Whiskers", text: "All hands to battle stations. This is the last day." },
+				{ speaker: "Sgt. Bubbles", text: "How many waves?" },
+				{ speaker: "Gen. Whiskers", text: "Ten. Everything they have left. After that — silence. Or defeat." },
+				{ speaker: "Sgt. Bubbles", text: "And then?" },
+				{ speaker: "Gen. Whiskers", text: "Then we push north and burn their last Command Post to the ground. The Copper-Silt Reach will be free." },
+				{ speaker: "Sgt. Bubbles", text: "Through mud and water, General." },
+				{ speaker: "Gen. Whiskers", text: "Through mud and water, Sergeant. Move out." },
+			]),
 		),
 		// Wave 1 (1:00)
 		trigger("wave-1", on.timer(60), [
@@ -308,10 +313,15 @@ export const mission16LastStand: MissionDef = {
 		trigger("bubbles-death", on.unitCount("ura", "sgt_bubbles", "eq", 0), act.failMission()),
 		// Mission complete
 		trigger("mission-complete", on.allPrimaryComplete(), [
-			act.dialogue(
-				"gen_whiskers",
-				"It's over. The Scale-Guard Command Post is destroyed. Their forces are scattering. The Copper-Silt Reach, the Blackmarsh, the Iron Delta — all liberated. Outstanding work, Sergeant Bubbles. The Otter Elite Force has won the war.",
-			),
+			act.exchange([
+				{ speaker: "Gen. Whiskers", text: "It's over. The last Scale-Guard Command Post is burning." },
+				{ speaker: "Sgt. Bubbles", text: "Is it really done?" },
+				{ speaker: "Gen. Whiskers", text: "The Copper-Silt Reach. The Blackmarsh. The Iron Delta. All liberated. Their forces are scattering into the jungle." },
+				{ speaker: "Sgt. Bubbles", text: "What about Ironjaw?" },
+				{ speaker: "Gen. Whiskers", text: "Gone. Whether dead or fled, it doesn't matter. The occupation is over. Outstanding work, Sergeant." },
+				{ speaker: "Sgt. Bubbles", text: "It wasn't just me, General. It was all of us." },
+				{ speaker: "Gen. Whiskers", text: "Then it's all of us who won the war. Otter Elite Force — mission complete." },
+			]),
 			act.victory(),
 		]),
 	],
