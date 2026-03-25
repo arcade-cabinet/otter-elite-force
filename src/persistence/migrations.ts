@@ -23,7 +23,8 @@ const MIGRATIONS: string[] = [
     stars INTEGER NOT NULL DEFAULT 0,
     best_time_ms INTEGER,
     units_lost INTEGER,
-    completed_at INTEGER
+    completed_at INTEGER,
+    difficulty TEXT NOT NULL DEFAULT 'support'
   )`,
 
 	// save_state
@@ -31,17 +32,21 @@ const MIGRATIONS: string[] = [
     id INTEGER PRIMARY KEY,
     slot INTEGER NOT NULL,
     mission_id TEXT NOT NULL,
+    mission_name TEXT NOT NULL DEFAULT '',
     snapshot_json TEXT NOT NULL,
+    play_time_ms INTEGER NOT NULL DEFAULT 0,
     saved_at INTEGER NOT NULL
   )`,
 
 	// settings (singleton row, id=1)
 	`CREATE TABLE IF NOT EXISTS settings (
     id INTEGER PRIMARY KEY,
+    master_volume REAL NOT NULL DEFAULT 1.0,
     music_volume REAL NOT NULL DEFAULT 0.7,
     sfx_volume REAL NOT NULL DEFAULT 1.0,
     haptics_enabled INTEGER NOT NULL DEFAULT 1,
     camera_speed REAL NOT NULL DEFAULT 1.0,
+    ui_scale REAL NOT NULL DEFAULT 1.0,
     touch_mode TEXT NOT NULL DEFAULT 'auto',
     show_grid INTEGER NOT NULL DEFAULT 0,
     reduce_fx INTEGER NOT NULL DEFAULT 0

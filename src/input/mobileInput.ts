@@ -1,19 +1,31 @@
 /**
  * Mobile Input System — translates touch gestures into RTS commands.
  *
+ * US-058: Touch-to-game command dispatch.
+ *
  * Uses GestureDetector (pure logic) to classify multi-touch events, then
  * delegates to SelectionManager and CommandDispatcher for game actions.
  *
- * Gesture mapping (spec §7):
- * - Single tap → select unit (via SelectionManager.clickSelect)
+ * Gesture mapping:
+ * - Single tap on unit → select unit (via SelectionManager.clickSelect)
+ * - Single tap on ground (with selection) → move command
+ * - Single tap on enemy (with selection) → attack command
+ * - Single tap on resource (with selection) → gather command
  * - One-finger drag → selection rectangle (via SelectionManager.boxSelect)
- * - Two-finger drag → camera pan
+ * - Two-finger drag → camera pan (no false positives with game commands)
  * - Pinch → camera zoom
  * - Long press → context command (move/attack via CommandDispatcher)
+ *
+ * Two-finger gestures are fully isolated from game commands by the
+ * GestureDetector — once a second pointer is down, the gesture is
+ * classified as TwoFingerDrag or Pinch, and single-finger handlers
+ * (tap, drag, long-press) are suppressed.
  */
 
 import type { World } from "koota";
 import Phaser from "phaser";
+import { Selected } from "@/ecs/traits/identity";
+import { EventBus } from "@/game/EventBus";
 import { CommandDispatcher } from "./commandDispatcher";
 import { GestureDetector, GestureType, type PointerState } from "./gestureDetector";
 import { SelectionManager } from "./selectionManager";
@@ -33,6 +45,7 @@ function toPointerState(pointer: Phaser.Input.Pointer): PointerState {
 
 export class MobileInput {
 	private scene: Phaser.Scene;
+	private world: World;
 	private selectionManager: SelectionManager;
 	private commandDispatcher: CommandDispatcher;
 	private gestureDetector: GestureDetector;
@@ -44,6 +57,7 @@ export class MobileInput {
 
 	constructor(scene: Phaser.Scene, world: World) {
 		this.scene = scene;
+		this.world = world;
 		this.selectionManager = new SelectionManager(scene, world);
 		this.commandDispatcher = new CommandDispatcher(scene, world);
 		this.gestureDetector = new GestureDetector();
@@ -133,6 +147,18 @@ export class MobileInput {
 		// Clear selection rectangle on any pointer up
 		this.selectionRect.clear();
 
+		// Finalize box select if one-finger drag ended
+		if (this.gestureDetector.wasDragSelect) {
+			this.selectionManager.selectBox(
+				this.gestureDetector.lastDragStartWorldX,
+				this.gestureDetector.lastDragStartWorldY,
+				released.worldX,
+				released.worldY,
+			);
+			this.gestureDetector.clearDragState();
+			return;
+		}
+
 		if (!gesture) return;
 
 		switch (gesture.type) {
@@ -155,25 +181,56 @@ export class MobileInput {
 		if (!gesture) return;
 
 		if (gesture.type === GestureType.LongPress) {
-			this.handleLongPress(gesture.currentWorldX ?? 0, gesture.currentWorldY ?? 0);
+			this.handleLongPress(
+				gesture.currentWorldX ?? 0,
+				gesture.currentWorldY ?? 0,
+				pointers[0].x,
+				pointers[0].y,
+			);
 		}
 	}
 
+	/**
+	 * US-058: Smart tap dispatch — if units are selected and the tap
+	 * doesn't land on a friendly unit, treat it as a context command
+	 * (move to ground / attack enemy / gather resource).
+	 * If no units are selected or the tap is on a friendly unit, select it.
+	 */
 	private handleTap(worldX: number, worldY: number): void {
+		// Explicit command mode from HUD buttons takes priority
 		if (this.commandMode !== "none") {
-			// In command mode: tap = issue command at this location
 			this.commandDispatcher.issueCommandAt(worldX, worldY, this.commandMode);
 			this.commandMode = "none";
 			return;
 		}
 
-		// Normal tap = select unit at location
-		this.selectionManager.clearSelection();
-		this.selectionManager.selectAt(worldX, worldY);
+		// Check if we have a current selection
+		const hasSelection = this.world.query(Selected).length > 0;
+
+		if (hasSelection) {
+			// Check if tap lands on a friendly unit — if so, re-select
+			const hitFriendly = this.selectionManager.hasFriendlyAt(worldX, worldY);
+			if (hitFriendly) {
+				// Tap on friendly unit = re-select that unit
+				this.selectionManager.clearSelection();
+				this.selectionManager.selectAt(worldX, worldY);
+			} else {
+				// Tap on ground/enemy/resource = issue context command
+				this.commandDispatcher.issueCommandAt(worldX, worldY, "context");
+			}
+		} else {
+			// No selection: tap = select unit at location
+			this.selectionManager.selectAt(worldX, worldY);
+		}
 	}
 
-	private handleLongPress(worldX: number, worldY: number): void {
-		// Long press = context-sensitive command (same as right-click on desktop)
+	/**
+	 * US-060: Long press emits position for radial menu overlay.
+	 * Also issues context command as fallback.
+	 */
+	private handleLongPress(worldX: number, worldY: number, screenX: number, screenY: number): void {
+		EventBus.emit("mobile-long-press", { worldX, worldY, screenX, screenY });
+		// If no subscriber handles it, also issue the context command
 		this.commandDispatcher.issueCommandAt(worldX, worldY, "context");
 	}
 

@@ -9,7 +9,7 @@
  * - Par time is reasonable
  */
 import { describe, expect, it } from "vitest";
-import { CAMPAIGN, getMission } from "../../entities/missions";
+import { CAMPAIGN, getMissionById } from "../../entities/missions";
 import { compileMissionScenario } from "../../entities/missions/compileMissionScenario";
 import type { MissionDef } from "../../entities/types";
 import { ScenarioEngine } from "../../scenarios/engine";
@@ -32,7 +32,7 @@ function createMockWorldQuery(overrides: Partial<ScenarioWorldQuery> = {}): Scen
 }
 
 function getMissionDef(missionNumber: number): MissionDef {
-	const mission = getMission(missionNumber);
+	const mission = getMissionById(`mission_${missionNumber}`);
 	if (!mission) throw new Error(`Mission ${missionNumber} not found`);
 	return mission;
 }

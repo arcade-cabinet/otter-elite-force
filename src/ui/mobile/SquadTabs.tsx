@@ -1,8 +1,9 @@
 /**
  * SquadTabs — Mobile squad selection tabs.
  *
+ * US-061: Minimum 44px touch targets for tab buttons.
  * Horizontal tab bar for switching between squad groups on mobile.
- * Manila folder tab aesthetic, touch-friendly 48px+ hit areas.
+ * Manila folder tab aesthetic.
  */
 import { cn } from "@/ui/lib/utils";
 
@@ -27,9 +28,9 @@ export function SquadTabs({ tabs, activeTab, onSelect }: SquadTabsProps) {
 					type="button"
 					onClick={() => onSelect(tab.id)}
 					className={cn(
-						"flex min-w-[48px] items-center gap-1 px-3 py-2",
+						"flex min-h-[44px] min-w-[48px] items-center gap-1 px-3 py-2",
 						"font-heading text-xs uppercase tracking-wider",
-						"border-2 border-b-0",
+						"rounded-t-lg border-2 border-b-0",
 						activeTab === tab.id
 							? "border-accent bg-card text-accent"
 							: "border-border bg-muted text-muted-foreground",

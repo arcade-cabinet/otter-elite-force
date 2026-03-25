@@ -71,7 +71,7 @@ export function renderProductionOverlays(
 		const centerY = pos.y * TILE_SIZE + TILE_SIZE / 2;
 		const barX = centerX - BAR_WIDTH / 2;
 
-		let barY = centerY + BAR_OFFSET_Y;
+		const barY = centerY + BAR_OFFSET_Y;
 		let drewProduction = false;
 
 		// Production queue progress

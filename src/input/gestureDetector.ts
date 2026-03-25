@@ -5,9 +5,12 @@
  * gesture classifications. Used by MobileInput to translate touch
  * events into game commands.
  *
+ * US-058: No false positives from camera gestures.
+ * US-059: Two-finger drag/pinch discrimination.
+ *
  * Gesture types:
  * - Tap: quick touch + release, minimal movement → select unit
- * - LongPress: hold in place ≥ 400ms → move/attack command
+ * - LongPress: hold in place >= 500ms (US-060) → radial command menu
  * - OneFingerDrag: single pointer moves beyond threshold → selection rectangle
  * - TwoFingerDrag: two pointers move in same direction → camera pan
  * - Pinch: two pointers change distance significantly → camera zoom
@@ -58,8 +61,8 @@ const DRAG_THRESHOLD = 10;
 /** Maximum hold duration in ms for a tap (longer = long press). */
 const TAP_MAX_DURATION = 400;
 
-/** Minimum hold duration in ms for a long press. */
-const LONG_PRESS_MIN_DURATION = 400;
+/** US-060: Minimum hold duration in ms for a long press. */
+const LONG_PRESS_MIN_DURATION = 500;
 
 /**
  * Minimum ratio of distance-change to average-movement for a two-finger
@@ -77,6 +80,27 @@ export class GestureDetector {
 	private prevMidpoint: { x: number; y: number } | null = null;
 	private gestureActive = false;
 
+	/** Track drag state for box selection finalization on pointer up. */
+	private _wasDragSelect = false;
+	private _lastDragStartWorldX = 0;
+	private _lastDragStartWorldY = 0;
+
+	get wasDragSelect(): boolean {
+		return this._wasDragSelect;
+	}
+
+	get lastDragStartWorldX(): number {
+		return this._lastDragStartWorldX;
+	}
+
+	get lastDragStartWorldY(): number {
+		return this._lastDragStartWorldY;
+	}
+
+	clearDragState(): void {
+		this._wasDragSelect = false;
+	}
+
 	/**
 	 * Call when one or more pointers go down.
 	 * Pass ALL currently-down pointers (not just the new one).
@@ -86,6 +110,7 @@ export class GestureDetector {
 		this.pointerCount = pointers.length;
 		this.downTime = pointers[0].time;
 		this.gestureActive = false;
+		this._wasDragSelect = false;
 
 		if (pointers.length === 2) {
 			this.initialDistance = this.distance(pointers[0], pointers[1]);
@@ -103,7 +128,7 @@ export class GestureDetector {
 	onPointerMove(pointers: PointerState[]): GestureResult | null {
 		if (this.downPointers.length === 0) return null;
 
-		// Two-finger gestures
+		// Two-finger gestures (US-059)
 		if (pointers.length >= 2 && this.downPointers.length >= 2) {
 			return this.classifyTwoFingerMove(pointers);
 		}
@@ -151,6 +176,7 @@ export class GestureDetector {
 
 	/**
 	 * Call periodically (e.g., from update loop) to detect long press.
+	 * US-060: 500ms hold duration.
 	 * Pass ALL currently-down pointers and the current timestamp.
 	 */
 	onHoldCheck(pointers: PointerState[], now: number): GestureResult | null {
@@ -180,6 +206,9 @@ export class GestureDetector {
 
 		if (movement > DRAG_THRESHOLD) {
 			this.gestureActive = true;
+			this._wasDragSelect = true;
+			this._lastDragStartWorldX = down.worldX;
+			this._lastDragStartWorldY = down.worldY;
 			return {
 				type: GestureType.OneFingerDrag,
 				startWorldX: down.worldX,
@@ -192,6 +221,10 @@ export class GestureDetector {
 		return null;
 	}
 
+	/**
+	 * US-059: Classify two-finger gestures as either pan or zoom.
+	 * Uses ratio of distance change to total movement to discriminate.
+	 */
 	private classifyTwoFingerMove(pointers: PointerState[]): GestureResult | null {
 		const p0 = pointers[0];
 		const p1 = pointers[1];
@@ -236,6 +269,8 @@ export class GestureDetector {
 		this.initialDistance = 0;
 		this.prevMidpoint = null;
 		this.gestureActive = false;
+		// Note: _wasDragSelect is intentionally NOT reset here —
+		// it's read by MobileInput.onPointerUp after reset()
 	}
 
 	private distance(a: PointerState, b: PointerState): number {
