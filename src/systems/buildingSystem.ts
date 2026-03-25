@@ -20,7 +20,7 @@ import { ConstructionProgress, ProductionQueue } from "../ecs/traits/economy";
 import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
-import { ResourcePool } from "../ecs/traits/state";
+import { PopulationState, ResourcePool } from "../ecs/traits/state";
 import { EventBus } from "../game/EventBus";
 import { world as defaultWorld } from "../ecs/world";
 import { getBuilding } from "../entities/registry";
@@ -117,7 +117,7 @@ export function buildingSystem(world: World, delta: number): void {
 		const newProgress = Math.min(100, cp.progress + (BASE_BUILD_RATE / cp.buildTime) * delta);
 		building.set(ConstructionProgress, { progress: newProgress });
 		if (newProgress >= 100) {
-			activateBuilding(building);
+			activateBuilding(world, building);
 			building.remove(ConstructionProgress);
 			releaseBuilders(world, building);
 			EventBus.emit("building-complete");
@@ -125,7 +125,7 @@ export function buildingSystem(world: World, delta: number): void {
 	}
 }
 
-function activateBuilding(building: ReturnType<World["spawn"]>): void {
+function activateBuilding(world: World, building: ReturnType<World["spawn"]>): void {
 	const unitType = building.get(UnitType);
 	if (!unitType) return;
 	const runtimeDef = getBuilding(unitType.type);
@@ -144,6 +144,12 @@ function activateBuilding(building: ReturnType<World["spawn"]>): void {
 				timer: 0,
 			}),
 		);
+	}
+	if (runtimeDef.populationCapacity != null && runtimeDef.populationCapacity > 0) {
+		const pop = world.get(PopulationState);
+		if (pop) {
+			world.set(PopulationState, { max: pop.max + runtimeDef.populationCapacity });
+		}
 	}
 }
 
