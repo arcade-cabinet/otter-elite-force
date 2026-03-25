@@ -2,18 +2,19 @@
  * useMusicWiring — Wires music to AppScreen and combat state.
  *
  * US-031: Automatically transitions music based on game context.
- * Uses the MusicController to manage smooth transitions.
+ * US-089: Lazy-loads MusicController (and Tone.js) via dynamic import.
  *
  * Place in the root AppRouter component, after useAudioUnlock.
  */
 
 import { useTrait, useWorld } from "koota/react";
 import { useEffect, useRef } from "react";
-import { type MusicState, musicController } from "@/audio/musicController";
 import { Targeting } from "@/ecs/relations";
 import { Attack } from "@/ecs/traits/combat";
 import { Faction } from "@/ecs/traits/identity";
 import { AppScreen, GamePhase, UserSettings } from "@/ecs/traits/state";
+
+type MusicState = "menu" | "briefing" | "ambient" | "combat" | "silent";
 
 /**
  * Map screen + phase state to a music state.
@@ -31,6 +32,24 @@ function resolveDesiredMusicState(
 	return "silent";
 }
 
+// Lazy-loaded controller reference
+let controllerRef: Awaited<typeof import("@/audio/musicController")>["musicController"] | null = null;
+let loadingController = false;
+
+async function getController() {
+	if (controllerRef) return controllerRef;
+	if (loadingController) return null;
+	loadingController = true;
+	try {
+		const mod = await import("@/audio/musicController");
+		controllerRef = mod.musicController;
+		return controllerRef;
+	} catch {
+		loadingController = false;
+		return null;
+	}
+}
+
 export function useMusicWiring(): void {
 	const world = useWorld();
 	const appScreen = useTrait(world, AppScreen);
@@ -43,13 +62,13 @@ export function useMusicWiring(): void {
 
 	// Update volume when settings change
 	useEffect(() => {
-		musicController.setVolume(musicVolume);
+		getController().then((c) => c?.setVolume(musicVolume));
 	}, [musicVolume]);
 
 	// Set desired music state based on screen/phase
 	useEffect(() => {
 		const desired = resolveDesiredMusicState(screen, phase);
-		musicController.setState(desired);
+		getController().then((c) => c?.setState(desired));
 	}, [screen, phase]);
 
 	// Poll for combat state and tick the controller
@@ -79,11 +98,11 @@ export function useMusicWiring(): void {
 				// World may not be ready — ignore
 			}
 
-			if (hasCombat) {
-				musicController.notifyCombat();
-			}
-
-			musicController.tick();
+			getController().then((c) => {
+				if (!c) return;
+				if (hasCombat) c.notifyCombat();
+				c.tick();
+			});
 		}, 500);
 
 		return () => {
@@ -97,7 +116,7 @@ export function useMusicWiring(): void {
 	// Clean up on unmount
 	useEffect(() => {
 		return () => {
-			musicController.dispose();
+			controllerRef?.dispose();
 		};
 	}, []);
 }
