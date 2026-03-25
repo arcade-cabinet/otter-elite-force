@@ -57,6 +57,7 @@ import { DayNightSystem } from "@/systems/dayNightSystem";
 import { FogOfWarSystem } from "@/systems/fogSystem";
 import type { GameLoopContext } from "@/systems/gameLoop";
 import { tickAllSystems } from "@/systems/gameLoop";
+import { calculateMissionScore } from "@/systems/scoringSystem";
 import { destroyAllSprites } from "@/systems/syncSystem";
 import { FloatingTextManager } from "@/rendering/FloatingTextManager";
 import { renderHPBars } from "@/rendering/HPBarRenderer";
@@ -884,15 +885,50 @@ export class GameScene extends Phaser.Scene {
 		const elapsed = Math.floor(elapsedMs / 1000);
 		const pool = world.get(ResourcePool);
 		const resourcesGathered = (pool?.fish ?? 0) + (pool?.timber ?? 0) + (pool?.salvage ?? 0);
-		const stars = elapsed < 300 ? 3 : elapsed < 600 ? 2 : 1;
+
+		// Count units lost and enemies defeated from ECS world
+		let unitsLost = 0;
+		let enemiesDefeated = 0;
+		for (const eid of world.query(Faction, Health)) {
+			const f = world.get(eid, Faction);
+			const h = world.get(eid, Health);
+			if (!f || !h) continue;
+			if (f.faction === "ura" && h.current <= 0) unitsLost++;
+			if (f.faction === "scale_guard" && h.current <= 0) enemiesDefeated++;
+		}
+
+		// Use the scoring system with mission par time
+		const parTime = this.activeMission?.parTime ?? 300;
+		const bonusObjectives = world.get(Objectives);
+		const bonusTotal = bonusObjectives?.list.filter((o) => o.bonus).length ?? 0;
+		const bonusCompleted =
+			bonusObjectives?.list.filter((o) => o.bonus && o.status === "complete").length ?? 0;
+
+		// Estimate total units spawned as surviving friendly units + units lost
+		let survivingFriendly = 0;
+		for (const eid of world.query(Faction, Health)) {
+			const f = world.get(eid, Faction);
+			const h = world.get(eid, Health);
+			if (f?.faction === "ura" && h && h.current > 0) survivingFriendly++;
+		}
+		const unitsSpawned = survivingFriendly + unitsLost;
+
+		const scoreResult = calculateMissionScore({
+			elapsedSeconds: elapsed,
+			parTimeSeconds: parTime,
+			unitsLost,
+			unitsSpawned,
+			bonusCompleted,
+			bonusTotal,
+		});
 
 		EventBus.emit("mission-complete", {
 			missionId: resolveMissionKey(this.missionData.missionId),
 			difficulty: this.missionData.difficulty,
-			stars,
+			stars: scoreResult.stars,
 			stats: {
-				unitsLost: 0,
-				enemiesDefeated: 0,
+				unitsLost,
+				enemiesDefeated,
 				timeElapsedMs: elapsedMs,
 				timeElapsed: elapsed,
 				resourcesGathered,
