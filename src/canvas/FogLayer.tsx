@@ -20,11 +20,11 @@ import { Position } from "@/ecs/traits/spatial";
 
 // ─── Constants ───
 
-/** Tile size in pixels — consistent with other layers. */
-const TILE_SIZE = 32;
+/** Grid cell size in pixels — consistent with other layers. */
+const CELL_SIZE = 32;
 
-/** Size of the seamless fog noise tile (px). */
-const FOG_TILE_SIZE = 256;
+/** Size of the seamless fog noise texture tile (px). */
+const FOG_NOISE_SIZE = 256;
 
 /** Base fog colour — dark slate blue matching POC. */
 const FOG_BASE = "#0f172a";
@@ -46,7 +46,7 @@ const PLAYER_FACTION = "ura";
  * Uses seeded-ish random (Math.random) since the pattern is decorative.
  */
 function buildFogTexture(): HTMLCanvasElement {
-  const size = FOG_TILE_SIZE;
+  const size = FOG_NOISE_SIZE;
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -118,12 +118,12 @@ export function FogLayer({ camX, camY, viewportW, viewportH }: FogLayerProps) {
     if (pattern) {
       canvas2d.save();
       // Slow atmospheric drift (mirrors POC)
-      const driftX = -(camX * 0.2) % FOG_TILE_SIZE;
-      const driftY = -(camY * 0.2) % FOG_TILE_SIZE;
+      const driftX = -(camX * 0.2) % FOG_NOISE_SIZE;
+      const driftY = -(camY * 0.2) % FOG_NOISE_SIZE;
       canvas2d.translate(driftX, driftY);
       canvas2d.fillStyle = pattern;
       // Overdraw to prevent clipping during drift
-      canvas2d.fillRect(-FOG_TILE_SIZE, -FOG_TILE_SIZE, viewportW + FOG_TILE_SIZE * 2, viewportH + FOG_TILE_SIZE * 2);
+      canvas2d.fillRect(-FOG_NOISE_SIZE, -FOG_NOISE_SIZE, viewportW + FOG_NOISE_SIZE * 2, viewportH + FOG_NOISE_SIZE * 2);
       canvas2d.restore();
     }
 
@@ -139,9 +139,9 @@ export function FogLayer({ camX, camY, viewportW, viewportH }: FogLayerProps) {
       if (faction.id !== PLAYER_FACTION) continue;
 
       // Convert tile coords → pixel coords → screen coords
-      const screenX = pos.x * TILE_SIZE - camX;
-      const screenY = pos.y * TILE_SIZE - camY;
-      const radiusPx = vision.radius * TILE_SIZE;
+      const screenX = pos.x * CELL_SIZE - camX;
+      const screenY = pos.y * CELL_SIZE - camY;
+      const radiusPx = vision.radius * CELL_SIZE;
 
       // Frustum cull — skip entities whose vision circle is off-screen
       if (

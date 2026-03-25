@@ -22,8 +22,8 @@ import { GameClock, WeatherCondition } from "@/ecs/traits/state";
 /** Full day/night cycle length in game-milliseconds. */
 const DAY_CYCLE_MS = 600_000; // 10 minutes
 
-/** Tile size in pixels — consistent with other canvas layers. */
-const TILE_SIZE = 32;
+/** Grid cell size in pixels — consistent with other canvas layers. */
+const CELL_SIZE = 32;
 
 // ─── Day/Night color table ───
 
@@ -198,8 +198,8 @@ export function OverlayLayer({
   const ghost = useMemo(() => {
     if (!placementGhost?.active) return null;
     return {
-      x: placementGhost.tileX * TILE_SIZE - camX,
-      y: placementGhost.tileY * TILE_SIZE - camY,
+      x: placementGhost.tileX * CELL_SIZE - camX,
+      y: placementGhost.tileY * CELL_SIZE - camY,
       fill: placementGhost.valid ? "rgba(34,197,94,0.45)" : "rgba(239,68,68,0.45)",
       stroke: placementGhost.valid ? "#22c55e" : "#ef4444",
     };
@@ -246,8 +246,8 @@ export function OverlayLayer({
           <Rect
             x={ghost.x}
             y={ghost.y}
-            width={TILE_SIZE}
-            height={TILE_SIZE}
+            width={CELL_SIZE}
+            height={CELL_SIZE}
             fill={ghost.fill}
             stroke={ghost.stroke}
             strokeWidth={2}

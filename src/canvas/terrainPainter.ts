@@ -8,8 +8,8 @@
 import type { MissionDef } from "@/entities/types";
 import { paintMap } from "@/entities/terrain/map-painter";
 
-/** Fixed tile size for the terrain canvas (matches spec §8.1). */
-export const TERRAIN_TILE_SIZE = 32;
+/** Fixed terrain cell size for the terrain canvas (matches spec §8.1). */
+export const TERRAIN_CELL_SIZE = 32;
 
 /**
  * Paint the terrain described by a MissionDef onto an offscreen canvas.
@@ -20,6 +20,6 @@ export const TERRAIN_TILE_SIZE = 32;
  * @returns An `HTMLCanvasElement` with the painted terrain background.
  */
 export function paintTerrain(missionDef: MissionDef): HTMLCanvasElement {
-	return paintMap(missionDef.terrain, TERRAIN_TILE_SIZE);
+	return paintMap(missionDef.terrain, TERRAIN_CELL_SIZE);
 }
 

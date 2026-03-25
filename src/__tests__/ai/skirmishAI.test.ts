@@ -4,7 +4,7 @@
  * The SkirmishAI is a goal-based decision loop that sits above unit-level FSMs.
  * It decides WHAT to build/train/attack; the FSM layer decides HOW units behave.
  *
- * We test against a GameAdapter interface so no Koota/Phaser dependency is needed.
+ * We test against a GameAdapter interface so no Koota/Konva dependency is needed.
  *
  * Covers US-080: AI opponent for single-player skirmish.
  */

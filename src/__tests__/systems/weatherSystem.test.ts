@@ -5,7 +5,7 @@ describe("WeatherSystem", () => {
 	let weather: WeatherSystem;
 
 	beforeEach(() => {
-		// Create without a Phaser scene — pure logic tests
+		// Create without a scene — pure logic tests
 		weather = new WeatherSystem(null);
 	});
 

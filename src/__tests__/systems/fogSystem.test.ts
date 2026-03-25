@@ -6,7 +6,7 @@ import { Position } from "../../ecs/traits/spatial";
 import { FogOfWarSystem, FogState } from "../../systems/fogSystem";
 
 /**
- * Create a minimal mock Phaser scene with just enough surface
+ * Create a minimal mock scene with just enough surface
  * for FogOfWarSystem's constructor and update() to run.
  */
 function createMockScene() {

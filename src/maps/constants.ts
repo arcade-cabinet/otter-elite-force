@@ -1,3 +1,3 @@
-/** Tile size in pixels — matches spec §8.1 */
-export const TILE_SIZE = 32;
+/** Grid cell size in pixels — used by fog, selection, AI perception grids. */
+export const CELL_SIZE = 32;
 

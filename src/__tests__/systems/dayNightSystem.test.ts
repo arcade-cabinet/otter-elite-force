@@ -199,7 +199,7 @@ describe("DayNightSystem", () => {
 		system.destroy();
 	});
 
-	it("should create Phaser overlay when scene is provided", () => {
+	it("should create overlay when scene is provided", () => {
 		const scene = createMockScene();
 		const system = new DayNightSystem(scene);
 

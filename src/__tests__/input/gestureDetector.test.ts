@@ -3,7 +3,7 @@
  *
  * The gesture detector takes raw pointer states (positions, timestamps,
  * pointer count) and classifies them into gesture types without any
- * Phaser dependency.
+ * rendering dependency.
  */
 import { beforeEach, describe, expect, it } from "vitest";
 import { GestureDetector, GestureType, type PointerState } from "@/input/gestureDetector";

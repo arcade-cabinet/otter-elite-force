@@ -119,7 +119,7 @@ function GameplayScreen() {
 		w.set(GamePhase, { phase: "paused" });
 	}, [w]);
 
-	// Listen for Phaser ESC → game-paused event
+	// Listen for ESC → game-paused event
 	useEffect(() => {
 		const onGamePaused = () => {
 			handlePause();

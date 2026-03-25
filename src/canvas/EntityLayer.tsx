@@ -26,8 +26,8 @@ import { getSprite } from "@/canvas/spriteGen";
 
 // ─── Constants ───
 
-/** Tile size in pixels — matches terrain painter. */
-const TILE_SIZE = 32;
+/** Grid cell size in pixels — matches terrain painter. */
+const CELL_SIZE = 32;
 
 /** Minimum touch hitbox dimension (spec: ≥50px). */
 const MIN_HITBOX = 50;
@@ -107,8 +107,8 @@ export function EntityLayer({ camX, camY, viewportW, viewportH }: EntityLayerPro
       .filter((e) => {
         const pos = e.get(Position);
         if (!pos) return false;
-        const wx = pos.x * TILE_SIZE;
-        const wy = pos.y * TILE_SIZE;
+        const wx = pos.x * CELL_SIZE;
+        const wy = pos.y * CELL_SIZE;
         return wx >= minX && wx <= maxX && wy >= minY && wy <= maxY;
       })
       .sort((a, b) => {
@@ -128,8 +128,8 @@ export function EntityLayer({ camX, camY, viewportW, viewportH }: EntityLayerPro
     return [...projectiles].filter((e) => {
       const pos = e.get(Position);
       if (!pos) return false;
-      const wx = pos.x * TILE_SIZE;
-      const wy = pos.y * TILE_SIZE;
+      const wx = pos.x * CELL_SIZE;
+      const wy = pos.y * CELL_SIZE;
       return wx >= minX && wx <= maxX && wy >= minY && wy <= maxY;
     });
   }, [projectiles, camX, camY, viewportW, viewportH]);
@@ -145,8 +145,8 @@ export function EntityLayer({ camX, camY, viewportW, viewportH }: EntityLayerPro
         return (
           <Circle
             key={proj.id()}
-            x={pos.x * TILE_SIZE + TILE_SIZE / 2}
-            y={pos.y * TILE_SIZE + TILE_SIZE / 2}
+            x={pos.x * CELL_SIZE + CELL_SIZE / 2}
+            y={pos.y * CELL_SIZE + CELL_SIZE / 2}
             radius={PROJECTILE_RADIUS}
             fill={PROJECTILE_COLOR}
             listening={false}
@@ -171,13 +171,13 @@ function EntityNode({ entity }: EntityNodeProps) {
   const unitType = entity.get(UnitType);
   if (!pos || !unitType) return null;
 
-  const wx = pos.x * TILE_SIZE;
-  const wy = pos.y * TILE_SIZE;
+  const wx = pos.x * CELL_SIZE;
+  const wy = pos.y * CELL_SIZE;
 
   // Sprite from procedural cache
   const sprite = getSprite(unitType.type);
-  const spriteW = sprite?.width ?? TILE_SIZE;
-  const spriteH = sprite?.height ?? TILE_SIZE;
+  const spriteW = sprite?.width ?? CELL_SIZE;
+  const spriteH = sprite?.height ?? CELL_SIZE;
 
   // Facing direction → horizontal flip
   const facing = entity.has(FacingDirection) ? entity.get(FacingDirection) : null;
@@ -291,8 +291,8 @@ function EntityNode({ entity }: EntityNodeProps) {
           points={[
             spriteW / 2,
             spriteH / 2,
-            rallyPoint.x * TILE_SIZE - wx + TILE_SIZE / 2,
-            rallyPoint.y * TILE_SIZE - wy + TILE_SIZE / 2,
+            rallyPoint.x * CELL_SIZE - wx + CELL_SIZE / 2,
+            rallyPoint.y * CELL_SIZE - wy + CELL_SIZE / 2,
           ]}
           stroke="#22c55e"
           strokeWidth={1}
