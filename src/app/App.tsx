@@ -15,6 +15,7 @@ import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
+import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
 import { CampaignView } from "@/ui/command-post/CampaignView";
 import { MainMenu } from "@/ui/command-post/MainMenu";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
@@ -24,6 +25,7 @@ import { CommandConsole } from "@/ui/hud/CommandConsole";
 import { GameplayTopBar } from "@/ui/hud/GameplayTopBar";
 import { PauseOverlay } from "@/ui/hud/PauseOverlay";
 import { TacticalRail } from "@/ui/hud/TacticalRail";
+import { TutorialOverlay } from "@/ui/hud/TutorialOverlay";
 import { BriefingShell, TacticalShell } from "@/ui/layout/shells";
 import { resolveTacticalHudLayout, useViewportProfile } from "@/ui/layout/viewport";
 import { cn } from "@/ui/lib/utils";
@@ -35,6 +37,8 @@ const SCREEN_THEMES: Record<AppScreenType, string> = {
 	menu: "command-post",
 	campaign: "command-post",
 	settings: "command-post",
+	skirmish: "command-post",
+	skirmish_result: "command-post",
 	game: "tactical",
 	victory: "tactical",
 };
@@ -68,6 +72,8 @@ function AppRouter() {
 			return <MainMenu />;
 		case "campaign":
 			return <CampaignView />;
+		case "skirmish":
+			return <SkirmishSetup />;
 		case "settings":
 			return <SettingsPanel />;
 		case "game":
@@ -213,6 +219,7 @@ function GameplayScreen() {
 		>
 			<PhaserGame ref={phaserRef} deploymentData={deploymentData} />
 			<CombatTextOverlay />
+			<TutorialOverlay missionId={currentMission} />
 			{isPaused ? (
 				<PauseOverlay
 					onResume={handleResume}
@@ -275,11 +282,13 @@ function MissionResultOverlay() {
 	const finalMissionComplete =
 		finalMissionId !== null && campaign?.missions[finalMissionId]?.status === "completed";
 	const isDefeat = phase === "defeat";
-	const primaryLabel = isDefeat
-		? "Retry Mission"
-		: finalMissionComplete
-			? "Return to Menu"
-			: "Next Mission";
+
+	// US-053: Retrieve star rating for the just-completed mission
+	const completedMissionId = campaign?.currentMission ?? null;
+	const missionResult = completedMissionId ? campaign?.missions[completedMissionId] : null;
+	const stars = (missionResult?.stars ?? 0) as 0 | 1 | 2 | 3;
+
+	const primaryLabel = isDefeat ? "Retry Mission" : finalMissionComplete ? "Return to Menu" : "Next Mission";
 	const primaryTarget: AppScreenType = isDefeat ? "game" : finalMissionComplete ? "menu" : "game";
 
 	return (
@@ -297,18 +306,78 @@ function MissionResultOverlay() {
 					<Button variant="accent" onClick={() => w.set(AppScreen, { screen: primaryTarget })}>
 						{primaryLabel}
 					</Button>
+					{!isDefeat && !finalMissionComplete ? (
+						<Button variant="command" onClick={() => w.set(AppScreen, { screen: "game" })}>
+							Replay
+						</Button>
+					) : null}
 					<Button variant="command" onClick={() => w.set(AppScreen, { screen: "menu" })}>
 						Main Menu
 					</Button>
 				</div>
 			}
 		>
-			<div className="rounded-lg border border-accent/25 bg-card/70 p-6 font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">
-				{isDefeat
-					? "Mission command now loops directly back into play. Retry the operation without bouncing through detached pre-mission screens."
-					: "Campaign progression now moves operation-to-operation. No campaign map, no canteen, no store friction."}
-			</div>
+			{!isDefeat && stars > 0 ? (
+				<div className="rounded-lg border border-accent/25 bg-card/70 p-6">
+					<MissionStarResult stars={stars} />
+				</div>
+			) : (
+				<div className="rounded-lg border border-accent/25 bg-card/70 p-6 font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">
+					{isDefeat
+						? "Mission command now loops directly back into play. Retry the operation without bouncing through detached pre-mission screens."
+						: "Campaign progression now moves operation-to-operation. No campaign map, no canteen, no store friction."}
+				</div>
+			)}
 		</BriefingShell>
+	);
+}
+
+/** US-053: Animated star reveal for mission completion. */
+function MissionStarResult({ stars }: { stars: 0 | 1 | 2 | 3 }) {
+	const [revealedStars, setRevealedStars] = useState(0);
+
+	useEffect(() => {
+		const timers: ReturnType<typeof setTimeout>[] = [];
+		for (let i = 1; i <= stars; i++) {
+			timers.push(
+				setTimeout(() => {
+					setRevealedStars(i);
+				}, i * 400),
+			);
+		}
+		return () => {
+			for (const t of timers) clearTimeout(t);
+		};
+	}, [stars]);
+
+	const starLabels: Record<number, string> = { 1: "Bronze", 2: "Silver", 3: "Gold" };
+	const starColors: Record<number, string> = {
+		1: "text-amber-600",
+		2: "text-gray-300",
+		3: "text-yellow-400",
+	};
+	const colorClass = starColors[stars] ?? "text-muted-foreground";
+
+	return (
+		<div data-testid="mission-star-result" className="grid gap-3 text-center">
+			<div className="flex items-center justify-center gap-3">
+				{[1, 2, 3].map((i) => (
+					<span
+						key={i}
+						data-testid={`result-star-${i}`}
+						className={cn(
+							"text-4xl transition-all duration-300",
+							i <= revealedStars ? colorClass : "text-muted-foreground/20",
+						)}
+					>
+						{i <= revealedStars ? "\u2605" : "\u2606"}
+					</span>
+				))}
+			</div>
+			<span className="font-heading text-lg uppercase tracking-[0.2em] text-accent">
+				{starLabels[stars] ?? "No Rating"}
+			</span>
+		</div>
 	);
 }
 
