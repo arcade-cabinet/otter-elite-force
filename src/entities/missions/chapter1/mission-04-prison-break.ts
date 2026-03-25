@@ -219,10 +219,12 @@ export const mission04PrisonBreak: MissionDef = {
 		),
 		trigger("reached-cell", on.areaEntered("ura", "prison_cell"), [
 			act.completeObjective("rescue-whiskers"),
-			act.dialogue(
-				"gen_whiskers",
-				"About time, Bubbles. I was starting to think command had written me off. Let's move — I know the compound layout.",
-			),
+			act.exchange([
+				{ speaker: "Gen. Whiskers", text: "About time. I was starting to think command had written me off." },
+				{ speaker: "Sgt. Bubbles", text: "Not a chance, General. Can you walk?" },
+				{ speaker: "Gen. Whiskers", text: "I can fight. Fangrot keeps the keys on his belt and the exit logs on his desk. I know every corridor in this compound." },
+				{ speaker: "Sgt. Bubbles", text: "Then lead the way. Extraction point is northwest." },
+			]),
 			act.spawn("gen_whiskers", "ura", 15, 9, 1),
 		]),
 		trigger(
@@ -235,10 +237,12 @@ export const mission04PrisonBreak: MissionDef = {
 		),
 		trigger("extraction-reached", on.areaEntered("ura", "extraction_point"), [
 			act.completeObjective("extract-whiskers"),
-			act.dialogue(
-				"gen_whiskers",
-				"Extraction confirmed. Outstanding work, Sergeant. From now on, I'm running the briefings. FOXHOUND, stand down.",
-			),
+			act.exchange([
+				{ speaker: "FOXHOUND", text: "Extraction confirmed. All units accounted for." },
+				{ speaker: "Gen. Whiskers", text: "Outstanding work, Sergeant. I owe you one." },
+				{ speaker: "Sgt. Bubbles", text: "You owe me a briefing, General." },
+				{ speaker: "Gen. Whiskers", text: "You'll get one. From now on, I'm running the operations. FOXHOUND — stand down to relay duty." },
+			]),
 		]),
 		trigger("alarm-triggered", on.timer(180), [
 			act.dialogue(

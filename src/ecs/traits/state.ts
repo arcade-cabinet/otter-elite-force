@@ -51,6 +51,36 @@ export const Objectives = trait(() => ({
 }));
 
 // ---------------------------------------------------------------------------
+// Dialogue state — drives the portrait overlay dialogue system
+// ---------------------------------------------------------------------------
+
+/** A single line in a dialogue exchange. */
+export interface DialogueLine {
+	speaker: string;
+	text: string;
+	portraitId?: string;
+}
+
+/**
+ * Active dialogue exchange — written by scenario triggers, read by the UI.
+ *
+ * When `active` is true, the BriefingDialogue overlay shows.
+ * The game loop pauses during dialogue (GamePhase → "dialogue").
+ * When the player advances past all lines, active becomes false.
+ */
+export const DialogueState = trait(() => ({
+	active: false,
+	/** The lines to show. Can be a single line or a multi-line exchange. */
+	lines: [] as DialogueLine[],
+	/** Current line index (advanced by player input). */
+	currentLine: 0,
+	/** Whether to pause the game during this dialogue. */
+	pauseGame: true,
+	/** Callback ID for the trigger that initiated this dialogue (for tracking). */
+	triggerId: null as string | null,
+}));
+
+// ---------------------------------------------------------------------------
 // App screen routing (replaces rtsGameStore.phase for UI routing)
 // ---------------------------------------------------------------------------
 

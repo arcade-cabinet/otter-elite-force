@@ -105,4 +105,22 @@ export const act = {
 	enableTrigger(triggerId: string): TriggerAction {
 		return { type: "enableTrigger", triggerId };
 	},
+	/**
+	 * Trigger a multi-line dialogue exchange.
+	 * Pauses the game, shows the portrait overlay, player advances with Space/tap.
+	 * Use for mid-mission conversations (e.g., rescue cutscenes, boss taunts).
+	 *
+	 * @example
+	 * act.exchange([
+	 *   { speaker: "Gen. Whiskers", text: "I was starting to think command had written me off." },
+	 *   { speaker: "Sgt. Bubbles", text: "Not a chance, General. Can you walk?" },
+	 *   { speaker: "Gen. Whiskers", text: "I can fight. Let's move." },
+	 * ])
+	 */
+	exchange(
+		lines: Array<{ speaker: string; text: string; portraitId?: string }>,
+		pauseGame = true,
+	): TriggerAction {
+		return { type: "showDialogueExchange", lines, pauseGame };
+	},
 };
