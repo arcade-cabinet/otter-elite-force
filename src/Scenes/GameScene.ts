@@ -34,6 +34,14 @@ import { paintMap } from "@/entities/terrain/map-painter";
 import type { MissionDef, Placement } from "@/entities/types";
 import type { DeploymentData } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
+import {
+	type DeviceClass,
+	EDGE_SCROLL_THRESHOLD,
+	clampZoom,
+	detectDeviceClass,
+	getZoomRange,
+	lerpZoom,
+} from "@/input/cameraLimits";
 import { DesktopInput } from "@/input/desktopInput";
 import { MobileInput } from "@/input/mobileInput";
 import type { ActionHandler, ScenarioWorldQuery } from "@/scenarios/engine";
@@ -83,6 +91,8 @@ export class GameScene extends Phaser.Scene {
 	private placementMode: { workerEntityId: number; buildingId: string } | null = null;
 	private battlefieldOverlay: Phaser.GameObjects.Graphics | null = null;
 	private placementPreview: Phaser.GameObjects.Graphics | null = null;
+	private deviceClass: DeviceClass = "desktop";
+	private zoomTarget = 1;
 
 	private setScenarioObjectives(
 		objectives: Array<{
@@ -148,8 +158,13 @@ export class GameScene extends Phaser.Scene {
 		world.set(CurrentMission, { missionId: resolveMissionKey(this.missionData.missionId) });
 		world.set(GamePhase, { phase: "playing" });
 
+		// Detect device class for zoom limits
+		const isTouchCapable = this.sys.game.device.input.touch;
+		this.deviceClass = detectDeviceClass(this.scale.width, isTouchCapable);
+
 		// Camera setup: enable panning and zooming
 		this.cameras.main.setZoom(1);
+		this.zoomTarget = 1;
 		this.cameras.main.setBounds(0, 0, this.scale.width * 2, this.scale.height * 2);
 
 		// Keyboard input for camera pan
@@ -163,13 +178,16 @@ export class GameScene extends Phaser.Scene {
 			};
 		}
 
-		// Mouse wheel zoom
+		// Mouse wheel zoom — sets target; actual zoom is lerped in update()
 		this.input.on(
 			"wheel",
 			(_pointer: Phaser.Input.Pointer, _gos: unknown[], _dx: number, dy: number) => {
-				const cam = this.cameras.main;
-				const newZoom = Phaser.Math.Clamp(cam.zoom - dy * 0.001, 0.5, 2.0);
-				cam.setZoom(newZoom);
+				const range = getZoomRange(this.deviceClass);
+				this.zoomTarget = Phaser.Math.Clamp(
+					this.zoomTarget - dy * 0.001,
+					range.min,
+					range.max,
+				);
 			},
 		);
 
@@ -202,12 +220,25 @@ export class GameScene extends Phaser.Scene {
 		// Notify React that GameScene is ready (HUD is now a React overlay)
 		EventBus.emit("current-scene-ready", this);
 
-		// Pause input (ESC key) — React handles the pause overlay
+		// Pause input (ESC key) — React handles the pause overlay.
+		// The keyboard hotkeys module handles ESC for deselect/cancel-pending-action.
+		// If the hotkeys module consumed the ESC (pending action or selection), we skip pause.
+		// Build placement mode takes priority over everything.
 		if (this.input.keyboard) {
 			this.input.keyboard.on("keydown-ESC", () => {
 				if (this.placementMode) {
 					this.cancelBuildPlacement();
 					return;
+				}
+				// If hotkeys have a pending action, let them consume ESC (already handled in hotkeys)
+				if (this.desktopInput?.hotkeys.pendingAction !== "none") {
+					return;
+				}
+				// If there are selected entities, deselect first (handled by hotkeys)
+				// Only pause if nothing else consumed the ESC
+				const hasSelection = world.query(Selected).length > 0;
+				if (hasSelection) {
+					return; // hotkeys already cleared selection
 				}
 				this.scene.pause();
 				EventBus.emit("game-paused");
@@ -257,6 +288,7 @@ export class GameScene extends Phaser.Scene {
 
 		// Camera controls (not part of ECS tick)
 		this.handleCameraPan(delta);
+		this.handleSmoothZoom();
 
 		// Mobile input: check for long press each frame
 		this.mobileInput?.update();
@@ -325,15 +357,25 @@ export class GameScene extends Phaser.Scene {
 			cam.scrollY += speed;
 		}
 
-		// Edge scrolling: pan when mouse is near screen edge
+		// Edge scrolling: pan when mouse is within EDGE_SCROLL_THRESHOLD px of screen edge
 		const pointer = this.input.activePointer;
-		const edgeThresholdX = Math.max(20, cam.width * 0.03);
-		const edgeThresholdY = Math.max(20, cam.height * 0.04);
+		const edgeThreshold = EDGE_SCROLL_THRESHOLD;
 
-		if (pointer.x < edgeThresholdX) cam.scrollX -= speed;
-		if (pointer.x > cam.width - edgeThresholdX) cam.scrollX += speed;
-		if (pointer.y < edgeThresholdY) cam.scrollY -= speed;
-		if (pointer.y > cam.height - edgeThresholdY) cam.scrollY += speed;
+		if (pointer.x < edgeThreshold) cam.scrollX -= speed;
+		if (pointer.x > cam.width - edgeThreshold) cam.scrollX += speed;
+		if (pointer.y < edgeThreshold) cam.scrollY -= speed;
+		if (pointer.y > cam.height - edgeThreshold) cam.scrollY += speed;
+	}
+
+	/** Smoothly interpolate camera zoom toward target each frame. */
+	private handleSmoothZoom(): void {
+		const cam = this.cameras.main;
+		if (Math.abs(cam.zoom - this.zoomTarget) < 0.001) {
+			cam.setZoom(this.zoomTarget);
+			return;
+		}
+		const smoothed = lerpZoom(cam.zoom, this.zoomTarget, 0.15);
+		cam.setZoom(clampZoom(smoothed, this.deviceClass));
 	}
 
 	private renderBattlefieldReadabilityOverlay(): void {
