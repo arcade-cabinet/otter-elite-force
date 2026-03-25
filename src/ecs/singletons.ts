@@ -48,7 +48,7 @@ export function resetSessionState(world: World): void {
 	world.set(ResourcePool, { fish: 0, timber: 0, salvage: 0 });
 	world.set(PopulationState, { current: 0, max: 4 });
 	world.set(GamePhase, { phase: "loading" });
-	world.set(GameClock, { elapsed: 0, paused: false });
+	world.set(GameClock, { elapsedMs: 0, lastDeltaMs: 0, tick: 0, paused: false });
 	world.set(CurrentMission, { missionId: null });
 	world.set(Objectives, { list: [] });
 	world.set(TerritoryState, {

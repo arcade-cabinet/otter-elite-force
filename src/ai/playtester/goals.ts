@@ -356,7 +356,15 @@ export class ClickTrainButtonGoal extends PlaytesterGoal {
 		this.unitKey = unitKey;
 	}
 
-	execute(_perception: PlayerPerception): PlayerAction[] {
+	execute(perception: PlayerPerception): PlayerAction[] {
+		const hasSelectedBarracks = perception.selectedBuildings.some(
+			(building) => building.unitType === "barracks",
+		);
+		if (!hasSelectedBarracks) {
+			this.status = GoalStatus.FAILED;
+			return [];
+		}
+
 		this.status = GoalStatus.COMPLETED;
 		return [pressKey(this.unitKey)];
 	}

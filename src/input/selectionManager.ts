@@ -17,6 +17,7 @@ export class SelectionManager {
 	private scene: Phaser.Scene;
 	private world: World;
 	private selectionRect: Phaser.GameObjects.Graphics;
+	private enabled = true;
 	private isDragging = false;
 	private dragStart: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
 
@@ -36,6 +37,7 @@ export class SelectionManager {
 	}
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
+		if (!this.enabled) return;
 		if (pointer.rightButtonDown()) return;
 
 		this.isDragging = false;
@@ -43,6 +45,7 @@ export class SelectionManager {
 	}
 
 	private onPointerMove(pointer: Phaser.Input.Pointer): void {
+		if (!this.enabled) return;
 		if (!pointer.isDown || pointer.rightButtonDown()) return;
 
 		const dx = pointer.worldX - this.dragStart.x;
@@ -55,6 +58,7 @@ export class SelectionManager {
 	}
 
 	private onPointerUp(pointer: Phaser.Input.Pointer): void {
+		if (!this.enabled) return;
 		if (pointer.rightButtonReleased()) return;
 
 		this.selectionRect.clear();
@@ -84,12 +88,20 @@ export class SelectionManager {
 
 	/** Public entry point for tap-to-select (used by MobileInput). */
 	selectAt(worldX: number, worldY: number): void {
+		if (!this.enabled) return;
 		this.clickSelect(worldX, worldY);
 	}
 
 	/** Public entry point for box selection (used by MobileInput on drag end). */
 	selectBox(x1: number, y1: number, x2: number, y2: number): void {
+		if (!this.enabled) return;
 		this.boxSelect(x1, y1, x2, y2);
+	}
+
+	setEnabled(enabled: boolean): void {
+		this.enabled = enabled;
+		this.selectionRect.clear();
+		this.isDragging = false;
 	}
 
 	/** Single-click: find the nearest friendly entity under the cursor. */

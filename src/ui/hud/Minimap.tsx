@@ -13,7 +13,13 @@ import { cn } from "@/ui/lib/utils";
 const TILE_SIZE = 32;
 const CANVAS_SIZE = 160;
 
-export function Minimap({ compact = false }: { compact?: boolean }) {
+export function Minimap({
+	compact = false,
+	embedded = false,
+}: {
+	compact?: boolean;
+	embedded?: boolean;
+}) {
 	const world = useWorld();
 	const currentMission = useTrait(world, CurrentMission);
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -137,11 +143,16 @@ export function Minimap({ compact = false }: { compact?: boolean }) {
 		<Card
 			data-testid="minimap"
 			className={cn(
-				"overflow-hidden border-accent/18 bg-card/88 w-full",
+				"w-full overflow-hidden",
+				embedded
+					? "rounded-none border-0 bg-transparent shadow-none"
+					: "border-accent/18 bg-card/88",
 				compact ? "max-w-36" : "max-w-38 sm:max-w-48",
 			)}
 		>
-			<CardContent className={cn(compact ? "p-2" : "p-2.5")}>
+			<CardContent
+				className={cn(compact ? "p-0" : "p-0", !embedded && (compact ? "p-2" : "p-2.5"))}
+			>
 				<div className="mb-2 flex items-center justify-between gap-2">
 					<Badge variant="accent">RADAR</Badge>
 					<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">

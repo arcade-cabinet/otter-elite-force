@@ -12,16 +12,15 @@
  */
 
 import type { World } from "koota";
-import { PopulationCost, ProductionQueue } from "../ecs/traits/economy";
-import { Health } from "../ecs/traits/combat";
-import { IsBuilding, UnitType } from "../ecs/traits/identity";
+import { ConstructionProgress, ProductionQueue } from "../ecs/traits/economy";
+import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
-import { RallyPoint } from "../ecs/traits/orders";
+import { OrderQueue, RallyPoint } from "../ecs/traits/orders";
 import { OwnedBy } from "../ecs/relations";
 import { PopulationState, ResourcePool } from "../ecs/traits/state";
 import { world as defaultWorld } from "../ecs/world";
-import { ALL_UNITS } from "../data/units";
-import { ALL_BUILDINGS } from "../data/buildings";
+import { getBuilding, getUnit } from "../entities/registry";
+import { spawnUnit } from "../entities/spawner";
 
 /**
  * Queue a unit for training at a building.
@@ -34,18 +33,20 @@ export function queueUnit(
 	unitType: string,
 	world: World = defaultWorld,
 ): boolean {
-	const unitDef = ALL_UNITS[unitType];
+	if (building.has(ConstructionProgress)) return false;
+
+	const unitDef = getUnit(unitType);
 	if (!unitDef) return false;
 
 	// Check that this building can train this unit type
 	const buildingType = building.get(UnitType);
 	if (!buildingType) return false;
-	const buildingDef = ALL_BUILDINGS[buildingType.type];
+	const buildingDef = getBuilding(buildingType.type);
 	if (!buildingDef?.trains?.includes(unitType)) return false;
 
 	// Check population cap
 	const pop = world.get(PopulationState);
-	if (!pop || pop.current + unitDef.pop > pop.max) return false;
+	if (!pop || pop.current + unitDef.populationCost > pop.max) return false;
 
 	// Check and deduct resources
 	const pool = world.get(ResourcePool);
@@ -70,11 +71,11 @@ export function queueUnit(
 	queue.push({
 		unitType,
 		progress: 0,
-		buildTime: buildingDef.buildTime,
+		buildTime: unitDef.trainTime,
 	});
 
 	// Reserve population immediately
-	world.set(PopulationState, { current: pop.current + unitDef.pop, max: pop.max });
+	world.set(PopulationState, { current: pop.current + unitDef.populationCost, max: pop.max });
 
 	return true;
 }
@@ -102,50 +103,34 @@ export function productionSystem(world: World, delta: number): void {
 }
 
 /**
- * Spawn a trained unit at the building's rally point (or building position).
+ * Spawn a trained unit at the building mouth and move it toward the rally point.
  */
 function spawnTrainedUnit(
 	world: World,
 	building: ReturnType<World["spawn"]>,
 	unitType: string,
 ): void {
-	const unitDef = ALL_UNITS[unitType];
+	const unitDef = getUnit(unitType);
 	if (!unitDef) return;
 
-	// Determine spawn position: rally point if set, otherwise building position
-	let spawnX: number;
-	let spawnY: number;
-
-	if (building.has(RallyPoint)) {
-		const rally = building.get(RallyPoint);
-		if (rally) {
-			spawnX = rally.x;
-			spawnY = rally.y;
-		} else {
-			const bPos = building.get(Position);
-			spawnX = (bPos?.x ?? 0) + 1;
-			spawnY = bPos?.y ?? 0;
-		}
-	} else {
-		const bPos = building.get(Position);
-		spawnX = (bPos?.x ?? 0) + 1;
-		spawnY = bPos?.y ?? 0;
-	}
+	const bPos = building.get(Position);
+	const spawnX = (bPos?.x ?? 0) + 1;
+	const spawnY = bPos?.y ?? 0;
+	const rally = building.get(RallyPoint);
 
 	// Get the owner faction entity
 	const ownerFaction = building.targetFor(OwnedBy);
-
-	// Spawn the unit entity
-	const traits = [
-		UnitType({ type: unitType }),
-		Position({ x: spawnX, y: spawnY }),
-		Health({ current: unitDef.hp, max: unitDef.hp }),
-		PopulationCost({ cost: unitDef.pop }),
-	];
-
-	const unit = world.spawn(...traits);
+	const buildingFaction = building.get(Faction);
+	const unit = spawnUnit(world, unitDef, spawnX, spawnY, buildingFaction?.id ?? unitDef.faction);
 
 	if (ownerFaction) {
 		unit.add(OwnedBy(ownerFaction));
+	}
+
+	if (rally && (rally.x !== spawnX || rally.y !== spawnY) && unit.has(OrderQueue)) {
+		const orders = unit.get(OrderQueue);
+		if (orders) {
+			orders.push({ type: "move", targetX: rally.x, targetY: rally.y });
+		}
 	}
 }

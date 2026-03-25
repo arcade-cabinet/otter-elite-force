@@ -37,6 +37,7 @@ describe("shell layout contracts", () => {
 		expect(html).toContain('data-hud-region="hud-top"');
 		expect(html).toContain('data-hud-region="alerts"');
 		expect(html).toContain('data-hud-region="left-dock"');
+		expect(html).toContain('data-hud-region="battlefield-well"');
 		expect(html).toContain('data-hud-region="center-dock"');
 		expect(html).toContain('data-hud-region="right-dock"');
 	});

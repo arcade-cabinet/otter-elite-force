@@ -2,20 +2,23 @@
  * Browser Integration Test — GameScene
  *
  * Verifies that GameScene creates the tilemap, initializes fog of war,
- * sets up the weather system, and launches HUD in parallel.
+ * and exposes the battlefield state expected by the React HUD shell.
  *
  * We use a minimal BootScene stub that generates the required placeholder
  * textures and transitions directly to GameScene with mission data.
  */
 import Phaser from "phaser";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createScenePlaytester } from "@/ai/playtester";
 import { GameScene } from "@/Scenes/GameScene";
-import { HUDScene } from "@/Scenes/HUDScene";
+import { initSingletons } from "@/ecs/singletons";
+import { Objectives, CurrentMission } from "@/ecs/traits/state";
+import { world } from "@/ecs/world";
 import { createTestGame, type TestGameHandle } from "./phaser-test-helper";
 
 /**
  * Stub BootScene — generates placeholder textures that GameScene's tilemap
- * renderer and HUDScene expect, then launches GameScene with mission 1 data.
+ * renderer expects, then launches GameScene with mission 1 data.
  */
 class TestBootScene extends Phaser.Scene {
 	constructor() {
@@ -62,30 +65,37 @@ class TestBootScene extends Phaser.Scene {
 describe("GameScene (browser)", () => {
 	let handle: TestGameHandle;
 
+	beforeEach(() => {
+		// Ensure singleton traits are present before GameScene.create() calls resetSessionState()
+		if (!world.has(CurrentMission)) {
+			initSingletons(world);
+		}
+	});
+
 	afterEach(() => {
 		handle?.destroy();
 	});
 
-	it("should create the tilemap for mission 1", async () => {
+	it("should paint the terrain background for mission 1", async () => {
 		handle = await createTestGame({
-			scenes: [TestBootScene, GameScene, HUDScene],
+			scenes: [TestBootScene, GameScene],
 			width: 1280,
 			height: 720,
 		});
 
 		const gameScene = await handle.waitForScene("Game");
 
-		// GameScene should have a tilemap created by loadMission()
-		// The tilemap is added to the scene's display list as a TilemapLayer
-		const tilemapLayers = gameScene.children.list.filter(
-			(child) => child instanceof Phaser.Tilemaps.TilemapLayer,
+		// GameScene paints terrain onto a Canvas and adds it as a Phaser.Image
+		// with texture key "terrain-bg" — not a TilemapLayer.
+		const terrainBg = gameScene.children.list.find(
+			(child) => child instanceof Phaser.GameObjects.Image && child.texture.key === "terrain-bg",
 		);
-		expect(tilemapLayers.length).toBeGreaterThan(0);
+		expect(terrainBg).toBeDefined();
 	});
 
 	it("should initialize fog of war system", async () => {
 		handle = await createTestGame({
-			scenes: [TestBootScene, GameScene, HUDScene],
+			scenes: [TestBootScene, GameScene],
 			width: 1280,
 			height: 720,
 		});
@@ -99,24 +109,72 @@ describe("GameScene (browser)", () => {
 		expect(fogOverlay).toBeDefined();
 	});
 
-	it("should launch HUD scene in parallel", async () => {
+	it("should create a battlefield readability overlay layer", async () => {
 		handle = await createTestGame({
-			scenes: [TestBootScene, GameScene, HUDScene],
+			scenes: [TestBootScene, GameScene],
+			width: 1280,
+			height: 720,
+		});
+
+		const gameScene = await handle.waitForScene("Game");
+		const readabilityOverlay = gameScene.children.list.find(
+			(child) => child instanceof Phaser.GameObjects.Graphics && child.depth === 950,
+		);
+
+		expect(readabilityOverlay).toBeDefined();
+	});
+
+	it("should allow a playtester to attach to the live scene host", async () => {
+		handle = await createTestGame({
+			scenes: [TestBootScene, GameScene],
+			width: 1280,
+			height: 720,
+		});
+
+		const gameScene = await handle.waitForScene("Game");
+		const ai = createScenePlaytester(gameScene, world, {
+			errorRate: 0,
+			maxMisclickOffset: 0,
+		});
+
+		await ai.tick(1000);
+
+		expect(ai.getLastPerception()).not.toBeNull();
+	});
+
+	it("should expose current mission and directives through singleton state", async () => {
+		handle = await createTestGame({
+			scenes: [TestBootScene, GameScene],
+			width: 1280,
+			height: 720,
+		});
+
+		await handle.waitForScene("Game");
+		expect(world.get(CurrentMission)?.missionId).toBe("mission_1");
+		expect(world.get(Objectives)?.list.length ?? 0).toBeGreaterThan(0);
+	});
+
+	it("should seed current mission and directives into singleton state", async () => {
+		handle = await createTestGame({
+			scenes: [TestBootScene, GameScene],
 			width: 1280,
 			height: 720,
 		});
 
 		await handle.waitForScene("Game");
 
-		// HUD should be launched as a parallel scene
-		const hudScene = await handle.waitForScene("HUD");
-		expect(hudScene).toBeDefined();
-		expect(hudScene.scene.isActive()).toBe(true);
+		expect(world.get(CurrentMission)?.missionId).toBe("mission_1");
+		expect(world.get(Objectives)?.list.map((objective) => objective.id)).toEqual([
+			"build-command-post",
+			"build-barracks",
+			"train-mudfoots",
+			"gather-salvage",
+		]);
 	});
 
 	it("should set camera bounds to match map dimensions", async () => {
 		handle = await createTestGame({
-			scenes: [TestBootScene, GameScene, HUDScene],
+			scenes: [TestBootScene, GameScene],
 			width: 1280,
 			height: 720,
 		});
@@ -124,9 +182,9 @@ describe("GameScene (browser)", () => {
 		const gameScene = await handle.waitForScene("Game");
 		const cam = gameScene.cameras.main;
 
-		// Mission 1 is 48x40 tiles at 32px each = 1536x1280
+		// Mission 1 terrain is 48×44 tiles at 32px each = 1536×1408
 		const bounds = cam.getBounds();
 		expect(bounds.width).toBe(48 * 32);
-		expect(bounds.height).toBe(40 * 32);
+		expect(bounds.height).toBe(44 * 32);
 	});
 });

@@ -19,6 +19,7 @@
 import type { World } from "koota";
 import { FogOfWarSystem } from "@/systems/fogSystem";
 import {
+	createKootaGameStateReader,
 	type GameStateReader,
 	PerceptionBuilder,
 	type PlayerPerception,
@@ -58,6 +59,13 @@ export interface PlaytestResult {
 	finalPerception: PlayerPerception | null;
 }
 
+export interface PlaytesterSceneHost {
+	getFogSystem(): FogOfWarSystem | null;
+	getMapDimensions(): { cols: number; rows: number } | null;
+	getSceneCanvas(): HTMLCanvasElement;
+	scale: { width: number; height: number };
+}
+
 // ---------------------------------------------------------------------------
 // AIPlaytester
 // ---------------------------------------------------------------------------
@@ -68,6 +76,7 @@ export class AIPlaytester {
 	private apmLimiter: APMLimiter;
 	private canvas: HTMLCanvasElement;
 	private config: AIPlaytesterConfig;
+	private stateReader: GameStateReader;
 
 	/** Camera position in world pixels — the AI "scrolls" by updating this. */
 	private cameraX = 0;
@@ -91,9 +100,16 @@ export class AIPlaytester {
 	) {
 		this.config = { ...DEFAULT_AI_CONFIG, ...config };
 		this.canvas = canvas;
+		this.stateReader = stateReader;
 		this.brain = createPlaytesterBrain();
 		this.perceptionBuilder = new PerceptionBuilder(world, fog, stateReader, mapCols, mapRows);
 		this.apmLimiter = new APMLimiter(this.config);
+	}
+
+	private resolveNowMs(now?: number): number {
+		if (now !== undefined) return now;
+		const gameTimeSeconds = this.stateReader.getGameTime();
+		return Number.isFinite(gameTimeSeconds) ? gameTimeSeconds * 1000 : 0;
 	}
 
 	/** Get current viewport based on camera position. */
@@ -109,10 +125,12 @@ export class AIPlaytester {
 	/**
 	 * Single AI tick. Call once per game update frame.
 	 *
-	 * @param now - Current timestamp in ms (performance.now() or Date.now())
+	 * @param now - Optional timestamp override in ms. When omitted, uses the
+	 * canonical in-game clock exposed by the GameStateReader.
 	 */
-	async tick(now: number): Promise<void> {
+	async tick(now?: number): Promise<void> {
 		this.tickCount++;
+		const currentTimeMs = this.resolveNowMs(now);
 
 		// 1. Build perception
 		const viewport = this.getViewport();
@@ -132,12 +150,12 @@ export class AIPlaytester {
 
 		// 4. Drain action queue through APM limiter
 		while (this.actionQueue.length > 0) {
-			const delay = this.apmLimiter.getDelay(now);
+			const delay = this.apmLimiter.getDelay(currentTimeMs);
 			if (delay > 0) break; // Can't act yet
 
 			const action = this.actionQueue.shift()!;
 			await executeAction(this.canvas, action, this.config);
-			this.apmLimiter.record(now);
+			this.apmLimiter.record(currentTimeMs);
 			this.totalActions++;
 		}
 	}
@@ -173,14 +191,21 @@ export class AIPlaytester {
 export async function runUntilComplete(
 	ai: AIPlaytester,
 	isComplete: (perception: PlayerPerception | null) => "victory" | "defeat" | null,
-	options: { maxTicks?: number; tickInterval?: number } = {},
+	options: {
+		maxTicks?: number;
+		tickInterval?: number;
+		now?: () => number;
+		sleep?: (ms: number) => Promise<void>;
+	} = {},
 ): Promise<PlaytestResult> {
 	const maxTicks = options.maxTicks ?? 30_000;
 	const tickInterval = options.tickInterval ?? 16; // ~60fps
+	const sleep =
+		options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
 	let ticks = 0;
 
 	while (ticks < maxTicks) {
-		const now = performance.now();
+		const now = options.now?.();
 		await ai.tick(now);
 		ticks++;
 
@@ -196,7 +221,7 @@ export async function runUntilComplete(
 		}
 
 		// Yield to event loop
-		await new Promise((resolve) => setTimeout(resolve, tickInterval));
+		await sleep(tickInterval);
 	}
 
 	const stats = ai.getStats();
@@ -206,6 +231,36 @@ export async function runUntilComplete(
 		actionsPerformed: stats.actions,
 		finalPerception: ai.getLastPerception(),
 	};
+}
+
+export function createScenePlaytester(
+	host: PlaytesterSceneHost,
+	world: World,
+	config: Partial<AIPlaytesterConfig> = {},
+): AIPlaytester {
+	const fogSystem = host.getFogSystem();
+	if (!fogSystem) {
+		throw new Error("Cannot create AIPlaytester before GameScene fog system is initialized.");
+	}
+
+	const mapDimensions = host.getMapDimensions();
+	if (!mapDimensions) {
+		throw new Error("Cannot create AIPlaytester before GameScene map dimensions are available.");
+	}
+
+	return new AIPlaytester(
+		host.getSceneCanvas(),
+		world,
+		fogSystem,
+		createKootaGameStateReader(world),
+		mapDimensions.cols,
+		mapDimensions.rows,
+		{
+			viewportWidth: host.scale.width,
+			viewportHeight: host.scale.height,
+			...config,
+		},
+	);
 }
 
 // ---------------------------------------------------------------------------
@@ -226,6 +281,7 @@ export {
 	findBuildings,
 	findWeakestEnemy,
 	explorationProgress,
+	createKootaGameStateReader,
 } from "./perception";
 export { executeAction, APMLimiter, DEFAULT_INPUT_CONFIG, applyMisclick } from "./input";
 export { createPlaytesterBrain, PlaytesterBrain } from "./goals";

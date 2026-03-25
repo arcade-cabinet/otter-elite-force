@@ -58,6 +58,7 @@ import {
 	ScoutMapGoal,
 	SelectIdleWorkerGoal,
 	AttackNearestEnemyGoal,
+	ClickTrainButtonGoal,
 } from "@/ai/playtester/goals";
 
 // ---------------------------------------------------------------------------
@@ -73,6 +74,7 @@ function makePerception(overrides: Partial<PlayerPerception> = {}): PlayerPercep
 		resources: { fish: 200, timber: 200, salvage: 100 },
 		population: { current: 4, max: 10 },
 		selectedUnits: [],
+		selectedBuildings: [],
 		visibleFriendlyUnits: [],
 		visibleEnemyUnits: [],
 		visibleBuildings: [],
@@ -883,6 +885,38 @@ describe("Leaf Goals", () => {
 		const actions = goal.execute(perception);
 		expect(actions).toHaveLength(1);
 		expect(actions[0].type).toBe("rightClick");
+		expect(goal.completed()).toBe(true);
+	});
+
+	it("ClickTrainButtonGoal fails when no barracks is selected", () => {
+		const goal = new ClickTrainButtonGoal("1");
+		const actions = goal.execute(makePerception());
+
+		expect(actions).toEqual([]);
+		expect(goal.failed()).toBe(true);
+	});
+
+	it("ClickTrainButtonGoal presses the train hotkey when a barracks is selected", () => {
+		const goal = new ClickTrainButtonGoal("1");
+		const actions = goal.execute(
+			makePerception({
+				selectedBuildings: [
+					{
+						entityId: 12,
+						unitType: "barracks",
+						faction: "ura",
+						tileX: 8,
+						tileY: 6,
+						hp: 500,
+						maxHp: 500,
+						isTraining: false,
+						queueLength: 0,
+					},
+				],
+			}),
+		);
+
+		expect(actions).toEqual([{ type: "keypress", screenX: 0, screenY: 0, key: "1" }]);
 		expect(goal.completed()).toBe(true);
 	});
 });

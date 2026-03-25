@@ -215,11 +215,6 @@
 	align-items: center;
 	justify-content: center;
 	overflow: hidden;
-
-	padding-top: env(safe-area-inset-top, 0px);
-	padding-right: env(safe-area-inset-right, 0px);
-	padding-bottom: env(safe-area-inset-bottom, 0px);
-	padding-left: env(safe-area-inset-left, 0px);
 }
 
 #game-container canvas {
@@ -232,6 +227,10 @@
 
 .gameplay-viewport-card {
 	backdrop-filter: blur(10px);
+}
+
+.battlefield-well {
+	backdrop-filter: blur(8px);
 }
 
 .tactical-shell--mobile-portrait .game-container {
@@ -261,4 +260,50 @@
 
 .typewriter-cursor {
 	animation: cursor-blink 1s step-end infinite;
+}
+
+.riverine-camo {
+	background-image:
+		radial-gradient(circle at 18% 24%, rgba(123, 89, 58, 0.2), transparent 18%),
+		radial-gradient(circle at 78% 18%, rgba(72, 126, 102, 0.18), transparent 22%),
+		radial-gradient(circle at 62% 72%, rgba(29, 67, 58, 0.24), transparent 26%),
+		repeating-linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.02) 0,
+			rgba(255, 255, 255, 0.02) 8px,
+			transparent 8px,
+			transparent 22px
+		),
+		repeating-linear-gradient(
+			35deg,
+			rgba(0, 0, 0, 0.12) 0,
+			rgba(0, 0, 0, 0.12) 12px,
+			transparent 12px,
+			transparent 30px
+		);
+	animation: river-camo-drift 20s ease-in-out infinite;
+	background-size: 120% 120%;
+}
+
+.command-landing-hero::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background:
+		linear-gradient(120deg, rgba(212, 165, 116, 0.08), transparent 22%),
+		radial-gradient(circle at center, rgba(255, 255, 255, 0.04), transparent 44%);
+	pointer-events: none;
+	opacity: 0.85;
+}
+
+@keyframes river-camo-drift {
+	0% {
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+	50% {
+		transform: translate3d(-1.5%, 1%, 0) scale(1.03);
+	}
+	100% {
+		transform: translate3d(0, 0, 0) scale(1);
+	}
 }

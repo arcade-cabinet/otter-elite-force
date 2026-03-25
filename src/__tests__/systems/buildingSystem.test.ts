@@ -1,8 +1,10 @@
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ConstructionProgress } from "../../ecs/traits/economy";
+import { ConstructionProgress, ProductionQueue } from "../../ecs/traits/economy";
+import { AIState } from "../../ecs/traits/ai";
 import { Health } from "../../ecs/traits/combat";
-import { IsBuilding, UnitType } from "../../ecs/traits/identity";
+import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
+import { OrderQueue, RallyPoint } from "../../ecs/traits/orders";
 import { Position } from "../../ecs/traits/spatial";
 import { ConstructingAt, OwnedBy } from "../../ecs/relations";
 import { initSingletons } from "../../ecs/singletons";
@@ -44,7 +46,7 @@ describe("buildingSystem", () => {
 	});
 
 	afterEach(() => {
-		world.reset();
+		world.destroy();
 	});
 
 	describe("canPlaceBuilding", () => {
@@ -146,6 +148,7 @@ describe("buildingSystem", () => {
 			const cp = building!.get(ConstructionProgress);
 			expect(cp.progress).toBe(0);
 			expect(cp.buildTime).toBe(30); // Barracks build time from spec
+			expect(building!.get(Faction).id).toBe("ura");
 		});
 
 		it("should deduct resources on placement", () => {
@@ -197,8 +200,31 @@ describe("buildingSystem", () => {
 
 			// ConstructionProgress should be removed
 			expect(building.has(ConstructionProgress)).toBe(false);
+			expect(building.has(ProductionQueue)).toBe(true);
+			expect(building.has(RallyPoint)).toBe(true);
 			// Builder should be released
 			expect(builder.has(ConstructingAt(building))).toBe(false);
+		});
+
+		it("clears the builder build order when construction completes", () => {
+			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
+			const tileMap = createMockTileMap();
+			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
+
+			const builder = world.spawn(
+				Position({ x: 5, y: 5 }),
+				OrderQueue,
+				AIState,
+				ConstructingAt(building),
+			);
+			builder
+				.get(OrderQueue)
+				.push({ type: "build", targetX: 5, targetY: 5, targetEntity: building.id() });
+
+			buildingSystem(world, 30);
+
+			expect(builder.get(OrderQueue).length).toBe(0);
+			expect(builder.get(AIState).state).toBe("idle");
 		});
 
 		it("should not advance construction when builder is out of range", () => {

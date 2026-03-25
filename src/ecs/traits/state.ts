@@ -8,6 +8,7 @@
  * Spec §7: Koota as Single State Layer.
  */
 import { trait } from "koota";
+import type { ObjectiveStatus } from "@/scenarios/types";
 
 // ---------------------------------------------------------------------------
 // Resources (replaces resourceStore)
@@ -28,13 +29,13 @@ export const CompletedResearch = trait(() => ({
 // Game session state (replaces rtsGameStore)
 // ---------------------------------------------------------------------------
 
-export type GamePhaseType = "loading" | "briefing" | "playing" | "paused" | "victory" | "defeat";
+export type GamePhaseType = "loading" | "playing" | "paused" | "victory" | "defeat";
 
 /** Current game phase. */
 export const GamePhase = trait({ phase: "loading" as GamePhaseType });
 
-/** Game clock: elapsed time and pause state. */
-export const GameClock = trait({ elapsed: 0, paused: false });
+/** Game clock: deterministic mission chronometer in milliseconds. */
+export const GameClock = trait({ elapsedMs: 0, lastDeltaMs: 0, tick: 0, paused: false });
 
 /** Current mission ID (null when not in a mission). */
 export const CurrentMission = trait({ missionId: null as string | null });
@@ -44,7 +45,7 @@ export const Objectives = trait(() => ({
 	list: [] as Array<{
 		id: string;
 		description: string;
-		completed: boolean;
+		status: ObjectiveStatus;
 		bonus: boolean;
 	}>,
 }));
@@ -53,14 +54,7 @@ export const Objectives = trait(() => ({
 // App screen routing (replaces rtsGameStore.phase for UI routing)
 // ---------------------------------------------------------------------------
 
-export type AppScreenType =
-	| "menu"
-	| "campaign"
-	| "briefing"
-	| "game"
-	| "victory"
-	| "settings"
-	| "canteen";
+export type AppScreenType = "menu" | "game" | "victory" | "settings";
 
 /** Which screen the app is currently displaying. */
 export const AppScreen = trait({ screen: "menu" as AppScreenType });

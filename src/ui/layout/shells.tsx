@@ -144,30 +144,20 @@ export function TacticalShell({
 }: TacticalShellProps) {
 	const profile = useViewportProfile();
 	const resolvedHudLayout = hudLayout ?? resolveTacticalHudLayout(profile);
-	const dockGridClass =
-		resolvedHudLayout === "desktop"
-			? "grid-cols-[11rem_minmax(0,1fr)_16rem]"
+	const topRowClass =
+		resolvedHudLayout === "desktop" ? "lg:grid-cols-[minmax(0,1fr)_22rem]" : "grid-cols-1";
+	const battlefieldGridClass = !leftDock
+		? "grid-cols-1"
+		: resolvedHudLayout === "desktop"
+			? "grid-cols-[14rem_minmax(0,1fr)]"
 			: resolvedHudLayout === "tablet"
-				? "grid-cols-[10rem_minmax(0,1fr)]"
-				: "grid-cols-[9rem_minmax(0,1fr)]";
-	const leftDockClass =
-		resolvedHudLayout === "desktop"
-			? "order-1 max-w-38 sm:max-w-44"
-			: resolvedHudLayout === "tablet"
-				? "order-1 max-w-40"
-				: "order-1 max-w-36";
-	const centerDockClass =
-		resolvedHudLayout === "desktop"
-			? "order-2 min-w-0"
-			: resolvedHudLayout === "tablet"
-				? "order-2 min-w-0"
-				: "order-3 col-span-2";
-	const rightDockClass =
-		resolvedHudLayout === "desktop"
-			? "order-3 min-w-0"
-			: resolvedHudLayout === "tablet"
-				? "order-3 col-span-2 w-full"
-				: "order-2 min-w-0";
+				? "grid-cols-[12rem_minmax(0,1fr)]"
+				: "grid-cols-[9.25rem_minmax(0,1fr)]";
+	const bottomDockClass = rightDock
+		? resolvedHudLayout === "desktop"
+			? "grid-cols-[minmax(0,1fr)_16rem]"
+			: "grid-cols-1"
+		: "grid-cols-1";
 
 	return (
 		<div
@@ -178,31 +168,41 @@ export function TacticalShell({
 			)}
 		>
 			<div className="screen-noise absolute inset-0 opacity-45" />
-			<div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(0,255,65,0.12),transparent_25%),linear-gradient(180deg,rgba(3,12,7,0.08),rgba(3,12,7,0.38))]" />
+			<div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(170,141,84,0.12),transparent_24%),linear-gradient(180deg,rgba(3,12,7,0.08),rgba(3,12,7,0.48))]" />
 			<div className="tactical-shell-scanline absolute inset-x-0 top-3 h-px bg-[linear-gradient(90deg,transparent,rgba(138,255,156,0.75),transparent)]" />
-			<div className="relative z-0 h-full w-full">{children}</div>
-			<div className="pointer-events-none absolute inset-0 z-10 flex flex-col gap-2 p-2 sm:gap-3 sm:p-3 lg:p-4">
-				<div data-hud-region="hud-top" className="pointer-events-auto">
-					{hudTop}
-				</div>
-				<div className="pointer-events-none flex-1">
-					<div
-						data-hud-region="alerts"
-						className="pointer-events-auto ml-0 flex w-full justify-end sm:ml-auto"
-					>
+			<div className="relative z-10 grid h-full w-full grid-rows-[auto_minmax(0,1fr)_auto] gap-2 p-2 sm:gap-3 sm:p-3 lg:gap-4 lg:p-4">
+				<div className={cn("grid items-start gap-2", topRowClass)}>
+					<div data-hud-region="hud-top">{hudTop}</div>
+					<div data-hud-region="alerts" className="flex w-full justify-stretch lg:justify-end">
 						{alerts}
 					</div>
 				</div>
 				<div
-					className={cn("pointer-events-none mt-auto grid items-end gap-2 sm:gap-3", dockGridClass)}
+					className={cn("grid min-h-0 items-stretch gap-2 sm:gap-3 lg:gap-4", battlefieldGridClass)}
 				>
-					<div data-hud-region="left-dock" className={cn("pointer-events-auto", leftDockClass)}>
+					<div data-hud-region="left-dock" className={cn(!leftDock && "hidden", "min-h-0")}>
 						{leftDock}
 					</div>
-					<div data-hud-region="center-dock" className={cn("pointer-events-auto", centerDockClass)}>
+					<div
+						data-hud-region="battlefield-well"
+						className="battlefield-well gameplay-viewport-card relative min-h-[16rem] min-w-0 overflow-hidden rounded-xl border border-accent/24 bg-[linear-gradient(180deg,rgba(8,15,13,0.98),rgba(5,8,8,0.99))] shadow-[0_24px_52px_rgba(0,0,0,0.46)]"
+					>
+						<div className="riverine-camo pointer-events-none absolute inset-0 opacity-10" />
+						<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,220,140,0.08),transparent_20%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent_30%)]" />
+						<div className="pointer-events-none absolute inset-[0.55rem] rounded-[0.85rem] border border-border/70 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03),inset_0_0_30px_rgba(0,0,0,0.26)]" />
+						<div className="pointer-events-none absolute left-4 top-3 rounded border border-accent/25 bg-background/32 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-accent/85">
+							Tactical Feed
+						</div>
+						<div className="relative h-full w-full overflow-hidden rounded-[0.95rem]">
+							{children}
+						</div>
+					</div>
+				</div>
+				<div className={cn("grid items-end gap-2 sm:gap-3", bottomDockClass)}>
+					<div data-hud-region="center-dock" className="min-w-0">
 						{centerDock}
 					</div>
-					<div data-hud-region="right-dock" className={cn("pointer-events-auto", rightDockClass)}>
+					<div data-hud-region="right-dock" className={cn(!rightDock && "hidden", "min-w-0")}>
 						{rightDock}
 					</div>
 				</div>

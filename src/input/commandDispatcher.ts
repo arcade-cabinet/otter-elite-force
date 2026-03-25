@@ -10,13 +10,15 @@ import type { Entity, World } from "koota";
 import type Phaser from "phaser";
 import { Gatherer } from "@/ecs/traits/economy";
 import { Faction, IsResource, Selected } from "@/ecs/traits/identity";
-import { OrderQueue } from "@/ecs/traits/orders";
+import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
+import { EventBus } from "@/game/EventBus";
 import { TILE_SIZE } from "@/maps/loader";
 
 export class CommandDispatcher {
 	private scene: Phaser.Scene;
 	private world: World;
+	private enabled = true;
 
 	constructor(scene: Phaser.Scene, world: World) {
 		this.scene = scene;
@@ -37,8 +39,14 @@ export class CommandDispatcher {
 	 *               "move" for explicit move, "attack" for explicit attack
 	 */
 	issueCommandAt(worldX: number, worldY: number, mode: "context" | "move" | "attack"): void {
+		if (!this.enabled) return;
 		const tileX = Math.floor(worldX / TILE_SIZE);
 		const tileY = Math.floor(worldY / TILE_SIZE);
+
+		if (this.shouldIssueRallyCommand()) {
+			this.issueRallyCommand(tileX, tileY);
+			return;
+		}
 
 		if (mode === "move") {
 			this.issueMoveCommand(tileX, tileY);
@@ -61,11 +69,10 @@ export class CommandDispatcher {
 	}
 
 	private onPointerDown(pointer: Phaser.Input.Pointer): void {
+		if (!this.enabled) return;
 		if (!pointer.rightButtonDown()) return;
 
-		const tileX = Math.floor(pointer.worldX / TILE_SIZE);
-		const tileY = Math.floor(pointer.worldY / TILE_SIZE);
-		this.handleContextCommand(tileX, tileY);
+		this.issueCommandAt(pointer.worldX, pointer.worldY, "context");
 	}
 
 	private handleContextCommand(tileX: number, tileY: number): void {
@@ -111,32 +118,40 @@ export class CommandDispatcher {
 
 	/** Move all selected units to a tile position. */
 	private issueMoveCommand(tileX: number, tileY: number): void {
-		this.world.query(Selected, OrderQueue).forEach((entity) => {
+		let issued = 0;
+		this.world.query(Selected, OrderQueue, Faction).forEach((entity) => {
+			if (entity.get(Faction)?.id !== "ura") return;
 			const queue = entity.get(OrderQueue);
 			if (!queue) return;
 
 			// Replace current orders with the new move command
 			queue.length = 0;
 			queue.push({ type: "move", targetX: tileX, targetY: tileY });
+			issued += 1;
 		});
 
-		this.showCommandMarker(tileX, tileY, 0x00ff00);
+		if (issued > 0) {
+			this.showCommandMarker(tileX, tileY, 0x00ff00);
+		}
 	}
 
 	/** Order all selected units to attack a target entity. */
 	private issueAttackCommand(target: Entity): void {
 		const targetId = target.id();
+		let issued = 0;
 
-		this.world.query(Selected, OrderQueue).forEach((entity) => {
+		this.world.query(Selected, OrderQueue, Faction).forEach((entity) => {
+			if (entity.get(Faction)?.id !== "ura") return;
 			const queue = entity.get(OrderQueue);
 			if (!queue) return;
 
 			queue.length = 0;
 			queue.push({ type: "attack", targetEntity: targetId });
+			issued += 1;
 		});
 
 		const targetPos = target.get(Position);
-		if (targetPos) {
+		if (targetPos && issued > 0) {
 			this.showCommandMarker(targetPos.x, targetPos.y, 0xff0000);
 		}
 	}
@@ -144,8 +159,10 @@ export class CommandDispatcher {
 	/** Order selected workers to gather from a resource node. */
 	private issueGatherCommand(tileX: number, tileY: number, resource: Entity): void {
 		const resourceId = resource.id();
+		let issued = 0;
 
-		this.world.query(Selected, OrderQueue).forEach((entity) => {
+		this.world.query(Selected, OrderQueue, Faction).forEach((entity) => {
+			if (entity.get(Faction)?.id !== "ura") return;
 			// Only workers (entities with Gatherer trait) can gather
 			if (!entity.has(Gatherer)) return;
 
@@ -159,9 +176,57 @@ export class CommandDispatcher {
 				targetY: tileY,
 				targetEntity: resourceId,
 			});
+			issued += 1;
 		});
 
-		this.showCommandMarker(tileX, tileY, 0xfbbf24);
+		if (issued > 0) {
+			this.showCommandMarker(tileX, tileY, 0xfbbf24);
+		}
+	}
+
+	private issueRallyCommand(tileX: number, tileY: number): void {
+		const buildings = this.getSelectedFriendlyRallyBuildings();
+		if (buildings.length === 0) return;
+
+		for (const building of buildings) {
+			building.set(RallyPoint, { x: tileX, y: tileY });
+		}
+
+		this.showCommandMarker(tileX, tileY, 0x5fd0ff);
+		EventBus.emit("hud-alert", {
+			message:
+				buildings.length === 1
+					? "Rally point updated. New units will move to the marked position."
+					: `Rally point updated for ${buildings.length} structures.`,
+			severity: "info",
+		});
+	}
+
+	private shouldIssueRallyCommand(): boolean {
+		return (
+			this.getSelectedFriendlyCommandUnits().length === 0 &&
+			this.getSelectedFriendlyRallyBuildings().length > 0
+		);
+	}
+
+	private getSelectedFriendlyCommandUnits(): Entity[] {
+		const units: Entity[] = [];
+		this.world.query(Selected, OrderQueue, Faction).forEach((entity) => {
+			if (entity.get(Faction)?.id === "ura") {
+				units.push(entity);
+			}
+		});
+		return units;
+	}
+
+	private getSelectedFriendlyRallyBuildings(): Entity[] {
+		const buildings: Entity[] = [];
+		this.world.query(Selected, RallyPoint, Position, Faction).forEach((entity) => {
+			if (entity.get(Faction)?.id === "ura") {
+				buildings.push(entity);
+			}
+		});
+		return buildings;
 	}
 
 	/** Flash a brief marker at the command target position. */
@@ -182,6 +247,10 @@ export class CommandDispatcher {
 			duration: 400,
 			onComplete: () => marker.destroy(),
 		});
+	}
+
+	setEnabled(enabled: boolean): void {
+		this.enabled = enabled;
 	}
 
 	destroy(): void {

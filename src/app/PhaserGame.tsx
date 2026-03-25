@@ -18,6 +18,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, PhaserGameProps>(function P
 	ref,
 ) {
 	const game = useRef<Phaser.Game | undefined>(undefined);
+	const containerRef = useRef<HTMLDivElement | null>(null);
 
 	useLayoutEffect(() => {
 		if (game.current === undefined) {
@@ -48,7 +49,20 @@ export const PhaserGame = forwardRef<IRefPhaserGame, PhaserGameProps>(function P
 	}, []);
 
 	useEffect(() => {
-		EventBus.on("current-scene-ready", (currentScene: Phaser.Scene) => {
+		if (typeof ResizeObserver === "undefined") return;
+		const node = containerRef.current;
+		if (!node) return;
+
+		const observer = new ResizeObserver(() => {
+			game.current?.scale.refresh();
+		});
+
+		observer.observe(node);
+		return () => observer.disconnect();
+	}, []);
+
+	useEffect(() => {
+		const onSceneReady = (currentScene: Phaser.Scene) => {
 			if (currentActiveScene instanceof Function) {
 				currentActiveScene(currentScene);
 			}
@@ -56,12 +70,14 @@ export const PhaserGame = forwardRef<IRefPhaserGame, PhaserGameProps>(function P
 			if (ref !== null && typeof ref !== "function" && ref.current) {
 				ref.current.scene = currentScene;
 			}
-		});
+		};
+
+		EventBus.on("current-scene-ready", onSceneReady);
 
 		return () => {
-			EventBus.removeListener("current-scene-ready");
+			EventBus.off("current-scene-ready", onSceneReady);
 		};
 	}, [currentActiveScene, ref]);
 
-	return <div id="game-container" className="game-container" />;
+	return <div id="game-container" ref={containerRef} className="game-container" />;
 });

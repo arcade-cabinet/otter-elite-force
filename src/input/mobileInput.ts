@@ -37,6 +37,7 @@ export class MobileInput {
 	private commandDispatcher: CommandDispatcher;
 	private gestureDetector: GestureDetector;
 	private selectionRect: Phaser.GameObjects.Graphics;
+	private enabled = true;
 
 	/** Track whether we're in "move mode" or "attack mode" from HUD buttons. */
 	private commandMode: "none" | "move" | "attack" = "none";
@@ -65,6 +66,13 @@ export class MobileInput {
 		this.commandMode = mode;
 	}
 
+	setEnabled(enabled: boolean): void {
+		this.enabled = enabled;
+		this.selectionManager.setEnabled(enabled);
+		this.commandDispatcher.setEnabled(enabled);
+		this.selectionRect.clear();
+	}
+
 	private bindEvents(): void {
 		this.scene.input.on("pointerdown", this.onPointerDown, this);
 		this.scene.input.on("pointermove", this.onPointerMove, this);
@@ -82,6 +90,7 @@ export class MobileInput {
 	}
 
 	private onPointerDown(_pointer: Phaser.Input.Pointer): void {
+		if (!this.enabled) return;
 		const pointers = this.getActivePointers();
 		if (pointers.length === 0) return;
 
@@ -89,6 +98,7 @@ export class MobileInput {
 	}
 
 	private onPointerMove(_pointer: Phaser.Input.Pointer): void {
+		if (!this.enabled) return;
 		const pointers = this.getActivePointers();
 		if (pointers.length === 0) return;
 
@@ -116,6 +126,7 @@ export class MobileInput {
 	}
 
 	private onPointerUp(pointer: Phaser.Input.Pointer): void {
+		if (!this.enabled) return;
 		const released = toPointerState(pointer);
 		const gesture = this.gestureDetector.onPointerUp([released]);
 
@@ -136,6 +147,7 @@ export class MobileInput {
 	 * Must be called every frame for timely long-press detection.
 	 */
 	update(): void {
+		if (!this.enabled) return;
 		const pointers = this.getActivePointers();
 		if (pointers.length !== 1) return;
 

@@ -1,31 +1,14 @@
-/**
- * MainMenu Component Specification Tests
- *
- * Defines the behavioral contract for the MainMenu (command-post theme).
- * MainMenu is the game loader interface:
- *   - "New Deployment" — starts a new campaign (always visible)
- *   - "Continue" — resumes from save (only visible when save exists)
- *   - "Canteen" — meta-progression hub (always visible)
- *   - "Settings" — game settings (always visible)
- *
- * Sources:
- *   - docs/superpowers/specs/2026-03-24-ui-spdsl-architecture-design.md §3, §5, §10
- *   - docs/design/game-design-document.md (campaign structure)
- *   - CLAUDE.md (Main Menu = Game Loader, NO level select)
- *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
- *
- * Tests are written BEFORE the component exists.
- */
-import { describe, it, expect, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 let React: typeof import("react");
+let cleanup: typeof import("@testing-library/react").cleanup;
 let render: typeof import("@testing-library/react").render;
 let screen: typeof import("@testing-library/react").screen;
 let fireEvent: typeof import("@testing-library/react").fireEvent;
 let createWorld: typeof import("koota").createWorld;
 let WorldProvider: any;
 let MainMenu: any;
-let CampaignProgress: typeof import("@/ecs/traits/state").CampaignProgress;
+let initSingletons: typeof import("@/ecs/singletons").initSingletons;
 
 let loadError: string | null = null;
 
@@ -34,139 +17,98 @@ beforeEach(async () => {
 	try {
 		React = await import("react");
 		const rtl = await import("@testing-library/react");
+		cleanup = rtl.cleanup;
 		render = rtl.render;
 		screen = rtl.screen;
 		fireEvent = rtl.fireEvent;
 		const koota = await import("koota");
 		createWorld = koota.createWorld;
+		const singletons = await import("@/ecs/singletons");
+		initSingletons = singletons.initSingletons;
 		const kootaReact = await import("koota/react");
 		WorldProvider = kootaReact.WorldProvider;
-		const stateTraits = await import("@/ecs/traits/state");
-		CampaignProgress = stateTraits.CampaignProgress;
 		const mod = await import("@/ui/command-post/MainMenu");
 		MainMenu = mod.MainMenu ?? mod.default;
-	} catch (e) {
-		loadError = (e as Error).message;
+	} catch (error) {
+		loadError = (error as Error).message;
 	}
 });
 
 const skip = () => loadError !== null;
 
-function renderWithWorld(ui: any, worldSetup?: (world: any) => void) {
+afterEach(() => {
+	if (!skip()) cleanup();
+});
+
+function createInitializedWorld() {
 	const world = createWorld();
-	if (worldSetup) worldSetup(world);
-	return render(React.createElement(WorldProvider, { world }, ui));
+	initSingletons(world);
+	return world;
 }
 
-// ===========================================================================
-// SPECIFICATION
-// ===========================================================================
-
 describe("MainMenu", () => {
-	describe("rendering", () => {
-		it("renders without crashing", () => {
-			if (skip()) return;
-			const { container } = renderWithWorld(React.createElement(MainMenu));
-			expect(container).toBeTruthy();
-		});
-
-		it("displays the game title", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu));
-			// Should display game title or logo text
-			expect(screen.getByText(/otter.*elite.*force/i)).toBeTruthy();
-		});
+	it("renders the classic three-action landing", () => {
+		if (skip()) return;
+		const world = createInitializedWorld();
+		render(React.createElement(WorldProvider, { world }, React.createElement(MainMenu)));
+		expect(screen.getByRole("heading", { name: /otter elite force/i })).toBeTruthy();
+		expect(screen.getByRole("button", { name: /new game/i })).toBeTruthy();
+		expect(screen.getByRole("button", { name: /continue/i })).toBeTruthy();
+		expect(screen.getByRole("button", { name: /settings/i })).toBeTruthy();
 	});
 
-	describe("menu buttons — no save data", () => {
-		it("shows 'New Deployment' button", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu));
-			expect(screen.getByText(/new.*deployment/i)).toBeTruthy();
-		});
-
-		it("does NOT show 'Continue' when no campaign progress exists", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu));
-			// CampaignProgress has no missions completed
-			const continueBtn = screen.queryByText(/continue/i);
-			expect(continueBtn).toBeNull();
-		});
-
-		it("shows 'Canteen' button", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu));
-			expect(screen.getByText(/canteen/i)).toBeTruthy();
-		});
-
-		it("shows 'Settings' button", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu));
-			expect(screen.getByText(/settings/i)).toBeTruthy();
-		});
+	it("reveals difficulty choices when new game is clicked", () => {
+		if (skip()) return;
+		const world = createInitializedWorld();
+		render(React.createElement(WorldProvider, { world }, React.createElement(MainMenu)));
+		fireEvent.click(screen.getByRole("button", { name: /new game/i }));
+		expect(screen.getByRole("button", { name: /support/i })).toBeTruthy();
+		expect(screen.getByRole("button", { name: /tactical/i })).toBeTruthy();
+		expect(screen.getByRole("button", { name: /^elite/i })).toBeTruthy();
 	});
 
-	describe("menu buttons — with save data", () => {
-		it("shows 'Continue' when campaign progress exists", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu), (world: any) => {
-				world.set(CampaignProgress, {
-					missions: {
-						mission_1: { status: "completed", stars: 2, bestTime: 480000 },
-					},
-					currentMission: "mission_2",
-					difficulty: "tactical",
-				});
-			});
-			expect(screen.getByText(/continue/i)).toBeTruthy();
-		});
+	it("starts a brand new campaign directly into gameplay", async () => {
+		if (skip()) return;
+		const world = createInitializedWorld();
+		const traits = await import("@/ecs/traits/state");
+		render(React.createElement(WorldProvider, { world }, React.createElement(MainMenu)));
+		fireEvent.click(screen.getByRole("button", { name: /new game/i }));
+		fireEvent.click(screen.getByRole("button", { name: /tactical/i }));
+		expect(world.get(traits.CampaignProgress)?.currentMission).toBe("mission_1");
+		expect(world.get(traits.CampaignProgress)?.difficulty).toBe("tactical");
+		expect(world.get(traits.CompletedResearch)?.ids.size).toBe(0);
+		expect(world.get(traits.AppScreen)?.screen).toBe("game");
 	});
 
-	describe("anti-patterns", () => {
-		it("does NOT render a level select screen", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu));
-			// Per CLAUDE.md: REJECT level select screens
-			const levelSelect = screen.queryByText(/level\s*select/i);
-			expect(levelSelect).toBeNull();
-		});
-
-		it("does NOT render a mission list directly in the menu", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu));
-			// Mission selection is on CampaignMap, not MainMenu
-			const missionList = screen.queryByText(/mission_1/i);
-			expect(missionList).toBeNull();
-		});
+	it("keeps continue disabled when there is no active campaign", () => {
+		if (skip()) return;
+		const world = createInitializedWorld();
+		render(React.createElement(WorldProvider, { world }, React.createElement(MainMenu)));
+		expect(
+			screen.getByRole("button", { name: /continue/i }).getAttribute("disabled"),
+		).not.toBeNull();
 	});
 
-	describe("difficulty selection flow", () => {
-		it("clicking 'New Deployment' should lead to difficulty selection", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu));
-			const newBtn = screen.getByText(/new.*deployment/i);
-			fireEvent.click(newBtn);
-			// After clicking, should show difficulty options or navigate to selection
-			// Could show Support/Tactical/Elite or transition AppScreen
-			const supportOption = screen.queryByText(/support/i);
-			const tacticalOption = screen.queryByText(/tactical/i);
-			const eliteOption = screen.queryByText(/elite/i);
-			// At least one should appear (either inline or via screen change)
-			const anyDifficulty = supportOption || tacticalOption || eliteOption;
-			expect(anyDifficulty).toBeTruthy();
+	it("resumes directly into gameplay when campaign progress exists", async () => {
+		if (skip()) return;
+		const world = createInitializedWorld();
+		const traits = await import("@/ecs/traits/state");
+		world.set(traits.CampaignProgress, {
+			missions: { mission_1: { status: "completed", stars: 2, bestTime: 123 } },
+			currentMission: "mission_2",
+			difficulty: "support",
 		});
+		render(React.createElement(WorldProvider, { world }, React.createElement(MainMenu)));
+		fireEvent.click(screen.getByRole("button", { name: /continue/i }));
+		expect(world.get(traits.AppScreen)?.screen).toBe("game");
 	});
 
-	describe("navigation", () => {
-		it("all menu buttons are clickable", () => {
-			if (skip()) return;
-			renderWithWorld(React.createElement(MainMenu));
-			const buttons = screen.getAllByRole("button");
-			// Should have at least 3 buttons (New Deployment, Canteen, Settings)
-			expect(buttons.length).toBeGreaterThanOrEqual(3);
-			for (const btn of buttons) {
-				expect(btn.getAttribute("disabled")).toBeNull();
-			}
-		});
+	it("routes settings to the settings screen", async () => {
+		if (skip()) return;
+		const world = createInitializedWorld();
+		const traits = await import("@/ecs/traits/state");
+		render(React.createElement(WorldProvider, { world }, React.createElement(MainMenu)));
+		fireEvent.click(screen.getByRole("button", { name: /settings/i }));
+		expect(world.get(traits.AppScreen)?.screen).toBe("settings");
 	});
 });

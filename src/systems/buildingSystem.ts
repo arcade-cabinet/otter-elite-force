@@ -12,40 +12,28 @@
  */
 
 import type { World } from "koota";
-import { ConstructionProgress } from "../ecs/traits/economy";
-import { Health } from "../ecs/traits/combat";
-import { IsBuilding, UnitType } from "../ecs/traits/identity";
+import { AIState } from "../ecs/traits/ai";
+import { ConstructionProgress, ProductionQueue } from "../ecs/traits/economy";
+import { Health, Armor, Attack } from "../ecs/traits/combat";
+import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
+import { OrderQueue, RallyPoint } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
 import { ConstructingAt, OwnedBy } from "../ecs/relations";
 import { ResourcePool } from "../ecs/traits/state";
 import { world as defaultWorld } from "../ecs/world";
 import { ALL_BUILDINGS } from "../data/buildings";
+import { getBuilding } from "../entities/registry";
 
-/** Distance at which a builder can work on a building. */
 const BUILD_RANGE = 1.5;
+const BASE_BUILD_RATE = 100;
 
-/** Base construction rate: percentage points per second per builder. */
-const BASE_BUILD_RATE = 100; // A building with 30s build time: 100/30 = 3.33%/s per builder
-
-/**
- * Terrain type for tile validation.
- */
 export type TerrainType = "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge";
 
-/**
- * Tile map interface for placement validation.
- * Can be replaced by the real tilemap once Task #7 lands.
- */
 export interface TileMap {
-	/** Get the terrain type at tile coordinates. */
 	getTerrain(x: number, y: number): TerrainType | null;
-	/** Check if a tile is occupied by another building. */
 	isOccupied(x: number, y: number): boolean;
 }
 
-/**
- * Validate whether a building can be placed at the given tile.
- */
 export function canPlaceBuilding(
 	buildingId: string,
 	x: number,
@@ -55,27 +43,13 @@ export function canPlaceBuilding(
 ): { valid: boolean; reason?: string } {
 	const def = ALL_BUILDINGS[buildingId];
 	if (!def) return { valid: false, reason: "Unknown building type" };
-
 	const terrain = tileMap.getTerrain(x, y);
 	if (terrain === null) return { valid: false, reason: "Out of bounds" };
-
 	if (tileMap.isOccupied(x, y)) return { valid: false, reason: "Tile occupied" };
-
-	// Water tiles: only Dock and Fish Trap can be placed on water edge
-	if (terrain === "water") {
-		if (def.requiresWater) return { valid: true };
-		return { valid: false, reason: "Cannot build on water" };
-	}
-
-	// Water-required buildings need water (this branch only reached for non-water terrain)
-	if (def.requiresWater) {
-		return { valid: false, reason: "Must be placed on water edge" };
-	}
-
-	// Can't build on mangrove (dense trees)
+	if (terrain === "water")
+		return def.requiresWater ? { valid: true } : { valid: false, reason: "Cannot build on water" };
+	if (def.requiresWater) return { valid: false, reason: "Must be placed on water edge" };
 	if (terrain === "mangrove") return { valid: false, reason: "Cannot build on mangrove" };
-
-	// Check if player can afford
 	const pool = world.get(ResourcePool);
 	if (
 		!pool ||
@@ -85,15 +59,9 @@ export function canPlaceBuilding(
 	) {
 		return { valid: false, reason: "Insufficient resources" };
 	}
-
 	return { valid: true };
 }
 
-/**
- * Place a building at tile (x, y).
- * Deducts resources, spawns a Koota entity with ConstructionProgress.
- * Returns the spawned entity or null if placement failed.
- */
 export function placeBuilding(
 	world: World,
 	buildingId: string,
@@ -104,10 +72,8 @@ export function placeBuilding(
 ) {
 	const validation = canPlaceBuilding(buildingId, x, y, tileMap, world);
 	if (!validation.valid) return null;
-
 	const def = ALL_BUILDINGS[buildingId];
-
-	// Deduct resources
+	const runtimeDef = getBuilding(buildingId);
 	const pool = world.get(ResourcePool);
 	if (
 		!pool ||
@@ -116,69 +82,75 @@ export function placeBuilding(
 		pool.salvage < (def.cost.salvage ?? 0)
 	)
 		return null;
-
 	world.set(ResourcePool, {
 		fish: pool.fish - (def.cost.fish ?? 0),
 		timber: pool.timber - (def.cost.timber ?? 0),
 		salvage: pool.salvage - (def.cost.salvage ?? 0),
 	});
-
-	// Spawn building entity with construction progress
-	const building = world.spawn(
+	return world.spawn(
 		IsBuilding,
 		UnitType({ type: buildingId }),
+		Faction({ id: ownerFaction.get(Faction)?.id ?? runtimeDef?.faction ?? def.faction }),
 		Position({ x, y }),
 		Health({ current: def.hp, max: def.hp }),
+		Armor({ value: runtimeDef?.armor ?? 0 }),
 		ConstructionProgress({ progress: 0, buildTime: def.buildTime }),
 		OwnedBy(ownerFaction),
 	);
-
-	return building;
 }
 
-/**
- * Main building system tick.
- * Advances construction progress for buildings being built by workers.
- */
 export function buildingSystem(world: World, delta: number): void {
-	processConstruction(world, delta);
-}
-
-/**
- * Process all builders (workers with ConstructingAt relation).
- * Each builder near an incomplete building advances its progress.
- */
-function processConstruction(world: World, delta: number): void {
-	// Find all workers that are constructing something
 	const builders = world.query(Position, ConstructingAt("*"));
-
 	for (const builder of builders) {
 		const building = builder.targetFor(ConstructingAt);
 		if (!building || !building.has(ConstructionProgress)) continue;
-
 		const builderPos = builder.get(Position);
 		const buildingPos = building.get(Position);
 		if (!builderPos || !buildingPos) continue;
-
-		const dx = builderPos.x - buildingPos.x;
-		const dy = builderPos.y - buildingPos.y;
-		const dist = Math.sqrt(dx * dx + dy * dy);
-
+		const dist = Math.hypot(builderPos.x - buildingPos.x, builderPos.y - buildingPos.y);
 		if (dist > BUILD_RANGE) continue;
-
-		// Advance construction
 		const cp = building.get(ConstructionProgress);
 		if (!cp || cp.progress >= 100) continue;
-
-		// Rate: 100 / buildTime per second per builder
-		const rate = (BASE_BUILD_RATE / cp.buildTime) * delta;
-		const newProgress = Math.min(100, cp.progress + rate);
+		const newProgress = Math.min(100, cp.progress + (BASE_BUILD_RATE / cp.buildTime) * delta);
 		building.set(ConstructionProgress, { progress: newProgress });
-
-		// When complete, remove ConstructionProgress and release builder
 		if (newProgress >= 100) {
+			activateBuilding(building);
 			building.remove(ConstructionProgress);
-			builder.remove(ConstructingAt(building));
+			releaseBuilders(world, building);
 		}
+	}
+}
+
+function activateBuilding(building: ReturnType<World["spawn"]>): void {
+	const unitType = building.get(UnitType);
+	if (!unitType) return;
+	const runtimeDef = getBuilding(unitType.type);
+	if (!runtimeDef) return;
+	if (runtimeDef.trains?.length && !building.has(ProductionQueue)) building.add(ProductionQueue);
+	if (runtimeDef.trains?.length && !building.has(RallyPoint)) {
+		const pos = building.get(Position);
+		building.add(RallyPoint({ x: (pos?.x ?? 0) + 1, y: pos?.y ?? 0 }));
+	}
+	if (runtimeDef.attackDamage != null && !building.has(Attack)) {
+		building.add(
+			Attack({
+				damage: runtimeDef.attackDamage,
+				range: runtimeDef.attackRange ?? 0,
+				cooldown: runtimeDef.attackCooldown ?? 2,
+				timer: 0,
+			}),
+		);
+	}
+}
+
+function releaseBuilders(world: World, building: ReturnType<World["spawn"]>): void {
+	for (const builder of world.query(Position, ConstructingAt("*"))) {
+		if (builder.targetFor(ConstructingAt) !== building) continue;
+		builder.remove(ConstructingAt(building));
+		if (builder.has(OrderQueue)) {
+			const orders = builder.get(OrderQueue);
+			if (orders && orders[0]?.type === "build") orders.shift();
+		}
+		if (builder.has(AIState)) builder.set(AIState, (prev) => ({ ...prev, state: "idle" }));
 	}
 }

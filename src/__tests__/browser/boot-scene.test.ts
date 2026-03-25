@@ -2,59 +2,54 @@
  * Browser Integration Test — BootScene
  *
  * Verifies that BootScene loads without errors in a real Chromium environment,
- * generates placeholder textures, and transitions to MenuScene.
+ * exposes atlas scale metadata, and transitions to Game when a deployment is queued.
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { BootScene } from "@/Scenes/BootScene";
-import { MenuScene } from "@/Scenes/MenuScene";
+import { GameScene } from "@/Scenes/GameScene";
+import { initSingletons } from "@/ecs/singletons";
+import { CurrentMission } from "@/ecs/traits/state";
+import { world } from "@/ecs/world";
+import { queueDeployment } from "@/game/deployment";
 import { createTestGame, type TestGameHandle } from "./phaser-test-helper";
 
 describe("BootScene (browser)", () => {
 	let handle: TestGameHandle;
 
+	beforeEach(() => {
+		if (!world.has(CurrentMission)) {
+			initSingletons(world);
+		}
+	});
+
 	afterEach(() => {
 		handle?.destroy();
 	});
 
-	it("should load without errors and transition to Menu", async () => {
-		handle = await createTestGame({ scenes: [BootScene, MenuScene] });
+	it("should load without errors and stay on Boot when no deployment is queued", async () => {
+		queueDeployment();
+		handle = await createTestGame({ scenes: [BootScene] });
 
-		// BootScene starts automatically (first in array), then transitions to Menu
-		const menuScene = await handle.waitForScene("Menu");
-		expect(menuScene).toBeDefined();
-		expect(menuScene.scene.key).toBe("Menu");
+		const bootScene = await handle.waitForScene("Boot");
+		expect(bootScene).toBeDefined();
+		expect(bootScene.scene.key).toBe("Boot");
 	});
 
-	it("should generate placeholder textures during preload", async () => {
-		handle = await createTestGame({ scenes: [BootScene, MenuScene] });
-		await handle.waitForScene("Menu");
+	it("should register the selected atlas scale in the scene registry", async () => {
+		queueDeployment();
+		handle = await createTestGame({ scenes: [BootScene] });
+		const bootScene = await handle.waitForScene("Boot");
 
-		// BootScene generates textures for units, buildings, and terrain
-		const textureManager = handle.game.textures;
-		const expectedTextures = [
-			"river-rat",
-			"gator",
-			"command-post",
-			"barracks",
-			"grass",
-			"water",
-			"mud",
-			"bridge",
-			"toxic-sludge",
-			"portrait-foxhound",
-		];
-
-		for (const key of expectedTextures) {
-			expect(textureManager.exists(key), `texture "${key}" should exist`).toBe(true);
-		}
+		expect(bootScene.registry.get("atlasScale")).toMatch(/1x|2x|3x/);
 	});
 
-	it("should have the Boot scene stopped after transitioning", async () => {
-		handle = await createTestGame({ scenes: [BootScene, MenuScene] });
-		await handle.waitForScene("Menu");
+	it("should transition to Game when a deployment is queued", async () => {
+		queueDeployment({ missionId: 1, difficulty: "support" });
+		handle = await createTestGame({ scenes: [BootScene, GameScene], width: 1280, height: 720 });
+		const gameScene = await handle.waitForScene("Game");
 
-		// After scene.start("Menu"), BootScene should be stopped
 		const bootScene = handle.game.scene.getScene("Boot");
+		expect(gameScene.scene.key).toBe("Game");
 		expect(bootScene.scene.isActive()).toBe(false);
 	});
 });

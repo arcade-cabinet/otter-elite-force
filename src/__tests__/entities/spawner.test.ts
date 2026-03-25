@@ -4,11 +4,13 @@ import { spawnUnit, spawnBuilding, spawnResource } from "@/entities/spawner";
 import type { UnitDef, HeroDef, BuildingDef, ResourceDef, SpriteDef } from "@/entities/types";
 import { Position } from "@/ecs/traits/spatial";
 import { Health, Attack, Armor, VisionRadius } from "@/ecs/traits/combat";
-import { UnitType, Faction, IsHero, IsBuilding, IsResource } from "@/ecs/traits/identity";
-import { Gatherer, PopulationCost, ResourceNode } from "@/ecs/traits/economy";
+import { Category, UnitType, Faction, IsHero, IsBuilding, IsResource } from "@/ecs/traits/identity";
+import { Gatherer, PopulationCost, ProductionQueue, ResourceNode } from "@/ecs/traits/economy";
+import { OwnedBy } from "@/ecs/relations";
 import { CanSwim } from "@/ecs/traits/water";
 import { DetectionRadius } from "@/ecs/traits/stealth";
 import { AIState, SteeringAgent } from "@/ecs/traits/ai";
+import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 
 const STUB_SPRITE: SpriteDef = {
 	size: 16,
@@ -130,6 +132,7 @@ describe("spawnUnit", () => {
 		expect(e.get(Position)).toEqual({ x: 10, y: 20 });
 
 		expect(e.get(UnitType).type).toBe("mudfoot");
+		expect(e.get(Category).category).toBe("infantry");
 		expect(e.get(Faction).id).toBe("ura");
 
 		expect(e.get(Health)).toEqual({ current: 80, max: 80 });
@@ -145,12 +148,15 @@ describe("spawnUnit", () => {
 		expect(e.get(Faction).id).toBe("neutral");
 	});
 
-	it("does not add worker/swim/stealth/AI traits to basic infantry", () => {
+	it("adds command, ownership, and steering traits to basic infantry", () => {
 		const e = spawnUnit(world, MUDFOOT_DEF, 0, 0);
+		expect(e.has(OrderQueue)).toBe(true);
+		expect(e.has(AIState)).toBe(true);
+		expect(e.has(SteeringAgent)).toBe(true);
+		expect(e.has(OwnedBy("*"))).toBe(true);
 		expect(e.has(Gatherer)).toBe(false);
 		expect(e.has(CanSwim)).toBe(false);
 		expect(e.has(DetectionRadius)).toBe(false);
-		expect(e.has(AIState)).toBe(false);
 		expect(e.has(IsHero)).toBe(false);
 	});
 });
@@ -205,6 +211,9 @@ describe("spawnBuilding", () => {
 		expect(e.get(Health)).toEqual({ current: 350, max: 350 });
 		expect(e.get(Armor).value).toBe(1);
 		expect(e.has(IsBuilding)).toBe(true);
+		expect(e.has(ProductionQueue)).toBe(true);
+		expect(e.has(RallyPoint)).toBe(true);
+		expect(e.has(OwnedBy("*"))).toBe(true);
 	});
 
 	it("does not add Attack trait to non-defensive buildings", () => {

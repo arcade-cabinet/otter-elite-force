@@ -1,51 +1,35 @@
 /**
- * App — Root component with theme switching and screen routing.
+ * App — Root component with theme switching and simplified screen routing.
  *
- * Reads AppScreen trait from Koota to determine active screen.
- * Sets `data-theme` on <html> to activate the correct CSS theme.
- * Wraps everything in WorldProvider so all children can read Koota.
- *
- * Flow: menu → campaign → briefing → game → victory → settings
+ * Flow: menu → game → victory → menu
  */
 
 import { useTrait, useWorld, WorldProvider } from "koota/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { initSingletons } from "@/ecs/singletons";
-import { AppScreen, type AppScreenType, CampaignProgress } from "@/ecs/traits/state";
+import { AppScreen, type AppScreenType, CampaignProgress, GamePhase } from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
-import { CAMPAIGN, getMissionById } from "@/entities/missions";
+import { CAMPAIGN } from "@/entities/missions";
 import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
-import { BriefingScreen } from "@/ui/briefing/BriefingScreen";
-import { CampaignMap } from "@/ui/command-post/CampaignMap";
-import { CanteenScreen } from "@/ui/command-post/CanteenScreen";
-// UI screens
 import { MainMenu } from "@/ui/command-post/MainMenu";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
-import { ActionBar } from "@/ui/hud/ActionBar";
 import { AlertBanner } from "@/ui/hud/AlertBanner";
 import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
-import { Minimap } from "@/ui/hud/Minimap";
-
-// HUD overlay (shown during gameplay)
-import { ResourceBar } from "@/ui/hud/ResourceBar";
-import { UnitPanel } from "@/ui/hud/UnitPanel";
+import { CommandConsole } from "@/ui/hud/CommandConsole";
+import { GameplayTopBar } from "@/ui/hud/GameplayTopBar";
+import { TacticalRail } from "@/ui/hud/TacticalRail";
 import { BriefingShell, TacticalShell } from "@/ui/layout/shells";
 import { resolveTacticalHudLayout, useViewportProfile } from "@/ui/layout/viewport";
 import { cn } from "@/ui/lib/utils";
 import { type IRefPhaserGame, PhaserGame } from "./PhaserGame";
 
-// Initialize singleton state traits once at module load
 initSingletons(world);
 
-/** Map screen → CSS theme name */
 const SCREEN_THEMES: Record<AppScreenType, string> = {
 	menu: "command-post",
-	campaign: "command-post",
-	canteen: "command-post",
 	settings: "command-post",
-	briefing: "briefing",
 	game: "tactical",
 	victory: "tactical",
 };
@@ -58,13 +42,11 @@ function App() {
 	);
 }
 
-/** Reads AppScreen from Koota and renders the active screen. */
 function AppRouter() {
 	const w = useWorld();
 	const appScreen = useTrait(w, AppScreen);
 	const screen = appScreen?.screen ?? "menu";
 
-	// Apply theme to <html> element
 	useEffect(() => {
 		const theme = SCREEN_THEMES[screen] ?? "command-post";
 		document.documentElement.setAttribute("data-theme", theme);
@@ -73,48 +55,17 @@ function AppRouter() {
 	switch (screen) {
 		case "menu":
 			return <MainMenu />;
-		case "campaign":
-			return <CampaignMap />;
-		case "canteen":
-			return <CanteenScreen />;
 		case "settings":
 			return <SettingsPanel />;
-		case "briefing":
-			return <BriefingRoute />;
 		case "game":
 			return <GameplayScreen />;
 		case "victory":
-			return <VictoryOverlay />;
+			return <MissionResultOverlay />;
 		default:
 			return <MainMenu />;
 	}
 }
 
-/** Briefing screen driven by the selected mission definition. */
-function BriefingRoute() {
-	const w = useWorld();
-	const campaign = useTrait(w, CampaignProgress);
-	const mission = getMissionById(campaign?.currentMission ?? "mission_1") ?? CAMPAIGN[0];
-
-	const deploy = () => {
-		w.set(AppScreen, { screen: "game" });
-	};
-
-	return (
-		<BriefingScreen
-			briefing={{
-				missionId: mission.id,
-				missionName: mission.name,
-				subtitle: mission.subtitle,
-				portraitId: mission.briefing.portraitId,
-				lines: mission.briefing.lines,
-			}}
-			onDeploy={deploy}
-		/>
-	);
-}
-
-/** Gameplay screen: Phaser canvas + tactical HUD overlay. */
 function GameplayScreen() {
 	const phaserRef = useRef<IRefPhaserGame>(null);
 	const w = useWorld();
@@ -125,13 +76,18 @@ function GameplayScreen() {
 	const difficulty = (campaign?.difficulty ?? "support") as DifficultyMode;
 	const deploymentData: DeploymentData = { missionId: currentMission, difficulty };
 	const needsLandscapePrompt = viewport.isPhone && viewport.isPortrait;
-	const inlineUnitSummary = hudLayout === "mobile" && viewport.isLandscape;
+	const [activeTransmission, setActiveTransmission] = useState<{
+		speaker: string;
+		text: string;
+		portraitId?: string;
+		isScenario: boolean;
+	} | null>(null);
 
 	useEffect(() => {
 		const onMissionComplete = (data: {
 			missionId: string;
 			stars: number;
-			stats?: { timeElapsed?: number };
+			stats?: { timeElapsed?: number; timeElapsedMs?: number };
 		}) => {
 			const progress = w.get(CampaignProgress);
 			if (!progress) return;
@@ -139,7 +95,11 @@ function GameplayScreen() {
 			const currentIndex = CAMPAIGN.findIndex((mission) => mission.id === data.missionId);
 			const nextMission = currentIndex >= 0 ? CAMPAIGN[currentIndex + 1] : undefined;
 			const existing = progress.missions[data.missionId];
-			const bestTime = data.stats?.timeElapsed ?? existing?.bestTime ?? 0;
+			const bestTime =
+				data.stats?.timeElapsedMs ??
+				(data.stats?.timeElapsed != null
+					? data.stats.timeElapsed * 1000
+					: (existing?.bestTime ?? 0));
 
 			w.set(CampaignProgress, {
 				...progress,
@@ -157,7 +117,7 @@ function GameplayScreen() {
 		};
 
 		const onMissionFailed = () => {
-			w.set(AppScreen, { screen: "briefing" });
+			w.set(AppScreen, { screen: "victory" });
 		};
 
 		EventBus.on("mission-complete", onMissionComplete);
@@ -175,35 +135,42 @@ function GameplayScreen() {
 			hudLayout={hudLayout}
 			className={cn(needsLandscapePrompt && "tactical-shell--mobile-portrait")}
 			hudTop={
-				<div className="grid gap-2">
-					<ResourceBar />
-					{!needsLandscapePrompt && inlineUnitSummary ? <UnitPanel compact /> : null}
-					{viewport.isPhone && viewport.isLandscape ? (
-						<div className="sm:hidden rounded-md border border-accent/20 bg-card/72 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-							Landscape compact HUD active • unit status rides top-side while command docks stay
-							edge-anchored.
-						</div>
-					) : null}
-				</div>
+				needsLandscapePrompt ? null : (
+					<GameplayTopBar missionId={currentMission} compact={hudLayout !== "desktop"} />
+				)
 			}
 			alerts={
 				needsLandscapePrompt ? (
 					<RotateDeviceNotice
 						width={viewport.width}
 						height={viewport.height}
-						onReturn={() => w.set(AppScreen, { screen: "briefing" })}
+						onReturn={() => w.set(AppScreen, { screen: "menu" })}
 					/>
 				) : (
 					<AlertBanner />
 				)
 			}
-			leftDock={needsLandscapePrompt ? null : <Minimap compact={hudLayout !== "desktop"} />}
-			centerDock={
-				needsLandscapePrompt || inlineUnitSummary ? null : (
-					<UnitPanel compact={hudLayout === "tablet"} />
+			leftDock={
+				needsLandscapePrompt ? null : (
+					<TacticalRail
+						missionId={currentMission}
+						activeSpeaker={activeTransmission?.speaker}
+						activePortraitId={activeTransmission?.portraitId}
+						compact={hudLayout !== "desktop"}
+					/>
 				)
 			}
-			rightDock={needsLandscapePrompt ? null : <ActionBar compact={hudLayout !== "desktop"} />}
+			centerDock={
+				needsLandscapePrompt ? null : (
+					<CommandConsole
+						missionId={currentMission}
+						compact={hudLayout !== "desktop"}
+						showUnitPanel={false}
+						showMinimap={false}
+						onActiveTransmissionChange={setActiveTransmission}
+					/>
+				)
+			}
 		>
 			<PhaserGame ref={phaserRef} deploymentData={deploymentData} />
 			<CombatTextOverlay />
@@ -239,30 +206,53 @@ function RotateDeviceNotice({
 			</p>
 			<div className="mt-3 flex flex-wrap gap-2">
 				<Button variant="accent" onClick={onReturn}>
-					Back to Briefing
+					Back to Menu
 				</Button>
 			</div>
 		</div>
 	);
 }
 
-/** Victory overlay — shown after mission completion. */
-function VictoryOverlay() {
+function MissionResultOverlay() {
 	const w = useWorld();
+	const campaign = useTrait(w, CampaignProgress);
+	const phase = useTrait(w, GamePhase)?.phase ?? "victory";
+	const finalMissionId = CAMPAIGN.at(-1)?.id ?? null;
+	const finalMissionComplete =
+		finalMissionId !== null && campaign?.missions[finalMissionId]?.status === "completed";
+	const isDefeat = phase === "defeat";
+	const primaryLabel = isDefeat
+		? "Retry Mission"
+		: finalMissionComplete
+			? "Return to Menu"
+			: "Next Mission";
+	const primaryTarget: AppScreenType = isDefeat ? "game" : finalMissionComplete ? "menu" : "game";
 
 	return (
 		<BriefingShell
-			title="Mission Complete"
-			subtitle="Return to the campaign map, queue the next operation, and keep the pressure moving forward."
+			title={isDefeat ? "Mission Failed" : "Mission Complete"}
+			subtitle={
+				isDefeat
+					? "Re-establish contact, revise the approach, and get boots back on the ground."
+					: finalMissionComplete
+						? "Campaign pressure is broken. Return to the command post and review the Reach."
+						: "Command has the next operation ready. Stay in the fight and push forward."
+			}
 			footer={
-				<Button variant="accent" onClick={() => w.set(AppScreen, { screen: "campaign" })}>
-					Continue Campaign
-				</Button>
+				<div className="flex flex-wrap gap-2">
+					<Button variant="accent" onClick={() => w.set(AppScreen, { screen: primaryTarget })}>
+						{primaryLabel}
+					</Button>
+					<Button variant="command" onClick={() => w.set(AppScreen, { screen: "menu" })}>
+						Main Menu
+					</Button>
+				</div>
 			}
 		>
 			<div className="rounded-lg border border-accent/25 bg-card/70 p-6 font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">
-				Mission results are now presented inside the same high-contrast briefing shell instead of a
-				generic standalone page.
+				{isDefeat
+					? "Mission command now loops directly back into play. Retry the operation without bouncing through detached pre-mission screens."
+					: "Campaign progression now moves operation-to-operation. No campaign map, no canteen, no store friction."}
 			</div>
 		</BriefingShell>
 	);

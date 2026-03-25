@@ -45,6 +45,7 @@ function makePerception(overrides: Partial<PlayerPerception> = {}): PlayerPercep
 		resources: { fish: 200, timber: 100, salvage: 50 },
 		population: { current: 8, max: 12 },
 		selectedUnits: [],
+		selectedBuildings: [],
 		visibleFriendlyUnits: [],
 		visibleEnemyUnits: [],
 		visibleBuildings: [],
@@ -152,6 +153,17 @@ describe("AI Playtester Perception Queries", () => {
 				],
 			});
 			expect(countMilitaryUnits(p)).toBe(5);
+		});
+	});
+
+	describe("selected building contract", () => {
+		it("represents selected production buildings separately from visible buildings", () => {
+			const p = makePerception({
+				selectedBuildings: [makeBuilding({ unitType: "barracks", tileX: 6, tileY: 4 })],
+			});
+
+			expect(p.selectedBuildings).toHaveLength(1);
+			expect(p.selectedBuildings[0].unitType).toBe("barracks");
 		});
 	});
 

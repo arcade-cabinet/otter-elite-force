@@ -31,7 +31,7 @@ export function movementSystem(world: World, delta: number): void {
  * Sync Yuka Vehicle position back to Koota Position trait.
  * Also updates Velocity and FacingDirection from the Vehicle state.
  */
-function syncSteeringToPosition(world: World, _delta: number): void {
+function syncSteeringToPosition(world: World, delta: number): void {
 	const entities = world.query(SteeringAgent, Position);
 
 	for (const entity of entities) {
@@ -39,6 +39,14 @@ function syncSteeringToPosition(world: World, _delta: number): void {
 		if (!agent?.vehicle) continue;
 
 		const vehicle = agent.vehicle;
+
+		// Yuka's FollowPathBehavior crashes when path.current() is undefined
+		// (empty waypoints → squaredDistanceTo on undefined). Disable the
+		// behavior when there's nothing to follow; re-enable when waypoints
+		// exist so separation/avoidance still update safely.
+		agent.followPath.active = agent.followPath.path.current() !== undefined;
+
+		vehicle.update(delta);
 
 		// Sync position: Yuka uses (x, 0, z) where z maps to our y
 		entity.set(Position, {

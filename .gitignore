@@ -7,11 +7,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build output
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
+
+# Test artifacts
 coverage
+.vitest-attachments/
+src/__tests__/browser/__screenshots__/
 
 # Bundle analysis
 stats.html
@@ -32,6 +40,18 @@ bundle-size.json
 test-results/
 playwright-report/
 playwright/.cache/
+blob-report/
+html-report/
+
+# Capacitor / native builds
+android/
+ios/
+.capacitor/
+
+# Lock files (pnpm only)
 package-lock.json
 
+# Environment
 .env
+.env.*
+!.env.example

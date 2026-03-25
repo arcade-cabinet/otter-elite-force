@@ -11,30 +11,45 @@
  */
 
 import Phaser from "phaser";
-import { EventBus } from "@/game/EventBus";
-import type { DeploymentData } from "@/game/deployment";
-import type { MissionDef, Placement } from "@/entities/types";
-import { getUnit, getHero, getBuilding, getResource } from "@/entities/registry";
-import { compileMissionScenario } from "@/entities/missions/compileMissionScenario";
-import { getMissionById } from "@/entities/missions";
-import { spawnUnit, spawnBuilding, spawnResource } from "@/entities/spawner";
-import { paintMap } from "@/entities/terrain/map-painter";
-import { Faction, IsBuilding, UnitType } from "@/ecs/traits/identity";
+import { ConstructingAt, GatheringFrom, OwnedBy, Targeting } from "@/ecs/relations";
+import { resetSessionState } from "@/ecs/singletons";
 import { Health } from "@/ecs/traits/combat";
+import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
+import { type Order, OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
+import {
+	CurrentMission,
+	GameClock,
+	GamePhase,
+	Objectives,
+	PopulationState,
+	ResourcePool,
+} from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
+import { getMissionById } from "@/entities/missions";
+import { compileMissionScenario } from "@/entities/missions/compileMissionScenario";
+import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
+import { ensureFactionOwner, spawnBuilding, spawnResource, spawnUnit } from "@/entities/spawner";
+import { paintMap } from "@/entities/terrain/map-painter";
+import type { MissionDef, Placement } from "@/entities/types";
+import type { DeploymentData } from "@/game/deployment";
+import { EventBus } from "@/game/EventBus";
 import { DesktopInput } from "@/input/desktopInput";
 import { MobileInput } from "@/input/mobileInput";
+import type { ActionHandler, ScenarioWorldQuery } from "@/scenarios/engine";
 import { ScenarioEngine } from "@/scenarios/engine";
-import type { ScenarioWorldQuery, ActionHandler } from "@/scenarios/engine";
-import type { TriggerAction } from "@/scenarios/types";
+import type { ObjectiveStatus, TriggerAction } from "@/scenarios/types";
+import {
+	canPlaceBuilding,
+	placeBuilding,
+	type TerrainType,
+	type TileMap,
+} from "@/systems/buildingSystem";
 import { FogOfWarSystem } from "@/systems/fogSystem";
-import { tickAllSystems } from "@/systems/gameLoop";
 import type { GameLoopContext } from "@/systems/gameLoop";
+import { tickAllSystems } from "@/systems/gameLoop";
 import { destroyAllSprites } from "@/systems/syncSystem";
 import { WeatherSystem } from "@/systems/weatherSystem";
-import { resetSessionState } from "@/ecs/singletons";
-import { CurrentMission, GamePhase, ResourcePool, PopulationState } from "@/ecs/traits/state";
 
 /** Tile size in pixels — matches the sync layer (32px). */
 const TILE_SIZE = 32;
@@ -58,10 +73,62 @@ export class GameScene extends Phaser.Scene {
 	private cameraPanSpeed = 400;
 	private fogSystem: FogOfWarSystem | null = null;
 	private weatherSystem: WeatherSystem | null = null;
+	private desktopInput?: DesktopInput;
 	private mobileInput?: MobileInput;
 	private scenarioEngine: ScenarioEngine | null = null;
 	private scenarioWorldQuery: ScenarioWorldQuery | null = null;
-	private elapsedTime = 0;
+	private activeMission: MissionDef | null = null;
+	private placementMode: { workerEntityId: number; buildingId: string } | null = null;
+	private battlefieldOverlay: Phaser.GameObjects.Graphics | null = null;
+	private placementPreview: Phaser.GameObjects.Graphics | null = null;
+
+	private setScenarioObjectives(
+		objectives: Array<{
+			id: string;
+			description: string;
+			type: "primary" | "bonus";
+			status: ObjectiveStatus;
+		}>,
+	): void {
+		world.set(Objectives, {
+			list: objectives.map((objective) => ({
+				id: objective.id,
+				description: objective.description,
+				status: objective.status,
+				bonus: objective.type === "bonus",
+			})),
+		});
+	}
+
+	private updateObjectiveStatus(objectiveId: string, status: ObjectiveStatus): void {
+		const objectives = world.get(Objectives);
+		if (!objectives) return;
+
+		world.set(Objectives, {
+			list: objectives.list.map((objective) =>
+				objective.id === objectiveId ? { ...objective, status } : objective,
+			),
+		});
+	}
+
+	private getObjectiveDescription(objectiveId: string): string {
+		return (
+			world.get(Objectives)?.list.find((objective) => objective.id === objectiveId)?.description ??
+			objectiveId.replace(/-/g, " ")
+		);
+	}
+
+	private emitCommandTransmission(payload: {
+		speaker: string;
+		text: string;
+		portrait?: string;
+		duration?: number;
+	}): void {
+		EventBus.emit("command-transmission", {
+			missionId: resolveMissionKey(this.missionData.missionId),
+			...payload,
+		});
+	}
 
 	constructor() {
 		super({ key: "Game" });
@@ -69,7 +136,6 @@ export class GameScene extends Phaser.Scene {
 
 	init(data?: DeploymentData): void {
 		this.missionData = data ?? { missionId: "mission_1", difficulty: "support" };
-		this.elapsedTime = 0;
 	}
 
 	create(): void {
@@ -120,8 +186,16 @@ export class GameScene extends Phaser.Scene {
 			// Lock to landscape on mobile (async, fire-and-forget)
 			import("@/input/screenOrientation").then((m) => m.lockLandscape());
 		} else {
-			new DesktopInput(this, world);
+			this.desktopInput = new DesktopInput(this, world);
 		}
+
+		this.battlefieldOverlay = this.add.graphics();
+		this.battlefieldOverlay.setDepth(950);
+		this.placementPreview = this.add.graphics();
+		this.placementPreview.setDepth(1200);
+		this.input.on("pointermove", this.handlePlacementPointerMove, this);
+		this.input.on("pointerdown", this.handlePlacementPointerDown, this);
+		EventBus.on("start-build-placement", this.startBuildPlacement, this);
 
 		// Notify React that GameScene is ready (HUD is now a React overlay)
 		EventBus.emit("current-scene-ready", this);
@@ -129,6 +203,10 @@ export class GameScene extends Phaser.Scene {
 		// Pause input (ESC key) — React handles the pause overlay
 		if (this.input.keyboard) {
 			this.input.keyboard.on("keydown-ESC", () => {
+				if (this.placementMode) {
+					this.cancelBuildPlacement();
+					return;
+				}
 				this.scene.pause();
 				EventBus.emit("game-paused");
 			});
@@ -138,7 +216,20 @@ export class GameScene extends Phaser.Scene {
 		this.events.on("shutdown", () => {
 			this.fogSystem?.destroy();
 			this.weatherSystem?.destroy();
+			this.desktopInput?.destroy();
+			this.mobileInput?.destroy();
+			this.battlefieldOverlay?.destroy();
+			this.placementPreview?.destroy();
+			this.input.off("pointermove", this.handlePlacementPointerMove, this);
+			this.input.off("pointerdown", this.handlePlacementPointerDown, this);
+			EventBus.off("start-build-placement", this.startBuildPlacement, this);
 			destroyAllSprites();
+			this.desktopInput = undefined;
+			this.mobileInput = undefined;
+			this.activeMission = null;
+			this.placementMode = null;
+			this.battlefieldOverlay = null;
+			this.placementPreview = null;
 			this.fogSystem = null;
 			this.weatherSystem = null;
 			this.scenarioEngine = null;
@@ -148,7 +239,17 @@ export class GameScene extends Phaser.Scene {
 
 	update(_time: number, delta: number): void {
 		const deltaSec = delta / 1000;
-		this.elapsedTime += deltaSec;
+		const clock = world.get(GameClock);
+		const elapsedMs = clock?.elapsedMs ?? 0;
+		const phase = world.get(GamePhase)?.phase ?? "loading";
+		const paused = (clock?.paused ?? false) || phase !== "playing";
+		const nextElapsedMs = paused ? elapsedMs : elapsedMs + delta;
+		world.set(GameClock, {
+			elapsedMs: nextElapsedMs,
+			lastDeltaMs: paused ? 0 : delta,
+			tick: (clock?.tick ?? 0) + 1,
+			paused,
+		});
 
 		// Camera controls (not part of ECS tick)
 		this.handleCameraPan(delta);
@@ -158,7 +259,7 @@ export class GameScene extends Phaser.Scene {
 
 		// Update scenario world query elapsed time
 		if (this.scenarioWorldQuery) {
-			this.scenarioWorldQuery.elapsedTime = this.elapsedTime;
+			this.scenarioWorldQuery.elapsedTime = nextElapsedMs / 1000;
 		}
 
 		// Tick all ECS systems in correct order
@@ -172,6 +273,30 @@ export class GameScene extends Phaser.Scene {
 			weatherSystem: this.weatherSystem,
 		};
 		tickAllSystems(ctx);
+		this.renderBattlefieldReadabilityOverlay();
+	}
+
+	getFogSystem(): FogOfWarSystem | null {
+		return this.fogSystem;
+	}
+
+	getMapDimensions(): { cols: number; rows: number } | null {
+		const terrain = this.activeMission?.terrain;
+		if (terrain) {
+			return { cols: terrain.width, rows: terrain.height };
+		}
+
+		const bounds = this.cameras.main.getBounds();
+		if (bounds.width <= 0 || bounds.height <= 0) return null;
+
+		return {
+			cols: Math.round(bounds.width / TILE_SIZE),
+			rows: Math.round(bounds.height / TILE_SIZE),
+		};
+	}
+
+	getSceneCanvas(): HTMLCanvasElement {
+		return this.sys.game.canvas as HTMLCanvasElement;
 	}
 
 	private handleCameraPan(delta: number): void {
@@ -205,6 +330,205 @@ export class GameScene extends Phaser.Scene {
 		if (pointer.y > cam.height - edgeThresholdY) cam.scrollY += speed;
 	}
 
+	private renderBattlefieldReadabilityOverlay(): void {
+		if (!this.battlefieldOverlay) return;
+
+		this.battlefieldOverlay.clear();
+		this.renderSelectedOrderIndicators();
+		this.renderSelectionIndicators();
+		this.renderSelectedRallyIndicators();
+	}
+
+	private renderSelectedOrderIndicators(): void {
+		if (!this.battlefieldOverlay) return;
+
+		for (const entity of world.query(Selected, Position, OrderQueue)) {
+			if (entity.has(IsBuilding)) continue;
+
+			const pos = entity.get(Position);
+			const orders = entity.get(OrderQueue);
+			if (!pos || !orders || orders.length === 0) continue;
+
+			const currentOrder = orders[0];
+			if (currentOrder.type === "stop") continue;
+
+			const startX = pos.x * TILE_SIZE + TILE_SIZE / 2;
+			const startY = pos.y * TILE_SIZE + TILE_SIZE / 2;
+			const target = this.resolveOrderTarget(entity, currentOrder);
+			if (!target) continue;
+
+			const style = this.getOrderIndicatorStyle(currentOrder.type);
+			this.battlefieldOverlay.lineStyle(2, style.lineColor, 0.78);
+			this.battlefieldOverlay.lineBetween(startX, startY, target.x, target.y);
+			this.drawOrderMarker(target.x, target.y, style, currentOrder);
+		}
+	}
+
+	private renderSelectionIndicators(): void {
+		if (!this.battlefieldOverlay) return;
+
+		for (const entity of world.query(Selected, Position)) {
+			const pos = entity.get(Position);
+			if (!pos) continue;
+
+			const centerX = pos.x * TILE_SIZE + TILE_SIZE / 2;
+			const centerY = pos.y * TILE_SIZE + TILE_SIZE / 2;
+			const radius = entity.has(IsBuilding) ? 18 : 12;
+
+			this.battlefieldOverlay.lineStyle(2, 0xa6ef7b, 0.95);
+			this.battlefieldOverlay.strokeCircle(centerX, centerY, radius);
+
+			if (!entity.has(IsBuilding)) {
+				this.battlefieldOverlay.lineStyle(1, 0x16301a, 0.9);
+				this.battlefieldOverlay.strokeCircle(centerX, centerY, Math.max(6, radius - 3));
+			}
+		}
+	}
+
+	private renderSelectedRallyIndicators(): void {
+		if (!this.battlefieldOverlay) return;
+
+		for (const building of world.query(Selected, IsBuilding, Position, RallyPoint)) {
+			const pos = building.get(Position);
+			const rally = building.get(RallyPoint);
+			if (!pos || !rally) continue;
+
+			const startX = pos.x * TILE_SIZE + TILE_SIZE / 2;
+			const startY = pos.y * TILE_SIZE + TILE_SIZE / 2;
+			const targetX = rally.x * TILE_SIZE + TILE_SIZE / 2;
+			const targetY = rally.y * TILE_SIZE + TILE_SIZE / 2;
+
+			this.battlefieldOverlay.lineStyle(2, 0x5fd0ff, 0.88);
+			this.battlefieldOverlay.lineBetween(startX, startY, targetX, targetY);
+			this.battlefieldOverlay.fillStyle(0x08131a, 0.72);
+			this.battlefieldOverlay.fillCircle(targetX, targetY, 6);
+			this.battlefieldOverlay.lineStyle(2, 0x5fd0ff, 0.95);
+			this.battlefieldOverlay.strokeCircle(targetX, targetY, 10);
+			this.battlefieldOverlay.lineStyle(1, 0xbcecff, 0.8);
+			this.battlefieldOverlay.strokeCircle(targetX, targetY, 16);
+		}
+	}
+
+	private resolveOrderTarget(entity: ReturnType<typeof world.query>[number], order: Order) {
+		if (order.type === "attack") {
+			const explicitTarget =
+				order.targetEntity !== undefined ? this.resolveEntity(order.targetEntity) : null;
+			const attackTarget = explicitTarget ?? entity.targetFor(Targeting);
+			const targetPos = attackTarget?.get(Position);
+			if (targetPos) {
+				return {
+					x: targetPos.x * TILE_SIZE + TILE_SIZE / 2,
+					y: targetPos.y * TILE_SIZE + TILE_SIZE / 2,
+				};
+			}
+		}
+
+		if (order.type === "gather") {
+			const explicitTarget =
+				order.targetEntity !== undefined ? this.resolveEntity(order.targetEntity) : null;
+			const gatherTarget = explicitTarget ?? entity.targetFor(GatheringFrom);
+			const targetPos = gatherTarget?.get(Position);
+			if (targetPos) {
+				return {
+					x: targetPos.x * TILE_SIZE + TILE_SIZE / 2,
+					y: targetPos.y * TILE_SIZE + TILE_SIZE / 2,
+				};
+			}
+		}
+
+		if (order.type === "patrol" && order.waypoints && order.waypoints.length > 0) {
+			const first = order.waypoints[0];
+			return {
+				x: first.x * TILE_SIZE + TILE_SIZE / 2,
+				y: first.y * TILE_SIZE + TILE_SIZE / 2,
+			};
+		}
+
+		if (order.targetX !== undefined && order.targetY !== undefined) {
+			return {
+				x: order.targetX * TILE_SIZE + TILE_SIZE / 2,
+				y: order.targetY * TILE_SIZE + TILE_SIZE / 2,
+			};
+		}
+
+		return null;
+	}
+
+	private getOrderIndicatorStyle(orderType: Order["type"]) {
+		switch (orderType) {
+			case "move":
+				return { lineColor: 0x7cff8a, accentColor: 0xdafee2, mode: "circle" as const };
+			case "attack":
+				return { lineColor: 0xff6b6b, accentColor: 0xffd4d4, mode: "crosshair" as const };
+			case "gather":
+				return { lineColor: 0xfbbf24, accentColor: 0xfff2c0, mode: "resource" as const };
+			case "build":
+				return { lineColor: 0xffa94d, accentColor: 0xffe0b3, mode: "tile" as const };
+			case "patrol":
+				return { lineColor: 0x8ec5ff, accentColor: 0xd7ecff, mode: "circle" as const };
+			default:
+				return { lineColor: 0xffffff, accentColor: 0xffffff, mode: "circle" as const };
+		}
+	}
+
+	private drawOrderMarker(
+		targetX: number,
+		targetY: number,
+		style: {
+			lineColor: number;
+			accentColor: number;
+			mode: "circle" | "crosshair" | "resource" | "tile";
+		},
+		order: Order,
+	): void {
+		if (!this.battlefieldOverlay) return;
+
+		if (style.mode === "tile") {
+			this.battlefieldOverlay.fillStyle(0x1a1208, 0.4);
+			this.battlefieldOverlay.fillRect(
+				targetX - TILE_SIZE / 2,
+				targetY - TILE_SIZE / 2,
+				TILE_SIZE,
+				TILE_SIZE,
+			);
+			this.battlefieldOverlay.lineStyle(2, style.lineColor, 0.95);
+			this.battlefieldOverlay.strokeRect(
+				targetX - TILE_SIZE / 2,
+				targetY - TILE_SIZE / 2,
+				TILE_SIZE,
+				TILE_SIZE,
+			);
+			return;
+		}
+
+		if (style.mode === "crosshair") {
+			this.battlefieldOverlay.lineStyle(2, style.lineColor, 0.95);
+			this.battlefieldOverlay.strokeCircle(targetX, targetY, 11);
+			this.battlefieldOverlay.lineBetween(targetX - 16, targetY, targetX - 6, targetY);
+			this.battlefieldOverlay.lineBetween(targetX + 6, targetY, targetX + 16, targetY);
+			this.battlefieldOverlay.lineBetween(targetX, targetY - 16, targetX, targetY - 6);
+			this.battlefieldOverlay.lineBetween(targetX, targetY + 6, targetX, targetY + 16);
+			return;
+		}
+
+		if (style.mode === "resource") {
+			this.battlefieldOverlay.fillStyle(0x241b04, 0.7);
+			this.battlefieldOverlay.fillCircle(targetX, targetY, 5);
+			this.battlefieldOverlay.lineStyle(2, style.lineColor, 0.95);
+			this.battlefieldOverlay.strokeCircle(targetX, targetY, 9);
+			this.battlefieldOverlay.lineStyle(1, style.accentColor, 0.9);
+			this.battlefieldOverlay.strokeCircle(targetX, targetY, 14);
+			return;
+		}
+
+		this.battlefieldOverlay.fillStyle(0x08130a, 0.7);
+		this.battlefieldOverlay.fillCircle(targetX, targetY, 5);
+		this.battlefieldOverlay.lineStyle(2, style.lineColor, 0.95);
+		this.battlefieldOverlay.strokeCircle(targetX, targetY, order.type === "move" ? 9 : 10);
+		this.battlefieldOverlay.lineStyle(1, style.accentColor, 0.75);
+		this.battlefieldOverlay.strokeCircle(targetX, targetY, order.type === "move" ? 14 : 16);
+	}
+
 	private drawPlaceholderGrid(): void {
 		const cols = 50;
 		const rows = 40;
@@ -226,6 +550,7 @@ export class GameScene extends Phaser.Scene {
 	// =========================================================================
 
 	private loadMission(mission: MissionDef): void {
+		this.activeMission = mission;
 		// 1. Paint terrain onto a Canvas and register as background
 		const terrainCanvas = paintMap(mission.terrain, TILE_SIZE);
 		if (this.textures.exists("terrain-bg")) {
@@ -363,10 +688,43 @@ export class GameScene extends Phaser.Scene {
 				};
 
 		this.scenarioEngine = new ScenarioEngine(scenario, actionHandler);
+		this.setScenarioObjectives(scenario.objectives);
 
 		this.scenarioEngine.on((event) => {
-			if (event.type === "missionFailed") {
-				this.handleDefeat(event.reason);
+			switch (event.type) {
+				case "missionFailed":
+					this.handleDefeat(event.reason);
+					break;
+				case "objectiveCompleted": {
+					const description = this.getObjectiveDescription(event.objectiveId);
+					this.updateObjectiveStatus(event.objectiveId, "completed");
+					EventBus.emit("objective-completed", {
+						objectiveId: event.objectiveId,
+						description,
+					});
+					EventBus.emit("hud-alert", {
+						message: `Directive complete: ${description}`,
+						severity: "info",
+					});
+					break;
+				}
+				case "objectiveFailed": {
+					const description = this.getObjectiveDescription(event.objectiveId);
+					this.updateObjectiveStatus(event.objectiveId, "failed");
+					EventBus.emit("hud-alert", {
+						message: `Directive failed: ${description}`,
+						severity: "critical",
+					});
+					break;
+				}
+				case "allObjectivesCompleted":
+					EventBus.emit("hud-alert", {
+						message: "Primary directives complete. Await command handoff.",
+						severity: "info",
+					});
+					break;
+				case "triggerFired":
+					break;
 			}
 		});
 
@@ -451,12 +809,13 @@ export class GameScene extends Phaser.Scene {
 						}
 					}
 				}
+				if (action.dialogue) {
+					this.emitCommandTransmission(action.dialogue);
+				}
 				break;
 			case "completeObjective":
-				EventBus.emit("objective-completed", { objectiveId: action.objectiveId });
 				break;
 			case "failMission":
-				this.handleDefeat(action.reason);
 				break;
 			case "camera":
 				this.cameras.main.pan(
@@ -469,6 +828,13 @@ export class GameScene extends Phaser.Scene {
 				this.handleVictory();
 				break;
 			case "showDialogue":
+				this.emitCommandTransmission({
+					speaker: action.speaker,
+					text: action.text,
+					portrait: action.portrait,
+					duration: action.duration,
+				});
+				break;
 			case "changeWeather":
 			case "playSFX":
 				break;
@@ -477,7 +843,9 @@ export class GameScene extends Phaser.Scene {
 
 	private handleVictory(): void {
 		world.set(GamePhase, { phase: "victory" });
-		const elapsed = Math.floor(this.elapsedTime);
+		world.set(GameClock, { paused: true, lastDeltaMs: 0 });
+		const elapsedMs = world.get(GameClock)?.elapsedMs ?? 0;
+		const elapsed = Math.floor(elapsedMs / 1000);
 		const pool = world.get(ResourcePool);
 		const resourcesGathered = (pool?.fish ?? 0) + (pool?.timber ?? 0) + (pool?.salvage ?? 0);
 		const stars = elapsed < 300 ? 3 : elapsed < 600 ? 2 : 1;
@@ -489,6 +857,7 @@ export class GameScene extends Phaser.Scene {
 			stats: {
 				unitsLost: 0,
 				enemiesDefeated: 0,
+				timeElapsedMs: elapsedMs,
 				timeElapsed: elapsed,
 				resourcesGathered,
 			},
@@ -497,6 +866,190 @@ export class GameScene extends Phaser.Scene {
 
 	private handleDefeat(reason: string): void {
 		world.set(GamePhase, { phase: "defeat" });
+		world.set(GameClock, { paused: true, lastDeltaMs: 0 });
 		EventBus.emit("mission-failed", { reason });
+	}
+
+	private startBuildPlacement(payload: { workerEntityId: number; buildingId: string }): void {
+		if (!getBuilding(payload.buildingId)) return;
+		this.placementMode = payload;
+		this.setCommandInputEnabled(false);
+		EventBus.emit("hud-alert", {
+			message: `Placement mode: ${getBuilding(payload.buildingId)?.name ?? payload.buildingId}. Left-click to place, Esc to cancel.`,
+			severity: "info",
+		});
+	}
+
+	private cancelBuildPlacement(): void {
+		this.placementMode = null;
+		this.placementPreview?.clear();
+		this.setCommandInputEnabled(true);
+	}
+
+	private handlePlacementPointerMove(pointer: Phaser.Input.Pointer): void {
+		if (!this.placementMode || !this.placementPreview) return;
+		const tileX = Math.floor(pointer.worldX / TILE_SIZE);
+		const tileY = Math.floor(pointer.worldY / TILE_SIZE);
+		const validation = canPlaceBuilding(
+			this.placementMode.buildingId,
+			tileX,
+			tileY,
+			this.createPlacementTileMap(),
+			world,
+		);
+		this.placementPreview.clear();
+		this.placementPreview.lineStyle(2, validation.valid ? 0x7cff8a : 0xff5f5f, 0.95);
+		this.placementPreview.fillStyle(validation.valid ? 0x7cff8a : 0xff5f5f, 0.18);
+		this.placementPreview.fillRect(tileX * TILE_SIZE, tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+		this.placementPreview.strokeRect(tileX * TILE_SIZE, tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+	}
+
+	private handlePlacementPointerDown(pointer: Phaser.Input.Pointer): void {
+		if (!this.placementMode) return;
+		if (pointer.rightButtonDown()) {
+			this.cancelBuildPlacement();
+			return;
+		}
+
+		const worker = this.resolveEntity(this.placementMode.workerEntityId);
+		if (!worker) {
+			this.cancelBuildPlacement();
+			return;
+		}
+
+		const tileX = Math.floor(pointer.worldX / TILE_SIZE);
+		const tileY = Math.floor(pointer.worldY / TILE_SIZE);
+		const ownerFaction =
+			worker.targetFor(OwnedBy) ?? ensureFactionOwner(world, worker.get(Faction)?.id ?? "ura");
+		const building = placeBuilding(
+			world,
+			this.placementMode.buildingId,
+			tileX,
+			tileY,
+			this.createPlacementTileMap(),
+			ownerFaction,
+		);
+
+		if (!building) {
+			EventBus.emit("hud-alert", {
+				message: "Unable to place structure here.",
+				severity: "warning",
+			});
+			return;
+		}
+
+		worker.add(ConstructingAt(building));
+		if (worker.has(OrderQueue)) {
+			const orders = worker.get(OrderQueue);
+			if (orders) {
+				orders.length = 0;
+				orders.push({
+					type: "build",
+					targetX: tileX,
+					targetY: tileY,
+					targetEntity: building.id(),
+					buildingType: this.placementMode.buildingId,
+				});
+			}
+		}
+
+		EventBus.emit("hud-alert", {
+			message: `${getBuilding(this.placementMode.buildingId)?.name ?? "Structure"} site marked. Builder en route.`,
+			severity: "info",
+		});
+		this.placementMode = null;
+		this.placementPreview?.clear();
+		this.setCommandInputEnabled(true);
+	}
+
+	private setCommandInputEnabled(enabled: boolean): void {
+		this.desktopInput?.setEnabled(enabled);
+		this.mobileInput?.setEnabled(enabled);
+	}
+
+	private createPlacementTileMap(): TileMap {
+		return {
+			getTerrain: (x, y) => this.resolveTerrainAt(x, y),
+			isOccupied: (x, y) => {
+				let occupied = false;
+				world.query(IsBuilding, Position).forEach((entity) => {
+					if (occupied) return;
+					const pos = entity.get(Position);
+					if (pos?.x === x && pos?.y === y) occupied = true;
+				});
+				return occupied;
+			},
+		};
+	}
+
+	private resolveTerrainAt(x: number, y: number): TerrainType | null {
+		const terrain = this.activeMission?.terrain;
+		if (!terrain || x < 0 || y < 0 || x >= terrain.width || y >= terrain.height) return null;
+		let terrainId = terrain.regions.find((region) => region.fill)?.terrainId ?? null;
+		for (const region of terrain.regions) {
+			if (region.fill) continue;
+			if (
+				region.rect &&
+				x >= region.rect.x &&
+				x < region.rect.x + region.rect.w &&
+				y >= region.rect.y &&
+				y < region.rect.y + region.rect.h
+			)
+				terrainId = region.terrainId;
+			if (region.circle) {
+				const dx = x - region.circle.cx;
+				const dy = y - region.circle.cy;
+				if (Math.hypot(dx, dy) <= region.circle.r) terrainId = region.terrainId;
+			}
+			if (region.river && this.pointNearRiver(x, y, region.river.points, region.river.width / 2))
+				terrainId = region.terrainId;
+		}
+		for (const override of terrain.overrides) {
+			if (override.x === x && override.y === y) terrainId = override.terrainId;
+		}
+		if (terrainId === "water") return "water";
+		if (terrainId === "mangrove") return "mangrove";
+		if (terrainId === "bridge") return "bridge";
+		if (terrainId === "mud") return "mud";
+		if (terrainId === "dirt") return "dirt";
+		return "grass";
+	}
+
+	private pointNearRiver(
+		x: number,
+		y: number,
+		points: [number, number][],
+		halfWidth: number,
+	): boolean {
+		for (let i = 0; i < points.length - 1; i++) {
+			const [x1, y1] = points[i];
+			const [x2, y2] = points[i + 1];
+			if (this.distanceToSegment(x, y, x1, y1, x2, y2) <= halfWidth) return true;
+		}
+		return false;
+	}
+
+	private distanceToSegment(
+		px: number,
+		py: number,
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+	): number {
+		const dx = x2 - x1;
+		const dy = y2 - y1;
+		if (dx === 0 && dy === 0) return Math.hypot(px - x1, py - y1);
+		const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)));
+		const projX = x1 + t * dx;
+		const projY = y1 + t * dy;
+		return Math.hypot(px - projX, py - projY);
+	}
+
+	private resolveEntity(entityId: number) {
+		for (const entity of world.query(Position)) {
+			if (entity.id() === entityId) return entity;
+		}
+		return null;
 	}
 }

@@ -1,10 +1,11 @@
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { PopulationCost, ProductionQueue } from "../../ecs/traits/economy";
+import { AIState, SteeringAgent } from "../../ecs/traits/ai";
 import { Health } from "../../ecs/traits/combat";
-import { IsBuilding, UnitType } from "../../ecs/traits/identity";
+import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
-import { RallyPoint } from "../../ecs/traits/orders";
+import { OrderQueue, RallyPoint } from "../../ecs/traits/orders";
 import { OwnedBy } from "../../ecs/relations";
 import { initSingletons } from "../../ecs/singletons";
 import { PopulationState, ResourcePool } from "../../ecs/traits/state";
@@ -23,12 +24,13 @@ describe("productionSystem", () => {
 	});
 
 	afterEach(() => {
-		world.reset();
+		world.destroy();
 	});
 
 	function spawnBarracks() {
 		return world.spawn(
 			IsBuilding,
+			Faction({ id: "ura" }),
 			UnitType({ type: "barracks" }),
 			Position({ x: 10, y: 10 }),
 			ProductionQueue,
@@ -39,6 +41,7 @@ describe("productionSystem", () => {
 	function spawnCommandPost() {
 		return world.spawn(
 			IsBuilding,
+			Faction({ id: "ura" }),
 			UnitType({ type: "command_post" }),
 			Position({ x: 5, y: 5 }),
 			ProductionQueue,
@@ -125,11 +128,11 @@ describe("productionSystem", () => {
 			const barracks = spawnBarracks();
 			queueUnit(barracks, "mudfoot", world);
 
-			// Tick 10 seconds (barracks buildTime = 30s)
+			// Tick 10 seconds (mudfoot trainTime = 20s)
 			productionSystem(world, 10);
 
 			const queue = barracks.get(ProductionQueue);
-			expect(queue[0].progress).toBeCloseTo(33.33, 0);
+			expect(queue[0].progress).toBeCloseTo(50, 0);
 		});
 
 		it("should spawn a unit when production completes", () => {
@@ -137,8 +140,8 @@ describe("productionSystem", () => {
 			const barracks = spawnBarracks();
 			queueUnit(barracks, "mudfoot", world);
 
-			// Tick enough to complete (30s)
-			productionSystem(world, 30);
+			// Tick enough to complete (mudfoot trainTime = 20s)
+			productionSystem(world, 20);
 
 			// Queue should be empty
 			const queue = barracks.get(ProductionQueue);
@@ -151,25 +154,30 @@ describe("productionSystem", () => {
 			for (const unit of units) {
 				if (unit.get(UnitType).type === "mudfoot" && !unit.has(IsBuilding)) {
 					mudfootCount++;
+					expect(unit.has(AIState)).toBe(true);
+					expect(unit.has(SteeringAgent)).toBe(true);
 				}
 			}
 			expect(mudfootCount).toBe(1);
 		});
 
-		it("should spawn unit at rally point when set", () => {
+		it("should spawn unit beside the building and queue a move to the rally point", () => {
 			world.set(ResourcePool, { fish: 100, timber: 0, salvage: 50 });
 			const barracks = spawnBarracks();
 			barracks.add(RallyPoint({ x: 15, y: 20 }));
 			queueUnit(barracks, "mudfoot", world);
 
-			productionSystem(world, 30);
+			productionSystem(world, 20);
 
-			const units = world.query(UnitType, Position, Health);
+			const units = world.query(UnitType, Position, Health, OrderQueue);
 			for (const unit of units) {
 				if (unit.get(UnitType).type === "mudfoot" && !unit.has(IsBuilding)) {
 					const pos = unit.get(Position);
-					expect(pos.x).toBe(15);
-					expect(pos.y).toBe(20);
+					const orders = unit.get(OrderQueue);
+					expect(pos.x).toBe(11);
+					expect(pos.y).toBe(10);
+					expect(orders).toHaveLength(1);
+					expect(orders[0]).toMatchObject({ type: "move", targetX: 15, targetY: 20 });
 				}
 			}
 		});
@@ -179,15 +187,17 @@ describe("productionSystem", () => {
 			const barracks = spawnBarracks();
 			queueUnit(barracks, "mudfoot", world);
 
-			productionSystem(world, 30);
+			productionSystem(world, 20);
 
-			const units = world.query(UnitType, Position, Health);
+			const units = world.query(UnitType, Position, Health, OrderQueue);
 			for (const unit of units) {
 				if (unit.get(UnitType).type === "mudfoot" && !unit.has(IsBuilding)) {
 					const pos = unit.get(Position);
+					const orders = unit.get(OrderQueue);
 					// Should be offset from building position (10, 10) -> (11, 10)
 					expect(pos.x).toBe(11);
 					expect(pos.y).toBe(10);
+					expect(orders).toHaveLength(0);
 				}
 			}
 		});
@@ -199,14 +209,14 @@ describe("productionSystem", () => {
 			queueUnit(barracks, "mudfoot", world);
 
 			// Complete first item
-			productionSystem(world, 30);
+			productionSystem(world, 20);
 
 			const queue = barracks.get(ProductionQueue);
 			expect(queue.length).toBe(1);
 			expect(queue[0].unitType).toBe("mudfoot");
 
 			// Complete second item
-			productionSystem(world, 30);
+			productionSystem(world, 20);
 
 			expect(barracks.get(ProductionQueue).length).toBe(0);
 		});

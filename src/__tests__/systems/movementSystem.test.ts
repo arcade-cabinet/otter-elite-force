@@ -34,13 +34,16 @@ function makeMockSteeringVehicle(x = 0, y = 0) {
 			maxForce: 10,
 			mass: 1,
 			boundingRadius: 0.4,
+			update: vi.fn(),
 			steering: { add: vi.fn() },
 		} as unknown as SteeringVehicle["vehicle"],
 		followPath: {
+			active: true,
 			path: {
 				clear: vi.fn(),
 				add: vi.fn(),
 				finished: () => pathFinished,
+				current: vi.fn(() => undefined),
 			},
 			weight: 1,
 		} as unknown as SteeringVehicle["followPath"],
@@ -66,10 +69,20 @@ describe("movementSystem", () => {
 	});
 
 	afterEach(() => {
-		world.reset();
+		world.destroy();
 	});
 
 	describe("position sync", () => {
+		it("should advance the steering vehicle each tick", () => {
+			const agent = makeMockSteeringVehicle(5, 10);
+			const entity = world.spawn(Position({ x: 0, y: 0 }), SteeringAgent);
+			entity.set(SteeringAgent, agent as unknown);
+
+			movementSystem(world, 0.25);
+
+			expect(agent.vehicle.update).toHaveBeenCalledWith(0.25);
+		});
+
 		it("should sync Yuka Vehicle position to Koota Position trait", () => {
 			const agent = makeMockSteeringVehicle(5, 10);
 			const entity = world.spawn(Position({ x: 0, y: 0 }), SteeringAgent);

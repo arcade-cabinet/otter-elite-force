@@ -1,181 +1,104 @@
 # Testing Strategy
 
-## Philosophy
+## Goal
 
-**Tests are the specification, not the verification.**
+Testing should protect the current RTS product shape:
 
-We write tests FIRST that define what something SHOULD be. Then we build until the tests pass. If we change a stat, the test breaks BEFORE the code does. The test IS the design document in executable form.
+- simplified command-post flow
+- direct mission start / continue behavior
+- tactical HUD readability and layout stability
+- mission progression and result routing
+- SP-DSL asset build integrity
 
-## Three Testing Layers
+## Main Validation Layers
 
-### Layer 1: Specification Tests (Vitest, no browser)
+### 1. Type and build safety
 
-These define the RULES of the game. They run in happy-dom, no Phaser, no Canvas. Pure logic.
+Run these often:
 
-**What they test:**
-- Entity definitions (stats, costs, sprite grid validity)
-- Combat outcomes (3 Mudfoots vs 2 Gators → Mudfoots win with 1-2 survivors)
-- Economy rates (2 workers gathering for 60s → expect ~120 fish)
-- Pathfinding correctness (path avoids water, prefers low-cost tiles)
-- Scenario triggers (timer fires at correct time, area trigger detects entry)
-- Balance assertions (Shellcracker out-ranges Gator, Sapper does 3x damage to buildings)
-- Research effects (Hardshell Armor adds exactly 20 HP to existing Mudfoots)
-- Scoring calculations (par time + 0 losses + all bonuses = Gold)
+- `pnpm typecheck`
+- `pnpm build`
 
-**Example:**
-```typescript
-describe('Mudfoot vs Gator combat', () => {
-  it('Gator wins 1v1 with >50% HP remaining', () => {
-    const result = simulateCombat(gator, mudfoot);
-    expect(result.winner).toBe('gator');
-    expect(result.winnerHpPercent).toBeGreaterThan(0.5);
-  });
+These catch routing breakage, deleted-screen fallout, import drift, and typing regressions.
 
-  it('3 Mudfoots beat 2 Gators with 1-2 survivors', () => {
-    const result = simulateGroupCombat([mudfoot, mudfoot, mudfoot], [gator, gator]);
-    expect(result.winner).toBe('ura');
-    expect(result.survivorCount).toBeGreaterThanOrEqual(1);
-    expect(result.survivorCount).toBeLessThanOrEqual(2);
-  });
-});
-```
+### 2. Focused Vitest coverage
 
-### Layer 2: Visual Specification Tests (Vitest Browser Mode, Chromium)
+Use Vitest for:
 
-These define what things LOOK LIKE. They run in real Chromium via `@vitest/browser-playwright`. They render sprites and take screenshots for visual comparison.
+- ECS state traits
+- app screen transitions
+- menu/front-door behavior
+- mission compiler/runtime helpers
+- entity and asset-pipeline logic
 
-**What they test:**
-- Sprite renders at correct dimensions (16×16 grid at 3x = 48×48 canvas)
-- Sprite has pixels at expected locations (not all transparent, not all black)
-- Faction colors are correct (URA blue at torso, Scale-Guard red at torso)
-- Portrait is recognizable at intended size (not a blob)
-- Terrain painting produces correct colors per region
-- HUD elements display correct initial values
-- Scene transitions render without errors
+Prefer focused runs during iteration, for example:
 
-**Example:**
-```typescript
-describe('Mudfoot sprite', () => {
-  it('renders a 48x48 canvas at 3x scale', () => {
-    const canvas = renderSprite(mudfoot.sprite, 'idle', 0, 3);
-    expect(canvas.width).toBe(48);
-    expect(canvas.height).toBe(48);
-  });
+- `pnpm vitest run src/__tests__/specs/state/app-screen.test.ts`
+- `pnpm vitest run src/__tests__/specs/ui/main-menu.test.tsx`
 
-  it('has blue pixels in torso region (rows 4-9)', () => {
-    const canvas = renderSprite(mudfoot.sprite, 'idle', 0, 1);
-    const ctx = canvas.getContext('2d');
-    // Sample pixel at torso center (8, 7)
-    const pixel = ctx.getImageData(8, 7, 1, 1).data;
-    // Should be PALETTE['B'] = #1e3a8a → RGB(30, 58, 138)
-    expect(pixel[0]).toBe(30);
-    expect(pixel[1]).toBe(58);
-    expect(pixel[2]).toBe(138);
-  });
+### 3. Browser-mode UI verification
 
-  it('has 2 walk frames', () => {
-    expect(mudfoot.sprite.frames.walk.length).toBe(2);
-  });
+Use `pnpm test:browser` when validating runtime-facing UI behavior that benefits from a real browser environment.
 
-  it('screenshot matches baseline', async () => {
-    const canvas = renderSprite(mudfoot.sprite, 'idle', 0, 3);
-    await expect(canvas).toMatchSnapshot();
-  });
-});
-```
+This is especially useful for:
 
-### Layer 3: Integration Tests (Vitest Browser Mode + Phaser)
+- responsive shell behavior
+- HUD layout changes
+- command-post interaction regressions
 
-These test the full pipeline: entity definition → renderer → Phaser texture → game scene.
+### 4. End-to-end verification
 
-**What they test:**
-- BootScene loads all textures without errors
-- GameScene spawns entities at correct positions
-- Clicking a unit selects it (sprite → Koota entity → selection state)
-- HUD updates when resources change
-- Scene flow works end-to-end (Menu → Briefing → Game → Victory)
-- Fog of war renders correctly around units
-- Combat visually shows projectiles and damage
+Use `pnpm test:e2e` for larger integration coverage when changing:
 
-**These use the Phaser test helper from the browser test infrastructure (already built).**
+- core navigation
+- campaign start/resume flows
+- tactical screen entry
+- mission result loops
 
-## Test File Organization
+### 5. Asset pipeline verification
 
-```
-src/__tests__/
-├── specs/                     # Layer 1: Specification tests
-│   ├── combat/
-│   │   ├── melee-outcomes.test.ts     # Expected 1v1 and group combat results
-│   │   ├── ranged-outcomes.test.ts
-│   │   └── building-damage.test.ts
-│   ├── economy/
-│   │   ├── gather-rates.test.ts       # Expected resource income
-│   │   ├── build-order.test.ts        # Build time validations
-│   │   └── population.test.ts         # Pop cap math
-│   ├── entities/
-│   │   ├── unit-stats.test.ts         # ALL unit stats match design doc
-│   │   ├── building-stats.test.ts
-│   │   ├── research-effects.test.ts
-│   │   └── sprite-validity.test.ts    # All sprites have valid palette chars, correct grid size
-│   ├── balance/
-│   │   ├── counter-matrix.test.ts     # Unit counter relationships hold
-│   │   └── economy-curves.test.ts     # Income rates match design targets
-│   └── scenarios/
-│       ├── trigger-logic.test.ts
-│       └── scoring.test.ts
-├── visual/                    # Layer 2: Visual specification tests
-│   ├── sprites/
-│   │   ├── unit-renders.test.ts       # Each unit renders with correct colors/dimensions
-│   │   ├── building-renders.test.ts
-│   │   ├── portrait-renders.test.ts
-│   │   └── terrain-painting.test.ts
-│   └── screenshots/                   # Baseline screenshots for visual regression
-├── browser/                   # Layer 3: Integration tests (existing)
-│   ├── boot-scene.test.ts
-│   ├── game-scene.test.ts
-│   ├── hud-scene.test.ts
-│   ├── sync-layer.test.ts
-│   └── scene-flow.test.ts
-```
+Run `pnpm build:sprites` whenever changing:
 
-## Running Tests
+- sprite generation logic
+- manifest generation
+- asset family/contract/preset/recipe registries
+- portrait/building/unit output expectations
 
-```bash
-# Layer 1: Specification tests (fast, no browser)
-pnpm vitest run src/__tests__/specs/
+## Testing Priorities For The Current Product Direction
 
-# Layer 2: Visual tests (browser, screenshots)
-pnpm vitest run --config vitest.browser.config.ts src/__tests__/visual/
+### Front door
 
-# Layer 3: Integration tests (browser, Phaser)
-pnpm test:browser
+Protect these behaviors:
 
-# All layers
-pnpm test:all
-```
+- menu shows the three primary actions
+- new game starts a fresh campaign
+- continue resumes current mission directly
+- settings remains reachable without cluttering the landing
 
-## Screenshot Workflow
+### Mission intro / dialogue
 
-Visual tests generate screenshots on first run (baseline). On subsequent runs, they compare against the baseline. If a sprite changes intentionally, update the baseline:
+Protect these behaviors:
 
-```bash
-pnpm vitest run --config vitest.browser.config.ts --update
-```
+- mission intro dialogue appears in tactical HUD context
+- command transmission resets when mission changes
+- detached briefing screens do not reappear in the main flow
 
-## What "Done" Means
+### Result flow
 
-An entity is DONE when:
-1. ✅ Specification test passes (stats, cost, grid validity)
-2. ✅ Visual test passes (renders at correct size, correct colors, faction-identifiable)
-3. ✅ Screenshot baseline exists
-4. ✅ Balance test passes (combat outcomes match counter matrix)
-5. ✅ Integration test passes (spawns in game, renders in scene)
+Protect these behaviors:
 
-A mission is DONE when:
-1. ✅ Terrain renders correctly (regions + overrides)
-2. ✅ All placements spawn valid entities
-3. ✅ All triggers fire at correct conditions
-4. ✅ Briefing displays with correct portrait and dialogue
-5. ✅ Victory/defeat conditions work
-6. ✅ Par time is achievable on Tactical difficulty
-7. ✅ Screenshot baseline exists for starting state
+- mission completion routes to result state
+- defeat routes to retry/menu result state
+- next mission returns directly to gameplay
+
+## Practical Rule
+
+When simplifying the product, tests should simplify too.
+
+Do not keep tests alive for removed product ideas such as:
+
+- canteen/store loops
+- detached mission-select startup flow
+- obsolete pre-mission briefing screens
+
+If a product concept is intentionally removed, the matching tests should be removed or rewritten in the same change.

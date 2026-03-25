@@ -36,6 +36,11 @@ export class DesktopInput {
 		return this.commandDispatcher;
 	}
 
+	setEnabled(enabled: boolean): void {
+		this.selectionManager.setEnabled(enabled);
+		this.commandDispatcher.setEnabled(enabled);
+	}
+
 	destroy(): void {
 		this.selectionManager.destroy();
 		this.commandDispatcher.destroy();

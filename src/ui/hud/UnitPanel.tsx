@@ -9,13 +9,21 @@
 import { useQuery, useTrait } from "koota/react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ALL_BUILDINGS } from "@/data/buildings";
+import { ALL_HEROES, ALL_UNITS } from "@/data/units";
 import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
 import { IsHero, Selected, UnitType } from "@/ecs/traits/identity";
 import { cn } from "@/ui/lib/utils";
 
 type TraitTarget = Parameters<typeof useTrait>[0];
 
-export function UnitPanel({ compact = false }: { compact?: boolean }) {
+export function UnitPanel({
+	compact = false,
+	embedded = false,
+}: {
+	compact?: boolean;
+	embedded?: boolean;
+}) {
 	const selected = useQuery(Selected);
 
 	if (selected.length === 0) {
@@ -23,13 +31,21 @@ export function UnitPanel({ compact = false }: { compact?: boolean }) {
 	}
 
 	if (selected.length > 1) {
-		return <MultiSelectPanel count={selected.length} compact={compact} />;
+		return <MultiSelectPanel count={selected.length} compact={compact} embedded={embedded} />;
 	}
 
-	return <SingleUnitPanel entity={selected[0]} compact={compact} />;
+	return <SingleUnitPanel entity={selected[0]} compact={compact} embedded={embedded} />;
 }
 
-function SingleUnitPanel({ entity, compact }: { entity: TraitTarget; compact: boolean }) {
+function SingleUnitPanel({
+	entity,
+	compact,
+	embedded,
+}: {
+	entity: TraitTarget;
+	compact: boolean;
+	embedded: boolean;
+}) {
 	const unitType = useTrait(entity, UnitType);
 	const health = useTrait(entity, Health);
 	const attack = useTrait(entity, Attack);
@@ -38,16 +54,28 @@ function SingleUnitPanel({ entity, compact }: { entity: TraitTarget; compact: bo
 	const isHero = useTrait(entity, IsHero);
 
 	const name = unitType?.type ?? "Unknown";
-	const displayName = name.replace(/_/g, " ");
+	const displayName =
+		ALL_HEROES[name]?.name ??
+		ALL_UNITS[name]?.name ??
+		ALL_BUILDINGS[name]?.name ??
+		name.replace(/_/g, " ");
 	const hp = health?.current ?? 0;
 	const hpMax = health?.max ?? 0;
 	const hpPct = hpMax > 0 ? (hp / hpMax) * 100 : 0;
 
 	return (
-		<Card data-testid="unit-panel" className="border-accent/18 bg-card/88">
+		<Card
+			data-testid="unit-panel"
+			className={cn(
+				embedded
+					? "rounded-none border-0 bg-transparent shadow-none"
+					: "border-accent/18 bg-card/88",
+			)}
+		>
 			<CardContent
 				className={cn(
 					"flex flex-col sm:flex-row sm:items-center",
+					embedded && "p-0",
 					compact ? "gap-2.5 p-2.5" : "gap-3 p-3 sm:gap-4",
 				)}
 			>
@@ -116,12 +144,28 @@ function SingleUnitPanel({ entity, compact }: { entity: TraitTarget; compact: bo
 	);
 }
 
-function MultiSelectPanel({ count, compact }: { count: number; compact: boolean }) {
+function MultiSelectPanel({
+	count,
+	compact,
+	embedded,
+}: {
+	count: number;
+	compact: boolean;
+	embedded: boolean;
+}) {
 	return (
-		<Card data-testid="unit-panel" className="border-accent/18 bg-card/88">
+		<Card
+			data-testid="unit-panel"
+			className={cn(
+				embedded
+					? "rounded-none border-0 bg-transparent shadow-none"
+					: "border-accent/18 bg-card/88",
+			)}
+		>
 			<CardContent
 				className={cn(
 					"flex flex-col sm:flex-row sm:items-center",
+					embedded && "p-0",
 					compact ? "gap-2 p-2.5" : "gap-2 p-3 sm:gap-4",
 				)}
 			>

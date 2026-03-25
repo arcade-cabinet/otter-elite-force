@@ -4,7 +4,7 @@
  * Builds a PlayerPerception snapshot from the game world, constrained by:
  * 1. Fog of War — only sees tiles the player has explored/visible
  * 2. Viewport — only interacts with entities currently on screen
- * 3. UI-visible data — resources, population, selected unit stats
+ * 3. UI-visible data — resources, population, selected unit/building stats
  *
  * The AI playtester CANNOT read Koota directly for decision-making.
  * It must build all knowledge from this perception model, just like
@@ -14,6 +14,7 @@
 import type { Entity, World } from "koota";
 import { Health, Attack, Armor } from "@/ecs/traits/combat";
 import { Faction, IsBuilding, IsResource, Selected, UnitType } from "@/ecs/traits/identity";
+import { GameClock, PopulationState, ResourcePool } from "@/ecs/traits/state";
 import { Position } from "@/ecs/traits/spatial";
 import { Gatherer, ResourceNode, ProductionQueue } from "@/ecs/traits/economy";
 import { OrderQueue } from "@/ecs/traits/orders";
@@ -93,6 +94,8 @@ export interface PlayerPerception {
 	population: { current: number; max: number };
 	/** Units currently selected by the player. */
 	selectedUnits: VisibleUnitInfo[];
+	/** Buildings currently selected by the player and shown in the command UI. */
+	selectedBuildings: VisibleBuildingInfo[];
 	/** Friendly units visible in the viewport. */
 	visibleFriendlyUnits: VisibleUnitInfo[];
 	/** Enemy units visible in the viewport AND in fog-visible tiles. */
@@ -116,14 +119,41 @@ export interface PlayerPerception {
 
 /**
  * Reads resource/population totals from the game state.
- * In production this reads from Koota singleton traits (GameResources, GamePopulation).
- * Since those singleton traits may not exist yet (blocked by A3), we accept
- * an injected reader so the playtester can work with any state layer.
+ * The default production path reads Koota singleton traits, but the playtester
+ * still accepts an injected reader so tests and alternate harnesses can supply
+ * a different state layer when needed.
  */
 export interface GameStateReader {
 	getResources(): { fish: number; timber: number; salvage: number };
 	getPopulation(): { current: number; max: number };
 	getGameTime(): number;
+}
+
+/**
+ * Build a GameStateReader directly from Koota singleton traits.
+ * Keeps the playtester aligned with the canonical in-game chronometer.
+ */
+export function createKootaGameStateReader(world: World): GameStateReader {
+	return {
+		getResources() {
+			const pool = world.get(ResourcePool);
+			return {
+				fish: pool?.fish ?? 0,
+				timber: pool?.timber ?? 0,
+				salvage: pool?.salvage ?? 0,
+			};
+		},
+		getPopulation() {
+			const pop = world.get(PopulationState);
+			return {
+				current: pop?.current ?? 0,
+				max: pop?.max ?? 0,
+			};
+		},
+		getGameTime() {
+			return (world.get(GameClock)?.elapsedMs ?? 0) / 1000;
+		},
+	};
 }
 
 // ---------------------------------------------------------------------------
@@ -178,6 +208,7 @@ export class PerceptionBuilder {
 		}
 
 		const selectedUnits: VisibleUnitInfo[] = [];
+		const selectedBuildings: VisibleBuildingInfo[] = [];
 		const visibleFriendlyUnits: VisibleUnitInfo[] = [];
 		const visibleEnemyUnits: VisibleUnitInfo[] = [];
 		const visibleBuildings: VisibleBuildingInfo[] = [];
@@ -227,6 +258,12 @@ export class PerceptionBuilder {
 			}
 
 			if (isBuildingEntity) {
+				if (isFriendly && isSelected) {
+					selectedBuildings.push(
+						this.readBuilding(entity, unitType.type, faction.id, tileX, tileY),
+					);
+				}
+
 				// Buildings: friendly always visible if in viewport + explored,
 				// enemy only if in viewport + fog-visible
 				const canSee = isFriendly
@@ -262,6 +299,7 @@ export class PerceptionBuilder {
 			resources: this.stateReader.getResources(),
 			population: this.stateReader.getPopulation(),
 			selectedUnits,
+			selectedBuildings,
 			visibleFriendlyUnits,
 			visibleEnemyUnits,
 			visibleBuildings,

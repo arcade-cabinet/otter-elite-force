@@ -36,6 +36,15 @@ import { Position, Velocity, FacingDirection } from "../ecs/traits/spatial";
 import { Concealed, Crouching, DetectionRadius } from "../ecs/traits/stealth";
 import { CanSwim, Submerged } from "../ecs/traits/water";
 import { AIState } from "../ecs/traits/ai";
+import {
+	CurrentMission,
+	GameClock,
+	GamePhase,
+	Objectives,
+	PopulationState,
+	ResourcePool,
+	TerritoryState,
+} from "../ecs/traits/state";
 
 // -- Relations ---
 import {
@@ -136,8 +145,23 @@ export interface SerializedEntity {
 }
 
 export interface SerializedWorld {
-	version: 1;
+	version: 1 | 2;
+	singletons?: Record<string, unknown>;
 	entities: SerializedEntity[];
+}
+
+const SINGLETON_TRAITS: Record<string, Trait> = {
+	ResourcePool,
+	PopulationState,
+	GamePhase,
+	GameClock,
+	CurrentMission,
+	Objectives,
+	TerritoryState,
+};
+
+function cloneSerializable<T>(value: T): T {
+	return JSON.parse(JSON.stringify(value)) as T;
 }
 
 // ---------------------------------------------------------------------------
@@ -148,6 +172,12 @@ export interface SerializedWorld {
  * Serialize the entire Koota world into a JSON-safe structure.
  */
 export function serializeWorld(world: World): SerializedWorld {
+	const singletons = Object.fromEntries(
+		Object.entries(SINGLETON_TRAITS)
+			.filter(([, trait]) => world.has(trait))
+			.map(([name, trait]) => [name, cloneSerializable(world.get(trait))]),
+	);
+
 	// Filter out entity 0 (Koota's internal world entity)
 	const allEntities = world.entities.filter((e) => e.id() !== 0);
 
@@ -181,7 +211,7 @@ export function serializeWorld(world: World): SerializedWorld {
 				const value = entity.get(trait);
 				if (value !== undefined) {
 					// AoS returns a live reference — deep copy it
-					traits[name] = JSON.parse(JSON.stringify(value));
+					traits[name] = cloneSerializable(value);
 				}
 			}
 		}
@@ -210,7 +240,7 @@ export function serializeWorld(world: World): SerializedWorld {
 		serializedEntities.push({ traits, tags, relations });
 	}
 
-	return { version: 1, entities: serializedEntities };
+	return { version: 2, singletons, entities: serializedEntities };
 }
 
 // ---------------------------------------------------------------------------
@@ -222,6 +252,17 @@ export function serializeWorld(world: World): SerializedWorld {
  * Relations are restored after all entities are spawned.
  */
 export function deserializeWorld(world: World, data: SerializedWorld): void {
+	if (data.singletons) {
+		for (const [name, trait] of Object.entries(SINGLETON_TRAITS)) {
+			const singletonData = data.singletons[name];
+			if (singletonData === undefined) continue;
+			if (!world.has(trait)) {
+				world.add(trait);
+			}
+			world.set(trait, cloneSerializable(singletonData));
+		}
+	}
+
 	const spawnedEntities: Entity[] = [];
 
 	// Phase 1: Spawn entities with traits (no relations yet)

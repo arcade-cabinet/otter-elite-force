@@ -32,6 +32,14 @@ import { Position, Velocity, FacingDirection } from "../../ecs/traits/spatial";
 import { Concealed, Crouching, DetectionRadius } from "../../ecs/traits/stealth";
 import { CanSwim, Submerged } from "../../ecs/traits/water";
 import { Targeting, GatheringFrom, OwnedBy } from "../../ecs/relations";
+import { initSingletons } from "../../ecs/singletons";
+import {
+	GameClock,
+	GamePhase,
+	Objectives,
+	PopulationState,
+	ResourcePool,
+} from "../../ecs/traits/state";
 import {
 	serializeWorld,
 	deserializeWorld,
@@ -116,6 +124,27 @@ describe("saveLoadSystem — serializeWorld", () => {
 
 		const data = serializeWorld(world);
 		expect(data.entities).toHaveLength(3);
+	});
+
+	it("should serialize singleton state including the mission chronometer", () => {
+		initSingletons(world);
+		world.set(ResourcePool, { fish: 150, timber: 75, salvage: 25 });
+		world.set(PopulationState, { current: 6, max: 20 });
+		world.set(GamePhase, { phase: "playing" });
+		world.set(GameClock, { elapsedMs: 123456, lastDeltaMs: 16, tick: 99, paused: false });
+		world.set(Objectives, {
+			list: [{ id: "hold-bridge", description: "Hold the bridge", status: "active", bonus: false }],
+		});
+
+		const data = serializeWorld(world);
+		expect(data.version).toBe(2);
+		expect(data.singletons?.GameClock).toEqual({
+			elapsedMs: 123456,
+			lastDeltaMs: 16,
+			tick: 99,
+			paused: false,
+		});
+		expect(data.singletons?.ResourcePool).toEqual({ fish: 150, timber: 75, salvage: 25 });
 	});
 });
 
@@ -235,6 +264,26 @@ describe("saveLoadSystem — deserializeWorld", () => {
 		const newAI = entities[0].get(AIState);
 		expect(newAI.state).toBe("attacking");
 		expect(newAI.alertLevel).toBe(2);
+	});
+
+	it("should restore singleton state after a world reset", () => {
+		initSingletons(world);
+		world.set(GameClock, { elapsedMs: 654321, lastDeltaMs: 33, tick: 120, paused: false });
+		world.set(ResourcePool, { fish: 90, timber: 40, salvage: 10 });
+		world.set(GamePhase, { phase: "paused" });
+
+		const data = serializeWorld(world);
+		world.reset();
+		deserializeWorld(world, data);
+
+		expect(world.get(GameClock)).toEqual({
+			elapsedMs: 654321,
+			lastDeltaMs: 33,
+			tick: 120,
+			paused: false,
+		});
+		expect(world.get(ResourcePool)).toEqual({ fish: 90, timber: 40, salvage: 10 });
+		expect(world.get(GamePhase)).toEqual({ phase: "paused" });
 	});
 });
 
