@@ -610,25 +610,19 @@ function drawConfrontationSplash(c: CanvasRenderingContext2D): void {
 	const W = 160, H = 64;
 
 	// ── Background: split warm/cold with dark water divide ──
-	// Left half — warm dark (otter territory)
-	for (let x = 0; x < W / 2 - 4; x++) {
-		for (let y = 0; y < H; y++) {
-			const shade = 8 + Math.floor(srand() * 6);
-			px(c, x, y, `rgb(${shade + 4},${shade},${shade - 2})`);
-		}
-	}
-	// Right half — cold dark (reptile territory)
-	for (let x = W / 2 + 4; x < W; x++) {
-		for (let y = 0; y < H; y++) {
-			const shade = 6 + Math.floor(srand() * 6);
-			px(c, x, y, `rgb(${shade - 2},${shade + 3},${shade}`);
-		}
-	}
-	// Center divide — dark water
-	rect(c, W / 2 - 4, 0, 8, H, "#0a1520");
-	for (let y = 0; y < H; y += 3) {
-		rect(c, W / 2 - 3, y, 6, 1, "#0d1e2a");
-	}
+	// Left half — warm dark gradient (otter territory)
+	rect(c, 0, 0, W / 2 - 3, H, "#0e0a07");
+	// Subtle warm streaks
+	for (let y = 0; y < H; y += 4) rect(c, 0, y, W / 2 - 6, 1, "#120d08");
+	for (let y = 2; y < H; y += 7) rect(c, 0, y, W / 2 - 10, 1, "#161009");
+	// Right half — cold dark gradient (reptile territory)
+	rect(c, W / 2 + 3, 0, W / 2 - 3, H, "#060b08");
+	for (let y = 0; y < H; y += 4) rect(c, W / 2 + 6, y, W / 2 - 9, 1, "#081009");
+	for (let y = 2; y < H; y += 7) rect(c, W / 2 + 10, y, W / 2 - 13, 1, "#0a130b");
+	// Center divide — dark water with ripple lines
+	rect(c, W / 2 - 3, 0, 6, H, "#0a1520");
+	for (let y = 0; y < H; y += 3) rect(c, W / 2 - 2, y, 4, 1, "#0d1e2a");
+	for (let y = 1; y < H; y += 5) rect(c, W / 2 - 1, y, 2, 1, "#112838");
 
 	// ── SGT. BUBBLES — left side profile, facing right ──
 	const bx = 20; // center of Bubbles
