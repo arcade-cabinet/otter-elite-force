@@ -13,7 +13,7 @@
  * Spec reference: §8.4 Environmental Hazards, CLAUDE.md coordinates of interest
  */
 
-import type { World, Entity } from "koota";
+import type { Entity, World } from "koota";
 import { Health } from "../ecs/traits/combat";
 import { Faction, IsSiphon } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";

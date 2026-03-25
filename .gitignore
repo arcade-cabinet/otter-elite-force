@@ -58,6 +58,9 @@ ios/App/build/
 ios/App/Pods/
 ios/DerivedData/
 
+# Superpowers brainstorm artifacts
+.superpowers/
+
 # Ralph local state
 .ralph/
 .ralphrc

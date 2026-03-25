@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Sapper — URA siege unit. Helmet (stone), explosives at feet (gold 'c'/'d').
 // Palette: otter_default

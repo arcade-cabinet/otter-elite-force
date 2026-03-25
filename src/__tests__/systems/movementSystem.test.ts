@@ -1,10 +1,10 @@
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SteeringVehicle } from "../../ai/steeringFactory";
 import { SteeringAgent } from "../../ecs/traits/ai";
 import { OrderQueue } from "../../ecs/traits/orders";
 import { FacingDirection, Position, Velocity } from "../../ecs/traits/spatial";
-import { movementSystem, assignSteeringAgent } from "../../systems/movementSystem";
-import type { SteeringVehicle } from "../../ai/steeringFactory";
+import { assignSteeringAgent, movementSystem } from "../../systems/movementSystem";
 
 /**
  * Create a mock SteeringVehicle for testing.

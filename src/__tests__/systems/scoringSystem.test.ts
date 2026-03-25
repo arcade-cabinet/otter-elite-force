@@ -1,13 +1,13 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-	calculateTimeScore,
-	calculateUnitsLostScore,
 	calculateBonusScore,
 	calculateMissionScore,
+	calculateTimeScore,
+	calculateUnitsLostScore,
 	getStarRating,
-	MissionStats,
 	type MissionScoreInput,
 	type MissionScoreResult,
+	MissionStats,
 } from "../../systems/scoringSystem";
 
 describe("scoringSystem", () => {

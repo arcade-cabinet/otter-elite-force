@@ -1,5 +1,5 @@
-import type { MissionObjective, MissionScenarioTrigger, MissionTriggerCondition } from "../types";
 import type { TriggerAction } from "@/scenarios/types";
+import type { MissionObjective, MissionScenarioTrigger, MissionTriggerCondition } from "../types";
 
 const SPEAKER_NAMES: Record<string, string> = {
 	foxhound: "FOXHOUND",

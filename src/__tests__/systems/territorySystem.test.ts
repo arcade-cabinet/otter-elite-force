@@ -1,22 +1,22 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createWorld } from "koota";
-import { Faction, IsBuilding, IsVillage, UnitType } from "@/ecs/traits/identity";
-import { Position } from "@/ecs/traits/spatial";
-import { Health } from "@/ecs/traits/combat";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { GarrisonedIn } from "@/ecs/relations";
 import { initSingletons } from "@/ecs/singletons";
+import { Health } from "@/ecs/traits/combat";
+import { Faction, IsBuilding, IsVillage, UnitType } from "@/ecs/traits/identity";
+import { Position } from "@/ecs/traits/spatial";
 import { ResourcePool, TerritoryState } from "@/ecs/traits/state";
 import {
-	isGarrisonCleared,
-	liberateVillage,
-	recaptureVillage,
-	isVillageUndefended,
 	applyVillageHealing,
 	applyVillageIncome,
+	FOG_REVEAL_RADIUS,
+	getVillages,
+	isGarrisonCleared,
+	isVillageUndefended,
+	liberateVillage,
+	recaptureVillage,
 	resetVillageIncomeTimer,
 	territorySystem,
-	getVillages,
-	FOG_REVEAL_RADIUS,
 } from "@/systems/territorySystem";
 
 function spawnVillage(

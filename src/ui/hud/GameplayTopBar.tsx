@@ -1,5 +1,5 @@
-import { useMemo } from "react";
 import { useTrait, useWorld } from "koota/react";
+import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { GameClock, Objectives } from "@/ecs/traits/state";

@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Viper — Scale-Guard ranged unit. Poison blowpipe (purple 'c'/'d').
 // Palette: croc_default

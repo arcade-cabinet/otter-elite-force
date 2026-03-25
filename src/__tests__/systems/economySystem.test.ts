@@ -1,10 +1,10 @@
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { GatheringFrom, OwnedBy } from "../../ecs/relations";
+import { initSingletons } from "../../ecs/singletons";
 import { Gatherer, ResourceNode } from "../../ecs/traits/economy";
 import { IsBuilding, IsResource, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
-import { GatheringFrom, OwnedBy } from "../../ecs/relations";
-import { initSingletons } from "../../ecs/singletons";
 import { ResourcePool } from "../../ecs/traits/state";
 import { economySystem, resetFishTrapTimer } from "../../systems/economySystem";
 

@@ -409,14 +409,14 @@ function buildMap() {
     
     // Add dirt patches
     for(let p=0; p<50; p++) {
-        let px = Math.random() * WORLD_WIDTH;
-        let py = Math.random() * WORLD_HEIGHT;
-        let radius = 50 + Math.random() * 100;
+        const px = Math.random() * WORLD_WIDTH;
+        const py = Math.random() * WORLD_HEIGHT;
+        const radius = 50 + Math.random() * 100;
         for(let i=0; i<radius*10; i++) {
-            let angle = Math.random() * Math.PI * 2;
-            let r = Math.random() * radius;
-            let x = px + Math.cos(angle) * r;
-            let y = py + Math.sin(angle) * r;
+            const angle = Math.random() * Math.PI * 2;
+            const r = Math.random() * radius;
+            const x = px + Math.cos(angle) * r;
+            const y = py + Math.sin(angle) * r;
             ctx.fillStyle = Math.random() > 0.5 ? '#713f12' : '#854d0e'; // dirt colors
             ctx.fillRect(x, y, 6, 6);
         }
@@ -488,9 +488,9 @@ class Entity {
             if (this.spawnQueue && this.spawnQueue.length > 0) {
                 this.spawnTimer--;
                 if (this.spawnTimer <= 0) {
-                    let type = this.spawnQueue.shift();
-                    let spawnX = this.x + (Math.random() > 0.5 ? 1 : -1) * (this.width/2 + 20);
-                    let spawnY = this.y + this.height/2 + 20;
+                    const type = this.spawnQueue.shift();
+                    const spawnX = this.x + (Math.random() > 0.5 ? 1 : -1) * (this.width/2 + 20);
+                    const spawnY = this.y + this.height/2 + 20;
                     new Entity(type, spawnX, spawnY, 'player');
                     this.spawnTimer = 180; // 3 seconds at 60fps
                 }
@@ -502,9 +502,9 @@ class Entity {
         if (this.state === 'move' || this.state === 'gather_move' || this.state === 'return_move' || this.state === 'attack_move') {
             if (!this.targetPos) { this.state = 'idle'; return; }
             
-            let dx = this.targetPos.x - this.x;
-            let dy = this.targetPos.y - this.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
+            const dx = this.targetPos.x - this.x;
+            const dy = this.targetPos.y - this.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
             
             if (dist < this.speed) {
                 this.x = this.targetPos.x;
@@ -531,7 +531,7 @@ class Entity {
                 if(this.targetEntity.resourceAmount <= 0) this.targetEntity.destroy();
                 
                 // Find nearest Town Hall
-                let hall = GAME.entities.find(e => e.type === 'townhall' && e.faction === 'player');
+                const hall = GAME.entities.find(e => e.type === 'townhall' && e.faction === 'player');
                 if (hall) {
                     this.targetPos = {x: hall.x, y: hall.y};
                     this.state = 'return_move';
@@ -562,9 +562,9 @@ class Entity {
             if (!this.targetEntity || this.targetEntity.hp <= 0) {
                 this.state = 'idle'; return;
             }
-            let dx = this.targetEntity.x - this.x;
-            let dy = this.targetEntity.y - this.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
+            const dx = this.targetEntity.x - this.x;
+            const dy = this.targetEntity.y - this.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
             
             if (dist <= this.attackRange) {
                 // In range, strike
@@ -583,9 +583,9 @@ class Entity {
 
         // Enemy AI (Very simple: wander or attack nearest player)
         if (this.faction === 'enemy' && this.state === 'idle' && Math.random() < 0.05) {
-            let targets = GAME.entities.filter(e => e.faction === 'player');
+            const targets = GAME.entities.filter(e => e.faction === 'player');
             if (targets.length > 0) {
-                let target = targets[Math.floor(Math.random() * targets.length)];
+                const target = targets[Math.floor(Math.random() * targets.length)];
                 this.commandAttack(target);
             } else {
                 this.commandMove(this.x + (Math.random()-0.5)*200, this.y + (Math.random()-0.5)*200);
@@ -624,15 +624,15 @@ class Entity {
     
     // Separation steering behavior to prevent overlapping
     separate() {
-        for (let other of GAME.entities) {
+        for (const other of GAME.entities) {
             if (other === this || other.isBuilding || other.isResource) continue;
-            let dx = this.x - other.x;
-            let dy = this.y - other.y;
-            let distSq = dx*dx + dy*dy;
-            let minDist = this.radius + other.radius;
+            const dx = this.x - other.x;
+            const dy = this.y - other.y;
+            const distSq = dx*dx + dy*dy;
+            const minDist = this.radius + other.radius;
             if (distSq < minDist*minDist && distSq > 0) {
-                let dist = Math.sqrt(distSq);
-                let force = (minDist - dist) * 0.1;
+                const dist = Math.sqrt(distSq);
+                const force = (minDist - dist) * 0.1;
                 this.x += (dx / dist) * force;
                 this.y += (dy / dist) * force;
             }
@@ -693,8 +693,8 @@ class Entity {
     }
     
     draw(ctx) {
-        let drawX = this.x - this.width/2;
-        let drawY = this.y - this.height/2 + (this.yOffset || 0);
+        const drawX = this.x - this.width/2;
+        const drawY = this.y - this.height/2 + (this.yOffset || 0);
         
         // Draw selection circle
         if (this.selected) {
@@ -725,10 +725,10 @@ class Entity {
 
         // Draw Health Bar if selected or damaged
         if (this.selected || (this.hp < this.maxHp && !this.isResource)) {
-            let barW = this.width * 0.8;
-            let barH = 4;
-            let barX = this.x - barW/2;
-            let barY = drawY - 8;
+            const barW = this.width * 0.8;
+            const barH = 4;
+            const barX = this.x - barW/2;
+            const barY = drawY - 8;
             ctx.fillStyle = '#7f1d1d';
             ctx.fillRect(barX, barY, barW, barH);
             ctx.fillStyle = '#22c55e';
@@ -737,7 +737,7 @@ class Entity {
 
         // Spawn queue indicator
         if (this.isBuilding && this.spawnQueue && this.spawnQueue.length > 0) {
-            let progress = 1 - (this.spawnTimer / 180);
+            const progress = 1 - (this.spawnTimer / 180);
             ctx.fillStyle = '#1e3a8a';
             ctx.fillRect(this.x - 15, this.y + this.height/2 + 5, 30, 4);
             ctx.fillStyle = '#60a5fa';
@@ -754,8 +754,8 @@ function initGame() {
     buildMap();
     
     // Spawn initial entities
-    let startX = WORLD_WIDTH / 2;
-    let startY = WORLD_HEIGHT / 2;
+    const startX = WORLD_WIDTH / 2;
+    const startY = WORLD_HEIGHT / 2;
     
     // Player Base
     new Entity('townhall', startX, startY, 'player');
@@ -855,8 +855,8 @@ function resizeCanvas() {
 }
 
 function handleLeftClickRelease() {
-    let dx = GAME.mouse.worldX - GAME.mouse.startX;
-    let dy = GAME.mouse.worldY - GAME.mouse.startY;
+    const dx = GAME.mouse.worldX - GAME.mouse.startX;
+    const dy = GAME.mouse.worldY - GAME.mouse.startY;
     
     // Clear old selection
     GAME.selection.forEach(e => e.selected = false);
@@ -866,8 +866,8 @@ function handleLeftClickRelease() {
         // Single Click Select
         let clicked = null;
         // Sort by Y to match visual depth, reverse to pick top-most
-        let sorted = [...GAME.entities].sort((a,b) => b.y - a.y); 
-        for(let e of sorted) {
+        const sorted = [...GAME.entities].sort((a,b) => b.y - a.y); 
+        for(const e of sorted) {
             if (Math.abs(e.x - GAME.mouse.worldX) < e.radius + 10 && 
                 Math.abs(e.y - GAME.mouse.worldY) < e.height/2 + 10) {
                 clicked = e;
@@ -880,10 +880,10 @@ function handleLeftClickRelease() {
         }
     } else {
         // Drag Select (only player units)
-        let minX = Math.min(GAME.mouse.startX, GAME.mouse.worldX);
-        let maxX = Math.max(GAME.mouse.startX, GAME.mouse.worldX);
-        let minY = Math.min(GAME.mouse.startY, GAME.mouse.worldY);
-        let maxY = Math.max(GAME.mouse.startY, GAME.mouse.worldY);
+        const minX = Math.min(GAME.mouse.startX, GAME.mouse.worldX);
+        const maxX = Math.max(GAME.mouse.startX, GAME.mouse.worldX);
+        const minY = Math.min(GAME.mouse.startY, GAME.mouse.worldY);
+        const maxY = Math.max(GAME.mouse.startY, GAME.mouse.worldY);
         
         GAME.entities.forEach(e => {
             if (e.faction === 'player' && !e.isBuilding && 
@@ -906,8 +906,8 @@ function handleRightClick() {
     if (GAME.selection.length === 0) return;
     
     let target = null;
-    let sorted = [...GAME.entities].sort((a,b) => b.y - a.y);
-    for(let e of sorted) {
+    const sorted = [...GAME.entities].sort((a,b) => b.y - a.y);
+    for(const e of sorted) {
         if (Math.abs(e.x - GAME.mouse.worldX) < e.radius + 10 && 
             Math.abs(e.y - GAME.mouse.worldY) < e.height/2 + 10) {
             target = e;
@@ -932,11 +932,11 @@ function handleRightClick() {
             }
         } else {
             // Group movement logic - arrange in rough formation
-            let idx = GAME.selection.indexOf(unit);
-            let row = Math.floor(idx / 4);
-            let col = idx % 4;
-            let offset_x = (col - 1.5) * 30;
-            let offset_y = (row - 1.5) * 30;
+            const idx = GAME.selection.indexOf(unit);
+            const row = Math.floor(idx / 4);
+            const col = idx % 4;
+            const offset_x = (col - 1.5) * 30;
+            const offset_y = (row - 1.5) * 30;
             unit.commandMove(GAME.mouse.worldX + offset_x, GAME.mouse.worldY + offset_y);
         }
     });
@@ -963,7 +963,7 @@ function updateUI() {
         return;
     }
     
-    let ent = GAME.selection[0];
+    const ent = GAME.selection[0];
     
     if (GAME.selection.length > 1) {
         selName.textContent = `Multiple Units (${GAME.selection.length})`;
@@ -996,12 +996,12 @@ function updateUI() {
     }
 
     // Action Buttons
-    let isPlayer = GAME.selection.every(e => e.faction === 'player');
+    const isPlayer = GAME.selection.every(e => e.faction === 'player');
     if (!isPlayer) return;
 
-    let hasPeasant = GAME.selection.some(e => e.type === 'peasant');
-    let hasTownhall = GAME.selection.length === 1 && GAME.selection[0].type === 'townhall';
-    let hasBarracks = GAME.selection.length === 1 && GAME.selection[0].type === 'barracks';
+    const hasPeasant = GAME.selection.some(e => e.type === 'peasant');
+    const hasTownhall = GAME.selection.length === 1 && GAME.selection[0].type === 'townhall';
+    const hasBarracks = GAME.selection.length === 1 && GAME.selection[0].type === 'barracks';
 
     if (hasPeasant) {
         createActionButton("Build Farm", "500 W", () => startPlacement('farm'), GAME.resources.wood >= 500);
@@ -1033,7 +1033,7 @@ function startPlacement(type) {
 }
 
 function placeBuilding() {
-    let type = GAME.placingBuilding;
+    const type = GAME.placingBuilding;
     let costG = 0, costW = 0;
     if (type === 'farm') costW = 500;
     if (type === 'barracks') { costG = 600; costW = 400; }
@@ -1044,10 +1044,10 @@ function placeBuilding() {
         GAME.resources.wood -= costW;
         
         // Snap to grid roughly
-        let bx = Math.round(GAME.mouse.worldX / TILE_SIZE) * TILE_SIZE;
-        let by = Math.round(GAME.mouse.worldY / TILE_SIZE) * TILE_SIZE;
+        const bx = Math.round(GAME.mouse.worldX / TILE_SIZE) * TILE_SIZE;
+        const by = Math.round(GAME.mouse.worldY / TILE_SIZE) * TILE_SIZE;
         
-        let building = new Entity(type, bx, by, 'player');
+        const building = new Entity(type, bx, by, 'player');
         
         // Send selected peasants to build it
         GAME.selection.forEach(u => {
@@ -1128,21 +1128,21 @@ function update() {
     
     // Simple Enemy Spawner (Orc raids)
     if (GAME.frameCount % 1800 === 0) { // Every ~30 seconds
-        let hall = GAME.entities.find(e => e.type === 'townhall' && e.faction === 'player');
+        const hall = GAME.entities.find(e => e.type === 'townhall' && e.faction === 'player');
         if (hall) {
-            let spawnSide = Math.random();
+            const spawnSide = Math.random();
             let sx, sy;
             if (spawnSide < 0.25) { sx = 0; sy = Math.random() * WORLD_HEIGHT; }
             else if (spawnSide < 0.5) { sx = WORLD_WIDTH; sy = Math.random() * WORLD_HEIGHT; }
             else if (spawnSide < 0.75) { sx = Math.random() * WORLD_WIDTH; sy = 0; }
             else { sx = Math.random() * WORLD_WIDTH; sy = WORLD_HEIGHT; }
             
-            let orc = new Entity('orc', sx, sy, 'enemy');
+            const orc = new Entity('orc', sx, sy, 'enemy');
             orc.commandAttack(hall);
             
             // Add a second one later in the game
             if (GAME.frameCount > 5000) {
-                let orc2 = new Entity('orc', sx+30, sy+30, 'enemy');
+                const orc2 = new Entity('orc', sx+30, sy+30, 'enemy');
                 orc2.commandAttack(hall);
             }
         }
@@ -1150,7 +1150,7 @@ function update() {
 
     // Update particles
     for (let i = GAME.particles.length - 1; i >= 0; i--) {
-        let p = GAME.particles[i];
+        const p = GAME.particles[i];
         p.life--;
         p.y -= 0.5;
         if (p.life <= 0) GAME.particles.splice(i, 1);
@@ -1161,7 +1161,7 @@ function update() {
 }
 
 function draw() {
-    let ctx = GAME.ctx;
+    const ctx = GAME.ctx;
     
     // Clear and draw map background offset by camera
     ctx.fillStyle = '#000';
@@ -1174,9 +1174,9 @@ function draw() {
     ctx.drawImage(GAME.bgCanvas, 0, 0);
     
     // Sort entities by Y for pseudo-depth
-    let sortedEntities = [...GAME.entities].sort((a,b) => a.y - b.y);
+    const sortedEntities = [...GAME.entities].sort((a,b) => a.y - b.y);
     
-    for (let ent of sortedEntities) {
+    for (const ent of sortedEntities) {
         // Frustum culling (only draw what's on screen)
         if (ent.x + ent.width/2 > GAME.camX && ent.x - ent.width/2 < GAME.camX + GAME.width &&
             ent.y + ent.height/2 > GAME.camY && ent.y - ent.height/2 < GAME.camY + GAME.height) {
@@ -1185,7 +1185,7 @@ function draw() {
     }
 
     // Draw Particles
-    for (let p of GAME.particles) {
+    for (const p of GAME.particles) {
         ctx.fillStyle = p.color;
         ctx.fillRect(p.x, p.y, 4, 4);
     }
@@ -1194,10 +1194,10 @@ function draw() {
     if (GAME.mouse.isDown && !GAME.placingBuilding) {
         ctx.strokeStyle = '#22c55e'; // Green
         ctx.lineWidth = 1;
-        let x = Math.min(GAME.mouse.startX, GAME.mouse.worldX);
-        let y = Math.min(GAME.mouse.startY, GAME.mouse.worldY);
-        let w = Math.abs(GAME.mouse.worldX - GAME.mouse.startX);
-        let h = Math.abs(GAME.mouse.worldY - GAME.mouse.startY);
+        const x = Math.min(GAME.mouse.startX, GAME.mouse.worldX);
+        const y = Math.min(GAME.mouse.startY, GAME.mouse.worldY);
+        const w = Math.abs(GAME.mouse.worldX - GAME.mouse.startX);
+        const h = Math.abs(GAME.mouse.worldY - GAME.mouse.startY);
         ctx.strokeRect(x, y, w, h);
         ctx.fillStyle = 'rgba(34, 197, 94, 0.2)';
         ctx.fillRect(x, y, w, h);
@@ -1205,10 +1205,10 @@ function draw() {
 
     // Draw Placement Preview
     if (GAME.placingBuilding) {
-        let bx = Math.round(GAME.mouse.worldX / TILE_SIZE) * TILE_SIZE;
-        let by = Math.round(GAME.mouse.worldY / TILE_SIZE) * TILE_SIZE;
+        const bx = Math.round(GAME.mouse.worldX / TILE_SIZE) * TILE_SIZE;
+        const by = Math.round(GAME.mouse.worldY / TILE_SIZE) * TILE_SIZE;
         ctx.globalAlpha = 0.5;
-        let sprite = GAME.sprites[GAME.placingBuilding];
+        const sprite = GAME.sprites[GAME.placingBuilding];
         // Green if can afford, red if can't
         let canAfford = true;
         if (GAME.placingBuilding === 'farm' && GAME.resources.wood < 500) canAfford = false;
@@ -1227,21 +1227,21 @@ function draw() {
     ctx.restore();
 
     // --- DRAW MINIMAP ---
-    let mctx = GAME.minimapCtx;
+    const mctx = GAME.minimapCtx;
     mctx.fillStyle = '#14532d';
     mctx.fillRect(0, 0, 200, 200);
     
-    let scaleX = 200 / WORLD_WIDTH;
-    let scaleY = 200 / WORLD_HEIGHT;
+    const scaleX = 200 / WORLD_WIDTH;
+    const scaleY = 200 / WORLD_HEIGHT;
 
-    for (let ent of GAME.entities) {
+    for (const ent of GAME.entities) {
         if (ent.type === 'tree') mctx.fillStyle = '#22c55e';
         else if (ent.type === 'goldmine') mctx.fillStyle = '#eab308';
         else if (ent.faction === 'player') mctx.fillStyle = '#3b82f6';
         else if (ent.faction === 'enemy') mctx.fillStyle = '#ef4444';
         else mctx.fillStyle = '#ffffff';
 
-        let size = ent.isBuilding ? 4 : 2;
+        const size = ent.isBuilding ? 4 : 2;
         mctx.fillRect(ent.x * scaleX - size/2, ent.y * scaleY - size/2, size, size);
     }
 
@@ -1252,7 +1252,7 @@ function draw() {
 }
 
 function gameLoop(timestamp) {
-    let dt = timestamp - GAME.lastTime;
+    const dt = timestamp - GAME.lastTime;
     if (dt > 1000/60) {
         update();
         draw();

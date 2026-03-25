@@ -18,15 +18,15 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { ALL_UNITS, type UnitDef } from "../../../data/units";
 import { ALL_BUILDINGS, type BuildingDef } from "../../../data/buildings";
+import { ALL_UNITS, type UnitDef } from "../../../data/units";
+import { calculateDamage } from "../../../systems/combatSystem";
 import {
 	calculateSiegeDamage,
-	SAPPER_BUILDING_DAMAGE,
 	DEMOLITION_TRAINING_MULTIPLIER,
 	MORTAR_SPLASH_RADIUS,
+	SAPPER_BUILDING_DAMAGE,
 } from "../../../systems/siegeSystem";
-import { calculateDamage } from "../../../systems/combatSystem";
 
 // ---------------------------------------------------------------------------
 // Pure combat simulation helpers

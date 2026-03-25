@@ -12,6 +12,9 @@
 
 import { createWorld, type World } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { GatheringFrom, OwnedBy } from "../../ecs/relations";
+import { initSingletons } from "../../ecs/singletons";
+import { Health } from "../../ecs/traits/combat";
 import {
 	CollectionRadius,
 	Gatherer,
@@ -21,21 +24,18 @@ import {
 } from "../../ecs/traits/economy";
 import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
-import { Health } from "../../ecs/traits/combat";
-import { GatheringFrom, OwnedBy } from "../../ecs/relations";
-import { initSingletons } from "../../ecs/singletons";
 import { ResourcePool } from "../../ecs/traits/state";
 import {
-	findNearestCPInRadius,
-	findNearestCPGlobal,
+	type CommandPostLocation,
 	canPlaceSecondaryCP,
 	createSupplyCaravan,
-	tickCaravans,
-	tickCaravanPickup,
-	tickCaravanDelivery,
+	findNearestCPGlobal,
+	findNearestCPInRadius,
 	getCaravanCargo,
 	multiBaseSystem,
-	type CommandPostLocation,
+	tickCaravanDelivery,
+	tickCaravanPickup,
+	tickCaravans,
 } from "../../systems/multiBaseSystem";
 
 let world: World;

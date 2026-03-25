@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { createWorld } from "koota";
-import { UnitType, IsBuilding, Selected } from "@/ecs/traits/identity";
-import { Position } from "@/ecs/traits/spatial";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
 import { PhaserSprite } from "@/ecs/traits/phaser";
+import { Position } from "@/ecs/traits/spatial";
 import {
+	destroyAllSprites,
+	handleSpriteClick,
+	spriteMap,
 	syncKootaToPhaser,
 	syncNewEntities,
 	syncPositions,
 	syncRemovedEntities,
-	handleSpriteClick,
-	spriteMap,
-	destroyAllSprites,
 } from "@/systems/syncSystem";
 
 /** Minimal mock for Phaser.GameObjects.Sprite */

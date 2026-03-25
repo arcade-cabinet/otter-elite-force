@@ -14,7 +14,7 @@
  *
  * Tests are written BEFORE the component exists.
  */
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initSingletons } from "@/ecs/singletons";
 
 let React: typeof import("react");

@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Croc Champion — Scale-Guard elite infantry. Wider build, sword (stone '8'/'9').
 // Palette: croc_default

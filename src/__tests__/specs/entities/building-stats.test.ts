@@ -9,7 +9,7 @@
  * Tests are written BEFORE entity definitions exist.
  * They WILL FAIL until the corresponding entity modules are implemented.
  */
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,

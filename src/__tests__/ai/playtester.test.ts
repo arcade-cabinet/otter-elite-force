@@ -10,56 +10,56 @@
  * implemented once the game pipeline is complete.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	AIPlaytester,
-	runUntilComplete,
 	type AIPlaytesterConfig,
 	type GameStateReader,
 	type PlayerPerception,
+	runUntilComplete,
 } from "@/ai/playtester";
 import {
-	PerceptionBuilder,
+	AttackNearestEnemyGoal,
+	BuildArmyGoal,
+	BuildEconomyGoal,
+	ClickTrainButtonGoal,
+	createPlaytesterBrain,
+	DefendBaseGoal,
+	EconomyEvaluator,
+	ExplorationEvaluator,
+	GoalStatus,
+	MilitaryEvaluator,
+	ObjectiveEvaluator,
+	PlaytesterBrain,
+	ScoutMapGoal,
+	SelectIdleWorkerGoal,
+	SurviveEvaluator,
+} from "@/ai/playtester/goals";
+import {
+	APMLimiter,
+	applyMisclick,
+	clickAtTile,
+	DEFAULT_INPUT_CONFIG,
+	dragSelectTiles,
+	executeAction,
+	type InputConfig,
+	type PlayerAction,
+	pressKey,
+	rightClickAtTile,
+} from "@/ai/playtester/input";
+import {
+	canAfford,
 	countIdleWorkers,
 	countMilitaryUnits,
-	isBaseUnderThreat,
-	canAfford,
-	hasPopulationRoom,
 	explorationProgress,
 	findBuildings,
 	findNearestResource,
 	findNearestUnexploredTile,
 	findWeakestEnemy,
+	hasPopulationRoom,
+	isBaseUnderThreat,
+	PerceptionBuilder,
 } from "@/ai/playtester/perception";
-import {
-	APMLimiter,
-	applyMisclick,
-	executeAction,
-	clickAtTile,
-	rightClickAtTile,
-	dragSelectTiles,
-	pressKey,
-	DEFAULT_INPUT_CONFIG,
-	type PlayerAction,
-	type InputConfig,
-} from "@/ai/playtester/input";
-import {
-	createPlaytesterBrain,
-	PlaytesterBrain,
-	GoalStatus,
-	SurviveEvaluator,
-	EconomyEvaluator,
-	MilitaryEvaluator,
-	ObjectiveEvaluator,
-	ExplorationEvaluator,
-	DefendBaseGoal,
-	BuildEconomyGoal,
-	BuildArmyGoal,
-	ScoutMapGoal,
-	SelectIdleWorkerGoal,
-	AttackNearestEnemyGoal,
-	ClickTrainButtonGoal,
-} from "@/ai/playtester/goals";
 
 // ---------------------------------------------------------------------------
 // Test helpers

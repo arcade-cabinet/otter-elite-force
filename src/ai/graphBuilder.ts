@@ -7,8 +7,8 @@
  * Spec reference: §8.3 Pathfinding, §10 Yuka AI Integration
  */
 
-import { Graph, NavNode, NavEdge, Vector3 } from "yuka";
-import { type TerrainType, getTerrainCost } from "./terrainTypes";
+import { Graph, NavEdge, NavNode, Vector3 } from "yuka";
+import { getTerrainCost, type TerrainType } from "./terrainTypes";
 
 /** 4-way directional offsets: right, left, down, up */
 const NEIGHBORS_4 = [

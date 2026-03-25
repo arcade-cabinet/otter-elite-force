@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Gator — Scale-Guard infantry. Wider head (6px), green arms, claws as weapon.
 // Palette: croc_default

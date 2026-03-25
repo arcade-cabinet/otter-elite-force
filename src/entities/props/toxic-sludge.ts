@@ -1,5 +1,5 @@
-import type { PropDef } from "./tall-grass";
 import type { SPDSLSprite } from "../types";
+import type { PropDef } from "./tall-grass";
 
 // Toxic Sludge — environmental hazard. Purple-ish/dark bubbling area. 16x16.
 // Palette: otter_default

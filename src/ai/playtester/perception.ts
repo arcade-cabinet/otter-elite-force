@@ -12,14 +12,14 @@
  */
 
 import type { Entity, World } from "koota";
-import { Health, Attack, Armor } from "@/ecs/traits/combat";
+import { Armor, Attack, Health } from "@/ecs/traits/combat";
+import { Gatherer, ProductionQueue, ResourceNode } from "@/ecs/traits/economy";
 import { Faction, IsBuilding, IsResource, Selected, UnitType } from "@/ecs/traits/identity";
-import { GameClock, PopulationState, ResourcePool } from "@/ecs/traits/state";
-import { Position } from "@/ecs/traits/spatial";
-import { Gatherer, ResourceNode, ProductionQueue } from "@/ecs/traits/economy";
 import { OrderQueue } from "@/ecs/traits/orders";
-import { FogOfWarSystem } from "@/systems/fogSystem";
+import { Position } from "@/ecs/traits/spatial";
+import { GameClock, PopulationState, ResourcePool } from "@/ecs/traits/state";
 import { TILE_SIZE } from "@/maps/loader";
+import type { FogOfWarSystem } from "@/systems/fogSystem";
 
 // ---------------------------------------------------------------------------
 // Types

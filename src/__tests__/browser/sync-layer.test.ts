@@ -8,15 +8,15 @@
 import Phaser from "phaser";
 import { afterEach, describe, expect, it } from "vitest";
 import { UnitType } from "@/ecs/traits/identity";
-import { Position } from "@/ecs/traits/spatial";
 import { PhaserSprite } from "@/ecs/traits/phaser";
+import { Position } from "@/ecs/traits/spatial";
 import { world } from "@/ecs/world";
 import {
+	destroyAllSprites,
+	spriteMap,
 	syncNewEntities,
 	syncPositions,
 	syncRemovedEntities,
-	spriteMap,
-	destroyAllSprites,
 } from "@/systems/syncSystem";
 import { createTestGame, type TestGameHandle } from "./phaser-test-helper";
 

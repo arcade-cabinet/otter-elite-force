@@ -9,7 +9,7 @@
  *
  * Tests are written BEFORE research definitions exist in the new format.
  */
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type { ResearchDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------

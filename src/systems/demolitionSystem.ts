@@ -15,12 +15,12 @@
  * Explosions damage EVERYTHING in radius (friend and foe).
  */
 
+import type { Entity, World } from "koota";
 import { trait } from "koota";
-import type { World, Entity } from "koota";
-import { Health, Armor } from "../ecs/traits/combat";
-import { Faction, UnitType, IsBuilding } from "../ecs/traits/identity";
+import { Armor, Health } from "../ecs/traits/combat";
+import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
-import { distanceBetween, calculateDamage } from "./combatSystem";
+import { calculateDamage, distanceBetween } from "./combatSystem";
 
 // ---------------------------------------------------------------------------
 // Traits

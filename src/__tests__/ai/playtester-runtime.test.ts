@@ -2,10 +2,10 @@ import { createWorld } from "koota";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	AIPlaytester,
-	createScenePlaytester,
-	runUntilComplete,
 	createKootaGameStateReader,
+	createScenePlaytester,
 	type PlayerPerception,
+	runUntilComplete,
 } from "@/ai/playtester";
 import { pressKey } from "@/ai/playtester/input";
 import { initSingletons } from "@/ecs/singletons";

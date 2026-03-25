@@ -17,9 +17,9 @@ import type { Entity, World } from "koota";
 import { createAdded, createRemoved } from "koota";
 import type Phaser from "phaser";
 import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
-import { UnitType, Selected } from "../ecs/traits/identity";
-import { Position } from "../ecs/traits/spatial";
+import { Selected, UnitType } from "../ecs/traits/identity";
 import { PhaserSprite } from "../ecs/traits/phaser";
+import { Position } from "../ecs/traits/spatial";
 
 /** Tile size in pixels — must match the tilemap renderer. */
 const TILE_SIZE = 32;

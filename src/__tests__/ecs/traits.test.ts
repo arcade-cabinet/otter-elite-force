@@ -1,21 +1,21 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createWorld } from "koota";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { AIState, SteeringAgent } from "@/ecs/traits/ai";
+import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
+import { Gatherer, PopulationCost, ProductionQueue, ResourceNode } from "@/ecs/traits/economy";
 import {
-	UnitType,
 	Faction,
-	IsHero,
 	IsBuilding,
+	IsHero,
 	IsProjectile,
 	IsResource,
+	UnitType,
 } from "@/ecs/traits/identity";
-import { Position, Velocity, FacingDirection } from "@/ecs/traits/spatial";
-import { Health, Attack, Armor, VisionRadius } from "@/ecs/traits/combat";
-import { AIState, SteeringAgent } from "@/ecs/traits/ai";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
-import { Gatherer, ResourceNode, ProductionQueue, PopulationCost } from "@/ecs/traits/economy";
+import { PhaserSprite } from "@/ecs/traits/phaser";
+import { FacingDirection, Position, Velocity } from "@/ecs/traits/spatial";
 import { Concealed, Crouching, DetectionRadius } from "@/ecs/traits/stealth";
 import { CanSwim, Submerged } from "@/ecs/traits/water";
-import { PhaserSprite } from "@/ecs/traits/phaser";
 
 describe("Koota ECS Traits", () => {
 	let world: ReturnType<typeof createWorld>;

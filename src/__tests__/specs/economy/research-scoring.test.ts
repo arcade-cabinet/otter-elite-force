@@ -14,19 +14,19 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { ALL_UNITS } from "../../../data/units";
 import { RESEARCH } from "../../../data/research";
+import { ALL_UNITS } from "../../../data/units";
 import {
+	calculateBonusScore,
 	calculateMissionScore,
 	calculateTimeScore,
 	calculateUnitsLostScore,
-	calculateBonusScore,
 	getStarRating,
 	MissionStats,
 } from "../../../systems/scoringSystem";
 import {
-	SAPPER_BUILDING_DAMAGE,
 	DEMOLITION_TRAINING_MULTIPLIER,
+	SAPPER_BUILDING_DAMAGE,
 } from "../../../systems/siegeSystem";
 
 // ---------------------------------------------------------------------------

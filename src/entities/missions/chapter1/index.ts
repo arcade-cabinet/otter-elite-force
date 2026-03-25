@@ -6,12 +6,11 @@ export { mission02Causeway } from "./mission-02-causeway";
 export { mission03FirebaseDelta } from "./mission-03-firebase-delta";
 export { mission04PrisonBreak } from "./mission-04-prison-break";
 
+import type { MissionDef } from "../../types";
 import { mission01Beachhead } from "./mission-01-beachhead";
 import { mission02Causeway } from "./mission-02-causeway";
 import { mission03FirebaseDelta } from "./mission-03-firebase-delta";
 import { mission04PrisonBreak } from "./mission-04-prison-break";
-
-import type { MissionDef } from "../../types";
 
 export const chapter1Missions: MissionDef[] = [
 	mission01Beachhead,

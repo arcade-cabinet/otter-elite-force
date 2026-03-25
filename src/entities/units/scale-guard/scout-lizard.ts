@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Scout Lizard — Scale-Guard fast scout. Light green skin, red uniform, no weapon.
 // Palette: croc_default

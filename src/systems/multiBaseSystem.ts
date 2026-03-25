@@ -12,11 +12,11 @@
  */
 
 import type { Entity, World } from "koota";
+import { OwnedBy } from "../ecs/relations";
+import { Health } from "../ecs/traits/combat";
 import { CollectionRadius, Gatherer, IsCommandPost, SupplyCaravan } from "../ecs/traits/economy";
 import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
-import { Health } from "../ecs/traits/combat";
-import { OwnedBy } from "../ecs/relations";
 import { ResourcePool } from "../ecs/traits/state";
 
 // ---------------------------------------------------------------------------

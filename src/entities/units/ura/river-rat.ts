@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // River Rat — URA worker. Skin-colored head (no helmet), tool on right side.
 // Palette: otter_default — '2'/'3' brown fur, 'a'/'b' face, '4'/'5' blue uniform, '6'/'7' wood

@@ -2,38 +2,38 @@
  * Tests for enemy AI FSM states, profiles, and runner.
  */
 
-import { describe, it, expect, vi } from "vitest";
-import { STATE } from "@/ai/fsm/states";
+import { describe, expect, it, vi } from "vitest";
+import { type AIContext, createDefaultAIContext, type EnemyInfo } from "@/ai/fsm/context";
 import {
-	IdleState,
-	PatrolState,
-	AlertState,
-	ChaseState,
-	AttackState,
-	FleeState,
-	AmbushState,
-	SignalState,
-	SpotState,
-	SnipeState,
-	EngageState,
-	BerserkState,
-	ApproachState,
-	DrainState,
-	RetreatState,
-	ALL_STATES,
-} from "@/ai/fsm/states";
-import {
-	GATOR_PROFILE,
-	VIPER_PROFILE,
-	SCOUT_LIZARD_PROFILE,
+	AI_PROFILES,
 	CROC_CHAMPION_PROFILE,
+	GATOR_PROFILE,
+	getAIProfile,
+	SCOUT_LIZARD_PROFILE,
 	SIPHON_DRONE_PROFILE,
 	SNAPPER_PROFILE,
-	AI_PROFILES,
-	getAIProfile,
+	VIPER_PROFILE,
 } from "@/ai/fsm/profiles";
 import { FSMRunner } from "@/ai/fsm/runner";
-import { createDefaultAIContext, type AIContext, type EnemyInfo } from "@/ai/fsm/context";
+import {
+	ALL_STATES,
+	AlertState,
+	AmbushState,
+	ApproachState,
+	AttackState,
+	BerserkState,
+	ChaseState,
+	DrainState,
+	EngageState,
+	FleeState,
+	IdleState,
+	PatrolState,
+	RetreatState,
+	SignalState,
+	SnipeState,
+	SpotState,
+	STATE,
+} from "@/ai/fsm/states";
 
 function makeEnemy(overrides: Partial<EnemyInfo> = {}): EnemyInfo {
 	return { entityId: 99, x: 5, y: 5, hp: 100, isBuilding: false, ...overrides };

@@ -1,14 +1,14 @@
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { Attack, Armor, Health, VisionRadius } from "../../ecs/traits/combat";
+import { Targeting } from "../../ecs/relations";
+import { Armor, Attack, Health, VisionRadius } from "../../ecs/traits/combat";
 import { Faction, IsProjectile, UnitType } from "../../ecs/traits/identity";
 import { Position, Velocity } from "../../ecs/traits/spatial";
-import { Targeting } from "../../ecs/relations";
 import {
-	combatSystem,
 	aggroSystem,
-	projectileSystem,
+	combatSystem,
 	deathSystem,
+	projectileSystem,
 } from "../../systems/combatSystem";
 
 describe("combatSystem", () => {

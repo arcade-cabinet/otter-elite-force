@@ -7,7 +7,7 @@
 import { useTrait, useWorld } from "koota/react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ResourcePool, PopulationState } from "@/ecs/traits/state";
+import { PopulationState, ResourcePool } from "@/ecs/traits/state";
 
 export function ResourceBar() {
 	const world = useWorld();

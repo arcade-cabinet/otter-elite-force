@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Siphon Drone — Scale-Guard support. Purple head/gear, red uniform.
 // Palette: croc_default — 'c'/'d' purple

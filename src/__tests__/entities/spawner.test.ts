@@ -1,16 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createWorld } from "koota";
-import { spawnUnit, spawnBuilding, spawnResource } from "@/entities/spawner";
-import type { UnitDef, HeroDef, BuildingDef, ResourceDef, SpriteDef } from "@/entities/types";
-import { Position } from "@/ecs/traits/spatial";
-import { Health, Attack, Armor, VisionRadius } from "@/ecs/traits/combat";
-import { Category, UnitType, Faction, IsHero, IsBuilding, IsResource } from "@/ecs/traits/identity";
-import { Gatherer, PopulationCost, ProductionQueue, ResourceNode } from "@/ecs/traits/economy";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { OwnedBy } from "@/ecs/relations";
-import { CanSwim } from "@/ecs/traits/water";
-import { DetectionRadius } from "@/ecs/traits/stealth";
 import { AIState, SteeringAgent } from "@/ecs/traits/ai";
+import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
+import { Gatherer, PopulationCost, ProductionQueue, ResourceNode } from "@/ecs/traits/economy";
+import { Category, Faction, IsBuilding, IsHero, IsResource, UnitType } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
+import { Position } from "@/ecs/traits/spatial";
+import { DetectionRadius } from "@/ecs/traits/stealth";
+import { CanSwim } from "@/ecs/traits/water";
+import { spawnBuilding, spawnResource, spawnUnit } from "@/entities/spawner";
+import type { BuildingDef, HeroDef, ResourceDef, SpriteDef, UnitDef } from "@/entities/types";
 
 const STUB_SPRITE: SpriteDef = {
 	size: 16,

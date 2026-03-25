@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { SpriteDef } from "@/entities/types";
 
 // happy-dom doesn't implement Canvas 2D context. Patch it before importing renderer.
@@ -20,7 +20,7 @@ afterAll(() => {
 });
 
 // Import after mock is in place (vitest hoists imports, but the mock is on prototype so it works)
-import { getScaleFactor, renderFrame, renderSprite, registerTextures } from "@/entities/renderer";
+import { getScaleFactor, registerTextures, renderFrame, renderSprite } from "@/entities/renderer";
 
 // A minimal 4x4 sprite for testing
 const TINY_FRAME = ["..#.", ".BB.", ".BB.", "...."];

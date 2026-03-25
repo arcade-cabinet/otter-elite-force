@@ -1,7 +1,7 @@
-export { skink } from "./skink";
-export { gator } from "./gator";
-export { viper } from "./viper";
-export { snapper } from "./snapper";
-export { scoutLizard } from "./scout-lizard";
 export { crocChampion } from "./croc-champion";
+export { gator } from "./gator";
+export { scoutLizard } from "./scout-lizard";
 export { siphonDrone } from "./siphon-drone";
+export { skink } from "./skink";
+export { snapper } from "./snapper";
+export { viper } from "./viper";

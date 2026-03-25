@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Skink — Scale-Guard worker. Green head, red uniform, tool on right.
 // Palette: croc_default — '2'/'3' green skin, '4'/'5' red uniform, '6'/'7' wood

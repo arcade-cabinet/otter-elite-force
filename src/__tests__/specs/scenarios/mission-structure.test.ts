@@ -10,7 +10,7 @@
  *
  * Tests are written BEFORE mission definitions exist.
  */
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type { MissionDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------
@@ -18,7 +18,7 @@ import type { MissionDef } from "@/entities/types";
 // ---------------------------------------------------------------------------
 
 let missions: MissionDef[] = [];
-let missionMap: Record<string, MissionDef> = {};
+const missionMap: Record<string, MissionDef> = {};
 let loadError: string | null = null;
 
 beforeAll(async () => {

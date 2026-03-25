@@ -9,10 +9,11 @@
  *   - src/ecs/traits/state.ts (ResourcePool, PopulationState, CompletedResearch)
  *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
  */
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+
 import { createWorld, type World } from "koota";
-import { ResourcePool, PopulationState, CompletedResearch } from "@/ecs/traits/state";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { initSingletons, resetSessionState } from "@/ecs/singletons";
+import { CompletedResearch, PopulationState, ResourcePool } from "@/ecs/traits/state";
 
 let world: World;
 

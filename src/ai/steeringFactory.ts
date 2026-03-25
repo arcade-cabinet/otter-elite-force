@@ -10,13 +10,13 @@
  */
 
 import {
-	Vehicle,
-	Vector3,
-	Path,
 	FollowPathBehavior,
-	SeparationBehavior,
-	ObstacleAvoidanceBehavior,
 	type GameEntity,
+	ObstacleAvoidanceBehavior,
+	Path,
+	SeparationBehavior,
+	type Vector3,
+	Vehicle,
 } from "yuka";
 
 export interface SteeringConfig {

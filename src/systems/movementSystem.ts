@@ -13,11 +13,11 @@
 
 import type { World } from "koota";
 import { Vector3 } from "yuka";
+import type { SteeringVehicle } from "../ai/steeringFactory";
+import { isPathComplete, setVehiclePath } from "../ai/steeringFactory";
 import { SteeringAgent } from "../ecs/traits/ai";
 import { OrderQueue } from "../ecs/traits/orders";
 import { FacingDirection, Position, Velocity } from "../ecs/traits/spatial";
-import type { SteeringVehicle } from "../ai/steeringFactory";
-import { isPathComplete, setVehiclePath } from "../ai/steeringFactory";
 
 /**
  * Main movement system tick.

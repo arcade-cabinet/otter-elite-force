@@ -1,5 +1,5 @@
-import { createElement } from "react";
 import { EventEmitter } from "node:events";
+import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const EventBus = new EventEmitter();

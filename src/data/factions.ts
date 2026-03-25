@@ -4,10 +4,10 @@
  * Sourced from design spec §4 (Factions).
  */
 
-import type { FactionId } from "./units";
-import { URA_HEROES, URA_UNITS, SCALE_GUARD_UNITS } from "./units";
-import { URA_BUILDINGS, SCALE_GUARD_BUILDINGS } from "./buildings";
+import { SCALE_GUARD_BUILDINGS, URA_BUILDINGS } from "./buildings";
 import { RESEARCH } from "./research";
+import type { FactionId } from "./units";
+import { SCALE_GUARD_UNITS, URA_HEROES, URA_UNITS } from "./units";
 
 // ---------------------------------------------------------------------------
 // Types

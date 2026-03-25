@@ -10,10 +10,10 @@
  */
 
 import type { World } from "koota";
+import { GatheringFrom, OwnedBy } from "../ecs/relations";
 import { Gatherer, ResourceNode } from "../ecs/traits/economy";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
-import { GatheringFrom, OwnedBy } from "../ecs/relations";
 import { ResourcePool } from "../ecs/traits/state";
 
 /** Distance (in tiles) at which a gatherer can interact with a node or building. */

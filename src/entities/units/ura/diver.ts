@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Diver — URA scout. Teal wetsuit (NOT body — 'f'/'g' teal for gear).
 // Head uses '2'/'3' brown fur. Wetsuit uses 'f'/'g' teal as GEAR color.

@@ -26,19 +26,18 @@
 import type { World } from "koota";
 import type Phaser from "phaser";
 import type { ScenarioEngine, ScenarioWorldQuery } from "../scenarios/engine";
-import type { FogOfWarSystem } from "./fogSystem";
-import type { WeatherSystem } from "./weatherSystem";
-
-import { scenarioSystem } from "./scenarioSystem";
-import { orderSystem } from "./orderSystem";
-import { movementSystem } from "./movementSystem";
-import { combatSystem, aggroSystem, projectileSystem, deathSystem } from "./combatSystem";
-import { economySystem } from "./economySystem";
-import { productionSystem } from "./productionSystem";
 import { buildingSystem } from "./buildingSystem";
-import { detectionSystem, alertCascadeSystem } from "./stealthSystem";
-import { waterSystem } from "./waterSystem";
+import { aggroSystem, combatSystem, deathSystem, projectileSystem } from "./combatSystem";
+import { economySystem } from "./economySystem";
+import type { FogOfWarSystem } from "./fogSystem";
+import { movementSystem } from "./movementSystem";
+import { orderSystem } from "./orderSystem";
+import { productionSystem } from "./productionSystem";
+import { scenarioSystem } from "./scenarioSystem";
+import { alertCascadeSystem, detectionSystem } from "./stealthSystem";
 import { syncKootaToPhaser } from "./syncSystem";
+import { waterSystem } from "./waterSystem";
+import type { WeatherSystem } from "./weatherSystem";
 
 /**
  * Optional subsystems that may not be available on every mission.

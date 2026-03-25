@@ -1,13 +1,13 @@
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { PopulationCost, ProductionQueue } from "../../ecs/traits/economy";
-import { AIState, SteeringAgent } from "../../ecs/traits/ai";
-import { Health } from "../../ecs/traits/combat";
-import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
-import { Position } from "../../ecs/traits/spatial";
-import { OrderQueue, RallyPoint } from "../../ecs/traits/orders";
 import { OwnedBy } from "../../ecs/relations";
 import { initSingletons } from "../../ecs/singletons";
+import { AIState, SteeringAgent } from "../../ecs/traits/ai";
+import { Health } from "../../ecs/traits/combat";
+import { PopulationCost, ProductionQueue } from "../../ecs/traits/economy";
+import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
+import { OrderQueue, RallyPoint } from "../../ecs/traits/orders";
+import { Position } from "../../ecs/traits/spatial";
 import { PopulationState, ResourcePool } from "../../ecs/traits/state";
 import { productionSystem, queueUnit } from "../../systems/productionSystem";
 

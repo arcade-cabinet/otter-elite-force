@@ -5,12 +5,12 @@
  * exposes atlas scale metadata, and transitions to Game when a deployment is queued.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { BootScene } from "@/Scenes/BootScene";
-import { GameScene } from "@/Scenes/GameScene";
 import { initSingletons } from "@/ecs/singletons";
 import { CurrentMission } from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
 import { queueDeployment } from "@/game/deployment";
+import { BootScene } from "@/Scenes/BootScene";
+import { GameScene } from "@/Scenes/GameScene";
 import { createTestGame, type TestGameHandle } from "./phaser-test-helper";
 
 describe("BootScene (browser)", () => {

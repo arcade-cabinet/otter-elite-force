@@ -5,16 +5,16 @@
  * is correctly processed: pathfinding dispatched, ECS relations set,
  * state transitions applied.
  */
-import { createWorld, type World, type Entity } from "koota";
+import { createWorld, type Entity, type World } from "koota";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { GatheringFrom, Targeting } from "../../ecs/relations";
 import { AIState, SteeringAgent } from "../../ecs/traits/ai";
 import { Attack, Health, VisionRadius } from "../../ecs/traits/combat";
-import { Gatherer, ResourceNode, ConstructionProgress } from "../../ecs/traits/economy";
+import { ConstructionProgress, Gatherer, ResourceNode } from "../../ecs/traits/economy";
 import { Faction, IsBuilding, IsResource, UnitType } from "../../ecs/traits/identity";
-import { OrderQueue } from "../../ecs/traits/orders";
 import type { Order } from "../../ecs/traits/orders";
+import { OrderQueue } from "../../ecs/traits/orders";
 import { Position } from "../../ecs/traits/spatial";
-import { Targeting, GatheringFrom } from "../../ecs/relations";
 import { orderSystem } from "../../systems/orderSystem";
 
 // ---------------------------------------------------------------------------

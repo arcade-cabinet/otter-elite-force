@@ -3,18 +3,17 @@
 // This is the bridge between the data-driven definitions and the runtime ECS.
 
 import type { World } from "koota";
-import type { UnitDef, HeroDef, BuildingDef, ResourceDef } from "./types";
-
 import { createSteeringVehicle } from "@/ai/steeringFactory";
 import { OwnedBy } from "@/ecs/relations";
 import { AIState, SteeringAgent } from "@/ecs/traits/ai";
 import { Gatherer, PopulationCost, ProductionQueue, ResourceNode } from "@/ecs/traits/economy";
-import { Category, UnitType, Faction, IsHero, IsBuilding, IsResource } from "@/ecs/traits/identity";
+import { Category, Faction, IsBuilding, IsHero, IsResource, UnitType } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
+import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
 import { Position } from "../ecs/traits/spatial";
-import { Health, Attack, Armor, VisionRadius } from "../ecs/traits/combat";
-import { CanSwim } from "../ecs/traits/water";
 import { DetectionRadius } from "../ecs/traits/stealth";
+import { CanSwim } from "../ecs/traits/water";
+import type { BuildingDef, HeroDef, ResourceDef, UnitDef } from "./types";
 
 export function ensureFactionOwner(world: World, factionId: string) {
 	for (const entity of world.query(Faction)) {

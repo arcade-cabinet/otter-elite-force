@@ -6,12 +6,11 @@ export { mission10ScorchedEarth } from "./mission-10-scorched-earth";
 export { mission11TidalFortress } from "./mission-11-tidal-fortress";
 export { mission12FangRescue } from "./mission-12-fang-rescue";
 
+import type { MissionDef } from "../../types";
 import { mission09FogOfWar } from "./mission-09-fog-of-war";
 import { mission10ScorchedEarth } from "./mission-10-scorched-earth";
 import { mission11TidalFortress } from "./mission-11-tidal-fortress";
 import { mission12FangRescue } from "./mission-12-fang-rescue";
-
-import type { MissionDef } from "../../types";
 
 export const chapter3Missions: MissionDef[] = [
 	mission09FogOfWar,

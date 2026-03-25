@@ -13,13 +13,13 @@
  * IMPORTANT: All SoA trait mutations use .set(). IsBuilding and IsHero are tag traits.
  */
 
+import type { Entity, World } from "koota";
 import { trait } from "koota";
-import type { World, Entity } from "koota";
-import { Attack, Armor, Health } from "../ecs/traits/combat";
-import { Faction, UnitType, IsBuilding, IsHero, IsProjectile } from "../ecs/traits/identity";
-import { Position } from "../ecs/traits/spatial";
 import { Targeting } from "../ecs/relations";
-import { distanceBetween, calculateDamage } from "./combatSystem";
+import { Armor, Attack, Health } from "../ecs/traits/combat";
+import { Faction, IsBuilding, IsHero, IsProjectile, UnitType } from "../ecs/traits/identity";
+import { Position } from "../ecs/traits/spatial";
+import { calculateDamage, distanceBetween } from "./combatSystem";
 
 // ---------------------------------------------------------------------------
 // New Trait: SplashRadius

@@ -130,8 +130,8 @@ const AudioSys = {
     init() { window.AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); },
     play(freq, type, duration, vol=0.1, slideFreq=null) {
         if(!this.ctx) return;
-        let osc = this.ctx.createOscillator();
-        let gain = this.ctx.createGain();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
         osc.type = type; 
         osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
         if(slideFreq) osc.frequency.exponentialRampToValueAtTime(slideFreq, this.ctx.currentTime + duration);
@@ -158,10 +158,10 @@ const AudioSys = {
  */
 const SpriteGen = {
     generate(type) {
-        let size = ['townhall', 'farm', 'barracks', 'tower', 'orc_camp'].includes(type) ? 32 : 16;
-        let c = document.createElement('canvas');
+        const size = ['townhall', 'farm', 'barracks', 'tower', 'orc_camp'].includes(type) ? 32 : 16;
+        const c = document.createElement('canvas');
         c.width = size; c.height = size;
-        let ctx = c.getContext('2d');
+        const ctx = c.getContext('2d');
         
         const p = (x, y, color) => { ctx.fillStyle = color; ctx.fillRect(Math.floor(x), Math.floor(y), 1, 1); };
         const rect = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x, y, w, h); };
@@ -171,9 +171,9 @@ const SpriteGen = {
         };
 
         if (['peasant', 'footman', 'orc', 'archer'].includes(type)) {
-            let primary = type === 'orc' ? PALETTE.redL : (type === 'archer' ? PALETTE.greenL : PALETTE.blueL);
-            let secondary = type === 'orc' ? PALETTE.red : (type === 'archer' ? PALETTE.green : PALETTE.blue);
-            let skin = type === 'orc' ? PALETTE.greenL : PALETTE.skin;
+            const primary = type === 'orc' ? PALETTE.redL : (type === 'archer' ? PALETTE.greenL : PALETTE.blueL);
+            const secondary = type === 'orc' ? PALETTE.red : (type === 'archer' ? PALETTE.green : PALETTE.blue);
+            const skin = type === 'orc' ? PALETTE.greenL : PALETTE.skin;
             
             rect(4, 14, 8, 2, PALETTE.shadow);
             rect(4, 2, 8, 13, PALETTE.black);
@@ -195,7 +195,7 @@ const SpriteGen = {
             rect(7, 11, 2, 5, PALETTE.wood); 
             circle(8, 7, 6, PALETTE.black);
             for(let i=0; i<80; i++) {
-                let a = Math.random() * Math.PI * 2, r = Math.random() * 5.5;
+                const a = Math.random() * Math.PI * 2, r = Math.random() * 5.5;
                 p(8 + Math.cos(a)*r, 7 + Math.sin(a)*r, Math.random()>0.4 ? PALETTE.greenL : PALETTE.green);
             }
         }
@@ -251,10 +251,10 @@ const SpriteGen = {
             }
         }
 
-        let scale = ['townhall', 'farm', 'barracks', 'tower', 'orc_camp'].includes(type) ? 3 : 2.5; 
-        let sCanvas = document.createElement('canvas');
+        const scale = ['townhall', 'farm', 'barracks', 'tower', 'orc_camp'].includes(type) ? 3 : 2.5; 
+        const sCanvas = document.createElement('canvas');
         sCanvas.width = size * scale; sCanvas.height = size * scale;
-        let sCtx = sCanvas.getContext('2d');
+        const sCtx = sCanvas.getContext('2d');
         sCtx.imageSmoothingEnabled = false;
         sCtx.drawImage(c, 0, 0, size * scale, size * scale);
         return sCanvas;
@@ -269,8 +269,8 @@ class Projectile {
     }
     update() {
         if (this.target && this.target.hp > 0) { this.tx = this.target.x; this.ty = this.target.y; }
-        let dx = this.tx - this.x, dy = this.ty - this.y;
-        let dist = Math.sqrt(dx*dx + dy*dy);
+        const dx = this.tx - this.x, dy = this.ty - this.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
         
         if (dist < this.speed) {
             if (this.target && this.target.hp > 0) {
@@ -318,7 +318,7 @@ const GAME = {
         this.setupInput();
         
         // Player Base setup (Center)
-        let sx = WORLD_WIDTH/2, sy = WORLD_HEIGHT/2;
+        const sx = WORLD_WIDTH/2, sy = WORLD_HEIGHT/2;
         new Entity('townhall', sx, sy, 'player');
         new Entity('peasant', sx - 50, sy + 50, 'player');
         new Entity('peasant', sx + 50, sy + 50, 'player');
@@ -348,7 +348,7 @@ const GAME = {
     buildMap() {
         this.bgCanvas = document.createElement('canvas');
         this.bgCanvas.width = WORLD_WIDTH; this.bgCanvas.height = WORLD_HEIGHT;
-        let ctx = this.bgCanvas.getContext('2d', { alpha: false });
+        const ctx = this.bgCanvas.getContext('2d', { alpha: false });
         
         ctx.fillStyle = '#064e3b'; 
         ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -357,9 +357,9 @@ const GAME = {
             ctx.fillRect(Math.random()*WORLD_WIDTH, Math.random()*WORLD_HEIGHT, 4, 4);
         }
         for(let p=0; p<80; p++) {
-            let px = Math.random()*WORLD_WIDTH, py = Math.random()*WORLD_HEIGHT, r = 50 + Math.random()*150;
+            const px = Math.random()*WORLD_WIDTH, py = Math.random()*WORLD_HEIGHT, r = 50 + Math.random()*150;
             for(let i=0; i<r*15; i++) {
-                let ang = Math.random()*Math.PI*2, dist = Math.random()*r;
+                const ang = Math.random()*Math.PI*2, dist = Math.random()*r;
                 ctx.fillStyle = Math.random() > 0.5 ? '#422006' : '#713f12';
                 ctx.fillRect(px + Math.cos(ang)*dist, py + Math.sin(ang)*dist, 6, 6);
             }
@@ -377,7 +377,7 @@ const GAME = {
             if(e.button === 0) { AudioSys.init(); } 
             if(this.state !== 'playing') return;
 
-            let rect = this.canvas.getBoundingClientRect();
+            const rect = this.canvas.getBoundingClientRect();
             this.mouse.x = e.clientX - rect.left; this.mouse.y = e.clientY - rect.top;
             this.mouse.worldX = this.mouse.x + this.camX; this.mouse.worldY = this.mouse.y + this.camY;
             
@@ -387,7 +387,7 @@ const GAME = {
         });
         
         this.container.addEventListener('mousemove', e => {
-            let rect = this.canvas.getBoundingClientRect();
+            const rect = this.canvas.getBoundingClientRect();
             this.mouse.x = e.clientX - rect.left; this.mouse.y = e.clientY - rect.top;
             this.mouse.worldX = this.mouse.x + this.camX; this.mouse.worldY = this.mouse.y + this.camY;
         });
@@ -404,9 +404,9 @@ const GAME = {
 
         mmap.addEventListener('mousedown', e => { 
             mmapDrag = true; 
-            let rect = this.minimap.getBoundingClientRect();
-            let clickX = (e.clientX - rect.left) / rect.width * WORLD_WIDTH;
-            let clickY = (e.clientY - rect.top) / rect.height * WORLD_HEIGHT;
+            const rect = this.minimap.getBoundingClientRect();
+            const clickX = (e.clientX - rect.left) / rect.width * WORLD_WIDTH;
+            const clickY = (e.clientY - rect.top) / rect.height * WORLD_HEIGHT;
 
             if (clickX >= this.camX && clickX <= this.camX + this.width && clickY >= this.camY && clickY <= this.camY + this.height) {
                 mmapPanOffset.x = clickX - this.camX; mmapPanOffset.y = clickY - this.camY;
@@ -427,27 +427,27 @@ const GAME = {
     },
 
     moveCamMinimap(e, offset) {
-        let rect = this.minimap.getBoundingClientRect();
-        let xPercent = (e.clientX - rect.left) / rect.width, yPercent = (e.clientY - rect.top) / rect.height;
+        const rect = this.minimap.getBoundingClientRect();
+        const xPercent = (e.clientX - rect.left) / rect.width, yPercent = (e.clientY - rect.top) / rect.height;
         this.camX = Math.max(0, Math.min(WORLD_WIDTH - this.width, xPercent * WORLD_WIDTH - offset.x));
         this.camY = Math.max(0, Math.min(WORLD_HEIGHT - this.height, yPercent * WORLD_HEIGHT - offset.y));
     },
 
     handleSelect() {
         AudioSys.sfx.click();
-        let dx = this.mouse.worldX - this.mouse.startX, dy = this.mouse.worldY - this.mouse.startY;
+        const dx = this.mouse.worldX - this.mouse.startX, dy = this.mouse.worldY - this.mouse.startY;
         this.selection.forEach(e => e.selected = false); this.selection = [];
         
         if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
-            let sorted = [...this.entities].sort((a,b) => b.y - a.y); 
-            for(let e of sorted) {
+            const sorted = [...this.entities].sort((a,b) => b.y - a.y); 
+            for(const e of sorted) {
                 if (Math.abs(e.x - this.mouse.worldX) < e.radius+10 && Math.abs(e.y - this.mouse.worldY) < e.height/2+10) {
                     e.selected = true; this.selection.push(e); break;
                 }
             }
         } else {
-            let minX = Math.min(this.mouse.startX, this.mouse.worldX), maxX = Math.max(this.mouse.startX, this.mouse.worldX);
-            let minY = Math.min(this.mouse.startY, this.mouse.worldY), maxY = Math.max(this.mouse.startY, this.mouse.worldY);
+            const minX = Math.min(this.mouse.startX, this.mouse.worldX), maxX = Math.max(this.mouse.startX, this.mouse.worldX);
+            const minY = Math.min(this.mouse.startY, this.mouse.worldY), maxY = Math.max(this.mouse.startY, this.mouse.worldY);
             this.entities.forEach(e => {
                 if (e.faction === 'player' && !e.isBuilding && e.x >= minX && e.x <= maxX && e.y >= minY && e.y <= maxY) {
                     e.selected = true; this.selection.push(e);
@@ -466,8 +466,8 @@ const GAME = {
         
         AudioSys.sfx.click();
         let target = null;
-        let sorted = [...this.entities].sort((a,b) => b.y - a.y);
-        for(let e of sorted) {
+        const sorted = [...this.entities].sort((a,b) => b.y - a.y);
+        for(const e of sorted) {
             if (Math.abs(e.x - this.mouse.worldX) < e.radius+10 && Math.abs(e.y - this.mouse.worldY) < e.height/2+10) { target = e; break; }
         }
         
@@ -480,7 +480,7 @@ const GAME = {
                 else if (target.type === 'townhall' && unit.type === 'peasant' && unit.heldRes) unit.cmdReturn(target);
                 else unit.cmdMove(this.mouse.worldX + (Math.random()-.5)*20, this.mouse.worldY + (Math.random()-.5)*20);
             } else {
-                let row = Math.floor(idx / 4), col = idx % 4;
+                const row = Math.floor(idx / 4), col = idx % 4;
                 unit.cmdMove(this.mouse.worldX + (col-1.5)*30, this.mouse.worldY + (row-1.5)*30);
             }
         });
@@ -499,7 +499,7 @@ const GAME = {
             els.stats.textContent = ""; els.desc.textContent = ""; els.hpBar.classList.add('hidden'); return;
         }
         
-        let ent = this.selection[0];
+        const ent = this.selection[0];
         if (this.selection.length > 1) {
             els.name.textContent = `Multiple Units (${this.selection.length})`; els.name.className = "text-xl font-bold text-white";
             els.stats.textContent = "Mixed selection"; els.desc.textContent = "Right-click to command";
@@ -518,11 +518,11 @@ const GAME = {
             }
         }
 
-        let isPlayer = this.selection.every(e => e.faction === 'player');
+        const isPlayer = this.selection.every(e => e.faction === 'player');
         if (!isPlayer) return;
 
         const addBtn = (title, cost, fn, afford) => {
-            let b = document.createElement('button');
+            const b = document.createElement('button');
             b.className = `action-btn flex flex-col items-center justify-center p-2 rounded text-xs font-bold shadow-md ${!afford?'opacity-50 grayscale cursor-not-allowed':''}`;
             b.innerHTML = `<span>${title}</span><span class="text-blue-300 font-normal text-[10px] mt-1 whitespace-pre-line">${cost}</span>`;
             if (afford) b.onclick = (e) => { e.stopPropagation(); AudioSys.sfx.click(); fn(); };
@@ -548,8 +548,8 @@ const GAME = {
         if(type==='farm') cw=500; if(type==='barracks'){cg=600; cw=400;} if(type==='tower'){cg=700; cw=300;}
         if (this.resources.gold >= cg && this.resources.wood >= cw) {
             this.resources.gold -= cg; this.resources.wood -= cw;
-            let bx = Math.round(this.mouse.worldX/TILE_SIZE)*TILE_SIZE, by = Math.round(this.mouse.worldY/TILE_SIZE)*TILE_SIZE;
-            let b = new Entity(type, bx, by, 'player');
+            const bx = Math.round(this.mouse.worldX/TILE_SIZE)*TILE_SIZE, by = Math.round(this.mouse.worldY/TILE_SIZE)*TILE_SIZE;
+            const b = new Entity(type, bx, by, 'player');
             this.selection.forEach(u => { if(u.type === 'peasant') u.cmdBuild(b); });
             this.placingBuilding = null; this.updateUI();
         }
@@ -583,7 +583,7 @@ const GAME = {
     },
 
     loop(timestamp) {
-        let dt = timestamp - this.lastTime;
+        const dt = timestamp - this.lastTime;
         if (dt > 1000/60) {
             if (this.state === 'playing') this.updateLogic();
             this.draw();
@@ -598,16 +598,16 @@ const GAME = {
         // Time System
         this.timeOfDay += 0.05; 
         if (this.timeOfDay >= 24*60) this.timeOfDay = 0;
-        let hrs = Math.floor(this.timeOfDay/60), mins = Math.floor(this.timeOfDay%60);
+        const hrs = Math.floor(this.timeOfDay/60), mins = Math.floor(this.timeOfDay%60);
         document.getElementById('clock-display').textContent = `Day ${Math.floor(this.frameCount/28800)+1} - ${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}`;
         
-        let overlay = document.getElementById('day-night-overlay');
+        const overlay = document.getElementById('day-night-overlay');
         if (hrs >= 20 || hrs < 5) overlay.style.opacity = '0.6';
         else if (hrs === 5 || hrs === 19) overlay.style.opacity = '0.3';
         else overlay.style.opacity = '0';
 
         // Camera Pan
-        let s = 12, e = 20;
+        const s = 12, e = 20;
         if (this.keys['w'] || this.keys['arrowup'] || (this.mouse.in && this.mouse.y < e && !this.mouse.isDown)) this.camY -= s;
         if (this.keys['s'] || this.keys['arrowdown'] || (this.mouse.in && this.mouse.y > this.height-e && !this.mouse.isDown)) this.camY += s;
         if (this.keys['a'] || this.keys['arrowleft'] || (this.mouse.in && this.mouse.x < e && !this.mouse.isDown)) this.camX -= s;
@@ -618,12 +618,12 @@ const GAME = {
         // System updates
         for (let i = this.entities.length - 1; i >= 0; i--) this.entities[i].update();
         for (let i = this.projectiles.length - 1; i >= 0; i--) if (this.projectiles[i].update()) this.projectiles.splice(i, 1);
-        for (let i = this.particles.length - 1; i >= 0; i--) { let p = this.particles[i]; p.life--; p.y -= p.vy; p.x += p.vx; if (p.life <= 0) this.particles.splice(i, 1); }
-        for (let i = this.floatingTexts.length - 1; i >= 0; i--) { let f = this.floatingTexts[i]; f.life--; f.y -= 0.5; if (f.life <= 0) this.floatingTexts.splice(i, 1); }
+        for (let i = this.particles.length - 1; i >= 0; i--) { const p = this.particles[i]; p.life--; p.y -= p.vy; p.x += p.vx; if (p.life <= 0) this.particles.splice(i, 1); }
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) { const f = this.floatingTexts[i]; f.life--; f.y -= 0.5; if (f.life <= 0) this.floatingTexts.splice(i, 1); }
 
         // Threat System & Orc Raids
-        let statusEl = document.getElementById('status-display');
-        let isPeaceful = this.frameCount < this.peaceTimer;
+        const statusEl = document.getElementById('status-display');
+        const isPeaceful = this.frameCount < this.peaceTimer;
         
         if (isPeaceful) {
             statusEl.textContent = `Peaceful (${Math.ceil((this.peaceTimer - this.frameCount)/60)}s)`;
@@ -634,16 +634,16 @@ const GAME = {
             
             // Spawn waves from camps
             if (this.frameCount % 1200 === 0) { // Every 20 seconds after peace
-                let camps = this.entities.filter(e => e.type === 'orc_camp');
-                let th = this.entities.find(e => e.type === 'townhall' && e.faction === 'player');
+                const camps = this.entities.filter(e => e.type === 'orc_camp');
+                const th = this.entities.find(e => e.type === 'townhall' && e.faction === 'player');
                 
                 if (camps.length > 0 && th) {
                     AudioSys.sfx.alert();
                     // Wave size increases slowly over time
-                    let waveSize = Math.min(4, 1 + Math.floor((this.frameCount - this.peaceTimer) / 3600)); 
+                    const waveSize = Math.min(4, 1 + Math.floor((this.frameCount - this.peaceTimer) / 3600)); 
                     camps.forEach(camp => {
                         for(let i=0; i<waveSize; i++) {
-                            let o = new Entity('orc', camp.x + (Math.random()-.5)*60, camp.y + 30 + (Math.random()-.5)*30, 'enemy');
+                            const o = new Entity('orc', camp.x + (Math.random()-.5)*60, camp.y + 30 + (Math.random()-.5)*30, 'enemy');
                             o.cmdAtk(th);
                         }
                     });
@@ -653,8 +653,8 @@ const GAME = {
 
         // Win/Loss Condition checks (1x per sec)
         if (this.frameCount % 60 === 0) {
-            let playerTH = this.entities.some(e => e.type === 'townhall' && e.faction === 'player');
-            let campsLeft = this.entities.some(e => e.type === 'orc_camp');
+            const playerTH = this.entities.some(e => e.type === 'townhall' && e.faction === 'player');
+            const campsLeft = this.entities.some(e => e.type === 'orc_camp');
             if (!playerTH) this.setGameOver('lose');
             else if (!campsLeft) this.setGameOver('win');
         }
@@ -672,32 +672,32 @@ const GAME = {
             this.resources.food = curF; this.resources.maxFood = maxF;
             document.getElementById('res-gold').textContent = this.resources.gold;
             document.getElementById('res-wood').textContent = this.resources.wood;
-            let fEl = document.getElementById('res-food'); fEl.textContent = `${curF}/${maxF}`;
+            const fEl = document.getElementById('res-food'); fEl.textContent = `${curF}/${maxF}`;
             fEl.className = curF >= maxF ? 'text-red-500 font-bold' : 'text-red-400 font-bold';
             if (this.selection.length === 1) this.updateUI();
         }
     },
 
     draw() {
-        let c = this.ctx;
+        const c = this.ctx;
         c.fillStyle = '#000'; c.fillRect(0, 0, this.width, this.height);
         
         c.save(); c.translate(-Math.floor(this.camX), -Math.floor(this.camY));
         c.drawImage(this.bgCanvas, 0, 0);
         
-        let sorted = [...this.entities].sort((a,b) => a.y - b.y);
-        for (let e of sorted) {
+        const sorted = [...this.entities].sort((a,b) => a.y - b.y);
+        for (const e of sorted) {
             if (e.x + 100 > this.camX && e.x - 100 < this.camX + this.width &&
                 e.y + 100 > this.camY && e.y - 100 < this.camY + this.height) {
                 e.draw(c);
             }
         }
 
-        for (let p of this.particles) { c.fillStyle = p.c; c.fillRect(p.x, p.y, p.s, p.s); }
-        for (let p of this.projectiles) p.draw(c);
+        for (const p of this.particles) { c.fillStyle = p.c; c.fillRect(p.x, p.y, p.s, p.s); }
+        for (const p of this.projectiles) p.draw(c);
 
         if (this.selection.length === 1 && this.selection[0].isBuilding && this.selection[0].rallyPos) {
-            let b = this.selection[0], rp = b.rallyPos;
+            const b = this.selection[0], rp = b.rallyPos;
             c.strokeStyle = '#3b82f6'; c.lineWidth = 2; c.setLineDash([5, 5]);
             c.beginPath(); c.moveTo(b.x, b.y); c.lineTo(rp.x, rp.y); c.stroke();
             c.setLineDash([]); c.fillStyle = '#3b82f6'; c.beginPath(); c.arc(rp.x, rp.y, 4, 0, Math.PI*2); c.fill();
@@ -706,7 +706,7 @@ const GAME = {
         // Draw Floating Text (Harvest numbers)
         c.font = "bold 14px 'Courier New'";
         c.textAlign = "center";
-        for (let f of this.floatingTexts) {
+        for (const f of this.floatingTexts) {
             c.fillStyle = f.c;
             c.globalAlpha = Math.min(1, f.life / 30);
             c.fillText(f.t, f.x, f.y);
@@ -717,15 +717,15 @@ const GAME = {
 
         if (this.mouse.isDown && !this.placingBuilding) {
             c.strokeStyle = '#22c55e'; c.lineWidth = 1;
-            let x = Math.min(this.mouse.startX, this.mouse.worldX), y = Math.min(this.mouse.startY, this.mouse.worldY);
-            let w = Math.abs(this.mouse.worldX - this.mouse.startX), h = Math.abs(this.mouse.worldY - this.mouse.startY);
+            const x = Math.min(this.mouse.startX, this.mouse.worldX), y = Math.min(this.mouse.startY, this.mouse.worldY);
+            const w = Math.abs(this.mouse.worldX - this.mouse.startX), h = Math.abs(this.mouse.worldY - this.mouse.startY);
             c.strokeRect(x, y, w, h); c.fillStyle = 'rgba(34, 197, 94, 0.2)'; c.fillRect(x, y, w, h);
         }
 
         if (this.placingBuilding) {
-            let bx = Math.round(this.mouse.worldX/TILE_SIZE)*TILE_SIZE, by = Math.round(this.mouse.worldY/TILE_SIZE)*TILE_SIZE;
-            let spr = this.sprites[this.placingBuilding];
-            let ok = (this.placingBuilding==='farm' && this.resources.wood>=500) || 
+            const bx = Math.round(this.mouse.worldX/TILE_SIZE)*TILE_SIZE, by = Math.round(this.mouse.worldY/TILE_SIZE)*TILE_SIZE;
+            const spr = this.sprites[this.placingBuilding];
+            const ok = (this.placingBuilding==='farm' && this.resources.wood>=500) || 
                      (this.placingBuilding==='barracks' && this.resources.gold>=600 && this.resources.wood>=400) ||
                      (this.placingBuilding==='tower' && this.resources.gold>=700 && this.resources.wood>=300);
             c.globalAlpha = 0.5; c.drawImage(spr, bx - spr.width/2, by - spr.height/2);
@@ -736,16 +736,16 @@ const GAME = {
         c.restore();
 
         // Fog of War
-        let fc = this.fogCtx;
+        const fc = this.fogCtx;
         fc.clearRect(0,0,this.width, this.height);
         fc.fillStyle = '#000000'; fc.fillRect(0,0,this.width, this.height);
         fc.globalCompositeOperation = 'destination-out';
         
-        for (let e of this.entities) {
+        for (const e of this.entities) {
             if (e.faction === 'player' && e.x + 400 > this.camX && e.x - 400 < this.camX + this.width &&
                 e.y + 400 > this.camY && e.y - 400 < this.camY + this.height) {
-                let sx = e.x - this.camX, sy = e.y - this.camY, rad = e.isBuilding ? 250 : 150;
-                let grad = fc.createRadialGradient(sx, sy, rad*0.3, sx, sy, rad);
+                const sx = e.x - this.camX, sy = e.y - this.camY, rad = e.isBuilding ? 250 : 150;
+                const grad = fc.createRadialGradient(sx, sy, rad*0.3, sx, sy, rad);
                 grad.addColorStop(0, 'rgba(0,0,0,1)'); grad.addColorStop(1, 'rgba(0,0,0,0)');
                 fc.fillStyle = grad; fc.beginPath(); fc.arc(sx, sy, rad, 0, Math.PI*2); fc.fill();
             }
@@ -753,21 +753,21 @@ const GAME = {
         fc.globalCompositeOperation = 'source-over';
 
         // Minimap
-        let mc = this.minimapCtx;
+        const mc = this.minimapCtx;
         mc.fillStyle = '#064e3b'; mc.fillRect(0, 0, 200, 200);
-        let sx = 200/WORLD_WIDTH, sy = 200/WORLD_HEIGHT;
+        const sx = 200/WORLD_WIDTH, sy = 200/WORLD_HEIGHT;
         
-        for (let e of this.entities) {
+        for (const e of this.entities) {
             if(e.type==='tree') mc.fillStyle = '#22c55e';
             else if(e.type==='goldmine') mc.fillStyle = '#eab308';
             else if(e.faction==='player') mc.fillStyle = '#3b82f6';
             else if(e.type==='orc_camp') mc.fillStyle = '#7f1d1d';
             else if(e.faction==='enemy') mc.fillStyle = '#ef4444';
             else mc.fillStyle = '#fff';
-            let s = e.isBuilding ? 4 : 2; mc.fillRect(e.x*sx - s/2, e.y*sy - s/2, s, s);
+            const s = e.isBuilding ? 4 : 2; mc.fillRect(e.x*sx - s/2, e.y*sy - s/2, s, s);
         }
         
-        let mCam = document.getElementById('minimap-cam');
+        const mCam = document.getElementById('minimap-cam');
         mCam.classList.remove('hidden');
         mCam.style.left = `${this.camX * sx}px`; mCam.style.top = `${this.camY * sy}px`;
         mCam.style.width = `${this.width * sx}px`; mCam.style.height = `${this.height * sy}px`;
@@ -809,10 +809,10 @@ class Entity {
         if (this.atkCD > 0) this.atkCD--;
 
         if (this.type === 'tower' && this.progress >= 100 && this.atkCD <= 0) {
-            let targets = GAME.entities.filter(e => e.faction !== this.faction && e.hp > 0 && !e.isResource);
+            const targets = GAME.entities.filter(e => e.faction !== this.faction && e.hp > 0 && !e.isResource);
             let closest = null, minDist = this.atkRange;
-            for(let t of targets) {
-                let d = Math.sqrt((t.x-this.x)**2 + (t.y-this.y)**2);
+            for(const t of targets) {
+                const d = Math.sqrt((t.x-this.x)**2 + (t.y-this.y)**2);
                 if (d < minDist) { minDist = d; closest = t; }
             }
             if (closest) {
@@ -824,8 +824,8 @@ class Entity {
 
         if (!this.isBuilding && !this.isResource) {
             if (['move', 'g_move', 'r_move', 'a_move'].includes(this.state) && this.tPos) {
-                let dx = this.tPos.x - this.x, dy = this.tPos.y - this.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
+                const dx = this.tPos.x - this.x, dy = this.tPos.y - this.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
                 if (dx !== 0) this.facingLeft = dx < 0; 
                 
                 if (dist < this.speed) {
@@ -842,7 +842,7 @@ class Entity {
                 if (--this.gTimer <= 0) {
                     this.heldRes = this.tEnt.type==='tree'?'wood':'gold';
                     this.tEnt.resAmount -= 10; if(this.tEnt.resAmount<=0) this.tEnt.die();
-                    let h = GAME.entities.find(e=>e.type==='townhall' && e.faction==='player');
+                    const h = GAME.entities.find(e=>e.type==='townhall' && e.faction==='player');
                     if (h) { this.tPos={x:h.x,y:h.y}; this.state='r_move'; } else this.state='idle';
                 }
             }
@@ -857,7 +857,7 @@ class Entity {
             }
             if (this.state === 'atk') {
                 if (!this.tEnt || this.tEnt.hp <= 0) { this.state = 'idle'; return; }
-                let dx = this.tEnt.x - this.x, dy = this.tEnt.y - this.y;
+                const dx = this.tEnt.x - this.x, dy = this.tEnt.y - this.y;
                 this.facingLeft = dx < 0;
                 if (Math.sqrt(dx*dx + dy*dy) <= this.atkRange) {
                     if (this.atkCD <= 0) {
@@ -876,17 +876,17 @@ class Entity {
 
             // Fixed AI: Respecting the Peace Timer
             if (this.faction === 'enemy' && this.state === 'idle' && Math.random()<0.02) {
-                let isPeaceful = GAME.frameCount < GAME.peaceTimer;
-                let targets = GAME.entities.filter(e=>e.faction==='player');
+                const isPeaceful = GAME.frameCount < GAME.peaceTimer;
+                const targets = GAME.entities.filter(e=>e.faction==='player');
                 
                 // Always defend if player gets too close (aggro range)
-                let closeTarget = targets.find(t => Math.sqrt((t.x - this.x)**2 + (t.y - this.y)**2) < 300);
+                const closeTarget = targets.find(t => Math.sqrt((t.x - this.x)**2 + (t.y - this.y)**2) < 300);
 
                 if (closeTarget) {
                     this.cmdAtk(closeTarget);
                 } else if (!isPeaceful && targets.length) {
                     // Global raids only after peace timer ends
-                    let th = targets.find(t => t.type === 'townhall');
+                    const th = targets.find(t => t.type === 'townhall');
                     if(th && Math.random() < 0.5) this.cmdAtk(th);
                     else this.cmdAtk(targets[Math.floor(Math.random()*targets.length)]);
                 }
@@ -897,11 +897,11 @@ class Entity {
             }
 
             // Simple Separation
-            for (let o of GAME.entities) {
+            for (const o of GAME.entities) {
                 if (o===this || o.isBuilding || o.isResource) continue;
-                let dx = this.x - o.x, dy = this.y - o.y, distSq = dx*dx + dy*dy, md = this.radius+o.radius;
+                const dx = this.x - o.x, dy = this.y - o.y, distSq = dx*dx + dy*dy, md = this.radius+o.radius;
                 if (distSq < md*md && distSq>0) {
-                    let f = (md - Math.sqrt(distSq))*0.1;
+                    const f = (md - Math.sqrt(distSq))*0.1;
                     this.x += (dx/Math.sqrt(distSq))*f; this.y += (dy/Math.sqrt(distSq))*f;
                 }
             }
@@ -910,8 +910,8 @@ class Entity {
         // Spawn Queue
         if (this.isBuilding && this.faction === 'player' && this.q && this.q.length > 0) {
             if (--this.qTimer <= 0) {
-                let t = this.q.shift(), sx = this.x + (Math.random()>.5?1:-1)*30, sy = this.y + this.height/2 + 20;
-                let newEnt = new Entity(t, sx, sy, 'player');
+                const t = this.q.shift(), sx = this.x + (Math.random()>.5?1:-1)*30, sy = this.y + this.height/2 + 20;
+                const newEnt = new Entity(t, sx, sy, 'player');
                 if (this.rallyPos) newEnt.cmdMove(this.rallyPos.x, this.rallyPos.y); 
                 this.qTimer = 180;
             }
@@ -925,8 +925,8 @@ class Entity {
         else if (this.state === 'r_move') {
             if (this.heldRes) {
                 // VISUAL FEEDBACK: Floating Text
-                let color = this.heldRes === 'gold' ? '#fde047' : '#f97316';
-                let txt = `+10 ${this.heldRes.charAt(0).toUpperCase() + this.heldRes.slice(1)}`;
+                const color = this.heldRes === 'gold' ? '#fde047' : '#f97316';
+                const txt = `+10 ${this.heldRes.charAt(0).toUpperCase() + this.heldRes.slice(1)}`;
                 GAME.floatingTexts.push({x: this.x, y: this.y - 20, t: txt, c: color, life: 60});
                 
                 GAME.resources[this.heldRes] += 10; 
@@ -954,7 +954,7 @@ class Entity {
     }
 
     draw(c) {
-        let dx = this.x - this.width/2, dy = this.y - this.height/2 + (this.yOff||0);
+        const dx = this.x - this.width/2, dy = this.y - this.height/2 + (this.yOff||0);
         
         if (this.selected) {
             c.beginPath(); c.ellipse(this.x, this.y + this.height/2 - 5, this.radius+5, this.radius/2+2, 0, 0, Math.PI*2);
@@ -978,13 +978,13 @@ class Entity {
         if (this.heldRes) { c.fillStyle = this.heldRes==='gold'?'#eab308':'#78350f'; c.fillRect(this.x+5, this.y-20, 6, 6); }
 
         if (this.selected || (this.hp < this.maxHp && !this.isResource)) {
-            let bw = this.width*0.8, bh = 4;
+            const bw = this.width*0.8, bh = 4;
             c.fillStyle = '#7f1d1d'; c.fillRect(this.x-bw/2, dy-8, bw, bh);
             c.fillStyle = '#22c55e'; c.fillRect(this.x-bw/2, dy-8, bw*(this.hp/this.maxHp), bh);
         }
 
         if (this.isBuilding && this.q && this.q.length) {
-            let p = 1-(this.qTimer/180);
+            const p = 1-(this.qTimer/180);
             c.fillStyle='#1e3a8a'; c.fillRect(this.x-15, this.y+this.height/2+5, 30, 4);
             c.fillStyle='#60a5fa'; c.fillRect(this.x-15, this.y+this.height/2+5, 30*p, 4);
         }

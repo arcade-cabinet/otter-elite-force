@@ -15,11 +15,20 @@
  * Spec reference: §11 Persistence, §14 Save/Load
  */
 
-import type { World, Entity, Trait } from "koota";
-
+import type { Entity, Trait, World } from "koota";
+// -- Relations ---
+import {
+	BelongsToSquad,
+	ConstructingAt,
+	GarrisonedIn,
+	GatheringFrom,
+	OwnedBy,
+	Targeting,
+} from "../ecs/relations";
+import { AIState, SteeringAgent } from "../ecs/traits/ai";
 // -- SoA traits (snapshot-based, read via .get()) ---
-import { Health, Attack, Armor, VisionRadius } from "../ecs/traits/combat";
-import { Gatherer, ResourceNode, ConstructionProgress } from "../ecs/traits/economy";
+import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
+import { ConstructionProgress, Gatherer, ResourceNode } from "../ecs/traits/economy";
 import {
 	Faction,
 	IsBuilding,
@@ -28,14 +37,13 @@ import {
 	IsResource,
 	IsSiphon,
 	IsVillage,
-	UnitType,
 	Selected,
+	UnitType,
 } from "../ecs/traits/identity";
 import { OrderQueue } from "../ecs/traits/orders";
-import { Position, Velocity, FacingDirection } from "../ecs/traits/spatial";
-import { Concealed, Crouching, DetectionRadius } from "../ecs/traits/stealth";
-import { CanSwim, Submerged } from "../ecs/traits/water";
-import { AIState } from "../ecs/traits/ai";
+// -- Non-serializable traits (skipped) ---
+import { PhaserSprite } from "../ecs/traits/phaser";
+import { FacingDirection, Position, Velocity } from "../ecs/traits/spatial";
 import {
 	CurrentMission,
 	GameClock,
@@ -45,20 +53,8 @@ import {
 	ResourcePool,
 	TerritoryState,
 } from "../ecs/traits/state";
-
-// -- Relations ---
-import {
-	Targeting,
-	GatheringFrom,
-	OwnedBy,
-	GarrisonedIn,
-	ConstructingAt,
-	BelongsToSquad,
-} from "../ecs/relations";
-
-// -- Non-serializable traits (skipped) ---
-import { PhaserSprite } from "../ecs/traits/phaser";
-import { SteeringAgent } from "../ecs/traits/ai";
+import { Concealed, Crouching, DetectionRadius } from "../ecs/traits/stealth";
+import { CanSwim, Submerged } from "../ecs/traits/water";
 
 // ---------------------------------------------------------------------------
 // Trait Registry

@@ -5,7 +5,7 @@
  * pointer count) and classifies them into gesture types without any
  * Phaser dependency.
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { GestureDetector, GestureType, type PointerState } from "@/input/gestureDetector";
 
 function makePointer(overrides: Partial<PointerState> = {}): PointerState {

@@ -17,7 +17,10 @@
  */
 
 import type { World } from "koota";
-import { FogOfWarSystem } from "@/systems/fogSystem";
+import type { FogOfWarSystem } from "@/systems/fogSystem";
+import { createPlaytesterBrain, type PlaytesterBrain } from "./goals";
+import type { PlayerAction } from "./input";
+import { APMLimiter, DEFAULT_INPUT_CONFIG, executeAction, type InputConfig } from "./input";
 import {
 	createKootaGameStateReader,
 	type GameStateReader,
@@ -25,9 +28,6 @@ import {
 	type PlayerPerception,
 	type Viewport,
 } from "./perception";
-import { APMLimiter, type InputConfig, DEFAULT_INPUT_CONFIG, executeAction } from "./input";
-import type { PlayerAction } from "./input";
-import { createPlaytesterBrain, type PlaytesterBrain } from "./goals";
 
 // ---------------------------------------------------------------------------
 // Config
@@ -267,21 +267,21 @@ export function createScenePlaytester(
 // Re-exports for convenience
 // ---------------------------------------------------------------------------
 
-export type { PlayerPerception, GameStateReader, Viewport } from "./perception";
-export type { PlayerAction, InputConfig } from "./input";
+export { createPlaytesterBrain, PlaytesterBrain } from "./goals";
+export type { InputConfig, PlayerAction } from "./input";
+export { APMLimiter, applyMisclick, DEFAULT_INPUT_CONFIG, executeAction } from "./input";
+export type { GameStateReader, PlayerPerception, Viewport } from "./perception";
 export {
-	PerceptionBuilder,
+	canAfford,
 	countIdleWorkers,
 	countMilitaryUnits,
-	isBaseUnderThreat,
-	findNearestUnexploredTile,
-	findNearestResource,
-	canAfford,
-	hasPopulationRoom,
-	findBuildings,
-	findWeakestEnemy,
-	explorationProgress,
 	createKootaGameStateReader,
+	explorationProgress,
+	findBuildings,
+	findNearestResource,
+	findNearestUnexploredTile,
+	findWeakestEnemy,
+	hasPopulationRoom,
+	isBaseUnderThreat,
+	PerceptionBuilder,
 } from "./perception";
-export { executeAction, APMLimiter, DEFAULT_INPUT_CONFIG, applyMisclick } from "./input";
-export { createPlaytesterBrain, PlaytesterBrain } from "./goals";

@@ -3,8 +3,8 @@
 // Follows the same pattern as the POC's buildSprites() but works with
 // the new SpriteDef/PALETTE type system.
 
-import type { SpriteDef } from "./types";
 import { PALETTE } from "./palettes";
+import type { SpriteDef } from "./types";
 
 /**
  * Determine scale factor based on device characteristics.

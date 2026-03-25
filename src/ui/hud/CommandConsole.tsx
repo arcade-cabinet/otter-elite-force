@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useTrait, useWorld } from "koota/react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { getPortrait } from "@/entities/registry";
+import { Selected } from "@/ecs/traits/identity";
 import { Objectives } from "@/ecs/traits/state";
+import { CAMPAIGN, getMissionById } from "@/entities/missions";
+import { getPortrait } from "@/entities/registry";
+import { EventBus } from "@/game/EventBus";
 import { ActionBar } from "@/ui/hud/ActionBar";
 import { CommandTransmissionPanel } from "@/ui/hud/CommandTransmissionPanel";
 import { Minimap } from "@/ui/hud/Minimap";
 import { UnitPanel } from "@/ui/hud/UnitPanel";
-import { getMissionById, CAMPAIGN } from "@/entities/missions";
-import { Selected } from "@/ecs/traits/identity";
-import { EventBus } from "@/game/EventBus";
 import { cn } from "@/ui/lib/utils";
 
 interface ConsoleTransmission {

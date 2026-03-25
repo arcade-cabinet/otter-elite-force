@@ -12,11 +12,11 @@
  */
 
 import type { World } from "koota";
+import { OwnedBy } from "../ecs/relations";
 import { ConstructionProgress, ProductionQueue } from "../ecs/traits/economy";
 import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
-import { Position } from "../ecs/traits/spatial";
 import { OrderQueue, RallyPoint } from "../ecs/traits/orders";
-import { OwnedBy } from "../ecs/relations";
+import { Position } from "../ecs/traits/spatial";
 import { PopulationState, ResourcePool } from "../ecs/traits/state";
 import { world as defaultWorld } from "../ecs/world";
 import { getBuilding, getUnit } from "../entities/registry";

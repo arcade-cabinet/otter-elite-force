@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createWorld, type World } from "koota";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { initSingletons } from "@/ecs/singletons";
 import {
 	AppScreen,
 	type AppScreenType,
@@ -7,7 +8,6 @@ import {
 	GamePhase,
 	type GamePhaseType,
 } from "@/ecs/traits/state";
-import { initSingletons } from "@/ecs/singletons";
 
 let world: World;
 

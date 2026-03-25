@@ -10,10 +10,10 @@
 import Phaser from "phaser";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createScenePlaytester } from "@/ai/playtester";
-import { GameScene } from "@/Scenes/GameScene";
 import { initSingletons } from "@/ecs/singletons";
-import { Objectives, CurrentMission } from "@/ecs/traits/state";
+import { CurrentMission, Objectives } from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
+import { GameScene } from "@/Scenes/GameScene";
 import { createTestGame, type TestGameHandle } from "./phaser-test-helper";
 
 /**

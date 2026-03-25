@@ -1,17 +1,17 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createWorld, Not } from "koota";
-import { UnitType, Faction, IsBuilding } from "@/ecs/traits/identity";
-import { Position } from "@/ecs/traits/spatial";
-import { Health } from "@/ecs/traits/combat";
-import { Gatherer } from "@/ecs/traits/economy";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
 	BelongsToSquad,
+	GarrisonedIn,
+	GatheringFrom,
 	OwnedBy,
 	Targeting,
-	GatheringFrom,
 	TrainingAt,
-	GarrisonedIn,
 } from "@/ecs/relations";
+import { Health } from "@/ecs/traits/combat";
+import { Gatherer } from "@/ecs/traits/economy";
+import { Faction, IsBuilding, UnitType } from "@/ecs/traits/identity";
+import { Position } from "@/ecs/traits/spatial";
 
 describe("Koota ECS Relations", () => {
 	let world: ReturnType<typeof createWorld>;

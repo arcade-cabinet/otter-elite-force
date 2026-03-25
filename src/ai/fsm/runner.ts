@@ -9,7 +9,7 @@
 
 import type { AIContext } from "./context";
 import type { AIProfile } from "./profiles";
-import { ALL_STATES, type AIState, type StateName } from "./states";
+import { type AIState, ALL_STATES, type StateName } from "./states";
 
 export class FSMRunner {
 	private profile: AIProfile;

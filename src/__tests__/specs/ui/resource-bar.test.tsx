@@ -13,7 +13,7 @@
  * Tests are written BEFORE the component exists.
  * They WILL FAIL until ResourceBar.tsx and Koota singleton traits are implemented.
  */
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ---------------------------------------------------------------------------
 // We need React + testing-library + Koota. These may not be installed yet.

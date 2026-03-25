@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Mortar Otter — URA siege unit. Helmet (stone), mortar tube on back.
 // Palette: otter_default — '2'/'3' brown fur, 'a'/'b' face, '4'/'5' blue, '8'/'9' stone, 'c' gold

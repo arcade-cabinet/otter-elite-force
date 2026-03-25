@@ -6,8 +6,9 @@
  * Building selected → train/research palette from data definitions
  * Nothing selected  → quiet instruction panel
  */
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+
 import { useQuery, useTrait, useWorld } from "koota/react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

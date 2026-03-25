@@ -13,9 +13,11 @@
  */
 import { createWorld, type World } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { GatheringFrom, OwnedBy, Targeting } from "../../ecs/relations";
+import { initSingletons } from "../../ecs/singletons";
 import { AIState, SteeringAgent } from "../../ecs/traits/ai";
-import { Attack, Armor, Health, VisionRadius } from "../../ecs/traits/combat";
-import { Gatherer, ResourceNode, ConstructionProgress } from "../../ecs/traits/economy";
+import { Armor, Attack, Health, VisionRadius } from "../../ecs/traits/combat";
+import { ConstructionProgress, Gatherer, ResourceNode } from "../../ecs/traits/economy";
 import {
 	Faction,
 	IsBuilding,
@@ -24,15 +26,11 @@ import {
 	IsResource,
 	IsSiphon,
 	IsVillage,
-	UnitType,
 	Selected,
+	UnitType,
 } from "../../ecs/traits/identity";
 import { OrderQueue } from "../../ecs/traits/orders";
-import { Position, Velocity, FacingDirection } from "../../ecs/traits/spatial";
-import { Concealed, Crouching, DetectionRadius } from "../../ecs/traits/stealth";
-import { CanSwim, Submerged } from "../../ecs/traits/water";
-import { Targeting, GatheringFrom, OwnedBy } from "../../ecs/relations";
-import { initSingletons } from "../../ecs/singletons";
+import { FacingDirection, Position, Velocity } from "../../ecs/traits/spatial";
 import {
 	GameClock,
 	GamePhase,
@@ -40,10 +38,12 @@ import {
 	PopulationState,
 	ResourcePool,
 } from "../../ecs/traits/state";
+import { Concealed, Crouching, DetectionRadius } from "../../ecs/traits/stealth";
+import { CanSwim, Submerged } from "../../ecs/traits/water";
 import {
-	serializeWorld,
 	deserializeWorld,
 	type SerializedWorld,
+	serializeWorld,
 } from "../../systems/saveLoadSystem";
 
 // ---------------------------------------------------------------------------

@@ -10,12 +10,12 @@
  * Tests are written BEFORE entity definitions exist.
  * They WILL FAIL until the corresponding entity modules are implemented.
  */
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,
 } from "@/entities/sprite-materialization";
-import type { UnitDef, HeroDef } from "@/entities/types";
+import type { HeroDef, UnitDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------
 // Dynamic imports — modules don't exist yet. Load what we can, skip the rest.

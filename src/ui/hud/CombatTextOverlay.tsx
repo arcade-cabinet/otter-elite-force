@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { useWorld } from "koota/react";
+import { useEffect, useRef, useState } from "react";
+import { Health } from "@/ecs/traits/combat";
 import { ResourceNode } from "@/ecs/traits/economy";
 import { IsBuilding, UnitType } from "@/ecs/traits/identity";
-import { Health } from "@/ecs/traits/combat";
 import { Position } from "@/ecs/traits/spatial";
 import { ResourcePool } from "@/ecs/traits/state";
 import { EventBus } from "@/game/EventBus";

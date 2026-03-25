@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Raftsman — URA transport. Standing on a wooden raft.
 // Palette: otter_default — 'a'/'b' face, '4'/'5' blue uniform, '6'/'7' wood (raft)

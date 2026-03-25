@@ -11,14 +11,14 @@
  */
 import { createWorld, type World } from "koota";
 import { beforeEach, describe, expect, it } from "vitest";
+import { OwnedBy } from "../../ecs/relations";
 import { Health } from "../../ecs/traits/combat";
 import { Faction, IsBuilding, IsSiphon, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
-import { OwnedBy } from "../../ecs/relations";
 import {
-	siphonSystem,
 	getActiveSiphonCount,
 	isSuppressedBySiphon,
+	siphonSystem,
 } from "../../systems/siphonSystem";
 
 // ---------------------------------------------------------------------------

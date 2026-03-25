@@ -1,20 +1,20 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import type { Entity, World } from "koota";
 import { createWorld } from "koota";
-import type { World, Entity } from "koota";
-import { Attack, Health, Armor } from "@/ecs/traits/combat";
-import { Faction, UnitType, IsBuilding, IsHero, IsProjectile } from "@/ecs/traits/identity";
-import { Position } from "@/ecs/traits/spatial";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Targeting } from "@/ecs/relations";
+import { Armor, Attack, Health } from "@/ecs/traits/combat";
+import { Faction, IsBuilding, IsHero, IsProjectile, UnitType } from "@/ecs/traits/identity";
+import { Position } from "@/ecs/traits/spatial";
 import {
-	calculateSiegeDamage,
-	siegeCombatSystem,
 	aoeSplashSystem,
-	wallBreachSystem,
-	SAPPER_BUILDING_DAMAGE,
+	calculateSiegeDamage,
 	DEMOLITION_TRAINING_MULTIPLIER,
-	SGT_FANG_BUILDING_MULTIPLIER,
 	MORTAR_SPLASH_RADIUS,
+	SAPPER_BUILDING_DAMAGE,
+	SGT_FANG_BUILDING_MULTIPLIER,
 	SplashRadius,
+	siegeCombatSystem,
+	wallBreachSystem,
 } from "@/systems/siegeSystem";
 
 describe("Siege System", () => {

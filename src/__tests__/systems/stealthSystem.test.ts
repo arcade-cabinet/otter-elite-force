@@ -1,20 +1,20 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import type { Entity, World } from "koota";
 import { createWorld } from "koota";
-import type { World, Entity } from "koota";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { Targeting } from "@/ecs/relations";
+import { AIState } from "@/ecs/traits/ai";
 import { Attack, Health, VisionRadius } from "@/ecs/traits/combat";
 import { Faction, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
-import { AIState } from "@/ecs/traits/ai";
 import { Concealed, Crouching, DetectionRadius } from "@/ecs/traits/stealth";
-import { Targeting } from "@/ecs/relations";
 import {
-	effectiveDetectionRadius,
-	detectionSystem,
-	crouchToggle,
+	ALERT_CASCADE_RANGE,
 	alertCascadeSystem,
 	CONCEALMENT_FACTOR,
 	CROUCH_FACTOR,
-	ALERT_CASCADE_RANGE,
+	crouchToggle,
+	detectionSystem,
+	effectiveDetectionRadius,
 } from "@/systems/stealthSystem";
 
 describe("Stealth System", () => {

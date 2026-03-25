@@ -2,7 +2,7 @@
  * Tests for the persistence layer: database, migrations, repos, and stores.
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { InMemoryDatabase, closeDatabase, setDatabase } from "../../persistence/database";
+import { closeDatabase, InMemoryDatabase, setDatabase } from "../../persistence/database";
 import { runMigrations } from "../../persistence/migrations";
 import {
 	completeMission,

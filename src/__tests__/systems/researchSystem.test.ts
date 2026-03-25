@@ -1,11 +1,11 @@
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ResearchSlot } from "../../ecs/traits/economy";
-import { Health, Attack } from "../../ecs/traits/combat";
-import { IsBuilding, UnitType } from "../../ecs/traits/identity";
-import { Position } from "../../ecs/traits/spatial";
 import { OwnedBy } from "../../ecs/relations";
 import { initSingletons } from "../../ecs/singletons";
+import { Attack, Health } from "../../ecs/traits/combat";
+import { ResearchSlot } from "../../ecs/traits/economy";
+import { IsBuilding, UnitType } from "../../ecs/traits/identity";
+import { Position } from "../../ecs/traits/spatial";
 import { CompletedResearch, ResourcePool } from "../../ecs/traits/state";
 import { queueResearch, researchSystem } from "../../systems/researchSystem";
 

@@ -1,9 +1,9 @@
-import { Not, cacheQuery, createChanged } from "koota";
+import { cacheQuery, createChanged, Not } from "koota";
+import { GatheringFrom, OwnedBy, TrainingAt } from "../relations";
 import { Health } from "../traits/combat";
 import { Gatherer } from "../traits/economy";
 import { Faction, IsBuilding, UnitType } from "../traits/identity";
 import { Position } from "../traits/spatial";
-import { GatheringFrom, OwnedBy, TrainingAt } from "../relations";
 
 /** All units with a position owned by someone */
 export const playerUnits = cacheQuery(UnitType, Position, OwnedBy("*"));

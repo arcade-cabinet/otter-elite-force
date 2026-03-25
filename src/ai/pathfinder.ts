@@ -9,9 +9,8 @@
  * Spec reference: §8.3 Pathfinding, §15 Performance Strategy
  */
 
-import { AStar, type Graph, Vector3 } from "yuka";
-import { HeuristicPolicyManhattan } from "yuka";
-import { tileToIndex, indexToTile } from "./graphBuilder";
+import { AStar, type Graph, HeuristicPolicyManhattan, Vector3 } from "yuka";
+import { indexToTile, tileToIndex } from "./graphBuilder";
 
 export interface TileCoord {
 	x: number;

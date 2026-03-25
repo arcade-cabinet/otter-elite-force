@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { MissionDef, TerrainTileDef } from "@/entities/types";
 
 // Mock canvas context for happy-dom
@@ -27,8 +27,8 @@ afterAll(() => {
 	HTMLCanvasElement.prototype.getContext = origGetContext;
 });
 
-import { TERRAIN_TILES } from "@/entities/terrain/tiles";
 import { paintMap } from "@/entities/terrain/map-painter";
+import { TERRAIN_TILES } from "@/entities/terrain/tiles";
 
 describe("TERRAIN_TILES", () => {
 	it("defines all 8 terrain types", () => {

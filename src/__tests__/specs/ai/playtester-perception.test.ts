@@ -13,24 +13,24 @@
  *   - src/ai/playtester/perception.ts
  *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
  */
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type {
 	PlayerPerception,
 	Viewport,
-	VisibleUnitInfo,
 	VisibleBuildingInfo,
+	VisibleUnitInfo,
 } from "@/ai/playtester/perception";
 import {
+	canAfford,
 	countIdleWorkers,
 	countMilitaryUnits,
-	isBaseUnderThreat,
-	findNearestUnexploredTile,
-	findNearestResource,
-	canAfford,
-	hasPopulationRoom,
-	findBuildings,
-	findWeakestEnemy,
 	explorationProgress,
+	findBuildings,
+	findNearestResource,
+	findNearestUnexploredTile,
+	findWeakestEnemy,
+	hasPopulationRoom,
+	isBaseUnderThreat,
 } from "@/ai/playtester/perception";
 
 // ---------------------------------------------------------------------------

@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createWorld } from "koota";
-import { CommandDispatcher } from "@/input/commandDispatcher";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
+import { CommandDispatcher } from "@/input/commandDispatcher";
 
 const { emit } = vi.hoisted(() => ({ emit: vi.fn() }));
 

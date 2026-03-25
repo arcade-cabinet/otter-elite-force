@@ -1,19 +1,19 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { createWorld } from "koota";
-import { CanSwim, Submerged } from "@/ecs/traits/water";
-import { Position } from "@/ecs/traits/spatial";
-import { Health } from "@/ecs/traits/combat";
-import { UnitType, Faction } from "@/ecs/traits/identity";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { GarrisonedIn } from "@/ecs/relations";
+import { Health } from "@/ecs/traits/combat";
+import { Faction, UnitType } from "@/ecs/traits/identity";
+import { Position } from "@/ecs/traits/spatial";
+import { CanSwim, Submerged } from "@/ecs/traits/water";
 import {
+	boardTransport,
 	canEnterWater,
-	submerge,
-	surface,
-	isVisibleToSurface,
+	disembarkTransport,
 	filterVisibleTargets,
 	getGarrisonCount,
-	boardTransport,
-	disembarkTransport,
+	isVisibleToSurface,
+	submerge,
+	surface,
 	syncGarrisonPositions,
 	waterSystem,
 } from "@/systems/waterSystem";

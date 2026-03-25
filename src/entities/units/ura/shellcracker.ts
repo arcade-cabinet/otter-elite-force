@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Shellcracker — URA ranged unit. Bow on right side.
 // Palette: otter_default — '2'/'3' brown fur, 'a'/'b' face, '4'/'5' blue, '6'/'7' wood

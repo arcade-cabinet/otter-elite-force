@@ -11,11 +11,11 @@
  * MUST use .set() to persist changes back to the store.
  */
 
-import type { World, Entity } from "koota";
-import { Attack, Armor, Health, VisionRadius } from "../ecs/traits/combat";
+import type { Entity, World } from "koota";
+import { Targeting } from "../ecs/relations";
+import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
 import { Faction, IsProjectile } from "../ecs/traits/identity";
 import { Position, Velocity } from "../ecs/traits/spatial";
-import { Targeting } from "../ecs/relations";
 
 /** Projectile speed in tiles per second. */
 const PROJECTILE_SPEED = 8;

@@ -8,9 +8,9 @@
  * produce PlayerAction arrays dispatched through the input model.
  */
 
-import type { PlayerPerception } from "./perception";
 import type { PlayerAction } from "./input";
-import { clickAtTile, rightClickAtTile, dragSelectTiles, pressKey } from "./input";
+import { clickAtTile, dragSelectTiles, pressKey, rightClickAtTile } from "./input";
+import type { PlayerPerception } from "./perception";
 import {
 	canAfford,
 	countIdleWorkers,

@@ -10,12 +10,13 @@
  *
  * @module persistence/database
  */
+
+import { Capacitor } from "@capacitor/core";
 import {
 	CapacitorSQLite,
 	SQLiteConnection,
 	type SQLiteDBConnection,
 } from "@capacitor-community/sqlite";
-import { Capacitor } from "@capacitor/core";
 
 // ---------------------------------------------------------------------------
 // Interface

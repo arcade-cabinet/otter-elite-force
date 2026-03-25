@@ -15,8 +15,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { ALL_UNITS } from "../../../data/units";
 import { ALL_BUILDINGS } from "../../../data/buildings";
+import { ALL_UNITS } from "../../../data/units";
 
 // ---------------------------------------------------------------------------
 // Constants from the economy system and design spec

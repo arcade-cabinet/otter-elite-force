@@ -7,13 +7,13 @@
  * We test against a GameAdapter interface so no Koota/Phaser dependency is needed.
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	DIFFICULTY_CONFIG,
+	type GameAdapter,
 	SkirmishAI,
 	type SkirmishDifficulty,
-	type GameAdapter,
 	type SkirmishState,
-	DIFFICULTY_CONFIG,
 } from "../../ai/skirmishAI";
 
 // ---------------------------------------------------------------------------

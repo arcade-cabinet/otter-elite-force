@@ -13,7 +13,7 @@
  *
  * Tests are written BEFORE the component exists.
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 let React: typeof import("react");
 let render: typeof import("@testing-library/react").render;

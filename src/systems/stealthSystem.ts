@@ -14,13 +14,13 @@
  * AIState is AoS (mutable ref) — direct property assignment persists.
  */
 
-import type { World, Entity } from "koota";
+import type { Entity, World } from "koota";
+import { Targeting } from "../ecs/relations";
+import { AIState } from "../ecs/traits/ai";
+import { Health } from "../ecs/traits/combat";
 import { Faction } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
-import { Health } from "../ecs/traits/combat";
-import { AIState } from "../ecs/traits/ai";
 import { Concealed, Crouching, DetectionRadius } from "../ecs/traits/stealth";
-import { Targeting } from "../ecs/relations";
 import { distanceBetween } from "./combatSystem";
 
 // ---------------------------------------------------------------------------

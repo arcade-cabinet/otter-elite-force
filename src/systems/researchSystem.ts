@@ -7,10 +7,10 @@
  * in the resource store.
  */
 
-import type { World, Entity } from "koota";
+import type { Entity, World } from "koota";
 import { RESEARCH } from "../data/research";
+import { Attack, Health } from "../ecs/traits/combat";
 import { ResearchSlot } from "../ecs/traits/economy";
-import { Health, Attack } from "../ecs/traits/combat";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { CompletedResearch, ResourcePool } from "../ecs/traits/state";
 import { world as defaultWorld } from "../ecs/world";

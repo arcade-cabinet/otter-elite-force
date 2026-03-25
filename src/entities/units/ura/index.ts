@@ -1,7 +1,7 @@
-export { riverRat } from "./river-rat";
-export { mudfoot } from "./mudfoot";
-export { shellcracker } from "./shellcracker";
-export { sapper } from "./sapper";
-export { raftsman } from "./raftsman";
-export { mortarOtter } from "./mortar-otter";
 export { diver } from "./diver";
+export { mortarOtter } from "./mortar-otter";
+export { mudfoot } from "./mudfoot";
+export { raftsman } from "./raftsman";
+export { riverRat } from "./river-rat";
+export { sapper } from "./sapper";
+export { shellcracker } from "./shellcracker";

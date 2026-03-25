@@ -1,4 +1,4 @@
-import type { UnitDef, SPDSLSprite } from "@/entities/types";
+import type { SPDSLSprite, UnitDef } from "@/entities/types";
 
 // Snapper — Scale-Guard stationary ranged turret. Wide body, armored shell.
 // Palette: croc_default

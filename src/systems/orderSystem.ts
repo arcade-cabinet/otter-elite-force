@@ -12,16 +12,16 @@
  * Spec reference: §8.1 Unit Orders, §8.3 Pathfinding
  */
 
-import type { World, Entity } from "koota";
+import type { Entity, World } from "koota";
 import { Vector3 } from "yuka";
+import type { SteeringVehicle } from "../ai/steeringFactory";
+import { GatheringFrom, Targeting } from "../ecs/relations";
 import { AIState, SteeringAgent } from "../ecs/traits/ai";
 import { Attack } from "../ecs/traits/combat";
 import { Gatherer } from "../ecs/traits/economy";
-import { OrderQueue } from "../ecs/traits/orders";
 import type { Order } from "../ecs/traits/orders";
+import { OrderQueue } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
-import { Targeting, GatheringFrom } from "../ecs/relations";
-import type { SteeringVehicle } from "../ai/steeringFactory";
 
 // ---------------------------------------------------------------------------
 // Helpers

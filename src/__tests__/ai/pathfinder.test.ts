@@ -4,21 +4,21 @@
  * Uses real Yuka classes (unmocked) to verify actual A* behavior.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Unmock yuka so we use the real implementation
 vi.unmock("yuka");
 
 import { Vector3 } from "yuka";
-import type { TerrainType } from "@/ai/terrainTypes";
 import {
 	buildGraphFromTilemap,
-	tileToIndex,
 	indexToTile,
 	rebuildTileEdges,
+	tileToIndex,
 } from "@/ai/graphBuilder";
 import { findPath, PathfindingQueue } from "@/ai/pathfinder";
-import { createSteeringVehicle, setVehiclePath, isPathComplete } from "@/ai/steeringFactory";
+import { createSteeringVehicle, isPathComplete, setVehiclePath } from "@/ai/steeringFactory";
+import type { TerrainType } from "@/ai/terrainTypes";
 
 /** Helper: create a grid of a single terrain type */
 function makeGrid(width: number, height: number, fill: TerrainType = "grass"): TerrainType[][] {

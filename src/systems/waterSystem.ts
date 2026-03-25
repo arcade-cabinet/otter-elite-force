@@ -14,10 +14,10 @@
  */
 
 import type { Entity, World } from "koota";
-import { CanSwim, Submerged } from "../ecs/traits/water";
-import { Position } from "../ecs/traits/spatial";
-import { UnitType } from "../ecs/traits/identity";
 import { GarrisonedIn } from "../ecs/relations";
+import { UnitType } from "../ecs/traits/identity";
+import { Position } from "../ecs/traits/spatial";
+import { CanSwim, Submerged } from "../ecs/traits/water";
 
 /** Default raft carry capacity. Advanced Rafts research increases this to 6. */
 const DEFAULT_RAFT_CAPACITY = 4;

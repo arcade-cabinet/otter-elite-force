@@ -12,16 +12,16 @@
  */
 
 import type { World } from "koota";
+import { ALL_BUILDINGS } from "../data/buildings";
+import { ConstructingAt, OwnedBy } from "../ecs/relations";
 import { AIState } from "../ecs/traits/ai";
+import { Armor, Attack, Health } from "../ecs/traits/combat";
 import { ConstructionProgress, ProductionQueue } from "../ecs/traits/economy";
-import { Health, Armor, Attack } from "../ecs/traits/combat";
 import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
-import { ConstructingAt, OwnedBy } from "../ecs/relations";
 import { ResourcePool } from "../ecs/traits/state";
 import { world as defaultWorld } from "../ecs/world";
-import { ALL_BUILDINGS } from "../data/buildings";
 import { getBuilding } from "../entities/registry";
 
 const BUILD_RANGE = 1.5;

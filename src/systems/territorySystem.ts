@@ -15,10 +15,10 @@
  */
 
 import type { Entity, World } from "koota";
+import { GarrisonedIn } from "../ecs/relations";
+import { Health } from "../ecs/traits/combat";
 import { Faction, IsBuilding, IsVillage, UnitType } from "../ecs/traits/identity";
 import { Position } from "../ecs/traits/spatial";
-import { Health } from "../ecs/traits/combat";
-import { GarrisonedIn } from "../ecs/relations";
 import { ResourcePool, TerritoryState } from "../ecs/traits/state";
 
 /** Fish income per liberated village per tick interval. */

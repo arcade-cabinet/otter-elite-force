@@ -12,13 +12,13 @@
  */
 
 import type {
-	UnitDef,
-	HeroDef,
 	BuildingDef,
-	ResourceDef,
-	ResearchDef,
-	TerrainTileDef,
+	HeroDef,
 	PortraitDef,
+	ResearchDef,
+	ResourceDef,
+	TerrainTileDef,
+	UnitDef,
 } from "./types";
 
 // ─── Buildings (COMPLETE: 17/17) ───
@@ -45,8 +45,8 @@ export { ALL_RESOURCES };
 
 // ─── Props (COMPLETE: 2/2) ───
 
-import { ALL_PROPS } from "./props";
 import type { PropDef } from "./props";
+import { ALL_PROPS } from "./props";
 
 export { ALL_PROPS };
 
@@ -58,13 +58,13 @@ export { TERRAIN_TILES };
 
 // ─── URA Units (COMPLETE: 7/7) ───
 
-import { riverRat } from "./units/ura/river-rat";
-import { mudfoot } from "./units/ura/mudfoot";
-import { shellcracker } from "./units/ura/shellcracker";
-import { sapper } from "./units/ura/sapper";
-import { raftsman } from "./units/ura/raftsman";
-import { mortarOtter } from "./units/ura/mortar-otter";
 import { diver } from "./units/ura/diver";
+import { mortarOtter } from "./units/ura/mortar-otter";
+import { mudfoot } from "./units/ura/mudfoot";
+import { raftsman } from "./units/ura/raftsman";
+import { riverRat } from "./units/ura/river-rat";
+import { sapper } from "./units/ura/sapper";
+import { shellcracker } from "./units/ura/shellcracker";
 
 const URA_UNIT_ENTITIES: Record<string, UnitDef> = {
 	river_rat: riverRat,
@@ -78,13 +78,13 @@ const URA_UNIT_ENTITIES: Record<string, UnitDef> = {
 
 // ─── Scale-Guard Units (COMPLETE: 7/7) ───
 
-import { skink } from "./units/scale-guard/skink";
-import { gator } from "./units/scale-guard/gator";
-import { viper } from "./units/scale-guard/viper";
-import { snapper } from "./units/scale-guard/snapper";
-import { scoutLizard } from "./units/scale-guard/scout-lizard";
 import { crocChampion } from "./units/scale-guard/croc-champion";
+import { gator } from "./units/scale-guard/gator";
+import { scoutLizard } from "./units/scale-guard/scout-lizard";
 import { siphonDrone } from "./units/scale-guard/siphon-drone";
+import { skink } from "./units/scale-guard/skink";
+import { snapper } from "./units/scale-guard/snapper";
+import { viper } from "./units/scale-guard/viper";
 
 const SCALE_GUARD_UNIT_ENTITIES: Record<string, UnitDef> = {
 	skink,
@@ -107,12 +107,12 @@ export const ALL_UNITS = ALL_UNIT_ENTITIES;
 
 // ─── Heroes (COMPLETE: 6/6) ───
 
-import { sgtBubbles } from "./heroes/sgt-bubbles";
-import { genWhiskers } from "./heroes/gen-whiskers";
 import { cplSplash } from "./heroes/cpl-splash";
-import { sgtFang } from "./heroes/sgt-fang";
+import { genWhiskers } from "./heroes/gen-whiskers";
 import { medicMarina } from "./heroes/medic-marina";
 import { pvtMuskrat } from "./heroes/pvt-muskrat";
+import { sgtBubbles } from "./heroes/sgt-bubbles";
+import { sgtFang } from "./heroes/sgt-fang";
 
 /** All 6 hero definitions keyed by id. */
 export const ALL_HERO_ENTITIES: Record<string, HeroDef> = {
@@ -129,13 +129,13 @@ export const ALL_HEROES = ALL_HERO_ENTITIES;
 
 // ─── Portraits (COMPLETE: 7/7) ───
 
-import { foxhound } from "./portraits/foxhound";
-import { sgtBubbles as sgtBubblesPortrait } from "./portraits/sgt-bubbles";
-import { genWhiskers as genWhiskersPortrait } from "./portraits/gen-whiskers";
 import { cplSplash as cplSplashPortrait } from "./portraits/cpl-splash";
-import { sgtFang as sgtFangPortrait } from "./portraits/sgt-fang";
+import { foxhound } from "./portraits/foxhound";
+import { genWhiskers as genWhiskersPortrait } from "./portraits/gen-whiskers";
 import { medicMarina as medicMarinaPortrait } from "./portraits/medic-marina";
 import { pvtMuskrat as pvtMuskratPortrait } from "./portraits/pvt-muskrat";
+import { sgtBubbles as sgtBubblesPortrait } from "./portraits/sgt-bubbles";
+import { sgtFang as sgtFangPortrait } from "./portraits/sgt-fang";
 
 /** All 7 portrait definitions keyed by id. */
 export const ALL_PORTRAIT_ENTITIES: Record<string, PortraitDef> = {
@@ -195,9 +195,9 @@ export function getPortrait(id: string): PortraitDef | undefined {
 
 // ─── Missions (COMPLETE: 16/16) ───
 
-import { CAMPAIGN, getMissionById, getMission } from "./missions";
+import { CAMPAIGN, getMission, getMissionById } from "./missions";
 
-export { CAMPAIGN, getMissionById, getMission };
+export { CAMPAIGN, getMission, getMissionById };
 
 /**
  * Get any entity by id — searches units, heroes, buildings, resources.

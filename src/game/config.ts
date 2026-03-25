@@ -1,8 +1,8 @@
 import Phaser from "phaser";
+import { GAME_HEIGHT, GAME_WIDTH } from "@/config/constants";
+import { type DeploymentData, queueDeployment } from "@/game/deployment";
 import { BootScene } from "@/Scenes/BootScene";
 import { GameScene } from "@/Scenes/GameScene";
-import { GAME_WIDTH, GAME_HEIGHT } from "@/config/constants";
-import { queueDeployment, type DeploymentData } from "@/game/deployment";
 
 const config: Phaser.Types.Core.GameConfig = {
 	type: Phaser.AUTO,

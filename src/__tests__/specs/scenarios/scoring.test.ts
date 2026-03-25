@@ -17,7 +17,7 @@
  *   - Loss score:  100% if 0 losses, -5% per unit lost (min 0%)
  *   - Bonus score: +10% per bonus objective completed
  */
-import { describe, it, expect, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Dynamic imports — scoring module may not exist yet

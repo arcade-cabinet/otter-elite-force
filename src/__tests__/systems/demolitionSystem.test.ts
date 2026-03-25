@@ -1,21 +1,21 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import type { Entity, World } from "koota";
 import { createWorld } from "koota";
-import type { World, Entity } from "koota";
-import { Health, Armor } from "@/ecs/traits/combat";
-import { Faction, UnitType, IsBuilding, IsHero } from "@/ecs/traits/identity";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { Armor, Health } from "@/ecs/traits/combat";
+import { Faction, IsBuilding, IsHero, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 import {
-	placeCharge,
-	chargeTickSystem,
 	applyExplosion,
-	IsCharge,
-	ChargeTimer,
-	IsExplosive,
-	ChainExplosionRadius,
+	CHAIN_EXPLOSION_RADIUS,
 	CHARGE_COUNTDOWN,
 	CHARGE_DAMAGE,
 	CHARGE_RADIUS,
-	CHAIN_EXPLOSION_RADIUS,
+	ChainExplosionRadius,
+	ChargeTimer,
+	chargeTickSystem,
+	IsCharge,
+	IsExplosive,
+	placeCharge,
 } from "@/systems/demolitionSystem";
 
 describe("Demolition System", () => {
