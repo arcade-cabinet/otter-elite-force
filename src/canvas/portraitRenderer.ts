@@ -54,15 +54,6 @@ const P = {
 	bg: "#0f172a",
 };
 
-// ─── Seeded PRNG (local copy — used for splash art background noise) ───
-
-let _seed = 42;
-function seedRng(s: number): void { _seed = s; }
-function srand(): number {
-	_seed = (_seed * 16807 + 0) % 2147483647;
-	return (_seed - 1) / 2147483646;
-}
-
 // ─── Drawing helpers ───
 
 type Ctx = CanvasRenderingContext2D;
@@ -736,8 +727,6 @@ let _splashCache: HTMLCanvasElement | null = null;
  */
 export function getSplashCanvas(): HTMLCanvasElement {
 	if (_splashCache) return _splashCache;
-
-	seedRng(999); // deterministic for the background noise
 
 	const native = document.createElement("canvas");
 	native.width = SPLASH_W;
