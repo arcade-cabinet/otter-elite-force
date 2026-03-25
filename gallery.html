@@ -110,18 +110,28 @@
             addSprite(oefUnitGrid, id, 'oef');
         }
 
+        const heroGrid = addSection('OEF HEROES', 'oef-header');
+        for (const id of ['sgt_bubbles', 'gen_whiskers', 'cpl_splash', 'sgt_fang', 'medic_marina', 'pvt_muskrat']) {
+            addSprite(heroGrid, id, 'oef');
+        }
+
         const sgUnitGrid = addSection('SCALE-GUARD UNITS', 'sg-header');
         for (const id of ['gator', 'viper', 'scout_lizard', 'snapper', 'skink', 'croc_champion', 'siphon_drone', 'serpent_king']) {
             addSprite(sgUnitGrid, id, 'sg');
         }
 
-        const buildGrid = addSection('BUILDINGS', 'oef-header');
-        for (const id of ['command_post', 'barracks', 'armory', 'watchtower', 'gun_tower', 'fish_trap', 'burrow', 'dock', 'field_hospital', 'predator_nest', 'spawning_pool', 'siphon', 'venom_spire']) {
+        const buildGrid = addSection('OEF BUILDINGS', 'oef-header');
+        for (const id of ['command_post', 'barracks', 'armory', 'watchtower', 'gun_tower', 'fish_trap', 'burrow', 'dock', 'field_hospital', 'sandbag_wall', 'stone_wall', 'minefield']) {
             addSprite(buildGrid, id, 'oef');
         }
 
+        const sgBuildGrid = addSection('SCALE-GUARD BUILDINGS', 'sg-header');
+        for (const id of ['predator_nest', 'spawning_pool', 'siphon', 'venom_spire', 'scale_wall', 'sludge_pit', 'flag_post', 'fuel_tank', 'great_siphon', 'shield_generator']) {
+            addSprite(sgBuildGrid, id, 'sg');
+        }
+
         const resGrid = addSection('RESOURCES', 'res-header');
-        for (const id of ['fish_spot', 'mangrove_tree', 'salvage_cache', 'cattail', 'clambed']) {
+        for (const id of ['fish_spot', 'mangrove_tree', 'salvage_cache', 'supply_crate', 'intel_marker', 'cattail', 'clambed']) {
             addSprite(resGrid, id, 'oef');
         }
 
