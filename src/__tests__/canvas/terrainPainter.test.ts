@@ -9,7 +9,9 @@ import { describe, expect, it, vi, beforeAll } from "vitest";
 import type { MissionDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------
-// Mock canvas — jsdom does not support canvas natively
+// Mock Canvas2D context — happy-dom provides HTMLCanvasElement but not a
+// real 2D drawing backend.  We spy on getContext() and return a stub that
+// records draw calls so we can assert painting behaviour.
 // ---------------------------------------------------------------------------
 
 function makeMockCtx() {
