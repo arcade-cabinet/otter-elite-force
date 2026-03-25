@@ -170,17 +170,7 @@ function drawViper(ctx: Ctx): void {
 
 // ─── Hero + utility drawing functions ───
 
-/** Hero unit: otter base body with gold ring + star marker. */
-function drawHeroUnit(ctx: Ctx, factionColor: string): void {
-  circle(ctx, 8, 8, 6, factionColor);
-  // Gold border ring
-  for (let a = 0; a < 24; a++) {
-    const angle = (a / 24) * Math.PI * 2;
-    p(ctx, Math.round(8 + Math.cos(angle) * 6), Math.round(8 + Math.sin(angle) * 6), PAL.gold);
-  }
-  p(ctx, 7, 6, PAL.black); p(ctx, 9, 6, PAL.black); // eyes
-  p(ctx, 8, 4, PAL.gold); // star marker
-}
+// drawHeroUnit DELETED — all heroes have dedicated drawings with unique gear.
 
 /** Wall segment. */
 function drawWall(ctx: Ctx, color: string): void {
@@ -451,12 +441,90 @@ const DRAW_FNS: Record<SpriteType, (ctx: Ctx) => void> = {
     p(ctx, 9, 7, PAL.clamMeat);
   },
   // Heroes — gold-rimmed faction units
-  sgt_bubbles: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
-  gen_whiskers: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
-  cpl_splash: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
-  sgt_fang: (ctx) => drawHeroUnit(ctx, PAL.sgFaction),
-  medic_marina: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
-  pvt_muskrat: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
+  sgt_bubbles: (ctx) => {
+    // Rambo otter — red bandana, fighting stick, gold star
+    drawOtterBase(ctx);
+    rect(ctx, 5, 1, 6, 2, PAL.clamMeat);          // red bandana
+    p(ctx, 4, 2, PAL.clamMeat);                    // bandana tails
+    p(ctx, 11, 2, PAL.clamMeat);
+    rect(ctx, 12, 3, 2, 8, PAL.reedBrown);         // fighting stick
+    p(ctx, 8, 1, PAL.gold);                         // gold star (hero marker)
+    rect(ctx, 11, 10, 3, 2, PAL.otterBase);         // tail
+  },
+  gen_whiskers: (ctx) => {
+    // Grizzled general — beret, cigar, medals
+    drawOtterBase(ctx);
+    rect(ctx, 4, 1, 8, 3, PAL.uraBldg);            // dark beret
+    circle(ctx, 6, 2, 1, PAL.gold);                 // beret badge
+    rect(ctx, 10, 6, 4, 1, PAL.reedBrown);          // cigar
+    p(ctx, 13, 6, PAL.clamMeat);                     // cigar tip
+    p(ctx, 7, 10, PAL.gold);                         // medal
+    p(ctx, 9, 10, PAL.goldLight);                    // medal
+    rect(ctx, 11, 10, 3, 2, PAL.otterBase);
+  },
+  cpl_splash: (ctx) => {
+    // Young diver — goggles, teal wetsuit
+    rect(ctx, 5, 4, 6, 8, PAL.waterMid);            // teal wetsuit body
+    rect(ctx, 6, 5, 4, 6, PAL.waterShallow);
+    rect(ctx, 5, 2, 6, 4, PAL.otterBase);           // head (fur)
+    p(ctx, 6, 3, PAL.black); p(ctx, 9, 3, PAL.black);
+    p(ctx, 7, 4, PAL.otterNose); p(ctx, 8, 4, PAL.otterNose);
+    rect(ctx, 4, 5, 1, 4, PAL.waterMid);
+    rect(ctx, 11, 5, 1, 4, PAL.waterMid);
+    rect(ctx, 5, 12, 2, 2, PAL.waterMid);
+    rect(ctx, 9, 12, 2, 2, PAL.waterMid);
+    // Goggles on forehead
+    rect(ctx, 5, 1, 2, 2, PAL.stoneL);
+    rect(ctx, 9, 1, 2, 2, PAL.stoneL);
+    p(ctx, 8, 0, PAL.gold);                          // hero star
+    rect(ctx, 11, 10, 3, 2, PAL.otterBase);
+  },
+  sgt_fang: (ctx) => {
+    // Heavy siege otter — helmet, bulky, jaw scars
+    drawOtterBase(ctx);
+    rect(ctx, 4, 0, 8, 3, PAL.stone);               // heavy helmet
+    rect(ctx, 3, 2, 10, 2, PAL.stone);              // helmet brim
+    // Wider jaw (heavy build)
+    rect(ctx, 4, 6, 8, 3, PAL.otterBase);
+    // Scars
+    p(ctx, 10, 4, PAL.clamMeat);
+    p(ctx, 11, 5, PAL.clamMeat);
+    // Heavy weapon
+    rect(ctx, 12, 2, 3, 9, PAL.stone);
+    rect(ctx, 13, 1, 1, 2, PAL.stoneL);
+    p(ctx, 8, 1, PAL.gold);                          // hero star
+    rect(ctx, 11, 10, 3, 2, PAL.otterBase);
+  },
+  medic_marina: (ctx) => {
+    // Field medic — white cap, red cross, med kit
+    drawOtterBase(ctx);
+    rect(ctx, 5, 0, 6, 3, PAL.clamShell);           // white cap
+    rect(ctx, 7, 0, 2, 2, PAL.clamMeat);            // red cross on cap
+    rect(ctx, 6, 1, 4, 1, PAL.clamMeat);
+    // White coat over body
+    rect(ctx, 5, 6, 6, 6, PAL.clamShell);
+    // Red cross on coat
+    rect(ctx, 7, 8, 2, 3, PAL.clamMeat);
+    rect(ctx, 6, 9, 4, 1, PAL.clamMeat);
+    // Med kit in hand
+    rect(ctx, 12, 6, 3, 3, PAL.clamShell);
+    p(ctx, 13, 7, PAL.clamMeat);
+    rect(ctx, 11, 10, 3, 2, PAL.otterBase);
+  },
+  pvt_muskrat: (ctx) => {
+    // Demolitions expert — cap with bomb, charge pack
+    drawOtterBase(ctx);
+    rect(ctx, 5, 0, 6, 3, PAL.uraBldg);             // cap
+    rect(ctx, 7, 1, 2, 1, PAL.gold);                 // bomb emblem
+    p(ctx, 8, 0, PAL.clamMeat);                      // fuse spark
+    // Explosive pack on back
+    rect(ctx, 3, 4, 3, 4, PAL.stone);
+    rect(ctx, 4, 5, 1, 2, PAL.clamMeat);             // blasting cap
+    // Detonator
+    rect(ctx, 12, 5, 2, 4, PAL.reedBrown);
+    p(ctx, 13, 5, PAL.clamMeat);                     // red button
+    rect(ctx, 11, 10, 3, 2, PAL.otterBase);
+  },
   // URA buildings — detailed where available, fallbacks for rest
   command_post: drawLodge,
   barracks: (ctx) => {
