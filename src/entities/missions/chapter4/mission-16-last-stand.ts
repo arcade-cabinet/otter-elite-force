@@ -22,19 +22,31 @@ export const mission16LastStand: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "This is it, Sergeant. Scale-Guard's remaining forces are massing for a final assault on our main base. They know they're finished — this is their last throw of the dice.",
+				text: "This is the last day of the war, Sergeant. Scale-Guard's remaining forces are massing everything for a final assault on our main base. Ten waves. Then silence — or defeat.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "And after we break them?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Phase one: survive. Ten waves of everything they've got — Gators, Vipers, Snappers, everything. Fortify your base and hold the line.",
+				text: "Phase two — counterattack. Push north to their last Command Post and burn it to the ground. Four Venom Spires and a heavy garrison. Destroy that post and the Copper-Silt Reach is free.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Every hero, every unit we've got. The whole roster.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Phase two: counterattack. Once you've broken their assault, push north to their last Command Post. Destroy it and the war is over.",
+				text: "Every trick you've learned, Bubbles. The river crossings, the tides, the flanking maneuvers — this is what it was all for. I'll be on the field with you this time.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Then let's end it, General. Through mud and water.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Every hero, every unit type, every trick you've learned — use it all. This is the final mission of the campaign. Make it count.",
+				text: "Through mud and water. All hands — battle stations.",
 			},
 		],
 	},

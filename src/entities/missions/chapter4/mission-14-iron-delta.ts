@@ -21,19 +21,27 @@ export const mission14IronDelta: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "Scale-Guard has retreated to the Iron Delta — a maze of river channels and fortified islands. Three outpost islands control the delta's chokepoints.",
+				text: "Scale-Guard has pulled back to the Iron Delta — river channels and three fortified islands controlling every chokepoint. We need all three to reach Ironjaw's final stronghold.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Deep water between the islands. Bridges?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "We need all three to secure passage to their final stronghold. Each island has a Scale-Guard flag post — capture it by moving your units into the control zone and holding it.",
+				text: "No bridges. The channels are too wide. Build Docks and ferry troops with Raftsmen. Splash can swim the gaps directly — use her to scout island defenses before you commit.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Take them sequentially or hit all three at once?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "The delta channels are deep — you'll need Raftsmen and Docks to move forces between islands. Cpl. Splash can swim the channels directly.",
+				text: "Your call. West and East are lighter garrisons — the Central island is the hard nut. Each has a flag post you need to physically hold to capture.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Establish a base on the south shore, build your fleet, and take those islands one by one. Or all at once if you're feeling bold.",
+				speaker: "Sgt. Bubbles",
+				text: "Splash scouts Central while we take the flanks. Then we converge. Muskrat's charges will handle the Spires.",
 			},
 		],
 	},

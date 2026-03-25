@@ -21,19 +21,27 @@ export const mission11TidalFortress: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "Scale-Guard's regional command is on Stonebreak Island — a natural fortress. Tidal flats surround it, and the only approach is during low tide when the land bridges are exposed.",
+				text: "Scale-Guard's regional command sits on Stonebreak Island. Tidal flats surround it — the only approach is during low tide when the land bridges surface.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "How long do we get?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Tides cycle every four minutes. Low tide lasts about two minutes — that's your window to cross. When the water rises, anyone on the flats is going to drown.",
+				text: "Tides cycle every four minutes. Low tide gives you a two-minute window to cross. When the water rises, anyone still on the flats drowns. No exceptions.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "So we probe on the first cycle and commit on the second.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Three Venom Spires cover the approaches. Knock them out to open lanes for your main force. Their Command Post is in the center — that's the primary target.",
+				text: "Smart. Three Venom Spires cover the approaches — take those first to open lanes for your main force. Their Command Post in the center is the primary target.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Build up on the south shore and time your pushes. You'll need at least two tide cycles to crack this one. Patience wins this fight.",
+				speaker: "Sgt. Bubbles",
+				text: "Twelve waves of patience. We'll crack this rock.",
 			},
 		],
 	},

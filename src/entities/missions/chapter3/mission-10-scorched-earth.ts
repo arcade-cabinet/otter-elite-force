@@ -21,19 +21,27 @@ export const mission10ScorchedEarth: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "Scale-Guard's northern offensive runs on fuel. Four fuel storage tanks are supplying their entire Blackmarsh operation — knock them out and their armor grinds to a halt.",
+				text: "Scale-Guard's entire Blackmarsh offensive runs on four fuel storage tanks in a central depot. Kill the fuel, kill the advance.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Sappers on the tanks?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Fair warning: those tanks are explosive. When they blow, fire spreads. Oil slicks around the depot will ignite — use that to your advantage, but don't get caught in it.",
+				text: "That's the play. But those tanks are volatile — when they blow, oil slicks ignite and fire spreads. Chain reactions are possible if two tanks are close enough. Keep your people clear of the blast radius.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "So the explosions work for us if we position right.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Sappers can plant charges on the tanks. Clear the guards, plant the charge, and pull your team back before the blast. Chain reactions are possible if tanks are close enough.",
+				text: "Exactly. Clear the guards, plant the charge, pull back. Four Venom Spires on the perimeter and heavy patrols inside. Full base at your disposal — build up, then push in.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Full base at your disposal. Build up, push in, and burn it all down. Make it count, Sergeant.",
+				speaker: "Sgt. Bubbles",
+				text: "We'll light up the Blackmarsh. They won't run another engine for weeks.",
 			},
 		],
 	},

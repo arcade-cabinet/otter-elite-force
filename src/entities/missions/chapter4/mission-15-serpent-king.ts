@@ -21,19 +21,27 @@ export const mission15SerpentKing: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "The Serpent King. Scale-Guard's supreme commander. He's holed up in the Iron Citadel with his elite guard — the last concentration of Scale-Guard power in the region.",
+				text: "Kommandant Ironjaw. He's holed up in the Iron Citadel with his elite guard — the last concentration of Scale-Guard power in the Reach.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Three defensive rings. I've been studying the recon photos.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "The Citadel has three defensive rings. The outer ring is walls and Venom Spires. The middle ring is the elite barracks — the strongest troops they have. The inner ring is the throne room.",
+				text: "Outer ring is walls and six Venom Spires. Middle ring holds the elite garrison — Vipers and Snappers, their best. The inner ring is Ironjaw's throne room. Toxic moat between the rings.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Ironjaw himself — what should we expect?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "The Serpent King himself is a formidable opponent. High HP, area damage, and he'll summon reinforcements when wounded. All three heroes will need to engage him directly.",
+				text: "High HP, area damage, and he summons reinforcements when wounded. That iron jaw isn't just for show — he took a mortar in the First Reach War and kept fighting. All three heroes engage him directly.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "This is the climactic battle. Everything we've built, everything we've learned — it all comes down to this. End the Serpent King's reign, Sergeant.",
+				speaker: "Sgt. Bubbles",
+				text: "Flanking mangroves to split their outer defenses, then collapse inward. Everything we've learned. Let's finish this.",
 			},
 		],
 	},

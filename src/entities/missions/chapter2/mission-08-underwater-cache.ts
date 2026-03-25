@@ -23,16 +23,24 @@ export const mission08UnderwaterCache: MissionDef = {
 				text: "Bubbles, we've confirmed Cpl. Splash is being held at a Scale-Guard outpost on the southeast shore of Lake Copper. She's alive — barely.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "This is a small-team operation. You, Bubbles, plus three Mudfoots. No base. No reinforcements. Scale-Guard patrols the shoreline.",
+				speaker: "Sgt. Bubbles",
+				text: "How many guards on her?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Here's the real objective: intelligence says there's a pre-war munitions cache submerged in the center of the lake. Only someone with Splash's underwater capability can reach it.",
+				text: "Two Gators and a Viper at the cell. Scout-Lizards patrolling the lakeshore. Small-team op — you and three Mudfoots. No base, no reinforcements.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "So we grab Splash and get out?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Rescue Splash, clear a path to the shore, then get her into the water. Recover the cache and extract everyone to the northern landing zone.",
+				text: "Not quite. Intel says there's a pre-war munitions cache submerged in the center of the lake. Only someone with Splash's diving capability can reach it. Rescue her, then get her into the water.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Rescue the diver, use the diver. Extract north after. On it.",
 			},
 		],
 	},

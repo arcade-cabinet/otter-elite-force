@@ -21,19 +21,23 @@ export const mission07RiverRats: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "Scale-Guard has stockpiled supplies on the east bank. Five crates of munitions, rations, and salvage — and we need all of them.",
+				text: "Five supply crates on the east bank — munitions, rations, salvage. Scale-Guard is sitting on them. We need all five.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "The river's in the way. Bridges?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "A wide river cuts the valley in two. Two bridges — north and south — are the only crossing points. Both will be contested.",
+				text: "Two — north and south. Both heavily contested. But here's the play: build a Dock at the riverbank. Raftsmen can cross water without bridges. Anywhere. Anytime.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Flank across the river while they're watching the bridges. I like it.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "New capability: Raftsmen can cross water without bridges. Build a Dock at the riverbank and you can ferry units across anywhere. This changes the game, Sergeant.",
-			},
-			{
-				speaker: "Gen. Whiskers",
-				text: "Grab those crates and get them back to our base zone on the west side. Each crate must be carried by a unit into the delivery zone. Move out.",
+				text: "Grab each crate and carry it back to our base zone on the west side. Five trips. Don't lose the carriers.",
 			},
 		],
 	},

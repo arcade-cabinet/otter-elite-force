@@ -21,19 +21,27 @@ export const mission12FangRescue: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "We've located Sgt. Fang. He's being held at Scale-Guard's northern stronghold — a heavily fortified position on the cliffs above the Blackmarsh.",
+				text: "Sgt. Fang is being held at Scale-Guard's northern stronghold — clifftop position above the Blackmarsh. Layered defenses: walls, towers, heavy patrols.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Same play as the Whiskers rescue?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "This is a commando operation. Bubbles will lead a four-otter strike team through the ravine approach. The stronghold has layered defenses — walls, towers, and heavy patrols.",
+				text: "Harder. This stronghold has three defensive layers before the detention block. You'll lead a four-otter strike team through the ravine. Shellcrackers this time — you'll need the firepower.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "And once Fang's out, they lock down behind us.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Fang is in the detention block at the north end of the compound. Once you free him, you'll have to fight your way back out — they'll lock down every exit.",
+				text: "Exactly. Reinforcements flood in from every direction the moment that cell opens. Fight your way south to the ravine extraction. Fang's a siege specialist — we need him for the final push.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Extraction is at the southern ravine entrance. Get Fang there alive. He's one of our best — we can't afford to lose him.",
+				speaker: "Sgt. Bubbles",
+				text: "In fast, out loud. Understood.",
 			},
 		],
 	},

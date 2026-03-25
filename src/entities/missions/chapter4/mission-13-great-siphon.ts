@@ -21,19 +21,27 @@ export const mission13GreatSiphon: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "This is it. The Great Siphon — Scale-Guard's central command and their ultimate weapon. It's pumping toxins into every waterway in the region. If we don't shut it down, nothing else we've done matters.",
+				text: "The Great Siphon — Scale-Guard's central command and their ultimate weapon. The Broodmother's supply network feeds directly into it. If we don't shut it down, nothing else we've done matters.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "What are we looking at structurally?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "The Siphon is a three-stage structure. Outer shield generators protect the core. Destroy both generators, then hit the core itself. Each stage will trigger a counterattack.",
+				text: "Three-stage target. Two outer shield generators protect the core. Destroy both generators, then hit the core itself. Every stage triggers a counterattack — Ironjaw won't let this go quietly.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Full roster?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Full combined arms. Every unit type we've unlocked, every hero on deck. Bubbles, Splash, and Fang will lead the assault. This is the biggest operation of the war.",
+				text: "Everything we've got. Bubbles, Splash, Fang — all on deck. Combined arms, full base build. This is the biggest operation of the war.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Build your army, control the resource points, and push to the Siphon in the northeast. We end this today, Sergeant.",
+				speaker: "Sgt. Bubbles",
+				text: "Northeast push. Secure the central field first, then hit the generators from both flanks. We end this today.",
 			},
 		],
 	},

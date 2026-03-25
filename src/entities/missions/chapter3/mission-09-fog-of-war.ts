@@ -21,19 +21,27 @@ export const mission09FogOfWar: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "The Blackmarsh is blanketed in thick fog. Perfect conditions for reconnaissance — and for ambushes. Scale-Guard has been moving troops through here, and we need eyes on their positions.",
+				text: "The Blackmarsh is blanketed in thick fog. Scale-Guard has been moving troops through here — we need eyes on four intel markers scattered across the marsh.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Fog cuts both ways. What's our visibility?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Four intel markers are scattered across the marsh. Each one is a Scale-Guard supply cache or staging point. Find all four and we'll have a complete picture of their northern front.",
+				text: "Half range for everyone. Your Divers have better sight, so put them on point. Stay mobile — avoid prolonged engagements.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "And if the fog lifts while we're out there?",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "You have scouts and a small strike team. The fog reduces vision to half range — use it to your advantage. Stay mobile, avoid large engagements.",
+				text: "That's the problem. Six minutes, then it clears and every Scale-Guard patrol sees you. Word is Venom has snipers in the area. Get the intel before that happens.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "When the fog lifts at the 6-minute mark, they'll see you too. Get it done before that, Sergeant.",
+				speaker: "Sgt. Bubbles",
+				text: "Four markers, six minutes. We'll split into pairs and sweep wide. Bubbles out.",
 			},
 		],
 	},
