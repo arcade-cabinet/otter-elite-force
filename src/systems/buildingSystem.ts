@@ -21,6 +21,7 @@ import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
 import { ResourcePool } from "../ecs/traits/state";
+import { EventBus } from "../game/EventBus";
 import { world as defaultWorld } from "../ecs/world";
 import { getBuilding } from "../entities/registry";
 
@@ -87,7 +88,7 @@ export function placeBuilding(
 		timber: pool.timber - (def.cost.timber ?? 0),
 		salvage: pool.salvage - (def.cost.salvage ?? 0),
 	});
-	return world.spawn(
+	const building = world.spawn(
 		IsBuilding,
 		UnitType({ type: buildingId }),
 		Faction({ id: ownerFaction.get(Faction)?.id ?? runtimeDef?.faction ?? def.faction }),
@@ -97,6 +98,8 @@ export function placeBuilding(
 		ConstructionProgress({ progress: 0, buildTime: def.buildTime }),
 		OwnedBy(ownerFaction),
 	);
+	EventBus.emit("building-placed", { buildingId });
+	return building;
 }
 
 export function buildingSystem(world: World, delta: number): void {
@@ -117,6 +120,7 @@ export function buildingSystem(world: World, delta: number): void {
 			activateBuilding(building);
 			building.remove(ConstructionProgress);
 			releaseBuilders(world, building);
+			EventBus.emit("building-complete");
 		}
 	}
 }

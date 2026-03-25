@@ -9,6 +9,7 @@ import type { Entity, World } from "koota";
 import Phaser from "phaser";
 import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
+import { EventBus } from "@/game/EventBus";
 import { TILE_SIZE } from "@/maps/loader";
 
 const DRAG_THRESHOLD = 5;
@@ -131,6 +132,7 @@ export class SelectionManager {
 
 		if (closestEntity) {
 			(closestEntity as Entity).add(Selected);
+			EventBus.emit("unit-selected");
 		}
 	}
 
@@ -162,6 +164,31 @@ export class SelectionManager {
 				entity.add(Selected);
 			}
 		});
+	}
+
+	/**
+	 * US-058: Check if a friendly (URA) entity exists near a world position.
+	 * Used by MobileInput to decide between re-selecting and issuing commands.
+	 */
+	hasFriendlyAt(worldX: number, worldY: number): boolean {
+		const tileX = Math.floor(worldX / TILE_SIZE);
+		const tileY = Math.floor(worldY / TILE_SIZE);
+		let found = false;
+
+		this.world.query(UnitType, Position, Faction).forEach((entity) => {
+			if (found) return;
+			const pos = entity.get(Position);
+			const faction = entity.get(Faction);
+			if (!pos || !faction) return;
+			if (faction.id !== "ura") return;
+
+			const dx = pos.x - tileX;
+			const dy = pos.y - tileY;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			if (dist < 2) found = true;
+		});
+
+		return found;
 	}
 
 	/** Remove Selected trait from all entities. */

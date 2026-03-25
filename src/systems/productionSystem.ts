@@ -18,6 +18,7 @@ import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
 import { PopulationState, ResourcePool } from "../ecs/traits/state";
+import { EventBus } from "../game/EventBus";
 import { world as defaultWorld } from "../ecs/world";
 import { getBuilding, getUnit } from "../entities/registry";
 import { spawnUnit } from "../entities/spawner";
@@ -98,6 +99,7 @@ export function productionSystem(world: World, delta: number): void {
 			// Training complete — spawn the unit
 			spawnTrainedUnit(world, building, current.unitType);
 			queue.shift();
+			EventBus.emit("training-complete", { unitType: current.unitType });
 		}
 	}
 }

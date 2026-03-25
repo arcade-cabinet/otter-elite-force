@@ -13,6 +13,7 @@ import { Attack, Health } from "../ecs/traits/combat";
 import { ResearchSlot } from "../ecs/traits/economy";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { CompletedResearch, ResourcePool } from "../ecs/traits/state";
+import { EventBus } from "../game/EventBus";
 import { world as defaultWorld } from "../ecs/world";
 
 // ---------------------------------------------------------------------------
@@ -33,7 +34,7 @@ export function queueResearch(
 	if (!def) return false;
 
 	// Must be researched at the correct building type
-	const buildingType = building.get(UnitType).type;
+	const buildingType = building.get(UnitType)?.type;
 	if (buildingType !== def.researchAt) return false;
 
 	// Already completed globally
@@ -96,6 +97,7 @@ export function researchSystem(world: World, delta: number): void {
 
 			// Apply global effects
 			applyResearchEffect(world, slot.researchId);
+			EventBus.emit("research-complete", { researchId: slot.researchId });
 
 			// Clear slot (AoS — set back to null)
 			entity.set(ResearchSlot, null);
@@ -117,7 +119,7 @@ function applyResearchEffect(world: World, researchId: string): void {
 			// +20 HP to all Mudfoots (80 → 100)
 			applyToUnitsOfType(world, "mudfoot", (entity) => {
 				const h = entity.get(Health);
-				entity.set(Health, { current: h.current + 20, max: h.max + 20 });
+				if (h) entity.set(Health, { current: h.current + 20, max: h.max + 20 });
 			});
 			break;
 
@@ -125,7 +127,7 @@ function applyResearchEffect(world: World, researchId: string): void {
 			// +3 damage to all Shellcrackers (10 → 13)
 			applyToUnitsOfType(world, "shellcracker", (entity) => {
 				const a = entity.get(Attack);
-				entity.set(Attack, { ...a, damage: a.damage + 3 });
+				if (a) entity.set(Attack, { ...a, damage: a.damage + 3 });
 			});
 			break;
 
@@ -133,7 +135,7 @@ function applyResearchEffect(world: World, researchId: string): void {
 			// +50% Sapper damage vs buildings — applied as general damage boost
 			applyToUnitsOfType(world, "sapper", (entity) => {
 				const a = entity.get(Attack);
-				entity.set(Attack, { ...a, damage: Math.round(a.damage * 1.5) });
+				if (a) entity.set(Attack, { ...a, damage: Math.round(a.damage * 1.5) });
 			});
 			break;
 
@@ -152,7 +154,7 @@ function applyResearchEffect(world: World, researchId: string): void {
 function applyToUnitsOfType(world: World, unitType: string, fn: (entity: Entity) => void): void {
 	for (const entity of world.query(UnitType, Health)) {
 		if (entity.has(IsBuilding)) continue;
-		if (entity.get(UnitType).type !== unitType) continue;
+		if (entity.get(UnitType)?.type !== unitType) continue;
 		fn(entity);
 	}
 }

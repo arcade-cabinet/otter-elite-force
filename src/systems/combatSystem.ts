@@ -16,6 +16,7 @@ import { Targeting } from "../ecs/relations";
 import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
 import { Faction, IsProjectile } from "../ecs/traits/identity";
 import { Position, Velocity } from "../ecs/traits/spatial";
+import { EventBus } from "../game/EventBus";
 import {
 	applyEnemyDamageModifier,
 	getDifficultyModifiers,
@@ -115,6 +116,7 @@ export function combatSystem(world: World, delta: number): void {
 			const armorValue = target.has(Armor) ? target.get(Armor)!.value : 0;
 			const dmg = calculateDamage(effectiveDamage, armorValue);
 			target.set(Health, (prev) => ({ current: prev.current - dmg }));
+			EventBus.emit("melee-hit");
 		} else {
 			// Ranged: spawn projectile (carries effective damage for difficulty scaling)
 			world.spawn(
@@ -129,6 +131,7 @@ export function combatSystem(world: World, delta: number): void {
 				}),
 				Targeting(target),
 			);
+			EventBus.emit("ranged-fire");
 		}
 	}
 }
@@ -275,6 +278,7 @@ export function deathSystem(world: World): Entity[] {
 		}
 
 		for (const entity of dead) {
+			EventBus.emit("unit-died");
 			entity.destroy();
 		}
 	}

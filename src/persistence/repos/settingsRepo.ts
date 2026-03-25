@@ -10,20 +10,24 @@ import { getDatabase } from "../database";
 
 export interface Settings {
 	id: number;
+	master_volume: number;
 	music_volume: number;
 	sfx_volume: number;
 	haptics_enabled: number;
 	camera_speed: number;
+	ui_scale: number;
 	touch_mode: "auto" | "one_finger_select" | "two_finger_pan";
 	show_grid: number;
 	reduce_fx: number;
 }
 
 const DEFAULTS: Omit<Settings, "id"> = {
+	master_volume: 1.0,
 	music_volume: 0.7,
 	sfx_volume: 1.0,
 	haptics_enabled: 1,
 	camera_speed: 1.0,
+	ui_scale: 1.0,
 	touch_mode: "auto",
 	show_grid: 0,
 	reduce_fx: 0,

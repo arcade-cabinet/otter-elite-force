@@ -132,6 +132,7 @@ export class CommandDispatcher {
 
 		if (issued > 0) {
 			this.showCommandMarker(tileX, tileY, 0x00ff00);
+			EventBus.emit("move-command");
 		}
 	}
 
@@ -153,6 +154,7 @@ export class CommandDispatcher {
 		const targetPos = target.get(Position);
 		if (targetPos && issued > 0) {
 			this.showCommandMarker(targetPos.x, targetPos.y, 0xff0000);
+			EventBus.emit("attack-command");
 		}
 	}
 
@@ -181,6 +183,8 @@ export class CommandDispatcher {
 
 		if (issued > 0) {
 			this.showCommandMarker(tileX, tileY, 0xfbbf24);
+			const nodeData = resource.has(ResourceNode) ? resource.get(ResourceNode) : null;
+			EventBus.emit("gather-command", { resourceType: nodeData?.type ?? "" });
 		}
 	}
 
