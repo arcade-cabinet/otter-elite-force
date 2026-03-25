@@ -817,6 +817,7 @@ describe("Unit aggregates", () => {
 			"scout_lizard",
 			"croc_champion",
 			"siphon_drone",
+			"serpent_king",
 		];
 		for (const id of sgIds) {
 			expect(units[id]?.faction).toBe("scale_guard");

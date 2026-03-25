@@ -1,7 +1,7 @@
 /**
  * Building Stat Specification Tests
  *
- * These tests define the SPEC for all 17 building types (12 URA + 5 Scale-Guard).
+ * These tests define the SPEC for all 21 building types (12 URA + 9 Scale-Guard).
  * Values are sourced from:
  *   - docs/superpowers/specs/2026-03-23-rts-pivot-design.md §4
  *   - docs/superpowers/specs/2026-03-24-entity-architecture-design.md
@@ -492,7 +492,7 @@ describe("URA Buildings", () => {
 });
 
 // ===========================================================================
-// SCALE-GUARD BUILDINGS (5)
+// SCALE-GUARD BUILDINGS (9)
 // ===========================================================================
 
 describe("Scale-Guard Buildings", () => {
@@ -719,7 +719,17 @@ describe("Building aggregates", () => {
 
 	it("all Scale-Guard buildings are faction scale_guard", () => {
 		if (skip()) return;
-		const sgIds = ["sludge_pit", "spawning_pool", "venom_spire", "siphon", "scale_wall"];
+		const sgIds = [
+			"sludge_pit",
+			"spawning_pool",
+			"venom_spire",
+			"siphon",
+			"scale_wall",
+			"flag_post",
+			"fuel_tank",
+			"great_siphon",
+			"shield_generator",
+		];
 		for (const id of sgIds) {
 			expect(buildings[id]?.faction).toBe("scale_guard");
 		}

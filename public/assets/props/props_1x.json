@@ -1,84 +1,84 @@
 {
-	"meta": {
-		"image": "props_1x.png",
-		"size": {
-			"w": 102,
-			"h": 16
-		},
-		"scale": 1
-	},
-	"frames": {
-		"tall_grass": {
-			"frame": {
-				"x": 0,
-				"y": 0,
-				"w": 16,
-				"h": 16
-			},
-			"sourceSize": {
-				"w": 16,
-				"h": 16
-			}
-		},
-		"tall_grass_idle_0": {
-			"frame": {
-				"x": 17,
-				"y": 0,
-				"w": 16,
-				"h": 16
-			},
-			"sourceSize": {
-				"w": 16,
-				"h": 16
-			}
-		},
-		"tall_grass_sway_0": {
-			"frame": {
-				"x": 34,
-				"y": 0,
-				"w": 16,
-				"h": 16
-			},
-			"sourceSize": {
-				"w": 16,
-				"h": 16
-			}
-		},
-		"tall_grass_sway_1": {
-			"frame": {
-				"x": 51,
-				"y": 0,
-				"w": 16,
-				"h": 16
-			},
-			"sourceSize": {
-				"w": 16,
-				"h": 16
-			}
-		},
-		"toxic_sludge": {
-			"frame": {
-				"x": 68,
-				"y": 0,
-				"w": 16,
-				"h": 16
-			},
-			"sourceSize": {
-				"w": 16,
-				"h": 16
-			}
-		},
-		"toxic_sludge_idle_0": {
-			"frame": {
-				"x": 85,
-				"y": 0,
-				"w": 16,
-				"h": 16
-			},
-			"sourceSize": {
-				"w": 16,
-				"h": 16
-			}
-		}
-	}
+  "meta": {
+    "image": "props_1x.png",
+    "size": {
+      "w": 102,
+      "h": 16
+    },
+    "scale": 1
+  },
+  "frames": {
+    "tall_grass": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      }
+    },
+    "tall_grass_idle_0": {
+      "frame": {
+        "x": 17,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      }
+    },
+    "tall_grass_sway_0": {
+      "frame": {
+        "x": 34,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      }
+    },
+    "tall_grass_sway_1": {
+      "frame": {
+        "x": 51,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      }
+    },
+    "toxic_sludge": {
+      "frame": {
+        "x": 68,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      }
+    },
+    "toxic_sludge_idle_0": {
+      "frame": {
+        "x": 85,
+        "y": 0,
+        "w": 16,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 16,
+        "h": 16
+      }
+    }
+  }
 }
