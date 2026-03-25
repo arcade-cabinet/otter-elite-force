@@ -9,7 +9,7 @@
  * - Spawns entities from deploymentData on mount
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Layer, Stage } from "react-konva";
 import { useWorld } from "koota/react";
 import type { World } from "koota";
@@ -23,8 +23,10 @@ import type { MissionDef, Placement } from "@/entities/types";
 import type { DeploymentData } from "@/game/deployment";
 
 import { EntityLayer } from "./EntityLayer";
+import { MinimapLayer } from "./MinimapLayer";
 import { OverlayLayer } from "./OverlayLayer";
 import { TerrainLayer } from "./TerrainLayer";
+import { paintTerrain } from "./terrainPainter";
 import { useCamera } from "./useCamera";
 import { useGameLoop } from "./useGameLoop";
 import { usePointerInput } from "./usePointerInput";
@@ -124,7 +126,7 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
   }, []);
 
   // Camera
-  const { camera, pan, setZoom, setBounds } = useCamera(size.width, size.height);
+  const { camera, pan, setPosition, setZoom, setBounds } = useCamera(size.width, size.height);
 
   // Unified pointer input (mouse + touch → selection, commands, camera gestures)
   const { containerProps, dragSelect } = usePointerInput({
@@ -138,14 +140,22 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
   const missionKey = resolveMissionKey(deploymentData.missionId);
   const mission = getMissionById(missionKey);
 
+  // Compute world dimensions for minimap
+  const worldW = mission ? mission.terrain.width * TILE_SIZE : 0;
+  const worldH = mission ? mission.terrain.height * TILE_SIZE : 0;
+
+  // Pre-paint terrain canvas for minimap (memoised on mission)
+  const terrainCanvas = useMemo(
+    () => (mission ? paintTerrain(mission) : null),
+    [mission],
+  );
+
   useEffect(() => {
     if (initRef.current || !mission) return;
     initRef.current = true;
     initMission(world, mission);
-    const worldW = mission.terrain.width * TILE_SIZE;
-    const worldH = mission.terrain.height * TILE_SIZE;
-    setBounds({ worldW, worldH });
-  }, [world, mission, setBounds]);
+    setBounds({ worldW: worldW, worldH: worldH });
+  }, [world, mission, setBounds, worldW, worldH]);
 
   // Game loop
   useGameLoop(world, { width: size.width, height: size.height });
@@ -153,7 +163,7 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
   return (
     <div
       ref={containerRef}
-      style={{ width: "100%", height: "100%", overflow: "hidden", touchAction: "none" }}
+      style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", touchAction: "none" }}
       {...containerProps}
     >
       <Stage width={size.width} height={size.height}>
@@ -177,6 +187,17 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
         {/* Layer 4: Fog of War (stub — US-R09) */}
         <Layer listening={false} />
       </Stage>
+
+      {/* Minimap — positioned absolutely over the game canvas */}
+      <MinimapLayer
+        camera={camera}
+        viewportW={size.width}
+        viewportH={size.height}
+        worldW={worldW}
+        worldH={worldH}
+        terrainCanvas={terrainCanvas}
+        setPosition={setPosition}
+      />
     </div>
   );
 }
