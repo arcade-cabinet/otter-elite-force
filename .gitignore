@@ -43,10 +43,24 @@ playwright/.cache/
 blob-report/
 html-report/
 
-# Capacitor / native builds
-android/
-ios/
+# Capacitor / native platform build artifacts (track platform structure, ignore builds)
 .capacitor/
+
+# Android build artifacts
+android/app/build/
+android/.gradle/
+android/build/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+
+# iOS build artifacts
+ios/App/build/
+ios/App/Pods/
+ios/DerivedData/
+
+# Ralph local state
+.ralph/
+.ralphrc
 
 # ralph-tui ephemeral session state (config.toml is tracked)
 .ralph-tui/session.json

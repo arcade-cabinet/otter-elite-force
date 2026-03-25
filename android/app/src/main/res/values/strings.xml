@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Otter Elite Force</string>
+    <string name="title_activity_main">Otter Elite Force</string>
+    <string name="package_name">com.arcadecabinet.ottereliteforce</string>
+    <string name="custom_url_scheme">com.arcadecabinet.ottereliteforce</string>
+</resources>
