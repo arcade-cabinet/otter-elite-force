@@ -13,6 +13,7 @@ import { world } from "@/ecs/world";
 import { CAMPAIGN } from "@/entities/missions";
 import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
+import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { MainMenu } from "@/ui/command-post/MainMenu";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
 import { AlertBanner } from "@/ui/hud/AlertBanner";
@@ -46,6 +47,9 @@ function AppRouter() {
 	const w = useWorld();
 	const appScreen = useTrait(w, AppScreen);
 	const screen = appScreen?.screen ?? "menu";
+
+	// Initialize audio on first user gesture (US-029)
+	useAudioUnlock();
 
 	useEffect(() => {
 		const theme = SCREEN_THEMES[screen] ?? "command-post";
