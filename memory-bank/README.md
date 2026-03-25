@@ -23,6 +23,15 @@ memory-bank/
     └── *.md           # Individual agent session logs
 ```
 
+## Related Documentation
+
+**Technical Docs** (in `docs/` directory):
+- `docs/architecture/` - System design documentation
+- `docs/development/` - Development guides and analysis
+- `docs/guides/` - User and contributor guides
+
+**Work Log**: See `WORKLOG.md` in repository root for formal development activity log.
+
 ## Core Files (Always Read)
 
 ### 1. projectbrief.md
