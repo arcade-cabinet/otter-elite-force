@@ -8,7 +8,7 @@ import { useTrait, useWorld, WorldProvider } from "koota/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { initSingletons } from "@/ecs/singletons";
-import { AppScreen, type AppScreenType, CampaignProgress, CurrentMission, GamePhase, UserSettings } from "@/ecs/traits/state";
+import { AppScreen, type AppScreenType, CampaignProgress, GamePhase } from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
 import { CAMPAIGN } from "@/entities/missions";
 import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
@@ -16,14 +16,8 @@ import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
-import { saveMission } from "@/systems/saveLoadSystem";
 import { CampaignView } from "@/ui/command-post/CampaignView";
 import { MainMenu } from "@/ui/command-post/MainMenu";
-import {
-	DEFAULT_USER_SETTINGS,
-	SliderSetting,
-	ToggleSetting,
-} from "@/ui/command-post/SettingsControls";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
 import { AlertBanner } from "@/ui/hud/AlertBanner";
 import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
@@ -110,7 +104,6 @@ function GameplayScreen() {
 		portraitId?: string;
 		isScenario: boolean;
 	} | null>(null);
-	const [pauseView, setPauseView] = useState<"pause" | "settings">("pause");
 
 	// US-020: Pause/Resume wiring
 	const handleResume = useCallback(() => {
