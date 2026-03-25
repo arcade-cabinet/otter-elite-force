@@ -64,7 +64,7 @@ export function RadialMenu({ actions, open, position, onAction, onClose }: Radia
 							}}
 							className={cn(
 								"absolute flex min-h-[48px] min-w-[48px] -translate-x-1/2 -translate-y-1/2",
-								"items-center justify-center rounded-lg px-2",
+								"items-center justify-center rounded-none px-2",
 								"border-2 border-border bg-card shadow-[0_4px_12px_rgba(0,0,0,0.3)]",
 								"font-heading text-[9px] uppercase tracking-wider text-card-foreground",
 								"active:border-accent active:text-accent",

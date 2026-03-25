@@ -157,22 +157,22 @@ export function MainMenu() {
 							</Button>
 						</nav>
 
-						<div className="rounded-lg border border-border/70 bg-black/24 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-sm">
+						<div className="rounded-none border border-border/70 bg-black/24 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground backdrop-blur-sm">
 							{completedCount} / {totalMissions} missions completed
 						</div>
 					</section>
 
-					<section className="command-landing-hero relative mx-auto flex w-full max-w-3xl items-center overflow-hidden rounded-[1.5rem] border border-accent/20 bg-[linear-gradient(135deg,rgba(7,12,12,0.88),rgba(19,32,28,0.9))] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.38)] sm:p-6 lg:mx-0 lg:min-h-[32rem] lg:p-8">
+					<section className="command-landing-hero relative mx-auto flex w-full max-w-3xl items-center overflow-hidden rounded-none border border-accent/20 bg-[linear-gradient(135deg,rgba(7,12,12,0.88),rgba(19,32,28,0.9))] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.38)] sm:p-6 lg:mx-0 lg:min-h-[32rem] lg:p-8">
 						<div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_35%,rgba(212,165,116,0.12),transparent_22%),radial-gradient(circle_at_76%_40%,rgba(106,138,90,0.14),transparent_24%),linear-gradient(180deg,rgba(0,0,0,0.04),rgba(0,0,0,0.16))]" />
 						<div className="relative z-10 grid w-full gap-4 lg:grid-cols-[minmax(0,1fr)_4rem_minmax(0,1fr)] lg:gap-6">
-							<div className="rounded-2xl border border-accent/20 bg-[linear-gradient(180deg,rgba(93,67,42,0.48),rgba(24,20,16,0.3))] p-5">
+							<div className="rounded-none border border-accent/20 bg-[linear-gradient(180deg,rgba(93,67,42,0.48),rgba(24,20,16,0.3))] p-5">
 								<div className="font-mono text-[10px] uppercase tracking-[0.28em] text-accent">
 									Player
 								</div>
 								<div className="mt-3 font-heading text-2xl uppercase tracking-[0.18em] text-primary sm:text-3xl">
 									Otter Elite Force
 								</div>
-								<div className="mt-5 flex h-56 items-end rounded-[1.25rem] border border-accent/15 bg-[radial-gradient(circle_at_48%_28%,rgba(255,214,170,0.18),transparent_18%),radial-gradient(circle_at_50%_36%,rgba(118,86,54,0.95),rgba(56,39,27,0.95)_58%,rgba(12,10,8,0.95)_100%)] p-4 sm:h-72">
+								<div className="mt-5 flex h-56 items-end rounded-none border border-accent/15 bg-[radial-gradient(circle_at_48%_28%,rgba(255,214,170,0.18),transparent_18%),radial-gradient(circle_at_50%_36%,rgba(118,86,54,0.95),rgba(56,39,27,0.95)_58%,rgba(12,10,8,0.95)_100%)] p-4 sm:h-72">
 									<div className="font-body text-[11px] uppercase tracking-[0.16em] text-foreground/88">
 										Mud, discipline, and river crossings.
 									</div>
@@ -180,19 +180,19 @@ export function MainMenu() {
 							</div>
 
 							<div className="hidden items-center justify-center lg:flex">
-								<div className="flex h-16 w-16 items-center justify-center rounded-full border border-accent/25 bg-black/30 font-heading text-2xl uppercase tracking-[0.24em] text-accent">
+								<div className="flex h-16 w-16 items-center justify-center rounded-none border border-accent/25 bg-black/30 font-heading text-2xl uppercase tracking-[0.24em] text-accent">
 									VS
 								</div>
 							</div>
 
-							<div className="rounded-2xl border border-emerald-500/15 bg-[linear-gradient(180deg,rgba(35,68,48,0.44),rgba(14,24,18,0.34))] p-5">
+							<div className="rounded-none border border-emerald-500/15 bg-[linear-gradient(180deg,rgba(35,68,48,0.44),rgba(14,24,18,0.34))] p-5">
 								<div className="font-mono text-[10px] uppercase tracking-[0.28em] text-emerald-200">
 									Enemy
 								</div>
 								<div className="mt-3 font-heading text-2xl uppercase tracking-[0.18em] text-emerald-100 sm:text-3xl">
 									Scale-Guard
 								</div>
-								<div className="mt-5 flex h-56 items-end rounded-[1.25rem] border border-emerald-300/10 bg-[radial-gradient(circle_at_52%_26%,rgba(165,224,181,0.16),transparent_18%),radial-gradient(circle_at_50%_34%,rgba(60,108,67,0.95),rgba(29,57,34,0.95)_58%,rgba(10,16,12,0.96)_100%)] p-4 sm:h-72">
+								<div className="mt-5 flex h-56 items-end rounded-none border border-emerald-300/10 bg-[radial-gradient(circle_at_52%_26%,rgba(165,224,181,0.16),transparent_18%),radial-gradient(circle_at_50%_34%,rgba(60,108,67,0.95),rgba(29,57,34,0.95)_58%,rgba(10,16,12,0.96)_100%)] p-4 sm:h-72">
 									<div className="font-body text-[11px] uppercase tracking-[0.16em] text-emerald-50/82">
 										Entrenched chokepoints and brute attrition.
 									</div>

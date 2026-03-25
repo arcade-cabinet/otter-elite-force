@@ -225,7 +225,7 @@ export function CommandConsole({
 	return (
 		<div
 			data-testid="command-console"
-			className="relative overflow-hidden rounded-md border border-accent/22 bg-[linear-gradient(180deg,rgba(9,18,15,0.95),rgba(8,12,11,0.98))] shadow-[0_22px_48px_rgba(0,0,0,0.42)]"
+			className="relative overflow-hidden rounded-none border border-accent/22 bg-[linear-gradient(180deg,rgba(9,18,15,0.95),rgba(8,12,11,0.98))] shadow-[0_22px_48px_rgba(0,0,0,0.42)]"
 		>
 			<div className="riverine-camo absolute inset-0 opacity-18" />
 			<div
@@ -365,7 +365,7 @@ function MissionDirectivePanel({
 						<div
 							key={objective.id}
 							className={cn(
-								"rounded-md border px-3 py-2",
+								"rounded-none border px-3 py-2",
 								isCompleted && "border-primary/35 bg-primary/8",
 								isFailed && "border-destructive/35 bg-destructive/8",
 								!isCompleted && !isFailed && "border-border/70 bg-background/28",

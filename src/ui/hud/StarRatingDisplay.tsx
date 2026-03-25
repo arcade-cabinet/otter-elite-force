@@ -170,7 +170,7 @@ export function StarRatingDisplay({
 			</div>
 
 			{/* Score breakdown */}
-			<div className="grid gap-2 rounded-md border border-border/60 bg-background/20 p-3">
+			<div className="grid gap-2 rounded-none border border-border/60 bg-background/20 p-3">
 				<ScoreBar label="Time" score={breakdown.timeScore} weight="40%" />
 				<ScoreBar label="Survival" score={breakdown.survivalScore} weight="30%" />
 				<ScoreBar label="Bonus" score={breakdown.bonusScore} weight="30%" />

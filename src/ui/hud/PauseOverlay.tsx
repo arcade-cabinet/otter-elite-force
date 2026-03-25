@@ -52,8 +52,8 @@ export function PauseOverlay({
 			data-testid="pause-overlay"
 			className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
 		>
-			<div className="relative w-full max-w-sm rounded-lg border border-accent/25 bg-[linear-gradient(180deg,rgba(13,22,20,0.98),rgba(7,12,12,0.99))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
-				<div className="riverine-camo absolute inset-0 rounded-lg opacity-30" />
+			<div className="relative w-full max-w-sm rounded-none border border-accent/25 bg-[linear-gradient(180deg,rgba(13,22,20,0.98),rgba(7,12,12,0.99))] p-6 shadow-[0_24px_60px_rgba(0,0,0,0.5)]">
+				<div className="riverine-camo absolute inset-0 rounded-none opacity-30" />
 				<div className="relative z-10 grid gap-4">
 					<div className="text-center">
 						<div className="rounded border border-accent/25 bg-accent/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.28em] text-accent inline-block">

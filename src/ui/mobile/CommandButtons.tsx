@@ -27,7 +27,7 @@ export function CommandButtons({ commands, onCommand }: CommandButtonsProps) {
 					onClick={() => onCommand(cmd.id)}
 					className={cn(
 						"flex min-h-[44px] min-w-[44px] flex-col items-center justify-center",
-						"rounded-lg border-2 border-border bg-secondary px-3",
+						"rounded-none border-2 border-border bg-secondary px-3",
 						"font-heading text-[10px] uppercase tracking-wider text-secondary-foreground",
 						"active:border-accent active:text-accent",
 					)}

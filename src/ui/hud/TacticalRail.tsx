@@ -35,7 +35,7 @@ export function TacticalRail({
 							Speaker Feed
 						</span>
 					</div>
-					<div className="flex justify-center rounded-md border border-border/60 bg-background/22 p-2">
+					<div className="flex justify-center rounded-none border border-border/60 bg-background/22 p-2">
 						<TransmissionPortrait portraitId={portraitId} speaker={speaker} compact={compact} />
 					</div>
 				</CardContent>
@@ -49,7 +49,7 @@ export function TacticalRail({
 							{selected.length > 0 ? `${selected.length} active` : "Awaiting orders"}
 						</span>
 					</div>
-					<div className="rounded-md border border-border/60 bg-background/22 p-2">
+					<div className="rounded-none border border-border/60 bg-background/22 p-2">
 						{selected.length > 0 ? (
 							<UnitPanel compact={compact} embedded />
 						) : (

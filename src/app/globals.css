@@ -97,8 +97,8 @@
 
   /* --- Radius (military = sharp corners) --- */
   --radius-sm: 0px;
-  --radius-md: 2px;
-  --radius-lg: 4px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
 }
 
 /* ------------------------------------------------------------------ */
@@ -263,7 +263,7 @@
 	inset: 10px;
 	border: 1px solid rgba(255, 255, 255, 0.05);
 	pointer-events: none;
-	border-radius: 10px;
+	border-radius: 0;
 }
 
 .game-container {

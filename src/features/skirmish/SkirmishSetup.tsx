@@ -113,7 +113,7 @@ export function SkirmishSetup() {
 										type="button"
 										onClick={() => setSelectedDifficulty(d)}
 										className={cn(
-											"rounded-md border px-4 py-3 text-left transition",
+											"rounded-none border px-4 py-3 text-left transition",
 											d.id === selectedDifficulty.id
 												? "border-accent/60 bg-accent/15 text-accent"
 												: "border-border/70 bg-background/40 text-foreground hover:border-accent/30 hover:bg-background/55",
@@ -131,7 +131,7 @@ export function SkirmishSetup() {
 						</div>
 
 						{/* Play as Scale-Guard toggle */}
-						<div className="rounded-lg border border-border/70 bg-black/24 p-4">
+						<div className="rounded-none border border-border/70 bg-black/24 p-4">
 							<label className="flex cursor-pointer items-center gap-3">
 								<input
 									type="checkbox"
@@ -151,7 +151,7 @@ export function SkirmishSetup() {
 						</div>
 
 						{/* Map info */}
-						<div className="rounded-lg border border-border/70 bg-black/24 p-4">
+						<div className="rounded-none border border-border/70 bg-black/24 p-4">
 							<div className="font-heading text-lg uppercase tracking-[0.16em] text-primary">
 								{selectedMap.name}
 							</div>
@@ -213,7 +213,7 @@ function MapCard({
 			onClick={onSelect}
 			disabled={!unlocked}
 			className={cn(
-				"group relative rounded-lg border p-4 text-left transition",
+				"group relative rounded-none border p-4 text-left transition",
 				unlocked
 					? selected
 						? "border-accent/60 bg-accent/12 shadow-[0_0_0_1px_rgba(255,226,138,0.2)]"
@@ -224,7 +224,7 @@ function MapCard({
 			{/* Preview placeholder */}
 			<div
 				className={cn(
-					"flex h-20 items-center justify-center rounded border text-center",
+					"flex h-20 items-center justify-center rounded-none border text-center",
 					unlocked
 						? "border-accent/15 bg-[radial-gradient(circle,rgba(212,165,116,0.12),transparent_40%)]"
 						: "border-border/30 bg-black/30",

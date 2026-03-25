@@ -58,7 +58,7 @@ export function BuildMenu({
 			className={cn(
 				"grid gap-2",
 				compact ? "grid-cols-2" : "grid-cols-3",
-				embedded ? "p-0" : "rounded-md border border-border/70 bg-background/30 p-3",
+				embedded ? "p-0" : "rounded-none border border-border/70 bg-background/30 p-3",
 			)}
 		>
 			{options.map((opt) => {
@@ -79,7 +79,7 @@ export function BuildMenu({
 						title={`${opt.name} — ${formatCost(cost) || "Free"}`}
 						onClick={() => onSelect?.(opt.id)}
 						className={cn(
-							"h-auto min-h-24 flex-col items-start justify-between gap-2 rounded-md border px-2.5 py-2 text-left",
+							"h-auto min-h-24 flex-col items-start justify-between gap-2 rounded-none border px-2.5 py-2 text-left",
 							"text-[10px] uppercase tracking-[0.18em]",
 							affordable
 								? "border-accent/20 bg-background/35 text-foreground"

@@ -8,7 +8,7 @@ import { useTrait, useWorld, WorldProvider } from "koota/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { initSingletons } from "@/ecs/singletons";
-import { AppScreen, type AppScreenType, CampaignProgress, GamePhase } from "@/ecs/traits/state";
+import { AppScreen, type AppScreenType, CampaignProgress, CurrentMission, GamePhase, UserSettings } from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
 import { CAMPAIGN } from "@/entities/missions";
 import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
@@ -16,8 +16,14 @@ import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
+import { saveMission } from "@/systems/saveLoadSystem";
 import { CampaignView } from "@/ui/command-post/CampaignView";
 import { MainMenu } from "@/ui/command-post/MainMenu";
+import {
+	DEFAULT_USER_SETTINGS,
+	SliderSetting,
+	ToggleSetting,
+} from "@/ui/command-post/SettingsControls";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
 import { AlertBanner } from "@/ui/hud/AlertBanner";
 import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
@@ -104,6 +110,7 @@ function GameplayScreen() {
 		portraitId?: string;
 		isScenario: boolean;
 	} | null>(null);
+	const [pauseView, setPauseView] = useState<"pause" | "settings">("pause");
 
 	// US-020: Pause/Resume wiring
 	const handleResume = useCallback(() => {
@@ -251,9 +258,9 @@ function RotateDeviceNotice({
 	onReturn: () => void;
 }) {
 	return (
-		<div className="gameplay-viewport-card w-full rounded-lg border border-accent/25 bg-card/82 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.4)] sm:max-w-sm">
+		<div className="gameplay-viewport-card w-full rounded-none border border-accent/25 bg-card/82 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.4)] sm:max-w-sm">
 			<div className="flex flex-wrap items-center gap-2">
-				<span className="rounded border border-accent/25 bg-accent/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
+				<span className="rounded-none border border-accent/25 bg-accent/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
 					Rotate to Landscape
 				</span>
 				<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
@@ -324,11 +331,11 @@ function MissionResultOverlay() {
 			}
 		>
 			{!isDefeat && stars > 0 ? (
-				<div className="rounded-lg border border-accent/25 bg-card/70 p-6">
+				<div className="rounded-none border border-accent/25 bg-card/70 p-6">
 					<MissionStarResult stars={stars} />
 				</div>
 			) : (
-				<div className="rounded-lg border border-accent/25 bg-card/70 p-6 font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">
+				<div className="rounded-none border border-accent/25 bg-card/70 p-6 font-body text-xs uppercase tracking-[0.16em] text-muted-foreground">
 					{isDefeat
 						? "Mission command now loops directly back into play. Retry the operation without bouncing through detached pre-mission screens."
 						: "Campaign progression now moves operation-to-operation. No campaign map, no canteen, no store friction."}

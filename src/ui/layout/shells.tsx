@@ -185,15 +185,15 @@ export function TacticalShell({
 					</div>
 					<div
 						data-hud-region="battlefield-well"
-						className="battlefield-well gameplay-viewport-card relative min-h-[16rem] min-w-0 overflow-hidden rounded-xl border border-accent/24 bg-[linear-gradient(180deg,rgba(8,15,13,0.98),rgba(5,8,8,0.99))] shadow-[0_24px_52px_rgba(0,0,0,0.46)]"
+						className="battlefield-well gameplay-viewport-card relative min-h-[16rem] min-w-0 overflow-hidden rounded-none border border-accent/24 bg-[linear-gradient(180deg,rgba(8,15,13,0.98),rgba(5,8,8,0.99))] shadow-[0_24px_52px_rgba(0,0,0,0.46)]"
 					>
 						<div className="riverine-camo pointer-events-none absolute inset-0 opacity-10" />
 						<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,220,140,0.08),transparent_20%),linear-gradient(180deg,rgba(255,255,255,0.02),transparent_30%)]" />
-						<div className="pointer-events-none absolute inset-[0.55rem] rounded-[0.85rem] border border-border/70 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03),inset_0_0_30px_rgba(0,0,0,0.26)]" />
+						<div className="pointer-events-none absolute inset-[0.55rem] rounded-none border border-border/70 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03),inset_0_0_30px_rgba(0,0,0,0.26)]" />
 						<div className="pointer-events-none absolute left-4 top-3 rounded border border-accent/25 bg-background/32 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-accent/85">
 							Tactical Feed
 						</div>
-						<div className="relative h-full w-full overflow-hidden rounded-[0.95rem]">
+						<div className="relative h-full w-full overflow-hidden rounded-none">
 							{children}
 						</div>
 					</div>

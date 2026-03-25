@@ -268,7 +268,7 @@ export function Minimap({
 				</div>
 				<div
 					className={cn(
-						"minimap-crt-screen relative overflow-hidden rounded-md border border-[#00ff41]/30 bg-[#050e05] shadow-[inset_0_0_24px_rgba(0,255,65,0.12),0_0_12px_rgba(0,255,65,0.15)]",
+						"minimap-crt-screen relative overflow-hidden rounded-none border border-[#00ff41]/30 bg-[#050e05] shadow-[inset_0_0_24px_rgba(0,255,65,0.12),0_0_12px_rgba(0,255,65,0.15)]",
 						compact ? "h-28" : "h-32 sm:h-40",
 					)}
 				>

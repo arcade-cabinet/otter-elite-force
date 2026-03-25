@@ -30,7 +30,7 @@ export function SquadTabs({ tabs, activeTab, onSelect }: SquadTabsProps) {
 					className={cn(
 						"flex min-h-[44px] min-w-[48px] items-center gap-1 px-3 py-2",
 						"font-heading text-xs uppercase tracking-wider",
-						"rounded-t-lg border-2 border-b-0",
+						"rounded-none border-2 border-b-0",
 						activeTab === tab.id
 							? "border-accent bg-card text-accent"
 							: "border-border bg-muted text-muted-foreground",

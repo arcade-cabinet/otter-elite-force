@@ -107,7 +107,7 @@ function UnitStatsPanel({
 			>
 				<div
 					className={cn(
-						"flex items-center justify-center rounded-lg border border-border bg-background/30 font-heading uppercase tracking-[0.22em] text-muted-foreground",
+						"flex items-center justify-center rounded-none border border-border bg-background/30 font-heading uppercase tracking-[0.22em] text-muted-foreground",
 						compact ? "h-10 w-10 text-xs" : "h-14 w-14 text-sm",
 					)}
 				>

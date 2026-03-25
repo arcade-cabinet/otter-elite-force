@@ -62,7 +62,7 @@ export function SkirmishResult({ result }: SkirmishResultProps) {
 				</p>
 
 				{/* Stats panel */}
-				<div className="w-full max-w-md rounded-lg border border-border/70 bg-black/30 p-6">
+				<div className="w-full max-w-md rounded-none border border-border/70 bg-black/30 p-6">
 					<div className="mb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
 						After Action Report
 					</div>
