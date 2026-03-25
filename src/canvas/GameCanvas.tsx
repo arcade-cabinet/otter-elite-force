@@ -23,6 +23,7 @@ import type { MissionDef, Placement } from "@/entities/types";
 import type { DeploymentData } from "@/game/deployment";
 
 import { EntityLayer } from "./EntityLayer";
+import { OverlayLayer } from "./OverlayLayer";
 import { TerrainLayer } from "./TerrainLayer";
 import { useCamera } from "./useCamera";
 import { useGameLoop } from "./useGameLoop";
@@ -151,8 +152,13 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
           <EntityLayer camX={camera.x} camY={camera.y} viewportW={size.width} viewportH={size.height} />
         </Layer>
 
-        {/* Layer 3: Overlay (stub — US-R10) */}
-        <Layer listening={false} />
+        {/* Layer 3: Overlay (day/night, weather, selection, placement) */}
+        <OverlayLayer
+          width={size.width}
+          height={size.height}
+          camX={camera.x}
+          camY={camera.y}
+        />
 
         {/* Layer 4: Fog of War (stub — US-R09) */}
         <Layer listening={false} />
