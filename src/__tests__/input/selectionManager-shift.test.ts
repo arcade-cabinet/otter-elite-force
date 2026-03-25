@@ -66,12 +66,8 @@ describe("SelectionManager — shift-click additive selection (P0 fix)", () => {
 	});
 
 	function simulatePointerUp(worldX: number, worldY: number, shiftKey: boolean) {
-		const pointerUpCb = scene.input.on.mock.calls.find(
-			(c: unknown[]) => c[0] === "pointerup",
-		);
-		const pointerDownCb = scene.input.on.mock.calls.find(
-			(c: unknown[]) => c[0] === "pointerdown",
-		);
+		const pointerUpCb = scene.input.on.mock.calls.find((c: unknown[]) => c[0] === "pointerup");
+		const pointerDownCb = scene.input.on.mock.calls.find((c: unknown[]) => c[0] === "pointerdown");
 		// Simulate pointerdown first (to set dragStart)
 		pointerDownCb![1].call(pointerDownCb![2], {
 			worldX,
@@ -144,15 +140,9 @@ describe("SelectionManager — shift-click additive selection (P0 fix)", () => {
 		expect(unit1.has(Selected)).toBe(true);
 
 		// Simulate shift+box-select over second unit area
-		const pointerDownCb = scene.input.on.mock.calls.find(
-			(c: unknown[]) => c[0] === "pointerdown",
-		);
-		const pointerMoveCb = scene.input.on.mock.calls.find(
-			(c: unknown[]) => c[0] === "pointermove",
-		);
-		const pointerUpCb = scene.input.on.mock.calls.find(
-			(c: unknown[]) => c[0] === "pointerup",
-		);
+		const pointerDownCb = scene.input.on.mock.calls.find((c: unknown[]) => c[0] === "pointerdown");
+		const pointerMoveCb = scene.input.on.mock.calls.find((c: unknown[]) => c[0] === "pointermove");
+		const pointerUpCb = scene.input.on.mock.calls.find((c: unknown[]) => c[0] === "pointerup");
 
 		// Start drag
 		pointerDownCb![1].call(pointerDownCb![2], {

@@ -15,7 +15,7 @@
  */
 
 import type { Entity, World } from "koota";
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { Faction, Selected, UnitType } from "@/ecs/traits/identity";
 import { OrderQueue } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";

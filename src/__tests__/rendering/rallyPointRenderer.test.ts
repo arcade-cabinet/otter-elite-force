@@ -3,11 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { IsBuilding, Selected } from "@/ecs/traits/identity";
 import { RallyPoint } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
-import {
-	drawDashedLine,
-	drawRallyMarker,
-	renderRallyPoints,
-} from "@/rendering/RallyPointRenderer";
+import { drawDashedLine, drawRallyMarker, renderRallyPoints } from "@/rendering/RallyPointRenderer";
 
 function createMockGraphics() {
 	return {
@@ -71,12 +67,7 @@ describe("RallyPointRenderer (US-024)", () => {
 
 	describe("renderRallyPoints", () => {
 		it("should render rally point for selected building with rally", () => {
-			world.spawn(
-				Selected,
-				IsBuilding,
-				Position({ x: 5, y: 5 }),
-				RallyPoint({ x: 8, y: 5 }),
-			);
+			world.spawn(Selected, IsBuilding, Position({ x: 5, y: 5 }), RallyPoint({ x: 8, y: 5 }));
 
 			renderRallyPoints(world, graphics as any);
 
@@ -87,11 +78,7 @@ describe("RallyPointRenderer (US-024)", () => {
 		});
 
 		it("should not render for unselected buildings", () => {
-			world.spawn(
-				IsBuilding,
-				Position({ x: 5, y: 5 }),
-				RallyPoint({ x: 8, y: 5 }),
-			);
+			world.spawn(IsBuilding, Position({ x: 5, y: 5 }), RallyPoint({ x: 8, y: 5 }));
 
 			renderRallyPoints(world, graphics as any);
 
@@ -99,11 +86,7 @@ describe("RallyPointRenderer (US-024)", () => {
 		});
 
 		it("should not render for buildings without rally point", () => {
-			world.spawn(
-				Selected,
-				IsBuilding,
-				Position({ x: 5, y: 5 }),
-			);
+			world.spawn(Selected, IsBuilding, Position({ x: 5, y: 5 }));
 
 			renderRallyPoints(world, graphics as any);
 
@@ -111,12 +94,7 @@ describe("RallyPointRenderer (US-024)", () => {
 		});
 
 		it("should skip rendering when rally point equals building position", () => {
-			world.spawn(
-				Selected,
-				IsBuilding,
-				Position({ x: 5, y: 5 }),
-				RallyPoint({ x: 5, y: 5 }),
-			);
+			world.spawn(Selected, IsBuilding, Position({ x: 5, y: 5 }), RallyPoint({ x: 5, y: 5 }));
 
 			renderRallyPoints(world, graphics as any);
 

@@ -2,16 +2,12 @@ import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ConstructingAt } from "../../ecs/relations";
 import { initSingletons } from "../../ecs/singletons";
+import { Health } from "../../ecs/traits/combat";
 import { ConstructionProgress } from "../../ecs/traits/economy";
 import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
 import { PopulationState, ResourcePool } from "../../ecs/traits/state";
-import { Health } from "../../ecs/traits/combat";
-import {
-	buildingSystem,
-	placeBuilding,
-	type TileMap,
-} from "../../systems/buildingSystem";
+import { buildingSystem, placeBuilding, type TileMap } from "../../systems/buildingSystem";
 
 function createMockTileMap(): TileMap {
 	return {

@@ -11,15 +11,15 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import {
-	VOICE_PROFILES,
-	getVoiceProfile,
-	playSelectBark,
-	playCommandBark,
-	type UnitVoiceProfile,
-} from "@/audio/voiceBarks";
 import type { AudioEngine } from "@/audio/engine";
-import { URA_UNITS, URA_HEROES } from "@/data/units";
+import {
+	getVoiceProfile,
+	playCommandBark,
+	playSelectBark,
+	type UnitVoiceProfile,
+	VOICE_PROFILES,
+} from "@/audio/voiceBarks";
+import { URA_HEROES, URA_UNITS } from "@/data/units";
 
 function createMockEngine(): AudioEngine {
 	return {

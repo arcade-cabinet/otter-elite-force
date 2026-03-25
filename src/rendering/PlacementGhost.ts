@@ -91,21 +91,11 @@ export class PlacementGhost {
 		// Ghost fill: 50% alpha with green/red tint
 		const tintColor = validation.valid ? 0x7cff8a : 0xff5f5f;
 		this.graphics.fillStyle(tintColor, 0.5);
-		this.graphics.fillRect(
-			tileX * TILE_SIZE,
-			tileY * TILE_SIZE,
-			TILE_SIZE,
-			TILE_SIZE,
-		);
+		this.graphics.fillRect(tileX * TILE_SIZE, tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
 		// Border
 		this.graphics.lineStyle(2, tintColor, 0.95);
-		this.graphics.strokeRect(
-			tileX * TILE_SIZE,
-			tileY * TILE_SIZE,
-			TILE_SIZE,
-			TILE_SIZE,
-		);
+		this.graphics.strokeRect(tileX * TILE_SIZE, tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
 		// Tooltip for invalid placement
 		this.updateTooltip(tileX, tileY, validation);
@@ -142,11 +132,7 @@ export class PlacementGhost {
 		this.clearTooltip();
 	}
 
-	private updateTooltip(
-		tileX: number,
-		tileY: number,
-		validation: PlacementValidation,
-	): void {
+	private updateTooltip(tileX: number, tileY: number, validation: PlacementValidation): void {
 		if (validation.valid) {
 			this.clearTooltip();
 			return;

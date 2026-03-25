@@ -66,11 +66,7 @@ export function drawDashedLine(
 /**
  * Draw rally point flag/dot marker at a position.
  */
-export function drawRallyMarker(
-	graphics: Phaser.GameObjects.Graphics,
-	x: number,
-	y: number,
-): void {
+export function drawRallyMarker(graphics: Phaser.GameObjects.Graphics, x: number, y: number): void {
 	// Inner filled dot
 	graphics.fillStyle(RALLY_DOT_FILL_COLOR, RALLY_DOT_FILL_ALPHA);
 	graphics.fillCircle(x, y, RALLY_DOT_INNER_RADIUS);
@@ -96,10 +92,7 @@ export function drawRallyMarker(
  * Render rally points for all selected buildings that have a RallyPoint trait.
  * Call once per frame from the render overlay.
  */
-export function renderRallyPoints(
-	world: World,
-	graphics: Phaser.GameObjects.Graphics,
-): void {
+export function renderRallyPoints(world: World, graphics: Phaser.GameObjects.Graphics): void {
 	const buildings = world.query(Selected, IsBuilding, Position, RallyPoint);
 
 	for (const building of buildings) {

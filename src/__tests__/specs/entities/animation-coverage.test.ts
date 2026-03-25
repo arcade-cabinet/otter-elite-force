@@ -5,14 +5,10 @@
  * and buildings have complete and under-construction frames.
  * Documents missing animations.
  */
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it, beforeAll } from "vitest";
-import {
-	ALL_BUILDINGS,
-	ALL_HEROES,
-	ALL_UNITS,
-} from "@/entities/registry";
+import { beforeAll, describe, expect, it } from "vitest";
+import { ALL_BUILDINGS, ALL_HEROES, ALL_UNITS } from "@/entities/registry";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,

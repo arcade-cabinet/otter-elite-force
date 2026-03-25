@@ -35,15 +35,18 @@ import type { MissionDef, Placement } from "@/entities/types";
 import type { DeploymentData } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import {
-	type DeviceClass,
-	EDGE_SCROLL_THRESHOLD,
 	clampZoom,
+	type DeviceClass,
 	detectDeviceClass,
+	EDGE_SCROLL_THRESHOLD,
 	getZoomRange,
 	lerpZoom,
 } from "@/input/cameraLimits";
 import { DesktopInput } from "@/input/desktopInput";
 import { MobileInput } from "@/input/mobileInput";
+import { FloatingTextManager } from "@/rendering/FloatingTextManager";
+import { renderHPBars } from "@/rendering/HPBarRenderer";
+import { renderRallyPoints } from "@/rendering/RallyPointRenderer";
 import type { ActionHandler, ScenarioWorldQuery } from "@/scenarios/engine";
 import { ScenarioEngine } from "@/scenarios/engine";
 import type { ObjectiveStatus, TriggerAction } from "@/scenarios/types";
@@ -53,15 +56,12 @@ import {
 	type TerrainType,
 	type TileMap,
 } from "@/systems/buildingSystem";
-import { DayNightSystem } from "@/systems/dayNightSystem";
+import type { DayNightSystem } from "@/systems/dayNightSystem";
 import { FogOfWarSystem } from "@/systems/fogSystem";
 import type { GameLoopContext } from "@/systems/gameLoop";
 import { tickAllSystems } from "@/systems/gameLoop";
 import { calculateMissionScore } from "@/systems/scoringSystem";
 import { destroyAllSprites } from "@/systems/syncSystem";
-import { FloatingTextManager } from "@/rendering/FloatingTextManager";
-import { renderHPBars } from "@/rendering/HPBarRenderer";
-import { renderRallyPoints } from "@/rendering/RallyPointRenderer";
 import { WeatherSystem } from "@/systems/weatherSystem";
 
 /** Tile size in pixels — matches the sync layer (32px). */
@@ -188,11 +188,7 @@ export class GameScene extends Phaser.Scene {
 			"wheel",
 			(_pointer: Phaser.Input.Pointer, _gos: unknown[], _dx: number, dy: number) => {
 				const range = getZoomRange(this.deviceClass);
-				this.zoomTarget = Phaser.Math.Clamp(
-					this.zoomTarget - dy * 0.001,
-					range.min,
-					range.max,
-				);
+				this.zoomTarget = Phaser.Math.Clamp(this.zoomTarget - dy * 0.001, range.min, range.max);
 			},
 		);
 

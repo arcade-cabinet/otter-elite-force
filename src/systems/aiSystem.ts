@@ -11,9 +11,9 @@
  */
 
 import type { Entity, World } from "koota";
-import { FSMRunner } from "@/ai/fsm/runner";
 import { type AIContext, createDefaultAIContext } from "@/ai/fsm/context";
 import { getAIProfile } from "@/ai/fsm/profiles";
+import { FSMRunner } from "@/ai/fsm/runner";
 import { AIState } from "@/ecs/traits/ai";
 import { Attack, Health, VisionRadius } from "@/ecs/traits/combat";
 import { Faction, IsBuilding, UnitType } from "@/ecs/traits/identity";

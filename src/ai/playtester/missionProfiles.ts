@@ -15,6 +15,26 @@
  *   const brain = createMissionPlaytesterBrain("mission_1");
  */
 
+import {
+	AttackNearestEnemyGoal,
+	BuildEconomyGoal,
+	CompositePlaytesterGoal,
+	DefendBaseGoal,
+	EconomyEvaluator,
+	ExplorationEvaluator,
+	GoalStatus,
+	MilitaryEvaluator,
+	ObjectiveEvaluator,
+	OpenBuildMenuGoal,
+	PlaceBuildingGoal,
+	PlaytesterBrain,
+	PlaytesterGoal,
+	PlaytesterGoalEvaluator,
+	ScoutMapGoal,
+	SelectIdleWorkerGoal,
+	SelectMilitaryUnitsGoal,
+	SurviveEvaluator,
+} from "./goals";
 import type { PlayerAction } from "./input";
 import { clickAtTile, rightClickAtTile } from "./input";
 import type { PlayerPerception } from "./perception";
@@ -26,26 +46,6 @@ import {
 	findBuildings,
 	isBaseUnderThreat,
 } from "./perception";
-import {
-	AttackNearestEnemyGoal,
-	BuildEconomyGoal,
-	CompositePlaytesterGoal,
-	DefendBaseGoal,
-	GoalStatus,
-	PlaceBuildingGoal,
-	PlaytesterBrain,
-	PlaytesterGoal,
-	PlaytesterGoalEvaluator,
-	ScoutMapGoal,
-	SelectIdleWorkerGoal,
-	SelectMilitaryUnitsGoal,
-	OpenBuildMenuGoal,
-	SurviveEvaluator,
-	EconomyEvaluator,
-	MilitaryEvaluator,
-	ObjectiveEvaluator,
-	ExplorationEvaluator,
-} from "./goals";
 
 // ============================================================================
 // MISSION-SPECIFIC LEAF GOALS
@@ -66,12 +66,7 @@ export class MoveToPositionGoal extends PlaytesterGoal {
 	execute(perception: PlayerPerception): PlayerAction[] {
 		this.status = GoalStatus.COMPLETED;
 		return [
-			rightClickAtTile(
-				this.targetX,
-				this.targetY,
-				perception.viewport.x,
-				perception.viewport.y,
-			),
+			rightClickAtTile(this.targetX, this.targetY, perception.viewport.x, perception.viewport.y),
 		];
 	}
 }
@@ -85,17 +80,13 @@ export class SelectHeroGoal extends PlaytesterGoal {
 	}
 
 	execute(perception: PlayerPerception): PlayerAction[] {
-		const hero = perception.visibleFriendlyUnits.find(
-			(u) => u.unitType === this.heroType,
-		);
+		const hero = perception.visibleFriendlyUnits.find((u) => u.unitType === this.heroType);
 		if (!hero) {
 			this.status = GoalStatus.FAILED;
 			return [];
 		}
 		this.status = GoalStatus.COMPLETED;
-		return [
-			clickAtTile(hero.tileX, hero.tileY, perception.viewport.x, perception.viewport.y),
-		];
+		return [clickAtTile(hero.tileX, hero.tileY, perception.viewport.x, perception.viewport.y)];
 	}
 }
 
@@ -298,9 +289,7 @@ export class VisitLocationsGoal extends CompositePlaytesterGoal {
 		this.addSubgoal(new SelectMilitaryUnitsGoal());
 		// Queue all locations in reverse (addSubgoal uses unshift)
 		for (let i = this.locations.length - 1; i >= 0; i--) {
-			this.addSubgoal(
-				new MoveToPositionGoal(this.locations[i].x, this.locations[i].y),
-			);
+			this.addSubgoal(new MoveToPositionGoal(this.locations[i].x, this.locations[i].y));
 		}
 	}
 
@@ -405,9 +394,7 @@ export class EscortEvaluator extends PlaytesterGoalEvaluator {
 
 	calculateDesirability(perception: PlayerPerception): number {
 		// Check for supply_wagon allies
-		const wagons = perception.visibleFriendlyUnits.filter(
-			(u) => u.unitType === "supply_wagon",
-		);
+		const wagons = perception.visibleFriendlyUnits.filter((u) => u.unitType === "supply_wagon");
 		if (wagons.length > 0) return 0.9;
 		// Even without visible wagons, escort is the primary mission
 		return 0.5;
@@ -465,9 +452,7 @@ export class StealthEvaluator extends PlaytesterGoalEvaluator {
 	}
 
 	calculateDesirability(perception: PlayerPerception): number {
-		const hero = perception.visibleFriendlyUnits.find(
-			(u) => u.unitType === this.heroType,
-		);
+		const hero = perception.visibleFriendlyUnits.find((u) => u.unitType === this.heroType);
 		if (!hero) return 0;
 		// High priority to move hero toward the objective
 		const enemiesNear = perception.visibleEnemyUnits.length;
@@ -588,9 +573,7 @@ export class FlagCarryEvaluator extends PlaytesterGoalEvaluator {
 		const current = brain.currentSubgoal();
 		if (!(current instanceof FlagCarryGoal)) {
 			brain.clearSubgoals();
-			brain.addSubgoal(
-				new FlagCarryGoal(this.flagX, this.flagY, this.baseX, this.baseY),
-			);
+			brain.addSubgoal(new FlagCarryGoal(this.flagX, this.flagY, this.baseX, this.baseY));
 		}
 	}
 }
@@ -608,9 +591,7 @@ export class SubmergedStealthEvaluator extends PlaytesterGoalEvaluator {
 	}
 
 	calculateDesirability(perception: PlayerPerception): number {
-		const divers = perception.visibleFriendlyUnits.filter(
-			(u) => u.unitType === "diver",
-		);
+		const divers = perception.visibleFriendlyUnits.filter((u) => u.unitType === "diver");
 		if (divers.length > 0) return 0.9;
 		return 0.4;
 	}
@@ -766,9 +747,7 @@ export class HeroDemolitionEvaluator extends PlaytesterGoalEvaluator {
 	}
 
 	calculateDesirability(perception: PlayerPerception): number {
-		const sapper = perception.visibleFriendlyUnits.find(
-			(u) => u.unitType === "sapper",
-		);
+		const sapper = perception.visibleFriendlyUnits.find((u) => u.unitType === "sapper");
 		if (sapper) return 0.95;
 		return 0.3;
 	}
@@ -827,7 +806,7 @@ export class BossPhaseEvaluator extends PlaytesterGoalEvaluator {
 	setGoal(brain: PlaytesterBrain): void {
 		const current = brain.currentSubgoal();
 		// Determine phase based on game time
-		let phase = 1;
+		const phase = 1;
 		// Phase transitions at approximate times
 		if (current instanceof BossPhaseGoal) return;
 		brain.clearSubgoals();

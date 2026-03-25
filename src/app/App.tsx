@@ -94,6 +94,8 @@ function AppRouter() {
 			return <GameplayScreen />;
 		case "victory":
 			return <MissionResultOverlay />;
+		case "skirmish_result":
+			return <MissionResultOverlay />;
 		default:
 			return <MainMenu />;
 	}
@@ -192,11 +194,7 @@ function GameplayScreen() {
 		<TacticalShell
 			hudLayout={hudLayout}
 			className={cn(needsLandscapePrompt && "tactical-shell--mobile-portrait")}
-			hudTop={
-				needsLandscapePrompt ? null : (
-					<GameplayTopBar missionId={currentMission} compact />
-				)
-			}
+			hudTop={needsLandscapePrompt ? null : <GameplayTopBar missionId={currentMission} compact />}
 			alerts={
 				needsLandscapePrompt ? (
 					<RotateDeviceNotice

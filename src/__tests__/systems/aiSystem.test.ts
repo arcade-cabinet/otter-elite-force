@@ -108,15 +108,7 @@ describe("aiSystem", () => {
 
 	it("should not detect enemies outside vision radius", () => {
 		// Spawn a Gator at (10, 10) with vision radius 5
-		const gator = world.spawn(
-			AIState,
-			UnitType,
-			Position,
-			Health,
-			Attack,
-			VisionRadius,
-			Faction,
-		);
+		const gator = world.spawn(AIState, UnitType, Position, Health, Attack, VisionRadius, Faction);
 		gator.set(UnitType, { type: "gator" });
 		gator.set(Position, { x: 10, y: 10 });
 		gator.set(Health, { current: 100, max: 100 });

@@ -22,14 +22,24 @@ describe("asset family coverage", () => {
 	it("covers every canonical unit, hero, building, and portrait exactly once", () => {
 		// Mission-specific entities added for scenario props — not full production assets
 		const MISSION_PROPS = new Set([
-			"supply_crate", "intel_marker", "fuel_tank", "flag_post",
-			"shield_generator", "serpent_king", "great_siphon", "scout_otter",
+			"supply_crate",
+			"intel_marker",
+			"fuel_tank",
+			"flag_post",
+			"shield_generator",
+			"serpent_king",
+			"great_siphon",
+			"scout_otter",
 		]);
 
 		const ids = [
-			...Object.keys(ALL_UNITS).filter((id) => !MISSION_PROPS.has(id)).map((id) => ["unit", id] as const),
+			...Object.keys(ALL_UNITS)
+				.filter((id) => !MISSION_PROPS.has(id))
+				.map((id) => ["unit", id] as const),
 			...Object.keys(ALL_HEROES).map((id) => ["hero", id] as const),
-			...Object.keys(ALL_BUILDINGS).filter((id) => !MISSION_PROPS.has(id)).map((id) => ["building", id] as const),
+			...Object.keys(ALL_BUILDINGS)
+				.filter((id) => !MISSION_PROPS.has(id))
+				.map((id) => ["building", id] as const),
 			...Object.keys(ALL_PORTRAITS).map((id) => ["portrait", id] as const),
 		];
 		const seen = new Set<string>();

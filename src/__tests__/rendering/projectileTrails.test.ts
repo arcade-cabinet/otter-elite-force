@@ -33,11 +33,7 @@ describe("ProjectileTrailSystem (US-027)", () => {
 	});
 
 	it("should spawn particles for projectiles each frame", () => {
-		world.spawn(
-			IsProjectile,
-			Position({ x: 5, y: 5 }),
-			Velocity({ x: 1, y: 0 }),
-		);
+		world.spawn(IsProjectile, Position({ x: 5, y: 5 }), Velocity({ x: 1, y: 0 }));
 
 		system.update(world, 0.016);
 

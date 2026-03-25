@@ -67,22 +67,10 @@ export function SkirmishResult({ result }: SkirmishResultProps) {
 						After Action Report
 					</div>
 					<div className="grid grid-cols-2 gap-4">
-						<StatRow
-							label="Time"
-							value={formatTime(result.stats.timeElapsed)}
-						/>
-						<StatRow
-							label="Units Trained"
-							value={String(result.stats.unitsTrained)}
-						/>
-						<StatRow
-							label="Units Lost"
-							value={String(result.stats.unitsLost)}
-						/>
-						<StatRow
-							label="Resources Gathered"
-							value={String(result.stats.resourcesGathered)}
-						/>
+						<StatRow label="Time" value={formatTime(result.stats.timeElapsed)} />
+						<StatRow label="Units Trained" value={String(result.stats.unitsTrained)} />
+						<StatRow label="Units Lost" value={String(result.stats.unitsLost)} />
+						<StatRow label="Resources Gathered" value={String(result.stats.resourcesGathered)} />
 					</div>
 
 					<div className="mt-4 flex flex-wrap gap-2 border-t border-border/50 pt-4">

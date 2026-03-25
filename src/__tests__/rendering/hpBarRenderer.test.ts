@@ -59,19 +59,13 @@ describe("HPBarRenderer (US-025)", () => {
 		});
 
 		it("should show for damaged entities", () => {
-			const entity = world.spawn(
-				Health({ current: 50, max: 100 }),
-				Position({ x: 0, y: 0 }),
-			);
+			const entity = world.spawn(Health({ current: 50, max: 100 }), Position({ x: 0, y: 0 }));
 
 			expect(shouldShowHPBar(entity)).toBe(true);
 		});
 
 		it("should not show for full-health unselected entities not in combat", () => {
-			const entity = world.spawn(
-				Health({ current: 100, max: 100 }),
-				Position({ x: 0, y: 0 }),
-			);
+			const entity = world.spawn(Health({ current: 100, max: 100 }), Position({ x: 0, y: 0 }));
 
 			expect(shouldShowHPBar(entity)).toBe(false);
 		});
@@ -83,10 +77,7 @@ describe("HPBarRenderer (US-025)", () => {
 		});
 
 		it("should show for entities in combat (targeting)", () => {
-			const target = world.spawn(
-				Health({ current: 100, max: 100 }),
-				Position({ x: 1, y: 1 }),
-			);
+			const target = world.spawn(Health({ current: 100, max: 100 }), Position({ x: 1, y: 1 }));
 			const attacker = world.spawn(
 				Health({ current: 100, max: 100 }),
 				Position({ x: 0, y: 0 }),
@@ -99,11 +90,7 @@ describe("HPBarRenderer (US-025)", () => {
 
 	describe("renderHPBars", () => {
 		it("should render HP bars for damaged entities", () => {
-			world.spawn(
-				Health({ current: 50, max: 100 }),
-				Position({ x: 5, y: 5 }),
-				PhaserSprite,
-			);
+			world.spawn(Health({ current: 50, max: 100 }), Position({ x: 5, y: 5 }), PhaserSprite);
 
 			renderHPBars(world, graphics as any);
 
@@ -114,11 +101,7 @@ describe("HPBarRenderer (US-025)", () => {
 		});
 
 		it("should not render for full-health unselected entities", () => {
-			world.spawn(
-				Health({ current: 100, max: 100 }),
-				Position({ x: 5, y: 5 }),
-				PhaserSprite,
-			);
+			world.spawn(Health({ current: 100, max: 100 }), Position({ x: 5, y: 5 }), PhaserSprite);
 
 			renderHPBars(world, graphics as any);
 

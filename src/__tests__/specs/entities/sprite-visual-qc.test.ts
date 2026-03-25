@@ -8,17 +8,22 @@
  * - Faction colors are instantly distinguishable (URA=blue, SG=red)
  * - Documents sprites that may need revision
  */
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it, beforeAll } from "vitest";
-import { ALL_BUILDINGS, ALL_HEROES, ALL_PORTRAITS, ALL_UNITS } from "@/entities/registry";
-import { ALL_RESOURCES } from "@/entities/registry";
-import { TERRAIN_TILES } from "@/entities/terrain/tiles";
+import { beforeAll, describe, expect, it } from "vitest";
 import { PALETTE, PALETTES } from "@/entities/palettes";
+import {
+	ALL_BUILDINGS,
+	ALL_HEROES,
+	ALL_PORTRAITS,
+	ALL_RESOURCES,
+	ALL_UNITS,
+} from "@/entities/registry";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,
 } from "@/entities/sprite-materialization";
+import { TERRAIN_TILES } from "@/entities/terrain/tiles";
 import type { SPDSLSprite, SpriteDef } from "@/entities/types";
 
 // ─── Atlas Helpers ───

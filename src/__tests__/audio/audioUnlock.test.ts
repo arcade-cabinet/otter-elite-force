@@ -8,7 +8,7 @@
  * - No audio-related errors before init
  */
 
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock Tone.js at the top level
 vi.mock("tone", () => ({

@@ -19,10 +19,7 @@ export interface ResearchRow {
 }
 
 /** Mark a research as completed. */
-export async function completeResearch(
-	researchId: string,
-	missionId: string,
-): Promise<void> {
+export async function completeResearch(researchId: string, missionId: string): Promise<void> {
 	const db = getDatabase();
 	await db.execute(
 		"INSERT OR REPLACE INTO research (research_id, completed, completed_at_mission) VALUES (?, ?, ?)",

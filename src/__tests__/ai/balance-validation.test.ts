@@ -36,10 +36,7 @@ describe("US-072: Balance Validation Automation", () => {
 			// Gators have superior individual stats, but 3v2 with focus fire
 			// means Mudfoots concentrate damage on one Gator at a time.
 			// Per existing combat-outcomes.test.ts: "Mudfoots win with 1-2 survivors"
-			const result = simulateGroupCombat(
-				["mudfoot", "mudfoot", "mudfoot"],
-				["gator", "gator"],
-			);
+			const result = simulateGroupCombat(["mudfoot", "mudfoot", "mudfoot"], ["gator", "gator"]);
 
 			expect(result.winner).toBe("teamA");
 			expect(result.teamASurvivors).toBeGreaterThanOrEqual(1);
@@ -57,10 +54,7 @@ describe("US-072: Balance Validation Automation", () => {
 		});
 
 		it("fight is close — Mudfoots lose significant HP", () => {
-			const result = simulateGroupCombat(
-				["mudfoot", "mudfoot", "mudfoot"],
-				["gator", "gator"],
-			);
+			const result = simulateGroupCombat(["mudfoot", "mudfoot", "mudfoot"], ["gator", "gator"]);
 
 			// Mudfoots should have taken heavy losses (< 50% total HP remaining)
 			const totalMudfootMaxHp = 80 * 3;
@@ -194,9 +188,7 @@ describe("US-072: Balance Validation Automation", () => {
 
 		it("mortar deals reduced damage to armored targets", () => {
 			// Gator has 4 armor: 20 - 4 = 16 damage per hit
-			const result = simulateMortarSplash(20, 2, [
-				{ unitType: "gator", distance: 0 },
-			]);
+			const result = simulateMortarSplash(20, 2, [{ unitType: "gator", distance: 0 }]);
 
 			expect(result.results[0].damageDealt).toBe(16);
 			expect(result.results[0].hpRemaining).toBe(104); // 120 - 16
@@ -243,10 +235,7 @@ describe("US-072: Balance Validation Automation", () => {
 			console.log("========================================");
 
 			// Matchup 1: 3 Mudfoots vs 2 Gators
-			const matchup1 = simulateGroupCombat(
-				["mudfoot", "mudfoot", "mudfoot"],
-				["gator", "gator"],
-			);
+			const matchup1 = simulateGroupCombat(["mudfoot", "mudfoot", "mudfoot"], ["gator", "gator"]);
 			console.log(
 				`3 Mudfoots vs 2 Gators: ${matchup1.winner} wins | margin: ${(matchup1.margin * 100).toFixed(1)}% | survivors: A=${matchup1.teamASurvivors} B=${matchup1.teamBSurvivors}`,
 			);

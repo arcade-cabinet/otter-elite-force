@@ -11,10 +11,10 @@
 import { describe, expect, it, vi } from "vitest";
 import {
 	DayNightSystem,
-	TimeOfDay,
-	getVisionMultiplier,
 	getTint,
+	getVisionMultiplier,
 	resolveTimeOfDay,
+	TimeOfDay,
 } from "../../systems/dayNightSystem";
 
 const TEN_MINUTES_MS = 10 * 60 * 1000;

@@ -109,7 +109,7 @@ export class GroupPathCache {
 		currentMs: number,
 	): Vector3[] {
 		const key = makeCacheKey(from, to);
-		let entry = this.cache.get(key);
+		const entry = this.cache.get(key);
 
 		// Check if cached entry is still valid
 		if (entry && currentMs - entry.createdAt < this.config.ttlMs) {
@@ -190,11 +190,7 @@ export class GroupPathCache {
 		const result = basePath.map((wp) => wp.clone());
 
 		if (groupSize > 1 && result.length > 0) {
-			const offset = computeFormationOffset(
-				unitIndex,
-				groupSize,
-				this.config.formationSpread,
-			);
+			const offset = computeFormationOffset(unitIndex, groupSize, this.config.formationSpread);
 			const last = result[result.length - 1];
 			last.x += offset.dx;
 			last.z += offset.dy; // z maps to our y in Yuka coordinates

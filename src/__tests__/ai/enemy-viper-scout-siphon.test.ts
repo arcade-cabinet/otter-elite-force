@@ -8,11 +8,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { createDefaultAIContext, type EnemyInfo } from "@/ai/fsm/context";
-import {
-	SCOUT_LIZARD_PROFILE,
-	SIPHON_DRONE_PROFILE,
-	VIPER_PROFILE,
-} from "@/ai/fsm/profiles";
+import { SCOUT_LIZARD_PROFILE, SIPHON_DRONE_PROFILE, VIPER_PROFILE } from "@/ai/fsm/profiles";
 import { FSMRunner } from "@/ai/fsm/runner";
 import { STATE } from "@/ai/fsm/states";
 import { SCALE_GUARD_UNITS } from "@/data/units";

@@ -10,13 +10,12 @@
  */
 
 import type { World } from "koota";
+import { SCALE_GUARD_UNITS } from "@/data/units";
 import { AIState } from "@/ecs/traits/ai";
-import { Attack, Health, VisionRadius } from "@/ecs/traits/combat";
+import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
 import { Faction, UnitType } from "@/ecs/traits/identity";
 import { OrderQueue } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
-import { Armor } from "@/ecs/traits/combat";
-import { SCALE_GUARD_UNITS } from "@/data/units";
 
 // ---------------------------------------------------------------------------
 // Wave Definition Types
@@ -59,7 +58,10 @@ export interface WaveSchedule {
 
 export type DifficultyLevel = "support" | "tactical" | "elite";
 
-const DIFFICULTY_WAVE_MULTIPLIERS: Record<DifficultyLevel, { countMultiplier: number; extraTypes: boolean }> = {
+const DIFFICULTY_WAVE_MULTIPLIERS: Record<
+	DifficultyLevel,
+	{ countMultiplier: number; extraTypes: boolean }
+> = {
 	support: { countMultiplier: 0.75, extraTypes: false },
 	tactical: { countMultiplier: 1.0, extraTypes: false },
 	elite: { countMultiplier: 1.25, extraTypes: true },
@@ -98,7 +100,7 @@ export function buildEscalationSchedule(
 
 		// Mid-game: add vipers from wave 3+
 		if (i >= 3) {
-			const viperCount = Math.max(1, Math.round((progress * 2) * scaling.countMultiplier));
+			const viperCount = Math.max(1, Math.round(progress * 2 * scaling.countMultiplier));
 			enemies.push({ unitType: "viper", count: viperCount });
 		}
 
@@ -200,11 +202,7 @@ function spawnWaveEnemies(world: World, waveDef: WaveDefinition): void {
  * @param state - Mutable wave spawner state
  * @returns Updated wave number (0 if no new wave this tick)
  */
-export function waveSpawnerSystem(
-	world: World,
-	delta: number,
-	state: WaveSpawnerState,
-): number {
+export function waveSpawnerSystem(world: World, delta: number, state: WaveSpawnerState): number {
 	if (state.allWavesCleared) return 0;
 
 	state.elapsedSeconds += delta;
@@ -220,10 +218,7 @@ export function waveSpawnerSystem(
 			newWave = waveDef.waveNumber;
 
 			if (state.schedule.onWaveStart) {
-				state.schedule.onWaveStart(
-					waveDef.waveNumber,
-					state.schedule.waves.length,
-				);
+				state.schedule.onWaveStart(waveDef.waveNumber, state.schedule.waves.length);
 			}
 		}
 	}

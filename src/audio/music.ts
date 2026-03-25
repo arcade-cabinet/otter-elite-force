@@ -186,16 +186,7 @@ export function createMusicPlayer(): MusicPlayer {
 		brassSynth.volume.value = Tone.gainToDb(Math.max(0.001, volume * 0.5));
 		synths.push(brassSynth);
 
-		const notes = [
-			["D3", "F3"],
-			null,
-			["C3", "E3"],
-			null,
-			["Bb2", "D3"],
-			null,
-			["A2", "C3"],
-			null,
-		];
+		const notes = [["D3", "F3"], null, ["C3", "E3"], null, ["Bb2", "D3"], null, ["A2", "C3"], null];
 
 		const brassSequence = new Tone.Sequence(
 			(time, chord) => {

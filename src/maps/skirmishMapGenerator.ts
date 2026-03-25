@@ -83,12 +83,7 @@ function mulberry32(seed: number): () => number {
 // Simple value noise (grid-interpolated, good enough for tile-level biomes)
 // ---------------------------------------------------------------------------
 
-function createNoiseGrid(
-	cols: number,
-	rows: number,
-	scale: number,
-	rng: () => number,
-): number[][] {
+function createNoiseGrid(cols: number, rows: number, scale: number, rng: () => number): number[][] {
 	// Generate random values on a coarse grid, then bilinearly interpolate
 	const gCols = Math.ceil(cols / scale) + 2;
 	const gRows = Math.ceil(rows / scale) + 2;

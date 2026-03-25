@@ -81,11 +81,11 @@ const URA_UNIT_ENTITIES: Record<string, UnitDef> = {
 import { crocChampion } from "./units/scale-guard/croc-champion";
 import { gator } from "./units/scale-guard/gator";
 import { scoutLizard } from "./units/scale-guard/scout-lizard";
+import { serpentKing } from "./units/scale-guard/serpent-king";
 import { siphonDrone } from "./units/scale-guard/siphon-drone";
 import { skink } from "./units/scale-guard/skink";
 import { snapper } from "./units/scale-guard/snapper";
 import { viper } from "./units/scale-guard/viper";
-import { serpentKing } from "./units/scale-guard/serpent-king";
 
 const SCALE_GUARD_UNIT_ENTITIES: Record<string, UnitDef> = {
 	skink,

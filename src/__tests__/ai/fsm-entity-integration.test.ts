@@ -11,20 +11,20 @@
 
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { createDefaultAIContext, type EnemyInfo } from "@/ai/fsm/context";
 import {
 	AI_PROFILES,
 	CROC_CHAMPION_PROFILE,
 	GATOR_PROFILE,
+	getAIProfile,
 	SCOUT_LIZARD_PROFILE,
 	SIPHON_DRONE_PROFILE,
 	SKINK_PROFILE,
 	SNAPPER_PROFILE,
 	VIPER_PROFILE,
-	getAIProfile,
 } from "@/ai/fsm/profiles";
 import { FSMRunner } from "@/ai/fsm/runner";
 import { STATE } from "@/ai/fsm/states";
-import { createDefaultAIContext, type EnemyInfo } from "@/ai/fsm/context";
 import { AIState, SteeringAgent } from "@/ecs/traits/ai";
 import { Attack, Health, VisionRadius } from "@/ecs/traits/combat";
 import { Faction, UnitType } from "@/ecs/traits/identity";

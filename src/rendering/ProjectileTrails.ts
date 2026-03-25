@@ -151,12 +151,7 @@ export class ProjectileTrailSystem {
 		}
 	}
 
-	private activateParticle(
-		particle: Particle,
-		x: number,
-		y: number,
-		color: number,
-	): void {
+	private activateParticle(particle: Particle, x: number, y: number, color: number): void {
 		particle.x = x;
 		particle.y = y;
 		particle.age = 0;

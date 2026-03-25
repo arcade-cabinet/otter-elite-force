@@ -120,12 +120,7 @@ describe("KeyboardHotkeys", () => {
 		scene = createMockScene();
 		selection = createMockSelectionManager();
 		commands = createMockCommandDispatcher();
-		hotkeys = new KeyboardHotkeys(
-			scene as never,
-			world,
-			selection as never,
-			commands as never,
-		);
+		hotkeys = new KeyboardHotkeys(scene as never, world, selection as never, commands as never);
 		emit.mockReset();
 	});
 
@@ -168,9 +163,7 @@ describe("KeyboardHotkeys", () => {
 
 			fireKey(scene, "H");
 
-			expect(enemy.get(OrderQueue)).toEqual([
-				{ type: "move", targetX: 10, targetY: 10 },
-			]);
+			expect(enemy.get(OrderQueue)).toEqual([{ type: "move", targetX: 10, targetY: 10 }]);
 		});
 	});
 

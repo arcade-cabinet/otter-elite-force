@@ -95,10 +95,7 @@ export class BootScene extends Phaser.Scene {
 	update(): void {
 		// Smooth progress animation — lerp toward target
 		if (this.displayProgress < this.targetProgress) {
-			this.displayProgress = Math.min(
-				this.targetProgress,
-				this.displayProgress + 0.02,
-			);
+			this.displayProgress = Math.min(this.targetProgress, this.displayProgress + 0.02);
 			this.drawProgressBar(this.displayProgress);
 			this.percentText.setText(`${Math.floor(this.displayProgress * 100)}%`);
 		}

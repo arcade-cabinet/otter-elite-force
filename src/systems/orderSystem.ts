@@ -170,9 +170,10 @@ function handleBuild(
 	if (order.targetX === undefined || order.targetY === undefined) return;
 
 	// Find the building at the target location
-	const building = order.targetEntity !== undefined
-		? resolveEntity(world, order.targetEntity)
-		: findBuildingAt(world, order.targetX, order.targetY);
+	const building =
+		order.targetEntity !== undefined
+			? resolveEntity(world, order.targetEntity)
+			: findBuildingAt(world, order.targetX, order.targetY);
 
 	if (!building || !building.has(ConstructionProgress)) {
 		// Building doesn't exist or already finished — discard order

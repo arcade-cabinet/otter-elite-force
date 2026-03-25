@@ -19,10 +19,7 @@ type MusicState = "menu" | "briefing" | "ambient" | "combat" | "silent";
 /**
  * Map screen + phase state to a music state.
  */
-function resolveDesiredMusicState(
-	screen: string,
-	phase: string,
-): MusicState {
+function resolveDesiredMusicState(screen: string, phase: string): MusicState {
 	if (screen === "menu" || screen === "settings") return "menu";
 	if (screen === "victory") return "menu";
 	if (screen === "game") {
@@ -33,7 +30,8 @@ function resolveDesiredMusicState(
 }
 
 // Lazy-loaded controller reference
-let controllerRef: Awaited<typeof import("@/audio/musicController")>["musicController"] | null = null;
+let controllerRef: Awaited<typeof import("@/audio/musicController")>["musicController"] | null =
+	null;
 let loadingController = false;
 
 async function getController() {

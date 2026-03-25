@@ -11,12 +11,12 @@
  * color to avoid stark black/transparent seams between identical tiles.
  */
 import { describe, expect, it } from "vitest";
-import { TERRAIN_TILES } from "@/entities/terrain/tiles";
 import { PALETTES } from "@/entities/palettes";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,
 } from "@/entities/sprite-materialization";
+import { TERRAIN_TILES } from "@/entities/terrain/tiles";
 
 // ─── Constants ───
 
@@ -74,10 +74,14 @@ describe("US-076: Tile seam QC at game zoom", () => {
 				const bottomFillRatio = bottomFilled / TILE_SIZE;
 
 				if (topFillRatio < 0.5) {
-					noteSeam(`${id}: top row only ${(topFillRatio * 100).toFixed(0)}% filled — may show seam`);
+					noteSeam(
+						`${id}: top row only ${(topFillRatio * 100).toFixed(0)}% filled — may show seam`,
+					);
 				}
 				if (bottomFillRatio < 0.5) {
-					noteSeam(`${id}: bottom row only ${(bottomFillRatio * 100).toFixed(0)}% filled — may show seam`);
+					noteSeam(
+						`${id}: bottom row only ${(bottomFillRatio * 100).toFixed(0)}% filled — may show seam`,
+					);
 				}
 
 				// Hard requirement: terrain tiles must have filled edges (no transparent border)
@@ -101,10 +105,14 @@ describe("US-076: Tile seam QC at game zoom", () => {
 				const rightFillRatio = rightFilled / TILE_SIZE;
 
 				if (leftFillRatio < 0.5) {
-					noteSeam(`${id}: left col only ${(leftFillRatio * 100).toFixed(0)}% filled — may show seam`);
+					noteSeam(
+						`${id}: left col only ${(leftFillRatio * 100).toFixed(0)}% filled — may show seam`,
+					);
 				}
 				if (rightFillRatio < 0.5) {
-					noteSeam(`${id}: right col only ${(rightFillRatio * 100).toFixed(0)}% filled — may show seam`);
+					noteSeam(
+						`${id}: right col only ${(rightFillRatio * 100).toFixed(0)}% filled — may show seam`,
+					);
 				}
 
 				expect(leftFilled).toBeGreaterThan(0);
@@ -157,7 +165,9 @@ describe("US-076: Tile seam QC at game zoom", () => {
 
 				const fillRatio = filled / total;
 				if (fillRatio < 0.9) {
-					noteSeam(`${id}: only ${(fillRatio * 100).toFixed(1)}% filled — may show background through tile`);
+					noteSeam(
+						`${id}: only ${(fillRatio * 100).toFixed(1)}% filled — may show background through tile`,
+					);
 				}
 
 				// Terrain tiles must be mostly opaque

@@ -20,8 +20,8 @@ import { CanSwim, Submerged } from "../ecs/traits/water";
 import { EventBus } from "../game/EventBus";
 import {
 	applyEnemyDamageModifier,
-	getDifficultyModifiers,
 	type DifficultyModifiers,
+	getDifficultyModifiers,
 } from "./difficultyScaling";
 import type { FogOfWarSystem } from "./fogSystem";
 import { MORTAR_SPLASH_RADIUS, SplashRadius } from "./siegeSystem";

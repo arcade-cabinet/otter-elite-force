@@ -54,7 +54,14 @@ export const Objectives = trait(() => ({
 // App screen routing (replaces rtsGameStore.phase for UI routing)
 // ---------------------------------------------------------------------------
 
-export type AppScreenType = "menu" | "campaign" | "game" | "victory" | "settings" | "skirmish" | "skirmish_result";
+export type AppScreenType =
+	| "menu"
+	| "campaign"
+	| "game"
+	| "victory"
+	| "settings"
+	| "skirmish"
+	| "skirmish_result";
 
 /** Which screen the app is currently displaying. */
 export const AppScreen = trait({ screen: "menu" as AppScreenType });

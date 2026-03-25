@@ -81,7 +81,10 @@ const VISION_MULTIPLIERS: Record<TimeOfDay, number> = {
 /**
  * Resolve the current time-of-day phase from elapsed game time.
  */
-export function resolveTimeOfDay(elapsedMs: number, config: DayNightConfig = DEFAULT_CONFIG): TimeOfDay {
+export function resolveTimeOfDay(
+	elapsedMs: number,
+	config: DayNightConfig = DEFAULT_CONFIG,
+): TimeOfDay {
 	const dayProgress = (elapsedMs % config.dayDurationMs) / config.dayDurationMs;
 
 	for (const range of PHASE_RANGES) {

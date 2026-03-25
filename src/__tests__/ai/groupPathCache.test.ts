@@ -13,10 +13,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.unmock("yuka");
 
 import { Vector3 } from "yuka";
-import {
-	GroupPathCache,
-	computeFormationOffset,
-} from "../../ai/groupPathCache";
+import { computeFormationOffset, GroupPathCache } from "../../ai/groupPathCache";
 import type { TileCoord } from "../../ai/pathfinder";
 
 /** Create a mock path finder that returns a straight line. */
@@ -26,13 +23,7 @@ function makeMockPathFinder() {
 		const steps = Math.max(Math.abs(to.x - from.x), Math.abs(to.y - from.y)) || 1;
 		for (let i = 0; i <= steps; i++) {
 			const t = i / steps;
-			path.push(
-				new Vector3(
-					from.x + (to.x - from.x) * t,
-					0,
-					from.y + (to.y - from.y) * t,
-				),
-			);
+			path.push(new Vector3(from.x + (to.x - from.x) * t, 0, from.y + (to.y - from.y) * t));
 		}
 		return path;
 	});

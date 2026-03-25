@@ -91,9 +91,7 @@ export function AlertBanner() {
 
 		const onObjectiveComplete = (data?: { description?: string }) =>
 			push({
-				message: data?.description
-					? `Objective: ${data.description}`
-					: "Objective Complete",
+				message: data?.description ? `Objective: ${data.description}` : "Objective Complete",
 				severity: "info",
 			});
 

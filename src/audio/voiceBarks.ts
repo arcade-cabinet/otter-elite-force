@@ -54,59 +54,28 @@ function bark(
 // ---------------------------------------------------------------------------
 
 const riverRat: UnitVoiceProfile = {
-	selectBarks: [
-		bark(440, 0.08, "sine"),
-		bark(480, 0.06, "sine"),
-		bark(420, 0.07, "triangle"),
-	],
-	commandBarks: [
-		bark(500, 0.05, "sine"),
-		bark(460, 0.04, "triangle"),
-	],
+	selectBarks: [bark(440, 0.08, "sine"), bark(480, 0.06, "sine"), bark(420, 0.07, "triangle")],
+	commandBarks: [bark(500, 0.05, "sine"), bark(460, 0.04, "triangle")],
 };
 
 const mudfoot: UnitVoiceProfile = {
-	selectBarks: [
-		bark(220, 0.1, "sawtooth"),
-		bark(240, 0.08, "square"),
-		bark(200, 0.09, "sawtooth"),
-	],
-	commandBarks: [
-		bark(260, 0.06, "sawtooth"),
-		bark(230, 0.05, "square"),
-	],
+	selectBarks: [bark(220, 0.1, "sawtooth"), bark(240, 0.08, "square"), bark(200, 0.09, "sawtooth")],
+	commandBarks: [bark(260, 0.06, "sawtooth"), bark(230, 0.05, "square")],
 };
 
 const shellcracker: UnitVoiceProfile = {
-	selectBarks: [
-		bark(350, 0.07, "triangle"),
-		bark(380, 0.06, "sine"),
-		bark(330, 0.08, "triangle"),
-	],
-	commandBarks: [
-		bark(400, 0.05, "sine"),
-		bark(360, 0.04, "triangle"),
-	],
+	selectBarks: [bark(350, 0.07, "triangle"), bark(380, 0.06, "sine"), bark(330, 0.08, "triangle")],
+	commandBarks: [bark(400, 0.05, "sine"), bark(360, 0.04, "triangle")],
 };
 
 const sapper: UnitVoiceProfile = {
-	selectBarks: [
-		bark(180, 0.12, "square", 20, 6),
-		bark(200, 0.1, "sawtooth", 15, 5),
-	],
-	commandBarks: [
-		bark(220, 0.08, "square", 10, 4),
-	],
+	selectBarks: [bark(180, 0.12, "square", 20, 6), bark(200, 0.1, "sawtooth", 15, 5)],
+	commandBarks: [bark(220, 0.08, "square", 10, 4)],
 };
 
 const raftsman: UnitVoiceProfile = {
-	selectBarks: [
-		bark(300, 0.09, "sine"),
-		bark(280, 0.08, "triangle"),
-	],
-	commandBarks: [
-		bark(320, 0.05, "sine"),
-	],
+	selectBarks: [bark(300, 0.09, "sine"), bark(280, 0.08, "triangle")],
+	commandBarks: [bark(320, 0.05, "sine")],
 };
 
 const mortarOtter: UnitVoiceProfile = {
@@ -115,19 +84,12 @@ const mortarOtter: UnitVoiceProfile = {
 		bark(170, 0.1, "square", 25, 4),
 		bark(150, 0.12, "sawtooth", 20, 3),
 	],
-	commandBarks: [
-		bark(190, 0.07, "sawtooth", 15, 3),
-	],
+	commandBarks: [bark(190, 0.07, "sawtooth", 15, 3)],
 };
 
 const diver: UnitVoiceProfile = {
-	selectBarks: [
-		bark(500, 0.06, "sine", 40, 8),
-		bark(520, 0.05, "sine", 35, 7),
-	],
-	commandBarks: [
-		bark(540, 0.04, "sine", 30, 10),
-	],
+	selectBarks: [bark(500, 0.06, "sine", 40, 8), bark(520, 0.05, "sine", 35, 7)],
+	commandBarks: [bark(540, 0.04, "sine", 30, 10)],
 };
 
 // ---------------------------------------------------------------------------
@@ -140,10 +102,7 @@ const sgtBubbles: UnitVoiceProfile = {
 		bark(280, 0.18, "sawtooth", 25, 4),
 		bark(240, 0.22, "square", 15, 3),
 	],
-	commandBarks: [
-		bark(300, 0.12, "sawtooth", 10, 3),
-		bark(290, 0.14, "square", 15, 4),
-	],
+	commandBarks: [bark(300, 0.12, "sawtooth", 10, 3), bark(290, 0.14, "square", 15, 4)],
 };
 
 const genWhiskers: UnitVoiceProfile = {
@@ -152,10 +111,7 @@ const genWhiskers: UnitVoiceProfile = {
 		bark(190, 0.22, "sawtooth", 12, 2),
 		bark(170, 0.28, "square", 8, 2),
 	],
-	commandBarks: [
-		bark(200, 0.15, "square", 6, 2),
-		bark(210, 0.12, "sawtooth", 8, 3),
-	],
+	commandBarks: [bark(200, 0.15, "square", 6, 2), bark(210, 0.12, "sawtooth", 8, 3)],
 };
 
 const cplSplash: UnitVoiceProfile = {
@@ -164,41 +120,22 @@ const cplSplash: UnitVoiceProfile = {
 		bark(500, 0.12, "sine", 40, 8),
 		bark(460, 0.18, "triangle", 45, 9),
 	],
-	commandBarks: [
-		bark(520, 0.1, "sine", 30, 8),
-	],
+	commandBarks: [bark(520, 0.1, "sine", 30, 8)],
 };
 
 const sgtFang: UnitVoiceProfile = {
-	selectBarks: [
-		bark(150, 0.2, "square", 30, 4),
-		bark(160, 0.18, "sawtooth", 25, 3),
-	],
-	commandBarks: [
-		bark(170, 0.12, "square", 20, 4),
-		bark(180, 0.1, "sawtooth", 15, 3),
-	],
+	selectBarks: [bark(150, 0.2, "square", 30, 4), bark(160, 0.18, "sawtooth", 25, 3)],
+	commandBarks: [bark(170, 0.12, "square", 20, 4), bark(180, 0.1, "sawtooth", 15, 3)],
 };
 
 const medicMarina: UnitVoiceProfile = {
-	selectBarks: [
-		bark(550, 0.15, "sine"),
-		bark(580, 0.12, "sine"),
-		bark(520, 0.18, "triangle"),
-	],
-	commandBarks: [
-		bark(600, 0.08, "sine"),
-	],
+	selectBarks: [bark(550, 0.15, "sine"), bark(580, 0.12, "sine"), bark(520, 0.18, "triangle")],
+	commandBarks: [bark(600, 0.08, "sine")],
 };
 
 const pvtMuskrat: UnitVoiceProfile = {
-	selectBarks: [
-		bark(200, 0.2, "sawtooth", 40, 6),
-		bark(190, 0.22, "square", 35, 5),
-	],
-	commandBarks: [
-		bark(220, 0.12, "sawtooth", 25, 5),
-	],
+	selectBarks: [bark(200, 0.2, "sawtooth", 40, 6), bark(190, 0.22, "square", 35, 5)],
+	commandBarks: [bark(220, 0.12, "sawtooth", 25, 5)],
 };
 
 // ---------------------------------------------------------------------------

@@ -8,9 +8,9 @@
  * - Expressions readable (face + detail layer coverage)
  * - Color palettes consistent (all use portrait_default)
  */
-import { describe, expect, it, beforeAll } from "vitest";
-import { ALL_PORTRAITS } from "@/entities/registry";
+import { beforeAll, describe, expect, it } from "vitest";
 import { PALETTES } from "@/entities/palettes";
+import { ALL_PORTRAITS } from "@/entities/registry";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,
@@ -195,7 +195,9 @@ describe("US-074: Portrait quality consistency check", () => {
 					}
 				}
 				if (count < 5) {
-					detailNotes.push(`${id}: details layer has only ${count} non-transparent pixels — may need revision`);
+					detailNotes.push(
+						`${id}: details layer has only ${count} non-transparent pixels — may need revision`,
+					);
 				}
 			}
 

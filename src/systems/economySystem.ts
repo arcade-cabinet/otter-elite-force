@@ -188,7 +188,10 @@ export function moveEntityToward(
 ): void {
 	if (entity.has(SteeringAgent)) {
 		const agent = entity.get(SteeringAgent) as SteeringVehicle | null;
-		if (agent) { setVehiclePath(agent, [new Vector3(targetX, 0, targetY)]); return; }
+		if (agent) {
+			setVehiclePath(agent, [new Vector3(targetX, 0, targetY)]);
+			return;
+		}
 	}
 	const speed = 5; // tiles per second (placeholder, real speed comes from unit data)
 	const dx = targetX - position.x;

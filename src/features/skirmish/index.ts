@@ -1,17 +1,18 @@
 /**
  * Skirmish mode — barrel export
  */
-export { SkirmishSetup } from "./SkirmishSetup";
+
 export { SkirmishResult } from "./SkirmishResult";
+export { SkirmishSetup } from "./SkirmishSetup";
 export {
-	SKIRMISH_MAPS,
-	SKIRMISH_DIFFICULTIES,
 	countCampaignStars,
-	isMapUnlocked,
 	hasGoldUnlock,
+	isMapUnlocked,
 	MAX_CAMPAIGN_STARS,
-	type SkirmishMapDef,
+	SKIRMISH_DIFFICULTIES,
+	SKIRMISH_MAPS,
 	type SkirmishDifficultyOption,
+	type SkirmishMapDef,
 	type SkirmishMatchResult,
 	type SkirmishMatchStats,
 	type SkirmishOutcome,

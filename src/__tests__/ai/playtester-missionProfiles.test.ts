@@ -7,7 +7,6 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { PlayerPerception } from "@/ai/playtester/perception";
 import {
 	BuildArmyGoal,
 	BuildEconomyGoal,
@@ -15,40 +14,41 @@ import {
 	ScoutMapGoal,
 } from "@/ai/playtester/goals";
 import {
+	BossPhaseEvaluator,
+	BossPhaseGoal,
+	CaptureZoneEvaluator,
+	CaptureZoneGoal,
+	CautiousAdvanceGoal,
 	createMissionPlaytesterBrain,
-	MISSION_PROFILES,
+	DestroyTargetGoal,
+	DestroyTargetsEvaluator,
 	// Goals
 	EscortConvoyGoal,
-	CaptureZoneGoal,
-	StealthMoveGoal,
-	DestroyTargetGoal,
-	FortifyBaseGoal,
-	RetreatGoal,
-	FlagCarryGoal,
-	CautiousAdvanceGoal,
-	VisitLocationsGoal,
-	SiegeAssaultGoal,
-	HeroDemolitionGoal,
-	BossPhaseGoal,
-	MoveToPositionGoal,
-	SelectHeroGoal,
 	// Evaluators
 	EscortEvaluator,
-	CaptureZoneEvaluator,
-	StealthEvaluator,
-	DestroyTargetsEvaluator,
-	WeatherAwareDefenseEvaluator,
-	FlagCarryEvaluator,
-	SubmergedStealthEvaluator,
-	FogSkirmishEvaluator,
-	LiberationSweepEvaluator,
-	FortifyHoldEvaluator,
-	SiegeAssaultEvaluator,
-	MultiBaseLogisticsEvaluator,
-	HeroDemolitionEvaluator,
 	EvacuationEvaluator,
-	BossPhaseEvaluator,
+	FlagCarryEvaluator,
+	FlagCarryGoal,
+	FogSkirmishEvaluator,
+	FortifyBaseGoal,
+	FortifyHoldEvaluator,
+	HeroDemolitionEvaluator,
+	HeroDemolitionGoal,
+	LiberationSweepEvaluator,
+	MISSION_PROFILES,
+	MoveToPositionGoal,
+	MultiBaseLogisticsEvaluator,
+	RetreatGoal,
+	SelectHeroGoal,
+	SiegeAssaultEvaluator,
+	SiegeAssaultGoal,
+	StealthEvaluator,
+	StealthMoveGoal,
+	SubmergedStealthEvaluator,
+	VisitLocationsGoal,
+	WeatherAwareDefenseEvaluator,
 } from "@/ai/playtester/missionProfiles";
+import type { PlayerPerception } from "@/ai/playtester/perception";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -266,11 +266,7 @@ describe("Mission 3: Firebase Delta", () => {
 	it("selects CaptureZoneGoal when military units are available", () => {
 		const brain = createMissionPlaytesterBrain("mission_3");
 		const perception = makePerception({
-			visibleFriendlyUnits: [
-				makeMilitaryUnit(1),
-				makeMilitaryUnit(2),
-				makeMilitaryUnit(3),
-			],
+			visibleFriendlyUnits: [makeMilitaryUnit(1), makeMilitaryUnit(2), makeMilitaryUnit(3)],
 			visibleBuildings: [makeBarracks()],
 		});
 
@@ -293,9 +289,7 @@ describe("Mission 4: Prison Break", () => {
 	it("selects StealthMoveGoal when hero is present", () => {
 		const brain = createMissionPlaytesterBrain("mission_4");
 		const perception = makePerception({
-			visibleFriendlyUnits: [
-				{ ...makeMilitaryUnit(1, "sgt_bubbles"), unitType: "sgt_bubbles" },
-			],
+			visibleFriendlyUnits: [{ ...makeMilitaryUnit(1, "sgt_bubbles"), unitType: "sgt_bubbles" }],
 		});
 
 		brain.arbitrate(perception);
@@ -323,11 +317,7 @@ describe("Mission 5: Siphon Valley", () => {
 	it("selects DestroyTargetGoal when army and enemies exist", () => {
 		const brain = createMissionPlaytesterBrain("mission_5");
 		const perception = makePerception({
-			visibleFriendlyUnits: [
-				makeMilitaryUnit(1),
-				makeMilitaryUnit(2),
-				makeMilitaryUnit(3),
-			],
+			visibleFriendlyUnits: [makeMilitaryUnit(1), makeMilitaryUnit(2), makeMilitaryUnit(3)],
 			visibleEnemyUnits: [makeEnemyUnit(20)],
 		});
 
@@ -343,9 +333,7 @@ describe("Mission 5: Siphon Valley", () => {
 describe("Mission 6: Monsoon Ambush", () => {
 	it("brain includes a WeatherAwareDefenseEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_6");
-		const hasWeather = brain.evaluators.some(
-			(e) => e instanceof WeatherAwareDefenseEvaluator,
-		);
+		const hasWeather = brain.evaluators.some((e) => e instanceof WeatherAwareDefenseEvaluator);
 		expect(hasWeather).toBe(true);
 	});
 
@@ -375,10 +363,7 @@ describe("Mission 7: River Rats", () => {
 	it("selects FlagCarryGoal when military units available", () => {
 		const brain = createMissionPlaytesterBrain("mission_7");
 		const perception = makePerception({
-			visibleFriendlyUnits: [
-				makeMilitaryUnit(1),
-				makeMilitaryUnit(2),
-			],
+			visibleFriendlyUnits: [makeMilitaryUnit(1), makeMilitaryUnit(2)],
 		});
 
 		brain.arbitrate(perception);
@@ -393,9 +378,7 @@ describe("Mission 7: River Rats", () => {
 describe("Mission 8: Underwater Cache", () => {
 	it("brain includes a SubmergedStealthEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_8");
-		const hasSub = brain.evaluators.some(
-			(e) => e instanceof SubmergedStealthEvaluator,
-		);
+		const hasSub = brain.evaluators.some((e) => e instanceof SubmergedStealthEvaluator);
 		expect(hasSub).toBe(true);
 	});
 
@@ -442,20 +425,14 @@ describe("Mission 9: Dense Canopy", () => {
 describe("Mission 10: Healer's Grove", () => {
 	it("brain includes a LiberationSweepEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_10");
-		const hasLiberation = brain.evaluators.some(
-			(e) => e instanceof LiberationSweepEvaluator,
-		);
+		const hasLiberation = brain.evaluators.some((e) => e instanceof LiberationSweepEvaluator);
 		expect(hasLiberation).toBe(true);
 	});
 
 	it("selects VisitLocationsGoal when army is available", () => {
 		const brain = createMissionPlaytesterBrain("mission_10");
 		const perception = makePerception({
-			visibleFriendlyUnits: [
-				makeMilitaryUnit(1),
-				makeMilitaryUnit(2),
-				makeMilitaryUnit(3),
-			],
+			visibleFriendlyUnits: [makeMilitaryUnit(1), makeMilitaryUnit(2), makeMilitaryUnit(3)],
 		});
 
 		brain.arbitrate(perception);
@@ -470,9 +447,7 @@ describe("Mission 10: Healer's Grove", () => {
 describe("Mission 11: Entrenchment", () => {
 	it("brain includes a FortifyHoldEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_11");
-		const hasFortify = brain.evaluators.some(
-			(e) => e instanceof FortifyHoldEvaluator,
-		);
+		const hasFortify = brain.evaluators.some((e) => e instanceof FortifyHoldEvaluator);
 		expect(hasFortify).toBe(true);
 	});
 
@@ -495,9 +470,7 @@ describe("Mission 11: Entrenchment", () => {
 describe("Mission 12: The Stronghold", () => {
 	it("brain includes a SiegeAssaultEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_12");
-		const hasSiege = brain.evaluators.some(
-			(e) => e instanceof SiegeAssaultEvaluator,
-		);
+		const hasSiege = brain.evaluators.some((e) => e instanceof SiegeAssaultEvaluator);
 		expect(hasSiege).toBe(true);
 	});
 
@@ -527,9 +500,7 @@ describe("Mission 12: The Stronghold", () => {
 describe("Mission 13: Supply Lines", () => {
 	it("brain includes a MultiBaseLogisticsEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_13");
-		const hasLogistics = brain.evaluators.some(
-			(e) => e instanceof MultiBaseLogisticsEvaluator,
-		);
+		const hasLogistics = brain.evaluators.some((e) => e instanceof MultiBaseLogisticsEvaluator);
 		expect(hasLogistics).toBe(true);
 	});
 
@@ -554,9 +525,7 @@ describe("Mission 13: Supply Lines", () => {
 describe("Mission 14: Gas Depot", () => {
 	it("brain includes a HeroDemolitionEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_14");
-		const hasDemo = brain.evaluators.some(
-			(e) => e instanceof HeroDemolitionEvaluator,
-		);
+		const hasDemo = brain.evaluators.some((e) => e instanceof HeroDemolitionEvaluator);
 		expect(hasDemo).toBe(true);
 	});
 
@@ -578,9 +547,7 @@ describe("Mission 14: Gas Depot", () => {
 describe("Mission 15: Serpent's Lair", () => {
 	it("brain includes an EvacuationEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_15");
-		const hasEvac = brain.evaluators.some(
-			(e) => e instanceof EvacuationEvaluator,
-		);
+		const hasEvac = brain.evaluators.some((e) => e instanceof EvacuationEvaluator);
 		expect(hasEvac).toBe(true);
 	});
 
@@ -614,20 +581,14 @@ describe("Mission 15: Serpent's Lair", () => {
 describe("Mission 16: The Reckoning", () => {
 	it("brain includes a BossPhaseEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_16");
-		const hasBoss = brain.evaluators.some(
-			(e) => e instanceof BossPhaseEvaluator,
-		);
+		const hasBoss = brain.evaluators.some((e) => e instanceof BossPhaseEvaluator);
 		expect(hasBoss).toBe(true);
 	});
 
 	it("selects BossPhaseGoal when enemies are visible", () => {
 		const brain = createMissionPlaytesterBrain("mission_16");
 		const perception = makePerception({
-			visibleFriendlyUnits: [
-				makeMilitaryUnit(1),
-				makeMilitaryUnit(2),
-				makeMilitaryUnit(3),
-			],
+			visibleFriendlyUnits: [makeMilitaryUnit(1), makeMilitaryUnit(2), makeMilitaryUnit(3)],
 			visibleEnemyUnits: [makeEnemyUnit(20)],
 			visibleBuildings: [makeBarracks()],
 		});
@@ -654,9 +615,7 @@ describe("Mission-specific leaf goals", () => {
 	it("SelectHeroGoal produces click on hero unit", () => {
 		const goal = new SelectHeroGoal("sgt_bubbles");
 		const perception = makePerception({
-			visibleFriendlyUnits: [
-				{ ...makeMilitaryUnit(1, "sgt_bubbles"), unitType: "sgt_bubbles" },
-			],
+			visibleFriendlyUnits: [{ ...makeMilitaryUnit(1, "sgt_bubbles"), unitType: "sgt_bubbles" }],
 		});
 		goal.activateIfInactive(perception);
 		const actions = goal.execute(perception);

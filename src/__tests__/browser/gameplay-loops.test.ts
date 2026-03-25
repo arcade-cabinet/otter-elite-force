@@ -182,11 +182,7 @@ describe("Browser: Building loop", () => {
 		);
 
 		// Worker at the build site
-		world.spawn(
-			Position({ x: 5, y: 5 }),
-			Faction({ id: "ura" }),
-			ConstructingAt(building),
-		);
+		world.spawn(Position({ x: 5, y: 5 }), Faction({ id: "ura" }), ConstructingAt(building));
 
 		// Tick building system for enough time to complete
 		for (let i = 0; i < 60; i++) {
@@ -212,10 +208,7 @@ describe("Browser: Building loop", () => {
 			OwnedBy(uraFaction),
 		);
 
-		world.spawn(
-			Position({ x: 5, y: 5 }),
-			ConstructingAt(building),
-		);
+		world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
 
 		buildingSystem(world, 1);
 

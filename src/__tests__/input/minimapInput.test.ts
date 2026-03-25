@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	clampCameraScroll,
-	minimapToWorld,
-	type MinimapDimensions,
-} from "@/input/minimapInput";
+import { clampCameraScroll, type MinimapDimensions, minimapToWorld } from "@/input/minimapInput";
 
 const TILE_SIZE = 32;
 

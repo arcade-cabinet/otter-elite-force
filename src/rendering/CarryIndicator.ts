@@ -43,10 +43,7 @@ export function getCarryPipColor(resourceType: string): number | null {
  * Render carry indicator pips for all workers carrying resources.
  * Call once per frame from the render overlay.
  */
-export function renderCarryIndicators(
-	world: World,
-	graphics: Phaser.GameObjects.Graphics,
-): void {
+export function renderCarryIndicators(world: World, graphics: Phaser.GameObjects.Graphics): void {
 	const gatherers = world.query(Gatherer, Position, PhaserSprite);
 
 	for (const entity of gatherers) {
@@ -67,17 +64,9 @@ export function renderCarryIndicators(
 
 		// Draw pip with dark outline for visibility
 		graphics.fillStyle(0x000000, 0.5);
-		graphics.fillCircle(
-			centerX + PIP_OFFSET_X,
-			centerY + PIP_OFFSET_Y,
-			PIP_RADIUS + 1,
-		);
+		graphics.fillCircle(centerX + PIP_OFFSET_X, centerY + PIP_OFFSET_Y, PIP_RADIUS + 1);
 
 		graphics.fillStyle(color, 0.95);
-		graphics.fillCircle(
-			centerX + PIP_OFFSET_X,
-			centerY + PIP_OFFSET_Y,
-			PIP_RADIUS,
-		);
+		graphics.fillCircle(centerX + PIP_OFFSET_X, centerY + PIP_OFFSET_Y, PIP_RADIUS);
 	}
 }

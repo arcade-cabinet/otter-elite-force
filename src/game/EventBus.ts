@@ -61,9 +61,7 @@ class LightEventEmitter {
 		}
 
 		const ctx = context ?? null;
-		const filtered = entries.filter(
-			(entry) => entry.fn !== fn || entry.context !== ctx,
-		);
+		const filtered = entries.filter((entry) => entry.fn !== fn || entry.context !== ctx);
 
 		if (filtered.length > 0) {
 			this.listeners.set(event, filtered);

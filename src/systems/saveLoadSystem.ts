@@ -280,9 +280,7 @@ export function deserializeWorld(world: World, data: SerializedWorld): void {
 		}
 
 		// Custom: CompletedResearch — array back to Set
-		const researchData = data.singletons.CompletedResearch as
-			| { ids: string[] }
-			| undefined;
+		const researchData = data.singletons.CompletedResearch as { ids: string[] } | undefined;
 		if (researchData) {
 			if (!world.has(CompletedResearch)) {
 				world.add(CompletedResearch);

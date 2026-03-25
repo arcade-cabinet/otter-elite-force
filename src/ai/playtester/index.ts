@@ -285,9 +285,9 @@ export {
 	isBaseUnderThreat,
 	PerceptionBuilder,
 } from "./perception";
-export type { StrategyProfileName, StrategyProfile } from "./profiles";
+export type { StrategyProfile, StrategyProfileName } from "./profiles";
 export { createPlaytesterBrainWithProfile, STRATEGY_PROFILES } from "./profiles";
-export type { Mission1Result, SimLogEntry, SimState, CombatResult } from "./simulation";
+export type { CombatResult, Mission1Result, SimLogEntry, SimState } from "./simulation";
 export {
 	createMission1Sim,
 	runMission1Simulation,

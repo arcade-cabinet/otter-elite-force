@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-	EDGE_SCROLL_THRESHOLD,
 	clampZoom,
 	detectDeviceClass,
+	EDGE_SCROLL_THRESHOLD,
 	getZoomRange,
 	lerpZoom,
 } from "@/input/cameraLimits";

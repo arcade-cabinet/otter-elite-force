@@ -10,9 +10,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { EventBus } from "@/game/EventBus";
-import { installSFXBridge } from "@/audio/sfxBridge";
 import type { AudioEngine } from "@/audio/engine";
+import { installSFXBridge } from "@/audio/sfxBridge";
+import { EventBus } from "@/game/EventBus";
 
 function createMockEngine(): AudioEngine {
 	return {

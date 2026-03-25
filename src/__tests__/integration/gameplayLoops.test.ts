@@ -189,10 +189,7 @@ describe("US-003: Build loop integration", () => {
 			OwnedBy(uraFaction),
 		);
 
-		world.spawn(
-			Position({ x: 5, y: 5 }),
-			ConstructingAt(building),
-		);
+		world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
 
 		// One tick should push past 100%
 		buildingSystem(world, 1);
@@ -216,11 +213,7 @@ describe("US-003: Build loop integration", () => {
 		);
 
 		// Worker at the build site with ConstructingAt already set
-		world.spawn(
-			Position({ x: 5, y: 5 }),
-			Faction({ id: "ura" }),
-			ConstructingAt(building),
-		);
+		world.spawn(Position({ x: 5, y: 5 }), Faction({ id: "ura" }), ConstructingAt(building));
 
 		// Tick buildingSystem until complete
 		for (let i = 0; i < 60; i++) {

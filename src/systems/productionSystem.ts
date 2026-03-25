@@ -18,10 +18,10 @@ import { Faction, IsBuilding, UnitType } from "../ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
 import { PopulationState, ResourcePool } from "../ecs/traits/state";
-import { EventBus } from "../game/EventBus";
 import { world as defaultWorld } from "../ecs/world";
 import { getBuilding, getUnit } from "../entities/registry";
 import { spawnUnit } from "../entities/spawner";
+import { EventBus } from "../game/EventBus";
 
 /**
  * Queue a unit for training at a building.

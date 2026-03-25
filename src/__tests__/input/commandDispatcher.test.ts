@@ -263,11 +263,7 @@ describe("CommandDispatcher", () => {
 				// no Gatherer trait
 			);
 
-			world.spawn(
-				IsResource,
-				Faction({ id: "neutral" }),
-				Position({ x: 5, y: 5 }),
-			);
+			world.spawn(IsResource, Faction({ id: "neutral" }), Position({ x: 5, y: 5 }));
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
@@ -286,11 +282,7 @@ describe("CommandDispatcher", () => {
 				Gatherer,
 			);
 
-			world.spawn(
-				IsResource,
-				Faction({ id: "neutral" }),
-				Position({ x: 5, y: 5 }),
-			);
+			world.spawn(IsResource, Faction({ id: "neutral" }), Position({ x: 5, y: 5 }));
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 

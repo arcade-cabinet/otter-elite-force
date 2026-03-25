@@ -18,7 +18,12 @@
  *   - Mission objective tracking
  */
 
-import type { PlayerPerception, VisibleBuildingInfo, VisibleResourceInfo, VisibleUnitInfo } from "./perception";
+import type {
+	PlayerPerception,
+	VisibleBuildingInfo,
+	VisibleResourceInfo,
+	VisibleUnitInfo,
+} from "./perception";
 
 // ---------------------------------------------------------------------------
 // Simulation entity types
@@ -106,20 +111,119 @@ interface UnitStats {
 }
 
 const UNIT_STATS: Record<string, UnitStats> = {
-	river_rat: { hp: 40, armor: 0, damage: 5, range: 1, speed: 10, attackCooldown: 1.0, populationCost: 1, cost: { fish: 50 }, trainTime: 15 },
-	mudfoot: { hp: 80, armor: 2, damage: 12, range: 1, speed: 8, attackCooldown: 1.2, populationCost: 1, cost: { fish: 80, salvage: 20 }, trainTime: 20 },
-	shellcracker: { hp: 50, armor: 0, damage: 10, range: 5, speed: 9, attackCooldown: 1.5, populationCost: 1, cost: { fish: 70, salvage: 30 }, trainTime: 22 },
-	sapper: { hp: 60, armor: 1, damage: 8, range: 1, speed: 7, attackCooldown: 2.0, populationCost: 1, cost: { fish: 100, salvage: 50 }, trainTime: 30 },
-	mortar_otter: { hp: 45, armor: 0, damage: 20, range: 7, speed: 5, attackCooldown: 3.0, populationCost: 1, cost: { fish: 80, salvage: 60 }, trainTime: 35 },
-	gator: { hp: 120, armor: 4, damage: 18, range: 1, speed: 5, attackCooldown: 1.8, populationCost: 1, cost: {}, trainTime: 30 },
-	viper: { hp: 35, armor: 0, damage: 8, range: 5, speed: 8, attackCooldown: 1.5, populationCost: 1, cost: {}, trainTime: 20 },
-	scout_lizard: { hp: 25, armor: 0, damage: 3, range: 1, speed: 14, attackCooldown: 1.0, populationCost: 1, cost: {}, trainTime: 15 },
+	river_rat: {
+		hp: 40,
+		armor: 0,
+		damage: 5,
+		range: 1,
+		speed: 10,
+		attackCooldown: 1.0,
+		populationCost: 1,
+		cost: { fish: 50 },
+		trainTime: 15,
+	},
+	mudfoot: {
+		hp: 80,
+		armor: 2,
+		damage: 12,
+		range: 1,
+		speed: 8,
+		attackCooldown: 1.2,
+		populationCost: 1,
+		cost: { fish: 80, salvage: 20 },
+		trainTime: 20,
+	},
+	shellcracker: {
+		hp: 50,
+		armor: 0,
+		damage: 10,
+		range: 5,
+		speed: 9,
+		attackCooldown: 1.5,
+		populationCost: 1,
+		cost: { fish: 70, salvage: 30 },
+		trainTime: 22,
+	},
+	sapper: {
+		hp: 60,
+		armor: 1,
+		damage: 8,
+		range: 1,
+		speed: 7,
+		attackCooldown: 2.0,
+		populationCost: 1,
+		cost: { fish: 100, salvage: 50 },
+		trainTime: 30,
+	},
+	mortar_otter: {
+		hp: 45,
+		armor: 0,
+		damage: 20,
+		range: 7,
+		speed: 5,
+		attackCooldown: 3.0,
+		populationCost: 1,
+		cost: { fish: 80, salvage: 60 },
+		trainTime: 35,
+	},
+	gator: {
+		hp: 120,
+		armor: 4,
+		damage: 18,
+		range: 1,
+		speed: 5,
+		attackCooldown: 1.8,
+		populationCost: 1,
+		cost: {},
+		trainTime: 30,
+	},
+	viper: {
+		hp: 35,
+		armor: 0,
+		damage: 8,
+		range: 5,
+		speed: 8,
+		attackCooldown: 1.5,
+		populationCost: 1,
+		cost: {},
+		trainTime: 20,
+	},
+	scout_lizard: {
+		hp: 25,
+		armor: 0,
+		damage: 3,
+		range: 1,
+		speed: 14,
+		attackCooldown: 1.0,
+		populationCost: 1,
+		cost: {},
+		trainTime: 15,
+	},
 };
 
-const BUILDING_STATS: Record<string, { hp: number; buildTime: number; cost: { fish?: number; timber?: number; salvage?: number }; trains?: string[]; popCapBonus?: number }> = {
-	command_post: { hp: 600, buildTime: 60, cost: { timber: 400, salvage: 200 }, trains: ["river_rat"] },
+const BUILDING_STATS: Record<
+	string,
+	{
+		hp: number;
+		buildTime: number;
+		cost: { fish?: number; timber?: number; salvage?: number };
+		trains?: string[];
+		popCapBonus?: number;
+	}
+> = {
+	command_post: {
+		hp: 600,
+		buildTime: 60,
+		cost: { timber: 400, salvage: 200 },
+		trains: ["river_rat"],
+	},
 	barracks: { hp: 350, buildTime: 30, cost: { timber: 200 }, trains: ["mudfoot", "shellcracker"] },
-	armory: { hp: 400, buildTime: 40, cost: { timber: 300, salvage: 100 }, trains: ["sapper", "mortar_otter"] },
+	armory: {
+		hp: 400,
+		buildTime: 40,
+		cost: { timber: 300, salvage: 100 },
+		trains: ["sapper", "mortar_otter"],
+	},
 	burrow: { hp: 100, buildTime: 10, cost: { timber: 80 }, popCapBonus: 6 },
 	fish_trap: { hp: 80, buildTime: 15, cost: { timber: 100 } },
 	watchtower: { hp: 200, buildTime: 20, cost: { timber: 150 } },
@@ -165,8 +269,24 @@ export function createMission1Sim(): SimState {
 	return state;
 }
 
-function createUnit(state: SimState, unitType: string, faction: string, tileX: number, tileY: number): SimUnit {
-	const stats = UNIT_STATS[unitType] ?? { hp: 50, armor: 0, damage: 5, range: 1, speed: 5, attackCooldown: 1.0, populationCost: 1, cost: {}, trainTime: 20 };
+function createUnit(
+	state: SimState,
+	unitType: string,
+	faction: string,
+	tileX: number,
+	tileY: number,
+): SimUnit {
+	const stats = UNIT_STATS[unitType] ?? {
+		hp: 50,
+		armor: 0,
+		damage: 5,
+		range: 1,
+		speed: 5,
+		attackCooldown: 1.0,
+		populationCost: 1,
+		cost: {},
+		trainTime: 20,
+	};
 	return {
 		id: state.nextEntityId++,
 		unitType,
@@ -234,7 +354,13 @@ export function tickSimulation(state: SimState): void {
 				const unitType = building.trainQueue.shift()!;
 				const stats = UNIT_STATS[unitType];
 				if (stats && state.population.current < state.population.max) {
-					const newUnit = createUnit(state, unitType, "ura", building.tileX + 1, building.tileY + 1);
+					const newUnit = createUnit(
+						state,
+						unitType,
+						"ura",
+						building.tileX + 1,
+						building.tileY + 1,
+					);
 					state.units.push(newUnit);
 					state.population.current += stats.populationCost;
 				}
@@ -296,7 +422,9 @@ export function tickSimulation(state: SimState): void {
 
 function checkMission1Objectives(state: SimState): void {
 	const uraBuildings = state.buildings.filter((b) => b.faction === "ura" && b.alive);
-	const uraMudfoots = state.units.filter((u) => u.faction === "ura" && u.unitType === "mudfoot" && u.alive);
+	const uraMudfoots = state.units.filter(
+		(u) => u.faction === "ura" && u.unitType === "mudfoot" && u.alive,
+	);
 
 	if (uraBuildings.some((b) => b.unitType === "command_post")) {
 		state.objectivesCompleted.add("build-command-post");
@@ -329,7 +457,9 @@ function checkMission1Objectives(state: SimState): void {
  */
 export function applyPlaytesterIntent(state: SimState, _perception: PlayerPerception): void {
 	const uraUnits = state.units.filter((u) => u.faction === "ura" && u.alive);
-	const idleWorkers = uraUnits.filter((u) => u.unitType === "river_rat" && !u.isGathering && !u.hasOrders);
+	const idleWorkers = uraUnits.filter(
+		(u) => u.unitType === "river_rat" && !u.isGathering && !u.hasOrders,
+	);
 	const uraBuildings = state.buildings.filter((b) => b.faction === "ura" && b.alive);
 
 	// Phase 1: Assign idle workers to gather
@@ -364,9 +494,17 @@ export function applyPlaytesterIntent(state: SimState, _perception: PlayerPercep
 	// Phase 5: Train mudfoots if barracks is available and pop room
 	if (hasBarracks) {
 		const barracks = uraBuildings.find((b) => b.unitType === "barracks");
-		if (barracks && !barracks.isTraining && state.population.current < state.population.max && mudfoots.length < 4) {
+		if (
+			barracks &&
+			!barracks.isTraining &&
+			state.population.current < state.population.max &&
+			mudfoots.length < 4
+		) {
 			const stats = UNIT_STATS.mudfoot;
-			if (state.playerResources.fish >= (stats.cost.fish ?? 0) && state.playerResources.salvage >= (stats.cost.salvage ?? 0)) {
+			if (
+				state.playerResources.fish >= (stats.cost.fish ?? 0) &&
+				state.playerResources.salvage >= (stats.cost.salvage ?? 0)
+			) {
 				state.playerResources.fish -= stats.cost.fish ?? 0;
 				state.playerResources.salvage -= stats.cost.salvage ?? 0;
 				barracks.trainQueue.push("mudfoot");
@@ -559,7 +697,12 @@ export function runMission1Simulation(maxTicks = 960): Mission1Result {
 	const log: SimLogEntry[] = [];
 	let tick = 0;
 
-	log.push({ tick: 0, gameTime: 0, event: "mission_start", details: { units: 3, resources: state.playerResources } });
+	log.push({
+		tick: 0,
+		gameTime: 0,
+		event: "mission_start",
+		details: { units: 3, resources: state.playerResources },
+	});
 
 	while (tick < maxTicks && state.outcome === "playing") {
 		tick++;
@@ -579,7 +722,12 @@ export function runMission1Simulation(maxTicks = 960): Mission1Result {
 		// Log newly completed objectives
 		for (const obj of state.objectivesCompleted) {
 			if (!prevCompleted.has(obj)) {
-				log.push({ tick, gameTime: state.gameTime, event: "objective_complete", details: { objective: obj } });
+				log.push({
+					tick,
+					gameTime: state.gameTime,
+					event: "objective_complete",
+					details: { objective: obj },
+				});
 			}
 		}
 	}
@@ -672,10 +820,7 @@ function combatEntityFromStats(unitType: string, index: number): CombatSimUnit {
  * Simulate group combat between two teams.
  * TeamA uses focus fire (good micro), TeamB uses distributed fire.
  */
-export function simulateGroupCombat(
-	teamATypes: string[],
-	teamBTypes: string[],
-): CombatResult {
+export function simulateGroupCombat(teamATypes: string[], teamBTypes: string[]): CombatResult {
 	const teamA = teamATypes.map((t, i) => combatEntityFromStats(t, i));
 	const teamB = teamBTypes.map((t, i) => combatEntityFromStats(t, i));
 	const log: string[] = [];
@@ -749,11 +894,7 @@ export function simulateGroupCombat(
 	}
 
 	// Margin = winner's remaining HP as fraction of their total max HP
-	const margin = winner === "teamA"
-		? hpA / maxHpA
-		: winner === "teamB"
-			? hpB / maxHpB
-			: 0;
+	const margin = winner === "teamA" ? hpA / maxHpA : winner === "teamB" ? hpB / maxHpB : 0;
 
 	return {
 		winner,
@@ -770,10 +911,7 @@ export function simulateGroupCombat(
 /**
  * Simulate kiting combat: ranged units maintain distance from melee.
  */
-export function simulateKitingCombat(
-	rangedTypes: string[],
-	meleeTypes: string[],
-): CombatResult {
+export function simulateKitingCombat(rangedTypes: string[], meleeTypes: string[]): CombatResult {
 	const teamA = rangedTypes.map((t, i) => combatEntityFromStats(t, i));
 	const teamB = meleeTypes.map((t, i) => combatEntityFromStats(t, i));
 	const log: string[] = [];
@@ -816,7 +954,9 @@ export function simulateKitingCombat(
 					target.hp -= dmg;
 					if (target.hp <= 0) {
 						target.alive = false;
-						log.push(`[t=${(totalTicks * dt).toFixed(1)}s] ${unit.id} killed ${target.id} (kiting)`);
+						log.push(
+							`[t=${(totalTicks * dt).toFixed(1)}s] ${unit.id} killed ${target.id} (kiting)`,
+						);
 					}
 				}
 			}
@@ -834,7 +974,9 @@ export function simulateKitingCombat(
 						target.hp -= dmg;
 						if (target.hp <= 0) {
 							target.alive = false;
-							log.push(`[t=${(totalTicks * dt).toFixed(1)}s] ${unit.id} killed ${target.id} (melee)`);
+							log.push(
+								`[t=${(totalTicks * dt).toFixed(1)}s] ${unit.id} killed ${target.id} (melee)`,
+							);
 						}
 					}
 				}
@@ -858,11 +1000,7 @@ export function simulateKitingCombat(
 		winner = "draw";
 	}
 
-	const margin = winner === "teamA"
-		? hpA / maxHpA
-		: winner === "teamB"
-			? hpB / maxHpB
-			: 0;
+	const margin = winner === "teamA" ? hpA / maxHpA : winner === "teamB" ? hpB / maxHpB : 0;
 
 	return {
 		winner,
@@ -915,7 +1053,11 @@ export function simulateSiege(
 			if (unit.timer >= unit.cooldown) {
 				unit.timer = 0;
 				const dmg = (unit as CombatSimUnit & { damageVsBuildings?: number }).damageVsBuildings
-					? Math.max(1, ((unit as CombatSimUnit & { damageVsBuildings?: number }).damageVsBuildings ?? unit.damage) - buildingArmor)
+					? Math.max(
+							1,
+							((unit as CombatSimUnit & { damageVsBuildings?: number }).damageVsBuildings ??
+								unit.damage) - buildingArmor,
+						)
 					: Math.max(1, unit.damage - buildingArmor);
 				wallHp -= dmg;
 				if (wallHp <= 0) {
@@ -949,7 +1091,12 @@ export function simulateMortarSplash(
 } {
 	let totalDamage = 0;
 	let targetsHit = 0;
-	const results: Array<{ unitType: string; distance: number; damageDealt: number; hpRemaining: number }> = [];
+	const results: Array<{
+		unitType: string;
+		distance: number;
+		damageDealt: number;
+		hpRemaining: number;
+	}> = [];
 
 	for (const target of targets) {
 		const stats = UNIT_STATS[target.unitType];

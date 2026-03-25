@@ -122,7 +122,9 @@ function processArrival(world: World): void {
 }
 
 /** Runtime patrol waypoint index. */
-interface PatrolOrderState { _patrolIndex?: number; }
+interface PatrolOrderState {
+	_patrolIndex?: number;
+}
 
 /**
  * Set a direct path on a vehicle to a target position.

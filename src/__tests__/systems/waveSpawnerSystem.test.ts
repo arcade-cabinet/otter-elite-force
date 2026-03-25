@@ -18,9 +18,9 @@ import { Position } from "@/ecs/traits/spatial";
 import {
 	buildEscalationSchedule,
 	createWaveSpawnerState,
-	waveSpawnerSystem,
 	type WaveDefinition,
 	type WaveSchedule,
+	waveSpawnerSystem,
 } from "@/systems/waveSpawnerSystem";
 
 describe("waveSpawnerSystem", () => {
@@ -177,9 +177,7 @@ describe("waveSpawnerSystem", () => {
 		it("boss wave at 75% should include croc_champion for 6+ wave schedules", () => {
 			const schedule = buildEscalationSchedule(8, 60, defaultSpawnPoints, "tactical");
 			// 75% of 8 = wave 6
-			const bossWave = schedule.waves.find(
-				(w) => w.isBoss && w.waveNumber < schedule.waves.length,
-			);
+			const bossWave = schedule.waves.find((w) => w.isBoss && w.waveNumber < schedule.waves.length);
 			if (bossWave) {
 				const hasCroc = bossWave.enemies.some((e) => e.unitType === "croc_champion");
 				expect(hasCroc).toBe(true);

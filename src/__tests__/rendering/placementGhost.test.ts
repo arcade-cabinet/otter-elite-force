@@ -28,9 +28,7 @@ function createMockScene() {
 	return {
 		add: {
 			graphics: vi.fn(() => createMockGraphics()),
-			text: vi.fn(
-				(_x: number, _y: number, _msg: string, _style?: unknown) => createMockText(),
-			),
+			text: vi.fn((_x: number, _y: number, _msg: string, _style?: unknown) => createMockText()),
 		},
 	};
 }

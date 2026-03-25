@@ -65,10 +65,7 @@ export async function ensureSettings(): Promise<void> {
 /** Load the settings row. Returns undefined if not yet seeded. */
 export async function loadSettings(): Promise<Settings | undefined> {
 	const db = getDatabase();
-	const rows = await db.query<Settings>(
-		`SELECT ${ALL_COLUMNS} FROM settings WHERE id = ?`,
-		[1],
-	);
+	const rows = await db.query<Settings>(`SELECT ${ALL_COLUMNS} FROM settings WHERE id = ?`, [1]);
 	return rows[0];
 }
 

@@ -65,9 +65,7 @@ describe("US-006: Victory and defeat detection", () => {
 
 	it("should fire missionFailed when failMission trigger activates", () => {
 		const scenario: Scenario = {
-			objectives: [
-				{ id: "obj-1", description: "Survive", type: "primary", status: "incomplete" },
-			],
+			objectives: [{ id: "obj-1", description: "Survive", type: "primary", status: "incomplete" }],
 			triggers: [
 				{
 					id: "defeat-timer",
@@ -121,9 +119,7 @@ describe("US-006: Victory and defeat detection", () => {
 
 	it("should stop evaluating triggers after mission failure", () => {
 		const scenario: Scenario = {
-			objectives: [
-				{ id: "obj-1", description: "Survive", type: "primary", status: "incomplete" },
-			],
+			objectives: [{ id: "obj-1", description: "Survive", type: "primary", status: "incomplete" }],
 			triggers: [
 				{
 					id: "fail-trigger",

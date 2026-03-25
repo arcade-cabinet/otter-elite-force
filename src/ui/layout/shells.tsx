@@ -181,12 +181,15 @@ export function TacticalShell({
 						data-hud-region="battlefield-well"
 						className="battlefield-well relative min-h-0 min-w-0 overflow-hidden border border-accent/20 bg-black"
 					>
-						<div className="relative h-full w-full overflow-hidden">
-							{children}
-						</div>
+						<div className="relative h-full w-full overflow-hidden">{children}</div>
 					</div>
 				</div>
-				<div className={cn("grid max-h-[30vh] items-end gap-2 overflow-hidden sm:gap-3", bottomDockClass)}>
+				<div
+					className={cn(
+						"grid max-h-[30vh] items-end gap-2 overflow-hidden sm:gap-3",
+						bottomDockClass,
+					)}
+				>
 					<div data-hud-region="center-dock" className="min-w-0 overflow-y-auto">
 						{centerDock}
 					</div>

@@ -6,9 +6,27 @@ import { Position } from "@/ecs/traits/spatial";
 // Mock Phaser to prevent Canvas initialization errors in happy-dom
 vi.mock("phaser", () => ({
 	default: {
-		Math: { Vector2: class { x = 0; y = 0; set(x: number, y: number) { this.x = x; this.y = y; } } },
+		Math: {
+			Vector2: class {
+				x = 0;
+				y = 0;
+				set(x: number, y: number) {
+					this.x = x;
+					this.y = y;
+				}
+			},
+		},
 	},
-	Math: { Vector2: class { x = 0; y = 0; set(x: number, y: number) { this.x = x; this.y = y; } } },
+	Math: {
+		Vector2: class {
+			x = 0;
+			y = 0;
+			set(x: number, y: number) {
+				this.x = x;
+				this.y = y;
+			}
+		},
+	},
 }));
 
 import { SelectionManager } from "@/input/selectionManager";
@@ -161,15 +179,9 @@ describe("SelectionManager", () => {
 		const gfx = scene.add.graphics.mock.results[0]?.value;
 		// Simulate pointer events by calling the registered callbacks
 		// onPointerDown was registered; find it
-		const pointerDownCb = scene.input.on.mock.calls.find(
-			(c: unknown[]) => c[0] === "pointerdown",
-		);
-		const pointerMoveCb = scene.input.on.mock.calls.find(
-			(c: unknown[]) => c[0] === "pointermove",
-		);
-		const pointerUpCb = scene.input.on.mock.calls.find(
-			(c: unknown[]) => c[0] === "pointerup",
-		);
+		const pointerDownCb = scene.input.on.mock.calls.find((c: unknown[]) => c[0] === "pointerdown");
+		const pointerMoveCb = scene.input.on.mock.calls.find((c: unknown[]) => c[0] === "pointermove");
+		const pointerUpCb = scene.input.on.mock.calls.find((c: unknown[]) => c[0] === "pointerup");
 		expect(pointerDownCb).toBeTruthy();
 		expect(pointerMoveCb).toBeTruthy();
 		expect(pointerUpCb).toBeTruthy();
@@ -180,8 +192,10 @@ describe("SelectionManager", () => {
 
 		// Simulate drag (move beyond threshold)
 		const mockPointerMove = {
-			worldX: 200, worldY: 200,
-			rightButtonDown: () => false, isDown: true,
+			worldX: 200,
+			worldY: 200,
+			rightButtonDown: () => false,
+			isDown: true,
 		};
 		pointerMoveCb![1].call(pointerMoveCb![2], mockPointerMove);
 
@@ -191,7 +205,8 @@ describe("SelectionManager", () => {
 
 		// Simulate pointer up — rect should clear
 		const mockPointerUp = {
-			worldX: 200, worldY: 200,
+			worldX: 200,
+			worldY: 200,
 			rightButtonReleased: () => false,
 			event: { shiftKey: false },
 		};

@@ -14,12 +14,7 @@ import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
 import { Faction, UnitType } from "@/ecs/traits/identity";
 import { Position, Velocity } from "@/ecs/traits/spatial";
 import { CampaignProgress, PopulationState, ResourcePool } from "@/ecs/traits/state";
-import {
-	aggroSystem,
-	combatSystem,
-	deathSystem,
-	projectileSystem,
-} from "@/systems/combatSystem";
+import { aggroSystem, combatSystem, deathSystem, projectileSystem } from "@/systems/combatSystem";
 import { movementSystem } from "@/systems/movementSystem";
 
 // ─── Constants ───
@@ -34,9 +29,27 @@ const BENCHMARK_TICKS = 300; // 5 seconds of gameplay
 
 const URA_ARCHETYPES = [
 	{ type: "mudfoot", hp: 80, armor: 1, damage: 12, range: 1, cooldown: 1.0, speed: 60, vision: 5 },
-	{ type: "shellcracker", hp: 70, armor: 0, damage: 15, range: 4, cooldown: 1.2, speed: 50, vision: 6 },
+	{
+		type: "shellcracker",
+		hp: 70,
+		armor: 0,
+		damage: 15,
+		range: 4,
+		cooldown: 1.2,
+		speed: 50,
+		vision: 6,
+	},
 	{ type: "river_rat", hp: 50, armor: 0, damage: 5, range: 1, cooldown: 0.8, speed: 70, vision: 4 },
-	{ type: "mortar_otter", hp: 60, armor: 0, damage: 20, range: 6, cooldown: 2.0, speed: 40, vision: 7 },
+	{
+		type: "mortar_otter",
+		hp: 60,
+		armor: 0,
+		damage: 20,
+		range: 6,
+		cooldown: 2.0,
+		speed: 40,
+		vision: 7,
+	},
 ] as const;
 
 // ─── Scale-Guard unit archetypes ───
@@ -112,11 +125,7 @@ function spawnBattleUnits(world: World) {
 	return { uraUnits, sgUnits };
 }
 
-function benchmarkSystem(
-	name: string,
-	fn: () => void,
-	ticks: number,
-): TimingResult {
+function benchmarkSystem(name: string, fn: () => void, ticks: number): TimingResult {
 	const times: number[] = [];
 
 	for (let i = 0; i < ticks; i++) {
@@ -165,15 +174,29 @@ describe("US-088: Large battle performance profiling", () => {
 
 		// Benchmark each system individually
 		const aggroResult = benchmarkSystem("aggroSystem", () => aggroSystem(world), BENCHMARK_TICKS);
-		const combatResult = benchmarkSystem("combatSystem", () => combatSystem(world, TICK_DELTA), BENCHMARK_TICKS);
-		const projectileResult = benchmarkSystem("projectileSystem", () => projectileSystem(world, TICK_DELTA), BENCHMARK_TICKS);
+		const combatResult = benchmarkSystem(
+			"combatSystem",
+			() => combatSystem(world, TICK_DELTA),
+			BENCHMARK_TICKS,
+		);
+		const projectileResult = benchmarkSystem(
+			"projectileSystem",
+			() => projectileSystem(world, TICK_DELTA),
+			BENCHMARK_TICKS,
+		);
 		const deathResult = benchmarkSystem("deathSystem", () => deathSystem(world), BENCHMARK_TICKS);
-		const movementResult = benchmarkSystem("movementSystem", () => movementSystem(world, TICK_DELTA), BENCHMARK_TICKS);
+		const movementResult = benchmarkSystem(
+			"movementSystem",
+			() => movementSystem(world, TICK_DELTA),
+			BENCHMARK_TICKS,
+		);
 
 		const results = [aggroResult, combatResult, projectileResult, deathResult, movementResult];
 
 		// Print results
-		console.log(`\n=== LARGE BATTLE PERFORMANCE PROFILE (${TOTAL_UNITS} units, ${BENCHMARK_TICKS} ticks) ===`);
+		console.log(
+			`\n=== LARGE BATTLE PERFORMANCE PROFILE (${TOTAL_UNITS} units, ${BENCHMARK_TICKS} ticks) ===`,
+		);
 		console.log("  System            | Total ms  | Avg ms/tick | Max ms/tick");
 		console.log("  ─────────────────────────────────────────────────────────");
 		for (const r of results) {

@@ -16,12 +16,8 @@
  */
 
 import type { World } from "koota";
-import {
-	CampaignProgress,
-	CompletedResearch,
-	GameClock,
-	UserSettings,
-} from "../ecs/traits/state";
+import { CampaignProgress, CompletedResearch, GameClock, UserSettings } from "../ecs/traits/state";
+import { serializeWorld } from "../systems/saveLoadSystem";
 import {
 	completeMission as dbCompleteMission,
 	getAllProgress,
@@ -29,15 +25,8 @@ import {
 	seedCampaign,
 	unlockMission,
 } from "./repos/campaignRepo";
-import {
-	listSaves,
-	saveGame,
-} from "./repos/saveRepo";
-import {
-	ensureSettings,
-	loadSettings,
-	saveSettings,
-} from "./repos/settingsRepo";
+import { listSaves, saveGame } from "./repos/saveRepo";
+import { ensureSettings, loadSettings, saveSettings } from "./repos/settingsRepo";
 import {
 	completeResearch,
 	getCompletedResearch,
@@ -46,7 +35,6 @@ import {
 	unlockBuilding,
 	unlockUnit,
 } from "./repos/unlockRepo";
-import { serializeWorld } from "../systems/saveLoadSystem";
 
 // ---------------------------------------------------------------------------
 // Auto-save slot (slot 0 = internal auto-save, slots 1-3 = manual)
@@ -156,9 +144,7 @@ export async function onMissionVictory(
 	progress.missions[missionId] = {
 		status: "completed",
 		stars: existing ? Math.max(existing.stars, stars) : stars,
-		bestTime: existing?.bestTime
-			? Math.min(existing.bestTime, playTimeMs)
-			: playTimeMs,
+		bestTime: existing?.bestTime ? Math.min(existing.bestTime, playTimeMs) : playTimeMs,
 	};
 
 	// Unlock next mission if applicable
@@ -172,10 +158,7 @@ export async function onMissionVictory(
  * Called when a mission ends in defeat. Only auto-saves world state
  * (no campaign progress update).
  */
-export async function onMissionDefeat(
-	world: World,
-	missionId: string,
-): Promise<void> {
+export async function onMissionDefeat(world: World, missionId: string): Promise<void> {
 	const data = serializeWorld(world);
 	const json = JSON.stringify(data);
 	await saveGame(AUTO_SAVE_SLOT, missionId, json);
@@ -289,7 +272,9 @@ export async function canContinue(): Promise<boolean> {
 }
 
 /** Get the latest save slot info for display. */
-export async function getLatestSaveInfo(): Promise<{ slot: number; mission_id: string; saved_at: number } | undefined> {
+export async function getLatestSaveInfo(): Promise<
+	{ slot: number; mission_id: string; saved_at: number } | undefined
+> {
 	const saves = await listSaves();
 	if (saves.length === 0) return undefined;
 	return saves.reduce((a, b) => (a.saved_at > b.saved_at ? a : b));

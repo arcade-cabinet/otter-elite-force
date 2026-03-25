@@ -13,8 +13,8 @@ import { Attack, Health } from "../ecs/traits/combat";
 import { ResearchSlot } from "../ecs/traits/economy";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { CompletedResearch, ResourcePool } from "../ecs/traits/state";
-import { EventBus } from "../game/EventBus";
 import { world as defaultWorld } from "../ecs/world";
+import { EventBus } from "../game/EventBus";
 
 // ---------------------------------------------------------------------------
 // Queue a new research at an Armory

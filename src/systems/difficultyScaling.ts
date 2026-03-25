@@ -83,7 +83,10 @@ export function getModifiersForDifficulty(difficulty: string): DifficultyModifie
  * Apply enemy damage modifier to a base damage value.
  * Use in combatSystem when an enemy (scale_guard) attacks a player (ura) unit.
  */
-export function applyEnemyDamageModifier(baseDamage: number, modifiers: DifficultyModifiers): number {
+export function applyEnemyDamageModifier(
+	baseDamage: number,
+	modifiers: DifficultyModifiers,
+): number {
 	return Math.max(1, Math.round(baseDamage * modifiers.enemyDamageMultiplier));
 }
 
@@ -91,6 +94,9 @@ export function applyEnemyDamageModifier(baseDamage: number, modifiers: Difficul
  * Apply player income modifier to a base income value.
  * Use in economySystem when player receives resources.
  */
-export function applyPlayerIncomeModifier(baseIncome: number, modifiers: DifficultyModifiers): number {
+export function applyPlayerIncomeModifier(
+	baseIncome: number,
+	modifiers: DifficultyModifiers,
+): number {
 	return Math.max(0, Math.round(baseIncome * modifiers.playerIncomeMultiplier));
 }

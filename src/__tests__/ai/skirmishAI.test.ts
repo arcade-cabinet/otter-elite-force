@@ -674,7 +674,9 @@ describe("SkirmishAI — Build Order", () => {
 		actionLog.length = 0;
 		ai.update(0.1);
 		// Now in military phase, should train army
-		const armyTrainCalls = actionLog.filter((a) => a.startsWith("train_g") || a.startsWith("train_v"));
+		const armyTrainCalls = actionLog.filter(
+			(a) => a.startsWith("train_g") || a.startsWith("train_v"),
+		);
 		expect(armyTrainCalls.length).toBeGreaterThan(0);
 	});
 });

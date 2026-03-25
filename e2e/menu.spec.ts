@@ -94,7 +94,9 @@ test.describe("Campaign View", () => {
 	});
 
 	test("has Back to Menu button", async ({ page }) => {
-		await expect(page.getByRole("button", { name: /Back to Menu/i })).toBeVisible({ timeout: 10000 });
+		await expect(page.getByRole("button", { name: /Back to Menu/i })).toBeVisible({
+			timeout: 10000,
+		});
 	});
 
 	test("shows difficulty badge", async ({ page }) => {

@@ -120,11 +120,7 @@ describe("CommandDispatcher — shift+right-click command queuing (P0 fix)", () 
 			Gatherer,
 		);
 
-		const resource1 = world.spawn(
-			IsResource,
-			Faction({ id: "neutral" }),
-			Position({ x: 5, y: 5 }),
-		);
+		const resource1 = world.spawn(IsResource, Faction({ id: "neutral" }), Position({ x: 5, y: 5 }));
 
 		const resource2 = world.spawn(
 			IsResource,

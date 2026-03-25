@@ -64,10 +64,7 @@ export function shouldShowHPBar(entity: Entity): boolean {
  * Render HP bars for all visible entities.
  * Call once per frame from the render overlay.
  */
-export function renderHPBars(
-	world: World,
-	graphics: Phaser.GameObjects.Graphics,
-): void {
+export function renderHPBars(world: World, graphics: Phaser.GameObjects.Graphics): void {
 	const entities = world.query(Health, Position, PhaserSprite);
 
 	for (const entity of entities) {

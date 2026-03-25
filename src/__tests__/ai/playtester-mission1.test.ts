@@ -13,12 +13,12 @@
 
 import { describe, expect, it } from "vitest";
 import {
+	applyPlaytesterIntent,
 	buildPerceptionFromSim,
 	createMission1Sim,
 	runMission1Simulation,
-	tickSimulation,
-	applyPlaytesterIntent,
 	type SimState,
+	tickSimulation,
 } from "@/ai/playtester/simulation";
 
 // ---------------------------------------------------------------------------
@@ -226,9 +226,7 @@ describe("US-070: AI Playtester Mission 1 Automated Playthrough", () => {
 		it("final state has command post and barracks", () => {
 			const result = runMission1Simulation(MAX_TIME);
 
-			const buildings = result.finalState.buildings.filter(
-				(b) => b.alive && b.faction === "ura",
-			);
+			const buildings = result.finalState.buildings.filter((b) => b.alive && b.faction === "ura");
 			const buildingTypes = buildings.map((b) => b.unitType);
 			expect(buildingTypes).toContain("command_post");
 			expect(buildingTypes).toContain("barracks");

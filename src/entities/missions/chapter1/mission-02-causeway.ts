@@ -216,12 +216,9 @@ export const mission02Causeway: MissionDef = {
 			act.completeObjective("all-wagons-survive"),
 			act.dialogue("foxhound", "All three wagons accounted for. Full resupply."),
 		]),
-		trigger(
-			"convoy-destroyed",
-			on.unitCount("ura", "supply_wagon", "eq", 0),
-			act.failMission(),
-			{ enabled: false },
-		),
+		trigger("convoy-destroyed", on.unitCount("ura", "supply_wagon", "eq", 0), act.failMission(), {
+			enabled: false,
+		}),
 		trigger("mission-complete", on.allPrimaryComplete(), [
 			act.dialogue(
 				"foxhound",
