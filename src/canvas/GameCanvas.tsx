@@ -27,6 +27,7 @@ import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
 import { EntityLayer } from "./EntityLayer";
 import { MinimapLayer } from "./MinimapLayer";
 import { OverlayLayer } from "./OverlayLayer";
+import { FogLayer } from "./FogLayer";
 import { TerrainLayer } from "./TerrainLayer";
 import { paintTerrain } from "./terrainPainter";
 import { useCamera } from "./useCamera";
@@ -186,8 +187,8 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
           dragSelect={dragSelect}
         />
 
-        {/* Layer 4: Fog of War (stub — US-R09) */}
-        <Layer listening={false} />
+        {/* Layer 4: Fog of War */}
+        <FogLayer camX={camera.x} camY={camera.y} viewportW={size.width} viewportH={size.height} />
       </Stage>
 
       {/* Minimap — positioned absolutely over the game canvas */}

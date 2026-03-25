@@ -172,7 +172,7 @@ export function FogLayer({ camX, camY, viewportW, viewportH }: FogLayerProps) {
   };
 
   return (
-    <Layer listening={false} opacity={0.9}>
+    <Layer listening={false} opacity={0.6}>
       <Shape
         sceneFunc={sceneFunc}
         width={viewportW}

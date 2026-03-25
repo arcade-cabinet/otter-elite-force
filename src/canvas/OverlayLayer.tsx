@@ -65,7 +65,9 @@ function lerpColor(a: string, b: string, t: number): string {
 }
 
 function getDayNightTint(elapsedMs: number): string {
-  const frac = (elapsedMs % DAY_CYCLE_MS) / DAY_CYCLE_MS;
+  // Offset so elapsedMs=0 maps to noon (t=0.5) instead of midnight (t=0.0)
+  const adjustedMs = elapsedMs + DAY_CYCLE_MS / 2;
+  const frac = (adjustedMs % DAY_CYCLE_MS) / DAY_CYCLE_MS;
   for (let i = 0; i < TINT_STOPS.length - 1; i++) {
     const cur = TINT_STOPS[i];
     const nxt = TINT_STOPS[i + 1];
