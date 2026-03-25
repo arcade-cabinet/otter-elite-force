@@ -4,7 +4,7 @@
  * Pure logic module: given minimap canvas dimensions, world dimensions (in tiles),
  * and a canvas-local pointer position, computes the world-space camera target.
  *
- * Used by the React Minimap component to snap/pan the Phaser camera.
+ * Used by the React Minimap component to snap/pan the game camera.
  */
 
 const TILE_SIZE = 32;

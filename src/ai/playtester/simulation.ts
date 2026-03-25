@@ -1,7 +1,7 @@
 /**
  * Headless RTS simulation engine for AI Playtester (US-070)
  *
- * Provides a lightweight game-state simulation that runs without Phaser,
+ * Provides a lightweight game-state simulation that runs without
  * Koota, or any DOM. The playtester drives the simulation through its
  * perception-goal-action loop, and the simulation updates state in response.
  *
@@ -759,7 +759,7 @@ export function runMission1Simulation(maxTicks = 960): Mission1Result {
 }
 
 // ---------------------------------------------------------------------------
-// Balance combat simulation (headless, no Phaser — US-072)
+// Balance combat simulation (headless — US-072)
 // ---------------------------------------------------------------------------
 
 export interface CombatSimUnit {

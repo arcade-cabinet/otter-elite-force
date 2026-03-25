@@ -2,7 +2,7 @@
  * AI Playtester Input Model
  *
  * Converts high-level PlayerAction intents into real browser events
- * dispatched to the Phaser canvas. Simulates human-like input:
+ * dispatched to the game canvas. Simulates human-like input:
  *
  * - APM limiter: configurable actions-per-minute ceiling
  * - Misclick: configurable error rate offsets click positions
@@ -11,7 +11,7 @@
  * - Camera scroll: dispatches wheel events or edge-of-screen moves
  *
  * All events hit the DOM the same way a real player's inputs do,
- * so Phaser's input system processes them identically.
+ * so the input system processes them identically.
  */
 
 import { TILE_SIZE } from "@/maps/constants";

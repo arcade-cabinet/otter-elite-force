@@ -1,15 +1,7 @@
 /**
- * EventBus — lightweight pub/sub event emitter for scene lifecycle signals.
- *
- * Replaces the previous Phaser.Events.EventEmitter to avoid pulling Phaser
- * into the initial bundle. The API surface matches what the codebase uses:
- *   .on(event, fn, context?)
- *   .off(event, fn, context?)
- *   .emit(event, ...args)
- *   .once(event, fn, context?)
+ * EventBus — lightweight pub/sub event emitter for cross-system signals.
  *
  * Events:
- *   - "current-scene-ready" (scene: Phaser.Scene)
  *   - "boot-complete"
  *   - "scene-ready"
  *   - "command-transmission" ({ missionId, speaker, text, portrait?, duration? })

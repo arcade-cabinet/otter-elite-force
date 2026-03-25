@@ -1,7 +1,7 @@
 /**
  * Gesture Detector — pure logic for classifying multi-touch gestures.
  *
- * No Phaser dependency. Takes abstract pointer states and returns
+ * Takes abstract pointer states and returns
  * gesture classifications. Used by MobileInput to translate touch
  * events into game commands.
  *

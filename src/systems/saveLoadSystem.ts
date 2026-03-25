@@ -3,8 +3,8 @@
  *
  * Serializes all ECS entities, their SoA/AoS trait values, tag traits, and
  * relations into a JSON-safe structure. Non-serializable runtime traits
- * (PhaserSprite, SteeringAgent) are skipped — they are recreated by the
- * syncSystem and movement system on load.
+ * (SteeringAgent) are skipped — they are recreated by the
+ * movement system on load.
  *
  * Architecture:
  * - Registry-based: explicit list of traits we know how to serialize
@@ -42,8 +42,6 @@ import {
 	UnitType,
 } from "../ecs/traits/identity";
 import { OrderQueue } from "../ecs/traits/orders";
-// -- Non-serializable traits (skipped) ---
-import { PhaserSprite } from "../ecs/traits/phaser";
 import { FacingDirection, Position, Velocity } from "../ecs/traits/spatial";
 import {
 	CompletedResearch,
@@ -111,15 +109,9 @@ const TAG_TRAITS: Record<string, Trait> = {
 };
 
 /**
- * Traits to NEVER serialize (runtime-only, recreated on load).
- * Used by serializeWorld to skip traits like PhaserSprite and SteeringAgent.
- */
-/**
  * Non-serializable traits (runtime-only, recreated on load):
- * - PhaserSprite — recreated by syncSystem
  * - SteeringAgent — recreated by movement system
  */
-void PhaserSprite;
 void SteeringAgent;
 
 /**

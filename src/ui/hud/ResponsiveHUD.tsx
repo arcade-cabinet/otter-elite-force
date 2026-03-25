@@ -103,7 +103,7 @@ interface ResponsiveHUDProps {
  *   - ActionBar: bottom-screen overlay, thumb-reachable
  *   - UnitPanel: compact card above ActionBar
  *   - Minimap: corner, tappable to enlarge to 40%
- *   - No overlap with Phaser canvas (pointer-events: none on non-interactive areas)
+ *   - No overlap with game canvas (pointer-events: none on non-interactive areas)
  *
  * Tablet (600-1024px):
  *   - Comfortable resource bar spacing
