@@ -74,8 +74,8 @@ export class SelectionManager {
 
 	private drawSelectionRect(x1: number, y1: number, x2: number, y2: number): void {
 		this.selectionRect.clear();
-		this.selectionRect.lineStyle(1, 0x00ff00, 0.8);
-		this.selectionRect.fillStyle(0x00ff00, 0.15);
+		this.selectionRect.lineStyle(2, 0x00ff00, 0.9);
+		this.selectionRect.fillStyle(0x00ff00, 0.2);
 
 		const x = Math.min(x1, x2);
 		const y = Math.min(y1, y2);
