@@ -8,7 +8,7 @@
 
 import type { Entity, World } from "koota";
 import type Phaser from "phaser";
-import { Gatherer } from "@/ecs/traits/economy";
+import { Gatherer, ResourceNode } from "@/ecs/traits/economy";
 import { Faction, IsResource, Selected } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
