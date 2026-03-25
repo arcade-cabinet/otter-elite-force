@@ -15,6 +15,7 @@
  * | Croc Champion  | patrol → engage → berserk                         |
  * | Siphon Drone   | approach → drain → retreat                        |
  * | Snapper        | idle → attack (stationary turret)                 |
+ * | Skink          | idle → patrol → flee (worker)                     |
  */
 
 import { STATE, type StateName } from "./states";
@@ -130,6 +131,18 @@ export const SNAPPER_PROFILE: AIProfile = {
 	},
 };
 
+export const SKINK_PROFILE: AIProfile = {
+	unitType: "skink",
+	initialState: STATE.IDLE,
+	allowedStates: [STATE.IDLE, STATE.PATROL, STATE.ALERT, STATE.FLEE],
+	transitions: {
+		[STATE.IDLE]: [STATE.PATROL, STATE.ALERT],
+		[STATE.PATROL]: [STATE.ALERT, STATE.IDLE],
+		[STATE.ALERT]: [STATE.FLEE, STATE.PATROL],
+		[STATE.FLEE]: [STATE.IDLE, STATE.PATROL],
+	},
+};
+
 // ---------------------------------------------------------------------------
 // Profile registry
 // ---------------------------------------------------------------------------
@@ -141,6 +154,7 @@ export const AI_PROFILES: Record<string, AIProfile> = {
 	croc_champion: CROC_CHAMPION_PROFILE,
 	siphon_drone: SIPHON_DRONE_PROFILE,
 	snapper: SNAPPER_PROFILE,
+	skink: SKINK_PROFILE,
 };
 
 /** Get profile for a unit type. Returns undefined for player units or unknown types. */

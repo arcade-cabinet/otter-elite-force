@@ -11,6 +11,7 @@ import {
 	getAIProfile,
 	SCOUT_LIZARD_PROFILE,
 	SIPHON_DRONE_PROFILE,
+	SKINK_PROFILE,
 	SNAPPER_PROFILE,
 	VIPER_PROFILE,
 } from "@/ai/fsm/profiles";
@@ -441,13 +442,14 @@ describe("FSM States", () => {
 // =========================================================================
 
 describe("FSM Profiles", () => {
-	it("should have profiles for all 6 Scale-Guard unit types", () => {
+	it("should have profiles for all 7 Scale-Guard unit types", () => {
 		expect(AI_PROFILES.gator).toBeDefined();
 		expect(AI_PROFILES.viper).toBeDefined();
 		expect(AI_PROFILES.scout_lizard).toBeDefined();
 		expect(AI_PROFILES.croc_champion).toBeDefined();
 		expect(AI_PROFILES.siphon_drone).toBeDefined();
 		expect(AI_PROFILES.snapper).toBeDefined();
+		expect(AI_PROFILES.skink).toBeDefined();
 	});
 
 	it("getAIProfile should return undefined for player units", () => {
