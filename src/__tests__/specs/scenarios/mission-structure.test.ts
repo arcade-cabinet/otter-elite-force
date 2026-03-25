@@ -427,10 +427,10 @@ describe("Mission-specific requirements", () => {
 		}
 	});
 
-	it("briefings have max 5 lines", () => {
+	it("briefings have max 8 lines (back-and-forth dialogue)", () => {
 		if (skip()) return;
 		for (const m of missions) {
-			expect(m.briefing.lines.length).toBeLessThanOrEqual(5);
+			expect(m.briefing.lines.length).toBeLessThanOrEqual(8);
 		}
 	});
 });

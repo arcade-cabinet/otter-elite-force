@@ -24,12 +24,24 @@ export const mission01Beachhead: MissionDef = {
 				text: "Sgt. Bubbles, this is FOXHOUND. Welcome to the Copper-Silt Reach. Intelligence suggests minimal Scale-Guard presence at this landing site.",
 			},
 			{
-				speaker: "FOXHOUND",
-				text: "Your priority is establishing a forward operating base. Gather resources, construct a Command Post and Barracks, then get boots on the ground.",
+				speaker: "Sgt. Bubbles",
+				text: "Copy, FOXHOUND. Three River Rats on the ground. What's the priority?",
 			},
 			{
 				speaker: "FOXHOUND",
-				text: "You have three River Rats for labor. Fish from the river, timber from the mangroves, salvage from the wreckage to the northeast. Move it, Sergeant.",
+				text: "Establish a forward operating base. You need a Command Post for logistics and a Barracks for infantry. Gather resources — fish from the river, timber from the mangroves.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "And the wreckage to the northeast?",
+			},
+			{
+				speaker: "FOXHOUND",
+				text: "Salvage cache. Strip it clean if you get the chance — that's bonus materiel. But don't overextend. Get the base up, train four Mudfoots, and hold the position.",
+			},
+			{
+				speaker: "Sgt. Bubbles",
+				text: "Understood. Bubbles out.",
 			},
 		],
 	},
