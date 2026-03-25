@@ -146,7 +146,7 @@ export const SVG_DECORATIONS = {
 			<circle cx="30" cy="10" r="5" fill="none" stroke="#36454f" stroke-width="2"/>
 			
 			<!-- Embossed text -->
-			<text x="30" y="30" font-family="monospace" font-size="6" text-anchor="middle" fill="#0d0d0d">URA</text>
+			<text x="30" y="30" font-family="monospace" font-size="6" text-anchor="middle" fill="#0d0d0d">OEF</text>
 			<text x="30" y="40" font-family="monospace" font-size="5" text-anchor="middle" fill="#0d0d0d">ELITE FORCE</text>
 			<text x="30" y="50" font-family="monospace" font-size="4" text-anchor="middle" fill="#0d0d0d">O POS</text>
 			<text x="30" y="58" font-family="monospace" font-size="4" text-anchor="middle" fill="#0d0d0d">NO PREF</text>

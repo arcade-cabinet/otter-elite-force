@@ -3,7 +3,7 @@
 // Pre-built base. 8 waves of Scale-Guard across 3 monsoon cycles.
 // Teaches: defensive strategy, weather adaptation, rally points.
 // Win: Survive all 8 waves.
-// Par time: 10 min (600s).
+// Par time: 20 min (1200s).
 
 import type { MissionDef } from "../../types";
 import { act, objective, on, trigger } from "../dsl";
@@ -188,7 +188,7 @@ export const mission06MonsoonAmbush: MissionDef = {
 
 	unlocks: {},
 
-	parTime: 600,
+	parTime: 1200,
 
 	difficulty: {
 		support: {

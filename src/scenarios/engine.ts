@@ -202,6 +202,11 @@ export class ScenarioEngine {
 			this._missionFailed = true;
 			this._missionFailReason = action.reason;
 			this.emit({ type: "missionFailed", reason: action.reason });
+		} else if (action.type === "enableTrigger") {
+			const target = this.scenario.triggers.find(
+				(t) => t.id === action.triggerId,
+			);
+			if (target) target.enabled = true;
 		}
 
 		// Delegate all actions to the handler (including completeObjective/failMission

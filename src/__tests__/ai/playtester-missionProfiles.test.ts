@@ -572,10 +572,10 @@ describe("Mission 14: Gas Depot", () => {
 });
 
 // ============================================================================
-// MISSION 15: Sacred Sludge — evacuation
+// MISSION 15: Serpent's Lair — evacuation
 // ============================================================================
 
-describe("Mission 15: Sacred Sludge", () => {
+describe("Mission 15: Serpent's Lair", () => {
 	it("brain includes an EvacuationEvaluator", () => {
 		const brain = createMissionPlaytesterBrain("mission_15");
 		const hasEvac = brain.evaluators.some(

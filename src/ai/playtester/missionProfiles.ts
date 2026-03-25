@@ -1161,7 +1161,7 @@ function buildMission14Brain(): PlaytesterBrain {
 }
 
 function buildMission15Brain(): PlaytesterBrain {
-	// Sacred Sludge: evacuation — retreat as sludge rises
+	// Serpent's Lair: evacuation — retreat as sludge rises
 	const brain = new PlaytesterBrain();
 	brain.addEvaluator(new EvacuationEvaluator(5, 5, 1.4));
 
@@ -1291,7 +1291,7 @@ export const MISSION_PROFILES: Record<string, MissionProfile> = {
 	},
 	mission_15: {
 		missionId: "mission_15",
-		name: "Sacred Sludge",
+		name: "Serpent's Lair",
 		description: "Evacuation — retreat as sludge rises",
 		buildBrain: buildMission15Brain,
 	},

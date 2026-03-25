@@ -13,7 +13,7 @@ export const mission15SerpentKing: MissionDef = {
 	id: "mission_15",
 	chapter: 4,
 	mission: 3,
-	name: "Sacred Sludge",
+	name: "Serpent's Lair",
 	subtitle: "Breach the citadel and defeat the Scale-Guard supreme commander",
 
 	briefing: {

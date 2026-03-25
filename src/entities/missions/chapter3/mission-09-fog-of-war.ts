@@ -72,7 +72,7 @@ export const mission09FogOfWar: MissionDef = {
 	placements: [
 		// Player units
 		{ type: "mudfoot", faction: "ura", zone: "ura_start", count: 4 },
-		{ type: "scout_otter", faction: "ura", zone: "ura_start", count: 3 },
+		{ type: "diver", faction: "ura", zone: "ura_start", count: 3 },
 		{ type: "shellcracker", faction: "ura", zone: "ura_start", count: 2 },
 
 		// Intel markers
@@ -195,7 +195,7 @@ export const mission09FogOfWar: MissionDef = {
 	],
 
 	unlocks: {
-		units: ["scout_otter"],
+		units: ["diver"],
 	},
 
 	parTime: 720,

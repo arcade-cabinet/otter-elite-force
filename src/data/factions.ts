@@ -29,7 +29,7 @@ export interface FactionDef {
 
 export const URA_FACTION: FactionDef = {
 	id: "ura",
-	name: "United River Alliance",
+	name: "Otter Elite Force",
 	doctrine: "Liberation through combined arms. Build, gather, train, liberate.",
 	unitIds: Object.keys(URA_UNITS),
 	heroIds: Object.keys(URA_HEROES),
@@ -40,7 +40,7 @@ export const URA_FACTION: FactionDef = {
 export const SCALE_GUARD_FACTION: FactionDef = {
 	id: "scale_guard",
 	name: "Scale-Guard Militia",
-	doctrine: 'Ambush, area-denial, attrition. "Sacred Sludge" ideology.',
+	doctrine: "Ambush, area-denial, attrition. Entrenched occupation.",
 	unitIds: Object.keys(SCALE_GUARD_UNITS),
 	heroIds: [],
 	buildingIds: Object.keys(SCALE_GUARD_BUILDINGS),

@@ -120,7 +120,7 @@ export const mission16LastStand: MissionDef = {
 		{ type: "sapper", faction: "ura", zone: "ura_base", count: 4 },
 		{ type: "river_rat", faction: "ura", zone: "ura_base", count: 4 },
 		{ type: "raftsman", faction: "ura", zone: "ura_base", count: 3 },
-		{ type: "scout_otter", faction: "ura", zone: "ura_base", count: 2 },
+		{ type: "diver", faction: "ura", zone: "ura_base", count: 2 },
 
 		// Full player base
 		{ type: "command_post", faction: "ura", x: 32, y: 56 },
