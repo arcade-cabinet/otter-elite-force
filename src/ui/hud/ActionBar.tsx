@@ -21,6 +21,7 @@ import { PopulationState, ResourcePool } from "@/ecs/traits/state";
 import { EventBus } from "@/game/EventBus";
 import { queueUnit } from "@/systems/productionSystem";
 import { BuildMenu } from "@/ui/hud/BuildMenu";
+import { PanelFrame } from "@/ui/hud/PanelFrame";
 import { cn } from "@/ui/lib/utils";
 
 type TraitTarget = Parameters<typeof useTrait>[0];
@@ -157,7 +158,7 @@ function ActionBarFrame({
 	onSelectAction?: (actionId: string) => void;
 	children: ReactNode;
 }) {
-	return (
+	const card = (
 		<Card
 			data-testid="action-bar"
 			className={cn(
@@ -212,6 +213,8 @@ function ActionBarFrame({
 			</CardContent>
 		</Card>
 	);
+
+	return embedded ? card : <PanelFrame>{card}</PanelFrame>;
 }
 
 function resolveHotkey(id: string) {

@@ -8,6 +8,7 @@ import { Position } from "@/ecs/traits/spatial";
 import { CurrentMission } from "@/ecs/traits/state";
 import { getMissionById } from "@/entities/missions";
 import { EventBus } from "@/game/EventBus";
+import { PanelFrame } from "@/ui/hud/PanelFrame";
 import { cn } from "@/ui/lib/utils";
 
 const TILE_SIZE = 32;
@@ -139,7 +140,7 @@ export function Minimap({
 		return () => cancelAnimationFrame(frameId);
 	}, [currentMission?.missionId, world]);
 
-	return (
+	const card = (
 		<Card
 			data-testid="minimap"
 			className={cn(
@@ -184,4 +185,6 @@ export function Minimap({
 			</CardContent>
 		</Card>
 	);
+
+	return embedded ? card : <PanelFrame>{card}</PanelFrame>;
 }

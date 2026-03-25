@@ -13,6 +13,7 @@ import { ALL_BUILDINGS } from "@/data/buildings";
 import { ALL_HEROES, ALL_UNITS } from "@/data/units";
 import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
 import { IsHero, Selected, UnitType } from "@/ecs/traits/identity";
+import { PanelFrame } from "@/ui/hud/PanelFrame";
 import { cn } from "@/ui/lib/utils";
 
 type TraitTarget = Parameters<typeof useTrait>[0];
@@ -63,7 +64,7 @@ function SingleUnitPanel({
 	const hpMax = health?.max ?? 0;
 	const hpPct = hpMax > 0 ? (hp / hpMax) * 100 : 0;
 
-	return (
+	const card = (
 		<Card
 			data-testid="unit-panel"
 			className={cn(
@@ -142,6 +143,8 @@ function SingleUnitPanel({
 			</CardContent>
 		</Card>
 	);
+
+	return embedded ? card : <PanelFrame>{card}</PanelFrame>;
 }
 
 function MultiSelectPanel({
@@ -153,7 +156,7 @@ function MultiSelectPanel({
 	compact: boolean;
 	embedded: boolean;
 }) {
-	return (
+	const card = (
 		<Card
 			data-testid="unit-panel"
 			className={cn(
@@ -181,4 +184,6 @@ function MultiSelectPanel({
 			</CardContent>
 		</Card>
 	);
+
+	return embedded ? card : <PanelFrame>{card}</PanelFrame>;
 }
