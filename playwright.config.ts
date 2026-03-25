@@ -254,7 +254,7 @@ export default defineConfig({
 	],
 
 	webServer: {
-		command: "pnpm web",
+		command: "pnpm dev --port 8081",
 		url: "http://localhost:8081",
 		reuseExistingServer: !isCI,
 		stdout: "pipe",
