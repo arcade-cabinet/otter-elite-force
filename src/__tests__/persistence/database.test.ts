@@ -14,6 +14,8 @@ import {
 } from "../../persistence/repos/campaignRepo";
 import {
 	deleteSave,
+	getLatestSave,
+	hasAnySave,
 	hasSave,
 	listSaves,
 	loadGame,
@@ -25,6 +27,16 @@ import {
 	resetSettings,
 	saveSettings,
 } from "../../persistence/repos/settingsRepo";
+import {
+	completeResearch,
+	getCompletedResearch,
+	getUnlockedBuildings,
+	getUnlockedUnits,
+	isResearchCompleted,
+	loadAllUnlocks,
+	unlockBuilding,
+	unlockUnit,
+} from "../../persistence/repos/unlockRepo";
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -50,13 +62,13 @@ describe("InMemoryDatabase + Migrations", () => {
 	it("should create all 6 tables", async () => {
 		// Verify tables exist by querying them (empty results = table exists)
 		const campaign = await db.query(
-			"SELECT mission_id, chapter, mission, status, stars, best_time_ms, units_lost, completed_at FROM campaign_progress",
+			"SELECT mission_id, chapter, mission, status, stars, best_time_ms, units_lost, completed_at, difficulty FROM campaign_progress",
 		);
 		const saves = await db.query(
-			"SELECT id, slot, mission_id, snapshot_json, saved_at FROM save_state",
+			"SELECT id, slot, mission_id, mission_name, snapshot_json, play_time_ms, saved_at FROM save_state",
 		);
 		const settings = await db.query(
-			"SELECT id, music_volume, sfx_volume, haptics_enabled, camera_speed, touch_mode, show_grid, reduce_fx FROM settings",
+			"SELECT id, master_volume, music_volume, sfx_volume, haptics_enabled, camera_speed, ui_scale, touch_mode, show_grid, reduce_fx FROM settings",
 		);
 		const units = await db.query("SELECT unit_type, unlocked_at_mission FROM unlocked_units");
 		const buildings = await db.query(
@@ -77,7 +89,7 @@ describe("InMemoryDatabase + Migrations", () => {
 	it("should be idempotent (run migrations twice)", async () => {
 		await runMigrations(db);
 		const campaign = await db.query(
-			"SELECT mission_id, chapter, mission, status, stars, best_time_ms, units_lost, completed_at FROM campaign_progress",
+			"SELECT mission_id, chapter, mission, status, stars, best_time_ms, units_lost, completed_at, difficulty FROM campaign_progress",
 		);
 		expect(campaign).toEqual([]);
 	});
@@ -132,7 +144,6 @@ describe("campaignRepo", () => {
 		await completeMission("test-m1", 1, 90000, 5);
 
 		const result = await getMissionProgress("test-m1");
-		// Should keep 3 stars (higher), but 90000 time (lower)
 		expect(result?.stars).toBe(3);
 		expect(result?.best_time_ms).toBe(90000);
 	});
@@ -171,6 +182,13 @@ describe("saveRepo", () => {
 		expect(loaded?.saved_at).toBeGreaterThan(0);
 	});
 
+	it("should save with mission_name and play_time_ms", async () => {
+		await saveGame(1, "ch1-m1", "{}", "Beachhead", 60000);
+		const loaded = await loadGame(1);
+		expect(loaded?.mission_name).toBe("Beachhead");
+		expect(loaded?.play_time_ms).toBe(60000);
+	});
+
 	it("should overwrite existing save in same slot", async () => {
 		await saveGame(1, "ch1-m1", '{"v":1}');
 		await saveGame(1, "ch1-m2", '{"v":2}');
@@ -207,6 +225,39 @@ describe("saveRepo", () => {
 		await saveGame(1, "ch1-m1", "{}");
 		expect(await hasSave(1)).toBe(true);
 	});
+
+	it("should return latest save by saved_at", async () => {
+		await saveGame(1, "ch1-m1", "{}");
+		await saveGame(2, "ch2-m5", "{}");
+
+		const latest = await getLatestSave();
+		expect(latest).toBeDefined();
+		expect(latest?.slot).toBe(2);
+		expect(latest?.mission_id).toBe("ch2-m5");
+	});
+
+	it("should return undefined for getLatestSave when no saves", async () => {
+		const latest = await getLatestSave();
+		expect(latest).toBeUndefined();
+	});
+
+	it("should report hasAnySave correctly", async () => {
+		expect(await hasAnySave()).toBe(false);
+		await saveGame(1, "ch1-m1", "{}");
+		expect(await hasAnySave()).toBe(true);
+	});
+
+	it("should include play_time_ms and mission_name in listSaves", async () => {
+		await saveGame(1, "ch1-m1", "{}", "Beachhead", 30000);
+		await saveGame(2, "ch2-m5", "{}", "River Crossing", 60000);
+
+		const saves = await listSaves();
+		expect(saves).toHaveLength(2);
+		expect(saves[0].mission_name).toBe("Beachhead");
+		expect(saves[0].play_time_ms).toBe(30000);
+		expect(saves[1].mission_name).toBe("River Crossing");
+		expect(saves[1].play_time_ms).toBe(60000);
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -219,10 +270,12 @@ describe("settingsRepo", () => {
 		const settings = await loadSettings();
 
 		expect(settings).toBeDefined();
+		expect(settings?.master_volume).toBe(1.0);
 		expect(settings?.music_volume).toBe(0.7);
 		expect(settings?.sfx_volume).toBe(1.0);
 		expect(settings?.haptics_enabled).toBe(1);
 		expect(settings?.camera_speed).toBe(1.0);
+		expect(settings?.ui_scale).toBe(1.0);
 		expect(settings?.touch_mode).toBe("auto");
 		expect(settings?.show_grid).toBe(0);
 		expect(settings?.reduce_fx).toBe(0);
@@ -232,7 +285,6 @@ describe("settingsRepo", () => {
 		await ensureSettings();
 		await saveSettings({ music_volume: 0.5 });
 
-		// Re-ensure should not overwrite
 		await ensureSettings();
 		const settings = await loadSettings();
 		expect(settings?.music_volume).toBe(0.5);
@@ -245,7 +297,6 @@ describe("settingsRepo", () => {
 		const settings = await loadSettings();
 		expect(settings?.sfx_volume).toBe(0.3);
 		expect(settings?.haptics_enabled).toBe(0);
-		// Other settings should remain default
 		expect(settings?.music_volume).toBe(0.7);
 	});
 
@@ -257,5 +308,73 @@ describe("settingsRepo", () => {
 		const settings = await loadSettings();
 		expect(settings?.music_volume).toBe(0.7);
 		expect(settings?.sfx_volume).toBe(1.0);
+	});
+
+	it("should persist master_volume and ui_scale", async () => {
+		await ensureSettings();
+		await saveSettings({ master_volume: 0.5, ui_scale: 1.5 });
+
+		const settings = await loadSettings();
+		expect(settings?.master_volume).toBe(0.5);
+		expect(settings?.ui_scale).toBe(1.5);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// unlockRepo
+// ---------------------------------------------------------------------------
+
+describe("unlockRepo", () => {
+	it("should complete and retrieve research", async () => {
+		await completeResearch("hardshell_armor", "ch2-m5");
+		await completeResearch("fish_oil_arrows", "ch2-m5");
+
+		const completed = await getCompletedResearch();
+		expect(completed).toContain("hardshell_armor");
+		expect(completed).toContain("fish_oil_arrows");
+		expect(completed).toHaveLength(2);
+	});
+
+	it("should check if research is completed", async () => {
+		expect(await isResearchCompleted("hardshell_armor")).toBe(false);
+		await completeResearch("hardshell_armor", "ch2-m5");
+		expect(await isResearchCompleted("hardshell_armor")).toBe(true);
+	});
+
+	it("should handle duplicate research completion (idempotent)", async () => {
+		await completeResearch("hardshell_armor", "ch2-m5");
+		await completeResearch("hardshell_armor", "ch2-m6");
+
+		const completed = await getCompletedResearch();
+		expect(completed).toHaveLength(1);
+	});
+
+	it("should unlock and retrieve units", async () => {
+		await unlockUnit("gator", "ch1-m2");
+		await unlockUnit("mortar_otter", "ch2-m5");
+
+		const units = await getUnlockedUnits();
+		expect(units).toContain("gator");
+		expect(units).toContain("mortar_otter");
+	});
+
+	it("should unlock and retrieve buildings", async () => {
+		await unlockBuilding("barracks", "ch1-m1");
+		await unlockBuilding("armory", "ch2-m5");
+
+		const buildings = await getUnlockedBuildings();
+		expect(buildings).toContain("barracks");
+		expect(buildings).toContain("armory");
+	});
+
+	it("should load all unlocks in one call", async () => {
+		await completeResearch("hardshell_armor", "ch2-m5");
+		await unlockUnit("gator", "ch1-m2");
+		await unlockBuilding("armory", "ch2-m5");
+
+		const all = await loadAllUnlocks();
+		expect(all.research).toContain("hardshell_armor");
+		expect(all.units).toContain("gator");
+		expect(all.buildings).toContain("armory");
 	});
 });
