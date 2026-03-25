@@ -26,6 +26,7 @@ import { GameplayTopBar } from "@/ui/hud/GameplayTopBar";
 import { PauseOverlay } from "@/ui/hud/PauseOverlay";
 import { TacticalRail } from "@/ui/hud/TacticalRail";
 import { TutorialOverlay } from "@/ui/hud/TutorialOverlay";
+import { ErrorFeedback } from "@/ui/hud/ErrorFeedback";
 import { BriefingShell, TacticalShell } from "@/ui/layout/shells";
 import { resolveTacticalHudLayout, useViewportProfile } from "@/ui/layout/viewport";
 import { cn } from "@/ui/lib/utils";
@@ -220,6 +221,7 @@ function GameplayScreen() {
 			<PhaserGame ref={phaserRef} deploymentData={deploymentData} />
 			<CombatTextOverlay />
 			<TutorialOverlay missionId={currentMission} />
+			<ErrorFeedback />
 			{isPaused ? (
 				<PauseOverlay
 					onResume={handleResume}
