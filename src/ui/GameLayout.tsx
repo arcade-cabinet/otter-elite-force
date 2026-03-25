@@ -12,7 +12,7 @@ import { useQuery, useTrait, useWorld } from "koota/react";
 import type { ReactNode } from "react";
 import { Health } from "@/ecs/traits/combat";
 import { Selected, UnitType } from "@/ecs/traits/identity";
-import { PopulationState, ResourcePool } from "@/ecs/traits/state";
+import { Objectives, PopulationState, ResourcePool } from "@/ecs/traits/state";
 import { ALL_BUILDINGS } from "@/data/buildings";
 import { ALL_HEROES, ALL_UNITS } from "@/data/units";
 import { EventBus } from "@/game/EventBus";
@@ -192,6 +192,7 @@ function ResourceStrip() {
 				<ResourceIcon color="bg-red-600 border-red-400 rounded-sm" label="Food" value={salvage} />
 			</div>
 			<div className="flex items-center space-x-3 md:space-x-6">
+				<ObjectiveBadge />
 				<span className="text-sky-200 font-bold">
 					Pop: {popCurrent}/{popMax}
 				</span>
@@ -211,6 +212,22 @@ function ResourceIcon({
 			<span className="hidden md:inline">{label}: </span>
 			<span className="text-slate-200 font-bold">{value}</span>
 		</div>
+	);
+}
+
+function ObjectiveBadge() {
+	const world = useWorld();
+	const objectives = useTrait(world, Objectives);
+	if (!objectives || objectives.list.length === 0) return null;
+
+	const primary = objectives.list.filter((o) => !o.bonus);
+	const completed = primary.filter((o) => o.status === "completed").length;
+	const total = primary.length;
+
+	return (
+		<span className="hidden sm:inline text-green-400 font-bold text-xs">
+			{completed}/{total}
+		</span>
 	);
 }
 
