@@ -15,7 +15,7 @@ import { ConstructingAt, GatheringFrom, OwnedBy, Targeting } from "@/ecs/relatio
 import { resetSessionState } from "@/ecs/singletons";
 import { Health } from "@/ecs/traits/combat";
 import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
-import { type Order, OrderQueue, RallyPoint } from "@/ecs/traits/orders";
+import { type Order, OrderQueue } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
 import {
 	CurrentMission,
@@ -58,6 +58,9 @@ import { FogOfWarSystem } from "@/systems/fogSystem";
 import type { GameLoopContext } from "@/systems/gameLoop";
 import { tickAllSystems } from "@/systems/gameLoop";
 import { destroyAllSprites } from "@/systems/syncSystem";
+import { FloatingTextManager } from "@/rendering/FloatingTextManager";
+import { renderHPBars } from "@/rendering/HPBarRenderer";
+import { renderRallyPoints } from "@/rendering/RallyPointRenderer";
 import { WeatherSystem } from "@/systems/weatherSystem";
 
 /** Tile size in pixels — matches the sync layer (32px). */
@@ -93,6 +96,7 @@ export class GameScene extends Phaser.Scene {
 	private placementPreview: Phaser.GameObjects.Graphics | null = null;
 	private deviceClass: DeviceClass = "desktop";
 	private zoomTarget = 1;
+	private floatingTextManager: FloatingTextManager | null = null;
 
 	private setScenarioObjectives(
 		objectives: Array<{
@@ -211,6 +215,7 @@ export class GameScene extends Phaser.Scene {
 
 		this.battlefieldOverlay = this.add.graphics();
 		this.battlefieldOverlay.setDepth(950);
+		this.floatingTextManager = new FloatingTextManager(this);
 		this.placementPreview = this.add.graphics();
 		this.placementPreview.setDepth(1200);
 		this.input.on("pointermove", this.handlePlacementPointerMove, this);
@@ -252,6 +257,7 @@ export class GameScene extends Phaser.Scene {
 			this.dayNightSystem?.destroy();
 			this.desktopInput?.destroy();
 			this.mobileInput?.destroy();
+			this.floatingTextManager?.destroy();
 			this.battlefieldOverlay?.destroy();
 			this.placementPreview?.destroy();
 			this.input.off("pointermove", this.handlePlacementPointerMove, this);
@@ -262,6 +268,7 @@ export class GameScene extends Phaser.Scene {
 			this.mobileInput = undefined;
 			this.activeMission = null;
 			this.placementMode = null;
+			this.floatingTextManager = null;
 			this.battlefieldOverlay = null;
 			this.placementPreview = null;
 			this.fogSystem = null;
@@ -311,6 +318,10 @@ export class GameScene extends Phaser.Scene {
 			elapsedMs: nextElapsedMs,
 		};
 		tickAllSystems(ctx);
+
+		// Update rendering modules
+		this.floatingTextManager?.update(deltaSec);
+
 		this.renderBattlefieldReadabilityOverlay();
 	}
 
@@ -384,7 +395,8 @@ export class GameScene extends Phaser.Scene {
 		this.battlefieldOverlay.clear();
 		this.renderSelectedOrderIndicators();
 		this.renderSelectionIndicators();
-		this.renderSelectedRallyIndicators();
+		renderRallyPoints(world, this.battlefieldOverlay);
+		renderHPBars(world, this.battlefieldOverlay);
 	}
 
 	private renderSelectedOrderIndicators(): void {
@@ -430,30 +442,6 @@ export class GameScene extends Phaser.Scene {
 				this.battlefieldOverlay.lineStyle(1, 0x16301a, 0.9);
 				this.battlefieldOverlay.strokeCircle(centerX, centerY, Math.max(6, radius - 3));
 			}
-		}
-	}
-
-	private renderSelectedRallyIndicators(): void {
-		if (!this.battlefieldOverlay) return;
-
-		for (const building of world.query(Selected, IsBuilding, Position, RallyPoint)) {
-			const pos = building.get(Position);
-			const rally = building.get(RallyPoint);
-			if (!pos || !rally) continue;
-
-			const startX = pos.x * TILE_SIZE + TILE_SIZE / 2;
-			const startY = pos.y * TILE_SIZE + TILE_SIZE / 2;
-			const targetX = rally.x * TILE_SIZE + TILE_SIZE / 2;
-			const targetY = rally.y * TILE_SIZE + TILE_SIZE / 2;
-
-			this.battlefieldOverlay.lineStyle(2, 0x5fd0ff, 0.88);
-			this.battlefieldOverlay.lineBetween(startX, startY, targetX, targetY);
-			this.battlefieldOverlay.fillStyle(0x08131a, 0.72);
-			this.battlefieldOverlay.fillCircle(targetX, targetY, 6);
-			this.battlefieldOverlay.lineStyle(2, 0x5fd0ff, 0.95);
-			this.battlefieldOverlay.strokeCircle(targetX, targetY, 10);
-			this.battlefieldOverlay.lineStyle(1, 0xbcecff, 0.8);
-			this.battlefieldOverlay.strokeCircle(targetX, targetY, 16);
 		}
 	}
 
