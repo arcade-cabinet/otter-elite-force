@@ -8,42 +8,31 @@
  * - initSprites() populates the cache for all types
  * - getSprite() returns cached canvases
  *
- * Note: happy-dom does not provide a real Canvas2D context, so we mock
- * getContext to return a stub that tracks fillRect calls.
+ * Uses @napi-rs/canvas (node-canvas) to provide a real Canvas2D backend
+ * following the Konva reference testing pattern. This avoids relying on
+ * happy-dom/jsdom's non-existent Canvas2D support.
  */
-import { afterEach, beforeAll, afterAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, afterAll, describe, expect, it } from 'vitest';
+import { createCanvas } from '@napi-rs/canvas';
 
-// ─── Canvas2D mock ───
-// happy-dom's HTMLCanvasElement.getContext('2d') returns null.
-// We provide a minimal stub so the generator's fillRect/fillStyle/drawImage calls succeed.
+// ─── Canvas2D backend via @napi-rs/canvas ───
+// Patch document.createElement to return real node-canvas instances
+// when 'canvas' is requested, following the Konva test setup pattern.
 
-const originalGetContext = HTMLCanvasElement.prototype.getContext;
-
-function createMockCtx(): Record<string, unknown> {
-  return {
-    fillStyle: '',
-    imageSmoothingEnabled: true,
-    fillRect: vi.fn(),
-    drawImage: vi.fn(),
-    getImageData: vi.fn(() => ({
-      data: new Uint8ClampedArray(16), // minimal non-zero data
-    })),
-    clearRect: vi.fn(),
-    save: vi.fn(),
-    restore: vi.fn(),
-  };
-}
+const origCreateElement = document.createElement.bind(document);
 
 beforeAll(() => {
-  // biome-ignore lint/suspicious/noExplicitAny: test mock
-  (HTMLCanvasElement.prototype as any).getContext = function (type: string) {
-    if (type === '2d') return createMockCtx();
-    return originalGetContext.call(this, type);
+  // biome-ignore lint/suspicious/noExplicitAny: test setup for node-canvas
+  (document as any).createElement = (tagName: string, ...args: any[]) => {
+    if (tagName === 'canvas') {
+      return createCanvas(300, 300) as unknown as HTMLCanvasElement;
+    }
+    return origCreateElement(tagName, ...args);
   };
 });
 
 afterAll(() => {
-  HTMLCanvasElement.prototype.getContext = originalGetContext;
+  document.createElement = origCreateElement;
 });
 import {
   SPRITE_TYPES,
@@ -83,26 +72,29 @@ describe('spriteGen', () => {
   describe('generateSprite()', () => {
     it.each(UNIT_TYPES)('generates a 40×40 canvas for unit "%s"', (type) => {
       const canvas = generateSprite(type);
-      expect(canvas).toBeInstanceOf(HTMLCanvasElement);
       expect(canvas.width).toBe(40);
       expect(canvas.height).toBe(40);
+      expect(canvas.getContext('2d')).not.toBeNull();
     });
 
     it.each(BUILDING_TYPES)('generates a 96×96 canvas for building "%s"', (type) => {
       const canvas = generateSprite(type);
-      expect(canvas).toBeInstanceOf(HTMLCanvasElement);
       expect(canvas.width).toBe(96);
       expect(canvas.height).toBe(96);
+      expect(canvas.getContext('2d')).not.toBeNull();
     });
 
-    it('calls fillRect during generation (sprites are not blank)', () => {
-      // Verify that drawing functions actually invoke fillRect on the context
+    it('produces canvases with non-transparent pixels', () => {
+      // Real pixel verification via @napi-rs/canvas
       for (const type of ['gatherer', 'lodge'] as SpriteType[]) {
         const canvas = generateSprite(type);
-        // The source canvas getContext was called and fillRect was invoked
-        const ctx = canvas.getContext('2d') as unknown as { fillRect: ReturnType<typeof vi.fn> };
-        // Canvas was successfully produced
-        expect(canvas).toBeInstanceOf(HTMLCanvasElement);
+        const ctx = canvas.getContext('2d')!;
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let hasPixels = false;
+        for (let i = 3; i < imageData.data.length; i += 4) {
+          if (imageData.data[i] > 0) { hasPixels = true; break; }
+        }
+        expect(hasPixels).toBe(true);
       }
     });
   });
@@ -114,7 +106,9 @@ describe('spriteGen', () => {
       expect(spriteCache.size).toBe(SPRITE_TYPES.length);
       for (const type of SPRITE_TYPES) {
         expect(spriteCache.has(type)).toBe(true);
-        expect(spriteCache.get(type)).toBeInstanceOf(HTMLCanvasElement);
+        const s = spriteCache.get(type);
+        expect(s).toBeDefined();
+        expect(s!.getContext('2d')).not.toBeNull();
       }
     });
 
@@ -136,7 +130,8 @@ describe('spriteGen', () => {
     it('returns cached canvas after initSprites()', () => {
       initSprites();
       const sprite = getSprite('gatherer');
-      expect(sprite).toBeInstanceOf(HTMLCanvasElement);
+      expect(sprite).toBeDefined();
+      expect(sprite!.getContext('2d')).not.toBeNull();
       expect(sprite).toBe(spriteCache.get('gatherer'));
     });
 
