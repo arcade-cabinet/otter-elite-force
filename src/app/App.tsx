@@ -5,7 +5,7 @@
  */
 
 import { useTrait, useWorld, WorldProvider } from "koota/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { initSingletons } from "@/ecs/singletons";
 import { AppScreen, type AppScreenType, CampaignProgress, GamePhase } from "@/ecs/traits/state";
@@ -21,6 +21,7 @@ import { AlertBanner } from "@/ui/hud/AlertBanner";
 import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
 import { CommandConsole } from "@/ui/hud/CommandConsole";
 import { GameplayTopBar } from "@/ui/hud/GameplayTopBar";
+import { PauseOverlay } from "@/ui/hud/PauseOverlay";
 import { TacticalRail } from "@/ui/hud/TacticalRail";
 import { BriefingShell, TacticalShell } from "@/ui/layout/shells";
 import { resolveTacticalHudLayout, useViewportProfile } from "@/ui/layout/viewport";
@@ -78,6 +79,8 @@ function GameplayScreen() {
 	const phaserRef = useRef<IRefPhaserGame>(null);
 	const w = useWorld();
 	const campaign = useTrait(w, CampaignProgress);
+	const gamePhase = useTrait(w, GamePhase);
+	const isPaused = gamePhase?.phase === "paused";
 	const viewport = useViewportProfile();
 	const hudLayout = resolveTacticalHudLayout(viewport);
 	const currentMission = campaign?.currentMission ?? "mission_1";
@@ -90,6 +93,30 @@ function GameplayScreen() {
 		portraitId?: string;
 		isScenario: boolean;
 	} | null>(null);
+
+	// US-020: Pause/Resume wiring
+	const handleResume = useCallback(() => {
+		w.set(GamePhase, { phase: "playing" });
+		const scene = phaserRef.current?.scene ?? phaserRef.current?.game?.scene.getScene("GameScene");
+		if (scene) {
+			scene.scene.resume("GameScene");
+		}
+	}, [w]);
+
+	const handlePause = useCallback(() => {
+		w.set(GamePhase, { phase: "paused" });
+	}, [w]);
+
+	// Listen for Phaser ESC → game-paused event
+	useEffect(() => {
+		const onGamePaused = () => {
+			handlePause();
+		};
+		EventBus.on("game-paused", onGamePaused);
+		return () => {
+			EventBus.off("game-paused", onGamePaused);
+		};
+	}, [handlePause]);
 
 	useEffect(() => {
 		const onMissionComplete = (data: {
@@ -182,6 +209,21 @@ function GameplayScreen() {
 		>
 			<PhaserGame ref={phaserRef} deploymentData={deploymentData} />
 			<CombatTextOverlay />
+			{isPaused ? (
+				<PauseOverlay
+					onResume={handleResume}
+					onSaveGame={() => {
+						/* TODO: wire save system */
+					}}
+					onSettings={() => {
+						/* TODO: in-game settings */
+					}}
+					onQuitToMenu={() => {
+						w.set(GamePhase, { phase: "loading" });
+						w.set(AppScreen, { screen: "menu" });
+					}}
+				/>
+			) : null}
 		</TacticalShell>
 	);
 }
