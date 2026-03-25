@@ -63,11 +63,12 @@ export class SelectionManager {
 		if (pointer.rightButtonReleased()) return;
 
 		this.selectionRect.clear();
+		const shiftKey = "shiftKey" in pointer.event && !!(pointer.event as MouseEvent).shiftKey;
 
 		if (this.isDragging) {
-			this.boxSelect(this.dragStart.x, this.dragStart.y, pointer.worldX, pointer.worldY);
+			this.boxSelect(this.dragStart.x, this.dragStart.y, pointer.worldX, pointer.worldY, shiftKey);
 		} else {
-			this.clickSelect(pointer.worldX, pointer.worldY);
+			this.clickSelect(pointer.worldX, pointer.worldY, shiftKey);
 		}
 
 		this.isDragging = false;
@@ -106,9 +107,7 @@ export class SelectionManager {
 	}
 
 	/** Single-click: find the nearest friendly entity under the cursor. */
-	private clickSelect(worldX: number, worldY: number): void {
-		this.clearSelection();
-
+	private clickSelect(worldX: number, worldY: number, shiftKey = false): void {
 		const tileX = Math.floor(worldX / TILE_SIZE);
 		const tileY = Math.floor(worldY / TILE_SIZE);
 		let closestEntity: Entity | null = null;
@@ -130,16 +129,28 @@ export class SelectionManager {
 			}
 		});
 
-		if (closestEntity) {
-			(closestEntity as Entity).add(Selected);
-			const unitTypeData = (closestEntity as Entity).get(UnitType);
-			EventBus.emit("unit-selected", { unitType: unitTypeData?.type ?? "" });
+		if (shiftKey && closestEntity) {
+			// Toggle: if already selected, deselect; otherwise add to selection
+			if ((closestEntity as Entity).has(Selected)) {
+				(closestEntity as Entity).remove(Selected);
+			} else {
+				(closestEntity as Entity).add(Selected);
+				const unitTypeData = (closestEntity as Entity).get(UnitType);
+				EventBus.emit("unit-selected", { unitType: unitTypeData?.type ?? "" });
+			}
+		} else {
+			this.clearSelection();
+			if (closestEntity) {
+				(closestEntity as Entity).add(Selected);
+				const unitTypeData = (closestEntity as Entity).get(UnitType);
+				EventBus.emit("unit-selected", { unitType: unitTypeData?.type ?? "" });
+			}
 		}
 	}
 
 	/** Box-select: select all friendly entities within the drag rectangle. */
-	private boxSelect(x1: number, y1: number, x2: number, y2: number): void {
-		this.clearSelection();
+	private boxSelect(x1: number, y1: number, x2: number, y2: number, shiftKey = false): void {
+		if (!shiftKey) this.clearSelection();
 
 		const minX = Math.min(x1, x2);
 		const maxX = Math.max(x1, x2);

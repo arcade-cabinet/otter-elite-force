@@ -193,6 +193,7 @@ describe("SelectionManager", () => {
 		const mockPointerUp = {
 			worldX: 200, worldY: 200,
 			rightButtonReleased: () => false,
+			event: { shiftKey: false },
 		};
 		pointerUpCb![1].call(pointerUpCb![2], mockPointerUp);
 		expect(gfx.clear).toHaveBeenCalled();
