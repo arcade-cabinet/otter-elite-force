@@ -42,7 +42,7 @@ beforeAll(() => {
 // Import after mocks are in place
 // ---------------------------------------------------------------------------
 
-import { paintTerrain, TERRAIN_TILE_SIZE } from "@/canvas/terrainPainter";
+import { paintTerrain, TERRAIN_CELL_SIZE } from "@/canvas/terrainPainter";
 
 // ---------------------------------------------------------------------------
 // Minimal MissionDef fixture (only .terrain is read by paintTerrain)
@@ -79,8 +79,8 @@ const minimalMission: MissionDef = {
 // ---------------------------------------------------------------------------
 
 describe("paintTerrain", () => {
-	it("exports TERRAIN_TILE_SIZE as 32", () => {
-		expect(TERRAIN_TILE_SIZE).toBe(32);
+	it("exports TERRAIN_CELL_SIZE as 32", () => {
+		expect(TERRAIN_CELL_SIZE).toBe(32);
 	});
 
 	it("returns a canvas with correct pixel dimensions", () => {

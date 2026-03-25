@@ -9,7 +9,7 @@ import type { Entity, World } from "koota";
 import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 import { EventBus } from "@/game/EventBus";
-import { TILE_SIZE } from "@/maps/constants";
+import { CELL_SIZE } from "@/maps/constants";
 
 export class SelectionManager {
 	private world: World;
@@ -37,8 +37,8 @@ export class SelectionManager {
 
 	/** Single-click: find the nearest friendly entity under the cursor. */
 	private clickSelect(worldX: number, worldY: number, shiftKey = false): void {
-		const tileX = Math.floor(worldX / TILE_SIZE);
-		const tileY = Math.floor(worldY / TILE_SIZE);
+		const tileX = Math.floor(worldX / CELL_SIZE);
+		const tileY = Math.floor(worldY / CELL_SIZE);
 		let closestEntity: Entity | null = null;
 		let closestDist = 2; // Max tile distance for click selection
 
@@ -87,10 +87,10 @@ export class SelectionManager {
 		const maxY = Math.max(y1, y2);
 
 		// Convert pixel bounds to tile bounds (generous: include tiles that overlap)
-		const tileMinX = Math.floor(minX / TILE_SIZE);
-		const tileMaxX = Math.ceil(maxX / TILE_SIZE);
-		const tileMinY = Math.floor(minY / TILE_SIZE);
-		const tileMaxY = Math.ceil(maxY / TILE_SIZE);
+		const tileMinX = Math.floor(minX / CELL_SIZE);
+		const tileMaxX = Math.ceil(maxX / CELL_SIZE);
+		const tileMinY = Math.floor(minY / CELL_SIZE);
+		const tileMaxY = Math.ceil(maxY / CELL_SIZE);
 
 		this.world.query(UnitType, Position, Faction).forEach((entity) => {
 			const pos = entity.get(Position);
@@ -112,8 +112,8 @@ export class SelectionManager {
 	 * Used to decide between re-selecting and issuing commands.
 	 */
 	hasFriendlyAt(worldX: number, worldY: number): boolean {
-		const tileX = Math.floor(worldX / TILE_SIZE);
-		const tileY = Math.floor(worldY / TILE_SIZE);
+		const tileX = Math.floor(worldX / CELL_SIZE);
+		const tileY = Math.floor(worldY / CELL_SIZE);
 		let found = false;
 
 		this.world.query(UnitType, Position, Faction).forEach((entity) => {

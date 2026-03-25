@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { clampCameraScroll, type MinimapDimensions, minimapToWorld } from "@/input/minimapInput";
 
-const TILE_SIZE = 32;
+const CELL_SIZE = 32;
 
 describe("minimapToWorld", () => {
 	const dims: MinimapDimensions = {
@@ -32,8 +32,8 @@ describe("minimapToWorld", () => {
 	it("maps bottom-right corner to max scroll", () => {
 		const result = minimapToWorld(160, 160, dims, vpW, vpH);
 		// tileX = 80, tileY = 60
-		expect(result.scrollX).toBe(80 * TILE_SIZE - vpW / 2);
-		expect(result.scrollY).toBe(60 * TILE_SIZE - vpH / 2);
+		expect(result.scrollX).toBe(80 * CELL_SIZE - vpW / 2);
+		expect(result.scrollY).toBe(60 * CELL_SIZE - vpH / 2);
 	});
 
 	it("handles zero-size canvas gracefully", () => {

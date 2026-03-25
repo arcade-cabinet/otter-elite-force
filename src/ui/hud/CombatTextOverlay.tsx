@@ -6,7 +6,7 @@ import { IsBuilding, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 import { ResourcePool } from "@/ecs/traits/state";
 
-const TILE_SIZE = 32;
+const CELL_SIZE = 32;
 const FLOAT_LIFETIME_MS = 900;
 
 interface Floater {
@@ -161,8 +161,8 @@ export function CombatTextOverlay({ camX, camY, viewportW, viewportH }: CombatTe
 			{floaters.map((floater) => {
 				const age = performance.now() - floater.createdAt;
 				const progress = age / FLOAT_LIFETIME_MS;
-				const screenX = floater.worldX * TILE_SIZE - camX;
-				const screenY = floater.worldY * TILE_SIZE - camY;
+				const screenX = floater.worldX * CELL_SIZE - camX;
+				const screenY = floater.worldY * CELL_SIZE - camY;
 
 				if (
 					screenX < -32 ||
@@ -178,7 +178,7 @@ export function CombatTextOverlay({ camX, camY, viewportW, viewportH }: CombatTe
 						key={floater.id}
 						className="absolute -translate-x-1/2 whitespace-nowrap font-mono text-xs font-bold tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]"
 						style={{
-							left: screenX + TILE_SIZE / 2,
+							left: screenX + CELL_SIZE / 2,
 							top: screenY - progress * 28,
 							color: floater.color,
 							opacity: Math.max(0, 1 - progress),

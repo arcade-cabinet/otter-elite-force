@@ -25,11 +25,11 @@
  *  10. waterSystem         — garrison position sync for raft passengers
  *  11. weatherSystem       — advance weather schedule
  *  12. fogSystem           — update fog of war overlay
- *  13. syncSystem          — sync Koota ECS → Phaser sprites (always last)
+ *
+ * Rendering is handled by the React/canvas layer.
  */
 
 import type { World } from "koota";
-import type Phaser from "phaser";
 import { CompletedResearch } from "../ecs/traits/state";
 import type { ScenarioEngine, ScenarioWorldQuery } from "../scenarios/engine";
 import { aiSystem, cleanupAIRunners } from "./aiSystem";
@@ -46,7 +46,6 @@ import { researchSystem } from "./researchSystem";
 import { scenarioSystem } from "./scenarioSystem";
 import { aoeSplashSystem, siegeCombatSystem } from "./siegeSystem";
 import { alertCascadeSystem, detectionSystem } from "./stealthSystem";
-import { syncKootaToPhaser } from "./syncSystem";
 import { waterSystem } from "./waterSystem";
 import type { WeatherSystem } from "./weatherSystem";
 
@@ -56,9 +55,12 @@ import type { WeatherSystem } from "./weatherSystem";
  */
 export interface GameLoopContext {
 	world: World;
-	scene: Phaser.Scene;
-	/** Delta time in seconds (Phaser provides ms — caller divides by 1000). */
+	/** Delta time in seconds. */
 	delta: number;
+	/** Canvas/viewport width in pixels. */
+	width: number;
+	/** Canvas/viewport height in pixels. */
+	height: number;
 	/** Scenario engine for the active mission. Null in skirmish/sandbox. */
 	scenarioEngine: ScenarioEngine | null;
 	/** Adapter that reads ECS state for the scenario engine. */
@@ -78,7 +80,7 @@ export interface GameLoopContext {
  * Call once per frame from GameScene.update().
  */
 export function tickAllSystems(ctx: GameLoopContext): void {
-	const { world, scene, delta } = ctx;
+	const { world, delta } = ctx;
 
 	// 1. Scenario — evaluate triggers, check win/loss conditions
 	if (ctx.scenarioEngine && ctx.scenarioWorldQuery) {
@@ -146,6 +148,4 @@ export function tickAllSystems(ctx: GameLoopContext): void {
 		ctx.fogSystem.update();
 	}
 
-	// 14. Sync — Koota ECS → Phaser sprites (always last)
-	syncKootaToPhaser(world, scene);
 }

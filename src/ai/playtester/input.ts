@@ -14,7 +14,7 @@
  * so the input system processes them identically.
  */
 
-import { TILE_SIZE } from "@/maps/constants";
+import { CELL_SIZE } from "@/maps/constants";
 
 // ---------------------------------------------------------------------------
 // Action types
@@ -288,8 +288,8 @@ export function clickAtTile(
 ): PlayerAction {
 	return {
 		type: "click",
-		screenX: tileX * TILE_SIZE + TILE_SIZE / 2 - viewportX,
-		screenY: tileY * TILE_SIZE + TILE_SIZE / 2 - viewportY,
+		screenX: tileX * CELL_SIZE + CELL_SIZE / 2 - viewportX,
+		screenY: tileY * CELL_SIZE + CELL_SIZE / 2 - viewportY,
 	};
 }
 
@@ -302,8 +302,8 @@ export function rightClickAtTile(
 ): PlayerAction {
 	return {
 		type: "rightClick",
-		screenX: tileX * TILE_SIZE + TILE_SIZE / 2 - viewportX,
-		screenY: tileY * TILE_SIZE + TILE_SIZE / 2 - viewportY,
+		screenX: tileX * CELL_SIZE + CELL_SIZE / 2 - viewportX,
+		screenY: tileY * CELL_SIZE + CELL_SIZE / 2 - viewportY,
 	};
 }
 
@@ -319,10 +319,10 @@ export function dragSelectTiles(
 ): PlayerAction {
 	return {
 		type: "drag",
-		screenX: fromTileX * TILE_SIZE - viewportX,
-		screenY: fromTileY * TILE_SIZE - viewportY,
-		endX: (toTileX + 1) * TILE_SIZE - viewportX,
-		endY: (toTileY + 1) * TILE_SIZE - viewportY,
+		screenX: fromTileX * CELL_SIZE - viewportX,
+		screenY: fromTileY * CELL_SIZE - viewportY,
+		endX: (toTileX + 1) * CELL_SIZE - viewportX,
+		endY: (toTileY + 1) * CELL_SIZE - viewportY,
 		duration,
 	};
 }

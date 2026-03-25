@@ -35,8 +35,8 @@ import { usePointerInput } from "./usePointerInput";
 
 // ─── Constants ───
 
-/** Tile size in pixels — consistent with EntityLayer and TerrainLayer. */
-const TILE_SIZE = 32;
+/** Grid cell size in pixels — consistent with EntityLayer and TerrainLayer. */
+const CELL_SIZE = 32;
 
 // ─── Placement helpers (mirrors GameScene logic) ───
 
@@ -143,8 +143,8 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
   const mission = getMissionById(missionKey);
 
   // Compute world dimensions for minimap
-  const worldW = mission ? mission.terrain.width * TILE_SIZE : 0;
-  const worldH = mission ? mission.terrain.height * TILE_SIZE : 0;
+  const worldW = mission ? mission.terrain.width * CELL_SIZE : 0;
+  const worldH = mission ? mission.terrain.height * CELL_SIZE : 0;
 
   // Pre-paint terrain canvas for minimap (memoised on mission)
   const terrainCanvas = useMemo(

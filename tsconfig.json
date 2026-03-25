@@ -43,7 +43,6 @@
 		"src/systems/productionSystem.ts",
 		"src/systems/buildingSystem.ts",
 		"src/systems/fogSystem.ts",
-		"src/systems/syncSystem.ts",
 		"src/systems/movementSystem.ts",
 		"src/systems/orderSystem.ts",
 		"src/systems/scenarioSystem.ts",
@@ -54,7 +53,6 @@
 		"src/systems/gameLoop.ts",
 		"src/ai",
 		"src/audio",
-		"src/Scenes",
 		"src/maps",
 		"src/input",
 		"src/persistence",
@@ -63,10 +61,13 @@
 		"src/sprites/compiler.ts",
 		"src/sprites/atlas.ts",
 		"src/sprites/types.ts",
+		"src/canvas",
 		"src/scenarios",
 		"src/types",
-		"src/rendering",
 		"src/features"
 	],
-	"exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
+	"exclude": [
+		"src/**/*.test.ts",
+		"src/**/__tests__/**"
+	]
 }

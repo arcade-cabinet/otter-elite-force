@@ -15,7 +15,7 @@ import { Faction, IsResource, Selected } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
 import { EventBus } from "@/game/EventBus";
-import { TILE_SIZE } from "@/maps/constants";
+import { CELL_SIZE } from "@/maps/constants";
 
 export class CommandDispatcher {
 	private world: World;
@@ -38,8 +38,8 @@ export class CommandDispatcher {
 		append = false,
 	): void {
 		if (!this.enabled) return;
-		const tileX = Math.floor(worldX / TILE_SIZE);
-		const tileY = Math.floor(worldY / TILE_SIZE);
+		const tileX = Math.floor(worldX / CELL_SIZE);
+		const tileY = Math.floor(worldY / CELL_SIZE);
 
 		if (this.shouldIssueRallyCommand()) {
 			this.issueRallyCommand(tileX, tileY);
@@ -225,8 +225,8 @@ export class CommandDispatcher {
 
 	/** Emit a command-marker event for the OverlayLayer to render. */
 	private showCommandMarker(tileX: number, tileY: number, color: number): void {
-		const px = tileX * TILE_SIZE + TILE_SIZE / 2;
-		const py = tileY * TILE_SIZE + TILE_SIZE / 2;
+		const px = tileX * CELL_SIZE + CELL_SIZE / 2;
+		const py = tileY * CELL_SIZE + CELL_SIZE / 2;
 		EventBus.emit("command-marker", { x: px, y: py, color });
 	}
 

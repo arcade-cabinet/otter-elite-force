@@ -17,7 +17,7 @@ import type { CameraState } from "./useCamera";
 
 // ─── Constants ───
 
-const TILE_SIZE = 32;
+const CELL_SIZE = 32;
 const MARGIN = 8;
 const MOBILE_W = 150;
 const MOBILE_H = 100;
@@ -106,8 +106,8 @@ export function MinimapLayer({
       const dotSize = isBldg ? 4 : 2;
 
       ctx.fillStyle = factionColor(faction.id, isRes);
-      const ex = pos.x * TILE_SIZE * sx;
-      const ey = pos.y * TILE_SIZE * sy;
+      const ex = pos.x * CELL_SIZE * sx;
+      const ey = pos.y * CELL_SIZE * sy;
       ctx.fillRect(ex - dotSize / 2, ey - dotSize / 2, dotSize, dotSize);
     }
 

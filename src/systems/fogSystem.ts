@@ -13,7 +13,7 @@ import type { World } from "koota";
 import { VisionRadius } from "@/ecs/traits/combat";
 import { Faction } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
-import { TILE_SIZE } from "@/maps/constants";
+import { CELL_SIZE } from "@/maps/constants";
 
 /** Minimal graphics-like object used by the fog system. */
 interface FogGraphics {
@@ -92,8 +92,8 @@ export class FogOfWarSystem {
 		}
 
 		// Create a RenderTexture the size of the full map
-		const mapWidth = cols * TILE_SIZE;
-		const mapHeight = rows * TILE_SIZE;
+		const mapWidth = cols * CELL_SIZE;
+		const mapHeight = rows * CELL_SIZE;
 		this.fogTexture = scene.add.renderTexture(0, 0, mapWidth, mapHeight);
 		this.fogTexture.setOrigin(0, 0);
 		// Fog renders above tilemap and units but below HUD (high depth value)
@@ -159,7 +159,7 @@ export class FogOfWarSystem {
 		for (let y = 0; y < this.rows; y++) {
 			for (let x = 0; x < this.cols; x++) {
 				if (this.exploredGrid[y][x] === FogState.Explored) {
-					this.eraserGraphics.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					this.eraserGraphics.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 				}
 			}
 		}
@@ -176,7 +176,7 @@ export class FogOfWarSystem {
 		for (let y = 0; y < this.rows; y++) {
 			for (let x = 0; x < this.cols; x++) {
 				if (this.exploredGrid[y][x] === FogState.Explored && !visibleTiles.has(`${x},${y}`)) {
-					this.eraserGraphics.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					this.eraserGraphics.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 				}
 			}
 		}
@@ -187,7 +187,7 @@ export class FogOfWarSystem {
 		this.eraserGraphics.fillStyle(0xffffff, 1);
 		for (const key of visibleTiles) {
 			const [tx, ty] = key.split(",").map(Number);
-			this.eraserGraphics.fillRect(tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+			this.eraserGraphics.fillRect(tx * CELL_SIZE, ty * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 		}
 		this.fogTexture.erase(this.eraserGraphics);
 	}
