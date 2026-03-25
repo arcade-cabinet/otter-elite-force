@@ -187,11 +187,7 @@ function BuildingPanel({
 			)}
 		>
 			<CardContent
-				className={cn(
-					"flex flex-col gap-2",
-					embedded && "p-0",
-					compact ? "p-2.5" : "p-3 sm:p-4",
-				)}
+				className={cn("flex flex-col gap-2", embedded && "p-0", compact ? "p-2.5" : "p-3 sm:p-4")}
 			>
 				{/* Header row: icon + name + HP */}
 				<div className="flex items-center gap-3">
@@ -221,7 +217,10 @@ function BuildingPanel({
 
 				{/* Production queue section */}
 				{currentProduction ? (
-					<div data-testid="building-production-queue" className="grid gap-1.5 border-t border-border/50 pt-2">
+					<div
+						data-testid="building-production-queue"
+						className="grid gap-1.5 border-t border-border/50 pt-2"
+					>
 						<div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
 							Training Queue
 						</div>
@@ -255,7 +254,10 @@ function BuildingPanel({
 
 				{/* Research slot section */}
 				{researchSlot ? (
-					<div data-testid="building-research-slot" className="grid gap-1.5 border-t border-border/50 pt-2">
+					<div
+						data-testid="building-research-slot"
+						className="grid gap-1.5 border-t border-border/50 pt-2"
+					>
 						<div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
 							Research In Progress
 						</div>
@@ -297,7 +299,7 @@ function MultiSelectPanel({
 	compact,
 	embedded,
 }: {
-	entities: TraitTarget[];
+	entities: readonly TraitTarget[];
 	compact: boolean;
 	embedded: boolean;
 }) {
@@ -341,7 +343,7 @@ function AggregateHP({
 	entities,
 	compact,
 }: {
-	entities: TraitTarget[];
+	entities: readonly TraitTarget[];
 	compact: boolean;
 }) {
 	// We sum up HP from all entities. Each entity's Health is reactive via useTrait
@@ -355,8 +357,8 @@ function AggregateHP({
 				compact ? "text-[10px]" : "text-[11px]",
 			)}
 		>
-			{entities.map((entity, i) => (
-				<EntityHPContributor key={i} entity={entity} />
+			{entities.map((entity) => (
+				<EntityHPContributor key={String(entity)} entity={entity} />
 			))}
 		</div>
 	);
@@ -395,9 +397,7 @@ function HPBar({
 				<div
 					data-testid="hp-bar-fill"
 					className={
-						hpPct > 30
-							? "h-full bg-accent transition-all"
-							: "h-full bg-destructive transition-all"
+						hpPct > 30 ? "h-full bg-accent transition-all" : "h-full bg-destructive transition-all"
 					}
 					style={{ width: `${hpPct}%` }}
 				/>
