@@ -24,6 +24,7 @@
 import { EventBus } from "@/game/EventBus";
 import type { AudioEngine } from "./engine";
 import type { SFXType } from "./sfx";
+import { playCommandBark, playSelectBark } from "./voiceBarks";
 
 /** Map of resource types to specialized gather SFX. */
 const GATHER_SFX: Record<string, SFXType> = {
@@ -39,9 +40,18 @@ const GATHER_SFX: Record<string, SFXType> = {
 export function installSFXBridge(engine: AudioEngine): () => void {
 	const play = (type: SFXType) => engine.playSFX(type);
 
-	const onUnitSelected = () => play("unitSelect");
-	const onMoveCommand = () => play("unitMove");
-	const onAttackCommand = () => play("unitAttack");
+	const onUnitSelected = (data?: { unitType?: string }) => {
+		play("unitSelect");
+		if (data?.unitType) playSelectBark(data.unitType, engine);
+	};
+	const onMoveCommand = (data?: { unitType?: string }) => {
+		play("unitMove");
+		if (data?.unitType) playCommandBark(data.unitType, engine);
+	};
+	const onAttackCommand = (data?: { unitType?: string }) => {
+		play("unitAttack");
+		if (data?.unitType) playCommandBark(data.unitType, engine);
+	};
 	const onMeleeHit = () => play("meleeHit");
 	const onRangedFire = () => play("rangedFire");
 	const onGatherCommand = (data?: { resourceType?: string }) => {
