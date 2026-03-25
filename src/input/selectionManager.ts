@@ -1,109 +1,38 @@
 /**
  * Selection Manager — handles unit selection via click and drag-rectangle.
  *
- * Integrates with Koota ECS (Selected trait) and Zustand (rtsGameStore.selectedEntityIds).
- * Operates on the GameScene's input and camera.
+ * Pure ECS logic: operates on a Koota World, no framework dependency.
+ * Visual feedback (selection rectangle) is handled by the OverlayLayer.
  */
 
 import type { Entity, World } from "koota";
-import Phaser from "phaser";
 import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 import { EventBus } from "@/game/EventBus";
 import { TILE_SIZE } from "@/maps/loader";
 
-const DRAG_THRESHOLD = 5;
-
 export class SelectionManager {
-	private scene: Phaser.Scene;
 	private world: World;
-	private selectionRect: Phaser.GameObjects.Graphics;
 	private enabled = true;
-	private isDragging = false;
-	private dragStart: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
 
-	constructor(scene: Phaser.Scene, world: World) {
-		this.scene = scene;
+	constructor(world: World) {
 		this.world = world;
-		this.selectionRect = scene.add.graphics();
-		this.selectionRect.setDepth(1000);
-
-		this.bindEvents();
 	}
 
-	private bindEvents(): void {
-		this.scene.input.on("pointerdown", this.onPointerDown, this);
-		this.scene.input.on("pointermove", this.onPointerMove, this);
-		this.scene.input.on("pointerup", this.onPointerUp, this);
-	}
-
-	private onPointerDown(pointer: Phaser.Input.Pointer): void {
+	/** Public entry point for tap-to-select. */
+	selectAt(worldX: number, worldY: number, shiftKey = false): void {
 		if (!this.enabled) return;
-		if (pointer.rightButtonDown()) return;
-
-		this.isDragging = false;
-		this.dragStart.set(pointer.worldX, pointer.worldY);
+		this.clickSelect(worldX, worldY, shiftKey);
 	}
 
-	private onPointerMove(pointer: Phaser.Input.Pointer): void {
+	/** Public entry point for box selection (drag end). */
+	selectBox(x1: number, y1: number, x2: number, y2: number, shiftKey = false): void {
 		if (!this.enabled) return;
-		if (!pointer.isDown || pointer.rightButtonDown()) return;
-
-		const dx = pointer.worldX - this.dragStart.x;
-		const dy = pointer.worldY - this.dragStart.y;
-
-		if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
-			this.isDragging = true;
-			this.drawSelectionRect(this.dragStart.x, this.dragStart.y, pointer.worldX, pointer.worldY);
-		}
-	}
-
-	private onPointerUp(pointer: Phaser.Input.Pointer): void {
-		if (!this.enabled) return;
-		if (pointer.rightButtonReleased()) return;
-
-		this.selectionRect.clear();
-		const shiftKey = "shiftKey" in pointer.event && !!(pointer.event as MouseEvent).shiftKey;
-
-		if (this.isDragging) {
-			this.boxSelect(this.dragStart.x, this.dragStart.y, pointer.worldX, pointer.worldY, shiftKey);
-		} else {
-			this.clickSelect(pointer.worldX, pointer.worldY, shiftKey);
-		}
-
-		this.isDragging = false;
-	}
-
-	private drawSelectionRect(x1: number, y1: number, x2: number, y2: number): void {
-		this.selectionRect.clear();
-		this.selectionRect.lineStyle(2, 0x00ff00, 0.9);
-		this.selectionRect.fillStyle(0x00ff00, 0.2);
-
-		const x = Math.min(x1, x2);
-		const y = Math.min(y1, y2);
-		const w = Math.abs(x2 - x1);
-		const h = Math.abs(y2 - y1);
-
-		this.selectionRect.fillRect(x, y, w, h);
-		this.selectionRect.strokeRect(x, y, w, h);
-	}
-
-	/** Public entry point for tap-to-select (used by MobileInput). */
-	selectAt(worldX: number, worldY: number): void {
-		if (!this.enabled) return;
-		this.clickSelect(worldX, worldY);
-	}
-
-	/** Public entry point for box selection (used by MobileInput on drag end). */
-	selectBox(x1: number, y1: number, x2: number, y2: number): void {
-		if (!this.enabled) return;
-		this.boxSelect(x1, y1, x2, y2);
+		this.boxSelect(x1, y1, x2, y2, shiftKey);
 	}
 
 	setEnabled(enabled: boolean): void {
 		this.enabled = enabled;
-		this.selectionRect.clear();
-		this.isDragging = false;
 	}
 
 	/** Single-click: find the nearest friendly entity under the cursor. */
@@ -179,8 +108,8 @@ export class SelectionManager {
 	}
 
 	/**
-	 * US-058: Check if a friendly (URA) entity exists near a world position.
-	 * Used by MobileInput to decide between re-selecting and issuing commands.
+	 * Check if a friendly (OEF/URA) entity exists near a world position.
+	 * Used to decide between re-selecting and issuing commands.
 	 */
 	hasFriendlyAt(worldX: number, worldY: number): boolean {
 		const tileX = Math.floor(worldX / TILE_SIZE);
@@ -211,9 +140,6 @@ export class SelectionManager {
 	}
 
 	destroy(): void {
-		this.scene.input.off("pointerdown", this.onPointerDown, this);
-		this.scene.input.off("pointermove", this.onPointerMove, this);
-		this.scene.input.off("pointerup", this.onPointerUp, this);
-		this.selectionRect.destroy();
+		// No-op — no event bindings or graphics to clean up.
 	}
 }

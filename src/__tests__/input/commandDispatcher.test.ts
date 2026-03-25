@@ -12,40 +12,13 @@ vi.mock("@/game/EventBus", () => ({
 	EventBus: { emit },
 }));
 
-function createMockGraphics() {
-	return {
-		lineStyle: vi.fn().mockReturnThis(),
-		strokeCircle: vi.fn().mockReturnThis(),
-		setDepth: vi.fn().mockReturnThis(),
-		alpha: 1,
-		scaleX: 1,
-		scaleY: 1,
-		destroy: vi.fn(),
-	};
-}
-
-function createMockScene() {
-	return {
-		input: { on: vi.fn(), off: vi.fn() },
-		add: { graphics: vi.fn(() => createMockGraphics()) },
-		tweens: {
-			add: vi.fn((config: { onComplete?: () => void }) => {
-				config.onComplete?.();
-				return config;
-			}),
-		},
-	};
-}
-
 describe("CommandDispatcher", () => {
 	let world: ReturnType<typeof createWorld>;
-	let scene: ReturnType<typeof createMockScene>;
 	let dispatcher: CommandDispatcher;
 
 	beforeEach(() => {
 		world = createWorld();
-		scene = createMockScene();
-		dispatcher = new CommandDispatcher(scene as never, world);
+		dispatcher = new CommandDispatcher(world);
 		emit.mockReset();
 	});
 
@@ -98,7 +71,7 @@ describe("CommandDispatcher", () => {
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
-			expect(scene.add.graphics).toHaveBeenCalled();
+			expect(emit).toHaveBeenCalledWith("command-marker", expect.objectContaining({ color: 0x00ff00 }));
 		});
 
 		it("does not issue move to enemy-faction units", () => {
@@ -217,8 +190,8 @@ describe("CommandDispatcher", () => {
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
-			// A marker should have been created
-			expect(scene.add.graphics).toHaveBeenCalled();
+			// A red command marker should have been emitted
+			expect(emit).toHaveBeenCalledWith("command-marker", expect.objectContaining({ color: 0xff0000 }));
 		});
 	});
 
@@ -286,7 +259,7 @@ describe("CommandDispatcher", () => {
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
-			expect(scene.add.graphics).toHaveBeenCalled();
+			expect(emit).toHaveBeenCalledWith("command-marker", expect.objectContaining({ color: 0xfbbf24 }));
 		});
 	});
 

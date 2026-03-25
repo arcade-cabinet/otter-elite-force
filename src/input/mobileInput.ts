@@ -58,8 +58,8 @@ export class MobileInput {
 	constructor(scene: Phaser.Scene, world: World) {
 		this.scene = scene;
 		this.world = world;
-		this.selectionManager = new SelectionManager(scene, world);
-		this.commandDispatcher = new CommandDispatcher(scene, world);
+		this.selectionManager = new SelectionManager(world);
+		this.commandDispatcher = new CommandDispatcher(world);
 		this.gestureDetector = new GestureDetector();
 		this.selectionRect = scene.add.graphics();
 		this.selectionRect.setDepth(1000);

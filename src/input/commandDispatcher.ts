@@ -1,13 +1,15 @@
 /**
- * Command Dispatcher — translates right-click actions into ECS orders.
+ * Command Dispatcher — translates pointer actions into ECS orders.
  *
- * Right-click on empty ground → Move order
- * Right-click on enemy entity → Attack order
- * Right-click on resource node → Gather order (workers only)
+ * Pure ECS logic: operates on a Koota World, no framework dependency.
+ * Visual feedback (command markers) is emitted via EventBus for the OverlayLayer.
+ *
+ * Context command on empty ground → Move order
+ * Context command on enemy entity → Attack order
+ * Context command on resource node → Gather order (workers only)
  */
 
 import type { Entity, World } from "koota";
-import type Phaser from "phaser";
 import { Gatherer, ResourceNode } from "@/ecs/traits/economy";
 import { Faction, IsResource, Selected } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
@@ -16,24 +18,15 @@ import { EventBus } from "@/game/EventBus";
 import { TILE_SIZE } from "@/maps/loader";
 
 export class CommandDispatcher {
-	private scene: Phaser.Scene;
 	private world: World;
 	private enabled = true;
 
-	constructor(scene: Phaser.Scene, world: World) {
-		this.scene = scene;
+	constructor(world: World) {
 		this.world = world;
-
-		this.bindEvents();
-	}
-
-	private bindEvents(): void {
-		this.scene.input.on("pointerdown", this.onPointerDown, this);
 	}
 
 	/**
 	 * Public entry point for issuing commands at a world position.
-	 * Used by MobileInput for tap-after-button and long-press commands.
 	 *
 	 * @param mode - "context" for smart right-click behavior,
 	 *               "move" for explicit move, "attack" for explicit attack
@@ -71,14 +64,6 @@ export class CommandDispatcher {
 
 		// Context mode: same as right-click logic
 		this.handleContextCommand(tileX, tileY, append);
-	}
-
-	private onPointerDown(pointer: Phaser.Input.Pointer): void {
-		if (!this.enabled) return;
-		if (!pointer.rightButtonDown()) return;
-
-		const shiftKey = "shiftKey" in pointer.event && !!(pointer.event as MouseEvent).shiftKey;
-		this.issueCommandAt(pointer.worldX, pointer.worldY, "context", shiftKey);
 	}
 
 	private handleContextCommand(tileX: number, tileY: number, append = false): void {
@@ -238,24 +223,11 @@ export class CommandDispatcher {
 		return buildings;
 	}
 
-	/** Flash a brief marker at the command target position. */
+	/** Emit a command-marker event for the OverlayLayer to render. */
 	private showCommandMarker(tileX: number, tileY: number, color: number): void {
 		const px = tileX * TILE_SIZE + TILE_SIZE / 2;
 		const py = tileY * TILE_SIZE + TILE_SIZE / 2;
-
-		const marker = this.scene.add.graphics();
-		marker.lineStyle(2, color, 0.8);
-		marker.strokeCircle(px, py, 12);
-		marker.setDepth(999);
-
-		this.scene.tweens.add({
-			targets: marker,
-			alpha: 0,
-			scaleX: 1.5,
-			scaleY: 1.5,
-			duration: 400,
-			onComplete: () => marker.destroy(),
-		});
+		EventBus.emit("command-marker", { x: px, y: py, color });
 	}
 
 	setEnabled(enabled: boolean): void {
@@ -263,6 +235,6 @@ export class CommandDispatcher {
 	}
 
 	destroy(): void {
-		this.scene.input.off("pointerdown", this.onPointerDown, this);
+		// No-op — no event bindings to clean up.
 	}
 }

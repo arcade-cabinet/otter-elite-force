@@ -12,40 +12,13 @@ vi.mock("@/game/EventBus", () => ({
 	EventBus: { emit },
 }));
 
-function createMockGraphics() {
-	return {
-		lineStyle: vi.fn().mockReturnThis(),
-		strokeCircle: vi.fn().mockReturnThis(),
-		setDepth: vi.fn().mockReturnThis(),
-		alpha: 1,
-		scaleX: 1,
-		scaleY: 1,
-		destroy: vi.fn(),
-	};
-}
-
-function createMockScene() {
-	return {
-		input: { on: vi.fn(), off: vi.fn() },
-		add: { graphics: vi.fn(() => createMockGraphics()) },
-		tweens: {
-			add: vi.fn((config: { onComplete?: () => void }) => {
-				config.onComplete?.();
-				return config;
-			}),
-		},
-	};
-}
-
 describe("CommandDispatcher — shift+right-click command queuing (P0 fix)", () => {
 	let world: ReturnType<typeof createWorld>;
-	let scene: ReturnType<typeof createMockScene>;
 	let dispatcher: CommandDispatcher;
 
 	beforeEach(() => {
 		world = createWorld();
-		scene = createMockScene();
-		dispatcher = new CommandDispatcher(scene as never, world);
+		dispatcher = new CommandDispatcher(world);
 		emit.mockReset();
 	});
 

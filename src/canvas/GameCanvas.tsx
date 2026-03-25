@@ -27,6 +27,7 @@ import { OverlayLayer } from "./OverlayLayer";
 import { TerrainLayer } from "./TerrainLayer";
 import { useCamera } from "./useCamera";
 import { useGameLoop } from "./useGameLoop";
+import { usePointerInput } from "./usePointerInput";
 
 // ─── Constants ───
 
@@ -123,7 +124,15 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
   }, []);
 
   // Camera
-  const { camera, setBounds } = useCamera(size.width, size.height);
+  const { camera, pan, setZoom, setBounds } = useCamera(size.width, size.height);
+
+  // Unified pointer input (mouse + touch → selection, commands, camera gestures)
+  const { containerProps, dragSelect } = usePointerInput({
+    world,
+    camera,
+    pan,
+    setZoom,
+  });
 
   // Load mission + spawn entities on mount
   const missionKey = resolveMissionKey(deploymentData.missionId);
@@ -142,7 +151,11 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
   useGameLoop(world, { width: size.width, height: size.height });
 
   return (
-    <div ref={containerRef} style={{ width: "100%", height: "100%", overflow: "hidden" }}>
+    <div
+      ref={containerRef}
+      style={{ width: "100%", height: "100%", overflow: "hidden", touchAction: "none" }}
+      {...containerProps}
+    >
       <Stage width={size.width} height={size.height}>
         {/* Layer 1: Terrain */}
         {mission && <TerrainLayer missionDef={mission} />}
@@ -158,6 +171,7 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
           height={size.height}
           camX={camera.x}
           camY={camera.y}
+          dragSelect={dragSelect}
         />
 
         {/* Layer 4: Fog of War (stub — US-R09) */}

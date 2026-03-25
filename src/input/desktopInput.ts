@@ -22,8 +22,8 @@ export class DesktopInput {
 	private keyboardHotkeys: KeyboardHotkeys;
 
 	constructor(scene: Phaser.Scene, world: World) {
-		this.selectionManager = new SelectionManager(scene, world);
-		this.commandDispatcher = new CommandDispatcher(scene, world);
+		this.selectionManager = new SelectionManager(world);
+		this.commandDispatcher = new CommandDispatcher(world);
 		this.keyboardHotkeys = new KeyboardHotkeys(
 			scene,
 			world,
