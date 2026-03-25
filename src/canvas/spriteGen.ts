@@ -46,6 +46,7 @@ const PAL = {
   sgBldg: '#6b3a3a',
   // Hero accent
   gold: '#ffd700',
+  goldLight: '#ffe44d',
   // Resource colors
   fishBlue: '#4488cc',
   intelGold: '#ffcc00',
@@ -169,14 +170,7 @@ function drawViper(ctx: Ctx): void {
 
 // ─── Category-based fallback drawing functions ───
 
-/** Generic unit: colored circle with faction tint + size indicator. */
-function drawFallbackUnit(ctx: Ctx, color: string, size: 'sm' | 'md' | 'lg'): void {
-  const r = size === 'sm' ? 4 : size === 'md' ? 5 : 6;
-  circle(ctx, 8, 8, r, color);
-  p(ctx, 7, 6, PAL.black); p(ctx, 9, 6, PAL.black); // eyes
-}
-
-/** Hero unit: same as faction unit but with gold border. */
+/** Hero unit: otter base with gold accents. */
 function drawHeroUnit(ctx: Ctx, factionColor: string): void {
   circle(ctx, 8, 8, 6, factionColor);
   // Gold border ring
@@ -367,15 +361,107 @@ const DRAW_FNS: Record<SpriteType, (ctx: Ctx) => void> = {
     rect(ctx, 3, 4, 1, 4, PAL.stone);
     p(ctx, 2, 4, PAL.stoneL);
   },
-  // Scale-Guard units
-  skink: (ctx) => drawFallbackUnit(ctx, PAL.gatorLight, 'sm'),
+  // Scale-Guard units — each a distinct reptile silhouette
+  skink: (ctx) => {
+    // Small worker lizard — thin, quick, low to ground
+    rect(ctx, 4, 10, 8, 3, PAL.gatorLight);      // body
+    rect(ctx, 12, 11, 3, 1, PAL.gatorLight);      // tail
+    rect(ctx, 2, 11, 2, 2, PAL.gatorLight);       // head
+    p(ctx, 2, 11, PAL.gatorEye);                   // eye
+    rect(ctx, 5, 13, 2, 1, PAL.gatorLight);       // front legs
+    rect(ctx, 9, 13, 2, 1, PAL.gatorLight);       // back legs
+  },
   gator: drawGator,
   viper: drawViper,
-  snapper: (ctx) => drawFallbackUnit(ctx, PAL.gatorBase, 'lg'),
-  scout_lizard: (ctx) => drawFallbackUnit(ctx, PAL.snakeBase, 'sm'),
-  croc_champion: (ctx) => drawFallbackUnit(ctx, PAL.gatorBase, 'lg'),
-  siphon_drone: (ctx) => drawFallbackUnit(ctx, PAL.waterDeep, 'sm'),
-  serpent_king: (ctx) => drawFallbackUnit(ctx, PAL.snakeBase, 'lg'),
+  snapper: (ctx) => {
+    // Armored turtle-like turret — domed shell, stubby legs, no movement
+    circle(ctx, 8, 8, 6, PAL.gatorBase);           // shell dome
+    circle(ctx, 8, 8, 4, PAL.gatorLight);          // inner shell
+    // Shell segments
+    rect(ctx, 5, 6, 6, 1, PAL.gatorBase);
+    rect(ctx, 6, 9, 4, 1, PAL.gatorBase);
+    // Head poking out front
+    rect(ctx, 2, 8, 3, 3, PAL.gatorBase);
+    p(ctx, 2, 8, PAL.gatorEye);
+    // Stubby legs
+    rect(ctx, 4, 13, 2, 2, PAL.gatorBase);
+    rect(ctx, 10, 13, 2, 2, PAL.gatorBase);
+    // Ranged projectile indicator
+    rect(ctx, 14, 7, 2, 1, PAL.stoneL);           // barrel
+  },
+  scout_lizard: (ctx) => {
+    // Fast, thin lizard — long tail, alert posture, upright
+    rect(ctx, 6, 6, 4, 6, PAL.snakeBase);         // upright body
+    rect(ctx, 5, 3, 6, 4, PAL.snakeBase);         // head (bigger for alertness)
+    p(ctx, 6, 4, PAL.gatorEye);                    // left eye (large, alert)
+    p(ctx, 9, 4, PAL.gatorEye);                    // right eye
+    rect(ctx, 7, 12, 2, 3, PAL.snakeBase);        // legs
+    rect(ctx, 4, 12, 2, 1, PAL.snakeBase);        // splayed foot
+    rect(ctx, 10, 12, 2, 1, PAL.snakeBase);
+    // Long thin tail
+    rect(ctx, 6, 12, 1, 1, PAL.snakeBase);
+    rect(ctx, 5, 13, 1, 2, PAL.snakeBase);
+    rect(ctx, 4, 14, 1, 2, PAL.snakeStripe);
+    // Alert crest/frill
+    p(ctx, 5, 3, PAL.snakeStripe);
+    p(ctx, 10, 3, PAL.snakeStripe);
+  },
+  croc_champion: (ctx) => {
+    // HUGE crocodile — fills the 16x16 frame, armored, terrifying
+    rect(ctx, 1, 8, 14, 6, PAL.gatorBase);        // massive body
+    for (let i = 1; i < 14; i += 2) p(ctx, i, 7, PAL.gatorLight); // dorsal ridges
+    rect(ctx, 0, 9, 3, 5, PAL.gatorLight);        // snout
+    p(ctx, 0, 9, PAL.gatorEye);                    // eye
+    p(ctx, 0, 11, PAL.gatorEye);                   // second eye
+    // Jaw with visible teeth
+    rect(ctx, 0, 13, 3, 1, PAL.gatorLight);
+    for (let i = 0; i < 3; i++) p(ctx, i, 14, PAL.clamShell); // teeth
+    // Tail curving back
+    rect(ctx, 14, 9, 2, 4, PAL.gatorBase);
+    rect(ctx, 15, 8, 1, 2, PAL.gatorBase);
+    // Heavy legs
+    rect(ctx, 3, 14, 3, 2, PAL.gatorBase);
+    rect(ctx, 10, 14, 3, 2, PAL.gatorBase);
+    // Armor plates on back (champion is armored)
+    rect(ctx, 4, 7, 3, 2, PAL.stone);
+    rect(ctx, 9, 7, 3, 2, PAL.stone);
+  },
+  siphon_drone: (ctx) => {
+    // Mechanical/organic hybrid — small hovering drone with tentacles
+    circle(ctx, 8, 6, 4, PAL.waterDeep);           // body orb
+    circle(ctx, 8, 6, 2, PAL.waterMid);            // inner glow
+    p(ctx, 7, 5, PAL.gatorEye);                    // eye
+    p(ctx, 9, 5, PAL.gatorEye);
+    // Tentacle-like appendages hanging down
+    rect(ctx, 5, 10, 1, 4, PAL.gatorBase);
+    rect(ctx, 8, 10, 1, 5, PAL.gatorBase);
+    rect(ctx, 11, 10, 1, 4, PAL.gatorBase);
+    // Energy ring
+    for (let a = 0; a < 8; a++) {
+      const angle = (a / 8) * Math.PI * 2;
+      p(ctx, Math.round(8 + Math.cos(angle) * 5), Math.round(6 + Math.sin(angle) * 5), PAL.waterShallow);
+    }
+  },
+  serpent_king: (ctx) => {
+    // BOSS — massive snake coiled, crown, glowing eyes
+    // Coiled body fills the frame
+    circle(ctx, 8, 10, 6, PAL.snakeBase);          // coil
+    circle(ctx, 8, 10, 4, PAL.snakeStripe);        // inner coil
+    circle(ctx, 8, 10, 2, PAL.snakeBase);          // center
+    // Head rising above coils
+    rect(ctx, 5, 2, 6, 5, PAL.snakeBase);
+    p(ctx, 6, 3, PAL.clamMeat);                    // glowing red eye
+    p(ctx, 9, 3, PAL.clamMeat);
+    // Crown
+    p(ctx, 6, 1, PAL.gold);
+    p(ctx, 8, 0, PAL.gold);
+    p(ctx, 10, 1, PAL.gold);
+    p(ctx, 7, 1, PAL.goldLight);
+    p(ctx, 9, 1, PAL.goldLight);
+    // Forked tongue
+    p(ctx, 7, 7, PAL.clamMeat);
+    p(ctx, 9, 7, PAL.clamMeat);
+  },
   // Heroes — gold-rimmed faction units
   sgt_bubbles: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
   gen_whiskers: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
