@@ -54,6 +54,7 @@
 		"src/systems/gameLoop.ts",
 		"src/ai",
 		"src/audio",
+		"src/hooks",
 		"src/Scenes",
 		"src/maps",
 		"src/input",

@@ -6,6 +6,7 @@ import { Objectives } from "@/ecs/traits/state";
 import { CAMPAIGN, getMissionById } from "@/entities/missions";
 import { getPortrait } from "@/entities/registry";
 import { EventBus } from "@/game/EventBus";
+import { useTypewriter } from "@/hooks/useTypewriter";
 import { ActionBar } from "@/ui/hud/ActionBar";
 import { CommandTransmissionPanel } from "@/ui/hud/CommandTransmissionPanel";
 import { Minimap } from "@/ui/hud/Minimap";
@@ -72,14 +73,12 @@ export function CommandConsole({
 	const [lineIndex, setLineIndex] = useState(0);
 	const [dismissedMissionId, setDismissedMissionId] = useState<string | null>(null);
 	const [queuedTransmissions, setQueuedTransmissions] = useState<ConsoleTransmission[]>([]);
-	const [revealedCharacters, setRevealedCharacters] = useState(0);
 	const transmissionSequenceRef = useRef(0);
 
 	useEffect(() => {
 		setLineIndex(0);
 		setDismissedMissionId(null);
 		setQueuedTransmissions([]);
-		setRevealedCharacters(0);
 		transmissionSequenceRef.current = 0;
 	}, [missionId]);
 
@@ -133,31 +132,17 @@ export function CommandConsole({
 			: null;
 	const hasTransmission = activeTransmission !== null;
 	const isLastBriefingLine = lineIndex >= mission.briefing.lines.length - 1;
-	const visibleText = activeTransmission?.text.slice(0, revealedCharacters) ?? "";
-	const isTransmissionRevealing =
-		activeTransmission !== null && revealedCharacters < activeTransmission.text.length;
 
-	useEffect(() => {
-		setRevealedCharacters(activeTransmission ? 0 : 0);
-	}, [activeTransmission?.id]);
+	// US-036: Character-by-character typewriter reveal with sound
+	const typewriter = useTypewriter({
+		text: activeTransmission?.text ?? "",
+		key: activeTransmission?.id ?? "",
+		sound: true,
+		enabled: hasTransmission,
+	});
 
-	useEffect(() => {
-		if (!activeTransmission || !isTransmissionRevealing) return;
-
-		const nextCharacter = activeTransmission.text[revealedCharacters];
-		const delay =
-			nextCharacter === "." || nextCharacter === "!" || nextCharacter === "?"
-				? 38
-				: nextCharacter === "," || nextCharacter === ";" || nextCharacter === ":"
-					? 28
-					: 16;
-
-		const timeoutId = window.setTimeout(() => {
-			setRevealedCharacters((current) => Math.min(current + 1, activeTransmission.text.length));
-		}, delay);
-
-		return () => window.clearTimeout(timeoutId);
-	}, [activeTransmission, isTransmissionRevealing, revealedCharacters]);
+	const visibleText = typewriter.visibleText;
+	const isTransmissionRevealing = typewriter.isRevealing;
 
 	const advanceTransmission = () => {
 		if (!activeTransmission) return;
@@ -175,11 +160,17 @@ export function CommandConsole({
 
 	const handleTransmissionInput = () => {
 		if (!activeTransmission) return;
-		if (isTransmissionRevealing) {
-			setRevealedCharacters(activeTransmission.text.length);
-			return;
+		const result = typewriter.handleInput();
+		if (result === "already-complete") {
+			advanceTransmission();
 		}
-		advanceTransmission();
+	};
+
+	/** US-036: Skip all remaining dialogue — dismiss briefing and queued transmissions */
+	const handleSkipAll = () => {
+		typewriter.skipAll();
+		setQueuedTransmissions([]);
+		setDismissedMissionId(missionId);
 	};
 
 	useEffect(() => {
@@ -284,6 +275,7 @@ export function CommandConsole({
 										: undefined
 							}
 							onAdvance={handleTransmissionInput}
+							onSkipAll={handleSkipAll}
 						/>
 					) : showUnitPanel && selected.length > 0 ? (
 						<UnitPanel compact={compact} embedded />

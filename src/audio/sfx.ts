@@ -9,6 +9,7 @@ import * as Tone from "tone";
 
 export type SFXType =
 	| "click"
+	| "typewriterClack"
 	| "unitSelect"
 	| "unitMove"
 	| "unitAttack"
@@ -68,6 +69,12 @@ export function createSFXPlayer(): SFXPlayer {
 	}).toDestination();
 	buildSynth.frequency.value = 300;
 
+	// Typewriter clack — short percussive noise burst (US-036)
+	const typewriterSynth = new Tone.NoiseSynth({
+		noise: { type: "brown" },
+		envelope: { attack: 0.001, decay: 0.018, sustain: 0, release: 0.006 },
+	}).toDestination();
+
 	const gatherSynth = new Tone.PluckSynth({
 		attackNoise: 1,
 		dampening: 4000,
@@ -76,6 +83,7 @@ export function createSFXPlayer(): SFXPlayer {
 
 	const synths = [
 		clickSynth,
+		typewriterSynth,
 		selectSynth,
 		moveSynth,
 		attackSynth,
@@ -92,6 +100,10 @@ export function createSFXPlayer(): SFXPlayer {
 		click: (vol) => {
 			setVolume(clickSynth, vol);
 			clickSynth.triggerAttackRelease("C2", 0.05);
+		},
+		typewriterClack: (vol) => {
+			setVolume(typewriterSynth, vol * 0.3);
+			typewriterSynth.triggerAttackRelease(0.018);
 		},
 		unitSelect: (vol) => {
 			setVolume(selectSynth, vol);
