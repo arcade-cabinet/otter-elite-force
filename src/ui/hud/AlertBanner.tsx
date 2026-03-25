@@ -135,7 +135,7 @@ export function AlertBanner() {
 		return (
 			<Card
 				data-testid="alert-banner"
-				className="w-full border-accent/12 bg-card/75 shadow-[0_16px_32px_rgba(0,0,0,0.28)] sm:ml-auto sm:max-w-sm"
+				className="canvas-grain w-full border-accent/12 bg-card/75 shadow-[0_16px_32px_rgba(0,0,0,0.28)] sm:ml-auto sm:max-w-sm"
 			>
 				<CardContent className="flex items-center justify-between gap-2 p-3">
 					<Badge variant="accent">CLEAR</Badge>
@@ -153,7 +153,7 @@ export function AlertBanner() {
 				<Card
 					key={alert.id}
 					className={cn(
-						"cursor-pointer font-heading text-xs uppercase tracking-wider shadow-[0_18px_36px_rgba(0,0,0,0.3)] transition-opacity hover:opacity-90",
+						"canvas-grain cursor-pointer font-heading text-xs uppercase tracking-wider shadow-[0_18px_36px_rgba(0,0,0,0.3)] transition-opacity hover:opacity-90",
 						alert.severity === "critical" &&
 							"border-destructive bg-destructive/20 text-destructive",
 						alert.severity === "warning" && "border-accent bg-accent/10 text-accent",

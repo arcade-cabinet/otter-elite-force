@@ -24,7 +24,7 @@ export function ResourceBar() {
 		<Card
 			role="status"
 			data-testid="resource-bar"
-			className="resource-bar border-accent/20 bg-card/86 shadow-[0_0_0_1px_rgba(0,255,65,0.06),0_18px_40px_rgba(0,0,0,0.34)]"
+			className="resource-bar canvas-grain border-accent/20 bg-card/86 shadow-[0_0_0_1px_rgba(0,255,65,0.06),0_18px_40px_rgba(0,0,0,0.34)]"
 		>
 			<CardContent className="flex flex-wrap items-center gap-2 p-2.5 sm:gap-4 sm:p-3">
 				<div className="flex items-center gap-2 pr-1 sm:pr-2">

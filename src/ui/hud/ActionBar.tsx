@@ -163,7 +163,7 @@ function ActionBarFrame({
 			className={cn(
 				embedded
 					? "rounded-none border-0 bg-transparent shadow-none"
-					: "border-accent/18 bg-card/88",
+					: "canvas-grain border-accent/18 bg-card/88",
 			)}
 		>
 			<CardContent
