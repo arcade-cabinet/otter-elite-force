@@ -168,9 +168,9 @@ function drawViper(ctx: Ctx): void {
   p(ctx, 9, 12, PAL.snakeStripe);
 }
 
-// ─── Category-based fallback drawing functions ───
+// ─── Hero + utility drawing functions ───
 
-/** Hero unit: otter base with gold accents. */
+/** Hero unit: otter base body with gold ring + star marker. */
 function drawHeroUnit(ctx: Ctx, factionColor: string): void {
   circle(ctx, 8, 8, 6, factionColor);
   // Gold border ring
@@ -182,15 +182,6 @@ function drawHeroUnit(ctx: Ctx, factionColor: string): void {
   p(ctx, 8, 4, PAL.gold); // star marker
 }
 
-/** Generic building: colored rectangle with faction tint. */
-function drawFallbackBuilding(ctx: Ctx, color: string, size: 'sm' | 'md' | 'lg'): void {
-  const s = size === 'sm' ? 12 : size === 'md' ? 18 : 24;
-  const off = (32 - s) / 2;
-  rect(ctx, off, off, s, s, color);
-  // Door
-  rect(ctx, 14, off + s - 4, 4, 4, PAL.black);
-}
-
 /** Wall segment. */
 function drawWall(ctx: Ctx, color: string): void {
   rect(ctx, 4, 12, 24, 8, color);
@@ -198,11 +189,8 @@ function drawWall(ctx: Ctx, color: string): void {
 }
 
 /** Resource: colored diamond/circle. */
-function drawFallbackResource(ctx: Ctx, color: string): void {
-  circle(ctx, 8, 8, 5, color);
-  // Sparkle
-  p(ctx, 6, 5, '#ffffff'); p(ctx, 10, 5, '#ffffff');
-}
+// All fallback drawing functions DELETED — every entity MUST have dedicated art.
+// If a sprite ID has no drawing function, generateSprite() will throw.
 
 // ─── Detailed building drawing functions (ported from POC) ───
 
@@ -471,33 +459,243 @@ const DRAW_FNS: Record<SpriteType, (ctx: Ctx) => void> = {
   pvt_muskrat: (ctx) => drawHeroUnit(ctx, PAL.uraFaction),
   // URA buildings — detailed where available, fallbacks for rest
   command_post: drawLodge,
-  barracks: (ctx) => drawFallbackBuilding(ctx, PAL.uraBldg, 'lg'),
+  barracks: (ctx) => {
+    // Military training hall — long wooden structure with peaked roof
+    rect(ctx, 4, 16, 24, 12, PAL.mudLight);     // walls
+    for (let i = 0; i < 20; i++) p(ctx, 4 + srand() * 24, 16 + srand() * 12, PAL.mudDark); // wood grain
+    rect(ctx, 2, 12, 28, 4, PAL.uraBldg);       // roof base
+    // Peaked roof (triangle)
+    for (let y = 0; y < 6; y++) {
+      const w = 28 - y * 4;
+      rect(ctx, 16 - w / 2, 12 - y, w, 1, PAL.uraBldg);
+    }
+    rect(ctx, 12, 22, 8, 8, PAL.black);          // door
+    // Training dummy silhouette in doorway
+    rect(ctx, 14, 23, 4, 5, PAL.reedBrown);
+    p(ctx, 15, 22, PAL.clamShell);                // dummy head
+    p(ctx, 17, 22, PAL.clamShell);
+    // Weapon rack on side
+    rect(ctx, 26, 18, 2, 6, PAL.reedBrown);
+    rect(ctx, 27, 17, 1, 1, PAL.stoneL);
+    rect(ctx, 27, 20, 1, 1, PAL.stoneL);
+  },
   armory: drawArmory,
   watchtower: drawTower,
-  fish_trap: (ctx) => drawFallbackBuilding(ctx, PAL.waterShallow, 'sm'),
+  fish_trap: (ctx) => {
+    // Woven basket trap in shallow water — nets, wooden frame
+    circle(ctx, 16, 20, 8, PAL.waterShallow);    // water circle
+    // Woven basket
+    rect(ctx, 10, 16, 12, 10, PAL.reedBrown);
+    for (let i = 0; i < 5; i++) rect(ctx, 11, 17 + i * 2, 10, 1, PAL.otterBase); // weave lines
+    // Stakes
+    rect(ctx, 8, 14, 2, 14, PAL.reedBrown);
+    rect(ctx, 22, 14, 2, 14, PAL.reedBrown);
+    // Fish visible
+    p(ctx, 14, 20, PAL.clamShell);
+    p(ctx, 18, 22, PAL.clamShell);
+  },
   burrow: drawBurrow,
-  dock: (ctx) => drawFallbackBuilding(ctx, PAL.otterBase, 'md'),
-  field_hospital: (ctx) => drawFallbackBuilding(ctx, PAL.uraBldg, 'md'),
+  dock: (ctx) => {
+    // Wooden pier extending into water — planks, mooring posts
+    rect(ctx, 0, 16, 32, 16, PAL.waterShallow);  // water
+    rect(ctx, 4, 12, 24, 4, PAL.reedBrown);      // main pier deck
+    for (let i = 0; i < 8; i++) rect(ctx, 5 + i * 3, 12, 2, 4, PAL.otterBase); // planks
+    // Mooring posts
+    rect(ctx, 2, 8, 3, 8, PAL.reedBrown);
+    rect(ctx, 27, 8, 3, 8, PAL.reedBrown);
+    // Rope
+    for (let i = 0; i < 5; i++) p(ctx, 5 + i * 2, 11, PAL.clamShell);
+    // Boat silhouette
+    rect(ctx, 8, 18, 16, 6, PAL.otterBase);
+    rect(ctx, 6, 20, 2, 2, PAL.otterBase);       // prow
+  },
+  field_hospital: (ctx) => {
+    // White tent with red cross — medical facility
+    rect(ctx, 4, 14, 24, 14, PAL.clamShell);     // white tent body
+    // Tent roof (peaked)
+    for (let y = 0; y < 8; y++) {
+      const w = 26 - y * 2;
+      rect(ctx, 16 - w / 2, 14 - y, w, 1, PAL.clamShell);
+    }
+    rect(ctx, 14, 6, 4, 2, PAL.clamMeat);        // red cross top
+    rect(ctx, 12, 8, 8, 2, PAL.clamMeat);        // red cross horizontal
+    rect(ctx, 14, 10, 4, 2, PAL.clamMeat);       // red cross bottom
+    // Door flaps
+    rect(ctx, 12, 22, 4, 8, PAL.stoneL);
+    rect(ctx, 16, 22, 4, 8, PAL.stoneL);
+    // Ground
+    rect(ctx, 2, 28, 28, 4, PAL.mudLight);
+  },
   sandbag_wall: (ctx) => drawWall(ctx, PAL.mudLight),
   stone_wall: (ctx) => drawWall(ctx, PAL.stone),
   gun_tower: drawTower,
-  minefield: (ctx) => drawFallbackBuilding(ctx, PAL.mudDark, 'sm'),
+  minefield: (ctx) => {
+    // Buried mines — dirt mounds with warning signs
+    rect(ctx, 2, 20, 28, 10, PAL.mudDark);       // dirt patch
+    for (let i = 0; i < 15; i++) p(ctx, 4 + srand() * 24, 20 + srand() * 10, PAL.mudLight);
+    // Mine shapes (dome bumps)
+    circle(ctx, 10, 24, 3, PAL.stone);
+    circle(ctx, 22, 22, 3, PAL.stone);
+    circle(ctx, 16, 26, 3, PAL.stone);
+    // Warning stakes
+    rect(ctx, 6, 14, 2, 8, PAL.reedBrown);
+    rect(ctx, 4, 14, 6, 2, PAL.clamMeat);        // danger sign
+    rect(ctx, 24, 16, 2, 6, PAL.reedBrown);
+  },
   // Scale-Guard buildings
-  flag_post: (ctx) => drawFallbackBuilding(ctx, PAL.sgBldg, 'sm'),
-  fuel_tank: (ctx) => drawFallbackBuilding(ctx, PAL.sgBldg, 'md'),
-  great_siphon: (ctx) => drawFallbackBuilding(ctx, PAL.waterDeep, 'lg'),
-  sludge_pit: (ctx) => drawFallbackBuilding(ctx, PAL.mudDark, 'md'),
+  flag_post: (ctx) => {
+    // Scale-Guard control point — tall pole with SG banner
+    rect(ctx, 15, 4, 2, 24, PAL.reedBrown);      // pole
+    rect(ctx, 17, 4, 10, 7, PAL.clamMeat);        // red banner
+    rect(ctx, 18, 5, 8, 5, PAL.sgBldg);           // darker stripe
+    // Skull emblem on banner
+    p(ctx, 21, 6, PAL.clamShell);
+    p(ctx, 23, 6, PAL.clamShell);
+    p(ctx, 22, 7, PAL.clamShell);
+    // Base stones
+    rect(ctx, 10, 26, 12, 4, PAL.stone);
+    rect(ctx, 12, 24, 8, 2, PAL.stoneL);
+  },
+  fuel_tank: (ctx) => {
+    // Cylindrical metal tank — riveted, hazard markings
+    rect(ctx, 6, 8, 20, 18, PAL.stone);           // tank body
+    rect(ctx, 8, 10, 16, 14, PAL.stoneL);         // lighter panel
+    // Rivets along edges
+    for (let i = 0; i < 4; i++) {
+      p(ctx, 7, 10 + i * 4, PAL.clamShell);
+      p(ctx, 24, 10 + i * 4, PAL.clamShell);
+    }
+    // Hazard stripes
+    for (let i = 0; i < 4; i++) {
+      rect(ctx, 10 + i * 4, 20, 2, 4, PAL.clamMeat);
+    }
+    // Pipe on top
+    rect(ctx, 14, 4, 4, 4, PAL.stone);
+    rect(ctx, 15, 2, 2, 2, PAL.stoneL);           // valve
+  },
+  great_siphon: (ctx) => {
+    // Massive water-draining machine — industrial, menacing
+    rect(ctx, 4, 8, 24, 20, PAL.waterDeep);       // main structure
+    rect(ctx, 6, 10, 20, 16, PAL.waterMid);
+    // Central intake pipe
+    circle(ctx, 16, 18, 6, PAL.black);
+    circle(ctx, 16, 18, 4, PAL.waterDeep);
+    circle(ctx, 16, 18, 2, PAL.waterShallow);     // whirlpool
+    // Support pillars
+    rect(ctx, 2, 6, 4, 24, PAL.stone);
+    rect(ctx, 26, 6, 4, 24, PAL.stone);
+    // Top gantry
+    rect(ctx, 2, 4, 28, 4, PAL.stone);
+    rect(ctx, 4, 2, 24, 2, PAL.stoneL);
+    // Warning lights
+    p(ctx, 8, 5, PAL.clamMeat);
+    p(ctx, 24, 5, PAL.clamMeat);
+  },
+  sludge_pit: (ctx) => {
+    // Toxic waste pool — bubbling dark liquid, stone rim
+    circle(ctx, 16, 18, 12, PAL.stone);            // stone rim
+    circle(ctx, 16, 18, 10, PAL.mudDark);          // pit
+    circle(ctx, 16, 18, 8, PAL.snakeBase);         // toxic sludge
+    // Bubbles
+    circle(ctx, 12, 16, 2, PAL.snakeStripe);
+    circle(ctx, 20, 19, 1, PAL.snakeStripe);
+    circle(ctx, 15, 21, 1, PAL.snakeStripe);
+    // Fumes
+    p(ctx, 14, 10, PAL.snakeBase);
+    p(ctx, 18, 8, PAL.snakeBase);
+    p(ctx, 16, 6, PAL.snakeBase);
+  },
   spawning_pool: drawPredatorNest,
-  venom_spire: (ctx) => drawFallbackBuilding(ctx, PAL.snakeBase, 'md'),
-  siphon: (ctx) => drawFallbackBuilding(ctx, PAL.waterDeep, 'sm'),
+  venom_spire: (ctx) => {
+    // Tall venomous tower — organic-looking, dripping with poison
+    rect(ctx, 12, 6, 8, 22, PAL.snakeBase);       // main spire
+    rect(ctx, 10, 8, 12, 4, PAL.snakeBase);       // wider base
+    rect(ctx, 14, 4, 4, 4, PAL.snakeStripe);      // cap
+    // Venom drips
+    p(ctx, 11, 14, PAL.snakeStripe);
+    p(ctx, 10, 16, PAL.snakeStripe);
+    p(ctx, 21, 15, PAL.snakeStripe);
+    p(ctx, 22, 18, PAL.snakeStripe);
+    // Eye-like opening
+    rect(ctx, 14, 12, 4, 3, PAL.black);
+    p(ctx, 15, 13, PAL.gatorEye);
+    p(ctx, 17, 13, PAL.gatorEye);
+    // Foundation
+    rect(ctx, 8, 26, 16, 4, PAL.mudDark);
+  },
+  siphon: (ctx) => {
+    // Small water-draining device — pipe and pump
+    rect(ctx, 8, 10, 16, 16, PAL.waterDeep);      // housing
+    rect(ctx, 10, 12, 12, 12, PAL.waterMid);
+    // Intake pipe
+    rect(ctx, 6, 18, 4, 4, PAL.stone);
+    rect(ctx, 2, 19, 4, 2, PAL.stone);            // pipe extending
+    // Pump wheel
+    circle(ctx, 16, 16, 4, PAL.stone);
+    circle(ctx, 16, 16, 2, PAL.stoneL);
+    p(ctx, 16, 16, PAL.black);                     // axle
+    // Water splashing
+    p(ctx, 22, 22, PAL.waterShallow);
+    p(ctx, 24, 20, PAL.waterShallow);
+  },
   scale_wall: (ctx) => drawWall(ctx, PAL.gatorBase),
-  shield_generator: (ctx) => drawFallbackBuilding(ctx, PAL.sgBldg, 'lg'),
+  shield_generator: (ctx) => {
+    // Energy shield projector — metal base, glowing field emitter
+    rect(ctx, 6, 16, 20, 12, PAL.stone);          // metal base
+    rect(ctx, 8, 18, 16, 8, PAL.stoneL);
+    // Central emitter column
+    rect(ctx, 13, 6, 6, 12, PAL.stone);
+    rect(ctx, 14, 4, 4, 4, PAL.stoneL);           // emitter cap
+    // Energy field glow
+    for (let a = 0; a < 12; a++) {
+      const angle = (a / 12) * Math.PI * 2;
+      const r = 10 + (a % 2) * 2;
+      p(ctx, Math.round(16 + Math.cos(angle) * r), Math.round(14 + Math.sin(angle) * r), PAL.waterShallow);
+    }
+    // Power conduits
+    rect(ctx, 4, 20, 2, 6, PAL.gatorBase);
+    rect(ctx, 26, 20, 2, 6, PAL.gatorBase);
+    // Status light
+    p(ctx, 16, 5, PAL.snakeStripe);               // green active
+  },
   // Resources
   fish_spot: drawFishSpot,
-  intel_marker: (ctx) => drawFallbackResource(ctx, PAL.intelGold),
+  intel_marker: (ctx) => {
+    // Map/document on a stake — intel pickup
+    rect(ctx, 7, 3, 2, 10, PAL.reedBrown);        // stake
+    rect(ctx, 4, 2, 8, 7, PAL.clamShell);         // paper
+    rect(ctx, 5, 3, 6, 5, PAL.intelGold);         // gold tint (valuable)
+    // Writing lines
+    for (let i = 0; i < 3; i++) rect(ctx, 5, 3 + i * 2, 5, 1, PAL.black);
+    // Wax seal
+    circle(ctx, 9, 7, 1, PAL.clamMeat);
+  },
   mangrove_tree: drawMangroveTree,
-  salvage_cache: (ctx) => drawFallbackResource(ctx, PAL.salvageTan),
-  supply_crate: (ctx) => drawFallbackResource(ctx, PAL.crateSienna),
+  salvage_cache: (ctx) => {
+    // Pile of wreckage — metal scraps, bent beams
+    rect(ctx, 3, 8, 10, 6, PAL.stone);            // main wreck
+    rect(ctx, 2, 10, 4, 3, PAL.stoneL);           // bent plate
+    rect(ctx, 8, 6, 2, 8, PAL.stone);             // beam sticking up
+    p(ctx, 9, 5, PAL.stoneL);                      // beam top
+    // Scattered scraps
+    rect(ctx, 11, 12, 3, 2, PAL.salvageTan);
+    p(ctx, 5, 7, PAL.salvageTan);
+    p(ctx, 10, 9, PAL.stoneL);
+  },
+  supply_crate: (ctx) => {
+    // Wooden crate with rope binding
+    rect(ctx, 3, 5, 10, 9, PAL.crateSienna);      // crate body
+    rect(ctx, 4, 6, 8, 7, PAL.otterBase);         // lighter wood face
+    // Planks
+    rect(ctx, 3, 8, 10, 1, PAL.reedBrown);
+    rect(ctx, 3, 11, 10, 1, PAL.reedBrown);
+    // Rope cross
+    rect(ctx, 7, 5, 2, 9, PAL.clamShell);
+    rect(ctx, 3, 9, 10, 1, PAL.clamShell);
+    // Lid slightly ajar
+    rect(ctx, 2, 4, 12, 2, PAL.crateSienna);
+    rect(ctx, 3, 3, 10, 1, PAL.reedBrown);
+  },
 };
 
 // ─── Sprite cache ───
