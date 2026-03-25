@@ -341,9 +341,255 @@ function drawPvtMuskrat(c: Ctx): void {
 	}
 }
 
+// ============================================================================
+// SCALE-GUARD VILLAIN PORTRAITS
+// ============================================================================
+
+// Reptilian palette — distinct from otter warm tones
+const SG = {
+	scalesDark: "#14532d",
+	scalesMid: "#166534",
+	scalesLight: "#22c55e",
+	scaleBelly: "#a3e635",
+	eyeYellow: "#fef08a",
+	eyeSlitBlack: "#1a1a1a",
+	jawIron: "#6b7280",
+	jawIronLight: "#9ca3af",
+	jawIronDark: "#374151",
+	albinoScale: "#e2e8f0",
+	albinoPink: "#fda4af",
+	albinoEyePink: "#fb7185",
+	cobraBlack: "#0f0f0f",
+	cobraHood: "#365314",
+	cobraHoodYellow: "#fbbf24",
+	cobraEyeGreen: "#4ade80",
+	monitorBrown: "#78350f",
+	monitorSpots: "#b45309",
+	sgUniformRed: "#7f1d1d",
+	sgUniformRedLt: "#991b1b",
+	sgMedal: "#ca8a04",
+	sgCap: "#1c1917",
+};
+
+/** Draw the base crocodilian head shape — long snout, ridged brows, no ears. */
+function drawCrocHead(c: Ctx, color: string, lightColor: string, offsetY = 0): void {
+	const y = 10 + offsetY;
+	// Long skull/snout shape — wider at the back, tapering forward
+	ellipse(c, 32, y + 8, 15, 10, color);
+	// Snout protrusion
+	rect(c, 22, y + 14, 20, 10, color);
+	rect(c, 20, y + 16, 24, 6, color);
+	// Lighter underjaw
+	rect(c, 24, y + 20, 16, 6, lightColor);
+	// Brow ridges
+	rect(c, 20, y + 4, 8, 3, color);
+	rect(c, 36, y + 4, 8, 3, color);
+	// Nostrils at snout tip
+	px(c, 26, y + 16, P.nose);
+	px(c, 37, y + 16, P.nose);
+	// Teeth visible along jaw line
+	for (let i = 0; i < 5; i++) {
+		px(c, 24 + i * 3, y + 24, P.eyeWhite);
+	}
+}
+
+/** Draw reptilian slit eyes. */
+function drawCrocEyes(c: Ctx, eyeColor: string, offsetY = 0): void {
+	const y = 14 + offsetY;
+	// Left eye — horizontal slit
+	rect(c, 24, y, 5, 3, eyeColor);
+	rect(c, 25, y, 3, 3, SG.eyeSlitBlack); // vertical slit pupil
+	px(c, 26, y, eyeColor); // highlight
+	// Right eye
+	rect(c, 35, y, 5, 3, eyeColor);
+	rect(c, 36, y, 3, 3, SG.eyeSlitBlack);
+	px(c, 37, y, eyeColor);
+}
+
+/** Draw Scale-Guard body/uniform area. */
+function drawSGBody(c: Ctx, scaleColor: string): void {
+	rect(c, 14, 44, 36, 20, scaleColor);
+	// Scale pattern on body
+	for (let row = 0; row < 3; row++) {
+		for (let col = 0; col < 6; col++) {
+			if ((row + col) % 2 === 0) {
+				px(c, 16 + col * 5, 46 + row * 5, SG.scalesLight);
+			}
+		}
+	}
+}
+
+function drawKommandantIronjaw(c: Ctx): void {
+	rect(c, 0, 0, 64, 64, P.bg);
+	drawCrocHead(c, SG.scalesDark, SG.scaleBelly);
+	drawCrocEyes(c, SG.eyeYellow);
+	drawSGBody(c, SG.sgUniformRed);
+
+	// IRON JAW — prosthetic replacing lower jaw
+	// Metal plate covering the entire lower face
+	rect(c, 20, 26, 24, 10, SG.jawIronDark);
+	rect(c, 22, 27, 20, 8, SG.jawIron);
+	// Rivets along the jaw line
+	for (let i = 0; i < 4; i++) {
+		px(c, 24 + i * 5, 27, SG.jawIronLight);
+		px(c, 24 + i * 5, 33, SG.jawIronLight);
+	}
+	// Jaw hinge bolts
+	circle(c, 20, 28, 2, SG.jawIronLight);
+	circle(c, 44, 28, 2, SG.jawIronLight);
+	// Iron teeth
+	for (let i = 0; i < 6; i++) {
+		rect(c, 23 + i * 3, 34, 2, 2, SG.jawIronLight);
+	}
+
+	// Commander's insignia — red star on shoulder
+	rect(c, 16, 46, 8, 8, SG.sgUniformRedLt);
+	px(c, 20, 48, SG.sgMedal);
+	px(c, 19, 49, SG.sgMedal);
+	px(c, 20, 49, SG.sgMedal);
+	px(c, 21, 49, SG.sgMedal);
+	px(c, 20, 50, SG.sgMedal);
+
+	// Scars around the iron jaw attachment points
+	rect(c, 18, 25, 1, 3, P.scarRed);
+	rect(c, 45, 25, 1, 3, P.scarRed);
+}
+
+function drawCaptainScalebreak(c: Ctx): void {
+	rect(c, 0, 0, 64, 64, P.bg);
+	// ALBINO ALLIGATOR — pale, unsettling
+	drawCrocHead(c, SG.albinoScale, P.whiteShadow);
+	drawSGBody(c, SG.sgUniformRed);
+
+	// Pink albino eyes — wider, more unsettling
+	rect(c, 23, 14, 6, 4, SG.albinoEyePink);
+	rect(c, 25, 14, 2, 4, SG.eyeSlitBlack);
+	px(c, 26, 14, SG.albinoEyePink);
+	rect(c, 35, 14, 6, 4, SG.albinoEyePink);
+	rect(c, 37, 14, 2, 4, SG.eyeSlitBlack);
+	px(c, 38, 14, SG.albinoEyePink);
+
+	// Faint pink veins visible through pale skin
+	px(c, 28, 18, SG.albinoPink);
+	px(c, 30, 20, SG.albinoPink);
+	px(c, 36, 19, SG.albinoPink);
+
+	// Radio headset (intercepted comms)
+	rect(c, 14, 12, 4, 6, P.metalDark);
+	rect(c, 15, 13, 2, 4, P.metalLight);
+	rect(c, 46, 12, 4, 6, P.metalDark);
+
+	// Officer's cap
+	rect(c, 20, 6, 24, 5, SG.sgCap);
+	rect(c, 18, 9, 28, 3, SG.sgCap); // brim
+	rect(c, 28, 7, 8, 2, SG.sgMedal); // cap badge
+}
+
+function drawWardenFangrot(c: Ctx): void {
+	rect(c, 0, 0, 64, 64, P.bg);
+	// BLOATED CAIMAN — wider face, smaller eyes, heavy jowls
+	// Wider head shape
+	ellipse(c, 32, 18, 18, 14, SG.scalesDark);
+	rect(c, 14, 24, 36, 12, SG.scalesDark); // heavy jowls
+	rect(c, 18, 28, 28, 8, SG.scaleBelly);
+	// Small beady eyes — sunken
+	rect(c, 24, 16, 3, 2, SG.eyeYellow);
+	px(c, 25, 16, SG.eyeSlitBlack);
+	rect(c, 37, 16, 3, 2, SG.eyeYellow);
+	px(c, 38, 16, SG.eyeSlitBlack);
+	// Heavy brow — almost covering eyes
+	rect(c, 22, 14, 6, 3, SG.scalesDark);
+	rect(c, 36, 14, 6, 3, SG.scalesDark);
+	// Scarred snout
+	rect(c, 26, 22, 12, 6, SG.scalesDark);
+	px(c, 28, 22, P.nose);
+	px(c, 35, 22, P.nose);
+	// Scars from prisoner revolts
+	rect(c, 40, 18, 1, 8, P.scarRed);
+	rect(c, 42, 20, 1, 6, P.scarRed);
+
+	drawSGBody(c, SG.sgUniformRed);
+	// Keys on belt (prison warden)
+	rect(c, 40, 52, 3, 6, P.metalLight);
+	rect(c, 43, 54, 2, 2, P.metalLight);
+	rect(c, 44, 56, 3, 2, P.metalLight);
+}
+
+function drawVenom(c: Ctx): void {
+	rect(c, 0, 0, 64, 64, P.bg);
+	// KING COBRA — hood spread, vertical slit eyes, menacing
+	// Cobra hood — wide fan shape
+	ellipse(c, 32, 22, 20, 16, SG.cobraBlack);
+	ellipse(c, 32, 22, 18, 14, SG.cobraHood);
+	// Hood pattern — classic spectacle marks
+	circle(c, 24, 20, 3, SG.cobraHoodYellow);
+	circle(c, 24, 20, 1, SG.cobraBlack);
+	circle(c, 40, 20, 3, SG.cobraHoodYellow);
+	circle(c, 40, 20, 1, SG.cobraBlack);
+	// Face — narrow, angular
+	ellipse(c, 32, 24, 8, 10, SG.cobraHood);
+	ellipse(c, 32, 26, 5, 6, SG.cobraBlack);
+	// Piercing green eyes
+	rect(c, 27, 22, 4, 3, SG.cobraEyeGreen);
+	rect(c, 28, 22, 2, 3, SG.eyeSlitBlack); // vertical slit
+	px(c, 29, 22, SG.cobraEyeGreen);
+	rect(c, 33, 22, 4, 3, SG.cobraEyeGreen);
+	rect(c, 34, 22, 2, 3, SG.eyeSlitBlack);
+	px(c, 35, 22, SG.cobraEyeGreen);
+	// Forked tongue
+	px(c, 31, 32, P.scarRed);
+	px(c, 33, 32, P.scarRed);
+	px(c, 30, 33, P.scarRed);
+	px(c, 34, 33, P.scarRed);
+
+	// Sniper scope hung around neck
+	rect(c, 22, 40, 20, 3, P.metalDark);
+	circle(c, 42, 41, 3, P.metalDark);
+	circle(c, 42, 41, 2, P.gogglesLens);
+
+	drawSGBody(c, SG.cobraBlack);
+}
+
+function drawBroodmother(c: Ctx): void {
+	rect(c, 0, 0, 64, 64, P.bg);
+	// MONITOR LIZARD — broad head, hooded eyes, spotted pattern
+	// Wide flat head
+	ellipse(c, 32, 18, 16, 12, SG.monitorBrown);
+	rect(c, 16, 22, 32, 8, SG.monitorBrown);
+	// Spotted pattern
+	for (let i = 0; i < 8; i++) {
+		const sx = 20 + (i % 4) * 7;
+		const sy = 14 + Math.floor(i / 4) * 8;
+		circle(c, sx, sy, 2, SG.monitorSpots);
+	}
+	// Hooded eyes — half-lidded, calculating
+	rect(c, 24, 16, 5, 2, SG.eyeYellow);
+	rect(c, 25, 16, 3, 2, SG.eyeSlitBlack);
+	rect(c, 24, 15, 5, 1, SG.monitorBrown); // heavy lid
+	rect(c, 35, 16, 5, 2, SG.eyeYellow);
+	rect(c, 36, 16, 3, 2, SG.eyeSlitBlack);
+	rect(c, 35, 15, 5, 1, SG.monitorBrown);
+	// Wide flat nose
+	rect(c, 28, 22, 8, 3, SG.monitorBrown);
+	px(c, 30, 23, P.nose);
+	px(c, 33, 23, P.nose);
+	// Jowly chin
+	rect(c, 20, 26, 24, 6, SG.monitorSpots);
+
+	drawSGBody(c, SG.sgUniformRed);
+	// Clipboard/ledger (administrator)
+	rect(c, 38, 48, 12, 14, P.whiteShadow);
+	rect(c, 39, 49, 10, 12, P.white);
+	// Writing on clipboard
+	for (let i = 0; i < 4; i++) {
+		rect(c, 40, 50 + i * 3, 8, 1, P.metalDark);
+	}
+}
+
 // ─── Registry ───
 
 const PORTRAIT_DRAW_FNS: Record<string, (c: Ctx) => void> = {
+	// OEF Heroes
 	foxhound: drawFoxhound,
 	sgt_bubbles: drawSgtBubbles,
 	gen_whiskers: drawGenWhiskers,
@@ -351,6 +597,12 @@ const PORTRAIT_DRAW_FNS: Record<string, (c: Ctx) => void> = {
 	sgt_fang: drawSgtFang,
 	medic_marina: drawMedicMarina,
 	pvt_muskrat: drawPvtMuskrat,
+	// Scale-Guard Villains
+	ironjaw: drawKommandantIronjaw,
+	scalebreak: drawCaptainScalebreak,
+	fangrot: drawWardenFangrot,
+	venom: drawVenom,
+	broodmother: drawBroodmother,
 };
 
 // ─── Cache + public API ───
