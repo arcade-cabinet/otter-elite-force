@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OEF — Portrait & Sprite Gallery</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0f172a; color: #e2e8f0; font-family: 'Courier New', monospace; padding: 24px; }
+        h1 { color: #fbbf24; font-size: 20px; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 24px; }
+        h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.3em; padding-bottom: 4px; margin: 24px 0 12px; }
+        .oef-header { color: #3b82f6; border-bottom: 2px solid #1e3a5f; }
+        .sg-header { color: #ef4444; border-bottom: 2px solid #7f1d1d; }
+        .res-header { color: #fbbf24; border-bottom: 2px solid #92400e; }
+        .grid { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+        .card { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .frame { border: 2px solid #334155; background: #1e293b; padding: 2px; }
+        .frame.oef { border-color: #1e3a5f; }
+        .frame.sg { border-color: #7f1d1d; }
+        .label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #94a3b8; text-align: center; max-width: 100px; }
+        .oef-label { color: #38bdf8; }
+        .sg-label { color: #f87171; }
+        canvas { display: block; image-rendering: pixelated; }
+        #status { color: #22c55e; font-size: 11px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <h1>OTTER: ELITE FORCE — Character & Sprite Gallery</h1>
+    <div id="status">Loading...</div>
+    <div id="gallery"></div>
+
+    <script type="module">
+        // Import from the actual source — Vite resolves these
+        import { initPortraits, getPortraitCanvas, getPortraitIds } from '/src/canvas/portraitRenderer.ts';
+        import { initSprites, getSprite, spriteCache } from '/src/canvas/spriteGen.ts';
+
+        const gallery = document.getElementById('gallery');
+
+        // ── Portraits ──
+        initPortraits();
+
+        function addSection(title, cls) {
+            const h = document.createElement('h2');
+            h.textContent = title;
+            h.className = cls;
+            gallery.appendChild(h);
+            const grid = document.createElement('div');
+            grid.className = 'grid';
+            gallery.appendChild(grid);
+            return grid;
+        }
+
+        function addPortrait(grid, id, faction) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            const frame = document.createElement('div');
+            frame.className = `frame ${faction}`;
+            const canvas = getPortraitCanvas(id);
+            if (canvas) {
+                const clone = document.createElement('canvas');
+                clone.width = canvas.width;
+                clone.height = canvas.height;
+                clone.getContext('2d').drawImage(canvas, 0, 0);
+                frame.appendChild(clone);
+            }
+            const label = document.createElement('div');
+            label.className = `label ${faction}-label`;
+            label.textContent = id.replace(/_/g, ' ');
+            card.appendChild(frame);
+            card.appendChild(label);
+            grid.appendChild(card);
+        }
+
+        const oefGrid = addSection('OTTER ELITE FORCE — Portraits', 'oef-header');
+        for (const id of ['foxhound', 'sgt_bubbles', 'gen_whiskers', 'cpl_splash', 'sgt_fang', 'medic_marina', 'pvt_muskrat']) {
+            addPortrait(oefGrid, id, 'oef');
+        }
+
+        const sgGrid = addSection('SCALE-GUARD MILITIA — Portraits', 'sg-header');
+        for (const id of ['ironjaw', 'scalebreak', 'fangrot', 'venom', 'broodmother']) {
+            addPortrait(sgGrid, id, 'sg');
+        }
+
+        // ── Game Sprites ──
+        initSprites();
+
+        function addSprite(grid, id, faction) {
+            const card = document.createElement('div');
+            card.className = 'card';
+            const frame = document.createElement('div');
+            frame.className = `frame ${faction}`;
+            const sprite = getSprite(id);
+            if (sprite) {
+                const clone = document.createElement('canvas');
+                clone.width = sprite.width;
+                clone.height = sprite.height;
+                clone.getContext('2d').drawImage(sprite, 0, 0);
+                frame.appendChild(clone);
+            }
+            const label = document.createElement('div');
+            label.className = `label ${faction}-label`;
+            label.textContent = id.replace(/_/g, ' ');
+            card.appendChild(frame);
+            card.appendChild(label);
+            grid.appendChild(card);
+        }
+
+        const oefUnitGrid = addSection('OEF UNITS', 'oef-header');
+        for (const id of ['river_rat', 'mudfoot', 'shellcracker', 'sapper', 'mortar_otter', 'raftsman', 'diver']) {
+            addSprite(oefUnitGrid, id, 'oef');
+        }
+
+        const sgUnitGrid = addSection('SCALE-GUARD UNITS', 'sg-header');
+        for (const id of ['gator', 'viper', 'scout_lizard', 'snapper', 'skink', 'croc_champion', 'siphon_drone', 'serpent_king']) {
+            addSprite(sgUnitGrid, id, 'sg');
+        }
+
+        const buildGrid = addSection('BUILDINGS', 'oef-header');
+        for (const id of ['command_post', 'barracks', 'armory', 'watchtower', 'gun_tower', 'fish_trap', 'burrow', 'dock', 'field_hospital', 'predator_nest', 'spawning_pool', 'siphon', 'venom_spire']) {
+            addSprite(buildGrid, id, 'oef');
+        }
+
+        const resGrid = addSection('RESOURCES', 'res-header');
+        for (const id of ['fish_spot', 'mangrove_tree', 'salvage_cache', 'cattail', 'clambed']) {
+            addSprite(resGrid, id, 'oef');
+        }
+
+        document.getElementById('status').textContent =
+            `${getPortraitIds().length} portraits, ${spriteCache.size} sprites loaded`;
+    </script>
+</body>
+</html>

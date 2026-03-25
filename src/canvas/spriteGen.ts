@@ -85,6 +85,21 @@ function circle(ctx: Ctx, cx: number, cy: number, r: number, color: string): voi
   }
 }
 
+// ─── Shared otter body base ───
+
+/** Draw the base otter body at 16x16: head, torso, belly, eyes, nose, arms, legs, tail. */
+function drawOtterBase(ctx: Ctx): void {
+  rect(ctx, 5, 4, 6, 8, PAL.otterBase);    // torso
+  rect(ctx, 6, 5, 4, 6, PAL.otterBelly);    // belly
+  rect(ctx, 5, 2, 6, 4, PAL.otterBase);     // head
+  p(ctx, 6, 3, PAL.black); p(ctx, 9, 3, PAL.black); // eyes
+  p(ctx, 7, 4, PAL.otterNose); p(ctx, 8, 4, PAL.otterNose); // nose
+  rect(ctx, 4, 5, 1, 4, PAL.otterBase);     // left arm
+  rect(ctx, 11, 5, 1, 4, PAL.otterBase);    // right arm
+  rect(ctx, 5, 12, 2, 2, PAL.otterBase);    // left foot
+  rect(ctx, 9, 12, 2, 2, PAL.otterBase);    // right foot
+}
+
 // ─── Detailed drawing functions (ported from POC, adapted to real IDs) ───
 
 function drawOtterWorker(ctx: Ctx): void {
@@ -292,10 +307,66 @@ const DRAW_FNS: Record<SpriteType, (ctx: Ctx) => void> = {
   river_rat: drawOtterWorker,
   mudfoot: drawOtterInfantry,
   shellcracker: drawOtterRanged,
-  sapper: (ctx) => drawFallbackUnit(ctx, PAL.otterBase, 'md'),
-  raftsman: (ctx) => drawFallbackUnit(ctx, PAL.otterBelly, 'md'),
-  mortar_otter: (ctx) => drawFallbackUnit(ctx, PAL.otterBase, 'lg'),
-  diver: (ctx) => drawFallbackUnit(ctx, PAL.waterMid, 'sm'),
+  sapper: (ctx) => {
+    drawOtterBase(ctx);
+    rect(ctx, 11, 10, 3, 2, PAL.otterBase);  // tail
+    // Sapper pack on back (explosive charge backpack)
+    rect(ctx, 3, 4, 3, 5, PAL.stone);
+    rect(ctx, 4, 5, 1, 3, PAL.stoneL);
+    // Detonator in hand
+    rect(ctx, 12, 6, 2, 3, PAL.reedBrown);
+    p(ctx, 13, 6, PAL.clamMeat); // red button
+    // Hard hat
+    rect(ctx, 5, 1, 6, 2, PAL.stone);
+    rect(ctx, 6, 0, 4, 1, PAL.stoneL);
+  },
+  raftsman: (ctx) => {
+    drawOtterBase(ctx);
+    rect(ctx, 11, 10, 3, 2, PAL.otterBase);  // tail
+    // Blue-tinted uniform (water specialist)
+    rect(ctx, 6, 5, 4, 6, PAL.waterShallow);
+    // Paddle held across body
+    rect(ctx, 2, 3, 1, 10, PAL.reedBrown);
+    rect(ctx, 1, 3, 3, 1, PAL.reedBrown);  // paddle blade top
+    rect(ctx, 1, 12, 3, 1, PAL.reedBrown); // paddle blade bottom
+    // Life vest
+    rect(ctx, 5, 4, 2, 3, PAL.clamShell);
+    rect(ctx, 9, 4, 2, 3, PAL.clamShell);
+  },
+  mortar_otter: (ctx) => {
+    drawOtterBase(ctx);
+    rect(ctx, 11, 10, 3, 2, PAL.otterBase);  // tail
+    // Mortar tube on shoulder
+    rect(ctx, 12, 1, 2, 10, PAL.stone);
+    rect(ctx, 11, 1, 4, 2, PAL.stoneL);  // mortar mouth
+    p(ctx, 12, 0, PAL.clamMeat); // shell visible
+    // Ammo pouch
+    rect(ctx, 3, 7, 2, 3, PAL.stone);
+    p(ctx, 4, 8, PAL.clamMeat); // shell
+    // Helmet with chinstrap
+    rect(ctx, 5, 1, 6, 2, PAL.stone);
+  },
+  diver: (ctx) => {
+    // Sleek body in teal wetsuit
+    rect(ctx, 5, 4, 6, 8, PAL.waterMid);     // wetsuit torso
+    rect(ctx, 6, 5, 4, 6, PAL.waterShallow);  // wetsuit belly stripe
+    rect(ctx, 5, 2, 6, 4, PAL.otterBase);     // face (fur visible)
+    p(ctx, 6, 3, PAL.black); p(ctx, 9, 3, PAL.black); // eyes
+    p(ctx, 7, 4, PAL.otterNose); p(ctx, 8, 4, PAL.otterNose);
+    rect(ctx, 4, 5, 1, 4, PAL.waterMid);      // wetsuit arms
+    rect(ctx, 11, 5, 1, 4, PAL.waterMid);
+    rect(ctx, 5, 12, 2, 2, PAL.waterMid);     // flippers
+    rect(ctx, 9, 12, 2, 2, PAL.waterMid);
+    rect(ctx, 4, 12, 1, 2, PAL.waterShallow); // flipper extension
+    rect(ctx, 11, 12, 1, 2, PAL.waterShallow);
+    // Dive goggles
+    rect(ctx, 5, 2, 2, 2, PAL.stoneL);        // left goggle
+    rect(ctx, 9, 2, 2, 2, PAL.stoneL);        // right goggle
+    rect(ctx, 7, 2, 2, 1, PAL.stone);         // bridge
+    // Rebreather tube
+    rect(ctx, 3, 4, 1, 4, PAL.stone);
+    p(ctx, 2, 4, PAL.stoneL);
+  },
   // Scale-Guard units
   skink: (ctx) => drawFallbackUnit(ctx, PAL.gatorLight, 'sm'),
   gator: drawGator,
