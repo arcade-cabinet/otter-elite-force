@@ -17,13 +17,11 @@ export default defineConfig(({ mode: _mode }) => ({
 		sourcemap: true,
 		rollupOptions: {
 			output: {
-				manualChunks: {
-					// Heavy game dependencies — loaded lazily via dynamic import
-					tone: ["tone"],
-					// Lighter deps — loaded with the initial bundle or game chunk
-					yuka: ["yuka"],
-					koota: ["koota"],
-					konva: ["konva"],
+				manualChunks(id) {
+					if (id.includes("node_modules/tone")) return "tone";
+					if (id.includes("node_modules/yuka")) return "yuka";
+					if (id.includes("node_modules/koota")) return "koota";
+					if (id.includes("node_modules/konva") || id.includes("node_modules/react-konva")) return "konva";
 				},
 			},
 		},
