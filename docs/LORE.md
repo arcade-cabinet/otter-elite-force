@@ -16,7 +16,7 @@ The Otter Elite Force is a guerrilla liberation army fighting to reclaim the Cop
 
 - **FOXHOUND** — Radio callsign for OEF field intelligence. Not a person — it's the encrypted channel that relays orders from command to field operators. The voice in your ear. Calm, precise, encyclopedic knowledge of Scale-Guard deployments.
 
-- **Sgt. Bubbles** — Field commander. Rambo-otter. Red bandana, battle scars, teal eye glint. Led the first wave into the Reach. Inspires loyalty through action, not rank. Carries a mangrove-wood fighting stick.
+- **Col. Bubbles** — OEF tactical officer at HQ. Red bandana, battle scars, teal eye glint. Promoted from field sergeant to Colonel after proving himself in early operations. Now gives mission briefings and tactical orders from the field lodge. Higher rank than the player (Captain). Carries a mangrove-wood fighting stick.
 
 - **Gen. Whiskers** — OEF supreme commander. Grizzled veteran of the First Reach War. Dark beret, cigar, three campaign medals. Captured by Scale-Guard early in the campaign (Mission 4 rescue). Takes over briefings after rescue.
 

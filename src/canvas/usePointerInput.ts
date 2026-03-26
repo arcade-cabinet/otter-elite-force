@@ -21,7 +21,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { World } from "koota";
-import { Selected } from "@/ecs/traits/identity";
 import { CommandDispatcher } from "@/input/commandDispatcher";
 import { GestureDetector, GestureType, type PointerState } from "@/input/gestureDetector";
 import { SelectionManager } from "@/input/selectionManager";
@@ -155,13 +154,10 @@ export function usePointerInput({
     (e: React.PointerEvent) => {
       if (!enabledRef.current) return;
 
-      // Right-click → context command (desktop)
+      // Right-click → smart context command (desktop)
       if (e.button === 2) {
         const ps = toPointerState(e);
-        const hasSelection = world.query(Selected).length > 0;
-        if (hasSelection) {
-          commandDispatcher.issueCommandAt(ps.worldX, ps.worldY, "context");
-        }
+        commandDispatcher.issueSmartCommand(ps.worldX, ps.worldY);
         return;
       }
 
@@ -246,17 +242,13 @@ export function usePointerInput({
         case GestureType.Tap: {
           const wx = gesture.currentWorldX ?? 0;
           const wy = gesture.currentWorldY ?? 0;
-          const hasSelection = world.query(Selected).length > 0;
 
           // If tapping on a friendly unit → select it
           if (selectionManager.hasFriendlyAt(wx, wy)) {
             selectionManager.selectAt(wx, wy, e.shiftKey);
-          } else if (hasSelection) {
-            // Tap on ground with existing selection → context command (mobile)
-            commandDispatcher.issueCommandAt(wx, wy, "context");
           } else {
-            // Tap on empty ground with no selection → deselect
-            selectionManager.selectAt(wx, wy, e.shiftKey);
+            // Smart command: resource→swarm gather, enemy→swarm attack, ground→move/build
+            commandDispatcher.issueSmartCommand(wx, wy);
           }
           break;
         }
@@ -264,11 +256,8 @@ export function usePointerInput({
         case GestureType.LongPress: {
           const wx = gesture.currentWorldX ?? 0;
           const wy = gesture.currentWorldY ?? 0;
-          // Long press → issue context command (mobile alternative to right-click)
-          const hasSelection = world.query(Selected).length > 0;
-          if (hasSelection) {
-            commandDispatcher.issueCommandAt(wx, wy, "context");
-          }
+          // Long press → smart command (mobile alternative to right-click)
+          commandDispatcher.issueSmartCommand(wx, wy);
           break;
         }
       }
@@ -289,6 +278,69 @@ export function usePointerInput({
   const onContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
   }, []);
+
+  // ─── Edge scroll + arrow keys ───
+
+  // Track mouse position for edge scroll — starts at center (no edge scroll until mouse moves)
+  const mouseScreenRef = useRef({ x: Math.round(window.innerWidth / 2), y: Math.round(window.innerHeight / 2) });
+  const mouseEnteredRef = useRef(false);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      mouseScreenRef.current = { x: e.clientX, y: e.clientY };
+      mouseEnteredRef.current = true;
+    };
+    window.addEventListener("mousemove", onMove);
+    return () => window.removeEventListener("mousemove", onMove);
+  }, []);
+
+  // Edge scroll + arrow keys via rAF
+  useEffect(() => {
+    const EDGE_THRESHOLD = 20;
+    const SCROLL_SPEED = 8; // pixels per frame
+    const keysDown = new Set<string>();
+
+    const onKeyDown = (e: KeyboardEvent) => keysDown.add(e.key);
+    const onKeyUp = (e: KeyboardEvent) => keysDown.delete(e.key);
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+
+    let raf = 0;
+    const tick = () => {
+      let dx = 0;
+      let dy = 0;
+
+      // Arrow keys
+      if (keysDown.has("ArrowLeft") || keysDown.has("a")) dx -= SCROLL_SPEED;
+      if (keysDown.has("ArrowRight") || keysDown.has("d")) dx += SCROLL_SPEED;
+      if (keysDown.has("ArrowUp") || keysDown.has("w")) dy -= SCROLL_SPEED;
+      if (keysDown.has("ArrowDown") || keysDown.has("s")) dy += SCROLL_SPEED;
+
+      // Edge scroll (mouse at viewport edges) — only after mouse has entered
+      if (mouseEnteredRef.current) {
+        const { x, y } = mouseScreenRef.current;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        if (x < EDGE_THRESHOLD) dx -= SCROLL_SPEED;
+        if (x > vw - EDGE_THRESHOLD) dx += SCROLL_SPEED;
+        if (y < EDGE_THRESHOLD) dy -= SCROLL_SPEED;
+        if (y > vh - EDGE_THRESHOLD) dy += SCROLL_SPEED;
+      }
+
+      if (dx !== 0 || dy !== 0) {
+        pan(dx, dy);
+      }
+
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
+  }, [pan]);
 
   // ─── Return ───
 

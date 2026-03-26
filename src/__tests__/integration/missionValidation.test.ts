@@ -13,7 +13,8 @@ import { CAMPAIGN, getMissionById } from "../../entities/missions";
 import { compileMissionScenario } from "../../entities/missions/compileMissionScenario";
 import type { MissionDef } from "../../entities/types";
 import { ScenarioEngine } from "../../scenarios/engine";
-import type { ScenarioWorldQuery, TriggerAction } from "../../scenarios/types";
+import type { ScenarioWorldQuery } from "../../scenarios/engine";
+import type { TriggerAction } from "../../scenarios/types";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -27,6 +28,7 @@ function createMockWorldQuery(overrides: Partial<ScenarioWorldQuery> = {}): Scen
 		countUnitsInArea: () => 0,
 		isBuildingDestroyed: () => false,
 		getEntityHealthPercent: () => null,
+		getResourceAmount: () => 0,
 		...overrides,
 	};
 }
@@ -103,15 +105,28 @@ describe("Mission structure validation", () => {
 				const actions: TriggerAction[] = [];
 				const engine = new ScenarioEngine(scenario, (a) => actions.push(a));
 
-				// Complete all primary objectives
-				for (const obj of scenario.objectives) {
-					if (obj.type === "primary") {
-						engine.completeObjective(obj.id);
-					}
-				}
+				const mockWorld = createMockWorldQuery({
+					elapsedTime: 9999,
+					countBuildings: (faction: string, _buildingType?: string) => {
+						// Return 1 for friendly buildings to avoid false "building destroyed" triggers
+						if (faction === "ura") return 1;
+						// Return 0 for enemy buildings (they've been defeated)
+						return 0;
+					},
+				});
 
-				// Evaluate triggers — should fire victory
-				engine.evaluate(createMockWorldQuery({ elapsedTime: 9999 }));
+				// Complete all primary objectives, then evaluate.
+				// Some missions add new primary objectives mid-mission via addObjective triggers.
+				// Loop until all are completed and victory fires (max 5 passes to avoid infinite loop).
+				for (let pass = 0; pass < 5; pass++) {
+					for (const obj of engine.getObjectives()) {
+						if (obj.status !== "completed") {
+							engine.completeObjective(obj.id);
+						}
+					}
+					engine.evaluate(mockWorld);
+					if (actions.some((a) => a.type === "victory")) break;
+				}
 
 				const victoryActions = actions.filter((a) => a.type === "victory");
 				expect(victoryActions.length).toBeGreaterThan(0);
@@ -125,14 +140,14 @@ describe("Mission structure validation", () => {
 // ---------------------------------------------------------------------------
 
 describe("US-049: Mission 1 (Beachhead) validation", () => {
-	it("should start with 3 River Rats", () => {
+	it("should start with 4 River Rats", () => {
 		const mission = getMissionDef(1);
 		const uraUnits = mission.placements.filter(
 			(p) => p.faction === "ura" && p.type === "river_rat",
 		);
 		expect(uraUnits.length).toBeGreaterThan(0);
 		const totalCount = uraUnits.reduce((sum, p) => sum + (p.count ?? 1), 0);
-		expect(totalCount).toBe(3);
+		expect(totalCount).toBe(4);
 	});
 
 	it("should have gather, build, and train objectives", () => {

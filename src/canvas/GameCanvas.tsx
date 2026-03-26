@@ -3,7 +3,7 @@
  *
  * Responsibilities:
  * - Fills parent container via ResizeObserver
- * - Composes layers: TerrainLayer → EntityLayer → OverlayLayer (stub) → FogLayer (stub)
+ * - Composes layers: TerrainLayer → EntityLayer → OverlayLayer → FogLayer
  * - Manages camera state via useCamera
  * - Runs the ECS game loop via useGameLoop
  * - Spawns entities from deploymentData on mount
@@ -28,14 +28,21 @@ import { EventBus } from "@/game/EventBus";
 import { ScenarioEngine, type ActionHandler, type ScenarioWorldQuery } from "@/scenarios/engine";
 import type { TriggerAction } from "@/scenarios/types";
 
+import { AIState } from "@/ecs/traits/ai";
+import { Gatherer } from "@/ecs/traits/economy";
+import { OrderQueue } from "@/ecs/traits/orders";
+import { Position } from "@/ecs/traits/spatial";
 import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
+import { buildGraphFromTilemap } from "@/ai/graphBuilder";
+import { NavGraphState } from "@/ecs/traits/state";
+import { buildTerrainGridForPathfinding } from "@/canvas/tilePainter";
 
 import { EntityLayer } from "./EntityLayer";
 import { MinimapLayer } from "./MinimapLayer";
 import { OverlayLayer } from "./OverlayLayer";
 import { FogLayer } from "./FogLayer";
 import { TerrainLayer } from "./TerrainLayer";
-import { paintTerrain } from "./terrainPainter";
+import { paintMinimapTerrain } from "./terrainPainter";
 import { useCamera } from "./useCamera";
 import { useGameLoop } from "./useGameLoop";
 import { usePointerInput } from "./usePointerInput";
@@ -116,6 +123,54 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
   const [size, setSize] = useState({ width: 800, height: 600 });
   const initRef = useRef(false);
 
+  // Resolve mission early so build handler can access it
+  const missionKey = resolveMissionKey(deploymentData.missionId);
+  const mission = getMissionById(missionKey);
+
+  // Listen for build placement events — instant build near player base
+  useEffect(() => {
+    const onStartBuild = (data: { buildingType: string }) => {
+      const buildingDef = getBuilding(data.buildingType);
+      if (!buildingDef) return;
+
+      // Deduct resources
+      const res = world.get(ResourcePool);
+      if (!res) return;
+      const cost = buildingDef.cost ?? {};
+      if ((cost.fish ?? 0) > res.fish || (cost.timber ?? 0) > res.timber || (cost.salvage ?? 0) > res.salvage) {
+        EventBus.emit("hud-alert", { message: "Not enough resources!", severity: "critical" });
+        return;
+      }
+      world.set(ResourcePool, {
+        fish: res.fish - (cost.fish ?? 0),
+        timber: res.timber - (cost.timber ?? 0),
+        salvage: res.salvage - (cost.salvage ?? 0),
+      });
+
+      // Find a suitable build position near the player start zone
+      const startZone = mission?.zones?.base_clearing ?? mission?.zones?.ura_start;
+      const bx = (startZone?.x ?? 12) + Math.floor(Math.random() * (startZone?.width ?? 6));
+      const by = (startZone?.y ?? 37) + Math.floor(Math.random() * (startZone?.height ?? 4));
+
+      spawnBuilding(world, buildingDef, bx, by, "ura");
+      EventBus.emit("hud-alert", { message: `${buildingDef.name} placed!`, severity: "info" });
+
+      // Rally idle workers to construct it
+      for (const entity of world.query(OrderQueue, Faction, Gatherer)) {
+        if (entity.get(Faction)?.id !== "ura") continue;
+        const ai = entity.has(AIState) ? entity.get(AIState) : null;
+        if (ai && ai.state !== "idle") continue;
+        const queue = entity.get(OrderQueue);
+        if (!queue) continue;
+        queue.length = 0;
+        queue.push({ type: "build", targetX: bx, targetY: by });
+        if (entity.has(AIState)) entity.set(AIState, (prev) => ({ ...prev, state: "idle" }));
+      }
+    };
+    EventBus.on("start-build-placement", onStartBuild);
+    return () => { EventBus.off("start-build-placement", onStartBuild); };
+  }, [world, mission]);
+
   // ResizeObserver → track container dimensions
   useEffect(() => {
     const el = containerRef.current;
@@ -146,16 +201,15 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
   });
 
   // Load mission + spawn entities on mount
-  const missionKey = resolveMissionKey(deploymentData.missionId);
-  const mission = getMissionById(missionKey);
 
   // Compute world dimensions for minimap
   const worldW = mission ? mission.terrain.width * CELL_SIZE : 0;
   const worldH = mission ? mission.terrain.height * CELL_SIZE : 0;
 
-  // Pre-paint terrain canvas for minimap (memoised on mission)
+  // Pre-paint terrain canvas for minimap (memoised on mission).
+  // Uses paintMinimapTerrain for large maps to avoid exceeding canvas limits.
   const terrainCanvas = useMemo(
-    () => (mission ? paintTerrain(mission) : null),
+    () => (mission ? paintMinimapTerrain(mission) : null),
     [mission],
   );
 
@@ -198,13 +252,22 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
     initMission(world, mission);
     setBounds({ worldW: worldW, worldH: worldH });
 
-    // Center camera on player start zone
-    const startZone = mission.zones?.ura_start;
-    if (startZone) {
-      const cx = (startZone.x + startZone.width / 2) * 32 - size.width / 2;
-      const cy = (startZone.y + startZone.height / 2) * 32 - size.height / 2;
-      setPosition(Math.max(0, cx), Math.max(0, cy));
-    }
+    // Build navigation graph for A* pathfinding
+    const terrainGrid = buildTerrainGridForPathfinding(mission);
+    const navGraph = buildGraphFromTilemap(terrainGrid, { eightWay: true });
+    world.set(NavGraphState, { graph: navGraph, width: mission.terrain.width, height: mission.terrain.height });
+
+    // Center camera on starting lodge — push to maximum scroll to show the player base area
+    const uraBuilding = mission.placements.find(
+      (p) => p.faction === "ura" && (p.type === "burrow" || p.type === "command_post"),
+    );
+    const uraUnit = mission.placements.find((p) => p.faction === "ura" && p.x != null);
+    const focusX = uraBuilding?.x ?? uraUnit?.x ?? mission.zones?.ura_start?.x ?? 0;
+    const focusY = uraBuilding?.y ?? uraUnit?.y ?? mission.zones?.ura_start?.y ?? 0;
+    // Target: lodge in the center of viewport. Camera clamp will handle out-of-bounds.
+    const cx = focusX * 32 - size.width / 2;
+    const cy = focusY * 32 - size.height / 2;
+    setPosition(cx, cy); // useCamera.setPosition clamps to valid bounds
 
     // Compile and start scenario engine
     const scenario = compileMissionScenario(mission);
@@ -241,9 +304,50 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
         }
         return count;
       },
-      countUnitsInArea: () => 0, // TODO: implement with zone lookup
-      isBuildingDestroyed: () => false,
-      getEntityHealthPercent: () => null,
+      countUnitsInArea: (faction, area, unitType) => {
+        let count = 0;
+        for (const e of world.query(Faction, Position, Health)) {
+          if (e.get(Faction)?.id !== faction) continue;
+          if (unitType && e.get(UnitType)?.type !== unitType) continue;
+          const pos = e.get(Position);
+          if (!pos) continue;
+          if (
+            pos.x >= area.x &&
+            pos.x < area.x + area.width &&
+            pos.y >= area.y &&
+            pos.y < area.y + area.height
+          ) {
+            count++;
+          }
+        }
+        return count;
+      },
+      isBuildingDestroyed: (buildingTag) => {
+        // Check if any building with a matching UnitType tag has health <= 0
+        // buildingTag is used as both a UnitType and a scenario tag
+        for (const e of world.query(Faction, UnitType, Health, IsBuilding)) {
+          const ut = e.get(UnitType);
+          if (ut?.type === buildingTag) {
+            const hp = e.get(Health);
+            if (hp && hp.current <= 0) return true;
+          }
+        }
+        return false;
+      },
+      getEntityHealthPercent: (entityTag) => {
+        // Search for entity by UnitType id matching the tag
+        for (const e of world.query(UnitType, Health)) {
+          if (e.get(UnitType)?.type === entityTag) {
+            const hp = e.get(Health);
+            if (hp) return (hp.current / Math.max(hp.max, 1)) * 100;
+          }
+        }
+        return null;
+      },
+      getResourceAmount: (resource: "fish" | "timber" | "salvage") => {
+        const pool = world.get(ResourcePool);
+        return pool?.[resource] ?? 0;
+      },
     };
 
     // Listen for scenario events
@@ -285,7 +389,7 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
 
         {/* Layer 2: Entities */}
         <Layer>
-          <EntityLayer camX={camera.x} camY={camera.y} viewportW={size.width} viewportH={size.height} />
+          <EntityLayer camX={camera.x} camY={camera.y} viewportW={size.width} viewportH={size.height} elapsedMs={Date.now()} />
         </Layer>
 
         {/* Layer 3: Overlay (day/night, weather, selection, placement) */}

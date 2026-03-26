@@ -2,8 +2,9 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { MissionDef, TerrainTileDef } from "@/entities/types";
 
 // Mock canvas context for happy-dom
+const mockGradient = { addColorStop: vi.fn() };
 const mockCtx = {
-	fillStyle: "",
+	fillStyle: "" as string | object,
 	fillRect: vi.fn(),
 	imageSmoothingEnabled: true,
 	drawImage: vi.fn(),
@@ -15,6 +16,13 @@ const mockCtx = {
 	moveTo: vi.fn(),
 	lineTo: vi.fn(),
 	closePath: vi.fn(),
+	bezierCurveTo: vi.fn(),
+	stroke: vi.fn(),
+	lineWidth: 0,
+	lineCap: "" as string,
+	lineJoin: "" as string,
+	strokeStyle: "" as string,
+	createRadialGradient: vi.fn().mockReturnValue(mockGradient),
 };
 
 const origGetContext = HTMLCanvasElement.prototype.getContext;
@@ -31,7 +39,7 @@ import { paintMap } from "@/entities/terrain/map-painter";
 import { TERRAIN_TILES } from "@/entities/terrain/tiles";
 
 describe("TERRAIN_TILES", () => {
-	it("defines all 8 terrain types", () => {
+	it("defines all 9 terrain types", () => {
 		const expected = [
 			"grass",
 			"dirt",
@@ -41,11 +49,12 @@ describe("TERRAIN_TILES", () => {
 			"mangrove",
 			"toxic_sludge",
 			"bridge",
+			"scorched",
 		];
 		for (const id of expected) {
 			expect(TERRAIN_TILES).toHaveProperty(id);
 		}
-		expect(Object.keys(TERRAIN_TILES)).toHaveLength(8);
+		expect(Object.keys(TERRAIN_TILES)).toHaveLength(9);
 	});
 
 	it("every tile has paintRules with baseColor and noiseColors", () => {

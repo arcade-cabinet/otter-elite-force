@@ -46,7 +46,7 @@ import {
 const UNIT_TYPES: SpriteType[] = [
   'river_rat', 'mudfoot', 'shellcracker', 'sapper', 'raftsman', 'mortar_otter', 'diver',
   'skink', 'gator', 'viper', 'snapper', 'scout_lizard', 'croc_champion', 'siphon_drone', 'serpent_king',
-  'sgt_bubbles', 'gen_whiskers', 'cpl_splash', 'sgt_fang', 'medic_marina', 'pvt_muskrat',
+  'col_bubbles', 'gen_whiskers', 'cpl_splash', 'sgt_fang', 'medic_marina', 'pvt_muskrat',
 ];
 const BUILDING_TYPES: SpriteType[] = [
   'command_post', 'barracks', 'armory', 'watchtower', 'fish_trap', 'burrow', 'dock',
@@ -68,7 +68,7 @@ describe('spriteGen', () => {
       // Spot-check representative IDs from each category
       expect(SPRITE_TYPES).toContain('river_rat');
       expect(SPRITE_TYPES).toContain('gator');
-      expect(SPRITE_TYPES).toContain('sgt_bubbles');
+      expect(SPRITE_TYPES).toContain('col_bubbles');
       expect(SPRITE_TYPES).toContain('command_post');
       expect(SPRITE_TYPES).toContain('spawning_pool');
       expect(SPRITE_TYPES).toContain('fish_spot');

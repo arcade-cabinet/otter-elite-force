@@ -40,10 +40,33 @@ import { GameLayout } from "@/ui/GameLayout";
 import { BriefingShell } from "@/ui/layout/shells";
 import { cn } from "@/ui/lib/utils";
 import { GameCanvas } from "@/canvas/GameCanvas";
+import { loadAllAtlases } from "@/canvas/spriteAtlas";
+import { loadTerrainTiles } from "@/canvas/tilePainter";
 import { DialogueState } from "@/ecs/traits/state";
 import { getMissionById } from "@/entities/missions";
 
 initSingletons(world);
+// NO procedural fallback — all sprites come from atlas/tile system
+
+// Asset loading promise — game screens wait for this before rendering
+let assetsReady = false;
+const assetsPromise = Promise.all([
+	loadAllAtlases(),
+	loadTerrainTiles(),
+]).then(() => {
+	assetsReady = true;
+	console.log("[boot] All sprites + terrain tiles loaded");
+});
+
+/** Hook: returns true once all visual assets are loaded. */
+function useAssetsReady(): boolean {
+	const [ready, setReady] = useState(assetsReady);
+	useEffect(() => {
+		if (assetsReady) { setReady(true); return; }
+		assetsPromise.then(() => setReady(true));
+	}, []);
+	return ready;
+}
 
 const SCREEN_THEMES: Record<AppScreenType, string> = {
 	menu: "command-post",
@@ -104,6 +127,7 @@ function GameplayScreen() {
 	const campaign = useTrait(w, CampaignProgress);
 	const gamePhase = useTrait(w, GamePhase);
 	const dialogueState = useTrait(w, DialogueState);
+	const ready = useAssetsReady();
 	const isPaused = gamePhase?.phase === "paused";
 	const currentMission = campaign?.currentMission ?? "mission_1";
 	const difficulty = (campaign?.difficulty ?? "support") as DifficultyMode;
@@ -191,6 +215,18 @@ function GameplayScreen() {
 			import("@/input/screenOrientation").then((m) => m.unlockOrientation());
 		};
 	}, [w]);
+
+	// Gate: wait for all visual assets before rendering game
+	if (!ready) {
+		return (
+			<div className="flex items-center justify-center h-screen w-screen bg-slate-900">
+				<div className="text-center">
+					<div className="text-2xl font-bold text-slate-300 mb-2">LOADING</div>
+					<div className="text-sm text-slate-500">Preparing battlefield assets...</div>
+				</div>
+			</div>
+		);
+	}
 
 	// Handle mission start: show briefing before gameplay
 	if (!briefingDone && briefingLines.length > 0) {

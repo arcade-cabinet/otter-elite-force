@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import type { World } from "koota";
+import type { TerrainType } from "@/ai/terrainTypes";
 import { GamePhase } from "@/ecs/traits/state";
 import { type GameLoopContext, tickAllSystems } from "@/systems/gameLoop";
 import type { FogOfWarSystem } from "@/systems/fogSystem";
@@ -28,6 +29,8 @@ export interface UseGameLoopOptions {
 	fogSystem?: FogOfWarSystem | null;
 	/** Weather system instance. Null if weather is disabled. */
 	weatherSystem?: WeatherSystem | null;
+	/** Mutable terrain grid for environmental systems (tidal, fire). Null if not available. */
+	terrainGrid?: TerrainType[][] | null;
 }
 
 export interface UseGameLoopResult {
@@ -88,6 +91,7 @@ export function useGameLoop(world: World, options: UseGameLoopOptions): UseGameL
 					fogSystem: opts.fogSystem ?? null,
 					weatherSystem: opts.weatherSystem ?? null,
 					elapsedMs: elapsedMsRef.current,
+					terrainGrid: opts.terrainGrid ?? null,
 				};
 
 				tickAllSystems(ctx);

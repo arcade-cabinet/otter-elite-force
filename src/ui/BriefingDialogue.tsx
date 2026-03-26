@@ -5,7 +5,7 @@
  * - Left portrait: command speaker (FOXHOUND, Gen. Whiskers)
  * - Typewriter text advancing one character at a time
  * - Space/tap to complete current line, then advance to next
- * - Right portrait: player character responding (Sgt. Bubbles, etc.)
+ * - Right portrait: HQ officer responding (Col. Bubbles, etc.)
  * - "BEGIN MISSION" screen after all briefing lines
  *
  * Also used for mid-mission dialogue triggered by scenario events.
@@ -39,6 +39,8 @@ export interface BriefingDialogueProps {
 
 const SPEAKER_PORTRAITS: Record<string, string> = {
 	foxhound: "foxhound",
+	"col. bubbles": "sgt_bubbles",
+	col_bubbles: "sgt_bubbles",
 	"sgt. bubbles": "sgt_bubbles",
 	sgt_bubbles: "sgt_bubbles",
 	"gen. whiskers": "gen_whiskers",
@@ -51,7 +53,7 @@ const SPEAKER_PORTRAITS: Record<string, string> = {
 
 // Characters who speak from the RIGHT side (player/responder)
 const RESPONDERS = new Set([
-	"sgt. bubbles", "sgt_bubbles",
+	"col. bubbles", "col_bubbles", "sgt. bubbles", "sgt_bubbles",
 	"gen. whiskers", "gen_whiskers",
 	"cpl. splash", "sgt. fang",
 	"medic marina", "pvt. muskrat",

@@ -8,11 +8,19 @@
  * Spec §7: Koota as Single State Layer.
  */
 import { trait } from "koota";
+import type { Graph } from "yuka";
 import type { ObjectiveStatus } from "@/scenarios/types";
 
 // ---------------------------------------------------------------------------
-// Resources (replaces resourceStore)
+// Navigation (A* pathfinding graph)
 // ---------------------------------------------------------------------------
+
+/** Navigation graph for A* pathfinding. Built when mission terrain loads. */
+export const NavGraphState = trait(() => ({
+	graph: null as Graph | null,
+	width: 0,
+	height: 0,
+}));
 
 /** Global resource pool: fish, timber, salvage. */
 export const ResourcePool = trait({ fish: 0, timber: 0, salvage: 0 });

@@ -19,8 +19,21 @@ export const PopulationCost = trait({ cost: 1 });
 /** Building under construction: progress 0..100, buildTime in seconds */
 export const ConstructionProgress = trait({ progress: 0, buildTime: 30 });
 
-/** Active research at a building — one at a time, AoS for nullable object */
-export const ResearchSlot = trait(() => null as any);
+/** Shape of an active research slot. */
+export interface ResearchSlotData {
+	researchId: string;
+	progress: number;
+	researchTime: number;
+}
+
+/**
+ * Active research at a building — one at a time, AoS for nullable object.
+ *
+ * Koota's AoS factory requires `() => Record<string, any>` but ResearchSlot
+ * is null when no research is active. The cast bridges the type constraint.
+ */
+const researchSlotFactory: () => ResearchSlotData | null = () => null;
+export const ResearchSlot = trait(researchSlotFactory as unknown as () => ResearchSlotData);
 
 /** Tag: entity is a Command Post (primary or secondary base) */
 export const IsCommandPost = trait();

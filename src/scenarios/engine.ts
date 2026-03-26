@@ -34,6 +34,8 @@ export interface ScenarioWorldQuery {
 	isBuildingDestroyed(buildingTag: string): boolean;
 	/** Get entity health as percentage (0-100), or null if not found */
 	getEntityHealthPercent(entityTag: string): number | null;
+	/** Get current amount of a resource from the ResourcePool */
+	getResourceAmount(resource: "fish" | "timber" | "salvage"): number;
 }
 
 // ---------------------------------------------------------------------------
@@ -171,6 +173,19 @@ export class ScenarioEngine {
 					? hp < condition.percentage
 					: hp > condition.percentage;
 			}
+
+			case "resourceThreshold": {
+				const amount = world.getResourceAmount(condition.resource);
+				switch (condition.operator) {
+					case "gte":
+						return amount >= condition.amount;
+					case "lte":
+						return amount <= condition.amount;
+					case "eq":
+						return amount === condition.amount;
+				}
+				return false;
+			}
 		}
 	}
 
@@ -205,6 +220,26 @@ export class ScenarioEngine {
 		} else if (action.type === "enableTrigger") {
 			const target = this.scenario.triggers.find((t) => t.id === action.triggerId);
 			if (target) target.enabled = true;
+		} else if (action.type === "addObjective") {
+			// Add a new objective mid-mission if it doesn't already exist
+			const existing = this.objectiveStatuses.get(action.id);
+			if (existing === undefined) {
+				this.objectiveStatuses.set(action.id, "active");
+				this.scenario.objectives.push({
+					id: action.id,
+					description: action.description,
+					type: action.objectiveType,
+					status: "active",
+				});
+			}
+		} else if (action.type === "startPhase") {
+			// Enable all triggers whose ID starts with the phase prefix
+			const phasePrefix = `phase:${action.phase}:`;
+			for (const trigger of this.scenario.triggers) {
+				if (trigger.id.startsWith(phasePrefix)) {
+					trigger.enabled = true;
+				}
+			}
 		}
 
 		// Delegate all actions to the handler (including completeObjective/failMission

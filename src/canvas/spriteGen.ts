@@ -249,7 +249,7 @@ export const SPRITE_TYPES = [
   // Scale-Guard units (8)
   'skink', 'gator', 'viper', 'snapper', 'scout_lizard', 'croc_champion', 'siphon_drone', 'serpent_king',
   // Heroes (6)
-  'sgt_bubbles', 'gen_whiskers', 'cpl_splash', 'sgt_fang', 'medic_marina', 'pvt_muskrat',
+  'col_bubbles', 'gen_whiskers', 'cpl_splash', 'sgt_fang', 'medic_marina', 'pvt_muskrat',
   // URA buildings (12)
   'command_post', 'barracks', 'armory', 'watchtower', 'fish_trap', 'burrow', 'dock',
   'field_hospital', 'sandbag_wall', 'stone_wall', 'gun_tower', 'minefield',
@@ -437,7 +437,7 @@ const DRAW_FNS: Record<SpriteType, (ctx: Ctx) => void> = {
     p(ctx, 9, 7, PAL.clamMeat);
   },
   // Heroes — gold-rimmed faction units
-  sgt_bubbles: (ctx) => {
+  col_bubbles: (ctx) => {
     // Rambo otter — red bandana, fighting stick, gold star
     drawOtterBase(ctx);
     rect(ctx, 5, 1, 6, 2, PAL.clamMeat);          // red bandana

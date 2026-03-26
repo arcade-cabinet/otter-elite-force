@@ -7,7 +7,7 @@
  *
  * Character visual identities:
  *   FOXHOUND     — Radio operator. Headset, blue uniform, alert wide eyes.
- *   Sgt. Bubbles — Rambo otter. Red bandana, battle scars, teal eye glint.
+ *   Col. Bubbles — OEF tactical officer. Red bandana, battle scars, teal eye glint.
  *   Gen. Whiskers — Grizzled general. Dark beret, cigar, medals, scarred face.
  *   Cpl. Splash  — Young diver. Goggles on forehead, teal wetsuit, eager grin.
  *   Sgt. Fang    — Heavy siege. Helmet, jaw scars, intense narrow eyes.
@@ -591,7 +591,7 @@ function drawBroodmother(c: Ctx): void {
 // ============================================================================
 
 /**
- * Draw the Warcraft-style confrontation splash: Sgt. Bubbles (left profile)
+ * Draw the Warcraft-style confrontation splash: Col. Bubbles (left profile)
  * vs Kommandant Ironjaw (right profile), glaring across dark water.
  *
  * Native: 160x64. Scaled 3x to 480x192.
@@ -615,7 +615,7 @@ function drawConfrontationSplash(c: CanvasRenderingContext2D): void {
 	for (let y = 0; y < H; y += 3) rect(c, W / 2 - 2, y, 4, 1, "#0d1e2a");
 	for (let y = 1; y < H; y += 5) rect(c, W / 2 - 1, y, 2, 1, "#112838");
 
-	// ── SGT. BUBBLES — left side profile, facing right ──
+	// ── COL. BUBBLES — left side profile, facing right ──
 	const bx = 20; // center of Bubbles
 	const by = 20; // head y
 
@@ -751,6 +751,7 @@ const PORTRAIT_DRAW_FNS: Record<string, (c: Ctx) => void> = {
 	// OEF Heroes
 	foxhound: drawFoxhound,
 	sgt_bubbles: drawSgtBubbles,
+	col_bubbles: drawSgtBubbles, // alias — same portrait, promoted rank
 	gen_whiskers: drawGenWhiskers,
 	cpl_splash: drawCplSplash,
 	sgt_fang: drawSgtFang,

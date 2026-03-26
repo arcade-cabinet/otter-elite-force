@@ -12,8 +12,9 @@
  * All overlays are pointer-events-none (listening={false} on the Layer).
  */
 
-import { useMemo } from "react";
-import { Group, Layer, Rect } from "react-konva";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Circle, Group, Layer, Rect } from "react-konva";
+import { EventBus } from "@/game/EventBus";
 
 // ─── Constants ───
 
@@ -51,12 +52,38 @@ export interface OverlayLayerProps {
 /**
  * Renders selection box and placement ghost above the game entities.
  */
+interface CommandMarker {
+	id: number;
+	x: number;
+	y: number;
+	color: string;
+}
+
+let markerIdCounter = 0;
+
 export function OverlayLayer({
 	camX,
 	camY,
 	dragSelect,
 	placementGhost,
 }: Readonly<OverlayLayerProps>) {
+	// Command markers — brief green/red circles at click point
+	const [markers, setMarkers] = useState<CommandMarker[]>([]);
+
+	const addMarker = useCallback((data: { x: number; y: number; color?: string }) => {
+		const id = ++markerIdCounter;
+		const color = data.color === "red" ? "#ef4444" : "#22c55e";
+		setMarkers((prev) => [...prev.slice(-4), { id, x: data.x, y: data.y, color }]);
+		window.setTimeout(() => {
+			setMarkers((prev) => prev.filter((m) => m.id !== id));
+		}, 600);
+	}, []);
+
+	useEffect(() => {
+		EventBus.on("command-marker", addMarker);
+		return () => { EventBus.off("command-marker", addMarker); };
+	}, [addMarker]);
+
 	// Selection box rect (screen-space)
 	const selBox = useMemo(() => {
 		if (!dragSelect?.active) return null;
@@ -109,6 +136,20 @@ export function OverlayLayer({
 					/>
 				</Group>
 			)}
+
+			{/* Command markers — brief circles at click point */}
+			{markers.map((m) => (
+				<Circle
+					key={m.id}
+					x={m.x * CELL_SIZE - camX + CELL_SIZE / 2}
+					y={m.y * CELL_SIZE - camY + CELL_SIZE / 2}
+					radius={12}
+					fill={`${m.color}40`}
+					stroke={m.color}
+					strokeWidth={2}
+					listening={false}
+				/>
+			))}
 		</Layer>
 	);
 }

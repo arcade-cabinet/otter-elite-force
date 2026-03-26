@@ -1,0 +1,794 @@
+{
+  "frames": {
+    "Otter (Idle) 0.ase": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle) 1.ase": {
+      "frame": {
+        "x": 184,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle) 2.ase": {
+      "frame": {
+        "x": 368,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle) 3.ase": {
+      "frame": {
+        "x": 552,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 0.ase": {
+      "frame": {
+        "x": 0,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 1.ase": {
+      "frame": {
+        "x": 184,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 2.ase": {
+      "frame": {
+        "x": 368,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 3.ase": {
+      "frame": {
+        "x": 552,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 4.ase": {
+      "frame": {
+        "x": 736,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 5.ase": {
+      "frame": {
+        "x": 920,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 6.ase": {
+      "frame": {
+        "x": 1104,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 7.ase": {
+      "frame": {
+        "x": 1288,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 8.ase": {
+      "frame": {
+        "x": 1472,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 9.ase": {
+      "frame": {
+        "x": 1656,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 10.ase": {
+      "frame": {
+        "x": 1840,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Idle Alt) 11.ase": {
+      "frame": {
+        "x": 2024,
+        "y": 104,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Run) 0.ase": {
+      "frame": {
+        "x": 0,
+        "y": 208,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Run) 1.ase": {
+      "frame": {
+        "x": 184,
+        "y": 208,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Run) 2.ase": {
+      "frame": {
+        "x": 368,
+        "y": 208,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Jump) 0.ase": {
+      "frame": {
+        "x": 0,
+        "y": 312,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Jump) 1.ase": {
+      "frame": {
+        "x": 184,
+        "y": 312,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Jump) 2.ase": {
+      "frame": {
+        "x": 368,
+        "y": 312,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Jump) 3.ase": {
+      "frame": {
+        "x": 552,
+        "y": 312,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Land) 0.ase": {
+      "frame": {
+        "x": 0,
+        "y": 416,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Land) 1.ase": {
+      "frame": {
+        "x": 184,
+        "y": 416,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Land) 2.ase": {
+      "frame": {
+        "x": 368,
+        "y": 416,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Spin) 0.ase": {
+      "frame": {
+        "x": 0,
+        "y": 520,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Spin) 1.ase": {
+      "frame": {
+        "x": 184,
+        "y": 520,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Spin) 2.ase": {
+      "frame": {
+        "x": 368,
+        "y": 520,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Sleep) 0.ase": {
+      "frame": {
+        "x": 0,
+        "y": 624,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Sleep) 1.ase": {
+      "frame": {
+        "x": 184,
+        "y": 624,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Sleep) 2.ase": {
+      "frame": {
+        "x": 368,
+        "y": 624,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Sleep) 3.ase": {
+      "frame": {
+        "x": 552,
+        "y": 624,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Sleep) 4.ase": {
+      "frame": {
+        "x": 736,
+        "y": 624,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    },
+    "Otter (Sleep) 5.ase": {
+      "frame": {
+        "x": 920,
+        "y": 624,
+        "w": 184,
+        "h": 104
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 184,
+        "h": 104
+      },
+      "sourceSize": {
+        "w": 184,
+        "h": 104
+      },
+      "duration": 100
+    }
+  },
+  "meta": {
+    "app": "atlas-generator",
+    "version": "1.0",
+    "image": "otter.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 2208,
+      "h": 728
+    },
+    "scale": "1",
+    "frameTags": [
+      {
+        "name": "Idle",
+        "from": 0,
+        "to": 3,
+        "direction": "forward"
+      },
+      {
+        "name": "Idle Alt",
+        "from": 4,
+        "to": 15,
+        "direction": "forward"
+      },
+      {
+        "name": "Run",
+        "from": 16,
+        "to": 18,
+        "direction": "forward"
+      },
+      {
+        "name": "Jump",
+        "from": 19,
+        "to": 22,
+        "direction": "forward"
+      },
+      {
+        "name": "Land",
+        "from": 23,
+        "to": 25,
+        "direction": "forward"
+      },
+      {
+        "name": "Spin",
+        "from": 26,
+        "to": 28,
+        "direction": "forward"
+      },
+      {
+        "name": "Sleep",
+        "from": 29,
+        "to": 34,
+        "direction": "forward"
+      }
+    ]
+  }
+}

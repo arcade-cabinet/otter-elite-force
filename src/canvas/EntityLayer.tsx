@@ -16,13 +16,16 @@
 
 import { useQuery } from "koota/react";
 import { useMemo } from "react";
-import { Circle, Ellipse, Group, Image, Line, Rect } from "react-konva";
+import { Circle, Ellipse, Group, Image, Line, Rect, Text } from "react-konva";
 import { Health } from "@/ecs/traits/combat";
 import { ConstructionProgress, Gatherer } from "@/ecs/traits/economy";
 import { IsBuilding, IsProjectile, Selected, UnitType } from "@/ecs/traits/identity";
 import { RallyPoint } from "@/ecs/traits/orders";
 import { FacingDirection, Position } from "@/ecs/traits/spatial";
-import { getSprite } from "@/canvas/spriteGen";
+import { DetectionCone } from "@/ecs/traits/stealth";
+import { getEntitySprite, getEntityAnimFrame } from "@/canvas/spriteAtlas";
+import { drawRankEmblem, hasEmblem } from "@/canvas/rankEmblems";
+import { AIState } from "@/ecs/traits/ai";
 
 // ─── Constants ───
 
@@ -44,6 +47,52 @@ const SELECTION_RY = 8;
 /** Viewport padding for frustum culling (pixels beyond viewport edge). */
 const CULL_PADDING = 64;
 
+// ─── Sprite caches ───
+
+/** Cache for static sprites (buildings, resources — no animation). */
+const staticSpriteCache = new Map<string, HTMLCanvasElement>();
+
+/** Get a static sprite with rank emblem. Used for buildings/resources that don't animate. */
+function getStaticSprite(entityType: string): HTMLCanvasElement | undefined {
+	const cached = staticSpriteCache.get(entityType);
+	if (cached) return cached;
+
+	const base = getEntitySprite(entityType);
+	if (!base) return undefined;
+
+	if (!hasEmblem(entityType)) {
+		staticSpriteCache.set(entityType, base);
+		return base;
+	}
+
+	const canvas = document.createElement("canvas");
+	canvas.width = base.width;
+	canvas.height = base.height;
+	const ctx = canvas.getContext("2d")!;
+	ctx.drawImage(base, 0, 0);
+	drawRankEmblem(ctx, entityType, base.width);
+	staticSpriteCache.set(entityType, canvas);
+	return canvas;
+}
+
+/**
+ * Get an animated sprite frame for a unit based on its AI state.
+ * Falls back to static sprite for buildings/resources.
+ */
+function getAnimatedSprite(
+	entityType: string,
+	aiState: string | undefined,
+	elapsedMs: number,
+): HTMLCanvasElement | undefined {
+	// Try animated frame first (units with atlas animations)
+	const animName = getAnimForState(aiState);
+	const frame = getEntityAnimFrame(entityType, animName, elapsedMs, 150);
+	if (frame) return frame;
+
+	// Fall back to static sprite (buildings, resources, or missing animations)
+	return getStaticSprite(entityType);
+}
+
 /** Projectile rendering. */
 const PROJECTILE_RADIUS = 3;
 const PROJECTILE_COLOR = "#facc15";
@@ -62,6 +111,12 @@ const RESOURCE_COLORS: Record<string, string> = {
 
 /** Rally line styling. */
 const RALLY_DASH = [4, 4];
+
+/** Detection alert indicator styling. */
+const ALERT_INDICATOR_OFFSET_Y = -18;
+const ALERT_INDICATOR_FONT_SIZE = 16;
+const ALERT_SUSPICIOUS_COLOR = "#eab308"; // yellow
+const ALERT_ALERT_COLOR = "#ef4444"; // red
 
 // ─── HP bar color helper ───
 
@@ -82,6 +137,24 @@ export interface EntityLayerProps {
   viewportW: number;
   /** Viewport height in pixels. */
   viewportH: number;
+  /** Elapsed game time in ms — drives animation cycling. */
+  elapsedMs?: number;
+}
+
+// ─── AIState → Animation name mapping ───
+
+const AI_STATE_TO_ANIM: Record<string, string> = {
+  idle: "Idle",
+  moving: "Run",
+  attacking: "Attack",
+  gathering: "Walk",
+  building: "Walk",
+  patrolling: "Walk",
+};
+
+/** Get the correct animation name for an AI state, with animal-specific fallbacks. */
+function getAnimForState(aiState: string | undefined): string {
+  return AI_STATE_TO_ANIM[aiState ?? "idle"] ?? "Idle";
 }
 
 // ─── Component ───
@@ -92,7 +165,7 @@ export interface EntityLayerProps {
  * Wrapped in a `<Group>` offset by camera position. Parent should be a
  * react-konva `<Layer>`.
  */
-export function EntityLayer({ camX, camY, viewportW, viewportH }: EntityLayerProps) {
+export function EntityLayer({ camX, camY, viewportW, viewportH, elapsedMs = 0 }: EntityLayerProps) {
   const entities = useQuery(Position, UnitType);
   const projectiles = useQuery(Position, IsProjectile);
 
@@ -137,7 +210,7 @@ export function EntityLayer({ camX, camY, viewportW, viewportH }: EntityLayerPro
   return (
     <Group x={-camX} y={-camY}>
       {visible.map((entity) => (
-        <EntityNode key={entity.id()} entity={entity} />
+        <EntityNode key={entity.id()} entity={entity} elapsedMs={elapsedMs} />
       ))}
       {visibleProjectiles.map((proj) => {
         const pos = proj.get(Position);
@@ -161,12 +234,13 @@ export function EntityLayer({ camX, camY, viewportW, viewportH }: EntityLayerPro
 
 interface EntityNodeProps {
   entity: ReturnType<typeof useQuery>[number];
+  elapsedMs: number;
 }
 
 /**
- * Renders a single ECS entity: sprite image, selection circle, HP bar.
+ * Renders a single ECS entity: animated sprite, selection circle, HP bar, alert indicator.
  */
-function EntityNode({ entity }: EntityNodeProps) {
+function EntityNode({ entity, elapsedMs }: EntityNodeProps) {
   const pos = entity.get(Position);
   const unitType = entity.get(UnitType);
   if (!pos || !unitType) return null;
@@ -174,8 +248,11 @@ function EntityNode({ entity }: EntityNodeProps) {
   const wx = pos.x * CELL_SIZE;
   const wy = pos.y * CELL_SIZE;
 
-  // Sprite from procedural cache
-  const sprite = getSprite(unitType.type);
+  // Get AI state for animation selection
+  const aiState = entity.has(AIState) ? entity.get(AIState)?.state : undefined;
+
+  // Animated sprite based on AI state (units) or static sprite (buildings/resources)
+  const sprite = getAnimatedSprite(unitType.type, aiState, elapsedMs);
   const spriteW = sprite?.width ?? CELL_SIZE;
   const spriteH = sprite?.height ?? CELL_SIZE;
 
@@ -196,13 +273,25 @@ function EntityNode({ entity }: EntityNodeProps) {
 
   // Health state
   const health = entity.has(Health) ? entity.get(Health) : null;
-  const isDamaged = health != null && health.current < health.max;
   const hpRatio = health && health.max > 0 ? health.current / health.max : 1;
 
   // Resource carrying state (workers)
   const gatherer = entity.has(Gatherer) ? entity.get(Gatherer) : null;
   const isCarrying = gatherer != null && gatherer.amount > 0 && gatherer.carrying !== "";
   const pipColor = isCarrying ? (RESOURCE_COLORS[gatherer.carrying] ?? "#a1a1aa") : "";
+
+  // Detection cone alert state (suspicious → "?", alert → "!")
+  const detectionCone = entity.has(DetectionCone) ? entity.get(DetectionCone) : null;
+  const alertIndicator =
+    detectionCone?.alertState === "alert"
+      ? "!"
+      : detectionCone?.alertState === "suspicious"
+        ? "?"
+        : null;
+  const alertColor =
+    detectionCone?.alertState === "alert"
+      ? ALERT_ALERT_COLOR
+      : ALERT_SUSPICIOUS_COLOR;
 
   // Rally point (selected buildings only)
   const isBuilding = entity.has(IsBuilding);
@@ -250,8 +339,8 @@ function EntityNode({ entity }: EntityNodeProps) {
         listening={true}
       />
 
-      {/* HP bar (above sprite, only when damaged) */}
-      {isDamaged && health && (
+      {/* HP bar (always visible for entities with health) */}
+      {health && (
         <Group x={(spriteW - HP_BAR_WIDTH) / 2} y={HP_BAR_OFFSET_Y}>
           {/* Background */}
           <Rect
@@ -298,6 +387,19 @@ function EntityNode({ entity }: EntityNodeProps) {
           strokeWidth={1}
           dash={RALLY_DASH}
           opacity={0.7}
+          listening={false}
+        />
+      )}
+
+      {/* Detection alert indicator — "?" (suspicious, yellow) or "!" (alert, red) */}
+      {alertIndicator && (
+        <Text
+          x={spriteW / 2 - ALERT_INDICATOR_FONT_SIZE / 4}
+          y={ALERT_INDICATOR_OFFSET_Y}
+          text={alertIndicator}
+          fontSize={ALERT_INDICATOR_FONT_SIZE}
+          fontStyle="bold"
+          fill={alertColor}
           listening={false}
         />
       )}

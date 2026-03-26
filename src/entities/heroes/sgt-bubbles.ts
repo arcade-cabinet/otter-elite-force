@@ -1,6 +1,7 @@
 import type { HeroDef, SPDSLSprite } from "@/entities/types";
 
-// Sgt. Bubbles — URA starting hero. Infantry warrior, side weapon (stone blade 9).
+// Col. Bubbles — OEF tactical officer at HQ. Gives mission briefings and tactical orders.
+// NOT a battlefield unit — radio contact only. Portrait used in briefing dialogue.
 // Palette: otter_default — face 'a'/'b', stone '8'/'9'
 
 // prettier-ignore
@@ -195,8 +196,8 @@ const sprite: SPDSLSprite = {
 };
 
 export const sgtBubbles: HeroDef = {
-	id: "sgt_bubbles",
-	name: "SGT. BUBBLES",
+	id: "col_bubbles",
+	name: "COL. BUBBLES",
 	faction: "ura",
 	category: "infantry",
 
@@ -217,9 +218,9 @@ export const sgtBubbles: HeroDef = {
 
 	unlockedAt: "mission_1",
 
-	portraitId: "sgt_bubbles",
+	portraitId: "col_bubbles",
 	unlockMission: "mission_1",
-	unlockDescription: "Available from the start — Rambo-style warrior-leader",
+	unlockDescription: "OEF Tactical Officer — briefs you from HQ, not a field unit",
 
 	abilities: [
 		{

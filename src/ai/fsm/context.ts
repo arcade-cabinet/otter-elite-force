@@ -64,7 +64,12 @@ export interface AIContext {
 	requestDrain: (targetEntityId: number) => void;
 }
 
-/** Create a default AIContext with no-op callbacks (useful for testing). */
+/**
+ * Create a default AIContext with no-op callbacks.
+ *
+ * Production code wires real handlers in aiSystem.ts before any FSM runs.
+ * Tests can provide overrides for callbacks their states invoke.
+ */
 export function createDefaultAIContext(overrides: Partial<AIContext> = {}): AIContext {
 	return {
 		entityId: 0,
@@ -82,10 +87,18 @@ export function createDefaultAIContext(overrides: Partial<AIContext> = {}): AICo
 		patrolIndex: 0,
 		alertLevel: 0,
 		stateData: {},
-		requestMoveTo: () => {},
-		requestAttack: () => {},
-		requestSignalAllies: () => {},
-		requestDrain: () => {},
+		requestMoveTo: (_x: number, _y: number) => {
+			/* no-op — override in production via aiSystem */
+		},
+		requestAttack: (_targetEntityId: number) => {
+			/* no-op — override in production via aiSystem */
+		},
+		requestSignalAllies: (_x: number, _y: number) => {
+			/* no-op — override in production via aiSystem */
+		},
+		requestDrain: (_targetEntityId: number) => {
+			/* no-op — override in production via aiSystem */
+		},
 		...overrides,
 	};
 }

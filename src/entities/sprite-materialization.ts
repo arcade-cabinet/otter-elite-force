@@ -38,14 +38,16 @@ export function isLegacySprite(sprite: SpriteDef | SPDSLSprite): sprite is Sprit
 	return "frames" in sprite && "size" in sprite;
 }
 
-function resolveGrid(grid: string[][], frameIndex: number): string[] {
-	if (grid.length === 0) return [];
-	if (Array.isArray(grid[0]) && typeof grid[0] !== "string") {
-		return ((grid as unknown as string[][][])[frameIndex] ??
-			(grid as unknown as string[][][])[0] ??
-			[]) as string[];
+function resolveGrid(grid: unknown, frameIndex: number): string[] {
+	const g = grid as string[] | string[][];
+	if (!Array.isArray(g) || g.length === 0) return [];
+	// Multi-frame: string[][] where each element is a frame (array of row strings)
+	if (Array.isArray(g[0])) {
+		const frames = g as string[][];
+		return frames[frameIndex] ?? frames[0] ?? [];
 	}
-	return grid as unknown as string[];
+	// Single-frame: string[] (array of row strings)
+	return g as string[];
 }
 
 function translateSPDSLChar(char: string, paletteName: string): string {

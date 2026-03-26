@@ -9,42 +9,35 @@ describe("compileMissionScenario", () => {
 		expect(scenario.id).toBe("mission_1");
 		expect(scenario.briefing.title).toContain("Beachhead");
 		expect(scenario.objectives.map((objective) => objective.id)).toEqual([
+			"gather-timber",
 			"build-command-post",
 			"build-barracks",
 			"train-mudfoots",
-			"gather-salvage",
+			"repair-bridge",
+			"cross-river",
+			"destroy-outpost",
+			"bonus-salvage",
 		]);
 		expect(scenario.startConditions.populationCap).toBe(mission01Beachhead.startPopCap);
 	});
 
 	it("resolves mission zone references into typed runtime triggers", () => {
 		const scenario = compileMissionScenario(mission01Beachhead);
-		const tutorialTrigger = scenario.triggers.find(
-			(trigger) => trigger.id === "enemy-scout-arrival",
+
+		// FOXHOUND welcome trigger at 15s
+		const welcomeTrigger = scenario.triggers.find(
+			(trigger) => trigger.id === "phase:landfall:foxhound-welcome",
 		);
+		expect(welcomeTrigger?.condition).toEqual({ type: "timer", time: 15 });
 
-		expect(tutorialTrigger?.condition).toEqual({ type: "timer", time: 300 });
-		expect(tutorialTrigger?.action).toEqual([
-			{
-				type: "showDialogue",
-				portrait: "foxhound",
-				speaker: "FOXHOUND",
-				text: "Heads up — Scale-Guard scouts spotted near your position. Stay sharp, Bubbles.",
-			},
-			{
-				type: "spawnUnits",
-				unitType: "scout_lizard",
-				faction: "scale_guard",
-				position: { x: 25, y: 2 },
-				count: 2,
-			},
-		]);
-
-		const areaTrigger = scenario.triggers.find((trigger) => trigger.id === "salvage-found");
-		expect(areaTrigger?.condition).toEqual({
+		// Salvage discovery trigger uses salvage_field zone
+		const salvageTrigger = scenario.triggers.find(
+			(trigger) => trigger.id === "salvage-discovery",
+		);
+		expect(salvageTrigger?.condition).toEqual({
 			type: "areaEntered",
 			faction: "ura",
-			area: mission01Beachhead.zones.salvage_area,
+			area: mission01Beachhead.zones.salvage_field,
 		});
 	});
 });

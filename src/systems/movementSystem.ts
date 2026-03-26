@@ -35,7 +35,7 @@ function syncSteeringToPosition(world: World, delta: number): void {
 	const entities = world.query(SteeringAgent, Position);
 
 	for (const entity of entities) {
-		const agent = entity.get(SteeringAgent) as SteeringVehicle | null;
+		const agent = entity.get(SteeringAgent);
 		if (!agent?.vehicle) continue;
 
 		const vehicle = agent.vehicle;
@@ -83,7 +83,7 @@ function processArrival(world: World): void {
 	const entities = world.query(SteeringAgent, OrderQueue, Position);
 
 	for (const entity of entities) {
-		const agent = entity.get(SteeringAgent) as SteeringVehicle | null;
+		const agent = entity.get(SteeringAgent);
 		if (!agent?.vehicle) continue;
 
 		const orders = entity.get(OrderQueue);
@@ -149,9 +149,5 @@ export function assignSteeringAgent(
 	agent.vehicle.position.set(initialX, 0, initialY);
 
 	// Store the SteeringVehicle on the entity
-	// SteeringAgent AoS trait stores opaque data — type erase via intermediate cast
-	entity.set(
-		SteeringAgent,
-		agent as unknown as ReturnType<typeof entity.get<typeof SteeringAgent>>,
-	);
+	entity.set(SteeringAgent, agent);
 }

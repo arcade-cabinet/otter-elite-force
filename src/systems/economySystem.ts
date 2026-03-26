@@ -11,7 +11,7 @@
 
 import type { Entity, World } from "koota";
 import { Vector3 } from "yuka";
-import type { SteeringVehicle } from "../ai/steeringFactory";
+
 import { setVehiclePath } from "../ai/steeringFactory";
 import { GatheringFrom, OwnedBy } from "../ecs/relations";
 import { SteeringAgent } from "../ecs/traits/ai";
@@ -187,13 +187,13 @@ export function moveEntityToward(
 	delta: number,
 ): void {
 	if (entity.has(SteeringAgent)) {
-		const agent = entity.get(SteeringAgent) as SteeringVehicle | null;
+		const agent = entity.get(SteeringAgent);
 		if (agent) {
 			setVehiclePath(agent, [new Vector3(targetX, 0, targetY)]);
 			return;
 		}
 	}
-	const speed = 5; // tiles per second (placeholder, real speed comes from unit data)
+	const speed = 5; // tiles per second — fallback for non-steered entities (SteeringAgent handles real units)
 	const dx = targetX - position.x;
 	const dy = targetY - position.y;
 	const dist = Math.sqrt(dx * dx + dy * dy);

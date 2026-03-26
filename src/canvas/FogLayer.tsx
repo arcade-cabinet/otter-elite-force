@@ -23,11 +23,11 @@ import { Position } from "@/ecs/traits/spatial";
 // ─── Constants ───
 
 const CELL_SIZE = 32;
-const FOG_NOISE_SIZE = 256;
-const FOG_BASE = "#0f172a";
-const FOG_CLOUD = "rgba(51, 65, 85, 0.5)";
-const FOG_CLOUD_EDGE = "rgba(51, 65, 85, 0)";
-const CLOUD_COUNT = 150;
+const FOG_NOISE_SIZE = 512;
+const FOG_BASE = "#0a0f1a";
+const FOG_CLOUD = "rgba(30, 40, 55, 0.35)";
+const FOG_CLOUD_EDGE = "rgba(30, 40, 55, 0)";
+const CLOUD_COUNT = 80;
 const PLAYER_FACTION = "ura";
 
 /** Resolution of the explored-state grid (in world tiles). */
@@ -54,7 +54,7 @@ function buildFogTexture(): HTMLCanvasElement {
 	for (let i = 0; i < CLOUD_COUNT; i++) {
 		const x = Math.random() * size;
 		const y = Math.random() * size;
-		const r = 15 + Math.random() * 30;
+		const r = 30 + Math.random() * 60;
 		const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
 		grad.addColorStop(0, FOG_CLOUD);
 		grad.addColorStop(1, FOG_CLOUD_EDGE);
@@ -185,11 +185,13 @@ export function FogLayer({ camX, camY, viewportW, viewportH, worldTilesW, worldT
 				screenY + radiusPx < 0 || screenY - radiusPx > viewportH) continue;
 
 			const grad = canvas2d.createRadialGradient(
-				screenX, screenY, radiusPx * 0.2,
+				screenX, screenY, 0,
 				screenX, screenY, radiusPx,
 			);
 			grad.addColorStop(0, "rgba(0,0,0,1)");
-			grad.addColorStop(0.6, "rgba(0,0,0,0.8)");
+			grad.addColorStop(0.4, "rgba(0,0,0,1)");
+			grad.addColorStop(0.7, "rgba(0,0,0,0.6)");
+			grad.addColorStop(0.9, "rgba(0,0,0,0.2)");
 			grad.addColorStop(1, "rgba(0,0,0,0)");
 
 			canvas2d.fillStyle = grad;
@@ -203,7 +205,7 @@ export function FogLayer({ camX, camY, viewportW, viewportH, worldTilesW, worldT
 	};
 
 	return (
-		<Layer listening={false} opacity={0.6}>
+		<Layer listening={false} opacity={0.85}>
 			<Shape
 				sceneFunc={sceneFunc}
 				width={viewportW}

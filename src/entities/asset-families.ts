@@ -145,10 +145,10 @@ export const ASSET_FAMILIES = [
 		outputCategory: "units",
 		faction: "ura",
 		archetypeId: "oef_command_hero_unit",
-		referenceEntityId: "sgt_bubbles",
+		referenceEntityId: "col_bubbles",
 		roleIntent:
 			"Hero combat sprites for command-grade OEF characters who need stronger silhouette and presence than baseline infantry.",
-		memberIds: ["sgt_bubbles", "gen_whiskers", "sgt_fang"],
+		memberIds: ["col_bubbles", "gen_whiskers", "sgt_fang"],
 		generatorHints: {
 			silhouette:
 				"hero infantry with stronger stance, clearer headgear, and command-grade gear massing",

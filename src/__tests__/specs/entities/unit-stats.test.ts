@@ -554,10 +554,10 @@ describe("Scale-Guard Units", () => {
 // ===========================================================================
 
 describe("URA Heroes", () => {
-	describe("Sgt. Bubbles", () => {
+	describe("Col. Bubbles", () => {
 		it("has correct stats", () => {
 			if (skipIfNotLoaded()) return;
-			const h = heroes.sgt_bubbles;
+			const h = heroes.col_bubbles;
 			expect(h).toBeDefined();
 			expect(h.hp).toBe(120);
 			expect(h.speed).toBe(14);
@@ -565,28 +565,28 @@ describe("URA Heroes", () => {
 
 		it("is available from the start", () => {
 			if (skipIfNotLoaded()) return;
-			const h = heroes.sgt_bubbles;
+			const h = heroes.col_bubbles;
 			expect(h.unlockedAt).toBe("mission_1");
 			expect(h.populationCost).toBe(0);
 		});
 
 		it("has portrait reference", () => {
 			if (skipIfNotLoaded()) return;
-			const h = heroes.sgt_bubbles;
+			const h = heroes.col_bubbles;
 			expect(h.portraitId).toBeDefined();
-			expect(h.portraitId).toBe("sgt_bubbles");
+			expect(h.portraitId).toBe("col_bubbles");
 		});
 
 		it("has 16x16 sprite with idle frame", () => {
 			if (skipIfNotLoaded()) return;
-			const h = heroes.sgt_bubbles;
+			const h = heroes.col_bubbles;
 			expect(h.sprite.size).toBe(16);
 			expect(h.sprite.frames.idle).toBeDefined();
 		});
 
 		it("has IsHero tag", () => {
 			if (skipIfNotLoaded()) return;
-			const h = heroes.sgt_bubbles;
+			const h = heroes.col_bubbles;
 			expect(h.tags).toContain("IsHero");
 		});
 	});

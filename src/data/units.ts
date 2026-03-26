@@ -59,7 +59,7 @@ export interface HeroDef {
 export const URA_HEROES: Record<string, HeroDef> = {
 	sgt_bubbles: {
 		id: "sgt_bubbles",
-		name: "Sgt. Bubbles",
+		name: "Col. Bubbles",
 		faction: "ura",
 		hp: 120,
 		speed: 14,
