@@ -17,8 +17,11 @@
 				"pnpm build passes"
 			],
 			"priority": 1,
-			"passes": false,
-			"labels": ["milestone-b", "harness"],
+			"passes": true,
+			"labels": [
+				"milestone-b",
+				"harness"
+			],
 			"dependsOn": []
 		},
 		{
@@ -34,8 +37,13 @@
 			],
 			"priority": 2,
 			"passes": false,
-			"labels": ["milestone-b", "testing"],
-			"dependsOn": ["US-B01"]
+			"labels": [
+				"milestone-b",
+				"testing"
+			],
+			"dependsOn": [
+				"US-B01"
+			]
 		},
 		{
 			"id": "US-C01",
@@ -57,8 +65,12 @@
 				"pnpm build passes"
 			],
 			"priority": 1,
-			"passes": false,
-			"labels": ["milestone-c", "systems", "critical-path"],
+			"passes": true,
+			"labels": [
+				"milestone-c",
+				"systems",
+				"critical-path"
+			],
 			"dependsOn": []
 		},
 		{
@@ -77,8 +89,12 @@
 				"pnpm test passes"
 			],
 			"priority": 1,
-			"passes": false,
-			"labels": ["milestone-c", "mission", "critical-path"],
+			"passes": true,
+			"labels": [
+				"milestone-c",
+				"mission",
+				"critical-path"
+			],
 			"dependsOn": []
 		},
 		{
@@ -96,9 +112,16 @@
 				"pnpm build passes"
 			],
 			"priority": 1,
-			"passes": false,
-			"labels": ["milestone-c", "integration", "critical-path"],
-			"dependsOn": ["US-C01", "US-C02"]
+			"passes": true,
+			"labels": [
+				"milestone-c",
+				"integration",
+				"critical-path"
+			],
+			"dependsOn": [
+				"US-C01",
+				"US-C02"
+			]
 		},
 		{
 			"id": "US-C04",
@@ -116,8 +139,11 @@
 				"pnpm build passes"
 			],
 			"priority": 2,
-			"passes": false,
-			"labels": ["milestone-c", "rendering"],
+			"passes": true,
+			"labels": [
+				"milestone-c",
+				"rendering"
+			],
 			"dependsOn": []
 		},
 		{
@@ -136,8 +162,11 @@
 				"pnpm build passes"
 			],
 			"priority": 2,
-			"passes": false,
-			"labels": ["milestone-c", "rendering"],
+			"passes": true,
+			"labels": [
+				"milestone-c",
+				"rendering"
+			],
 			"dependsOn": []
 		},
 		{
@@ -156,9 +185,14 @@
 				"pnpm build passes"
 			],
 			"priority": 2,
-			"passes": false,
-			"labels": ["milestone-c", "rendering"],
-			"dependsOn": ["US-C01"]
+			"passes": true,
+			"labels": [
+				"milestone-c",
+				"rendering"
+			],
+			"dependsOn": [
+				"US-C01"
+			]
 		},
 		{
 			"id": "US-C07",
@@ -174,9 +208,15 @@
 				"pnpm test passes"
 			],
 			"priority": 2,
-			"passes": false,
-			"labels": ["milestone-c", "persistence"],
-			"dependsOn": ["US-C01", "US-C03"]
+			"passes": true,
+			"labels": [
+				"milestone-c",
+				"persistence"
+			],
+			"dependsOn": [
+				"US-C01",
+				"US-C03"
+			]
 		},
 		{
 			"id": "US-C08",
@@ -194,8 +234,13 @@
 			],
 			"priority": 2,
 			"passes": false,
-			"labels": ["milestone-c", "input"],
-			"dependsOn": ["US-C03"]
+			"labels": [
+				"milestone-c",
+				"input"
+			],
+			"dependsOn": [
+				"US-C03"
+			]
 		},
 		{
 			"id": "US-D01",
@@ -208,9 +253,14 @@
 				"pnpm test passes"
 			],
 			"priority": 3,
-			"passes": false,
-			"labels": ["milestone-d", "systems"],
-			"dependsOn": ["US-C01"]
+			"passes": true,
+			"labels": [
+				"milestone-d",
+				"systems"
+			],
+			"dependsOn": [
+				"US-C01"
+			]
 		},
 		{
 			"id": "US-D02",
@@ -223,9 +273,14 @@
 				"pnpm test passes"
 			],
 			"priority": 3,
-			"passes": false,
-			"labels": ["milestone-d", "systems"],
-			"dependsOn": ["US-D01"]
+			"passes": true,
+			"labels": [
+				"milestone-d",
+				"systems"
+			],
+			"dependsOn": [
+				"US-D01"
+			]
 		},
 		{
 			"id": "US-D03",
@@ -240,9 +295,16 @@
 				"pnpm test passes"
 			],
 			"priority": 3,
-			"passes": false,
-			"labels": ["milestone-d", "missions", "chapter-1"],
-			"dependsOn": ["US-C03", "US-D01"]
+			"passes": true,
+			"labels": [
+				"milestone-d",
+				"missions",
+				"chapter-1"
+			],
+			"dependsOn": [
+				"US-C03",
+				"US-D01"
+			]
 		},
 		{
 			"id": "US-D04",
@@ -257,9 +319,15 @@
 				"pnpm test passes"
 			],
 			"priority": 4,
-			"passes": false,
-			"labels": ["milestone-d", "missions", "chapter-2"],
-			"dependsOn": ["US-D02"]
+			"passes": true,
+			"labels": [
+				"milestone-d",
+				"missions",
+				"chapter-2"
+			],
+			"dependsOn": [
+				"US-D02"
+			]
 		},
 		{
 			"id": "US-D05",
@@ -274,9 +342,15 @@
 				"pnpm test passes"
 			],
 			"priority": 4,
-			"passes": false,
-			"labels": ["milestone-d", "missions", "chapter-3"],
-			"dependsOn": ["US-D02"]
+			"passes": true,
+			"labels": [
+				"milestone-d",
+				"missions",
+				"chapter-3"
+			],
+			"dependsOn": [
+				"US-D02"
+			]
 		},
 		{
 			"id": "US-D06",
@@ -291,9 +365,15 @@
 				"pnpm test passes"
 			],
 			"priority": 4,
-			"passes": false,
-			"labels": ["milestone-d", "missions", "chapter-4"],
-			"dependsOn": ["US-D02"]
+			"passes": true,
+			"labels": [
+				"milestone-d",
+				"missions",
+				"chapter-4"
+			],
+			"dependsOn": [
+				"US-D02"
+			]
 		},
 		{
 			"id": "US-E01",
@@ -309,8 +389,17 @@
 			],
 			"priority": 4,
 			"passes": false,
-			"labels": ["milestone-e", "campaign"],
-			"dependsOn": ["US-D03", "US-D04", "US-D05", "US-D06", "US-C07"]
+			"labels": [
+				"milestone-e",
+				"campaign"
+			],
+			"dependsOn": [
+				"US-D03",
+				"US-D04",
+				"US-D05",
+				"US-D06",
+				"US-C07"
+			]
 		},
 		{
 			"id": "US-E02",
@@ -325,9 +414,15 @@
 				"pnpm test passes"
 			],
 			"priority": 3,
-			"passes": false,
-			"labels": ["milestone-e", "skirmish"],
-			"dependsOn": ["US-B01", "US-C03"]
+			"passes": true,
+			"labels": [
+				"milestone-e",
+				"skirmish"
+			],
+			"dependsOn": [
+				"US-B01",
+				"US-C03"
+			]
 		},
 		{
 			"id": "US-F01",
@@ -342,9 +437,15 @@
 				"pnpm test passes"
 			],
 			"priority": 5,
-			"passes": false,
-			"labels": ["milestone-f", "solidjs", "shell"],
-			"dependsOn": ["US-C03"]
+			"passes": true,
+			"labels": [
+				"milestone-f",
+				"solidjs",
+				"shell"
+			],
+			"dependsOn": [
+				"US-C03"
+			]
 		},
 		{
 			"id": "US-F02",
@@ -359,8 +460,14 @@
 			],
 			"priority": 5,
 			"passes": false,
-			"labels": ["milestone-f", "solidjs", "shell"],
-			"dependsOn": ["US-F01"]
+			"labels": [
+				"milestone-f",
+				"solidjs",
+				"shell"
+			],
+			"dependsOn": [
+				"US-F01"
+			]
 		},
 		{
 			"id": "US-F03",
@@ -374,8 +481,14 @@
 			],
 			"priority": 5,
 			"passes": false,
-			"labels": ["milestone-f", "solidjs", "shell"],
-			"dependsOn": ["US-F01"]
+			"labels": [
+				"milestone-f",
+				"solidjs",
+				"shell"
+			],
+			"dependsOn": [
+				"US-F01"
+			]
 		},
 		{
 			"id": "US-F04",
@@ -390,8 +503,14 @@
 			],
 			"priority": 5,
 			"passes": false,
-			"labels": ["milestone-f", "solidjs", "overlay"],
-			"dependsOn": ["US-F01"]
+			"labels": [
+				"milestone-f",
+				"solidjs",
+				"overlay"
+			],
+			"dependsOn": [
+				"US-F01"
+			]
 		},
 		{
 			"id": "US-F05",
@@ -411,8 +530,14 @@
 			],
 			"priority": 5,
 			"passes": false,
-			"labels": ["milestone-f", "solidjs", "hud"],
-			"dependsOn": ["US-F06"]
+			"labels": [
+				"milestone-f",
+				"solidjs",
+				"hud"
+			],
+			"dependsOn": [
+				"US-F06"
+			]
 		},
 		{
 			"id": "US-F06",
@@ -426,9 +551,15 @@
 				"pnpm build passes"
 			],
 			"priority": 5,
-			"passes": false,
-			"labels": ["milestone-f", "solidjs", "bridge"],
-			"dependsOn": ["US-F01"]
+			"passes": true,
+			"labels": [
+				"milestone-f",
+				"solidjs",
+				"bridge"
+			],
+			"dependsOn": [
+				"US-F01"
+			]
 		},
 		{
 			"id": "US-F07",
@@ -443,8 +574,14 @@
 			],
 			"priority": 6,
 			"passes": false,
-			"labels": ["milestone-f", "solidjs", "mobile"],
-			"dependsOn": ["US-F05"]
+			"labels": [
+				"milestone-f",
+				"solidjs",
+				"mobile"
+			],
+			"dependsOn": [
+				"US-F05"
+			]
 		},
 		{
 			"id": "US-F08",
@@ -460,8 +597,13 @@
 			],
 			"priority": 5,
 			"passes": false,
-			"labels": ["milestone-f", "audio"],
-			"dependsOn": ["US-F01"]
+			"labels": [
+				"milestone-f",
+				"audio"
+			],
+			"dependsOn": [
+				"US-F01"
+			]
 		},
 		{
 			"id": "US-F09",
@@ -477,8 +619,13 @@
 			],
 			"priority": 6,
 			"passes": false,
-			"labels": ["milestone-f", "polish"],
-			"dependsOn": ["US-E01"]
+			"labels": [
+				"milestone-f",
+				"polish"
+			],
+			"dependsOn": [
+				"US-E01"
+			]
 		},
 		{
 			"id": "US-G01",
@@ -496,8 +643,19 @@
 			],
 			"priority": 7,
 			"passes": false,
-			"labels": ["milestone-g", "deletion"],
-			"dependsOn": ["US-F01", "US-F02", "US-F03", "US-F04", "US-F05", "US-F07", "US-F08"]
+			"labels": [
+				"milestone-g",
+				"deletion"
+			],
+			"dependsOn": [
+				"US-F01",
+				"US-F02",
+				"US-F03",
+				"US-F04",
+				"US-F05",
+				"US-F07",
+				"US-F08"
+			]
 		},
 		{
 			"id": "US-G02",
@@ -514,8 +672,16 @@
 			],
 			"priority": 7,
 			"passes": false,
-			"labels": ["milestone-g", "deletion"],
-			"dependsOn": ["US-C01", "US-D01", "US-D02", "US-G04"]
+			"labels": [
+				"milestone-g",
+				"deletion"
+			],
+			"dependsOn": [
+				"US-C01",
+				"US-D01",
+				"US-D02",
+				"US-G04"
+			]
 		},
 		{
 			"id": "US-G03",
@@ -529,8 +695,13 @@
 			],
 			"priority": 7,
 			"passes": false,
-			"labels": ["milestone-g", "deletion"],
-			"dependsOn": ["US-G01"]
+			"labels": [
+				"milestone-g",
+				"deletion"
+			],
+			"dependsOn": [
+				"US-G01"
+			]
 		},
 		{
 			"id": "US-G04",
@@ -546,8 +717,14 @@
 			],
 			"priority": 6,
 			"passes": false,
-			"labels": ["milestone-g", "testing"],
-			"dependsOn": ["US-C01", "US-F05"]
+			"labels": [
+				"milestone-g",
+				"testing"
+			],
+			"dependsOn": [
+				"US-C01",
+				"US-F05"
+			]
 		},
 		{
 			"id": "US-G05",
@@ -564,8 +741,15 @@
 			],
 			"priority": 6,
 			"passes": false,
-			"labels": ["milestone-g", "testing", "visual"],
-			"dependsOn": ["US-B02", "US-F05"]
+			"labels": [
+				"milestone-g",
+				"testing",
+				"visual"
+			],
+			"dependsOn": [
+				"US-B02",
+				"US-F05"
+			]
 		},
 		{
 			"id": "US-G06",
@@ -582,9 +766,14 @@
 				"pnpm test passes"
 			],
 			"priority": 5,
-			"passes": false,
-			"labels": ["milestone-g", "diagnostics"],
-			"dependsOn": ["US-C03"]
+			"passes": true,
+			"labels": [
+				"milestone-g",
+				"diagnostics"
+			],
+			"dependsOn": [
+				"US-C03"
+			]
 		},
 		{
 			"id": "US-G07",
@@ -600,8 +789,15 @@
 			],
 			"priority": 7,
 			"passes": false,
-			"labels": ["milestone-g", "docs"],
-			"dependsOn": ["US-G01", "US-G02", "US-G03"]
+			"labels": [
+				"milestone-g",
+				"docs"
+			],
+			"dependsOn": [
+				"US-G01",
+				"US-G02",
+				"US-G03"
+			]
 		},
 		{
 			"id": "US-G08",
@@ -616,8 +812,16 @@
 			],
 			"priority": 7,
 			"passes": false,
-			"labels": ["milestone-g", "cleanup"],
-			"dependsOn": ["US-G01", "US-G02", "US-G03", "US-G04"]
+			"labels": [
+				"milestone-g",
+				"cleanup"
+			],
+			"dependsOn": [
+				"US-G01",
+				"US-G02",
+				"US-G03",
+				"US-G04"
+			]
 		}
 	]
 }
