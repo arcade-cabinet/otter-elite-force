@@ -5,11 +5,14 @@ import { renderFogOverlay } from "../rendering/fogRenderer";
 import { createSpriteRenderer, type SpriteRenderer } from "../rendering/spriteRenderer";
 import { createTerrainRenderer, type TerrainRenderer } from "../rendering/terrainRenderer";
 import { Faction, Flags, Health, Position, Selection } from "../world/components";
-import type { GameWorld } from "../world/gameWorld";
+import type { GameWorld, Order } from "../world/gameWorld";
+import { getOrderQueue } from "../world/gameWorld";
 import {
 	advanceRuntimeLoopProjection,
 	createInitialRuntimeLoopProjectionState,
 } from "./loopProjection";
+
+export type OrderType = "move" | "attack" | "gather" | "garrison";
 
 export interface TacticalRuntime {
 	start(): Promise<void>;
@@ -27,6 +30,7 @@ export interface TacticalRuntime {
 		endClientY: number,
 	): void;
 	recenterFromMinimap(screenX: number, screenY: number): void;
+	getControlGroups(): Map<number, number[]>;
 }
 
 export interface TacticalRuntimeOptions {
@@ -117,6 +121,9 @@ export async function createLittleJsRuntime(
 	let lastScenarioPhase = options.world.runtime.scenarioPhase;
 	let lastSessionPhase = options.world.session.phase;
 	let scenarioPhaseInitialized = false;
+
+	// ─── Control groups (Ctrl+1..9 to assign, 1..9 to recall) ───
+	const controlGroups = new Map<number, number[]>();
 
 	// ─── Rendering subsystems ───
 	let terrainRenderer: TerrainRenderer | null = null;
@@ -540,6 +547,40 @@ export async function createLittleJsRuntime(
 		}
 	}
 
+	function resolveContextualOrder(worldX: number, worldY: number): Order {
+		const targetEid = findNearestEntity(worldX, worldY);
+		if (targetEid != null) {
+			const targetFaction = Faction.id[targetEid];
+			const isResource = Flags.isResource[targetEid] === 1;
+			const isBuilding = Flags.isBuilding[targetEid] === 1;
+			const isEnemy = targetFaction !== 0 && targetFaction !== 1;
+
+			if (isEnemy) {
+				return { type: "attack", targetEid, targetX: worldX, targetY: worldY };
+			}
+			if (isResource) {
+				return { type: "gather", targetEid, targetX: worldX, targetY: worldY };
+			}
+			if (isBuilding && targetFaction === 1) {
+				return { type: "garrison", targetEid, targetX: worldX, targetY: worldY };
+			}
+		}
+		return { type: "move", targetX: worldX, targetY: worldY };
+	}
+
+	function issueOrderToSelected(order: Order): void {
+		const selected = getSelectedEntityIds();
+		for (const eid of selected) {
+			const queue = getOrderQueue(options.world, eid);
+			queue.length = 0;
+			queue.push(order);
+		}
+		// Also apply immediate position update for move orders (existing behavior)
+		if (order.type === "move" && order.targetX !== undefined && order.targetY !== undefined) {
+			moveSelectedEntities(order.targetX, order.targetY);
+		}
+	}
+
 	function handlePrimaryAction(worldX: number, worldY: number): void {
 		const selected = getSelectedEntityIds();
 		const targetEid = findNearestEntity(worldX, worldY);
@@ -566,9 +607,57 @@ export async function createLittleJsRuntime(
 
 	function handleSecondaryAction(worldX: number, worldY: number): void {
 		if (getSelectedEntityIds().length === 0) return;
-		moveSelectedEntities(worldX, worldY);
+		const order = resolveContextualOrder(worldX, worldY);
+		issueOrderToSelected(order);
 		syncBridgeState();
 		renderCurrentFrame();
+	}
+
+	function onKeyDown(event: KeyboardEvent): void {
+		const key = event.key;
+		const digit = Number(key);
+
+		// Control groups: Ctrl+1..9 assigns, 1..9 recalls
+		if (digit >= 1 && digit <= 9) {
+			if (event.ctrlKey || event.metaKey) {
+				event.preventDefault();
+				const selected = getSelectedEntityIds();
+				if (selected.length > 0) {
+					controlGroups.set(digit, [...selected]);
+				}
+				return;
+			}
+			// Recall control group
+			const group = controlGroups.get(digit);
+			if (group && group.length > 0) {
+				// Filter to only alive entities
+				const alive = group.filter((eid) => options.world.runtime.alive.has(eid));
+				if (alive.length > 0) {
+					controlGroups.set(digit, alive);
+					for (const eid of options.world.runtime.alive) {
+						Selection.selected[eid] = 0;
+					}
+					for (const eid of alive) {
+						Selection.selected[eid] = 1;
+					}
+					syncBridgeState();
+					renderCurrentFrame();
+				}
+			}
+			return;
+		}
+
+		// Arrow key panning
+		const PAN_SPEED = 16;
+		if (key === "ArrowLeft") {
+			panCamera(-PAN_SPEED, 0);
+		} else if (key === "ArrowRight") {
+			panCamera(PAN_SPEED, 0);
+		} else if (key === "ArrowUp") {
+			panCamera(0, -PAN_SPEED);
+		} else if (key === "ArrowDown") {
+			panCamera(0, PAN_SPEED);
+		}
 	}
 
 	function ensureCanvas(): HTMLCanvasElement {
@@ -588,6 +677,7 @@ export async function createLittleJsRuntime(
 		canvas.addEventListener("pointercancel", onPointerCancel);
 		canvas.addEventListener("wheel", onWheel, { passive: false });
 		canvas.addEventListener("contextmenu", preventContextMenu);
+		document.addEventListener("keydown", onKeyDown);
 		return nextCanvas;
 	}
 
@@ -599,6 +689,7 @@ export async function createLittleJsRuntime(
 		canvas.removeEventListener("pointercancel", onPointerCancel);
 		canvas.removeEventListener("wheel", onWheel);
 		canvas.removeEventListener("contextmenu", preventContextMenu);
+		document.removeEventListener("keydown", onKeyDown);
 		canvas.remove();
 		canvas = null;
 		context = null;
@@ -860,6 +951,15 @@ export async function createLittleJsRuntime(
 		}
 
 		if (tracked.button === 0 && pointers.size === 1) {
+			// Touch devices: single-finger drag without long-press = camera pan
+			if (
+				tracked.pointerType === "touch" &&
+				event.timeStamp - tracked.startTimeMs < TOUCH_BOX_SELECT_DELAY_MS
+			) {
+				panCamera(-dx, -dy);
+				return;
+			}
+
 			const startPoint = getScreenPoint(tracked.startClientX, tracked.startClientY);
 			const endPoint = getScreenPoint(event.clientX, event.clientY);
 			selectionBox = {
@@ -1023,6 +1123,9 @@ export async function createLittleJsRuntime(
 		},
 		selectInScreenRect,
 		recenterFromMinimap,
+		getControlGroups(): Map<number, number[]> {
+			return controlGroups;
+		},
 	};
 }
 

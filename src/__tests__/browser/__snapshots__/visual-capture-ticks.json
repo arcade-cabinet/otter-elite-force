@@ -1,0 +1,422 @@
+[
+  {
+    "tick": 0,
+    "aliveCount": 18,
+    "entities": [
+      {
+        "eid": 1,
+        "x": 144,
+        "y": 1168,
+        "health": 40,
+        "type": "command_post"
+      },
+      {
+        "eid": 2,
+        "x": 1168,
+        "y": 144,
+        "health": 40,
+        "type": "flag_post"
+      },
+      {
+        "eid": 3,
+        "x": 176,
+        "y": 1200,
+        "health": 10,
+        "type": "river_rat"
+      },
+      {
+        "eid": 4,
+        "x": 1128,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 5,
+        "x": 190,
+        "y": 1200,
+        "health": 10,
+        "type": "mudfoot"
+      },
+      {
+        "eid": 6,
+        "x": 1114,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 7,
+        "x": 204,
+        "y": 1200,
+        "health": 10,
+        "type": "mudfoot"
+      },
+      {
+        "eid": 8,
+        "x": 1100,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 9,
+        "x": 218,
+        "y": 1200,
+        "health": 10,
+        "type": "mudfoot"
+      },
+      {
+        "eid": 10,
+        "x": 1086,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 11,
+        "x": 48,
+        "y": 1136,
+        "health": 1,
+        "type": "fish"
+      },
+      {
+        "eid": 12,
+        "x": 176,
+        "y": 1200,
+        "health": 1,
+        "type": "timber"
+      },
+      {
+        "eid": 13,
+        "x": 272,
+        "y": 1136,
+        "health": 1,
+        "type": "salvage"
+      },
+      {
+        "eid": 14,
+        "x": 1040,
+        "y": 208,
+        "health": 1,
+        "type": "fish"
+      },
+      {
+        "eid": 15,
+        "x": 1136,
+        "y": 208,
+        "health": 1,
+        "type": "timber"
+      },
+      {
+        "eid": 16,
+        "x": 1200,
+        "y": 272,
+        "health": 1,
+        "type": "salvage"
+      },
+      {
+        "eid": 17,
+        "x": 752,
+        "y": 720,
+        "health": 1,
+        "type": "salvage"
+      },
+      {
+        "eid": 18,
+        "x": 528,
+        "y": 528,
+        "health": 1,
+        "type": "timber"
+      }
+    ],
+    "resources": {
+      "fish": 300,
+      "timber": 200,
+      "salvage": 100
+    },
+    "phase": "playing",
+    "weather": "clear",
+    "elapsedMs": 16
+  },
+  {
+    "tick": 60,
+    "aliveCount": 18,
+    "entities": [
+      {
+        "eid": 1,
+        "x": 144,
+        "y": 1168,
+        "health": 40,
+        "type": "command_post"
+      },
+      {
+        "eid": 2,
+        "x": 1168,
+        "y": 144,
+        "health": 40,
+        "type": "flag_post"
+      },
+      {
+        "eid": 3,
+        "x": 176,
+        "y": 1200,
+        "health": 10,
+        "type": "river_rat"
+      },
+      {
+        "eid": 4,
+        "x": 1128,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 5,
+        "x": 190,
+        "y": 1200,
+        "health": 10,
+        "type": "mudfoot"
+      },
+      {
+        "eid": 6,
+        "x": 1114,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 7,
+        "x": 204,
+        "y": 1200,
+        "health": 10,
+        "type": "mudfoot"
+      },
+      {
+        "eid": 8,
+        "x": 1100,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 9,
+        "x": 218,
+        "y": 1200,
+        "health": 10,
+        "type": "mudfoot"
+      },
+      {
+        "eid": 10,
+        "x": 1086,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 11,
+        "x": 48,
+        "y": 1136,
+        "health": 1,
+        "type": "fish"
+      },
+      {
+        "eid": 12,
+        "x": 176,
+        "y": 1200,
+        "health": 1,
+        "type": "timber"
+      },
+      {
+        "eid": 13,
+        "x": 272,
+        "y": 1136,
+        "health": 1,
+        "type": "salvage"
+      },
+      {
+        "eid": 14,
+        "x": 1040,
+        "y": 208,
+        "health": 1,
+        "type": "fish"
+      },
+      {
+        "eid": 15,
+        "x": 1136,
+        "y": 208,
+        "health": 1,
+        "type": "timber"
+      },
+      {
+        "eid": 16,
+        "x": 1200,
+        "y": 272,
+        "health": 1,
+        "type": "salvage"
+      },
+      {
+        "eid": 17,
+        "x": 752,
+        "y": 720,
+        "health": 1,
+        "type": "salvage"
+      },
+      {
+        "eid": 18,
+        "x": 528,
+        "y": 528,
+        "health": 1,
+        "type": "timber"
+      }
+    ],
+    "resources": {
+      "fish": 300,
+      "timber": 200,
+      "salvage": 100
+    },
+    "phase": "playing",
+    "weather": "clear",
+    "elapsedMs": 976
+  },
+  {
+    "tick": 299,
+    "aliveCount": 18,
+    "entities": [
+      {
+        "eid": 1,
+        "x": 144,
+        "y": 1168,
+        "health": 40,
+        "type": "command_post"
+      },
+      {
+        "eid": 2,
+        "x": 1168,
+        "y": 144,
+        "health": 40,
+        "type": "flag_post"
+      },
+      {
+        "eid": 3,
+        "x": 176,
+        "y": 1200,
+        "health": 10,
+        "type": "river_rat"
+      },
+      {
+        "eid": 4,
+        "x": 1128,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 5,
+        "x": 190,
+        "y": 1200,
+        "health": 10,
+        "type": "mudfoot"
+      },
+      {
+        "eid": 6,
+        "x": 1114,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 7,
+        "x": 204,
+        "y": 1200,
+        "health": 10,
+        "type": "mudfoot"
+      },
+      {
+        "eid": 8,
+        "x": 1100,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 9,
+        "x": 218,
+        "y": 1200,
+        "health": 10,
+        "type": "mudfoot"
+      },
+      {
+        "eid": 10,
+        "x": 1086,
+        "y": 104,
+        "health": 10,
+        "type": "gator"
+      },
+      {
+        "eid": 11,
+        "x": 48,
+        "y": 1136,
+        "health": 1,
+        "type": "fish"
+      },
+      {
+        "eid": 12,
+        "x": 176,
+        "y": 1200,
+        "health": 1,
+        "type": "timber"
+      },
+      {
+        "eid": 13,
+        "x": 272,
+        "y": 1136,
+        "health": 1,
+        "type": "salvage"
+      },
+      {
+        "eid": 14,
+        "x": 1040,
+        "y": 208,
+        "health": 1,
+        "type": "fish"
+      },
+      {
+        "eid": 15,
+        "x": 1136,
+        "y": 208,
+        "health": 1,
+        "type": "timber"
+      },
+      {
+        "eid": 16,
+        "x": 1200,
+        "y": 272,
+        "health": 1,
+        "type": "salvage"
+      },
+      {
+        "eid": 17,
+        "x": 752,
+        "y": 720,
+        "health": 1,
+        "type": "salvage"
+      },
+      {
+        "eid": 18,
+        "x": 528,
+        "y": 528,
+        "health": 1,
+        "type": "timber"
+      }
+    ],
+    "resources": {
+      "fish": 300,
+      "timber": 200,
+      "salvage": 100
+    },
+    "phase": "playing",
+    "weather": "clear",
+    "elapsedMs": 4800
+  }
+]

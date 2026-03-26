@@ -55,7 +55,16 @@ export default defineConfig({
 			},
 		},
 		include: ["src/**/*.{test,spec}.{ts,tsx}"],
-		exclude: ["node_modules", "dist", "e2e", "src/__tests__/browser/**"],
+		exclude: [
+			"node_modules",
+			"dist",
+			"e2e",
+			// Exclude browser-dependent tests (run via pnpm test:browser with Chromium).
+			// visualCapture.test.ts runs in Node mode and is included here.
+			"src/__tests__/browser/gameplay-loops.test.ts",
+			"src/__tests__/browser/playtest-governor.test.ts",
+			"src/__tests__/browser/visual-baselines.test.ts",
+		],
 		// Handle ESM packages with directory imports
 		server: {
 			deps: {
