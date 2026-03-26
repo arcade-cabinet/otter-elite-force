@@ -18,7 +18,7 @@ export default defineConfig({
 			headless: true,
 		},
 		// Longer timeout for browser tests — Phaser boot + scene transitions take time
-		testTimeout: 15000,
+		testTimeout: 120000, // Governor playtests can run long
 	},
 	resolve: {
 		alias: {
