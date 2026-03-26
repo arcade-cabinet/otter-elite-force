@@ -82,3 +82,37 @@ Scenario engine at `src/scenarios/engine.ts` evaluates triggers per frame. DSL h
 | `CLAUDE.md` | Claude Code specific instructions |
 | `src/scenarios/engine.ts` | Trigger evaluation engine |
 | `src/entities/missions/dsl.ts` | Mission scripting DSL |
+
+## Cursor Cloud specific instructions
+
+### Environment
+
+- **Node 24 LTS** via nvm (see `.nvmrc`). Run `source ~/.nvm/nvm.sh && nvm use 24` before any Node/pnpm commands if the shell hasn't activated it.
+- **pnpm 10.26.2** via corepack (`corepack enable && corepack prepare pnpm@10.26.2 --activate`).
+- **xvfb** is pre-installed for headed browser testing in headless CI environments.
+- **Playwright Chromium** is pre-installed at `~/.cache/ms-playwright/` (full browser + headless shell + ffmpeg).
+
+### Running the app
+
+- `pnpm dev` — starts Vite dev server (default port 5173, use `--port 8081` for E2E).
+- No backend services, databases, or external dependencies required — this is a fully client-side game.
+
+### Commands reference
+
+See `README.md` "Development" section. Key commands: `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm lint`.
+
+### Visual / headed E2E testing
+
+Use `xvfb-run` to run Playwright in headed mode for screenshot and video capture:
+
+```
+xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" npx playwright test --project "Desktop Chrome" --headed
+```
+
+The Playwright config (`playwright.config.ts`) adds WebGL/SwiftShader flags automatically. Screenshots are captured on every test (`screenshot: "on"` in config).
+
+### Known issues (pre-existing)
+
+- `pnpm build` fails at the `tsc` step due to unused-import errors in `src/canvas/usePointerInput.ts`. The Vite build itself succeeds — use `npx vite build` to skip tsc if needed.
+- `pnpm lint` reports pre-existing Biome errors/warnings (4 errors, 7 warnings, 170 infos). The lint tool itself works correctly.
+- E2E smoke test "app renders without critical console errors" fails due to a 404 resource fetch — a pre-existing issue, not an environment problem.
