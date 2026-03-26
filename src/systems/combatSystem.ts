@@ -24,6 +24,7 @@ import {
 	getDifficultyModifiers,
 } from "./difficultyScaling";
 import type { FogOfWarSystem } from "./fogSystem";
+import { rollLootDrops } from "./lootSystem";
 import { MORTAR_SPLASH_RADIUS, SplashRadius } from "./siegeSystem";
 
 /** Projectile speed in tiles per second. */
@@ -319,6 +320,11 @@ export function deathSystem(world: World): Entity[] {
 		}
 
 		for (const entity of dead) {
+			// Roll loot drops before destroying (entity still has traits)
+			const ut = entity.has(UnitType) ? entity.get(UnitType)?.type : null;
+			if (ut) {
+				rollLootDrops(world, entity, ut);
+			}
 			EventBus.emit("unit-died");
 			entity.destroy();
 		}
