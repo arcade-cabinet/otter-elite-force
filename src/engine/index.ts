@@ -12,5 +12,6 @@ export * from "./runtime/loopProjection";
 export * from "./session/scenarioRuntime";
 export * from "./session/runtimeMissionFlow";
 export * from "./session/tacticalSession";
+export * from "./rendering/index";
 export * from "./world/components";
 export * from "./world/gameWorld";

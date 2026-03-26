@@ -1,7 +1,15 @@
-import { Position, Selection, Flags, Faction, Health } from "../world/components";
-import { advanceRuntimeLoopProjection, createInitialRuntimeLoopProjectionState } from "./loopProjection";
+import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import type { GameBridge } from "../bridge/gameBridge";
+import { loadTileImages } from "../rendering/assetLoader";
+import { renderFogOverlay } from "../rendering/fogRenderer";
+import { createSpriteRenderer, type SpriteRenderer } from "../rendering/spriteRenderer";
+import { createTerrainRenderer, type TerrainRenderer } from "../rendering/terrainRenderer";
+import { Faction, Flags, Health, Position, Selection } from "../world/components";
 import type { GameWorld } from "../world/gameWorld";
+import {
+	advanceRuntimeLoopProjection,
+	createInitialRuntimeLoopProjectionState,
+} from "./loopProjection";
 
 export interface TacticalRuntime {
 	start(): Promise<void>;
@@ -12,7 +20,12 @@ export interface TacticalRuntime {
 	recenter(): void;
 	zoomIn(): void;
 	zoomOut(): void;
-	selectInScreenRect(startClientX: number, startClientY: number, endClientX: number, endClientY: number): void;
+	selectInScreenRect(
+		startClientX: number,
+		startClientY: number,
+		endClientX: number,
+		endClientY: number,
+	): void;
 	recenterFromMinimap(screenX: number, screenY: number): void;
 }
 
@@ -105,12 +118,60 @@ export async function createLittleJsRuntime(
 	let lastSessionPhase = options.world.session.phase;
 	let scenarioPhaseInitialized = false;
 
+	// ─── Rendering subsystems ───
+	let terrainRenderer: TerrainRenderer | null = null;
+	let spriteRenderer: SpriteRenderer | null = null;
+	let fogGrid: Uint8Array | null = null;
+	let fogGridWidth = 0;
+	let fogGridHeight = 0;
+	let renderingAssetsLoading = false;
+
+	/** Kick off async loading of terrain tiles and sprite atlases. */
+	function initRenderingAssets(): void {
+		if (renderingAssetsLoading) return;
+		renderingAssetsLoading = true;
+
+		// Load sprite atlases (fire-and-forget; renderer checks atlasesLoaded())
+		loadAllAtlases().catch((err: unknown) => {
+			console.warn("[littlejsRuntime] Failed to load sprite atlases:", err);
+		});
+
+		// Load terrain tile images and build terrain renderer if navigation data exists
+		loadTileImages()
+			.then((tileImages) => {
+				const navW = options.world.navigation.width;
+				const navH = options.world.navigation.height;
+				if (navW > 0 && navH > 0) {
+					// Build a simple terrain grid from navigation dimensions
+					// The actual terrain data would come from the mission definition;
+					// for now, create a grass-filled grid sized to the navigation grid.
+					const tileGrid: number[][] = Array.from({ length: navH }, () =>
+						Array.from({ length: navW }, () => 0),
+					);
+					terrainRenderer = createTerrainRenderer(tileGrid, tileImages);
+
+					// Initialize fog grid (all visible for now — scenario system will manage fog)
+					fogGridWidth = navW;
+					fogGridHeight = navH;
+					fogGrid = new Uint8Array(navW * navH).fill(2);
+				}
+			})
+			.catch((err: unknown) => {
+				console.warn("[littlejsRuntime] Failed to load terrain tiles:", err);
+			});
+
+		// Create sprite renderer immediately (it checks atlasesLoaded() internally)
+		spriteRenderer = createSpriteRenderer();
+	}
+
 	function getWorldPixelSize(): { width: number; height: number } {
 		const fallbackWidth = Math.max(options.container.clientWidth || 0, 640);
 		const fallbackHeight = Math.max(options.container.clientHeight || 0, 360);
 		return {
-			width: options.world.navigation.width > 0 ? options.world.navigation.width * 32 : fallbackWidth,
-			height: options.world.navigation.height > 0 ? options.world.navigation.height * 32 : fallbackHeight,
+			width:
+				options.world.navigation.width > 0 ? options.world.navigation.width * 32 : fallbackWidth,
+			height:
+				options.world.navigation.height > 0 ? options.world.navigation.height * 32 : fallbackHeight,
 		};
 	}
 
@@ -268,7 +329,9 @@ export async function createLittleJsRuntime(
 
 	function pushAlert(message: string, severity: "info" | "warning" | "critical"): void {
 		const id = `runtime-alert-${options.world.time.tick}-${options.bridge.state.alerts.length}`;
-		options.bridge.state.alerts = [...options.bridge.state.alerts, { id, message, severity }].slice(-4);
+		options.bridge.state.alerts = [...options.bridge.state.alerts, { id, message, severity }].slice(
+			-4,
+		);
 	}
 
 	function syncBridgeState(): void {
@@ -283,12 +346,16 @@ export async function createLittleJsRuntime(
 		const playerOwned = [...options.world.runtime.alive].filter(
 			(eid) => Faction.id[eid] === 1 && Flags.isResource[eid] === 0,
 		).length;
-		options.bridge.state.selection = selectedIds.length > 0
-			? {
-					entityIds: selectedIds,
-					primaryLabel: selectedIds.length === 1 ? `Entity ${selectedIds[0]}` : `${selectedIds.length} selected`,
-				}
-			: null;
+		options.bridge.state.selection =
+			selectedIds.length > 0
+				? {
+						entityIds: selectedIds,
+						primaryLabel:
+							selectedIds.length === 1
+								? `Entity ${selectedIds[0]}`
+								: `${selectedIds.length} selected`,
+					}
+				: null;
 		options.bridge.state.population = {
 			current: playerOwned,
 			max: Math.max(playerOwned, 24),
@@ -300,7 +367,9 @@ export async function createLittleJsRuntime(
 			status: objective.status,
 		}));
 		options.bridge.state.weather = options.world.runtime.weather;
-		const bossEntry = [...options.world.runtime.bossConfigs.entries()].find(([eid]) => options.world.runtime.alive.has(eid));
+		const bossEntry = [...options.world.runtime.bossConfigs.entries()].find(([eid]) =>
+			options.world.runtime.alive.has(eid),
+		);
 		options.bridge.state.boss = bossEntry
 			? {
 					name: String((bossEntry[1] as { name?: string }).name ?? "Boss"),
@@ -408,7 +477,12 @@ export async function createLittleJsRuntime(
 			endX: getScreenPoint(endClientX, endClientY).x,
 			endY: getScreenPoint(endClientX, endClientY).y,
 		};
-		selectEntitiesInWorldRect(startWorldPoint.x, startWorldPoint.y, endWorldPoint.x, endWorldPoint.y);
+		selectEntitiesInWorldRect(
+			startWorldPoint.x,
+			startWorldPoint.y,
+			endWorldPoint.x,
+			endWorldPoint.y,
+		);
 	}
 
 	function recenterFromMinimap(screenX: number, screenY: number): void {
@@ -562,73 +636,102 @@ export async function createLittleJsRuntime(
 			context.fillRect(0, 0, width, height);
 		}
 
-		context.strokeStyle = "rgba(148, 163, 184, 0.08)";
-		context.lineWidth = 1;
-		const gridSize = 32 * camera.zoom;
-		const offsetX = -((camera.x * camera.zoom) % gridSize);
-		const offsetY = -((camera.y * camera.zoom) % gridSize);
-		for (let x = offsetX; x <= width; x += gridSize) {
-			context.beginPath();
-			context.moveTo(x + 0.5, 0);
-			context.lineTo(x + 0.5, height);
-			context.stroke();
-		}
-		for (let y = offsetY; y <= height; y += gridSize) {
-			context.beginPath();
-			context.moveTo(0, y + 0.5);
-			context.lineTo(width, y + 0.5);
-			context.stroke();
-		}
-
-		let entityCount = 0;
-		for (const eid of options.world.runtime.alive) {
-			entityCount += 1;
-			const x = Position.x[eid];
-			const y = Position.y[eid];
-			const screenX = (x - camera.x) * camera.zoom;
-			const screenY = (y - camera.y) * camera.zoom;
-			if (screenX < -32 || screenY < -32 || screenX > width + 32 || screenY > height + 32) {
-				continue;
-			}
-			const isBuilding = Flags.isBuilding[eid] === 1;
-			const isResource = Flags.isResource[eid] === 1;
-			const isSelected = Selection.selected[eid] === 1;
-			const factionId = Faction.id[eid];
-			const healthRatio = Health.max[eid] > 0 ? Health.current[eid] / Health.max[eid] : 1;
-
-			context.fillStyle = isResource
-				? "#facc15"
-				: factionId === 1
-					? "#22c55e"
-					: factionId === 2
-						? "#ef4444"
-						: "#cbd5e1";
-			if (isBuilding) {
-				const size = 16 * camera.zoom;
-				context.fillRect(screenX - size / 2, screenY - size / 2, size, size);
-			} else {
+		// ── Terrain layer ──
+		if (terrainRenderer) {
+			terrainRenderer.render(context, camera, { width, height });
+		} else {
+			// Fallback: draw grid lines when terrain renderer isn't ready
+			context.strokeStyle = "rgba(148, 163, 184, 0.08)";
+			context.lineWidth = 1;
+			const gridSize = 32 * camera.zoom;
+			const offsetX = -((camera.x * camera.zoom) % gridSize);
+			const offsetY = -((camera.y * camera.zoom) % gridSize);
+			for (let gx = offsetX; gx <= width; gx += gridSize) {
 				context.beginPath();
-				context.arc(screenX, screenY, Math.max(4, 6 * camera.zoom), 0, Math.PI * 2);
-				context.fill();
-			}
-
-			context.fillStyle = "rgba(15, 23, 42, 0.9)";
-			context.fillRect(screenX - 10 * camera.zoom, screenY - 14 * camera.zoom, 20 * camera.zoom, 3 * camera.zoom);
-			context.fillStyle = "#34d399";
-			context.fillRect(
-				screenX - 10 * camera.zoom,
-				screenY - 14 * camera.zoom,
-				20 * camera.zoom * Math.max(0, Math.min(1, healthRatio)),
-				3 * camera.zoom,
-			);
-
-			if (isSelected) {
-				context.strokeStyle = "#f8fafc";
-				context.lineWidth = 2;
-				context.beginPath();
-				context.arc(screenX, screenY, (isBuilding ? 12 : 10) * camera.zoom, 0, Math.PI * 2);
+				context.moveTo(gx + 0.5, 0);
+				context.lineTo(gx + 0.5, height);
 				context.stroke();
 			}
+			for (let gy = offsetY; gy <= height; gy += gridSize) {
+				context.beginPath();
+				context.moveTo(0, gy + 0.5);
+				context.lineTo(width, gy + 0.5);
+				context.stroke();
+			}
+		}
+
+		// ── Entity layer (sprite renderer with shape fallback) ──
+		let entityCount = 0;
+		if (spriteRenderer) {
+			entityCount = options.world.runtime.alive.size;
+			spriteRenderer.renderEntities(
+				context,
+				camera,
+				{ width, height },
+				options.world,
+				options.world.time.tick,
+			);
+		} else {
+			// Fallback: original colored shape rendering
+			for (const eid of options.world.runtime.alive) {
+				entityCount += 1;
+				const ex = Position.x[eid];
+				const ey = Position.y[eid];
+				const screenX = (ex - camera.x) * camera.zoom;
+				const screenY = (ey - camera.y) * camera.zoom;
+				if (screenX < -32 || screenY < -32 || screenX > width + 32 || screenY > height + 32) {
+					continue;
+				}
+				const isBuilding = Flags.isBuilding[eid] === 1;
+				const isResource = Flags.isResource[eid] === 1;
+				const isSelected = Selection.selected[eid] === 1;
+				const factionId = Faction.id[eid];
+				const healthRatio = Health.max[eid] > 0 ? Health.current[eid] / Health.max[eid] : 1;
+
+				context.fillStyle = isResource
+					? "#facc15"
+					: factionId === 1
+						? "#22c55e"
+						: factionId === 2
+							? "#ef4444"
+							: "#cbd5e1";
+				if (isBuilding) {
+					const size = 16 * camera.zoom;
+					context.fillRect(screenX - size / 2, screenY - size / 2, size, size);
+				} else {
+					context.beginPath();
+					context.arc(screenX, screenY, Math.max(4, 6 * camera.zoom), 0, Math.PI * 2);
+					context.fill();
+				}
+
+				context.fillStyle = "rgba(15, 23, 42, 0.9)";
+				context.fillRect(
+					screenX - 10 * camera.zoom,
+					screenY - 14 * camera.zoom,
+					20 * camera.zoom,
+					3 * camera.zoom,
+				);
+				context.fillStyle = "#34d399";
+				context.fillRect(
+					screenX - 10 * camera.zoom,
+					screenY - 14 * camera.zoom,
+					20 * camera.zoom * Math.max(0, Math.min(1, healthRatio)),
+					3 * camera.zoom,
+				);
+
+				if (isSelected) {
+					context.strokeStyle = "#f8fafc";
+					context.lineWidth = 2;
+					context.beginPath();
+					context.arc(screenX, screenY, (isBuilding ? 12 : 10) * camera.zoom, 0, Math.PI * 2);
+					context.stroke();
+				}
+			}
+		}
+
+		// ── Fog of war layer ──
+		if (fogGrid && fogGridWidth > 0 && fogGridHeight > 0) {
+			renderFogOverlay(context, camera, { width, height }, fogGrid, fogGridWidth, fogGridHeight);
 		}
 
 		context.fillStyle = "#f8fafc";
@@ -657,10 +760,21 @@ export async function createLittleJsRuntime(
 						: Faction.id[eid] === 2
 							? "#ef4444"
 							: "#cbd5e1";
-			context.fillRect(px - 1, py - 1, Flags.isBuilding[eid] === 1 ? 4 : 3, Flags.isBuilding[eid] === 1 ? 4 : 3);
+			context.fillRect(
+				px - 1,
+				py - 1,
+				Flags.isBuilding[eid] === 1 ? 4 : 3,
+				Flags.isBuilding[eid] === 1 ? 4 : 3,
+			);
 		}
-		const viewportRectW = Math.min(minimap.width, (width / camera.zoom / Math.max(1, worldSize.width)) * minimap.width);
-		const viewportRectH = Math.min(minimap.height, (height / camera.zoom / Math.max(1, worldSize.height)) * minimap.height);
+		const viewportRectW = Math.min(
+			minimap.width,
+			(width / camera.zoom / Math.max(1, worldSize.width)) * minimap.width,
+		);
+		const viewportRectH = Math.min(
+			minimap.height,
+			(height / camera.zoom / Math.max(1, worldSize.height)) * minimap.height,
+		);
 		const viewportRectX = minimap.x + (camera.x / Math.max(1, worldSize.width)) * minimap.width;
 		const viewportRectY = minimap.y + (camera.y / Math.max(1, worldSize.height)) * minimap.height;
 		context.strokeStyle = "#f8fafc";
@@ -711,7 +825,10 @@ export async function createLittleJsRuntime(
 		const dy = event.clientY - tracked.lastClientY;
 		tracked.lastClientX = event.clientX;
 		tracked.lastClientY = event.clientY;
-		if (Math.abs(event.clientX - tracked.startClientX) > 4 || Math.abs(event.clientY - tracked.startClientY) > 4) {
+		if (
+			Math.abs(event.clientX - tracked.startClientX) > 4 ||
+			Math.abs(event.clientY - tracked.startClientY) > 4
+		) {
 			tracked.moved = true;
 		}
 
@@ -751,10 +868,18 @@ export async function createLittleJsRuntime(
 				endX: endPoint.x,
 				endY: endPoint.y,
 			};
-			if (tracked.pointerType === "mouse" || event.timeStamp - tracked.startTimeMs >= TOUCH_BOX_SELECT_DELAY_MS) {
+			if (
+				tracked.pointerType === "mouse" ||
+				event.timeStamp - tracked.startTimeMs >= TOUCH_BOX_SELECT_DELAY_MS
+			) {
 				const startWorldPoint = screenToWorld(tracked.startClientX, tracked.startClientY);
 				const endWorldPoint = screenToWorld(event.clientX, event.clientY);
-				selectEntitiesInWorldRect(startWorldPoint.x, startWorldPoint.y, endWorldPoint.x, endWorldPoint.y);
+				selectEntitiesInWorldRect(
+					startWorldPoint.x,
+					startWorldPoint.y,
+					endWorldPoint.x,
+					endWorldPoint.y,
+				);
 				return;
 			}
 			renderCurrentFrame();
@@ -776,13 +901,20 @@ export async function createLittleJsRuntime(
 		}
 
 		const heldLongEnough = event.timeStamp - tracked.startTimeMs >= TOUCH_BOX_SELECT_DELAY_MS;
-		if (tracked.moved && tracked.button === 0 && (tracked.pointerType === "mouse" || heldLongEnough)) {
+		if (
+			tracked.moved &&
+			tracked.button === 0 &&
+			(tracked.pointerType === "mouse" || heldLongEnough)
+		) {
 			selectionBox = null;
 			selectInScreenRect(tracked.startClientX, tracked.startClientY, event.clientX, event.clientY);
 			return;
 		}
 		selectionBox = null;
-		if (tracked.moved && (tracked.button === 1 || tracked.button === 2 || tracked.pointerType === "touch")) {
+		if (
+			tracked.moved &&
+			(tracked.button === 1 || tracked.button === 2 || tracked.pointerType === "touch")
+		) {
 			renderCurrentFrame();
 			return;
 		}
@@ -842,6 +974,7 @@ export async function createLittleJsRuntime(
 			if (options.world.session.phase !== "playing") {
 				options.world.session.phase = "playing";
 			}
+			initRenderingAssets();
 			syncBridgeState();
 			const targetCanvas = ensureCanvas();
 			applyWorldEvents();

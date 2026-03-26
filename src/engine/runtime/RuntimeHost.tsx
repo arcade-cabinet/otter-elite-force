@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { SkirmishSessionConfig } from "@/features/skirmish/types";
 import { createGameBridge, type GameBridgeState } from "../bridge/gameBridge";
 import {
 	persistDiagnosticSnapshot,
@@ -7,19 +8,20 @@ import {
 } from "../diagnostics/runtimeDiagnostics";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
 import { createSeedBundle } from "../random/seed";
+import { bootstrapMission } from "../session/missionBootstrap";
+import { createRuntimeMissionFlow } from "../session/runtimeMissionFlow";
+import { createSystemPipeline } from "../session/systemPipeline";
 import {
 	createCampaignRuntimeSession,
 	createSkirmishRuntimeSession,
 	describeCampaignRuntimeSession,
 	describeSkirmishRuntimeSession,
+	type RuntimeSessionDescriptor,
 	seedGameWorldFromCampaignSession,
 	seedGameWorldFromSkirmishSession,
-	type RuntimeSessionDescriptor,
 } from "../session/tacticalSession";
-import { createRuntimeMissionFlow } from "../session/runtimeMissionFlow";
-import { createLittleJsRuntime, type TacticalRuntime } from "./littlejsRuntime";
 import { createGameWorld } from "../world/gameWorld";
-import type { SkirmishSessionConfig } from "@/features/skirmish/types";
+import { createLittleJsRuntime, type TacticalRuntime } from "./littlejsRuntime";
 
 export interface RuntimeHostProps {
 	mode: "campaign" | "skirmish";
@@ -132,6 +134,12 @@ export function RuntimeHost(props: RuntimeHostProps) {
 		});
 		bridgeRef.current = bridge;
 		runtimeState.seedWorld(world);
+
+		// Bootstrap mission entities into the world for campaign mode
+		if (props.mode === "campaign" && props.missionId) {
+			bootstrapMission(world, props.missionId);
+		}
+
 		world.diagnostics = {
 			...world.diagnostics,
 			...runtimeState.diagnostics,
@@ -151,13 +159,21 @@ export function RuntimeHost(props: RuntimeHostProps) {
 					})
 				: null;
 
+		// Create the system pipeline for gameplay systems
+		const pipeline = createSystemPipeline(world);
+
 		void (async () => {
 			try {
 				const runtime = await createLittleJsRuntime({
 					container,
 					world,
 					bridge,
-					onTick: missionFlow ? () => missionFlow.step() : undefined,
+					onTick: () => {
+						if (missionFlow) {
+							missionFlow.step();
+						}
+						pipeline.step();
+					},
 				});
 				if (cancelled) {
 					await runtime.stop();
@@ -198,6 +214,7 @@ export function RuntimeHost(props: RuntimeHostProps) {
 			cancelled = true;
 			observer.disconnect();
 			missionFlow?.dispose();
+			pipeline.dispose();
 			bridgeRef.current = null;
 			worldRef.current = null;
 			if (runtimeRef.current) {
@@ -207,8 +224,10 @@ export function RuntimeHost(props: RuntimeHostProps) {
 		};
 	}, [
 		props.mode,
+		props.missionId,
 		props.skirmish,
 		runtimeState.diagnostics,
+		runtimeState.seedWorld,
 		viewModel.runId,
 		viewModel.seedPhrase,
 	]);

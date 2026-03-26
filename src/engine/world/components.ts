@@ -46,6 +46,10 @@ export const Attack = {
 	timer: createF32Store(),
 };
 
+export const Speed = {
+	value: createF32Store(),
+};
+
 export const VisionRadius = {
 	value: createF32Store(),
 };

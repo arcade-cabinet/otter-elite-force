@@ -1,0 +1,623 @@
+{
+	"name": "Otter Elite Force — Full Engine Rewrite (SolidJS + LittleJS + bitECS)",
+	"description": "Migrate from React+Konva+Koota to SolidJS+LittleJS+bitECS per engine-rewrite-plan.md v3.0. Foundation complete; this covers Milestones B through G.",
+	"branchName": "engine-rewrite",
+	"userStories": [
+		{
+			"id": "US-B01",
+			"title": "Skirmish runtime sandbox",
+			"description": "As a developer, I want a skirmish mode that boots a minimal battlefield with deterministic seed so I can test systems in isolation.",
+			"acceptanceCriteria": [
+				"Skirmish config specifies seed, map size, faction placement",
+				"Skirmish session boots GameWorld with entities from config",
+				"Systems pipeline runs in skirmish mode",
+				"Diagnostics snapshot emitted on skirmish completion",
+				"Seed replay produces identical entity state",
+				"pnpm test passes",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["milestone-b", "harness"],
+			"dependsOn": []
+		},
+		{
+			"id": "US-B02",
+			"title": "Vitest browser visual capture harness",
+			"description": "As a developer, I want deterministic visual snapshot tests so I can catch rendering regressions.",
+			"acceptanceCriteria": [
+				"Vitest browser test boots a skirmish session in headless browser",
+				"Captures canvas screenshot at tick 0, tick 60, tick 300",
+				"Compares against baseline images with pixel diff threshold",
+				"Fails on regression above threshold",
+				"pnpm test:browser passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["milestone-b", "testing"],
+			"dependsOn": ["US-B01"]
+		},
+		{
+			"id": "US-C01",
+			"title": "Port core gameplay systems to GameWorld",
+			"description": "As a developer, I want movement, combat, economy, production, fog, AI, and order systems reading/writing GameWorld so the game loop simulates.",
+			"acceptanceCriteria": [
+				"src/engine/systems/ contains: movementSystem.ts, combatSystem.ts, economySystem.ts, productionSystem.ts, fogSystem.ts, aiSystem.ts, orderSystem.ts",
+				"Each system is a pure function taking GameWorld",
+				"Movement reads order queues, moves entity toward target at speed per tick",
+				"Combat finds nearest enemy in attack range, applies damage, marks dead for removal",
+				"Economy: workers near resources increment world.session.resources",
+				"Production: buildings advance queue progress, spawn unit at 100%",
+				"Fog: maintains Uint8Array grid, marks tiles around player faction entities visible",
+				"AI: enemy entities with no orders seek nearest player entity in detection range",
+				"flushRemovals called at end of system pipeline",
+				"Add Attack.range, Attack.cooldown, Attack.lastAttackTick to components.ts if missing",
+				"Unit tests for each system in adjacent .test.ts files",
+				"pnpm test passes",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["milestone-c", "systems", "critical-path"],
+			"dependsOn": []
+		},
+		{
+			"id": "US-C02",
+			"title": "Mission bootstrap pipeline",
+			"description": "As a developer, I want bootstrapMission(world, missionId) that loads a mission definition and seeds GameWorld with all placements, resources, objectives, terrain dimensions, and script tags.",
+			"acceptanceCriteria": [
+				"bootstrapMission reads mission from registry by ID",
+				"Spawns all placements via spawnUnit/spawnBuilding/spawnResource",
+				"Sets world.session.resources to mission starting values",
+				"Sets world.navigation.width/height from mission map size",
+				"Registers scriptId tags for named entities",
+				"Sets initial objectives on world.session.objectives",
+				"Sets world.session.phase to playing",
+				"Test: bootstrap Mission 1, verify entity count, positions, resources, objectives",
+				"pnpm test passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["milestone-c", "mission", "critical-path"],
+			"dependsOn": []
+		},
+		{
+			"id": "US-C03",
+			"title": "System pipeline wired into runtime tick loop",
+			"description": "As a developer, I want the tick() function to run all gameplay systems each frame so entities move, fight, gather, and die.",
+			"acceptanceCriteria": [
+				"RuntimeHost creates system pipeline alongside mission flow",
+				"onTick callback runs: mission flow step then system pipeline step",
+				"Entities move toward targets each frame visibly",
+				"Combat resolves — dead entities removed from canvas",
+				"Resources accumulate in HUD from worker gathering",
+				"Bridge state reflects live game state each tick",
+				"pnpm test passes",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["milestone-c", "integration", "critical-path"],
+			"dependsOn": ["US-C01", "US-C02"]
+		},
+		{
+			"id": "US-C04",
+			"title": "Terrain tile rendering",
+			"description": "As a developer, I want the tactical canvas to render Kenney tiles instead of grid lines so terrain is visible.",
+			"acceptanceCriteria": [
+				"src/engine/rendering/terrainRenderer.ts created",
+				"Tile images loaded from public/assets/tiles/ using import.meta.env.BASE_URL",
+				"Terrain grid rendered at 32x32 per cell with camera offset and zoom",
+				"Viewport culling — only visible tiles drawn",
+				"Basic terrain types: grass, water, sand, forest, dirt, stone",
+				"Chunks pre-rendered to offscreen canvases for performance",
+				"Integrated into drawScene() in littlejsRuntime.ts",
+				"Falls back to grid if tiles not loaded yet",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["milestone-c", "rendering"],
+			"dependsOn": []
+		},
+		{
+			"id": "US-C05",
+			"title": "Sprite atlas entity rendering",
+			"description": "As a developer, I want entities rendered with sprite atlas frames instead of colored shapes.",
+			"acceptanceCriteria": [
+				"src/engine/rendering/spriteRenderer.ts created",
+				"Sprite atlas JSON+PNG loaded per animal type from public/assets/sprites/",
+				"Entity type maps to correct atlas using existing animal mapping",
+				"Sprites rendered at correct position, sorted by Y for depth",
+				"Animation frames cycle based on tick count",
+				"Selection circles and HP bars rendered on top of sprites",
+				"Falls back to colored shapes if atlas not loaded",
+				"Integrated into drawScene() in littlejsRuntime.ts",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["milestone-c", "rendering"],
+			"dependsOn": []
+		},
+		{
+			"id": "US-C06",
+			"title": "Fog of war rendering",
+			"description": "As a developer, I want fog of war drawn as an overlay on the tactical canvas.",
+			"acceptanceCriteria": [
+				"src/engine/rendering/fogRenderer.ts created",
+				"Unexplored tiles render as black",
+				"Explored tiles render at 50% opacity dark overlay",
+				"Visible tiles render transparent",
+				"Fog aligns to 32x32 grid with camera offset",
+				"Entities in unexplored fog are not rendered",
+				"Minimap reflects fog state",
+				"Integrated into drawScene() after entity rendering",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["milestone-c", "rendering"],
+			"dependsOn": ["US-C01"]
+		},
+		{
+			"id": "US-C07",
+			"title": "Save/load roundtrip on new runtime",
+			"description": "As a developer, I want mid-mission save and load working via SQLite so progress is not lost.",
+			"acceptanceCriteria": [
+				"Save serializes all entity scalar state from bitECS typed arrays",
+				"Save serializes world session state, runtime queues, campaign progress",
+				"Load reconstructs GameWorld from saved data",
+				"Runtime-only objects (Yuka vehicles, nav graph references) reconstructed after load",
+				"Mission continues from saved tick with correct entity positions",
+				"Test: save at tick 100, load into new GameWorld, verify entity positions match",
+				"pnpm test passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["milestone-c", "persistence"],
+			"dependsOn": ["US-C01", "US-C03"]
+		},
+		{
+			"id": "US-C08",
+			"title": "Input consolidation — desktop and mobile",
+			"description": "As a developer, I want one coherent input path for desktop and mobile with all RTS interactions working.",
+			"acceptanceCriteria": [
+				"Desktop: left-click select, drag-box select, right-click context command, right-drag pan, scroll zoom",
+				"Mobile: tap select/command, long-press drag-select, two-finger pan, pinch zoom",
+				"Minimap click/drag jumps camera on both platforms",
+				"Context-sensitive commands: attack enemy, gather resource, enter building",
+				"No edge scroll anywhere",
+				"Control groups: Ctrl+1..9 assign, 1..9 recall",
+				"Keyboard hotkeys as accelerators only (on-screen control must exist for every action)",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["milestone-c", "input"],
+			"dependsOn": ["US-C03"]
+		},
+		{
+			"id": "US-D01",
+			"title": "Port secondary systems to GameWorld",
+			"description": "As a developer, I want stealth, detection, water, boss, convoy, wave spawner, and weather systems ported.",
+			"acceptanceCriteria": [
+				"src/engine/systems/ contains: stealthSystem, detectionSystem, waterSystem, bossSystem, convoySystem, waveSpawnerSystem, weatherSystem",
+				"Each is a pure function on GameWorld",
+				"Unit tests for each system pass",
+				"pnpm test passes"
+			],
+			"priority": 3,
+			"passes": false,
+			"labels": ["milestone-d", "systems"],
+			"dependsOn": ["US-C01"]
+		},
+		{
+			"id": "US-D02",
+			"title": "Port mission-specific systems to GameWorld",
+			"description": "As a developer, I want tidal, fire, siphon, multiBase, territory, demolition, siege, loot, encounter, difficultyScaling, and scoring systems ported.",
+			"acceptanceCriteria": [
+				"src/engine/systems/ contains all 11 mission-specific systems",
+				"Each operates on GameWorld as pure function",
+				"Unit tests pass for each",
+				"pnpm test passes"
+			],
+			"priority": 3,
+			"passes": false,
+			"labels": ["milestone-d", "systems"],
+			"dependsOn": ["US-D01"]
+		},
+		{
+			"id": "US-D03",
+			"title": "Chapter 1 missions (1-4) fully playable",
+			"description": "As a player, I want Missions 1-4 to boot, play through, and complete on the new runtime.",
+			"acceptanceCriteria": [
+				"Mission 1 Beachhead: boot, triggers, objectives, victory/defeat",
+				"Mission 2 Causeway: bridge mechanics, zone progression",
+				"Mission 3 Firebase Delta: defensive position, wave defense",
+				"Mission 4 Prison Break: rescue objectives, escort mechanics",
+				"Each tested: bootstrap → play → complete",
+				"pnpm test passes"
+			],
+			"priority": 3,
+			"passes": false,
+			"labels": ["milestone-d", "missions", "chapter-1"],
+			"dependsOn": ["US-C03", "US-D01"]
+		},
+		{
+			"id": "US-D04",
+			"title": "Chapter 2 missions (5-8) fully playable",
+			"description": "As a player, I want Missions 5-8 playable with chapter-specific mechanics.",
+			"acceptanceCriteria": [
+				"Mission 5 Siphon Valley: siphon mechanic operational",
+				"Mission 6 Monsoon Ambush: weather system active",
+				"Mission 7 River Rats: water/tidal mechanics",
+				"Mission 8 Underwater Cache: submersion mechanics",
+				"Each tested end-to-end",
+				"pnpm test passes"
+			],
+			"priority": 4,
+			"passes": false,
+			"labels": ["milestone-d", "missions", "chapter-2"],
+			"dependsOn": ["US-D02"]
+		},
+		{
+			"id": "US-D05",
+			"title": "Chapter 3 missions (9-12) fully playable",
+			"description": "As a player, I want Missions 9-12 playable with fire, entrenchment, rescue, siphon mechanics.",
+			"acceptanceCriteria": [
+				"Mission 9 Dense Canopy: stealth/canopy mechanics",
+				"Mission 10 Scorched Earth: fire spread system",
+				"Mission 11 Entrenchment: siege mechanics",
+				"Mission 12 Fang Rescue: escort/rescue objectives",
+				"Each tested end-to-end",
+				"pnpm test passes"
+			],
+			"priority": 4,
+			"passes": false,
+			"labels": ["milestone-d", "missions", "chapter-3"],
+			"dependsOn": ["US-D02"]
+		},
+		{
+			"id": "US-D06",
+			"title": "Chapter 4 missions (13-16) fully playable",
+			"description": "As a player, I want Missions 13-16 playable including the final boss encounter.",
+			"acceptanceCriteria": [
+				"Mission 13 Great Siphon: multi-base system",
+				"Mission 14 Iron Delta: fortress assault",
+				"Mission 15 Serpent Lair: boss system with phases",
+				"Mission 16 Last Stand: escalation and final victory",
+				"Each tested end-to-end",
+				"pnpm test passes"
+			],
+			"priority": 4,
+			"passes": false,
+			"labels": ["milestone-d", "missions", "chapter-4"],
+			"dependsOn": ["US-D02"]
+		},
+		{
+			"id": "US-E01",
+			"title": "Campaign flow end-to-end",
+			"description": "As a player, I want to start a new campaign, play missions in sequence, see briefings, track progress, and reach the ending.",
+			"acceptanceCriteria": [
+				"Main menu → New Campaign → Mission 1 briefing → play → victory → Mission 2 → ...",
+				"Campaign progress persists to SQLite between sessions",
+				"Mission unlock progression works correctly",
+				"Star ratings recorded per mission",
+				"Campaign completion screen after Mission 16 victory",
+				"pnpm test passes"
+			],
+			"priority": 4,
+			"passes": false,
+			"labels": ["milestone-e", "campaign"],
+			"dependsOn": ["US-D03", "US-D04", "US-D05", "US-D06", "US-C07"]
+		},
+		{
+			"id": "US-E02",
+			"title": "Skirmish mode fully functional",
+			"description": "As a player, I want skirmish mode with configurable seed, map, factions, and difficulty.",
+			"acceptanceCriteria": [
+				"Skirmish setup screen: seed input, shuffle button, faction select, map size, difficulty",
+				"Skirmish session boots and plays with all systems",
+				"Skirmish result screen shows stats (units lost, resources gathered, duration)",
+				"Skirmish setup persists to SQLite",
+				"Seed replay produces deterministic identical results",
+				"pnpm test passes"
+			],
+			"priority": 3,
+			"passes": false,
+			"labels": ["milestone-e", "skirmish"],
+			"dependsOn": ["US-B01", "US-C03"]
+		},
+		{
+			"id": "US-F01",
+			"title": "SolidJS app root and routing",
+			"description": "As a developer, I want the app root to be SolidJS with screen routing replacing React.",
+			"acceptanceCriteria": [
+				"src/main.tsx renders Solid root via render() from solid-js/web",
+				"Screen routing implemented in Solid (main-menu, campaign, settings, skirmish, game, briefing, result)",
+				"No React imports in the app shell routing path",
+				"Vite config updated for solid-js JSX",
+				"pnpm build passes",
+				"pnpm test passes"
+			],
+			"priority": 5,
+			"passes": false,
+			"labels": ["milestone-f", "solidjs", "shell"],
+			"dependsOn": ["US-C03"]
+		},
+		{
+			"id": "US-F02",
+			"title": "SolidJS main menu and campaign view",
+			"description": "As a player, I want main menu and campaign selection as SolidJS components.",
+			"acceptanceCriteria": [
+				"MainMenu component in Solid with New Campaign, Continue, Skirmish, Settings buttons",
+				"CampaignView component in Solid showing mission list with unlock/star state",
+				"Mission selection triggers briefing flow",
+				"Components styled with existing Tailwind classes",
+				"pnpm build passes"
+			],
+			"priority": 5,
+			"passes": false,
+			"labels": ["milestone-f", "solidjs", "shell"],
+			"dependsOn": ["US-F01"]
+		},
+		{
+			"id": "US-F03",
+			"title": "SolidJS settings and skirmish setup",
+			"description": "As a player, I want settings and skirmish setup as Solid components.",
+			"acceptanceCriteria": [
+				"SettingsPanel in Solid: audio volume sliders, subtitles toggle, reduce motion toggle",
+				"SkirmishSetup in Solid: seed input, shuffle, faction, map size, difficulty, launch",
+				"Settings persist to SQLite via persistence store",
+				"pnpm build passes"
+			],
+			"priority": 5,
+			"passes": false,
+			"labels": ["milestone-f", "solidjs", "shell"],
+			"dependsOn": ["US-F01"]
+		},
+		{
+			"id": "US-F04",
+			"title": "SolidJS briefing and result overlays",
+			"description": "As a player, I want mission briefing, pause, and result overlays as Solid components.",
+			"acceptanceCriteria": [
+				"BriefingOverlay in Solid: commander portrait, mission description, objectives preview, deploy button",
+				"PauseOverlay in Solid: resume, settings, quit buttons",
+				"MissionResult in Solid: victory/defeat banner, star rating, next mission button",
+				"SkirmishResult in Solid: stats summary, replay seed display, rematch button",
+				"pnpm build passes"
+			],
+			"priority": 5,
+			"passes": false,
+			"labels": ["milestone-f", "solidjs", "overlay"],
+			"dependsOn": ["US-F01"]
+		},
+		{
+			"id": "US-F05",
+			"title": "SolidJS tactical HUD",
+			"description": "As a player, I want the in-game HUD as Solid components reading from GameBridge signals.",
+			"acceptanceCriteria": [
+				"ResourceBar in Solid: fish, timber, salvage counts, population current/max",
+				"SelectionPanel in Solid: selected entity info, portrait, stats, action buttons",
+				"BuildMenu in Solid: building options grid when worker selected",
+				"AlertBanner in Solid: tactical alert messages with severity colors",
+				"ObjectivesPanel in Solid: mission objectives with status indicators",
+				"BossHealthBar in Solid: boss name and HP bar",
+				"CommandTransmissionPanel in Solid: dialogue speaker and text",
+				"ErrorFeedback in Solid: error messages",
+				"All read from GameBridge Solid signals, not polling",
+				"pnpm build passes"
+			],
+			"priority": 5,
+			"passes": false,
+			"labels": ["milestone-f", "solidjs", "hud"],
+			"dependsOn": ["US-F06"]
+		},
+		{
+			"id": "US-F06",
+			"title": "GameBridge with Solid signals",
+			"description": "As a developer, I want GameBridge to use Solid createSignal/createStore for fine-grained reactive HUD updates.",
+			"acceptanceCriteria": [
+				"GameBridge exposes Solid Accessor-based state (resources, population, selection, objectives, alerts, dialogue, weather, boss)",
+				"Bridge updated from game loop via batch() at end of each tick",
+				"No polling interval — HUD reacts to signal changes",
+				"Emit methods (pause, resume, startBuild, queueUnit, etc.) dispatch to game runtime",
+				"pnpm build passes"
+			],
+			"priority": 5,
+			"passes": false,
+			"labels": ["milestone-f", "solidjs", "bridge"],
+			"dependsOn": ["US-F01"]
+		},
+		{
+			"id": "US-F07",
+			"title": "SolidJS mobile-adaptive components",
+			"description": "As a mobile player, I want touch-optimized command buttons, radial menu, and squad tabs.",
+			"acceptanceCriteria": [
+				"CommandButtons in Solid: large tap targets for common actions",
+				"RadialMenu in Solid: context menu on long-press for unit commands",
+				"SquadTabs in Solid: quick unit group switching",
+				"Layout adapts by form factor: phone prioritizes large targets, tablet shows more info, desktop shows full panels",
+				"pnpm build passes"
+			],
+			"priority": 6,
+			"passes": false,
+			"labels": ["milestone-f", "solidjs", "mobile"],
+			"dependsOn": ["US-F05"]
+		},
+		{
+			"id": "US-F08",
+			"title": "Audio migration from React hooks",
+			"description": "As a developer, I want Tone.js audio wired without React hooks.",
+			"acceptanceCriteria": [
+				"useAudioUnlock, useMusicWiring, useAudioSettings React hooks removed",
+				"Audio unlock triggers from Solid lifecycle or first user interaction event",
+				"Music and SFX controlled via world events or bridge emit calls",
+				"Volume settings read from bridge/world.settings",
+				"pnpm build passes",
+				"pnpm test passes"
+			],
+			"priority": 5,
+			"passes": false,
+			"labels": ["milestone-f", "audio"],
+			"dependsOn": ["US-F01"]
+		},
+		{
+			"id": "US-F09",
+			"title": "Polish pass — all 16 missions",
+			"description": "As a player, I want all 16 missions polished for pacing, readability, audio, fog/minimap, and balance.",
+			"acceptanceCriteria": [
+				"Each mission reviewed against its design doc in docs/missions/",
+				"Dialogue triggers fire at documented moments",
+				"Audio cues play for combat, alerts, objectives, phase changes",
+				"Fog and minimap are readable and accurate",
+				"Balance tuned via diagnostics-driven analysis",
+				"No visual artifacts, stuck units, or broken triggers in any mission"
+			],
+			"priority": 6,
+			"passes": false,
+			"labels": ["milestone-f", "polish"],
+			"dependsOn": ["US-E01"]
+		},
+		{
+			"id": "US-G01",
+			"title": "Delete legacy React runtime",
+			"description": "As a developer, I want all React components, hooks, and React-specific code deleted from the codebase.",
+			"acceptanceCriteria": [
+				"src/ui/ directory deleted (all React HUD, briefing, command-post, mobile, layout components)",
+				"React app root in src/app/App.tsx deleted or replaced with Solid",
+				"React-specific hooks deleted",
+				"react, react-dom removed from package.json dependencies",
+				"@testing-library/react removed from devDependencies",
+				"Grep confirms zero imports of react or react-dom in src/",
+				"pnpm build passes",
+				"pnpm test passes"
+			],
+			"priority": 7,
+			"passes": false,
+			"labels": ["milestone-g", "deletion"],
+			"dependsOn": ["US-F01", "US-F02", "US-F03", "US-F04", "US-F05", "US-F07", "US-F08"]
+		},
+		{
+			"id": "US-G02",
+			"title": "Delete legacy Koota ECS runtime",
+			"description": "As a developer, I want all Koota ECS code deleted.",
+			"acceptanceCriteria": [
+				"src/ecs/world.ts, src/ecs/traits/, src/ecs/relations/, src/ecs/queries/ deleted",
+				"src/ecs/singletons.ts deleted",
+				"src/systems/ (old Koota systems) deleted — replaced by src/engine/systems/",
+				"koota, @koota/react removed from package.json",
+				"Grep confirms zero imports of koota or @koota/react in src/",
+				"pnpm build passes",
+				"pnpm test passes"
+			],
+			"priority": 7,
+			"passes": false,
+			"labels": ["milestone-g", "deletion"],
+			"dependsOn": ["US-C01", "US-D01", "US-D02", "US-G04"]
+		},
+		{
+			"id": "US-G03",
+			"title": "Delete legacy Konva references",
+			"description": "As a developer, I want any remaining react-konva/konva references purged.",
+			"acceptanceCriteria": [
+				"react-konva removed from package.json",
+				"konva removed from package.json if present",
+				"Grep confirms zero imports of react-konva or konva in src/",
+				"pnpm build passes"
+			],
+			"priority": 7,
+			"passes": false,
+			"labels": ["milestone-g", "deletion"],
+			"dependsOn": ["US-G01"]
+		},
+		{
+			"id": "US-G04",
+			"title": "Test migration — Koota/React to bitECS/Solid",
+			"description": "As a developer, I want all tests ported from Koota/React test fixtures to bitECS/Solid fixtures.",
+			"acceptanceCriteria": [
+				"All src/__tests__/systems/ tests rewritten to create GameWorld and use bitECS components",
+				"All src/__tests__/ecs/ tests rewritten against bitECS component stores",
+				"All src/__tests__/specs/ui/ tests rewritten for Solid components",
+				"@testing-library/react removed or replaced with solid-testing-library",
+				"All 2449+ tests pass: pnpm test",
+				"No test file imports koota, @koota/react, react, or react-dom"
+			],
+			"priority": 6,
+			"passes": false,
+			"labels": ["milestone-g", "testing"],
+			"dependsOn": ["US-C01", "US-F05"]
+		},
+		{
+			"id": "US-G05",
+			"title": "Visual regression and device tests",
+			"description": "As a developer, I want visual regression tests and Maestro device tests in CI.",
+			"acceptanceCriteria": [
+				"Vitest browser: canvas snapshots for Mission 1 at tick 0, 60, 300 compared to baselines",
+				"Playwright: campaign flow E2E test (menu → briefing → play → victory)",
+				"Playwright: responsive viewport checks (phone, tablet, desktop)",
+				"Maestro: Android skirmish launch flow (tap start → select skirmish → play)",
+				"Maestro: tap-select-move flow on Android",
+				"CI workflow runs all three test layers",
+				"pnpm test:browser passes"
+			],
+			"priority": 6,
+			"passes": false,
+			"labels": ["milestone-g", "testing", "visual"],
+			"dependsOn": ["US-B02", "US-F05"]
+		},
+		{
+			"id": "US-G06",
+			"title": "Diagnostics fully operational",
+			"description": "As a developer, I want diagnostics JSON emitted per mission/skirmish run for macro/meso/micro analysis.",
+			"acceptanceCriteria": [
+				"Run metadata captured: mission ID, seed phrase, design seed, gameplay seeds, duration",
+				"Objective transition events logged with tick",
+				"Encounter and wave roll outcomes logged",
+				"Performance counters populated: FPS, frame time, system time",
+				"Pathfinding anomalies tracked: stuck entities, boundary violations",
+				"Fog and minimap stat counters collected",
+				"All data persisted to SQLite diagnostic_snapshot table",
+				"pnpm test passes"
+			],
+			"priority": 5,
+			"passes": false,
+			"labels": ["milestone-g", "diagnostics"],
+			"dependsOn": ["US-C03"]
+		},
+		{
+			"id": "US-G07",
+			"title": "Documentation updated to final state",
+			"description": "As a developer, I want all docs reflecting only the new SolidJS/LittleJS/bitECS stack.",
+			"acceptanceCriteria": [
+				"CLAUDE.md references only SolidJS, LittleJS, bitECS",
+				"AGENTS.md architecture table shows only new stack",
+				"docs/architecture/ docs updated for final runtime",
+				"No references to React, Konva, or Koota in active docs",
+				"CONTRIBUTING.md updated for new dev workflow and file structure",
+				"docs/engine-rewrite-plan.md status changed to complete"
+			],
+			"priority": 7,
+			"passes": false,
+			"labels": ["milestone-g", "docs"],
+			"dependsOn": ["US-G01", "US-G02", "US-G03"]
+		},
+		{
+			"id": "US-G08",
+			"title": "Clean dependency graph — zero legacy in prod",
+			"description": "As a developer, I want the production bundle free of legacy frameworks.",
+			"acceptanceCriteria": [
+				"pnpm build succeeds with zero warnings about legacy imports",
+				"Bundle audit: no react, react-dom, react-konva, konva, koota, @koota/react in any prod chunk",
+				"package.json: all legacy deps removed from dependencies (may keep in devDeps temporarily for test tooling migration)",
+				"pnpm test passes with clean dependency graph",
+				"pnpm lint passes"
+			],
+			"priority": 7,
+			"passes": false,
+			"labels": ["milestone-g", "cleanup"],
+			"dependsOn": ["US-G01", "US-G02", "US-G03", "US-G04"]
+		}
+	]
+}
