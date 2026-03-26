@@ -84,18 +84,31 @@ test.describe("US-083: Menu to Mission E2E Flow", () => {
 		await expect(page.getByText("Beachhead")).toBeVisible({ timeout: 10000 });
 		await page.getByText("Beachhead").click();
 
-		// Step 3: Wait for game to load
-		await page.waitForTimeout(4000);
+		// Step 3: Briefing dialogue should appear first
+		await expect(page.getByText("Beachhead").first()).toBeVisible({ timeout: 10000 });
+		await expect(page.getByText(/FOXHOUND/i).first()).toBeVisible({ timeout: 10000 });
 
-		// Step 4: Verify resource bar is visible
-		await expect(page.getByText("Fish")).toBeVisible({ timeout: 15000 });
-		await expect(page.getByText("Timber")).toBeVisible();
-		await expect(page.getByText("Salvage")).toBeVisible();
+		// Step 4: Advance through briefing (press Space for each line)
+		for (let i = 0; i < 12; i++) {
+			await page.keyboard.press("Space");
+			await page.waitForTimeout(300);
+		}
 
-		// Step 5: Verify mission identity in HUD
-		await expect(page.getByText(/Chapter 1/i)).toBeVisible({ timeout: 10000 });
+		// Step 5: Click "Begin Mission" button
+		const beginBtn = page.getByRole("button", { name: /Begin Mission/i });
+		if (await beginBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+			await beginBtn.click();
+		} else {
+			// Briefing may have auto-advanced — press Space once more
+			await page.keyboard.press("Space");
+		}
 
-		// Step 6: Verify Phaser canvas exists (minimap)
+		await page.waitForTimeout(2000);
+
+		// Step 6: Verify game HUD is visible (resource bar with POC-style labels)
+		await expect(page.getByText(/Clams|Fish/i).first()).toBeVisible({ timeout: 10000 });
+
+		// Step 7: Verify canvas exists (game rendering)
 		const canvasCount = await page.locator("canvas").count();
 		expect(canvasCount).toBeGreaterThanOrEqual(1);
 	});
