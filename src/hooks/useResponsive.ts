@@ -1,16 +1,14 @@
 /**
- * Responsive Hook for Native Device Detection
+ * Responsive Hook for Browser Device Detection
  *
  * Properly detects:
- * - Screen dimensions (Expo Dimensions API)
+ * - Screen dimensions (window.innerWidth / innerHeight)
  * - Orientation (portrait/landscape)
- * - Device type (phone/tablet/foldable)
- * - Folding events (for foldable devices)
- * - Safe areas (notches, rounded corners)
+ * - Device type (phone/tablet/desktop)
+ * - Resize and orientation-change events
  */
 
 import { useEffect, useState } from "react";
-import { Dimensions, Platform } from "react-native";
 
 export type Orientation = "portrait" | "landscape";
 export type DeviceType = "phone" | "tablet" | "foldable" | "desktop";
@@ -33,10 +31,6 @@ interface ResponsiveState {
  * Determine device type based on dimensions
  */
 function getDeviceType(width: number, height: number): DeviceType {
-	if (Platform.OS === "web") {
-		return "desktop";
-	}
-
 	const shortEdge = Math.min(width, height);
 	const longEdge = Math.max(width, height);
 
@@ -46,45 +40,52 @@ function getDeviceType(width: number, height: number): DeviceType {
 		return "foldable";
 	}
 
-	// Tablet: short edge > 600dp
-	if (shortEdge >= 600) {
+	// Tablet: short edge > 600px
+	if (shortEdge >= 600 && shortEdge < 1024) {
 		return "tablet";
 	}
 
+	// Desktop: short edge >= 1024px
+	if (shortEdge >= 1024) {
+		return "desktop";
+	}
+
 	return "phone";
+}
+
+function getWindowDimensions(): { width: number; height: number } {
+	return {
+		width: typeof window !== "undefined" ? window.innerWidth : 1024,
+		height: typeof window !== "undefined" ? window.innerHeight : 768,
+	};
 }
 
 /**
  * Custom hook for responsive layout
  */
 export function useResponsive(): ResponsiveState {
-	const [dimensions, setDimensions] = useState(() => {
-		const window = Dimensions.get("window");
-		const screen = Dimensions.get("screen");
-
-		return {
-			window,
-			screen,
-		};
-	});
+	const [dimensions, setDimensions] = useState(getWindowDimensions);
 
 	useEffect(() => {
-		// Listen for dimension changes (orientation, folding, window resize)
-		const subscription = Dimensions.addEventListener("change", ({ window, screen }) => {
-			setDimensions({ window, screen });
-		});
+		function handleResize() {
+			setDimensions(getWindowDimensions());
+		}
+
+		window.addEventListener("resize", handleResize);
+		window.addEventListener("orientationchange", handleResize);
 
 		return () => {
-			subscription?.remove();
+			window.removeEventListener("resize", handleResize);
+			window.removeEventListener("orientationchange", handleResize);
 		};
 	}, []);
 
-	const { width, height } = dimensions.window;
+	const { width, height } = dimensions;
 	const orientation: Orientation = width > height ? "landscape" : "portrait";
 	const deviceType = getDeviceType(width, height);
-	const aspectRatio = width / height;
-	const scale = dimensions.window.scale || 1;
-	const fontScale = dimensions.window.fontScale || 1;
+	const aspectRatio = height > 0 ? width / height : 1;
+	const scale = typeof window !== "undefined" ? window.devicePixelRatio : 1;
+	const fontScale = 1;
 
 	return {
 		width,
