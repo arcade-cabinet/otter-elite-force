@@ -198,6 +198,14 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
     initMission(world, mission);
     setBounds({ worldW: worldW, worldH: worldH });
 
+    // Center camera on player start zone
+    const startZone = mission.zones?.ura_start;
+    if (startZone) {
+      const cx = (startZone.x + startZone.width / 2) * 32 - size.width / 2;
+      const cy = (startZone.y + startZone.height / 2) * 32 - size.height / 2;
+      setPosition(Math.max(0, cx), Math.max(0, cy));
+    }
+
     // Compile and start scenario engine
     const scenario = compileMissionScenario(mission);
     const engine = new ScenarioEngine(scenario, handleAction as ActionHandler);
