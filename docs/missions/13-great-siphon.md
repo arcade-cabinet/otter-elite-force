@@ -1,3 +1,12 @@
+---
+title: "Mission 13: The Great Siphon"
+description: Mission design document with zones, phases, triggers, and dialogue
+version: 1.0.0
+updated: 2026-03-26
+tags: [mission, chapter4, siege, design]
+status: active
+---
+
 # Mission 4-1: THE GREAT SIPHON
 
 ## Header

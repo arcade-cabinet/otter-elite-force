@@ -1,3 +1,12 @@
+---
+title: "Mission 10: Scorched Earth"
+description: Mission design document with zones, phases, triggers, and dialogue
+version: 1.0.0
+updated: 2026-03-26
+tags: [mission, chapter3, destruction, design]
+status: active
+---
+
 # Mission 3-2: SCORCHED EARTH
 
 ## Header

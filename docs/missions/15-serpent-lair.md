@@ -1,3 +1,12 @@
+---
+title: "Mission 15: Serpent's Lair"
+description: Mission design document with zones, phases, triggers, and dialogue
+version: 1.0.0
+updated: 2026-03-26
+tags: [mission, chapter4, boss, design]
+status: active
+---
+
 # Mission 4-3: SERPENT'S LAIR
 
 ## Header

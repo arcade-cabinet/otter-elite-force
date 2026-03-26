@@ -1,12 +1,3 @@
----
-title: Balance Framework
-description: Unit stats, resource pacing, difficulty scaling
-version: 1.0.0
-updated: 2026-03-26
-tags: [design, balance, difficulty]
-status: active
----
-
 # Balance Framework
 
 ## Design Philosophy

@@ -1,93 +1,49 @@
-# 🤖 CLAUDE MISSION CONTROL — OTTER: ELITE FORCE
+# CLAUDE.md
 
-## Active Mission
+Claude Code instructions for this repository. For full agentic context, see [AGENTS.md](AGENTS.md).
 
-Keep the repo aligned around a **campaign-first RTS** with a strong river-jungle war identity, responsive tactical UX, premium portrait ambitions, and a coherent SP-DSL asset pipeline.
+## Quick Reference
 
-Primary references:
+- **Stack:** LittleJS (rendering/input) + bitECS (ECS) + SolidJS (UI) — see [engine rewrite plan](docs/engine-rewrite-plan.md)
+- **Commands:** `pnpm dev` / `pnpm build` / `pnpm test` / `pnpm lint`
+- **Node:** 24 LTS (see `.nvmrc`)
+- **Lint:** Biome (`biome check .`)
+- **Tests:** Vitest (`pnpm test` + `pnpm test:browser`)
 
-- `docs/superpowers/specs/2026-03-24-rts-canon-responsive-asset-overhaul-plan.md`
-- `docs/references/Copilot-Copilot_Chat_VT91k21R.md`
-- `docs/README.md`
+## Conventions
 
-## Strategic Truths
+- Conventional commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `ci:`)
+- No `as any`, no `!` non-null assertions, no stubs, no fallbacks — errors fail hard
+- No backward compatibility hacks — refactor cleanly, break cleanly
+- No edge scroll — camera pans via click+drag, arrow keys, two-finger drag only
+- All sprites from purchased atlases or Kenney CC0 tiles — zero procedural rendering except portraits
+- Faction IDs: `ura` (player), `scale_guard` (enemy), `neutral`
 
-1. **The game is an RTS first**
-2. **Otter Elite Force is the player-facing faction**
-3. **Scale-Guard is the entrenched occupier / enemy bloc**
-4. **The war is about crossings, depots, settlements, salvage, and control**
-5. **Siphons and sludge may exist, but they are not the entire cosmology of the setting**
-6. **UI must be clearer, tighter, and more responsive than before**
+## Command Structure (Lore)
 
-## Current Stack
+- **Player** = the Captain (silent protagonist, commands from lodge)
+- **Col. Bubbles** = HQ tactical officer (gives mission briefings/orders, HIGHER rank than player)
+- **FOXHOUND** = intel handler (enemy positions, threat warnings)
+- **Gen. Whiskers** = strategic command (campaign-level decisions)
+- All radio contacts must be higher rank or orthogonal to Captain
+- Ground units are anonymous grunts (River Rat, Mudfoot, etc.)
 
-- React 19 + shadcn/ui + Tailwind v4
-- Konva.js (via react-konva) for tactical rendering
-- Koota ECS for app/game state
-- Tone.js for procedural audio
-- Yuka for AI/simulation support
-- Radix UI for tooltips and dialogs
-- Biome + Vitest + Playwright for quality
+## Key Directories
 
-## Accessibility Systems
+```
+docs/engine-rewrite-plan.md   — CURRENT architecture plan (read this first)
+docs/missions/                — 16 mission design docs with zones, triggers, dialogue
+public/assets/sprites/        — 12 animal sprite atlases with JSON
+public/assets/tiles/          — Kenney tiles + procedural blend tiles
+src/entities/missions/        — Mission TypeScript implementations
+src/scenarios/                — Trigger engine + DSL
+```
 
-- WCAG AA contrast validated across tactical, command-post, briefing themes
-- `prefers-reduced-motion` support (disables typewriter, animations, particles)
-- `aria-label` on major UI regions and live resource readouts
-- Keyboard navigation (Tab, Enter, Escape) for menus and settings
-- Focus-visible indicators on all interactive elements
-- Tutorial prompts for missions 1-4 (dismissible, skip in settings)
-- MilitaryTooltip for hover data on train/build/research buttons
-- ErrorFeedback for invalid command buzzes (1-second auto-dismiss)
-- Sprite rendering uses atlas/tile system (spriteAtlas.ts + tilePainter.ts); legacy spriteGen.ts is deprecated
+## Do NOT
 
-## UI Command Intent
-
-The menu/front door should communicate:
-
-- **New Game**
-- **Continue Game**
-- **Settings**
-
-Complex setup belongs in **dossier-style overlays**, not page mazes.
-
-Visual bar:
-
-- jungle camo
-- riverine military grit
-- manila dossier tabs
-- stamped labels
-- typewriter typography
-- strong action hierarchy
-
-## Narrative Guardrails
-
-Prefer these terms:
-
-- **Otter Elite Force / OEF**
-- **Scale-Guard**
-- **Copper-Silt Reach**
-
-Avoid making the entire setting hinge on:
-
-- mystical water logic
-- species-wide water theology
-- open-world LZ/base-building campaign assumptions
-
-## Operational Checks For Changes
-
-Before landing work, ask:
-
-1. does this reinforce the campaign-first RTS direction?
-2. does it improve phone/tablet/desktop clarity?
-3. does it preserve the repo’s analog military tone?
-4. does it keep docs aligned with the code?
-5. does it help rather than muddy the OEF vs Scale-Guard fantasy?
-
-## Red Flags
-
-- reviving the old open-world shooter as active truth
-- using `URA` everywhere in player-facing copy instead of OEF
-- centering the war on siphons/water rather than logistics and occupation
-- describing outdated architecture as if it is current
-- letting build-pipeline docs drift away from `scripts/build-sprites.ts`
+- Use edge scroll (mouse at viewport edge)
+- Add procedural sprite fallbacks
+- Use `as any` or non-null assertions
+- Merge PRs without verifying locally AND on deployed site
+- Assume TypeScript compiling = working — play the game
+- Reference archived docs in `docs/archive/` as current

@@ -1,116 +1,84 @@
-# 🦦 AGENTS.md — OTTER: ELITE FORCE
+---
+title: Agentic Context
+description: Source of truth for AI agents working on Otter Elite Force
+---
 
-## Status
+# AGENTS.md
 
-The old open-world tactical-shooter / chunk-persistence direction is **legacy**. The active source of truth is:
+Authoritative context for AI coding agents (Claude, Codex, Gemini, etc.) working on this repository.
 
-- `docs/superpowers/specs/2026-03-24-rts-canon-responsive-asset-overhaul-plan.md`
-- `docs/references/Copilot-Copilot_Chat_VT91k21R.md`
-- `docs/README.md`
+## Project Identity
 
-## Canonical Game Statement
+**Otter: Elite Force** — campaign-first 2D RTS. 16 missions across 4 chapters. Player is the Captain commanding from a lodge. Otters vs Scale-Guard reptilian occupiers in the Copper-Silt Reach.
 
-**OTTER: ELITE FORCE is a campaign-first RTS about the Otter Elite Force conducting a river-jungle liberation campaign against the entrenched Scale-Guard across the Copper-Silt Reach.**
+## Architecture (Target)
 
-## Non-Negotiables
+Engine rewrite in progress. See [docs/engine-rewrite-plan.md](docs/engine-rewrite-plan.md).
 
-1. **Campaign first** — authored RTS missions are the flagship mode
-2. **Mobile-aware RTS** — phone, tablet, and desktop usability all matter
-3. **OEF is the player-facing identity** — `URA` may survive as background lore only
-4. **The war is about control, logistics, occupation, and liberation**
-5. **Siphons/sludge/water are not the singular thesis of the setting**
-6. **No sci-fi drift** — keep the analog jungle-war tone
-7. **Keep the asset pipeline procedural/code-authored**
+| Layer | Current | Target |
+|-------|---------|--------|
+| Rendering | react-konva (Konva.js) | **LittleJS** |
+| ECS | Koota | **bitECS** |
+| UI | React 19 | **SolidJS** |
+| AI | Yuka | Yuka (unchanged) |
+| Audio | Tone.js | Tone.js (unchanged) |
+| Build | Vite 8 | Vite (unchanged) |
 
-## Current Architecture Summary
+## Reference Codebases
 
-- **UI:** React 19 + shadcn/ui + Tailwind v4
-- **Game rendering:** Phaser 3
-- **State:** Koota ECS + singleton traits
-- **Simulation support:** Yuka + authored scenario systems
-- **Audio:** Tone.js
-- **Asset pipeline:** `pnpm build:sprites` compiles SP-DSL and legacy sprite defs into PNG + JSON atlases and manifest files under `public/assets/`
+Available at `~/src/reference-codebases/`:
+- `LittleJS/` — game engine (rendering, input, tiles, audio)
+- `wendol-village/` — Warcraft-style RTS built on LittleJS
+- `bitECS/` — data-oriented ECS library
+- `koota/` — current ECS (being replaced)
+- `konva/` — current renderer (being replaced)
+- `phaser/` — game framework reference
+- `template-react-ts/` — Phaser + React integration template
 
-Key runtime files:
+## Code Principles
 
-- `src/app/App.tsx` — screen routing + theme switching + gameplay shell
-- `src/ui/command-post/MainMenu.tsx` — landing page and dossier overlays
-- `src/ui/hud/TutorialOverlay.tsx` — dismissible tutorial prompts (missions 1-4)
-- `src/ui/hud/MilitaryTooltip.tsx` — Radix UI tooltip with military theme
-- `src/ui/hud/ErrorFeedback.tsx` — command error visual/audio feedback
-- `src/Scenes/BootScene.ts` — atlas loading
-- `scripts/build-sprites.ts` — sprite build pipeline
+1. **No stubs, no fallbacks, no placeholders.** If it doesn't work, it fails hard.
+2. **No `as any`, no `!` assertions.** Proper null guards with early return.
+3. **No backward compatibility.** Refactor cleanly, break cleanly.
+4. **Verify before merging.** Run locally, check deployed site, wait for feedback.
+5. **Play the game.** TypeScript compiling does not mean it works.
+6. **Conventional commits.** `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `ci:`
 
-### Accessibility
+## Command Structure (Lore)
 
-- WCAG AA contrast validated (see `docs/architecture/wcag-contrast-audit.md`)
-- `prefers-reduced-motion` disables typewriter, floating text, decorative animations
-- `aria-label` on major UI elements (menu, resource bar, settings)
-- Keyboard navigation: Tab/Enter for buttons, Escape to close panels
-- Focus indicators on all interactive elements
-- "Skip Tutorials" toggle in Settings
+| Character | Rank | Role | Speaks in |
+|-----------|------|------|-----------|
+| Player | Captain | Silent protagonist, field commander | — |
+| Col. Bubbles | Colonel | HQ tactical officer | Mission briefings, orders |
+| FOXHOUND | Intel handler | Signals intelligence | Threat warnings, zone intel |
+| Gen. Whiskers | General | Strategic command | Campaign moments, victory |
+| Medic Marina | Medical officer | Field hospital | Casualty reports |
 
-## UX Direction
+All radio contacts are HIGHER rank or orthogonal to Captain. Ground units (River Rat, Mudfoot, etc.) are anonymous grunts.
 
-The front door should feel like:
+## Asset Pipeline
 
-- jungle camo meets riverine warfare with animals
-- a pulp military command post
-- dossier tabs, stamped labels, typewriter cues
-- fewer words, clearer next steps, stronger hierarchy
+- **Sprites:** 12 purchased animal sprite sheets with Aseprite JSON atlases in `public/assets/sprites/`
+- **Tiles:** 138 Kenney CC0 tiles + 112 procedural blend tiles in `public/assets/tiles/`
+- **Portraits:** Procedural Canvas2D rendering (only remaining procedural art)
+- **Atlas generator:** `scripts/generate-atlases.py`
+- **Tile curation:** `scripts/curate-tiles.py`
+- **Blend tile generator:** `scripts/generate-blend-tiles.py`
 
-Do not treat shadcn as the visual style. Treat it as the component baseline supporting the project’s own military UI language.
+## Mission System
 
-## Faction / Conflict Guidance
+16 missions defined in `src/entities/missions/chapter{1-4}/`. Design docs in `docs/missions/`.
 
-### Preferred player-facing names
+Each mission has: 128x128+ tile map, 4-8 named zones, 2-5 phases, triggers with dialogue, explicit unit placements.
 
-- **Otter Elite Force (OEF)**
-- **Scale-Guard**
+Scenario engine at `src/scenarios/engine.ts` evaluates triggers per frame. DSL helpers at `src/entities/missions/dsl.ts`.
 
-### World logic
+## Key Files
 
-Both sides want believable material goals:
-
-- crossings
-- depots
-- settlements
-- salvage
-- marsh control
-- defensible strongpoints
-
-The asymmetry comes from doctrine and brutality, not from one side having a mystical monopoly on water.
-
-## Agent Rules
-
-### Do
-
-- update docs when changing canon, UI direction, or pipeline behavior
-- preserve responsive playability and tactical readability
-- keep authored mission flow coherent across code and docs
-- preserve premium portrait ambitions and silhouette readability
-- validate changes with the smallest relevant tests/builds
-
-### Don’t
-
-- reintroduce open-world/LZ/base-building campaign framing as active truth
-- make `siphon` or `sludge` the entire reason the war exists
-- add external production asset packs as a shortcut around the pipeline
-- let docs contradict the current code for long-lived architectural facts
-- drift into generic fantasy or chrome-heavy sci-fi styling
-
-## Documentation Rule
-
-If docs disagree:
-
-1. use the 2026-03-24 RTS canon spec
-2. then the design bible in `docs/references/Copilot-Copilot_Chat_VT91k21R.md`
-3. then `README.md` / `docs/README.md`
-4. then current implementation
-
-## Current Priorities
-
-1. maintain one unified RTS canon across the repo
-2. keep polishing the responsive command-post / dossier UX
-3. improve portrait and sprite quality without abandoning SP-DSL
-4. keep build-pipeline docs, asset manifests, and runtime loading aligned
+| File | Purpose |
+|------|---------|
+| `docs/engine-rewrite-plan.md` | Architecture plan (read first) |
+| `docs/missions/00-framework.md` | Mission design template |
+| `CLAUDE.md` | Claude Code specific instructions |
+| `src/scenarios/engine.ts` | Trigger evaluation engine |
+| `src/entities/missions/dsl.ts` | Mission scripting DSL |

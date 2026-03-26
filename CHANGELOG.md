@@ -1,49 +1,41 @@
-# Changelog: OTTER ELITE FORCE
+# Changelog
 
-## [v8.0] - The "Unstoppable" Patch (Current)
+All notable changes to this project will be documented in this file.
 
-**Released**: Definitive Edition
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Commits: [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
+Automation: [release-please](https://github.com/googleapis/release-please).
 
-- **FIX**: Completely restructured UI Z-indexing. Joysticks are now functionally separated from the Menu layer.
-- **FIX**: "Campaign" button is now fully clickable on all devices (Touch event propagation fixed).
-- **FIX**: Audio Context now initializes via a global listener on the first tap, ensuring sound works immediately.
-- **POLISH**: Added "Loading..." spinner to handle module latency.
+## [Unreleased]
 
-## [v7.0] - The "Syman" Patch
+### Added
+- Engine rewrite plan: LittleJS + bitECS + SolidJS
+- 16 mission design docs (8,009 lines) with zones, phases, triggers, dialogue
+- 12 purchased animal sprite atlases (465 animation frames)
+- 138 Kenney CC0 tiles + 112 procedural biome blend tiles
+- Convoy, stealth, tidal, fire, boss fight systems
+- Extended scenario DSL (revealZone, panCamera, addObjective, etc.)
+- release-please + automerge workflows
+- Comprehensive doc restructure with frontmatter
 
-- **MECHANIC**: Restored "Freedom Movement". Player turns to face movement direction when running, but locks to aim direction when firing.
-- **VISUAL**: Fixed Skybox colors (Orange for Menu, Blue/Green for Levels).
-- **AUDIO**: Re-enabled Procedural Music Engine with distinct tracks for Menu and Combat.
+### Changed
+- Command structure: Sgt. Bubbles → Col. Bubbles
+- Maps: 48x44 → 128x128+ tiles with zone-based progression
+- Sprites: procedural → purchased atlas-based
+- TypeScript 6.0, ES2024, Node 24 LTS
+- CD pipeline: separated release.yml, cleaned cd.yml
 
-## [v6.0] - The "Patton" Edition
+### Fixed
+- GitHub Pages asset loading (BASE_URL)
+- Android build (AGP 8.5.2 + Gradle 8.7)
+- Removed edge scroll
+- 86 hidden TypeScript errors
 
-- **VISUAL**: Added Procedural Flag Shader (Vertex displacement for waving effect).
-- **CAMERA**: Shifted Briefing Camera to a "Diorama" rear view to emphasize scale.
-- **INPUT**: Added Gyroscopic Aiming (Tilt to fine-tune). Added Scope Button (Toggle Zoom).
+## [0.2.0] - 2026-03-25
 
-## [v5.0] - The "Platinum" Overhaul
-
-- **GAMEPLAY**: Introduced "Surfacing" mechanic. Enemies stalk underwater (visible as ripples) before breaching.
-- **AI**: Enemies no longer spawn on top of the player; they spawn at distance and close the gap.
-- **CONTROLS**: Fixed "Endless Walk" bug by adding input zeroing on touch end.
-
-## [v4.0] - The "Redux" / "Napalm" Update
-
-- **ENGINE**: Switched from CDN script tags to ES Modules to force Three.js r160 (fixing CapsuleGeometry crash).
-- **VISUAL**: Switched from Night Mode to Day Mode/Golden Hour for better mobile visibility.
-- **JUICE**: Added Shell Ejection particles, Blood/Oil splatters, and screen shake.
-
-## [v3.0] - Operation Clam Thunder
-
-- **THEME**: Pivoted from generic "River Doom" to Vietnam-War-style Otter aesthetic.
-- **UI**: Added "Top Secret Dossier" menu style.
-- **AUDIO**: First implementation of the Web Audio Synth.
-
-## [v2.0] - Swamp Arena
-
-- **GENRE**: Shifted from "Endless Runner" to "Arena Survival".
-- **RIG**: Created the first compound geometry Otter rig with distinct limbs.
-
-## [v1.0] - River Doom
-
-- **CONCEPT**: Initial prototype. Procedural river generation.
+### Added
+- React-Konva rendering (migrated from Phaser 3)
+- Koota ECS integration
+- 95 user stories implemented
+- Procedural sprite generation
