@@ -11,7 +11,6 @@
 
 import type { World } from "koota";
 import { Faction } from "@/ecs/traits/identity";
-import { Position } from "@/ecs/traits/spatial";
 import { GameClock, ResourcePool } from "@/ecs/traits/state";
 import { createNoise } from "@/utils/noise";
 import type { Entity } from "koota";
