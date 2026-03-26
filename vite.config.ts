@@ -21,7 +21,8 @@ export default defineConfig(({ mode: _mode }) => ({
 					if (id.includes("node_modules/tone")) return "tone";
 					if (id.includes("node_modules/yuka")) return "yuka";
 					if (id.includes("node_modules/koota")) return "koota";
-					if (id.includes("node_modules/konva") || id.includes("node_modules/react-konva")) return "konva";
+					if (id.includes("node_modules/konva") || id.includes("node_modules/react-konva"))
+						return "konva";
 				},
 			},
 		},

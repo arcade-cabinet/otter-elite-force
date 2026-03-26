@@ -250,9 +250,9 @@ declare module "yuka" {
 		update(delta: number): this;
 	}
 
-	export class Time {
-		static delta: number;
-		static elapsed: number;
-		static update(): this;
+	export namespace Time {
+		let delta: number;
+		let elapsed: number;
+		function update(): void;
 	}
 }
