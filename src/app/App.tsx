@@ -5,7 +5,10 @@
  */
 
 import { useTrait, useWorld, WorldProvider } from "koota/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { GameCanvas } from "@/canvas/GameCanvas";
+import { loadAllAtlases } from "@/canvas/spriteAtlas";
+import { loadTerrainTiles } from "@/canvas/tilePainter";
 import { Button } from "@/components/ui/button";
 import { initSingletons } from "@/ecs/singletons";
 import {
@@ -13,17 +16,19 @@ import {
 	type AppScreenType,
 	CampaignProgress,
 	CurrentMission,
+	DialogueState,
 	GamePhase,
 	UserSettings,
 } from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
-import { CAMPAIGN } from "@/entities/missions";
+import { CAMPAIGN, getMissionById } from "@/entities/missions";
 import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
 import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
 import { saveMission } from "@/systems/saveLoadSystem";
+import { BriefingDialogue } from "@/ui/BriefingDialogue";
 import { CampaignView } from "@/ui/command-post/CampaignView";
 import { MainMenu } from "@/ui/command-post/MainMenu";
 import {
@@ -32,20 +37,35 @@ import {
 	ToggleSetting,
 } from "@/ui/command-post/SettingsControls";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
+import { GameLayout } from "@/ui/GameLayout";
 import { AlertBanner } from "@/ui/hud/AlertBanner";
-import { CombatTextOverlay } from "@/ui/hud/CombatTextOverlay";
-import { CommandConsole } from "@/ui/hud/CommandConsole";
 import { ErrorFeedback } from "@/ui/hud/ErrorFeedback";
-import { GameplayTopBar } from "@/ui/hud/GameplayTopBar";
 import { PauseOverlay } from "@/ui/hud/PauseOverlay";
-
-import { TutorialOverlay } from "@/ui/hud/TutorialOverlay";
-import { BriefingShell, TacticalShell } from "@/ui/layout/shells";
-import { resolveTacticalHudLayout, useViewportProfile } from "@/ui/layout/viewport";
+import { BriefingShell } from "@/ui/layout/shells";
 import { cn } from "@/ui/lib/utils";
-import { type IRefPhaserGame, PhaserGame } from "./PhaserGame";
 
 initSingletons(world);
+// NO procedural fallback — all sprites come from atlas/tile system
+
+// Asset loading promise — game screens wait for this before rendering
+let assetsReady = false;
+const assetsPromise = Promise.all([loadAllAtlases(), loadTerrainTiles()]).then(() => {
+	assetsReady = true;
+	console.log("[boot] All sprites + terrain tiles loaded");
+});
+
+/** Hook: returns true once all visual assets are loaded. */
+function useAssetsReady(): boolean {
+	const [ready, setReady] = useState(assetsReady);
+	useEffect(() => {
+		if (assetsReady) {
+			setReady(true);
+			return;
+		}
+		assetsPromise.then(() => setReady(true));
+	}, []);
+	return ready;
+}
 
 const SCREEN_THEMES: Record<AppScreenType, string> = {
 	menu: "command-post",
@@ -102,37 +122,43 @@ function AppRouter() {
 }
 
 function GameplayScreen() {
-	const phaserRef = useRef<IRefPhaserGame>(null);
 	const w = useWorld();
 	const campaign = useTrait(w, CampaignProgress);
 	const gamePhase = useTrait(w, GamePhase);
+	const dialogueState = useTrait(w, DialogueState);
+	const ready = useAssetsReady();
 	const isPaused = gamePhase?.phase === "paused";
-	const viewport = useViewportProfile();
-	const hudLayout = resolveTacticalHudLayout(viewport);
 	const currentMission = campaign?.currentMission ?? "mission_1";
 	const difficulty = (campaign?.difficulty ?? "support") as DifficultyMode;
 	const deploymentData = useMemo<DeploymentData>(
 		() => ({ missionId: currentMission, difficulty }),
 		[currentMission, difficulty],
 	);
-	const needsLandscapePrompt = viewport.isPhone && viewport.isPortrait;
 	const [pauseView, setPauseView] = useState<"pause" | "settings">("pause");
+
+	// Mission briefing state — shows before gameplay starts
+	const [briefingDone, setBriefingDone] = useState(false);
+	const mission = useMemo(() => getMissionById(currentMission), [currentMission]);
+	const briefingLines = useMemo(
+		() =>
+			mission?.briefing?.lines?.map((l) => ({
+				speaker: l.speaker,
+				text: l.text,
+			})) ?? [],
+		[mission],
+	);
 
 	// US-020: Pause/Resume wiring
 	const handleResume = useCallback(() => {
 		setPauseView("pause");
 		w.set(GamePhase, { phase: "playing" });
-		const scene = phaserRef.current?.scene ?? phaserRef.current?.game?.scene.getScene("GameScene");
-		if (scene) {
-			scene.scene.resume("GameScene");
-		}
 	}, [w]);
 
 	const handlePause = useCallback(() => {
 		w.set(GamePhase, { phase: "paused" });
 	}, [w]);
 
-	// Listen for Phaser ESC → game-paused event
+	// Listen for ESC → game-paused event
 	useEffect(() => {
 		const onGamePaused = () => {
 			handlePause();
@@ -190,37 +216,66 @@ function GameplayScreen() {
 		};
 	}, [w]);
 
+	// Gate: wait for all visual assets before rendering game
+	if (!ready) {
+		return (
+			<div className="flex items-center justify-center h-screen w-screen bg-slate-900">
+				<div className="text-center">
+					<div className="text-2xl font-bold text-slate-300 mb-2">LOADING</div>
+					<div className="text-sm text-slate-500">Preparing battlefield assets...</div>
+				</div>
+			</div>
+		);
+	}
+
+	// Handle mission start: show briefing before gameplay
+	if (!briefingDone && briefingLines.length > 0) {
+		return (
+			<BriefingDialogue
+				missionName={mission?.name ?? "Mission"}
+				subtitle={mission?.subtitle}
+				lines={briefingLines}
+				onComplete={() => {
+					setBriefingDone(true);
+					w.set(GamePhase, { phase: "playing" });
+				}}
+				isMissionBriefing
+			/>
+		);
+	}
+
+	// Handle mid-mission dialogue exchanges (from scenario triggers)
+	if (dialogueState?.active && dialogueState.lines.length > 0) {
+		return (
+			<>
+				<GameLayout>
+					<GameCanvas deploymentData={deploymentData} />
+				</GameLayout>
+				<BriefingDialogue
+					missionName={mission?.name ?? ""}
+					lines={dialogueState.lines}
+					onComplete={() => {
+						w.set(DialogueState, {
+							active: false,
+							lines: [],
+							currentLine: 0,
+							pauseGame: true,
+							triggerId: null,
+						});
+						if (dialogueState.pauseGame) {
+							w.set(GamePhase, { phase: "playing" });
+						}
+					}}
+					isMissionBriefing={false}
+				/>
+			</>
+		);
+	}
+
 	return (
-		<TacticalShell
-			hudLayout={hudLayout}
-			className={cn(needsLandscapePrompt && "tactical-shell--mobile-portrait")}
-			hudTop={needsLandscapePrompt ? null : <GameplayTopBar missionId={currentMission} compact />}
-			alerts={
-				needsLandscapePrompt ? (
-					<RotateDeviceNotice
-						width={viewport.width}
-						height={viewport.height}
-						onReturn={() => w.set(AppScreen, { screen: "menu" })}
-					/>
-				) : (
-					<AlertBanner />
-				)
-			}
-			centerDock={
-				needsLandscapePrompt ? null : (
-					<CommandConsole
-						missionId={currentMission}
-						compact
-						showUnitPanel={false}
-						showMinimap={false}
-						onActiveTransmissionChange={() => {}}
-					/>
-				)
-			}
-		>
-			<PhaserGame ref={phaserRef} deploymentData={deploymentData} />
-			<CombatTextOverlay />
-			<TutorialOverlay missionId={currentMission} />
+		<GameLayout>
+			<GameCanvas deploymentData={deploymentData} />
+			<AlertBanner />
 			<ErrorFeedback />
 			{isPaused && pauseView === "pause" ? (
 				<PauseOverlay
@@ -241,7 +296,7 @@ function GameplayScreen() {
 			{isPaused && pauseView === "settings" ? (
 				<InGameSettingsOverlay onBack={() => setPauseView("pause")} />
 			) : null}
-		</TacticalShell>
+		</GameLayout>
 	);
 }
 
@@ -313,41 +368,6 @@ function InGameSettingsOverlay({ onBack }: { onBack: () => void }) {
 						Press ESC to return
 					</div>
 				</div>
-			</div>
-		</div>
-	);
-}
-
-function RotateDeviceNotice({
-	width,
-	height,
-	onReturn,
-}: {
-	width: number;
-	height: number;
-	onReturn: () => void;
-}) {
-	return (
-		<div className="gameplay-viewport-card w-full rounded-none border border-accent/25 bg-card/82 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.4)] sm:max-w-sm">
-			<div className="flex flex-wrap items-center gap-2">
-				<span className="rounded-none border border-accent/25 bg-accent/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-					Rotate to Landscape
-				</span>
-				<span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-					{width} × {height}
-				</span>
-			</div>
-			<div className="mt-3 font-heading text-sm uppercase tracking-[0.18em] text-foreground">
-				Tactical play is landscape-first on phone.
-			</div>
-			<p className="mt-2 font-body text-[11px] uppercase tracking-[0.14em] leading-relaxed text-muted-foreground">
-				Rotate your device to keep the battlefield clear, preserve touch-safe command zones, and
-				avoid fighting the HUD.
-			</p>
-			<div className="mt-3 flex flex-wrap gap-2">
-				<Button variant="accent" onClick={onReturn}>
-					Back to Menu
-				</Button>
 			</div>
 		</div>
 	);

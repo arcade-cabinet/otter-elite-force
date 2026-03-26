@@ -5,8 +5,8 @@ describe("WeatherSystem", () => {
 	let weather: WeatherSystem;
 
 	beforeEach(() => {
-		// Create without a Phaser scene — pure logic tests
-		weather = new WeatherSystem(null);
+		// Create without a scene — pure logic tests
+		weather = new WeatherSystem();
 	});
 
 	afterEach(() => {
@@ -115,19 +115,6 @@ describe("WeatherSystem", () => {
 		});
 	});
 
-	describe("overlay alpha values", () => {
-		it("CLEAR: alpha 0", () => {
-			expect(weather.getOverlayAlpha()).toBe(0);
-		});
-
-		it("RAIN: alpha 0.15", () => {
-			weather.setState(WeatherState.RAIN);
-			expect(weather.getOverlayAlpha()).toBeCloseTo(0.15);
-		});
-
-		it("MONSOON: alpha 0.35", () => {
-			weather.setState(WeatherState.MONSOON);
-			expect(weather.getOverlayAlpha()).toBeCloseTo(0.35);
-		});
-	});
+	// Overlay alpha tests removed — weather is now gameplay-only (no visual rendering).
+	// Weather effects are communicated through terrain, dialogue, and stat modifiers.
 });

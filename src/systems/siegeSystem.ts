@@ -144,7 +144,7 @@ export function siegeCombatSystem(
 		// Calculate siege damage
 		const unitType = entity.get(UnitType)!;
 		const isHero = entity.has(IsHero);
-		const targetArmor = target.has(Armor) ? target.get(Armor)!.value : 0;
+		const targetArmor = target.has(Armor) ? target.get(Armor)?.value ?? 0 : 0;
 
 		const dmg = calculateSiegeDamage({
 			baseDamage: attack.damage,
@@ -193,7 +193,7 @@ export function aoeSplashSystem(world: World): Entity[] {
 			const dist = distanceBetween(projPos.x, projPos.y, candidatePos.x, candidatePos.y);
 
 			if (dist <= splash.radius) {
-				const armorValue = candidate.has(Armor) ? candidate.get(Armor)!.value : 0;
+				const armorValue = candidate.has(Armor) ? candidate.get(Armor)?.value ?? 0 : 0;
 				const dmg = calculateDamage(attack.damage, armorValue);
 				candidate.set(Health, (prev) => ({ current: prev.current - dmg }));
 			}

@@ -244,10 +244,10 @@
     "outputCategory": "units",
     "faction": "ura",
     "archetypeId": "oef_command_hero_unit",
-    "referenceEntityId": "sgt_bubbles",
+    "referenceEntityId": "col_bubbles",
     "roleIntent": "Hero combat sprites for command-grade OEF characters who need stronger silhouette and presence than baseline infantry.",
     "memberIds": [
-      "sgt_bubbles",
+      "col_bubbles",
       "gen_whiskers",
       "sgt_fang"
     ],
@@ -274,7 +274,7 @@
       "height": 16,
       "size": 16
     },
-    "referenceContractId": "sgt_bubbles"
+    "referenceContractId": "col_bubbles"
   },
   {
     "familyId": "oef-specialist-hero-units",

@@ -167,10 +167,10 @@ describe("UnitPanel", () => {
 			if (skip()) return;
 			renderWithWorld(React.createElement(UnitPanel), (world: any) => {
 				const entity = world.spawn(UnitType, Selected, IsHero, Health);
-				entity.set(UnitType, { type: "sgt_bubbles" });
+				entity.set(UnitType, { type: "col_bubbles" });
 				entity.set(Health, { current: 120, max: 120 });
 			});
-			expect(screen.getByText(/sgt.*bubbles/i)).toBeTruthy();
+			expect(screen.getByText(/col.*bubbles/i)).toBeTruthy();
 		});
 	});
 });

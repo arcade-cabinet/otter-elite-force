@@ -10,7 +10,7 @@
 import type { Entity, World } from "koota";
 import { RESEARCH } from "../data/research";
 import { Attack, Health } from "../ecs/traits/combat";
-import { ResearchSlot } from "../ecs/traits/economy";
+import { ResearchSlot, type ResearchSlotData } from "../ecs/traits/economy";
 import { IsBuilding, UnitType } from "../ecs/traits/identity";
 import { CompletedResearch, ResourcePool } from "../ecs/traits/state";
 import { world as defaultWorld } from "../ecs/world";
@@ -43,7 +43,7 @@ export function queueResearch(
 
 	// Armory already has active research (one at a time)
 	const currentSlot = building.get(ResearchSlot);
-	if (currentSlot !== null) return false;
+	if (currentSlot != null) return false;
 
 	// Check affordability and deduct
 	const pool = world.get(ResourcePool);
@@ -83,7 +83,7 @@ export function queueResearch(
 export function researchSystem(world: World, delta: number): void {
 	for (const entity of world.query(IsBuilding, ResearchSlot)) {
 		const slot = entity.get(ResearchSlot);
-		if (slot === null) continue;
+		if (!slot) continue;
 
 		// Advance progress: 100% / researchTime per second
 		slot.progress += (100 / slot.researchTime) * delta;
@@ -99,8 +99,8 @@ export function researchSystem(world: World, delta: number): void {
 			applyResearchEffect(world, slot.researchId);
 			EventBus.emit("research-complete", { researchId: slot.researchId });
 
-			// Clear slot (AoS — set back to null)
-			entity.set(ResearchSlot, null);
+			// Clear slot — runtime stores null for "no active research"
+			entity.set(ResearchSlot, null as unknown as ResearchSlotData);
 		}
 	}
 }

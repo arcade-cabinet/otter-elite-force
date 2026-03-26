@@ -7,7 +7,7 @@
  *   - 2 Sappers vs 1 Scale Wall: Sappers destroy wall efficiently
  *   - 1 Mortar Otter vs 4 clustered Gators: AoE significant damage
  *
- * All tests run headless without Phaser, using the simulation engine.
+ * All tests run headless using the simulation engine.
  * Results are logged with margin of victory.
  *
  * Note: TeamA uses focus fire (good micro), TeamB uses distributed fire.

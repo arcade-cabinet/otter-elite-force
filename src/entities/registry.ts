@@ -118,7 +118,7 @@ import { sgtFang } from "./heroes/sgt-fang";
 
 /** All 6 hero definitions keyed by id. */
 export const ALL_HERO_ENTITIES: Record<string, HeroDef> = {
-	sgt_bubbles: sgtBubbles,
+	col_bubbles: sgtBubbles,
 	gen_whiskers: genWhiskers,
 	cpl_splash: cplSplash,
 	sgt_fang: sgtFang,

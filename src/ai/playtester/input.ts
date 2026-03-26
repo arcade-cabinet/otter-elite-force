@@ -2,7 +2,7 @@
  * AI Playtester Input Model
  *
  * Converts high-level PlayerAction intents into real browser events
- * dispatched to the Phaser canvas. Simulates human-like input:
+ * dispatched to the game canvas. Simulates human-like input:
  *
  * - APM limiter: configurable actions-per-minute ceiling
  * - Misclick: configurable error rate offsets click positions
@@ -11,10 +11,10 @@
  * - Camera scroll: dispatches wheel events or edge-of-screen moves
  *
  * All events hit the DOM the same way a real player's inputs do,
- * so Phaser's input system processes them identically.
+ * so the input system processes them identically.
  */
 
-import { TILE_SIZE } from "@/maps/loader";
+import { CELL_SIZE } from "@/maps/constants";
 
 // ---------------------------------------------------------------------------
 // Action types
@@ -288,8 +288,8 @@ export function clickAtTile(
 ): PlayerAction {
 	return {
 		type: "click",
-		screenX: tileX * TILE_SIZE + TILE_SIZE / 2 - viewportX,
-		screenY: tileY * TILE_SIZE + TILE_SIZE / 2 - viewportY,
+		screenX: tileX * CELL_SIZE + CELL_SIZE / 2 - viewportX,
+		screenY: tileY * CELL_SIZE + CELL_SIZE / 2 - viewportY,
 	};
 }
 
@@ -302,8 +302,8 @@ export function rightClickAtTile(
 ): PlayerAction {
 	return {
 		type: "rightClick",
-		screenX: tileX * TILE_SIZE + TILE_SIZE / 2 - viewportX,
-		screenY: tileY * TILE_SIZE + TILE_SIZE / 2 - viewportY,
+		screenX: tileX * CELL_SIZE + CELL_SIZE / 2 - viewportX,
+		screenY: tileY * CELL_SIZE + CELL_SIZE / 2 - viewportY,
 	};
 }
 
@@ -319,10 +319,10 @@ export function dragSelectTiles(
 ): PlayerAction {
 	return {
 		type: "drag",
-		screenX: fromTileX * TILE_SIZE - viewportX,
-		screenY: fromTileY * TILE_SIZE - viewportY,
-		endX: (toTileX + 1) * TILE_SIZE - viewportX,
-		endY: (toTileY + 1) * TILE_SIZE - viewportY,
+		screenX: fromTileX * CELL_SIZE - viewportX,
+		screenY: fromTileY * CELL_SIZE - viewportY,
+		endX: (toTileX + 1) * CELL_SIZE - viewportX,
+		endY: (toTileY + 1) * CELL_SIZE - viewportY,
 		duration,
 	};
 }

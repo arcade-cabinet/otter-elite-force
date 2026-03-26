@@ -8,14 +8,14 @@
  * - Expressions readable (face + detail layer coverage)
  * - Color palettes consistent (all use portrait_default)
  */
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { PALETTES } from "@/entities/palettes";
 import { ALL_PORTRAITS } from "@/entities/registry";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,
 } from "@/entities/sprite-materialization";
-import type { SPDSLSprite, SpriteLayer } from "@/entities/types";
+import type { SPDSLSprite } from "@/entities/types";
 
 // ─── Constants ───
 
@@ -29,7 +29,7 @@ const EXPECTED_PORTRAITS = [
 	"pvt_muskrat",
 ] as const;
 
-const PORTRAIT_DIMENSIONS = { width: 64, height: 96 };
+const _PORTRAIT_DIMENSIONS = { width: 64, height: 96 };
 
 // Eye region: roughly rows 20-40 in the upper-middle third of a 96-tall portrait
 const EYE_REGION_START = 18;
@@ -42,12 +42,12 @@ const EYE_COL_END = 48;
 // In SP-DSL portraits, the face layer contains the entire head using:
 //   1=outline, 2=fur dark, 3=fur light, 4=face/skin light, 5=face/skin shadow
 //   7=eye color (blue light)
-const FACE_SKIN_CHARS = ["4", "5"]; // narrow: actual skin-tone pixels
+const _FACE_SKIN_CHARS = ["4", "5"]; // narrow: actual skin-tone pixels
 const HEAD_CHARS = ["1", "2", "3", "4", "5", "7"]; // broad: all head structure
 // Teal eye glint chars
-const EYE_GLINT_CHARS = ["e", "f"]; // teal + light teal
+const _EYE_GLINT_CHARS = ["e", "f"]; // teal + light teal
 // Outline char
-const OUTLINE_CHAR = "1";
+const _OUTLINE_CHAR = "1";
 
 // ─── Required layers for every portrait ───
 
@@ -131,7 +131,7 @@ describe("US-074: Portrait quality consistency check", () => {
 				const faceLayer = sprite.layers.find((l) => l.id === "face");
 				expect(faceLayer).toBeDefined();
 
-				const grid = faceLayer!.grid;
+				const grid = faceLayer?.grid;
 				const rows = (typeof grid[0] === "string" ? grid : grid[0]) as string[];
 
 				let headPixelsInEyeRegion = 0;
@@ -165,8 +165,8 @@ describe("US-074: Portrait quality consistency check", () => {
 
 				// Count non-transparent pixels in face region (upper half of portrait)
 				let faceAreaPixels = 0;
-				for (let r = 0; r < 48 && r < idleFrame!.length; r++) {
-					for (const ch of idleFrame![r]) {
+				for (let r = 0; r < 48 && r < idleFrame?.length; r++) {
+					for (const ch of idleFrame?.[r]) {
 						if (ch !== ".") faceAreaPixels++;
 					}
 				}
@@ -276,7 +276,7 @@ describe("US-074: Portrait quality consistency check", () => {
 			}
 
 			// All portraits should have at least 30% fill
-			for (const [id, density] of Object.entries(densities)) {
+			for (const [_id, density] of Object.entries(densities)) {
 				expect(density).toBeGreaterThan(0.3);
 			}
 
@@ -298,7 +298,7 @@ describe("US-074: Portrait quality consistency check", () => {
 				const faceLayer = sprite.layers.find((l) => l.id === "face");
 				expect(faceLayer).toBeDefined();
 
-				const grid = faceLayer!.grid;
+				const grid = faceLayer?.grid;
 				const rows = (typeof grid[0] === "string" ? grid : grid[0]) as string[];
 
 				let headPixels = 0;

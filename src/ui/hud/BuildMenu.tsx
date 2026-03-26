@@ -4,7 +4,7 @@
  * Shows available URA structures with affordability gating.
  * Unaffordable buildings are greyed out and unclickable.
  * Buildings locked by mission progression are hidden.
- * Clicking an affordable building dispatches ghost placement mode to Phaser.
+ * Clicking an affordable building dispatches ghost placement mode.
  */
 import { useTrait, useWorld } from "koota/react";
 import { Button } from "@/components/ui/button";

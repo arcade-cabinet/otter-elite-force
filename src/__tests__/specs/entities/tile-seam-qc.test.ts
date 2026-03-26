@@ -11,7 +11,6 @@
  * color to avoid stark black/transparent seams between identical tiles.
  */
 import { describe, expect, it } from "vitest";
-import { PALETTES } from "@/entities/palettes";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,
@@ -20,7 +19,7 @@ import { TERRAIN_TILES } from "@/entities/terrain/tiles";
 
 // ─── Constants ───
 
-const TILE_SIZE = 16;
+const CELL_SIZE = 16;
 const seamIssues: string[] = [];
 
 function noteSeam(msg: string) {
@@ -35,16 +34,16 @@ describe("US-076: Tile seam QC at game zoom", () => {
 
 	describe("all terrain tiles materialize at 16x16", () => {
 		for (const id of tileIds) {
-			it(`${id} materializes to ${TILE_SIZE}x${TILE_SIZE}`, () => {
+			it(`${id} materializes to ${CELL_SIZE}x${CELL_SIZE}`, () => {
 				const tile = TERRAIN_TILES[id];
 				const legacy = materializeSpriteToLegacy(tile.sprite, dimensions);
-				expect(legacy.size).toBe(TILE_SIZE);
+				expect(legacy.size).toBe(CELL_SIZE);
 				expect(legacy.frames.idle).toBeDefined();
 
 				const frame = legacy.frames.idle[0];
-				expect(frame.length).toBe(TILE_SIZE);
+				expect(frame.length).toBe(CELL_SIZE);
 				for (const row of frame) {
-					expect(row.length).toBe(TILE_SIZE);
+					expect(row.length).toBe(CELL_SIZE);
 				}
 			});
 		}
@@ -58,20 +57,20 @@ describe("US-076: Tile seam QC at game zoom", () => {
 				const frame = legacy.frames.idle[0];
 
 				const topRow = frame[0];
-				const bottomRow = frame[TILE_SIZE - 1];
+				const bottomRow = frame[CELL_SIZE - 1];
 
 				// Count non-transparent pixels on edges
 				let topFilled = 0;
 				let bottomFilled = 0;
-				for (let x = 0; x < TILE_SIZE; x++) {
+				for (let x = 0; x < CELL_SIZE; x++) {
 					if (topRow[x] !== ".") topFilled++;
 					if (bottomRow[x] !== ".") bottomFilled++;
 				}
 
 				// For seamless tiling, both edges should be mostly filled
 				// (terrain tiles should not have transparent borders)
-				const topFillRatio = topFilled / TILE_SIZE;
-				const bottomFillRatio = bottomFilled / TILE_SIZE;
+				const topFillRatio = topFilled / CELL_SIZE;
+				const bottomFillRatio = bottomFilled / CELL_SIZE;
 
 				if (topFillRatio < 0.5) {
 					noteSeam(
@@ -96,13 +95,13 @@ describe("US-076: Tile seam QC at game zoom", () => {
 
 				let leftFilled = 0;
 				let rightFilled = 0;
-				for (let y = 0; y < TILE_SIZE; y++) {
+				for (let y = 0; y < CELL_SIZE; y++) {
 					if (frame[y][0] !== ".") leftFilled++;
-					if (frame[y][TILE_SIZE - 1] !== ".") rightFilled++;
+					if (frame[y][CELL_SIZE - 1] !== ".") rightFilled++;
 				}
 
-				const leftFillRatio = leftFilled / TILE_SIZE;
-				const rightFillRatio = rightFilled / TILE_SIZE;
+				const leftFillRatio = leftFilled / CELL_SIZE;
+				const rightFillRatio = rightFilled / CELL_SIZE;
 
 				if (leftFillRatio < 0.5) {
 					noteSeam(
@@ -156,7 +155,7 @@ describe("US-076: Tile seam QC at game zoom", () => {
 				const frame = legacy.frames.idle[0];
 
 				let filled = 0;
-				const total = TILE_SIZE * TILE_SIZE;
+				const total = CELL_SIZE * CELL_SIZE;
 				for (const row of frame) {
 					for (const ch of row) {
 						if (ch !== ".") filled++;

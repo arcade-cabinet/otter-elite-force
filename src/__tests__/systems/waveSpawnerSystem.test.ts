@@ -18,7 +18,6 @@ import { Position } from "@/ecs/traits/spatial";
 import {
 	buildEscalationSchedule,
 	createWaveSpawnerState,
-	type WaveDefinition,
 	type WaveSchedule,
 	waveSpawnerSystem,
 } from "@/systems/waveSpawnerSystem";
@@ -227,7 +226,7 @@ describe("waveSpawnerSystem", () => {
 			const finalWave = elite.waves[elite.waves.length - 1];
 			const crocEntry = finalWave.enemies.find((e) => e.unitType === "croc_champion");
 			expect(crocEntry).toBeDefined();
-			expect(crocEntry!.count).toBe(2);
+			expect(crocEntry?.count).toBe(2);
 		});
 	});
 
@@ -330,9 +329,9 @@ describe("waveSpawnerSystem", () => {
 			const health = entity.get(Health);
 			const faction = entity.get(Faction);
 
-			expect(unitType!.type).toBe("gator");
-			expect(health!.max).toBe(120); // From SCALE_GUARD_UNITS
-			expect(faction!.id).toBe("scale_guard");
+			expect(unitType?.type).toBe("gator");
+			expect(health?.max).toBe(120); // From SCALE_GUARD_UNITS
+			expect(faction?.id).toBe("scale_guard");
 		});
 	});
 });

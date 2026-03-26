@@ -9,8 +9,8 @@
 import { describe, expect, it } from "vitest";
 
 describe("US-089: Bundle size audit", () => {
-	describe("EventBus is Phaser-free", () => {
-		it("should not import from phaser", async () => {
+	describe("EventBus is lightweight", () => {
+		it("should be a lightweight event emitter", async () => {
 			// The EventBus module should be a lightweight event emitter
 			const mod = await import("@/game/EventBus");
 			expect(mod.EventBus).toBeDefined();
@@ -74,20 +74,18 @@ describe("US-089: Bundle size audit", () => {
 			expect(mod.musicController).toBeDefined();
 		});
 
-		it("game config module exists at the expected path", async () => {
-			// The game config module imports Phaser which requires a canvas
-			// environment. We verify the module path resolves without testing
-			// the full Phaser initialization (that's a browser test).
-			// The key architectural point is that this import is DYNAMIC in
-			// PhaserGame.tsx, so it doesn't load with the initial bundle.
-			expect(typeof import("@/game/config")).toBe("object"); // Promise
+		it("canvas module exists at the expected path", async () => {
+			// The GameCanvas module uses react-konva for rendering.
+			// We verify the module path resolves correctly.
+			const mod = await import("@/canvas/GameCanvas");
+			expect(mod.GameCanvas).toBeDefined();
 		});
 	});
 
 	describe("bundle composition documentation", () => {
 		it("documents the target bundle breakdown", () => {
 			/**
-			 * Bundle Composition (post US-089 optimization):
+			 * Bundle Composition (post Konva migration):
 			 *
 			 * INITIAL LOAD (page open — menu screen):
 			 *   index.js     ~130 KB gzip  — React 19, UI components, ECS state, routing
@@ -95,9 +93,8 @@ describe("US-089: Bundle size audit", () => {
 			 *   index.css     ~19 KB gzip  — Tailwind + theme styles
 			 *   Total:       ~156 KB gzip  ✅ well under 500 KB target
 			 *
-			 * LAZY (game screen entered):
-			 *   phaser.js    ~330 KB gzip  — Phaser 3 game engine
-			 *   config.js     ~19 KB gzip  — Game scene bootstrapping
+			 * GAME (game screen entered):
+			 *   konva.js      ~40 KB gzip  — Konva 2D canvas engine
 			 *   yuka.js       ~11 KB gzip  — AI/pathfinding
 			 *
 			 * LAZY (first user gesture):
@@ -105,11 +102,11 @@ describe("US-089: Bundle size audit", () => {
 			 *   engine.js      ~2 KB gzip  — Audio engine + music controller
 			 *
 			 * Key optimizations:
-			 * 1. EventBus replaced: Phaser.Events.EventEmitter → lightweight emitter
-			 * 2. PhaserGame.tsx: dynamic import() for game/config (loads Phaser)
+			 * 1. EventBus: lightweight emitter (no framework dependency)
+			 * 2. GameCanvas: react-konva Stage for 2D rendering
 			 * 3. useAudioUnlock: dynamic import() for audio/engine (loads Tone.js)
 			 * 4. useMusicWiring: dynamic import() for audio/musicController
-			 * 5. manualChunks: phaser, tone, yuka, koota in separate chunks
+			 * 5. manualChunks: tone, yuka, koota in separate chunks
 			 */
 			expect(true).toBe(true); // Documentation test — always passes
 		});

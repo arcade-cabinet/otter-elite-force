@@ -28,7 +28,6 @@ import {
 	projectileSystem,
 } from "../../systems/combatSystem";
 import { economySystem, resetFishTrapTimer } from "../../systems/economySystem";
-import { orderSystem } from "../../systems/orderSystem";
 import { productionSystem } from "../../systems/productionSystem";
 
 // ---------------------------------------------------------------------------
@@ -137,7 +136,7 @@ describe("US-002: Gather loop integration", () => {
 		}
 
 		// 2 traps × 3 fish per 10s = 6 fish
-		expect(world.get(ResourcePool)!.fish).toBe(200 + 6);
+		expect(world.get(ResourcePool)?.fish).toBe(200 + 6);
 	});
 });
 
@@ -160,7 +159,7 @@ describe("US-003: Build loop integration", () => {
 		);
 
 		// Worker right next to the building with ConstructingAt relation
-		const worker = world.spawn(
+		const _worker = world.spawn(
 			Position({ x: 5, y: 5 }),
 			Faction({ id: "ura" }),
 			OrderQueue,
@@ -258,7 +257,7 @@ describe("US-004: Train loop integration", () => {
 		}
 
 		// Queue should be empty (unit trained)
-		expect(barracks.get(ProductionQueue)!.length).toBe(0);
+		expect(barracks.get(ProductionQueue)?.length).toBe(0);
 
 		// New entity should have been spawned
 		const unitsAfter = world.query(Position, Faction).length;
@@ -444,7 +443,7 @@ describe("US-005: Combat loop integration", () => {
 			Health({ current: 80, max: 80 }),
 		);
 
-		const ranged = world.spawn(
+		const _ranged = world.spawn(
 			Position({ x: 0, y: 0 }),
 			Faction({ id: "ura" }),
 			Attack({ damage: 20, range: 12, cooldown: 1, timer: 0 }),

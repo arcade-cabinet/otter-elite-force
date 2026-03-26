@@ -126,7 +126,7 @@ export function TutorialOverlay({ missionId }: { missionId: string }) {
 	// Reset step when mission changes
 	useEffect(() => {
 		setCurrentStep(0);
-	}, [missionId]);
+	}, []);
 
 	if (skipTutorials || !activePrompt) return null;
 

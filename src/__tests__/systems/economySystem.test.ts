@@ -59,7 +59,7 @@ describe("economySystem", () => {
 				ResourceNode({ type: "timber", remaining: 20 }),
 			);
 
-			const worker = world.spawn(
+			const _worker = world.spawn(
 				Position({ x: 5, y: 5 }),
 				Gatherer({ carrying: "", amount: 0, capacity: 10 }),
 				GatheringFrom(node),
@@ -73,7 +73,7 @@ describe("economySystem", () => {
 
 		it("should deposit resources at Command Post when carrying capacity is full", () => {
 			// Command Post at (0, 0)
-			const commandPost = world.spawn(
+			const _commandPost = world.spawn(
 				IsBuilding,
 				UnitType({ type: "command_post" }),
 				Position({ x: 0, y: 0 }),
@@ -147,7 +147,7 @@ describe("economySystem", () => {
 		});
 
 		it("should move toward Command Post when full and not in range", () => {
-			const commandPost = world.spawn(
+			const _commandPost = world.spawn(
 				IsBuilding,
 				UnitType({ type: "command_post" }),
 				Position({ x: 0, y: 0 }),
@@ -183,7 +183,7 @@ describe("economySystem", () => {
 			// Tick 10 seconds
 			economySystem(world, 10);
 
-			expect(world.get(ResourcePool)!.fish).toBe(3);
+			expect(world.get(ResourcePool)?.fish).toBe(3);
 		});
 
 		it("should scale income with number of Fish Traps", () => {
@@ -194,7 +194,7 @@ describe("economySystem", () => {
 
 			economySystem(world, 10);
 
-			expect(world.get(ResourcePool)!.fish).toBe(9); // 3 traps * 3 fish
+			expect(world.get(ResourcePool)?.fish).toBe(9); // 3 traps * 3 fish
 		});
 
 		it("should not generate income before 10 seconds", () => {
@@ -202,7 +202,7 @@ describe("economySystem", () => {
 
 			economySystem(world, 5);
 
-			expect(world.get(ResourcePool)!.fish).toBe(0);
+			expect(world.get(ResourcePool)?.fish).toBe(0);
 		});
 
 		it("should accumulate timer across multiple ticks", () => {
@@ -212,7 +212,7 @@ describe("economySystem", () => {
 			economySystem(world, 5);
 			economySystem(world, 5);
 
-			expect(world.get(ResourcePool)!.fish).toBe(3);
+			expect(world.get(ResourcePool)?.fish).toBe(3);
 		});
 
 		it("should not count non-Fish-Trap buildings", () => {
@@ -220,7 +220,7 @@ describe("economySystem", () => {
 
 			economySystem(world, 10);
 
-			expect(world.get(ResourcePool)!.fish).toBe(0);
+			expect(world.get(ResourcePool)?.fish).toBe(0);
 		});
 	});
 

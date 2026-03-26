@@ -12,7 +12,6 @@ import {
 	UnitType,
 } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
-import { PhaserSprite } from "@/ecs/traits/phaser";
 import { FacingDirection, Position, Velocity } from "@/ecs/traits/spatial";
 import { Concealed, Crouching, DetectionRadius } from "@/ecs/traits/stealth";
 import { CanSwim, Submerged } from "@/ecs/traits/water";
@@ -212,13 +211,6 @@ describe("Koota ECS Traits", () => {
 
 			entity.add(Submerged);
 			expect(entity.has(Submerged)).toBe(true);
-		});
-	});
-
-	describe("Phaser trait", () => {
-		it("should spawn PhaserSprite as null", () => {
-			const entity = world.spawn(PhaserSprite);
-			expect(entity.get(PhaserSprite)).toBeNull();
 		});
 	});
 

@@ -14,7 +14,9 @@
 
 import type { Entity, World } from "koota";
 import { Vector3 } from "yuka";
+import { findPath } from "../ai/pathfinder";
 import type { SteeringVehicle } from "../ai/steeringFactory";
+import { setVehiclePath } from "../ai/steeringFactory";
 import { ConstructingAt, GatheringFrom, Targeting } from "../ecs/relations";
 import { AIState, SteeringAgent } from "../ecs/traits/ai";
 import { Attack } from "../ecs/traits/combat";
@@ -22,6 +24,7 @@ import { ConstructionProgress, Gatherer } from "../ecs/traits/economy";
 import type { Order } from "../ecs/traits/orders";
 import { OrderQueue } from "../ecs/traits/orders";
 import { Position } from "../ecs/traits/spatial";
+import { NavGraphState } from "../ecs/traits/state";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -34,10 +37,31 @@ function distanceBetween(ax: number, ay: number, bx: number, by: number): number
 }
 
 /**
- * Set a direct path on a steering vehicle. In production this would go through
- * the PathfindingQueue for A* paths; for now, creates a simple direct path.
+ * Set a path on a steering vehicle.
+ * Uses A* pathfinding when nav graph is available, falls back to direct path.
  */
-function dispatchPath(agent: SteeringVehicle, targetX: number, targetY: number): void {
+function dispatchPath(
+	world: World,
+	agent: SteeringVehicle,
+	fromX: number,
+	fromY: number,
+	targetX: number,
+	targetY: number,
+): void {
+	const navState = world.get(NavGraphState);
+	if (navState?.graph) {
+		const waypoints = findPath(
+			navState.graph,
+			{ x: Math.round(fromX), y: Math.round(fromY) },
+			{ x: Math.round(targetX), y: Math.round(targetY) },
+			navState.width,
+		);
+		if (waypoints.length > 0) {
+			setVehiclePath(agent, waypoints);
+			return;
+		}
+	}
+	// Fallback: direct path
 	const path = agent.followPath.path;
 	path.clear();
 	path.add(new Vector3(targetX, 0, targetY));
@@ -74,16 +98,17 @@ function findBuildingAt(world: World, x: number, y: number): Entity | null {
 // ---------------------------------------------------------------------------
 
 function handleMove(
+	world: World,
 	entity: Entity,
 	order: Order,
 	agent: SteeringVehicle,
 	ai: ReturnType<Entity["get"]>,
 ): void {
-	// Don't re-dispatch if already moving on this order
 	if (ai.state === "moving") return;
 
 	if (order.targetX !== undefined && order.targetY !== undefined) {
-		dispatchPath(agent, order.targetX, order.targetY);
+		const pos = entity.get(Position)!;
+		dispatchPath(world, agent, pos.x, pos.y, order.targetX, order.targetY);
 		entity.set(AIState, (prev) => ({ ...prev, state: "moving" }));
 	}
 }
@@ -117,7 +142,7 @@ function handleAttack(
 		const dist = distanceBetween(pos.x, pos.y, targetPos.x, targetPos.y);
 
 		if (dist > attack.range) {
-			dispatchPath(agent, targetPos.x, targetPos.y);
+			dispatchPath(world, agent, pos.x, pos.y, targetPos.x, targetPos.y);
 		}
 	}
 }
@@ -153,7 +178,7 @@ function handleGather(
 	if (order.targetX !== undefined && order.targetY !== undefined) {
 		const dist = distanceBetween(pos.x, pos.y, order.targetX, order.targetY);
 		if (dist > 1.5) {
-			dispatchPath(agent, order.targetX, order.targetY);
+			dispatchPath(world, agent, pos.x, pos.y, order.targetX, order.targetY);
 		}
 	}
 }
@@ -190,7 +215,7 @@ function handleBuild(
 			entity.add(ConstructingAt(building));
 		}
 	} else {
-		dispatchPath(agent, order.targetX, order.targetY);
+		dispatchPath(world, agent, pos.x, pos.y, order.targetX, order.targetY);
 	}
 }
 
@@ -205,14 +230,14 @@ function handleStop(entity: Entity, orders: Order[], agent: SteeringVehicle): vo
 	entity.set(AIState, (prev) => ({ ...prev, state: "idle" }));
 }
 
-function handlePatrol(entity: Entity, order: Order, agent: SteeringVehicle): void {
+function handlePatrol(world: World, entity: Entity, order: Order, agent: SteeringVehicle): void {
 	if (!order.waypoints || order.waypoints.length === 0) return;
 
 	entity.set(AIState, (prev) => ({ ...prev, state: "patrolling" }));
 
-	// Begin moving to first waypoint
+	const pos = entity.get(Position)!;
 	const first = order.waypoints[0];
-	dispatchPath(agent, first.x, first.y);
+	dispatchPath(world, agent, pos.x, pos.y, first.x, first.y);
 }
 
 // ---------------------------------------------------------------------------
@@ -236,11 +261,11 @@ export function orderSystem(world: World, _delta: number): void {
 		const hasAgent = entity.has(SteeringAgent);
 		if (!hasAgent && order.type !== "stop") continue;
 
-		const agent = hasAgent ? (entity.get(SteeringAgent) as SteeringVehicle) : null;
+		const agent = hasAgent ? (entity.get(SteeringAgent) ?? null) : null;
 
 		switch (order.type) {
 			case "move":
-				if (agent) handleMove(entity, order, agent, entity.get(AIState));
+				if (agent) handleMove(world, entity, order, agent, entity.get(AIState));
 				break;
 
 			case "attack":
@@ -264,7 +289,7 @@ export function orderSystem(world: World, _delta: number): void {
 				break;
 
 			case "patrol":
-				if (agent) handlePatrol(entity, order, agent);
+				if (agent) handlePatrol(world, entity, order, agent);
 				break;
 		}
 	}

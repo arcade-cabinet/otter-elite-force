@@ -16,7 +16,6 @@ import {
 	getVoiceProfile,
 	playCommandBark,
 	playSelectBark,
-	type UnitVoiceProfile,
 	VOICE_PROFILES,
 } from "@/audio/voiceBarks";
 import { URA_HEROES, URA_UNITS } from "@/data/units";

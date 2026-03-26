@@ -69,11 +69,6 @@ export function PortraitDisplay({ portraitId, className }: PortraitDisplayProps)
 			imageRendering: "pixelated" as const,
 		};
 	}, [atlas, portraitFrame]);
-	const initials = portraitId
-		.replace(/_/g, " ")
-		.split(" ")
-		.map((word) => word[0]?.toUpperCase() ?? "")
-		.join("");
 	const callsign = portraitId.replace(/_/g, " ").toUpperCase();
 
 	return (
@@ -104,9 +99,12 @@ export function PortraitDisplay({ portraitId, className }: PortraitDisplayProps)
 							style={spriteStyle}
 						/>
 					) : (
-						<div className="briefing-portrait-silhouette relative flex h-full items-center justify-center rounded-md border border-accent/20 bg-background/25">
-							<div className="text-center font-heading text-4xl uppercase tracking-[0.3em] text-muted-foreground/55">
-								{initials}
+						<div
+							role="alert"
+							className="briefing-portrait-error relative flex h-full items-center justify-center rounded-md border border-destructive/40 bg-destructive/10"
+						>
+							<div className="text-center font-mono text-xs uppercase tracking-[0.2em] text-destructive/80">
+								MISSING: {portraitId}
 							</div>
 						</div>
 					)}
@@ -117,7 +115,9 @@ export function PortraitDisplay({ portraitId, className }: PortraitDisplayProps)
 					</div>
 					<div className="font-body text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
 						SP-DSL compiled atlas{" "}
-						{portraitFrame ? `${atlas?.meta.scale ?? 0}x locked` : "fallback silhouette"}
+						{portraitFrame
+							? `${atlas?.meta.scale ?? 0}x locked`
+							: `ERROR — frame "${portraitId}" not found in atlas`}
 					</div>
 				</div>
 			</div>

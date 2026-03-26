@@ -80,6 +80,16 @@ export interface HealthThresholdCondition {
 	operator: "below" | "above";
 }
 
+export interface ResourceThresholdCondition {
+	type: "resourceThreshold";
+	/** Resource type to monitor */
+	resource: "fish" | "timber" | "salvage";
+	/** Comparison operator */
+	operator: "gte" | "lte" | "eq";
+	/** Resource amount threshold */
+	amount: number;
+}
+
 export type TriggerCondition =
 	| TimerCondition
 	| UnitCountCondition
@@ -88,7 +98,8 @@ export type TriggerCondition =
 	| BuildingDestroyedCondition
 	| ObjectiveCompleteCondition
 	| AllObjectivesCompleteCondition
-	| HealthThresholdCondition;
+	| HealthThresholdCondition
+	| ResourceThresholdCondition;
 
 // ---------------------------------------------------------------------------
 // Trigger Actions
@@ -118,6 +129,18 @@ export interface ShowDialogueAction {
 	text: string;
 	/** Duration in seconds to show dialogue (0 = until dismissed) */
 	duration?: number;
+}
+
+export interface ShowDialogueExchangeAction {
+	type: "showDialogueExchange";
+	/** Multi-line dialogue exchange — back-and-forth portrait conversation. */
+	lines: Array<{
+		speaker: string;
+		text: string;
+		portraitId?: string;
+	}>;
+	/** Whether to pause the game during this exchange (default true). */
+	pauseGame?: boolean;
 }
 
 export interface ChangeWeatherAction {
@@ -172,6 +195,48 @@ export interface CameraAction {
 	duration: number;
 }
 
+export interface RevealZoneAction {
+	type: "revealZone";
+	/** Zone ID to reveal fog of war for */
+	zoneId: string;
+}
+
+export interface LockZoneAction {
+	type: "lockZone";
+	/** Zone ID to block unit movement in */
+	zoneId: string;
+}
+
+export interface UnlockZoneAction {
+	type: "unlockZone";
+	/** Zone ID to allow unit movement in */
+	zoneId: string;
+}
+
+export interface PanCameraAction {
+	type: "panCamera";
+	/** Target position to pan camera to */
+	target: { x: number; y: number };
+	/** Duration of camera pan in seconds */
+	duration: number;
+}
+
+export interface AddObjectiveAction {
+	type: "addObjective";
+	/** Unique objective identifier */
+	id: string;
+	/** Display text shown to the player */
+	description: string;
+	/** Whether this is a primary or bonus objective */
+	objectiveType: "primary" | "bonus";
+}
+
+export interface StartPhaseAction {
+	type: "startPhase";
+	/** Phase name to activate */
+	phase: string;
+}
+
 export interface VictoryAction {
 	type: "victory";
 }
@@ -182,17 +247,79 @@ export interface EnableTriggerAction {
 	triggerId: string;
 }
 
+export interface GrantResourceAction {
+	type: "grantResource";
+	/** Resource type to grant */
+	resource: "fish" | "timber" | "salvage";
+	/** Amount to add to the player's stockpile */
+	amount: number;
+}
+
+export interface SpawnBossUnitAction {
+	type: "spawnBossUnit";
+	/** Boss display name (shown on health bar). */
+	name: string;
+	/** Unit type id (e.g. "kommandant_ironjaw"). */
+	unitType: string;
+	/** Faction that owns the boss. */
+	faction: string;
+	/** Spawn position in tile coordinates. */
+	position: { x: number; y: number };
+	/** Total hit points. */
+	hp: number;
+	/** Armor value. */
+	armor: number;
+	/** Base attack damage. */
+	damage: number;
+	/** Attack range in tiles. */
+	range: number;
+	/** Attack cooldown in seconds. */
+	attackCooldown: number;
+	/** Movement speed. */
+	speed: number;
+	/** Vision radius in tiles. */
+	visionRadius: number;
+	/** Boss encounter phases. */
+	phases: Array<{
+		name: string;
+		hpThreshold: number;
+		abilities: string[];
+		dialogue?: { speaker: string; text: string };
+	}>;
+	/** AoE radius in tiles. */
+	aoeRadius?: number;
+	/** AoE damage per hit. */
+	aoeDamage?: number;
+	/** AoE cooldown in seconds. */
+	aoeCooldown?: number;
+	/** Summon cooldown in seconds. */
+	summonCooldown?: number;
+	/** Unit type to summon. */
+	summonType?: string;
+	/** Number of units per summon wave. */
+	summonCount?: number;
+}
+
 export type TriggerAction =
 	| SpawnUnitsAction
 	| ShowDialogueAction
+	| ShowDialogueExchangeAction
 	| ChangeWeatherAction
 	| SpawnReinforcementsAction
 	| CompleteObjectiveAction
 	| FailMissionAction
 	| PlaySFXAction
 	| CameraAction
+	| RevealZoneAction
+	| LockZoneAction
+	| UnlockZoneAction
+	| PanCameraAction
+	| AddObjectiveAction
+	| StartPhaseAction
 	| VictoryAction
-	| EnableTriggerAction;
+	| EnableTriggerAction
+	| GrantResourceAction
+	| SpawnBossUnitAction;
 
 // ---------------------------------------------------------------------------
 // Scenario Trigger

@@ -17,10 +17,7 @@ import {
 	CROC_CHAMPION_PROFILE,
 	GATOR_PROFILE,
 	getAIProfile,
-	SCOUT_LIZARD_PROFILE,
-	SIPHON_DRONE_PROFILE,
 	SKINK_PROFILE,
-	SNAPPER_PROFILE,
 	VIPER_PROFILE,
 } from "@/ai/fsm/profiles";
 import { FSMRunner } from "@/ai/fsm/runner";
@@ -36,7 +33,7 @@ function makeEnemy(overrides: Partial<EnemyInfo> = {}): EnemyInfo {
 	return { entityId: 99, x: 5, y: 5, hp: 100, isBuilding: false, ...overrides };
 }
 
-function makeBuilding(overrides: Partial<EnemyInfo> = {}): EnemyInfo {
+function _makeBuilding(overrides: Partial<EnemyInfo> = {}): EnemyInfo {
 	return { entityId: 50, x: 10, y: 10, hp: 200, isBuilding: true, ...overrides };
 }
 

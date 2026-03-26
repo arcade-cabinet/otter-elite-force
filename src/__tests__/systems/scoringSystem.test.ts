@@ -6,7 +6,6 @@ import {
 	calculateUnitsLostScore,
 	getStarRating,
 	type MissionScoreInput,
-	type MissionScoreResult,
 	MissionStats,
 } from "../../systems/scoringSystem";
 

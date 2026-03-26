@@ -155,7 +155,7 @@ describe("Demolition System", () => {
 			const result = chargeTickSystem(world, 5.0);
 
 			expect(result.explosions.length).toBe(0);
-			expect(enemy.get(Health)!.current).toBe(120);
+			expect(enemy.get(Health)?.current).toBe(120);
 		});
 
 		it("explodes when timer reaches 0 — deals 100 damage to all entities in radius", () => {
@@ -170,8 +170,8 @@ describe("Demolition System", () => {
 			const result = chargeTickSystem(world, 10.0);
 
 			expect(result.explosions.length).toBe(1);
-			expect(enemy.get(Health)!.current).toBe(20); // 120 - 100
-			expect(ally.get(Health)!.current).toBe(-20); // 80 - 100
+			expect(enemy.get(Health)?.current).toBe(20); // 120 - 100
+			expect(ally.get(Health)?.current).toBe(-20); // 80 - 100
 		});
 
 		it("charge entity is destroyed after detonation", () => {
@@ -191,7 +191,7 @@ describe("Demolition System", () => {
 
 			chargeTickSystem(world, 10.0);
 
-			expect(farEnemy.get(Health)!.current).toBe(120);
+			expect(farEnemy.get(Health)?.current).toBe(120);
 		});
 
 		it("armor reduces explosion damage (min 1)", () => {
@@ -207,7 +207,7 @@ describe("Demolition System", () => {
 
 			chargeTickSystem(world, 10.0);
 
-			expect(armored.get(Health)!.current).toBe(190); // 200 - max(1, 100 - 90)
+			expect(armored.get(Health)?.current).toBe(190); // 200 - max(1, 100 - 90)
 		});
 
 		it("destroys buildings instantly (sets HP to 0)", () => {
@@ -218,7 +218,7 @@ describe("Demolition System", () => {
 
 			chargeTickSystem(world, 10.0);
 
-			expect(building.get(Health)!.current).toBe(0);
+			expect(building.get(Health)?.current).toBe(0);
 		});
 	});
 
@@ -251,7 +251,7 @@ describe("Demolition System", () => {
 			// Should have 2 explosions: charge + chain
 			expect(result.explosions.length).toBe(2);
 			// Enemy near gas depot should be hit by chain explosion
-			expect(nearGasDepot.get(Health)!.current).toBeLessThan(30);
+			expect(nearGasDepot.get(Health)?.current).toBeLessThan(30);
 		});
 
 		it("chain explosion does not cascade infinitely (max depth 1)", () => {
@@ -316,8 +316,8 @@ describe("Demolition System", () => {
 
 			const result = applyExplosion(world, 0, 0, CHARGE_RADIUS, CHARGE_DAMAGE);
 
-			expect(enemy.get(Health)!.current).toBe(20);
-			expect(ally.get(Health)!.current).toBe(-20);
+			expect(enemy.get(Health)?.current).toBe(20);
+			expect(ally.get(Health)?.current).toBe(-20);
 			expect(result.hitEntities.length).toBe(2);
 		});
 
@@ -326,7 +326,7 @@ describe("Demolition System", () => {
 
 			applyExplosion(world, 0, 0, CHARGE_RADIUS, CHARGE_DAMAGE);
 
-			expect(building.get(Health)!.current).toBe(0);
+			expect(building.get(Health)?.current).toBe(0);
 		});
 
 		it("returns destroyed explosive buildings for chain processing", () => {

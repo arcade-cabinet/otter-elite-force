@@ -33,8 +33,8 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 		providesConcealment: false,
 		paintRules: {
 			baseColor: "#14532d",
-			noiseColors: ["#166534", "#15803d"],
-			noiseDensity: 0.3,
+			noiseColors: ["#166534", "#15803d", "#0f4a24", "#1a6b3a", "#0d3d1c", "#22843e"],
+			noiseDensity: 0.4,
 		},
 	},
 	dirt: {
@@ -46,8 +46,8 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 		providesConcealment: false,
 		paintRules: {
 			baseColor: "#713f12",
-			noiseColors: ["#854d0e", "#92400e"],
-			noiseDensity: 0.25,
+			noiseColors: ["#854d0e", "#92400e", "#5c3310", "#a0590e", "#663818"],
+			noiseDensity: 0.35,
 		},
 	},
 	beach: {
@@ -59,8 +59,8 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 		providesConcealment: false,
 		paintRules: {
 			baseColor: "#d4a574",
-			noiseColors: ["#c4956a", "#b8865e"],
-			noiseDensity: 0.2,
+			noiseColors: ["#c4956a", "#b8865e", "#dbb88a", "#aa7a52", "#e6c89e", "#9a6d48"],
+			noiseDensity: 0.3,
 		},
 	},
 	mud: {
@@ -72,8 +72,8 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 		providesConcealment: false,
 		paintRules: {
 			baseColor: "#5c4033",
-			noiseColors: ["#6b4c3b", "#4a3428"],
-			noiseDensity: 0.35,
+			noiseColors: ["#6b4c3b", "#4a3428", "#3d2a1e", "#7a5845", "#503624", "#342015"],
+			noiseDensity: 0.45,
 		},
 	},
 	water: {
@@ -85,9 +85,9 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 		blocksVision: false,
 		providesConcealment: false,
 		paintRules: {
-			baseColor: "#1e3a5f",
-			noiseColors: ["#1e40af", "#2563eb"],
-			noiseDensity: 0.4,
+			baseColor: "#0f2b32",
+			noiseColors: ["#11525c", "#1e3a5f", "#1e40af", "#2563eb", "#0a1d22", "#164e63"],
+			noiseDensity: 0.5,
 		},
 	},
 	mangrove: {
@@ -99,8 +99,8 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 		providesConcealment: true,
 		paintRules: {
 			baseColor: "#0f3d0f",
-			noiseColors: ["#1a4a1a", "#0d2d0d"],
-			noiseDensity: 0.4,
+			noiseColors: ["#1a4a1a", "#0d2d0d", "#083008", "#245a24", "#062006", "#1a5e1a"],
+			noiseDensity: 0.5,
 		},
 	},
 	toxic_sludge: {
@@ -113,7 +113,7 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 		damagePerSecond: 5,
 		paintRules: {
 			baseColor: "#2d1b4e",
-			noiseColors: ["#4a1d7a", "#3b0d6b"],
+			noiseColors: ["#4a1d7a", "#3b0d6b", "#5a2d8a", "#220a3d", "#6b3daa"],
 			noiseDensity: 0.5,
 		},
 	},
@@ -126,8 +126,21 @@ export const TERRAIN_TILES: Record<string, TerrainTileDef> = {
 		providesConcealment: false,
 		paintRules: {
 			baseColor: "#8B6914",
-			noiseColors: ["#7a5c12", "#6b4e10"],
-			noiseDensity: 0.15,
+			noiseColors: ["#7a5c12", "#6b4e10", "#a07a18", "#5a4010", "#9c7420"],
+			noiseDensity: 0.25,
+		},
+	},
+	scorched: {
+		id: "scorched",
+		name: "Scorched",
+		sprite: makeLayeredTerrainSprite("4", "5"),
+		movementCost: 1,
+		blocksVision: false,
+		providesConcealment: false,
+		paintRules: {
+			baseColor: "#281e14",
+			noiseColors: ["#322316", "#2a1b10", "#3c2a1a", "#1e1408", "#463220"],
+			noiseDensity: 0.45,
 		},
 	},
 };

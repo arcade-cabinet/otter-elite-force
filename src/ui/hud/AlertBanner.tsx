@@ -102,6 +102,70 @@ export function AlertBanner() {
 		const onMissionFailed = () =>
 			push({ message: "Mission pressure spiking", severity: "critical" });
 
+		// Orphaned events wired to HUD alerts
+		const onAlarmTriggered = (data?: { x?: number; y?: number }) =>
+			push({
+				message: "ALARM! We've been detected!",
+				severity: "critical",
+				worldX: data?.x,
+				worldY: data?.y,
+			});
+
+		const onBossPhaseChange = (data?: { phase?: number; dialogue?: string }) =>
+			push({
+				message: data?.dialogue ?? `Boss entering phase ${data?.phase ?? "?"}!`,
+				severity: "critical",
+			});
+
+		const onBossAoe = (data?: { x?: number; y?: number }) =>
+			push({
+				message: "Boss AoE attack incoming!",
+				severity: "critical",
+				worldX: data?.x,
+				worldY: data?.y,
+			});
+
+		const onBossSummon = (data?: { x?: number; y?: number }) =>
+			push({
+				message: "Boss summoning reinforcements!",
+				severity: "warning",
+				worldX: data?.x,
+				worldY: data?.y,
+			});
+
+		const onConvoyArrived = () =>
+			push({ message: "Convoy arrived at destination", severity: "info" });
+
+		const onConvoyDestroyed = () => push({ message: "Convoy destroyed!", severity: "critical" });
+
+		const onConvoyWaypointReached = (data?: { waypointIndex?: number }) =>
+			push({
+				message: `Convoy passed waypoint ${(data?.waypointIndex ?? 0) + 1}`,
+				severity: "info",
+			});
+
+		const onFireStarted = (data?: { x?: number; y?: number }) =>
+			push({
+				message: "Fire started!",
+				severity: "warning",
+				worldX: data?.x,
+				worldY: data?.y,
+			});
+
+		const onFireExtinguished = (data?: { x?: number; y?: number }) =>
+			push({
+				message: "Fire extinguished",
+				severity: "info",
+				worldX: data?.x,
+				worldY: data?.y,
+			});
+
+		const onTideChanged = (data?: { phase?: string }) =>
+			push({
+				message: `Tide shift: ${data?.phase ?? "unknown"}`,
+				severity: "info",
+			});
+
 		EventBus.on("hud-alert", onHudAlert);
 		EventBus.on("under-attack", onUnderAttack);
 		EventBus.on("building-complete", onBuildingComplete);
@@ -110,6 +174,16 @@ export function AlertBanner() {
 		EventBus.on("objective-completed", onObjectiveComplete);
 		EventBus.on("current-scene-ready", onSceneReady);
 		EventBus.on("mission-failed", onMissionFailed);
+		EventBus.on("alarm-triggered", onAlarmTriggered);
+		EventBus.on("boss-phase-change", onBossPhaseChange);
+		EventBus.on("boss-aoe", onBossAoe);
+		EventBus.on("boss-summon", onBossSummon);
+		EventBus.on("convoy-arrived", onConvoyArrived);
+		EventBus.on("convoy-destroyed", onConvoyDestroyed);
+		EventBus.on("convoy-waypoint-reached", onConvoyWaypointReached);
+		EventBus.on("fire-started", onFireStarted);
+		EventBus.on("fire-extinguished", onFireExtinguished);
+		EventBus.on("tide-changed", onTideChanged);
 
 		return () => {
 			EventBus.off("hud-alert", onHudAlert);
@@ -120,6 +194,16 @@ export function AlertBanner() {
 			EventBus.off("objective-completed", onObjectiveComplete);
 			EventBus.off("current-scene-ready", onSceneReady);
 			EventBus.off("mission-failed", onMissionFailed);
+			EventBus.off("alarm-triggered", onAlarmTriggered);
+			EventBus.off("boss-phase-change", onBossPhaseChange);
+			EventBus.off("boss-aoe", onBossAoe);
+			EventBus.off("boss-summon", onBossSummon);
+			EventBus.off("convoy-arrived", onConvoyArrived);
+			EventBus.off("convoy-destroyed", onConvoyDestroyed);
+			EventBus.off("convoy-waypoint-reached", onConvoyWaypointReached);
+			EventBus.off("fire-started", onFireStarted);
+			EventBus.off("fire-extinguished", onFireExtinguished);
+			EventBus.off("tide-changed", onTideChanged);
 		};
 	}, [push]);
 

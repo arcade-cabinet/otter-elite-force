@@ -6,11 +6,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import {
-	generateSkirmishMap,
-	type SkirmishMapData,
-	type SkirmishMapOptions,
-} from "../../maps/skirmishMapGenerator";
+import { generateSkirmishMap } from "../../maps/skirmishMapGenerator";
 import { TerrainType } from "../../maps/types";
 
 // ---------------------------------------------------------------------------

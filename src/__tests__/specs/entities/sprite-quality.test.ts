@@ -5,7 +5,7 @@ import { ALL_BUILDINGS, ALL_PORTRAITS } from "@/entities/registry";
 import { getCategoryDimensions } from "@/entities/sprite-materialization";
 import type { SPDSLSprite } from "@/entities/types";
 
-function getDimensions(sprite: SPDSLSprite) {
+function getDimensions(_sprite: SPDSLSprite) {
 	const canonical = getCategoryDimensions("portraits");
 	return { width: canonical.width, height: canonical.height };
 }

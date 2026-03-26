@@ -35,7 +35,6 @@ export function CommandTransmissionPanel({
 	return (
 		<div
 			data-testid="command-transmission"
-			tabIndex={0}
 			onClick={onAdvance}
 			onKeyDown={(event) => {
 				if (event.key === "Enter" || event.key === " ") {

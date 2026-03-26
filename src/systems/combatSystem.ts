@@ -24,6 +24,7 @@ import {
 	getDifficultyModifiers,
 } from "./difficultyScaling";
 import type { FogOfWarSystem } from "./fogSystem";
+import { rollLootDrops } from "./lootSystem";
 import { MORTAR_SPLASH_RADIUS, SplashRadius } from "./siegeSystem";
 
 /** Projectile speed in tiles per second. */
@@ -116,7 +117,7 @@ export function combatSystem(world: World, delta: number): void {
 
 		if (attack.range <= 1) {
 			// Melee: direct damage
-			const armorValue = target.has(Armor) ? target.get(Armor)!.value : 0;
+			const armorValue = target.has(Armor) ? (target.get(Armor)?.value ?? 0) : 0;
 			const dmg = calculateDamage(effectiveDamage, armorValue);
 			target.set(Health, (prev) => ({ current: prev.current - dmg }));
 			EventBus.emit("melee-hit");
@@ -141,12 +142,12 @@ export function combatSystem(world: World, delta: number): void {
 			);
 
 			// Mortar Otter projectiles carry splash radius + faction for AoE system
-			const unitType = entity.has(UnitType) ? entity.get(UnitType)!.type : "";
+			const unitType = entity.has(UnitType) ? entity.get(UnitType)?.type : "";
 			if (unitType === "mortar_otter") {
 				proj.add(SplashRadius({ radius: MORTAR_SPLASH_RADIUS }));
 			}
 			if (entity.has(Faction)) {
-				proj.add(Faction({ id: entity.get(Faction)!.id }));
+				proj.add(Faction({ id: entity.get(Faction)?.id }));
 			}
 
 			EventBus.emit("ranged-fire");
@@ -254,7 +255,7 @@ export function projectileSystem(world: World, delta: number): void {
 			// Hit! Apply damage
 			if (target.has(Health)) {
 				const attack = proj.get(Attack)!;
-				const armorValue = target.has(Armor) ? target.get(Armor)!.value : 0;
+				const armorValue = target.has(Armor) ? target.get(Armor)?.value ?? 0 : 0;
 				const dmg = calculateDamage(attack.damage, armorValue);
 				target.set(Health, (prev) => ({ current: prev.current - dmg }));
 
@@ -319,6 +320,11 @@ export function deathSystem(world: World): Entity[] {
 		}
 
 		for (const entity of dead) {
+			// Roll loot drops before destroying (entity still has traits)
+			const ut = entity.has(UnitType) ? entity.get(UnitType)?.type : null;
+			if (ut) {
+				rollLootDrops(world, entity, ut);
+			}
 			EventBus.emit("unit-died");
 			entity.destroy();
 		}

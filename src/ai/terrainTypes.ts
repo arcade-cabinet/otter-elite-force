@@ -12,7 +12,10 @@ export type TerrainType =
 	| "bridge"
 	| "mangrove"
 	| "toxic_sludge"
-	| "tall_grass";
+	| "tall_grass"
+	| "beach"
+	| "sand"
+	| "scorched";
 
 /** Movement cost per terrain type. Infinity = impassable. */
 export const TERRAIN_COST: Record<TerrainType, number> = {
@@ -24,6 +27,9 @@ export const TERRAIN_COST: Record<TerrainType, number> = {
 	mangrove: 1,
 	toxic_sludge: 1,
 	tall_grass: 1,
+	beach: 1,
+	sand: 1,
+	scorched: 1,
 };
 
 /** Returns true if a unit can walk on this terrain without special traits. */

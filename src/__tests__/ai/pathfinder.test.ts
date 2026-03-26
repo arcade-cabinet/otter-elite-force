@@ -89,7 +89,7 @@ describe("graphBuilder", () => {
 			const edge = graph.getEdge(tileToIndex(0, 0, 2), tileToIndex(1, 0, 2));
 			expect(edge).not.toBeNull();
 			// cost = (1 + 2) / 2 = 1.5
-			expect(edge!.cost).toBe(1.5);
+			expect(edge?.cost).toBe(1.5);
 		});
 
 		it("should support 8-way movement", () => {

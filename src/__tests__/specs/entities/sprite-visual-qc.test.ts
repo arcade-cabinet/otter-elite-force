@@ -11,20 +11,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { PALETTE, PALETTES } from "@/entities/palettes";
-import {
-	ALL_BUILDINGS,
-	ALL_HEROES,
-	ALL_PORTRAITS,
-	ALL_RESOURCES,
-	ALL_UNITS,
-} from "@/entities/registry";
+import { ALL_BUILDINGS, ALL_HEROES, ALL_PORTRAITS, ALL_UNITS } from "@/entities/registry";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,
 } from "@/entities/sprite-materialization";
 import { TERRAIN_TILES } from "@/entities/terrain/tiles";
-import type { SPDSLSprite, SpriteDef } from "@/entities/types";
 
 // ─── Atlas Helpers ───
 
@@ -100,7 +92,7 @@ describe("US-073: Visual QC — sprite rendering at game zoom", () => {
 				const atlas = atlases.units?.[scale];
 				expect(atlas).toBeDefined();
 				for (const id of unitIds) {
-					expect(atlas!.frames).toHaveProperty(id);
+					expect(atlas?.frames).toHaveProperty(id);
 				}
 			});
 
@@ -108,7 +100,7 @@ describe("US-073: Visual QC — sprite rendering at game zoom", () => {
 				const atlas = atlases.units?.[scale];
 				expect(atlas).toBeDefined();
 				for (const id of heroIds) {
-					expect(atlas!.frames).toHaveProperty(id);
+					expect(atlas?.frames).toHaveProperty(id);
 				}
 			});
 		}
@@ -122,7 +114,7 @@ describe("US-073: Visual QC — sprite rendering at game zoom", () => {
 				const atlas = atlases.buildings?.[scale];
 				expect(atlas).toBeDefined();
 				for (const id of buildingIds) {
-					expect(atlas!.frames).toHaveProperty(id);
+					expect(atlas?.frames).toHaveProperty(id);
 				}
 			});
 		}
@@ -136,7 +128,7 @@ describe("US-073: Visual QC — sprite rendering at game zoom", () => {
 				const atlas = atlases.portraits?.[scale];
 				expect(atlas).toBeDefined();
 				for (const id of portraitIds) {
-					expect(atlas!.frames).toHaveProperty(id);
+					expect(atlas?.frames).toHaveProperty(id);
 				}
 			});
 		}
@@ -150,7 +142,7 @@ describe("US-073: Visual QC — sprite rendering at game zoom", () => {
 				const atlas = atlases.terrain?.[scale];
 				expect(atlas).toBeDefined();
 				for (const id of terrainIds) {
-					expect(atlas!.frames).toHaveProperty(id);
+					expect(atlas?.frames).toHaveProperty(id);
 				}
 			});
 		}
@@ -227,7 +219,7 @@ describe("US-073: Visual QC — sprite rendering at game zoom", () => {
 			}
 
 			// Allow notes for revision but don't fail — flag only truly empty sprites
-			for (const [id, unit] of Object.entries(ALL_UNITS)) {
+			for (const [_id, unit] of Object.entries(ALL_UNITS)) {
 				const legacy = materializeSpriteToLegacy(unit.sprite, dimensions);
 				const idleFrame = legacy.frames.idle?.[0];
 				if (!idleFrame) continue;

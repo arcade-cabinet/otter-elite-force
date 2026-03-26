@@ -1,7 +1,7 @@
 import type { PortraitDef, SPDSLSprite } from "../types";
 
 /**
- * Sgt. Bubbles -- Rambo-style warrior-leader of the URA.
+ * Col. Bubbles -- OEF tactical officer at HQ.
  * 64x96 portrait. Red bandana, battle-worn otter face, teal eye glint.
  * Available from mission 1. The player's main hero.
  *
@@ -453,7 +453,7 @@ const sprite: SPDSLSprite = {
 
 export const sgtBubbles: PortraitDef = {
 	id: "sgt_bubbles",
-	name: "Sgt. Bubbles",
+	name: "Col. Bubbles",
 	dialogueColor: "#5eead4",
 	sprite,
 };

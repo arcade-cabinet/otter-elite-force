@@ -57,7 +57,7 @@ describe("CampaignProgress trait", () => {
 				stars: 3,
 				bestTime: 420000,
 			};
-			expect(world.get(CampaignProgress)!.missions.mission_1).toEqual({
+			expect(world.get(CampaignProgress)?.missions.mission_1).toEqual({
 				status: "completed",
 				stars: 3,
 				bestTime: 420000,
@@ -69,7 +69,7 @@ describe("CampaignProgress trait", () => {
 			progress.missions.mission_1 = { status: "completed", stars: 3, bestTime: 420000 };
 			progress.missions.mission_2 = { status: "completed", stars: 2, bestTime: 600000 };
 			progress.missions.mission_3 = { status: "unlocked", stars: 0, bestTime: 0 };
-			expect(Object.keys(world.get(CampaignProgress)!.missions)).toHaveLength(3);
+			expect(Object.keys(world.get(CampaignProgress)?.missions)).toHaveLength(3);
 		});
 
 		it("updates bestTime only when new time is better", () => {
@@ -101,13 +101,13 @@ describe("CampaignProgress trait", () => {
 		it("can set difficulty to tactical", () => {
 			const progress = world.get(CampaignProgress)!;
 			progress.difficulty = "tactical";
-			expect(world.get(CampaignProgress)!.difficulty).toBe("tactical");
+			expect(world.get(CampaignProgress)?.difficulty).toBe("tactical");
 		});
 
 		it("can set difficulty to elite", () => {
 			const progress = world.get(CampaignProgress)!;
 			progress.difficulty = "elite";
-			expect(world.get(CampaignProgress)!.difficulty).toBe("elite");
+			expect(world.get(CampaignProgress)?.difficulty).toBe("elite");
 		});
 
 		it("difficulty is escalation-only (design constraint, not code enforcement here)", () => {
@@ -123,14 +123,14 @@ describe("CampaignProgress trait", () => {
 		it("can set currentMission to a mission ID", () => {
 			const progress = world.get(CampaignProgress)!;
 			progress.currentMission = "mission_5";
-			expect(world.get(CampaignProgress)!.currentMission).toBe("mission_5");
+			expect(world.get(CampaignProgress)?.currentMission).toBe("mission_5");
 		});
 
 		it("can clear currentMission back to null", () => {
 			const progress = world.get(CampaignProgress)!;
 			progress.currentMission = "mission_5";
 			progress.currentMission = null;
-			expect(world.get(CampaignProgress)!.currentMission).toBeNull();
+			expect(world.get(CampaignProgress)?.currentMission).toBeNull();
 		});
 	});
 
@@ -188,22 +188,22 @@ describe("UserSettings trait", () => {
 			const settings = world.get(UserSettings)!;
 			settings.musicVolume = 0.3;
 			settings.sfxVolume = 0.8;
-			expect(world.get(UserSettings)!.musicVolume).toBe(0.3);
-			expect(world.get(UserSettings)!.sfxVolume).toBe(0.8);
+			expect(world.get(UserSettings)?.musicVolume).toBe(0.3);
+			expect(world.get(UserSettings)?.sfxVolume).toBe(0.8);
 		});
 
 		it("can toggle haptics", () => {
 			const settings = world.get(UserSettings)!;
 			settings.hapticsEnabled = false;
-			expect(world.get(UserSettings)!.hapticsEnabled).toBe(false);
+			expect(world.get(UserSettings)?.hapticsEnabled).toBe(false);
 		});
 
 		it("can update masterVolume and uiScale", () => {
 			const settings = world.get(UserSettings)!;
 			settings.masterVolume = 0.5;
 			settings.uiScale = 1.5;
-			expect(world.get(UserSettings)!.masterVolume).toBe(0.5);
-			expect(world.get(UserSettings)!.uiScale).toBe(1.5);
+			expect(world.get(UserSettings)?.masterVolume).toBe(0.5);
+			expect(world.get(UserSettings)?.uiScale).toBe(1.5);
 		});
 	});
 
@@ -212,7 +212,7 @@ describe("UserSettings trait", () => {
 			const settings = world.get(UserSettings)!;
 			settings.musicVolume = 0.1;
 			resetSessionState(world);
-			expect(world.get(UserSettings)!.musicVolume).toBe(0.1);
+			expect(world.get(UserSettings)?.musicVolume).toBe(0.1);
 		});
 	});
 });
@@ -268,12 +268,12 @@ describe("WeatherCondition trait", () => {
 	describe("mutations", () => {
 		it("can set weather to rain", () => {
 			world.set(WeatherCondition, { state: "rain" });
-			expect(world.get(WeatherCondition)!.state).toBe("rain");
+			expect(world.get(WeatherCondition)?.state).toBe("rain");
 		});
 
 		it("can set weather to monsoon", () => {
 			world.set(WeatherCondition, { state: "monsoon" });
-			expect(world.get(WeatherCondition)!.state).toBe("monsoon");
+			expect(world.get(WeatherCondition)?.state).toBe("monsoon");
 		});
 	});
 
@@ -281,7 +281,7 @@ describe("WeatherCondition trait", () => {
 		it("resetSessionState resets weather to clear", () => {
 			world.set(WeatherCondition, { state: "monsoon" });
 			resetSessionState(world);
-			expect(world.get(WeatherCondition)!.state).toBe("clear");
+			expect(world.get(WeatherCondition)?.state).toBe("clear");
 		});
 	});
 });

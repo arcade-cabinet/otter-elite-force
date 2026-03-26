@@ -18,7 +18,7 @@ import { Faction, IsBuilding, IsResource, Selected, UnitType } from "@/ecs/trait
 import { OrderQueue } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
 import { GameClock, PopulationState, ResourcePool } from "@/ecs/traits/state";
-import { TILE_SIZE } from "@/maps/loader";
+import { CELL_SIZE } from "@/maps/constants";
 import type { FogOfWarSystem } from "@/systems/fogSystem";
 
 // ---------------------------------------------------------------------------
@@ -313,12 +313,12 @@ export class PerceptionBuilder {
 
 	/** Check if a tile position falls within the pixel viewport. */
 	private isInViewport(tileX: number, tileY: number, viewport: Viewport): boolean {
-		const px = tileX * TILE_SIZE;
-		const py = tileY * TILE_SIZE;
+		const px = tileX * CELL_SIZE;
+		const py = tileY * CELL_SIZE;
 		return (
-			px + TILE_SIZE > viewport.x &&
+			px + CELL_SIZE > viewport.x &&
 			px < viewport.x + viewport.width &&
-			py + TILE_SIZE > viewport.y &&
+			py + CELL_SIZE > viewport.y &&
 			py < viewport.y + viewport.height
 		);
 	}

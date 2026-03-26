@@ -4,34 +4,23 @@
  * Layer 4 testing: the AI plays the game through real browser events.
  * These tests validate that the game is playable end-to-end.
  *
- * BLOCKED: These tests require the full React+Phaser+Koota pipeline
+ * BLOCKED: These tests require the full React+Konva+Koota pipeline
  * (A2, A3, A4, D2) to be wired up before they can run. The test
  * structure is ready; the bootGame/loadMission helpers will be
  * implemented once the game pipeline is complete.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-	AIPlaytester,
-	type AIPlaytesterConfig,
-	type GameStateReader,
-	type PlayerPerception,
-	runUntilComplete,
-} from "@/ai/playtester";
+import { describe, expect, it } from "vitest";
+import type { PlayerPerception } from "@/ai/playtester";
 import {
 	AttackNearestEnemyGoal,
-	BuildArmyGoal,
 	BuildEconomyGoal,
 	ClickTrainButtonGoal,
 	createPlaytesterBrain,
 	DefendBaseGoal,
 	EconomyEvaluator,
 	ExplorationEvaluator,
-	GoalStatus,
 	MilitaryEvaluator,
-	ObjectiveEvaluator,
-	PlaytesterBrain,
-	ScoutMapGoal,
 	SelectIdleWorkerGoal,
 	SurviveEvaluator,
 } from "@/ai/playtester/goals";
@@ -39,11 +28,9 @@ import {
 	APMLimiter,
 	applyMisclick,
 	clickAtTile,
-	DEFAULT_INPUT_CONFIG,
 	dragSelectTiles,
 	executeAction,
 	type InputConfig,
-	type PlayerAction,
 	pressKey,
 	rightClickAtTile,
 } from "@/ai/playtester/input";
@@ -52,13 +39,10 @@ import {
 	countIdleWorkers,
 	countMilitaryUnits,
 	explorationProgress,
-	findBuildings,
 	findNearestResource,
-	findNearestUnexploredTile,
 	findWeakestEnemy,
 	hasPopulationRoom,
 	isBaseUnderThreat,
-	PerceptionBuilder,
 } from "@/ai/playtester/perception";
 
 // ---------------------------------------------------------------------------

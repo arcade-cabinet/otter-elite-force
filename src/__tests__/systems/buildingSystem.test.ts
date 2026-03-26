@@ -1,6 +1,6 @@
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ConstructingAt, OwnedBy } from "../../ecs/relations";
+import { ConstructingAt } from "../../ecs/relations";
 import { initSingletons } from "../../ecs/singletons";
 import { AIState } from "../../ecs/traits/ai";
 import { Health } from "../../ecs/traits/combat";
@@ -130,25 +130,25 @@ describe("buildingSystem", () => {
 			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction);
 
 			expect(building).not.toBeNull();
-			expect(building!.has(IsBuilding)).toBe(true);
-			expect(building!.has(Position)).toBe(true);
-			expect(building!.has(Health)).toBe(true);
-			expect(building!.has(ConstructionProgress)).toBe(true);
+			expect(building?.has(IsBuilding)).toBe(true);
+			expect(building?.has(Position)).toBe(true);
+			expect(building?.has(Health)).toBe(true);
+			expect(building?.has(ConstructionProgress)).toBe(true);
 
-			const pos = building!.get(Position);
+			const pos = building?.get(Position);
 			expect(pos.x).toBe(5);
 			expect(pos.y).toBe(5);
 
-			const unitType = building!.get(UnitType);
+			const unitType = building?.get(UnitType);
 			expect(unitType.type).toBe("barracks");
 
-			const hp = building!.get(Health);
+			const hp = building?.get(Health);
 			expect(hp.max).toBe(350); // Barracks HP from spec
 
-			const cp = building!.get(ConstructionProgress);
+			const cp = building?.get(ConstructionProgress);
 			expect(cp.progress).toBe(0);
 			expect(cp.buildTime).toBe(30); // Barracks build time from spec
-			expect(building!.get(Faction).id).toBe("ura");
+			expect(building?.get(Faction).id).toBe("ura");
 		});
 
 		it("should deduct resources on placement", () => {
@@ -178,7 +178,7 @@ describe("buildingSystem", () => {
 			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
 
 			// Spawn a builder next to the building
-			const builder = world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
+			const _builder = world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
 
 			// Tick 10 seconds
 			buildingSystem(world, 10);
@@ -233,7 +233,7 @@ describe("buildingSystem", () => {
 			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
 
 			// Builder is far away
-			const builder = world.spawn(Position({ x: 20, y: 20 }), ConstructingAt(building));
+			const _builder = world.spawn(Position({ x: 20, y: 20 }), ConstructingAt(building));
 
 			buildingSystem(world, 10);
 

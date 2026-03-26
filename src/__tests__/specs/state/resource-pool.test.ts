@@ -39,16 +39,16 @@ describe("ResourcePool trait", () => {
 		it("starts with zero fish, timber, salvage", () => {
 			const res = world.get(ResourcePool);
 			expect(res).toBeDefined();
-			expect(res!.fish).toBe(0);
-			expect(res!.timber).toBe(0);
-			expect(res!.salvage).toBe(0);
+			expect(res?.fish).toBe(0);
+			expect(res?.timber).toBe(0);
+			expect(res?.salvage).toBe(0);
 		});
 	});
 
 	describe("mutations", () => {
 		it("can set fish to a positive value", () => {
 			world.set(ResourcePool, { fish: 250, timber: 0, salvage: 0 });
-			expect(world.get(ResourcePool)!.fish).toBe(250);
+			expect(world.get(ResourcePool)?.fish).toBe(250);
 		});
 
 		it("can set all three resources independently", () => {
@@ -131,7 +131,7 @@ describe("CompletedResearch trait", () => {
 		it("can add a research ID", () => {
 			const research = world.get(CompletedResearch)!;
 			research.ids.add("hardshell_armor");
-			expect(world.get(CompletedResearch)!.ids.has("hardshell_armor")).toBe(true);
+			expect(world.get(CompletedResearch)?.ids.has("hardshell_armor")).toBe(true);
 		});
 
 		it("tracks multiple research IDs", () => {
@@ -139,7 +139,7 @@ describe("CompletedResearch trait", () => {
 			research.ids.add("hardshell_armor");
 			research.ids.add("rapid_deploy");
 			research.ids.add("advanced_optics");
-			expect(world.get(CompletedResearch)!.ids.size).toBe(3);
+			expect(world.get(CompletedResearch)?.ids.size).toBe(3);
 		});
 	});
 
@@ -149,7 +149,7 @@ describe("CompletedResearch trait", () => {
 			research.ids.add("hardshell_armor");
 			resetSessionState(world);
 			// Research persists across missions (campaign-level)
-			expect(world.get(CompletedResearch)!.ids.has("hardshell_armor")).toBe(true);
+			expect(world.get(CompletedResearch)?.ids.has("hardshell_armor")).toBe(true);
 		});
 	});
 });

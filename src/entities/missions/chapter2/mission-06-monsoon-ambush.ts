@@ -1,8 +1,11 @@
-// Mission 6: Monsoon Ambush — Survival / Timed
+// Mission 6: Monsoon Ambush — Hilltop Defense / Wave Survival
 //
-// Pre-built base. 8 waves of Scale-Guard across 3 monsoon cycles.
+// Fortified hilltop outpost in the Copper-Silt highlands.
+// Captain Scalebreak launches a four-direction monsoon assault.
+// 3-minute build phase (clear weather), then 8 waves as monsoon degrades
+// visibility and movement. Mud, rain, and lightning dominate the second half.
 // Teaches: defensive strategy, weather adaptation, rally points.
-// Win: Survive all 8 waves.
+// Win: Survive all 8 attack waves (Lodge survives).
 // Par time: 20 min (1200s).
 
 import type { MissionDef } from "../../types";
@@ -13,182 +16,521 @@ export const mission06MonsoonAmbush: MissionDef = {
 	chapter: 2,
 	mission: 2,
 	name: "Monsoon Ambush",
-	subtitle: "Defend your base through 8 waves and 3 monsoon cycles",
+	subtitle: "Hold the hilltop against 8 waves as the monsoon closes in",
 
 	briefing: {
-		portraitId: "gen_whiskers",
+		portraitId: "sgt_bubbles",
 		lines: [
 			{
-				speaker: "Gen. Whiskers",
-				text: "Intel says Scale-Guard is massing for a full assault on our forward operating base. Monsoon season is rolling in — rain hits in 3 minutes, and it's going to get worse.",
+				speaker: "Col. Bubbles",
+				text: "Captain, Scale-Guard forces are massing on all sides. Captain Scalebreak is directing this assault personally — he wants this position.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Your base is pre-built: Command Post, two Barracks, Armory, four Watchtowers, and sandbag walls. Garrison is already in position. Use what you've got.",
+				speaker: "FOXHOUND",
+				text: "Monsoon front hits in approximately three minutes. When the rain starts, visibility drops to half range and all ground units slow by 20%.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Eight waves are coming from all four approach roads. Mud patches will slow everyone during the rain — use that to your advantage. Position Shellcrackers at the chokepoints.",
+				speaker: "Col. Bubbles",
+				text: "Use the clear weather to build. Walls, watchtowers, barracks — anything you can raise before the first wave.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Survive all 8 waves and keep your Command Post standing. If it falls, we lose the Reach. Dig in, Sergeant.",
+				speaker: "FOXHOUND",
+				text: "Four attack corridors, Captain. North is open ground — fast approach. East is a rocky slope — they'll be slower but tougher. South is a wide valley — expect numbers. West is a muddy trail — natural chokepoint.",
+			},
+			{
+				speaker: "Col. Bubbles",
+				text: "You can't wall off everything. Pick your priorities. And get workers gathering — there's timber northwest, fish southwest. Dig in, Captain. HQ out.",
 			},
 		],
 	},
 
+	// ─── Terrain: 128x128 (4096x4096px) ───
+
 	terrain: {
-		width: 48,
-		height: 40,
+		width: 128,
+		height: 128,
 		regions: [
 			{ terrainId: "grass", fill: true },
-			// Mud patches at approach roads (slows during rain)
-			{ terrainId: "mud", rect: { x: 0, y: 16, w: 8, h: 8 } },
-			{ terrainId: "mud", rect: { x: 40, y: 16, w: 8, h: 8 } },
-			{ terrainId: "mud", rect: { x: 18, y: 0, w: 12, h: 6 } },
-			{ terrainId: "mud", rect: { x: 18, y: 34, w: 12, h: 6 } },
-			// Base clearing in center
-			{ terrainId: "dirt", rect: { x: 16, y: 14, w: 16, h: 12 } },
-			// Approach road corridors
-			{ terrainId: "dirt", rect: { x: 0, y: 18, w: 48, h: 4 } },
-			{ terrainId: "dirt", rect: { x: 22, y: 0, w: 4, h: 40 } },
+			// Central base hilltop (elevated, clear ground)
+			{ terrainId: "dirt", rect: { x: 44, y: 44, w: 40, h: 40 } },
+			{ terrainId: "dirt", circle: { cx: 64, cy: 64, r: 24 } },
+			// Northern approach (open field)
+			{ terrainId: "grass", rect: { x: 44, y: 4, w: 40, h: 36 } },
+			{ terrainId: "dirt", rect: { x: 56, y: 8, w: 16, h: 32 } }, // worn trail
+			// Eastern approach (rocky slope)
+			{ terrainId: "stone", rect: { x: 92, y: 28, w: 32, h: 56 } },
+			{ terrainId: "dirt", rect: { x: 88, y: 48, w: 8, h: 16 } }, // trail entrance
+			// Southern approach (wide valley)
+			{ terrainId: "grass", rect: { x: 44, y: 88, w: 40, h: 36 } },
+			{ terrainId: "mud", rect: { x: 52, y: 96, w: 24, h: 20 } }, // muddy valley floor
+			// Western approach (muddy trail)
+			{ terrainId: "mud", rect: { x: 4, y: 28, w: 36, h: 56 } },
+			{ terrainId: "mud", circle: { cx: 20, cy: 48, r: 8 } },
+			{ terrainId: "mud", circle: { cx: 16, cy: 64, r: 6 } },
+			// Resource grove (northwest, jungle)
+			{ terrainId: "mangrove", rect: { x: 4, y: 4, w: 28, h: 20 } },
+			// Fish pond (southwest)
+			{ terrainId: "water", circle: { cx: 16, cy: 92, r: 8 } },
+			{ terrainId: "mud", circle: { cx: 16, cy: 92, r: 12 } },
+			// Corner SE ruins
+			{ terrainId: "stone", rect: { x: 96, y: 108, w: 24, h: 16 } },
+			// Southern fringe
+			{ terrainId: "mangrove", rect: { x: 4, y: 108, w: 40, h: 16 } },
 		],
 		overrides: [],
 	},
 
+	// ─── Zones ───
+
 	zones: {
-		base_center: { x: 16, y: 14, width: 16, height: 12 },
-		nw_approach: { x: 0, y: 0, width: 6, height: 4 },
-		ne_approach: { x: 42, y: 0, width: 6, height: 4 },
-		sw_approach: { x: 0, y: 36, width: 6, height: 4 },
-		se_approach: { x: 42, y: 36, width: 6, height: 4 },
-		west_road: { x: 0, y: 16, width: 8, height: 8 },
-		east_road: { x: 40, y: 16, width: 8, height: 8 },
+		base: { x: 40, y: 40, width: 48, height: 48 },
+		approach_north: { x: 40, y: 0, width: 48, height: 40 },
+		approach_east: { x: 88, y: 24, width: 40, height: 64 },
+		approach_south: { x: 40, y: 88, width: 48, height: 40 },
+		approach_west: { x: 0, y: 24, width: 40, height: 64 },
+		corner_nw: { x: 0, y: 0, width: 40, height: 24 },
+		corner_se: { x: 88, y: 104, width: 40, height: 24 },
+		corner_sw: { x: 0, y: 80, width: 40, height: 24 },
+		southern_fringe: { x: 0, y: 104, width: 48, height: 24 },
+		resource_grove: { x: 4, y: 4, width: 28, height: 20 },
+		fish_pond: { x: 4, y: 84, width: 28, height: 16 },
 	},
 
+	// ─── Placements ───
+
 	placements: [
-		// Player garrison
-		{ type: "mudfoot", faction: "ura", zone: "base_center", count: 4 },
-		{ type: "shellcracker", faction: "ura", zone: "base_center", count: 4 },
-		{ type: "river_rat", faction: "ura", zone: "base_center", count: 2 },
+		// === Player (base) ===
+		// Lodge (Captain's field HQ)
+		{ type: "burrow", faction: "ura", x: 64, y: 64 },
+		// Pre-built defenses (partial fortification)
+		{ type: "watchtower", faction: "ura", x: 56, y: 48 },
+		{ type: "sandbag_wall", faction: "ura", x: 52, y: 56 },
+		{ type: "sandbag_wall", faction: "ura", x: 54, y: 56 },
+		{ type: "sandbag_wall", faction: "ura", x: 76, y: 56 },
+		{ type: "sandbag_wall", faction: "ura", x: 78, y: 56 },
+		// Starting workers (5 River Rats)
+		{ type: "river_rat", faction: "ura", x: 60, y: 66 },
+		{ type: "river_rat", faction: "ura", x: 68, y: 66 },
+		{ type: "river_rat", faction: "ura", x: 62, y: 70 },
+		{ type: "river_rat", faction: "ura", x: 66, y: 70 },
+		{ type: "river_rat", faction: "ura", x: 64, y: 74 },
+		// Starting combat units (3 Mudfoots)
+		{ type: "mudfoot", faction: "ura", x: 56, y: 60 },
+		{ type: "mudfoot", faction: "ura", x: 72, y: 60 },
+		{ type: "mudfoot", faction: "ura", x: 64, y: 58 },
 
-		// Pre-built base
-		{ type: "command_post", faction: "ura", x: 24, y: 19 },
-		{ type: "barracks", faction: "ura", x: 21, y: 17 },
-		{ type: "barracks", faction: "ura", x: 27, y: 17 },
-		{ type: "armory", faction: "ura", x: 24, y: 16 },
-		{ type: "watchtower", faction: "ura", x: 18, y: 15 },
-		{ type: "watchtower", faction: "ura", x: 30, y: 15 },
-		{ type: "watchtower", faction: "ura", x: 18, y: 23 },
-		{ type: "watchtower", faction: "ura", x: 30, y: 23 },
+		// === Resources ===
+		// Timber (resource grove, northwest — contested, must venture out)
+		{ type: "mangrove_tree", faction: "neutral", x: 8, y: 8 },
+		{ type: "mangrove_tree", faction: "neutral", x: 14, y: 10 },
+		{ type: "mangrove_tree", faction: "neutral", x: 20, y: 6 },
+		{ type: "mangrove_tree", faction: "neutral", x: 10, y: 14 },
+		{ type: "mangrove_tree", faction: "neutral", x: 22, y: 16 },
+		{ type: "mangrove_tree", faction: "neutral", x: 16, y: 18 },
+		{ type: "mangrove_tree", faction: "neutral", x: 26, y: 12 },
+		{ type: "mangrove_tree", faction: "neutral", x: 28, y: 8 },
+		// Fish (fish pond, southwest — contested)
+		{ type: "fish_spot", faction: "neutral", x: 12, y: 88 },
+		{ type: "fish_spot", faction: "neutral", x: 20, y: 92 },
+		{ type: "fish_spot", faction: "neutral", x: 16, y: 96 },
+		// Salvage (corner_se ruins)
+		{ type: "salvage_cache", faction: "neutral", x: 100, y: 112 },
+		{ type: "salvage_cache", faction: "neutral", x: 108, y: 110 },
 
-		// Resources near base
-		{ type: "fish_spot", faction: "neutral", x: 20, y: 28 },
-		{ type: "fish_spot", faction: "neutral", x: 28, y: 12 },
+		// === Enemies ===
+		// No enemies on map at start — all spawned by wave triggers
 	],
 
-	startResources: { fish: 300, timber: 200, salvage: 100 },
-	startPopCap: 16,
+	startResources: { fish: 200, timber: 150, salvage: 75 },
+	startPopCap: 20,
+
+	// ─── Weather schedule (supplementary — main transitions via triggers) ───
 
 	weather: {
 		pattern: [
-			{ type: "clear", startTime: 0, duration: 180 },
-			{ type: "rain", startTime: 180, duration: 180 },
-			{ type: "storm", startTime: 360, duration: 240 },
-			{ type: "clear", startTime: 600, duration: 180 },
-			{ type: "rain", startTime: 780, duration: 120 },
-			{ type: "clear", startTime: 900, duration: 120 },
+			{ type: "clear", startTime: 0, duration: 150 },
+			{ type: "rain", startTime: 150, duration: 30 },
+			{ type: "storm", startTime: 180, duration: 600 },
+			{ type: "clear", startTime: 780, duration: 420 },
 		],
 	},
 
+	// ─── Objectives ───
+
 	objectives: {
-		primary: [objective("survive-all-waves", "Survive all 8 waves")],
-		bonus: [objective("cp-health-bonus", "Keep Command Post above 50% HP")],
+		primary: [
+			objective("survive-waves", "Survive all 8 attack waves (0/8)"),
+			objective("prepare-defenses", "Prepare defenses before the storm hits"),
+		],
+		bonus: [objective("bonus-no-losses", "Win without losing any buildings")],
 	},
 
+	// ─── Triggers ───
+	// Phase triggers are prefixed with "phase:<name>:"
+	// Wave-clear triggers use enableTrigger chaining for conditional sequencing.
+
 	triggers: [
+		// =====================================================================
+		// PHASE 1: FORTIFY (0:00 - 3:00) — Clear weather build phase
+		// =====================================================================
+
+		// [0:05] Opening briefing exchange
 		trigger(
-			"mission-start",
-			on.timer(3),
+			"phase:fortify:bubbles-briefing",
+			on.timer(5),
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Captain, Scale-Guard forces are massing on all sides. Captain Scalebreak is directing this assault personally — he wants this position.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Monsoon front hits in approximately three minutes. When the rain starts, visibility drops to half range and all ground units slow by 20%.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Use the clear weather to build. Walls, watchtowers, barracks — anything you can raise before the first wave.",
+				},
+			]),
+		),
+
+		// [0:20] FOXHOUND explains approach directions
+		trigger(
+			"phase:fortify:foxhound-directions",
+			on.timer(20),
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "Four attack corridors, Captain. North is open ground — fast approach. East is a rocky slope — they'll be slower but tougher. South is a wide valley — expect numbers. West is a muddy trail — natural chokepoint.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "You can't wall off everything. Pick your priorities. And get workers gathering — there's timber northwest, fish southwest.",
+				},
+			]),
+		),
+
+		// [0:45] Field Hospital and Dock unlock notification
+		trigger(
+			"phase:fortify:foxhound-hospital",
+			on.timer(45),
 			act.dialogue(
-				"gen_whiskers",
-				"Position your forces at the approach roads. Mud patches slow movement during rain — bait enemies through them. First wave incoming soon.",
+				"foxhound",
+				"HQ has authorized Field Hospital schematics, Captain. Build one to heal wounded troops between waves. Dock blueprints are also available — useful if you need naval assets later.",
 			),
 		),
-		trigger("wave-1", on.timer(90), [
-			act.dialogue("gen_whiskers", "Wave 1 — scouts from the northwest road!"),
-			act.spawn("scout_lizard", "scale_guard", 4, 1, 3),
-			act.spawn("gator", "scale_guard", 4, 2, 2),
+
+		// [2:30] Weather warning — overcast transition
+		trigger("phase:fortify:weather-warning", on.timer(150), [
+			act.dialogue("foxhound", "Thirty seconds to monsoon. Final preparations, Captain."),
+			act.changeWeather("rain"),
 		]),
-		trigger("wave-2", on.timer(210), [
-			act.dialogue("gen_whiskers", "Wave 2 — southeast road. They're using the rain for cover!"),
-			act.spawn("gator", "scale_guard", 44, 37, 4),
-			act.spawn("scout_lizard", "scale_guard", 45, 37, 2),
+
+		// [3:00] Monsoon hits — Phase 1 ends, Phase 2 begins
+		trigger("phase:fortify:monsoon-hits", on.timer(180), [
+			act.completeObjective("prepare-defenses"),
+			act.changeWeather("monsoon"),
+			act.dialogue("sgt_bubbles", "The storm is here. And so are they. First wave incoming!"),
+			act.startPhase("early-waves"),
 		]),
-		trigger("wave-3", on.timer(300), [
-			act.dialogue("gen_whiskers", "Wave 3 — pincer from both north roads!"),
-			act.spawn("gator", "scale_guard", 4, 1, 3),
-			act.spawn("gator", "scale_guard", 44, 1, 3),
-			act.spawn("viper", "scale_guard", 4, 2, 2),
+
+		// =====================================================================
+		// PHASE 2: EARLY WAVES (3:00 - ~8:00) — Monsoon active
+		// =====================================================================
+
+		// === WAVE 1 (3:00) — Probing attack from north: 4 Skinks ===
+		trigger("phase:early-waves:wave-1-spawn", on.timer(180), [
+			act.dialogue("foxhound", "Wave one — Skinks from the north! Scout force, fast movers."),
+			act.spawn("skink", "scale_guard", 60, 2, 2),
+			act.spawn("skink", "scale_guard", 68, 4, 2),
 		]),
-		trigger("wave-4", on.timer(420), [
-			act.dialogue("gen_whiskers", "Wave 4 — heavy column from the southwest!"),
-			act.spawn("gator", "scale_guard", 4, 37, 4),
-			act.spawn("snapper", "scale_guard", 5, 37, 2),
-			act.spawn("viper", "scale_guard", 4, 38, 2),
-		]),
-		trigger("wave-5", on.timer(540), [
-			act.dialogue("gen_whiskers", "Wave 5 — they're coming from everywhere! All roads!"),
-			act.spawn("gator", "scale_guard", 4, 1, 2),
-			act.spawn("gator", "scale_guard", 44, 1, 2),
-			act.spawn("gator", "scale_guard", 4, 37, 2),
-			act.spawn("gator", "scale_guard", 44, 37, 2),
-		]),
-		trigger("wave-6", on.timer(660), [
-			act.dialogue("gen_whiskers", "Wave 6 — elite units. Vipers and Snappers from the flanks."),
-			act.spawn("viper", "scale_guard", 0, 18, 3),
-			act.spawn("snapper", "scale_guard", 46, 18, 2),
-			act.spawn("viper", "scale_guard", 46, 25, 2),
-		]),
-		trigger("wave-7", on.timer(780), [
-			act.dialogue("gen_whiskers", "Wave 7 — the rain's back and so is the assault!"),
-			act.spawn("gator", "scale_guard", 4, 1, 3),
-			act.spawn("gator", "scale_guard", 44, 37, 3),
-			act.spawn("viper", "scale_guard", 44, 1, 2),
-			act.spawn("snapper", "scale_guard", 4, 37, 2),
-		]),
-		trigger("wave-8", on.timer(900), [
+
+		// Wave 1 clear — timer-based (allow ~70s for engagement)
+		trigger("phase:early-waves:wave-1-clear", on.timer(250), [
 			act.dialogue(
-				"gen_whiskers",
-				"FINAL WAVE! Everything they've got — all four roads! Hold that line, Sergeant!",
-			),
-			act.spawn("gator", "scale_guard", 4, 1, 4),
-			act.spawn("gator", "scale_guard", 44, 37, 4),
-			act.spawn("viper", "scale_guard", 44, 1, 3),
-			act.spawn("snapper", "scale_guard", 4, 37, 3),
-			act.spawn("viper", "scale_guard", 0, 18, 2),
-			act.spawn("snapper", "scale_guard", 46, 25, 2),
-		]),
-		trigger("waves-cleared", on.timer(1020), [
-			act.completeObjective("survive-all-waves"),
-			act.dialogue(
-				"gen_whiskers",
-				"All waves repelled. The base held. Outstanding defense, Sergeant.",
+				"sgt_bubbles",
+				"Wave one down. That was just a probe. They'll hit harder next time.",
 			),
 		]),
-		trigger("cp-destroyed", on.buildingCount("ura", "command_post", "eq", 0), act.failMission()),
+
+		// === WAVE 2 (4:30) — Pincer from east + west: 12 Gators ===
+		trigger("phase:early-waves:wave-2-spawn", on.timer(270), [
+			act.dialogue(
+				"foxhound",
+				"Wave two — Gators from east AND west! They're splitting our attention.",
+			),
+			// East
+			act.spawn("gator", "scale_guard", 120, 48, 3),
+			act.spawn("gator", "scale_guard", 120, 56, 3),
+			// West
+			act.spawn("gator", "scale_guard", 4, 48, 3),
+			act.spawn("gator", "scale_guard", 4, 56, 3),
+		]),
+
+		// Wave 2 clear
+		trigger("phase:early-waves:wave-2-clear", on.timer(340), [
+			act.dialogue("foxhound", "Wave two cleared. No time to rest — next wave is forming."),
+		]),
+
+		// === WAVE 3 (6:00) — Heavy push from south: 4 Gators + 2 Vipers ===
+		trigger("phase:early-waves:wave-3-spawn", on.timer(360), [
+			act.dialogue("foxhound", "Wave three — heavy force from the south! Gators and Vipers!"),
+			act.spawn("gator", "scale_guard", 56, 124, 2),
+			act.spawn("gator", "scale_guard", 72, 124, 2),
+			act.spawn("viper", "scale_guard", 64, 122, 2),
+		]),
+
+		// Wave 3 clear — transitions to Phase 3
+		trigger("phase:early-waves:wave-3-clear", on.timer(440), [
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Three down, five to go. Repair what you can. The worst is still coming.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Brief calm before the next push. Use it.",
+				},
+			]),
+			act.startPhase("heavy-waves"),
+		]),
+
+		// =====================================================================
+		// PHASE 3: HEAVY WAVES (~8:00 - ~15:00) — Monsoon intensifying
+		// =====================================================================
+
+		// Weather intensifies ~30s after wave 3 clear
+		trigger("phase:heavy-waves:weather-intensifies", on.timer(470), [
+			act.changeWeather("monsoon"),
+			act.dialogue(
+				"foxhound",
+				"Storm is intensifying. Visibility dropping further. Lightning will give you brief flashes of the approaches.",
+			),
+		]),
+
+		// === WAVE 4 (8:30) — Multi-direction Gator assault: 16 Gators (north + east) ===
+		trigger("phase:heavy-waves:wave-4-spawn", on.timer(510), [
+			act.dialogue("foxhound", "Wave four — massed Gators from the north and east!"),
+			// North
+			act.spawn("gator", "scale_guard", 56, 2, 4),
+			act.spawn("gator", "scale_guard", 68, 4, 4),
+			// East
+			act.spawn("gator", "scale_guard", 122, 44, 4),
+			act.spawn("gator", "scale_guard", 124, 56, 4),
+		]),
+
+		// Wave 4 clear
+		trigger("phase:heavy-waves:wave-4-clear", on.timer(590), [
+			act.dialogue(
+				"sgt_bubbles",
+				"Halfway there, Captain. They're burning through troops but they have more.",
+			),
+		]),
+
+		// === WAVE 5 (10:30) — Snappers from south (heavy armor): 4 Snappers + 2 Gators ===
+		trigger("phase:heavy-waves:wave-5-spawn", on.timer(630), [
+			act.dialogue(
+				"foxhound",
+				"Wave five — Snappers from the south! Heavy armor, slow but devastating.",
+			),
+			act.dialogue("sgt_bubbles", "Snappers! Focus fire on them. Don't let them reach the walls."),
+			act.spawn("snapper", "scale_guard", 56, 126, 2),
+			act.spawn("snapper", "scale_guard", 72, 126, 2),
+			act.spawn("gator", "scale_guard", 64, 124, 2),
+		]),
+
+		// Wave 5 clear
+		trigger("phase:heavy-waves:wave-5-clear", on.timer(720), [
+			act.dialogue("foxhound", "Snappers down. Heavy casualties on their side."),
+		]),
+
+		// === WAVE 6 (12:30) — All directions simultaneously ===
+		trigger("phase:heavy-waves:wave-6-spawn", on.timer(750), [
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "Wave six — contacts on ALL approaches! North, south, east, and west!",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "They're throwing everything at us! All units to defensive positions!",
+				},
+			]),
+			// North: 3 Gators + 2 Skinks
+			act.spawn("gator", "scale_guard", 64, 2, 3),
+			act.spawn("skink", "scale_guard", 56, 4, 2),
+			// East: 3 Gators + 1 Viper
+			act.spawn("gator", "scale_guard", 124, 52, 3),
+			act.spawn("viper", "scale_guard", 122, 60, 1),
+			// South: 3 Gators + 2 Skinks
+			act.spawn("gator", "scale_guard", 64, 126, 3),
+			act.spawn("skink", "scale_guard", 72, 124, 2),
+			// West: 3 Gators + 1 Viper
+			act.spawn("gator", "scale_guard", 4, 52, 3),
+			act.spawn("viper", "scale_guard", 6, 60, 1),
+		]),
+
+		// Wave 6 clear — transitions to Phase 4
+		trigger("phase:heavy-waves:wave-6-clear", on.timer(860), [
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Six down. Two more. Rebuild, rearm, retrain — you've got a window.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Scalebreak is committing his reserves. The last two waves will be the worst we've seen.",
+				},
+			]),
+			act.startPhase("final-waves"),
+			act.enableTrigger("phase:final-waves:lull-briefing"),
+		]),
+
+		// =====================================================================
+		// PHASE 4: FINAL WAVES (~15:00+) — Monsoon heavy, lightning every 15s
+		// =====================================================================
+
+		// Lull briefing (enabled by wave-6-clear)
+		trigger(
+			"phase:final-waves:lull-briefing",
+			on.timer(865),
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Scalebreak's sending his elite. Croc Champions and everything he has left. This is the final push.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Sixty seconds to rebuild. Use every one of them, Captain.",
+				},
+			]),
+			{ enabled: false },
+		),
+
+		// === WAVE 7 (~wave-6-clear + 60s) — Elite northern assault ===
+		// 12 Gators + 4 Vipers + 2 Croc Champions from north
+		trigger("phase:final-waves:wave-7-spawn", on.timer(920), [
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "Wave seven — massive assault from the north! Croc Champions leading the charge!",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "HOLD THE LINE, Captain!",
+				},
+			]),
+			act.spawn("gator", "scale_guard", 48, 2, 4),
+			act.spawn("gator", "scale_guard", 64, 2, 4),
+			act.spawn("gator", "scale_guard", 80, 2, 4),
+			act.spawn("viper", "scale_guard", 56, 4, 2),
+			act.spawn("viper", "scale_guard", 72, 4, 2),
+			act.spawn("croc_champion", "scale_guard", 60, 6, 1),
+			act.spawn("croc_champion", "scale_guard", 68, 6, 1),
+		]),
+
+		// Wave 7 clear
+		trigger("phase:final-waves:wave-7-clear", on.timer(1010), [
+			act.dialogue(
+				"sgt_bubbles",
+				"Champions are down! One more wave, Captain — one more and we break them!",
+			),
+			act.enableTrigger("phase:final-waves:wave-8-spawn"),
+		]),
+
+		// === WAVE 8 (~wave-7-clear + 30s) — Final all-direction assault + Serpent King ===
+		trigger(
+			"phase:final-waves:wave-8-spawn",
+			on.timer(1040),
+			[
+				act.exchange([
+					{
+						speaker: "FOXHOUND",
+						text: "FINAL WAVE — all directions! And Captain... we're reading a Serpent King signature from the north.",
+					},
+					{
+						speaker: "Col. Bubbles",
+						text: "Everything they have. This is it. Every unit, every wall, every last ounce of fight. DO NOT BREAK.",
+					},
+				]),
+				// North (main assault + Serpent King)
+				act.spawn("gator", "scale_guard", 56, 2, 3),
+				act.spawn("gator", "scale_guard", 72, 2, 3),
+				act.spawn("viper", "scale_guard", 64, 4, 2),
+				act.spawn("serpent_king", "scale_guard", 64, 2, 1),
+				// East
+				act.spawn("gator", "scale_guard", 124, 48, 3),
+				act.spawn("snapper", "scale_guard", 122, 56, 1),
+				// South
+				act.spawn("gator", "scale_guard", 56, 126, 3),
+				act.spawn("viper", "scale_guard", 68, 124, 2),
+				act.spawn("croc_champion", "scale_guard", 64, 126, 1),
+				// West
+				act.spawn("gator", "scale_guard", 4, 48, 3),
+				act.spawn("snapper", "scale_guard", 6, 56, 1),
+			],
+			{ enabled: false },
+		),
+
+		// Wave 8 clear — survive objective complete
+		trigger("phase:final-waves:wave-8-clear", on.timer(1140), [
+			act.completeObjective("survive-waves"),
+		]),
+
+		// =====================================================================
+		// MISSION-LEVEL TRIGGERS
+		// =====================================================================
+
+		// Lodge (burrow) destroyed = mission failure
+		trigger(
+			"lodge-destroyed",
+			on.buildingCount("ura", "burrow", "eq", 0),
+			act.failMission("The Lodge has been destroyed. Mission failed."),
+		),
+
+		// All primary objectives complete = victory
 		trigger("mission-complete", on.allPrimaryComplete(), [
-			act.dialogue(
-				"gen_whiskers",
-				"The monsoon assault failed. Scale-Guard is retreating. This position is ours.",
-			),
+			act.changeWeather("clear"),
+			act.exchange([
+				{
+					speaker: "Gen. Whiskers",
+					text: "They're pulling back. Scalebreak has lost his offensive. You held that position against everything he threw at you, Captain.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Storm's breaking. And so is their assault. Outstanding work — the highlands are ours.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "All Scale-Guard forces in retreat. The monsoon offensive has failed. Well done, Captain.",
+				},
+			]),
 			act.victory(),
 		]),
+
+		// Bonus: no buildings lost — checked when primary objectives complete
+		trigger(
+			"bonus-no-buildings-lost",
+			on.allPrimaryComplete(),
+			act.dialogue(
+				"gen_whiskers",
+				"Not a single structure lost. Textbook defensive engagement, Captain. Truly exceptional.",
+			),
+		),
 	],
 
-	unlocks: {},
+	// ─── Unlocks ───
+
+	unlocks: {
+		buildings: ["field_hospital", "dock"],
+	},
 
 	parTime: 1200,
+
+	// ─── Difficulty Scaling ───
+	// Support: Waves 1-3 only, no Snappers or Champions, no Serpent King in wave 8
+	// Tactical: as written (full 8 waves)
+	// Elite: +50% enemies per wave, wave 8 adds second Serpent King, Champions from wave 5
 
 	difficulty: {
 		support: {

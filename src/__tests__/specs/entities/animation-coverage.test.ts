@@ -13,7 +13,6 @@ import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,
 } from "@/entities/sprite-materialization";
-import type { SPDSLSprite, SpriteDef } from "@/entities/types";
 
 // ─── Atlas Helpers ───
 
@@ -253,7 +252,7 @@ describe("US-075: Verify all entity animations exist", () => {
 	describe("unit atlas has animation frames", () => {
 		it("every unit has base frame in atlas", () => {
 			expect(unitsAtlas).not.toBeNull();
-			const frameKeys = Object.keys(unitsAtlas!.frames);
+			const frameKeys = Object.keys(unitsAtlas?.frames);
 
 			for (const id of Object.keys(ALL_UNITS)) {
 				const hasBase = frameKeys.includes(id);
@@ -266,7 +265,7 @@ describe("US-075: Verify all entity animations exist", () => {
 
 		it("mobile units have walk frames in atlas", () => {
 			expect(unitsAtlas).not.toBeNull();
-			const frameKeys = Object.keys(unitsAtlas!.frames);
+			const frameKeys = Object.keys(unitsAtlas?.frames);
 			const missing: string[] = [];
 
 			for (const [id, unit] of Object.entries(ALL_UNITS)) {
@@ -285,7 +284,7 @@ describe("US-075: Verify all entity animations exist", () => {
 
 		it("infantry and ranged units have attack frames in atlas", () => {
 			expect(unitsAtlas).not.toBeNull();
-			const frameKeys = Object.keys(unitsAtlas!.frames);
+			const frameKeys = Object.keys(unitsAtlas?.frames);
 			const strictCombatCategories = ["infantry", "ranged"];
 			const missing: string[] = [];
 
@@ -307,7 +306,7 @@ describe("US-075: Verify all entity animations exist", () => {
 	describe("building atlas has animation frames", () => {
 		it("every building has base frame in atlas", () => {
 			expect(buildingsAtlas).not.toBeNull();
-			const frameKeys = Object.keys(buildingsAtlas!.frames);
+			const frameKeys = Object.keys(buildingsAtlas?.frames);
 
 			for (const id of Object.keys(ALL_BUILDINGS)) {
 				const hasBase = frameKeys.includes(id);
@@ -320,7 +319,7 @@ describe("US-075: Verify all entity animations exist", () => {
 
 		it("every building has idle_0 frame in atlas", () => {
 			expect(buildingsAtlas).not.toBeNull();
-			const frameKeys = Object.keys(buildingsAtlas!.frames);
+			const frameKeys = Object.keys(buildingsAtlas?.frames);
 			const missing: string[] = [];
 
 			for (const id of Object.keys(ALL_BUILDINGS)) {

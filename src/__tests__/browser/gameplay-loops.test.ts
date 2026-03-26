@@ -14,8 +14,7 @@ import { createWorld, type World } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ConstructingAt, GatheringFrom, OwnedBy, Targeting } from "@/ecs/relations";
 import { initSingletons } from "@/ecs/singletons";
-import { AIState } from "@/ecs/traits/ai";
-import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
+import { Armor, Attack, Health } from "@/ecs/traits/combat";
 import {
 	ConstructionProgress,
 	Gatherer,
@@ -23,7 +22,7 @@ import {
 	ResourceNode,
 } from "@/ecs/traits/economy";
 import { Faction, IsBuilding, IsResource, UnitType } from "@/ecs/traits/identity";
-import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
+import { RallyPoint } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
 import { CampaignProgress, PopulationState, ResourcePool } from "@/ecs/traits/state";
 import { buildingSystem } from "@/systems/buildingSystem";
@@ -83,7 +82,7 @@ describe("Browser: Gather loop", () => {
 			OwnedBy(uraFaction),
 		);
 
-		const initialFish = world.get(ResourcePool)!.fish;
+		const initialFish = world.get(ResourcePool)?.fish;
 
 		// Phase 1: Gather until full
 		for (let i = 0; i < 10; i++) {
@@ -96,7 +95,7 @@ describe("Browser: Gather loop", () => {
 		}
 
 		// ResourcePool should have increased
-		const finalFish = world.get(ResourcePool)!.fish;
+		const finalFish = world.get(ResourcePool)?.fish;
 		expect(finalFish).toBeGreaterThan(initialFish);
 	});
 });
@@ -247,7 +246,7 @@ describe("Browser: Training loop", () => {
 		}
 
 		// Queue should be empty
-		expect(barracks.get(ProductionQueue)!.length).toBe(0);
+		expect(barracks.get(ProductionQueue)?.length).toBe(0);
 
 		// New entity should exist
 		const unitsAfter = world.query(Position, Faction).length;

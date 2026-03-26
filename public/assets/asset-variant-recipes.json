@@ -1333,7 +1333,7 @@
     }
   },
   {
-    "entityKey": "hero:sgt_bubbles",
+    "entityKey": "hero:col_bubbles",
     "entityId": "sgt_bubbles",
     "entityType": "hero",
     "entityName": "SGT. BUBBLES",
@@ -1341,7 +1341,7 @@
     "archetypeId": "oef_command_hero_unit",
     "outputCategory": "units",
     "faction": "ura",
-    "referenceEntityId": "sgt_bubbles",
+    "referenceEntityId": "col_bubbles",
     "referenceContractId": "sgt_bubbles",
     "palette": "otter_default",
     "layerIds": [
@@ -1439,7 +1439,7 @@
     "archetypeId": "oef_command_hero_unit",
     "outputCategory": "units",
     "faction": "ura",
-    "referenceEntityId": "sgt_bubbles",
+    "referenceEntityId": "col_bubbles",
     "referenceContractId": "sgt_bubbles",
     "palette": "otter_default",
     "layerIds": [
@@ -1529,7 +1529,7 @@
     "archetypeId": "oef_command_hero_unit",
     "outputCategory": "units",
     "faction": "ura",
-    "referenceEntityId": "sgt_bubbles",
+    "referenceEntityId": "col_bubbles",
     "referenceContractId": "sgt_bubbles",
     "palette": "otter_default",
     "layerIds": [

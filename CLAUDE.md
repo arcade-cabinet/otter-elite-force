@@ -22,7 +22,7 @@ Primary references:
 ## Current Stack
 
 - React 19 + shadcn/ui + Tailwind v4
-- Phaser 3 for tactical rendering
+- Konva.js (via react-konva) for tactical rendering
 - Koota ECS for app/game state
 - Tone.js for procedural audio
 - Yuka for AI/simulation support
@@ -39,6 +39,7 @@ Primary references:
 - Tutorial prompts for missions 1-4 (dismissible, skip in settings)
 - MilitaryTooltip for hover data on train/build/research buttons
 - ErrorFeedback for invalid command buzzes (1-second auto-dismiss)
+- Sprite rendering uses atlas/tile system (spriteAtlas.ts + tilePainter.ts); legacy spriteGen.ts is deprecated
 
 ## UI Command Intent
 

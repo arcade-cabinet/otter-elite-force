@@ -19,7 +19,7 @@
  * Win condition: destroy enemy Command Post.
  *
  * The AI communicates with the game world exclusively through a GameAdapter
- * interface, keeping it testable without Koota/Phaser dependencies.
+ * interface, keeping it testable without Koota dependencies.
  */
 
 // ---------------------------------------------------------------------------

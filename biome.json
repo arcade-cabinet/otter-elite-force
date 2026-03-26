@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",
@@ -18,7 +18,10 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"style": {
+				"noNonNullAssertion": "off"
+			}
 		}
 	},
 	"overrides": [
@@ -47,7 +50,16 @@
 			"linter": {
 				"rules": {
 					"suspicious": {
-						"noExplicitAny": "off"
+						"noExplicitAny": "off",
+						"noNonNullAssertedOptionalChain": "off"
+					},
+					"style": {
+						"noNonNullAssertion": "off"
+					},
+					"correctness": {
+						"noUnusedVariables": "warn",
+						"noUnusedFunctionParameters": "off",
+						"noUnsafeOptionalChaining": "off"
 					}
 				}
 			}

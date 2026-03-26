@@ -5,7 +5,7 @@
  * is correctly processed: pathfinding dispatched, ECS relations set,
  * state transitions applied.
  */
-import { createWorld, type Entity, type World } from "koota";
+import { createWorld, type World } from "koota";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GatheringFrom, Targeting } from "../../ecs/relations";
 import { AIState, SteeringAgent } from "../../ecs/traits/ai";

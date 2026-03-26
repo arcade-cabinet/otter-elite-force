@@ -1880,7 +1880,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles": {
+    "col_bubbles": {
       "frame": {
         "x": 612,
         "y": 17,
@@ -1892,7 +1892,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_idle_0": {
+    "col_bubbles_idle_0": {
       "frame": {
         "x": 629,
         "y": 17,
@@ -1904,7 +1904,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_walk_0": {
+    "col_bubbles_walk_0": {
       "frame": {
         "x": 646,
         "y": 17,
@@ -1916,7 +1916,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_walk_1": {
+    "col_bubbles_walk_1": {
       "frame": {
         "x": 663,
         "y": 17,
@@ -1928,7 +1928,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_attack_0": {
+    "col_bubbles_attack_0": {
       "frame": {
         "x": 680,
         "y": 17,
@@ -1940,7 +1940,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_attack_1": {
+    "col_bubbles_attack_1": {
       "frame": {
         "x": 697,
         "y": 17,
@@ -1952,7 +1952,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles__proc_hitflash": {
+    "col_bubbles__proc_hitflash": {
       "frame": {
         "x": 714,
         "y": 17,
@@ -1964,7 +1964,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_idle_0__proc_hitflash": {
+    "col_bubbles_idle_0__proc_hitflash": {
       "frame": {
         "x": 731,
         "y": 17,
@@ -1976,7 +1976,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_walk_0__proc_hitflash": {
+    "col_bubbles_walk_0__proc_hitflash": {
       "frame": {
         "x": 748,
         "y": 17,
@@ -1988,7 +1988,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_walk_1__proc_hitflash": {
+    "col_bubbles_walk_1__proc_hitflash": {
       "frame": {
         "x": 765,
         "y": 17,
@@ -2000,7 +2000,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_attack_0__proc_hitflash": {
+    "col_bubbles_attack_0__proc_hitflash": {
       "frame": {
         "x": 782,
         "y": 17,
@@ -2012,7 +2012,7 @@
         "h": 16
       }
     },
-    "sgt_bubbles_attack_1__proc_hitflash": {
+    "col_bubbles_attack_1__proc_hitflash": {
       "frame": {
         "x": 799,
         "y": 17,

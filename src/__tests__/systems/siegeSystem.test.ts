@@ -350,14 +350,14 @@ describe("Siege System", () => {
 			const destroyed = aoeSplashSystem(world);
 
 			// Near enemies take damage
-			expect(near1.get(Health)!.current).toBe(100); // 120 - 20
-			expect(near2.get(Health)!.current).toBe(10); // 30 - 20
+			expect(near1.get(Health)?.current).toBe(100); // 120 - 20
+			expect(near2.get(Health)?.current).toBe(10); // 30 - 20
 
 			// Far enemy untouched
-			expect(far.get(Health)!.current).toBe(120);
+			expect(far.get(Health)?.current).toBe(120);
 
 			// Ally untouched
-			expect(ally.get(Health)!.current).toBe(80);
+			expect(ally.get(Health)?.current).toBe(80);
 
 			// Projectile destroyed after splash
 			expect(destroyed).toContain(proj);
@@ -381,7 +381,7 @@ describe("Siege System", () => {
 
 			aoeSplashSystem(world);
 
-			expect(armored.get(Health)!.current).toBe(115); // 120 - max(1, 20-15)
+			expect(armored.get(Health)?.current).toBe(115); // 120 - max(1, 20-15)
 		});
 
 		it("does not process projectiles without SplashRadius", () => {
@@ -401,7 +401,7 @@ describe("Siege System", () => {
 
 			const destroyed = aoeSplashSystem(world);
 
-			expect(enemy.get(Health)!.current).toBe(120);
+			expect(enemy.get(Health)?.current).toBe(120);
 			expect(destroyed.length).toBe(0);
 		});
 
@@ -418,7 +418,7 @@ describe("Siege System", () => {
 
 			aoeSplashSystem(world);
 
-			expect(building.get(Health)!.current).toBe(130); // 150 - 20
+			expect(building.get(Health)?.current).toBe(130); // 150 - 20
 		});
 	});
 

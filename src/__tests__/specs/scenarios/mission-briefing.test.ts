@@ -29,19 +29,21 @@ describe("US-052: Mission briefing data", () => {
 		}
 	});
 
-	it("chapter 1 missions use FOXHOUND as portrait", () => {
+	it("chapter 1 missions use FOXHOUND or Col. Bubbles as portrait", () => {
 		const ch1 = CAMPAIGN.filter((m) => m.chapter === 1);
 		expect(ch1).toHaveLength(4);
+		const validCh1Portraits = ["foxhound", "col_bubbles"];
 		for (const mission of ch1) {
-			expect(mission.briefing.portraitId).toBe("foxhound");
+			expect(validCh1Portraits).toContain(mission.briefing.portraitId);
 		}
 	});
 
-	it("chapter 2-4 missions use Gen. Whiskers as portrait", () => {
-		const later = CAMPAIGN.filter((m) => m.chapter >= 2);
-		expect(later).toHaveLength(12);
+	it("chapter 3-4 missions use Gen. Whiskers or FOXHOUND as portrait", () => {
+		const later = CAMPAIGN.filter((m) => m.chapter >= 3);
+		expect(later).toHaveLength(8);
+		const validLaterPortraits = ["gen_whiskers", "foxhound"];
 		for (const mission of later) {
-			expect(mission.briefing.portraitId).toBe("gen_whiskers");
+			expect(validLaterPortraits).toContain(mission.briefing.portraitId);
 		}
 	});
 

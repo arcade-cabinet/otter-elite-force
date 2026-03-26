@@ -77,12 +77,12 @@ describe("researchSystem", () => {
 
 			const slot = armory.get(ResearchSlot);
 			expect(slot).not.toBeNull();
-			expect(slot!.researchId).toBe("hardshell_armor");
-			expect(slot!.progress).toBe(0);
-			expect(slot!.researchTime).toBe(20);
+			expect(slot?.researchId).toBe("hardshell_armor");
+			expect(slot?.progress).toBe(0);
+			expect(slot?.researchTime).toBe(20);
 
 			// Hardshell Armor costs 150 salvage
-			expect(world.get(ResourcePool)!.salvage).toBe(50);
+			expect(world.get(ResourcePool)?.salvage).toBe(50);
 		});
 
 		it("should reject research if insufficient resources", () => {
@@ -104,19 +104,19 @@ describe("researchSystem", () => {
 			expect(result).toBe(false);
 			// Resources for second research should not be deducted
 			// First deducted 150, so 300-150 = 150 remaining
-			expect(world.get(ResourcePool)!.salvage).toBe(150);
+			expect(world.get(ResourcePool)?.salvage).toBe(150);
 		});
 
 		it("should reject research that is already completed", () => {
 			world.set(ResourcePool, { fish: 0, timber: 0, salvage: 300 });
-			world.get(CompletedResearch)!.ids.add("hardshell_armor");
+			world.get(CompletedResearch)?.ids.add("hardshell_armor");
 			const armory = spawnArmory();
 
 			const result = queueResearch(armory, "hardshell_armor", world);
 
 			expect(result).toBe(false);
 			// Resources should not be deducted
-			expect(world.get(ResourcePool)!.salvage).toBe(300);
+			expect(world.get(ResourcePool)?.salvage).toBe(300);
 		});
 
 		it("should reject unknown research id", () => {
@@ -159,7 +159,7 @@ describe("researchSystem", () => {
 			const slot = armory.get(ResearchSlot);
 			expect(slot).not.toBeNull();
 			// 10s / 20s researchTime = 50%
-			expect(slot!.progress).toBeCloseTo(50, 0);
+			expect(slot?.progress).toBeCloseTo(50, 0);
 		});
 
 		it("should complete research and clear the slot", () => {
@@ -173,7 +173,7 @@ describe("researchSystem", () => {
 			expect(armory.get(ResearchSlot)).toBeNull();
 
 			// Should be marked as completed in the store
-			expect(world.get(CompletedResearch)!.ids.has("hardshell_armor")).toBe(true);
+			expect(world.get(CompletedResearch)?.ids.has("hardshell_armor")).toBe(true);
 		});
 
 		it("should not process empty research slots", () => {

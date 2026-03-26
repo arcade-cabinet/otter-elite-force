@@ -1,227 +1,134 @@
 /**
- * Keyboard Hotkeys — RTS command hotkeys for desktop play.
+ * Keyboard hotkeys — native KeyboardEvent handler for RTS commands.
  *
- * Manages:
- * - H: halt (stop order)
- * - A then click: attack-move
- * - P then click: patrol
- * - Ctrl+1..9: assign control group
- * - 1..9: select control group
- * - Escape: deselect all / cancel pending action
- * - Space: center camera on last alert position
- *
- * Operates on the GameScene's input and ECS world via CommandDispatcher
- * and SelectionManager.
+ * Hotkeys:
+ *   H — Halt all selected units (Stop order)
+ *   A + click — Attack-move to location
+ *   P + click — Patrol between current position and target
+ *   Ctrl+1..9 — Assign selected units to control group
+ *   1..9 — Select control group
+ *   Escape — Deselect all / cancel current action
+ *   Space — Center camera on last alert
+ *   WASD/Arrows — Camera pan (handled in useCamera, not here)
  */
 
-import type { Entity, World } from "koota";
-import type Phaser from "phaser";
-import { Faction, Selected, UnitType } from "@/ecs/traits/identity";
+import type { World } from "koota";
+import { Faction, Selected } from "@/ecs/traits/identity";
 import { OrderQueue } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
-import { EventBus } from "@/game/EventBus";
-import type { CommandDispatcher } from "./commandDispatcher";
-import type { SelectionManager } from "./selectionManager";
 
-export type PendingAction = "none" | "attack-move" | "patrol";
+export type PendingAction = "attack-move" | "patrol" | null;
 
-export class KeyboardHotkeys {
-	private scene: Phaser.Scene;
-	private world: World;
-	private selection: SelectionManager;
-	private commands: CommandDispatcher;
-	private controlGroups: Map<number, number[]> = new Map();
-	private _pendingAction: PendingAction = "none";
-	private lastAlertPosition: { x: number; y: number } | null = null;
-	private alertListener: (...args: unknown[]) => void;
-	private enabled = true;
+export interface HotkeyState {
+	pendingAction: PendingAction;
+	controlGroups: Map<number, number[]>;
+	lastAlertPosition: { x: number; y: number } | null;
+}
 
-	constructor(
-		scene: Phaser.Scene,
-		world: World,
-		selection: SelectionManager,
-		commands: CommandDispatcher,
-	) {
-		this.scene = scene;
-		this.world = world;
-		this.selection = selection;
-		this.commands = commands;
+export function createHotkeyState(): HotkeyState {
+	return {
+		pendingAction: null,
+		controlGroups: new Map(),
+		lastAlertPosition: null,
+	};
+}
 
-		this.alertListener = (data: unknown) => {
-			const alert = data as { worldX?: number; worldY?: number };
-			if (alert.worldX != null && alert.worldY != null) {
-				this.lastAlertPosition = { x: alert.worldX, y: alert.worldY };
-			}
-		};
-		EventBus.on("hud-alert", this.alertListener);
+/**
+ * Process a keydown event and return the updated hotkey state.
+ * Returns null if the key was not handled.
+ */
+export function handleKeyDown(
+	e: KeyboardEvent,
+	state: HotkeyState,
+	world: World,
+): HotkeyState | null {
+	const key = e.key.toLowerCase();
 
-		this.bindKeys();
+	// H — Halt/Stop
+	if (key === "h") {
+		issueStopToSelected(world);
+		return { ...state, pendingAction: null };
 	}
 
-	get pendingAction(): PendingAction {
-		return this._pendingAction;
+	// A — Attack-move pending
+	if (key === "a" && !e.ctrlKey && !e.metaKey) {
+		return { ...state, pendingAction: "attack-move" };
 	}
 
-	/** Called by GameScene on left-click when a pending action is active. */
-	handlePendingClick(worldX: number, worldY: number): boolean {
-		if (this._pendingAction === "none") return false;
+	// P — Patrol pending
+	if (key === "p" && !e.ctrlKey && !e.metaKey) {
+		return { ...state, pendingAction: "patrol" };
+	}
 
-		if (this._pendingAction === "attack-move") {
-			this.commands.issueCommandAt(worldX, worldY, "attack");
-		} else if (this._pendingAction === "patrol") {
-			this.issuePatrolCommand(worldX, worldY);
+	// Escape — Cancel pending action or deselect all
+	if (key === "escape") {
+		if (state.pendingAction) {
+			return { ...state, pendingAction: null };
 		}
-
-		this._pendingAction = "none";
-		return true;
+		deselectAll(world);
+		return state;
 	}
 
-	setEnabled(enabled: boolean): void {
-		this.enabled = enabled;
+	// Ctrl+1..9 — Assign control group
+	if (e.ctrlKey && key >= "1" && key <= "9") {
+		e.preventDefault();
+		const group = Number.parseInt(key, 10);
+		const ids = getSelectedFriendlyUnitIds(world);
+		const newGroups = new Map(state.controlGroups);
+		newGroups.set(group, ids);
+		return { ...state, controlGroups: newGroups };
 	}
 
-	destroy(): void {
-		EventBus.off("hud-alert", this.alertListener);
-		// Phaser keyboard keys are cleaned up when the scene shuts down
-	}
-
-	// ---------------------------------------------------------------
-	// Key bindings
-	// ---------------------------------------------------------------
-
-	private bindKeys(): void {
-		const kb = this.scene.input.keyboard;
-		if (!kb) return;
-
-		// H — halt / stop
-		kb.on("keydown-H", () => {
-			if (!this.enabled) return;
-			this.issueHaltCommand();
-		});
-
-		// A — attack-move (sets pending)
-		kb.on("keydown-A", () => {
-			if (!this.enabled) return;
-			this._pendingAction = "attack-move";
-		});
-
-		// P — patrol (sets pending)
-		kb.on("keydown-P", () => {
-			if (!this.enabled) return;
-			this._pendingAction = "patrol";
-		});
-
-		// Escape — cancel pending / deselect
-		kb.on("keydown-ESC", () => {
-			if (!this.enabled) return;
-			if (this._pendingAction !== "none") {
-				this._pendingAction = "none";
-				return;
-			}
-			this.selection.clearSelection();
-		});
-
-		// Space — center camera on last alert
-		kb.on("keydown-SPACE", () => {
-			if (!this.enabled) return;
-			this.centerOnLastAlert();
-		});
-
-		// Number keys 1-9: control groups
-		for (let i = 1; i <= 9; i++) {
-			const keyCode = `keydown-${i.toString()}` as const;
-			const num = i;
-			kb.on(keyCode, (event: KeyboardEvent) => {
-				if (!this.enabled) return;
-				if (event.ctrlKey || event.metaKey) {
-					this.assignControlGroup(num);
-				} else {
-					this.recallControlGroup(num);
-				}
-			});
+	// 1..9 — Recall control group
+	if (!e.ctrlKey && !e.metaKey && key >= "1" && key <= "9") {
+		const group = Number.parseInt(key, 10);
+		const ids = state.controlGroups.get(group);
+		if (ids && ids.length > 0) {
+			recallControlGroup(world, ids);
 		}
+		return state;
 	}
 
-	// ---------------------------------------------------------------
-	// Command implementations
-	// ---------------------------------------------------------------
+	return null; // Key not handled
+}
 
-	private issueHaltCommand(): void {
-		this.world.query(Selected, OrderQueue, Faction).forEach((entity) => {
-			if (entity.get(Faction)?.id !== "ura") return;
-			const queue = entity.get(OrderQueue);
-			if (!queue) return;
+// ─── Helpers ───
+
+function issueStopToSelected(world: World): void {
+	for (const entity of world.query(Selected, OrderQueue, Faction)) {
+		if (entity.get(Faction)?.id !== "ura") continue;
+		const queue = entity.get(OrderQueue);
+		if (queue) {
 			queue.length = 0;
 			queue.push({ type: "stop" });
-		});
+		}
 	}
+}
 
-	private issuePatrolCommand(worldX: number, worldY: number): void {
-		const TILE_SIZE = 32;
-		const tileX = Math.floor(worldX / TILE_SIZE);
-		const tileY = Math.floor(worldY / TILE_SIZE);
-
-		this.world.query(Selected, OrderQueue, Position, Faction).forEach((entity) => {
-			if (entity.get(Faction)?.id !== "ura") return;
-			const queue = entity.get(OrderQueue);
-			const pos = entity.get(Position);
-			if (!queue || !pos) return;
-
-			queue.length = 0;
-			queue.push({
-				type: "patrol",
-				waypoints: [
-					{ x: pos.x, y: pos.y },
-					{ x: tileX, y: tileY },
-				],
-			});
-		});
+function deselectAll(world: World): void {
+	for (const entity of world.query(Selected)) {
+		entity.remove(Selected);
 	}
+}
 
-	private centerOnLastAlert(): void {
-		if (!this.lastAlertPosition) return;
-		const cam = this.scene.cameras.main;
-		cam.centerOn(this.lastAlertPosition.x, this.lastAlertPosition.y);
-	}
-
-	// ---------------------------------------------------------------
-	// Control groups
-	// ---------------------------------------------------------------
-
-	assignControlGroup(group: number): void {
-		const ids: number[] = [];
-		this.world.query(Selected, Faction).forEach((entity) => {
-			if (entity.get(Faction)?.id !== "ura") return;
+function getSelectedFriendlyUnitIds(world: World): number[] {
+	const ids: number[] = [];
+	for (const entity of world.query(Selected, Faction, Position)) {
+		if (entity.get(Faction)?.id === "ura") {
 			ids.push(entity.id());
-		});
-		if (ids.length > 0) {
-			this.controlGroups.set(group, ids);
 		}
 	}
+	return ids;
+}
 
-	recallControlGroup(group: number): void {
-		const ids = this.controlGroups.get(group);
-		if (!ids || ids.length === 0) return;
+function recallControlGroup(world: World, ids: number[]): void {
+	// Deselect all first
+	deselectAll(world);
 
-		this.selection.clearSelection();
-
-		// Select all living entities in the group
-		for (const id of ids) {
-			const entity = this.findEntityById(id);
-			if (entity) {
-				entity.add(Selected);
-			}
+	// Select entities in the group (if still alive)
+	for (const entity of world.query(Faction, Position)) {
+		if (ids.includes(entity.id()) && entity.get(Faction)?.id === "ura") {
+			entity.add(Selected);
 		}
-	}
-
-	getControlGroup(group: number): number[] {
-		return this.controlGroups.get(group) ?? [];
-	}
-
-	private findEntityById(entityId: number): Entity | null {
-		for (const entity of this.world.query(UnitType, Position, Faction)) {
-			if (entity.id() === entityId) return entity;
-		}
-		return null;
 	}
 }

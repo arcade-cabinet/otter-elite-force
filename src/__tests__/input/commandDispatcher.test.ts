@@ -12,40 +12,13 @@ vi.mock("@/game/EventBus", () => ({
 	EventBus: { emit },
 }));
 
-function createMockGraphics() {
-	return {
-		lineStyle: vi.fn().mockReturnThis(),
-		strokeCircle: vi.fn().mockReturnThis(),
-		setDepth: vi.fn().mockReturnThis(),
-		alpha: 1,
-		scaleX: 1,
-		scaleY: 1,
-		destroy: vi.fn(),
-	};
-}
-
-function createMockScene() {
-	return {
-		input: { on: vi.fn(), off: vi.fn() },
-		add: { graphics: vi.fn(() => createMockGraphics()) },
-		tweens: {
-			add: vi.fn((config: { onComplete?: () => void }) => {
-				config.onComplete?.();
-				return config;
-			}),
-		},
-	};
-}
-
 describe("CommandDispatcher", () => {
 	let world: ReturnType<typeof createWorld>;
-	let scene: ReturnType<typeof createMockScene>;
 	let dispatcher: CommandDispatcher;
 
 	beforeEach(() => {
 		world = createWorld();
-		scene = createMockScene();
-		dispatcher = new CommandDispatcher(scene as never, world);
+		dispatcher = new CommandDispatcher(world);
 		emit.mockReset();
 	});
 
@@ -98,7 +71,10 @@ describe("CommandDispatcher", () => {
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
-			expect(scene.add.graphics).toHaveBeenCalled();
+			expect(emit).toHaveBeenCalledWith(
+				"command-marker",
+				expect.objectContaining({ color: 0x00ff00 }),
+			);
 		});
 
 		it("does not issue move to enemy-faction units", () => {
@@ -124,7 +100,7 @@ describe("CommandDispatcher", () => {
 				OrderQueue,
 			);
 			const queue = unit.get(OrderQueue);
-			queue!.push({ type: "attack", targetEntity: 999 });
+			queue?.push({ type: "attack", targetEntity: 999 });
 
 			dispatcher.issueCommandAt(10 * 32 + 16, 10 * 32 + 16, "context");
 
@@ -156,8 +132,8 @@ describe("CommandDispatcher", () => {
 
 			const orders = attacker.get(OrderQueue);
 			expect(orders).toHaveLength(1);
-			expect(orders![0].type).toBe("attack");
-			expect(orders![0].targetEntity).toBe(enemy.id());
+			expect(orders?.[0].type).toBe("attack");
+			expect(orders?.[0].targetEntity).toBe(enemy.id());
 		});
 
 		it("issues attack order via explicit attack mode", () => {
@@ -179,8 +155,8 @@ describe("CommandDispatcher", () => {
 
 			const orders = attacker.get(OrderQueue);
 			expect(orders).toHaveLength(1);
-			expect(orders![0].type).toBe("attack");
-			expect(orders![0].targetEntity).toBe(enemy.id());
+			expect(orders?.[0].type).toBe("attack");
+			expect(orders?.[0].targetEntity).toBe(enemy.id());
 		});
 
 		it("falls back to move when attacking empty ground", () => {
@@ -197,7 +173,7 @@ describe("CommandDispatcher", () => {
 
 			const orders = unit.get(OrderQueue);
 			expect(orders).toHaveLength(1);
-			expect(orders![0].type).toBe("move");
+			expect(orders?.[0].type).toBe("move");
 		});
 
 		it("shows red command marker for attack commands", () => {
@@ -217,8 +193,11 @@ describe("CommandDispatcher", () => {
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
-			// A marker should have been created
-			expect(scene.add.graphics).toHaveBeenCalled();
+			// A red command marker should have been emitted
+			expect(emit).toHaveBeenCalledWith(
+				"command-marker",
+				expect.objectContaining({ color: 0xff0000 }),
+			);
 		});
 	});
 
@@ -247,10 +226,10 @@ describe("CommandDispatcher", () => {
 
 			const orders = worker.get(OrderQueue);
 			expect(orders).toHaveLength(1);
-			expect(orders![0].type).toBe("gather");
-			expect(orders![0].targetEntity).toBe(resource.id());
-			expect(orders![0].targetX).toBe(5);
-			expect(orders![0].targetY).toBe(5);
+			expect(orders?.[0].type).toBe("gather");
+			expect(orders?.[0].targetEntity).toBe(resource.id());
+			expect(orders?.[0].targetX).toBe(5);
+			expect(orders?.[0].targetY).toBe(5);
 		});
 
 		it("does not issue gather order for non-worker combat units", () => {
@@ -286,7 +265,10 @@ describe("CommandDispatcher", () => {
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
-			expect(scene.add.graphics).toHaveBeenCalled();
+			expect(emit).toHaveBeenCalledWith(
+				"command-marker",
+				expect.objectContaining({ color: 0xfbbf24 }),
+			);
 		});
 	});
 
@@ -385,7 +367,7 @@ describe("CommandDispatcher", () => {
 			// Unit should get move order
 			const orders = unit.get(OrderQueue);
 			expect(orders).toHaveLength(1);
-			expect(orders![0].type).toBe("move");
+			expect(orders?.[0].type).toBe("move");
 
 			// Building rally should NOT change (unit commands take priority)
 			expect(building.get(RallyPoint)).toEqual({ x: 11, y: 10 });

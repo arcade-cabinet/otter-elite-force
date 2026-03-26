@@ -8,7 +8,7 @@
  *   4. Produce a log of actions and game state snapshots
  *   5. Complete within 2x par time (par = 480s, limit = 960s = 16 minutes)
  *
- * Uses headless simulation (no Phaser/DOM) for fast, deterministic testing.
+ * Uses headless simulation (no DOM) for fast, deterministic testing.
  */
 
 import { describe, expect, it } from "vitest";
@@ -17,7 +17,6 @@ import {
 	buildPerceptionFromSim,
 	createMission1Sim,
 	runMission1Simulation,
-	type SimState,
 	tickSimulation,
 } from "@/ai/playtester/simulation";
 
@@ -152,7 +151,7 @@ describe("US-070: AI Playtester Mission 1 Automated Playthrough", () => {
 
 			const commandPost = state.buildings.find((b) => b.unitType === "command_post");
 			expect(commandPost).toBeDefined();
-			expect(commandPost!.faction).toBe("ura");
+			expect(commandPost?.faction).toBe("ura");
 		});
 
 		it("builds barracks after command post", () => {
@@ -238,7 +237,7 @@ describe("US-070: AI Playtester Mission 1 Automated Playthrough", () => {
 			// Starting resources minus building costs should be reflected
 			const endEvent = result.log.find((e) => e.event === "mission_end");
 			expect(endEvent).toBeDefined();
-			expect(endEvent!.details?.unitCount).toBeGreaterThanOrEqual(4);
+			expect(endEvent?.details?.unitCount).toBeGreaterThanOrEqual(4);
 		});
 	});
 });

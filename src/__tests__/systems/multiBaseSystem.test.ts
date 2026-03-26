@@ -12,7 +12,7 @@
 
 import { createWorld, type World } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { GatheringFrom, OwnedBy } from "../../ecs/relations";
+import { OwnedBy } from "../../ecs/relations";
 import { initSingletons } from "../../ecs/singletons";
 import { Health } from "../../ecs/traits/combat";
 import {
@@ -79,7 +79,7 @@ function spawnWorker(x: number, y: number, factionEntity: ReturnType<World["spaw
 }
 
 // Helper: spawn a resource node
-function spawnResource(x: number, y: number, type = "fish", remaining = 100) {
+function _spawnResource(x: number, y: number, type = "fish", remaining = 100) {
 	const node = world.spawn(Position, ResourceNode);
 	node.set(Position, { x, y });
 	node.set(ResourceNode, { type, remaining });
@@ -306,7 +306,7 @@ describe("Caravan Pickup & Delivery", () => {
 		expect(caravanData.amount).toBe(0);
 
 		// Resources should be deposited to the world ResourcePool
-		expect(world.get(ResourcePool)!.fish).toBe(15);
+		expect(world.get(ResourcePool)?.fish).toBe(15);
 	});
 
 	it("should not pick up if caravan already carrying resources", () => {
@@ -343,7 +343,7 @@ describe("Caravan Vulnerability", () => {
 
 		// Deduct from pool to simulate pickup
 		world.set(ResourcePool, { fish: 80, timber: 0, salvage: 0 });
-		expect(world.get(ResourcePool)!.fish).toBe(80);
+		expect(world.get(ResourcePool)?.fish).toBe(80);
 
 		// Cargo query should report 20 fish
 		expect(getCaravanCargo(caravan)).toEqual({ type: "fish", amount: 20 });
@@ -353,7 +353,7 @@ describe("Caravan Vulnerability", () => {
 
 		// Caravan still has the cargo data, but it's "lost" — system should clean up
 		// The resources are gone from the pool and NOT delivered
-		expect(world.get(ResourcePool)!.fish).toBe(80);
+		expect(world.get(ResourcePool)?.fish).toBe(80);
 	});
 
 	it("should return zero cargo for an empty caravan", () => {
@@ -388,7 +388,7 @@ describe("multiBaseSystem integration", () => {
 		// Should have arrived and delivered
 		expect(caravanData.amount).toBe(0);
 		expect(caravanData.carrying).toBe("");
-		expect(world.get(ResourcePool)!.fish).toBe(65); // 50 + 15
+		expect(world.get(ResourcePool)?.fish).toBe(65); // 50 + 15
 	});
 
 	it("should skip dead caravans", () => {

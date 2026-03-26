@@ -13,8 +13,10 @@ import {
 	CampaignProgress,
 	CompletedResearch,
 	CurrentMission,
+	DialogueState,
 	GameClock,
 	GamePhase,
+	NavGraphState,
 	Objectives,
 	PopulationState,
 	ResourcePool,
@@ -40,6 +42,8 @@ export function initSingletons(world: World): void {
 	world.add(TerritoryState);
 	world.add(UserSettings);
 	world.add(WeatherCondition);
+	world.add(DialogueState);
+	world.add(NavGraphState);
 }
 
 /**

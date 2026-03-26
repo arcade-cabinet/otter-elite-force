@@ -4,10 +4,10 @@
  * Pure logic module: given minimap canvas dimensions, world dimensions (in tiles),
  * and a canvas-local pointer position, computes the world-space camera target.
  *
- * Used by the React Minimap component to snap/pan the Phaser camera.
+ * Used by the React Minimap component to snap/pan the game camera.
  */
 
-const TILE_SIZE = 32;
+const CELL_SIZE = 32;
 
 export interface MinimapDimensions {
 	/** Minimap canvas CSS width (px) */
@@ -52,8 +52,8 @@ export function minimapToWorld(
 	const tileY = (canvasY / Math.max(1, canvasHeight)) * worldTilesH;
 
 	// Convert tile -> world pixels, centering the viewport
-	const scrollX = tileX * TILE_SIZE - viewportWidth / 2;
-	const scrollY = tileY * TILE_SIZE - viewportHeight / 2;
+	const scrollX = tileX * CELL_SIZE - viewportWidth / 2;
+	const scrollY = tileY * CELL_SIZE - viewportHeight / 2;
 
 	return { scrollX, scrollY };
 }

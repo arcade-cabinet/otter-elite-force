@@ -8,11 +8,19 @@
  * Spec §7: Koota as Single State Layer.
  */
 import { trait } from "koota";
+import type { Graph } from "yuka";
 import type { ObjectiveStatus } from "@/scenarios/types";
 
 // ---------------------------------------------------------------------------
-// Resources (replaces resourceStore)
+// Navigation (A* pathfinding graph)
 // ---------------------------------------------------------------------------
+
+/** Navigation graph for A* pathfinding. Built when mission terrain loads. */
+export const NavGraphState = trait(() => ({
+	graph: null as Graph | null,
+	width: 0,
+	height: 0,
+}));
 
 /** Global resource pool: fish, timber, salvage. */
 export const ResourcePool = trait({ fish: 0, timber: 0, salvage: 0 });
@@ -48,6 +56,36 @@ export const Objectives = trait(() => ({
 		status: ObjectiveStatus;
 		bonus: boolean;
 	}>,
+}));
+
+// ---------------------------------------------------------------------------
+// Dialogue state — drives the portrait overlay dialogue system
+// ---------------------------------------------------------------------------
+
+/** A single line in a dialogue exchange. */
+export interface DialogueLine {
+	speaker: string;
+	text: string;
+	portraitId?: string;
+}
+
+/**
+ * Active dialogue exchange — written by scenario triggers, read by the UI.
+ *
+ * When `active` is true, the BriefingDialogue overlay shows.
+ * The game loop pauses during dialogue (GamePhase → "dialogue").
+ * When the player advances past all lines, active becomes false.
+ */
+export const DialogueState = trait(() => ({
+	active: false,
+	/** The lines to show. Can be a single line or a multi-line exchange. */
+	lines: [] as DialogueLine[],
+	/** Current line index (advanced by player input). */
+	currentLine: 0,
+	/** Whether to pause the game during this dialogue. */
+	pauseGame: true,
+	/** Callback ID for the trigger that initiated this dialogue (for tracking). */
+	triggerId: null as string | null,
 }));
 
 // ---------------------------------------------------------------------------

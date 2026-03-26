@@ -1,0 +1,689 @@
+{
+  "ice_1": {
+    "path": "/assets/tiles/terrain/ice_1.png",
+    "category": "terrain",
+    "tile_id": 0
+  },
+  "ice_2": {
+    "path": "/assets/tiles/terrain/ice_2.png",
+    "category": "terrain",
+    "tile_id": 1
+  },
+  "ice_3": {
+    "path": "/assets/tiles/terrain/ice_3.png",
+    "category": "terrain",
+    "tile_id": 2
+  },
+  "sand_1": {
+    "path": "/assets/tiles/terrain/sand_1.png",
+    "category": "terrain",
+    "tile_id": 3
+  },
+  "sand_2": {
+    "path": "/assets/tiles/terrain/sand_2.png",
+    "category": "terrain",
+    "tile_id": 4
+  },
+  "path_corner_tl": {
+    "path": "/assets/tiles/terrain/path_corner_tl.png",
+    "category": "terrain",
+    "tile_id": 5
+  },
+  "path_t_down": {
+    "path": "/assets/tiles/terrain/path_t_down.png",
+    "category": "terrain",
+    "tile_id": 6
+  },
+  "path_t_right": {
+    "path": "/assets/tiles/terrain/path_t_right.png",
+    "category": "terrain",
+    "tile_id": 7
+  },
+  "path_turn_1": {
+    "path": "/assets/tiles/terrain/path_turn_1.png",
+    "category": "terrain",
+    "tile_id": 8
+  },
+  "path_turn_2": {
+    "path": "/assets/tiles/terrain/path_turn_2.png",
+    "category": "terrain",
+    "tile_id": 9
+  },
+  "path_h": {
+    "path": "/assets/tiles/terrain/path_h.png",
+    "category": "terrain",
+    "tile_id": 10
+  },
+  "path_corner_bl": {
+    "path": "/assets/tiles/terrain/path_corner_bl.png",
+    "category": "terrain",
+    "tile_id": 11
+  },
+  "path_t_up": {
+    "path": "/assets/tiles/terrain/path_t_up.png",
+    "category": "terrain",
+    "tile_id": 12
+  },
+  "path_t_left": {
+    "path": "/assets/tiles/terrain/path_t_left.png",
+    "category": "terrain",
+    "tile_id": 13
+  },
+  "grass_sand_tl": {
+    "path": "/assets/tiles/terrain/grass_sand_tl.png",
+    "category": "terrain",
+    "tile_id": 14
+  },
+  "grass_sand_t": {
+    "path": "/assets/tiles/terrain/grass_sand_t.png",
+    "category": "terrain",
+    "tile_id": 15
+  },
+  "grass_sand_tr": {
+    "path": "/assets/tiles/terrain/grass_sand_tr.png",
+    "category": "terrain",
+    "tile_id": 16
+  },
+  "grass_1": {
+    "path": "/assets/tiles/terrain/grass_1.png",
+    "category": "terrain",
+    "tile_id": 17
+  },
+  "grass_2": {
+    "path": "/assets/tiles/terrain/grass_2.png",
+    "category": "terrain",
+    "tile_id": 18
+  },
+  "grass_3": {
+    "path": "/assets/tiles/terrain/grass_3.png",
+    "category": "terrain",
+    "tile_id": 19
+  },
+  "grass_dark_1": {
+    "path": "/assets/tiles/terrain/grass_dark_1.png",
+    "category": "terrain",
+    "tile_id": 20
+  },
+  "grass_dark_2": {
+    "path": "/assets/tiles/terrain/grass_dark_2.png",
+    "category": "terrain",
+    "tile_id": 21
+  },
+  "grass_dark_3": {
+    "path": "/assets/tiles/terrain/grass_dark_3.png",
+    "category": "terrain",
+    "tile_id": 22
+  },
+  "dirt_1": {
+    "path": "/assets/tiles/terrain/dirt_1.png",
+    "category": "terrain",
+    "tile_id": 23
+  },
+  "dirt_2": {
+    "path": "/assets/tiles/terrain/dirt_2.png",
+    "category": "terrain",
+    "tile_id": 24
+  },
+  "dirt_3": {
+    "path": "/assets/tiles/terrain/dirt_3.png",
+    "category": "terrain",
+    "tile_id": 25
+  },
+  "dirt_sand_1": {
+    "path": "/assets/tiles/terrain/dirt_sand_1.png",
+    "category": "terrain",
+    "tile_id": 26
+  },
+  "dirt_sand_2": {
+    "path": "/assets/tiles/terrain/dirt_sand_2.png",
+    "category": "terrain",
+    "tile_id": 27
+  },
+  "path_v": {
+    "path": "/assets/tiles/terrain/path_v.png",
+    "category": "terrain",
+    "tile_id": 28
+  },
+  "path_cross": {
+    "path": "/assets/tiles/terrain/path_cross.png",
+    "category": "terrain",
+    "tile_id": 29
+  },
+  "path_end_r": {
+    "path": "/assets/tiles/terrain/path_end_r.png",
+    "category": "terrain",
+    "tile_id": 30
+  },
+  "path_end_b": {
+    "path": "/assets/tiles/terrain/path_end_b.png",
+    "category": "terrain",
+    "tile_id": 31
+  },
+  "path_end_l": {
+    "path": "/assets/tiles/terrain/path_end_l.png",
+    "category": "terrain",
+    "tile_id": 32
+  },
+  "path_end_t": {
+    "path": "/assets/tiles/terrain/path_end_t.png",
+    "category": "terrain",
+    "tile_id": 33
+  },
+  "path_dot": {
+    "path": "/assets/tiles/terrain/path_dot.png",
+    "category": "terrain",
+    "tile_id": 34
+  },
+  "grass_sand_bl": {
+    "path": "/assets/tiles/terrain/grass_sand_bl.png",
+    "category": "terrain",
+    "tile_id": 35
+  },
+  "grass_sand_b": {
+    "path": "/assets/tiles/terrain/grass_sand_b.png",
+    "category": "terrain",
+    "tile_id": 36
+  },
+  "grass_sand_br": {
+    "path": "/assets/tiles/terrain/grass_sand_br.png",
+    "category": "terrain",
+    "tile_id": 37
+  },
+  "grass_sand_l": {
+    "path": "/assets/tiles/terrain/grass_sand_l.png",
+    "category": "terrain",
+    "tile_id": 38
+  },
+  "grass_sand_r": {
+    "path": "/assets/tiles/terrain/grass_sand_r.png",
+    "category": "terrain",
+    "tile_id": 39
+  },
+  "sand_dark_1": {
+    "path": "/assets/tiles/terrain/sand_dark_1.png",
+    "category": "terrain",
+    "tile_id": 40
+  },
+  "sand_dark_2": {
+    "path": "/assets/tiles/terrain/sand_dark_2.png",
+    "category": "terrain",
+    "tile_id": 41
+  },
+  "sand_dark_3": {
+    "path": "/assets/tiles/terrain/sand_dark_3.png",
+    "category": "terrain",
+    "tile_id": 42
+  },
+  "sand_edge_tl": {
+    "path": "/assets/tiles/terrain/sand_edge_tl.png",
+    "category": "terrain",
+    "tile_id": 43
+  },
+  "sand_edge_tr": {
+    "path": "/assets/tiles/terrain/sand_edge_tr.png",
+    "category": "terrain",
+    "tile_id": 44
+  },
+  "sand_edge_bl": {
+    "path": "/assets/tiles/terrain/sand_edge_bl.png",
+    "category": "terrain",
+    "tile_id": 45
+  },
+  "water_light": {
+    "path": "/assets/tiles/terrain/water_light.png",
+    "category": "terrain",
+    "tile_id": 46
+  },
+  "water_base": {
+    "path": "/assets/tiles/terrain/water_base.png",
+    "category": "terrain",
+    "tile_id": 47
+  },
+  "water_dark": {
+    "path": "/assets/tiles/terrain/water_dark.png",
+    "category": "terrain",
+    "tile_id": 48
+  },
+  "water_edge_tl": {
+    "path": "/assets/tiles/terrain/water_edge_tl.png",
+    "category": "terrain",
+    "tile_id": 49
+  },
+  "water_edge_t": {
+    "path": "/assets/tiles/terrain/water_edge_t.png",
+    "category": "terrain",
+    "tile_id": 50
+  },
+  "water_edge_tr": {
+    "path": "/assets/tiles/terrain/water_edge_tr.png",
+    "category": "terrain",
+    "tile_id": 51
+  },
+  "dirt_path_1": {
+    "path": "/assets/tiles/terrain/dirt_path_1.png",
+    "category": "terrain",
+    "tile_id": 52
+  },
+  "dirt_path_2": {
+    "path": "/assets/tiles/terrain/dirt_path_2.png",
+    "category": "terrain",
+    "tile_id": 53
+  },
+  "dirt_path_3": {
+    "path": "/assets/tiles/terrain/dirt_path_3.png",
+    "category": "terrain",
+    "tile_id": 54
+  },
+  "grass_water_tl": {
+    "path": "/assets/tiles/terrain/grass_water_tl.png",
+    "category": "terrain",
+    "tile_id": 55
+  },
+  "grass_water_t": {
+    "path": "/assets/tiles/terrain/grass_water_t.png",
+    "category": "terrain",
+    "tile_id": 56
+  },
+  "grass_water_tr": {
+    "path": "/assets/tiles/terrain/grass_water_tr.png",
+    "category": "terrain",
+    "tile_id": 57
+  },
+  "water_edge_l": {
+    "path": "/assets/tiles/terrain/water_edge_l.png",
+    "category": "terrain",
+    "tile_id": 58
+  },
+  "water_center": {
+    "path": "/assets/tiles/terrain/water_center.png",
+    "category": "terrain",
+    "tile_id": 59
+  },
+  "water_edge_r": {
+    "path": "/assets/tiles/terrain/water_edge_r.png",
+    "category": "terrain",
+    "tile_id": 60
+  },
+  "sand_edge_br": {
+    "path": "/assets/tiles/terrain/sand_edge_br.png",
+    "category": "terrain",
+    "tile_id": 61
+  },
+  "grass_water_l": {
+    "path": "/assets/tiles/terrain/grass_water_l.png",
+    "category": "terrain",
+    "tile_id": 62
+  },
+  "grass_water_r": {
+    "path": "/assets/tiles/terrain/grass_water_r.png",
+    "category": "terrain",
+    "tile_id": 63
+  },
+  "water_edge_bl": {
+    "path": "/assets/tiles/terrain/water_edge_bl.png",
+    "category": "terrain",
+    "tile_id": 64
+  },
+  "water_edge_b": {
+    "path": "/assets/tiles/terrain/water_edge_b.png",
+    "category": "terrain",
+    "tile_id": 65
+  },
+  "water_edge_br": {
+    "path": "/assets/tiles/terrain/water_edge_br.png",
+    "category": "terrain",
+    "tile_id": 66
+  },
+  "grass_water_bl": {
+    "path": "/assets/tiles/terrain/grass_water_bl.png",
+    "category": "terrain",
+    "tile_id": 67
+  },
+  "grass_water_br": {
+    "path": "/assets/tiles/terrain/grass_water_br.png",
+    "category": "terrain",
+    "tile_id": 68
+  },
+  "tree_pine_sm": {
+    "path": "/assets/tiles/props/tree_pine_sm.png",
+    "category": "props",
+    "tile_id": 69
+  },
+  "tree_pine_lg": {
+    "path": "/assets/tiles/props/tree_pine_lg.png",
+    "category": "props",
+    "tile_id": 70
+  },
+  "tree_round_sm": {
+    "path": "/assets/tiles/props/tree_round_sm.png",
+    "category": "props",
+    "tile_id": 71
+  },
+  "tree_round_lg": {
+    "path": "/assets/tiles/props/tree_round_lg.png",
+    "category": "props",
+    "tile_id": 72
+  },
+  "tree_cluster_1": {
+    "path": "/assets/tiles/props/tree_cluster_1.png",
+    "category": "props",
+    "tile_id": 73
+  },
+  "tree_tall_1": {
+    "path": "/assets/tiles/props/tree_tall_1.png",
+    "category": "props",
+    "tile_id": 74
+  },
+  "tree_tall_2": {
+    "path": "/assets/tiles/props/tree_tall_2.png",
+    "category": "props",
+    "tile_id": 75
+  },
+  "tree_pine_tall": {
+    "path": "/assets/tiles/props/tree_pine_tall.png",
+    "category": "props",
+    "tile_id": 76
+  },
+  "stump": {
+    "path": "/assets/tiles/props/stump.png",
+    "category": "props",
+    "tile_id": 77
+  },
+  "gravestone": {
+    "path": "/assets/tiles/props/gravestone.png",
+    "category": "props",
+    "tile_id": 78
+  },
+  "pillar": {
+    "path": "/assets/tiles/props/pillar.png",
+    "category": "props",
+    "tile_id": 79
+  },
+  "mushroom": {
+    "path": "/assets/tiles/props/mushroom.png",
+    "category": "props",
+    "tile_id": 80
+  },
+  "chest": {
+    "path": "/assets/tiles/props/chest.png",
+    "category": "props",
+    "tile_id": 81
+  },
+  "potion": {
+    "path": "/assets/tiles/props/potion.png",
+    "category": "props",
+    "tile_id": 82
+  },
+  "forest_sparse": {
+    "path": "/assets/tiles/props/forest_sparse.png",
+    "category": "props",
+    "tile_id": 92
+  },
+  "forest_dense_1": {
+    "path": "/assets/tiles/props/forest_dense_1.png",
+    "category": "props",
+    "tile_id": 93
+  },
+  "forest_dense_2": {
+    "path": "/assets/tiles/props/forest_dense_2.png",
+    "category": "props",
+    "tile_id": 94
+  },
+  "forest_full": {
+    "path": "/assets/tiles/props/forest_full.png",
+    "category": "props",
+    "tile_id": 95
+  },
+  "rock_gray_1": {
+    "path": "/assets/tiles/props/rock_gray_1.png",
+    "category": "props",
+    "tile_id": 96
+  },
+  "rock_gray_2": {
+    "path": "/assets/tiles/props/rock_gray_2.png",
+    "category": "props",
+    "tile_id": 97
+  },
+  "rock_gray_lg": {
+    "path": "/assets/tiles/props/rock_gray_lg.png",
+    "category": "props",
+    "tile_id": 98
+  },
+  "rock_cluster": {
+    "path": "/assets/tiles/props/rock_cluster.png",
+    "category": "props",
+    "tile_id": 99
+  },
+  "rock_crystal_1": {
+    "path": "/assets/tiles/props/rock_crystal_1.png",
+    "category": "props",
+    "tile_id": 100
+  },
+  "rock_crystal_2": {
+    "path": "/assets/tiles/props/rock_crystal_2.png",
+    "category": "props",
+    "tile_id": 101
+  },
+  "bush_green": {
+    "path": "/assets/tiles/props/bush_green.png",
+    "category": "props",
+    "tile_id": 102
+  },
+  "mushroom_cluster_1": {
+    "path": "/assets/tiles/props/mushroom_cluster_1.png",
+    "category": "props",
+    "tile_id": 124
+  },
+  "mushroom_cluster_2": {
+    "path": "/assets/tiles/props/mushroom_cluster_2.png",
+    "category": "props",
+    "tile_id": 125
+  },
+  "mushroom_cluster_3": {
+    "path": "/assets/tiles/props/mushroom_cluster_3.png",
+    "category": "props",
+    "tile_id": 126
+  },
+  "campfire_1": {
+    "path": "/assets/tiles/props/campfire_1.png",
+    "category": "props",
+    "tile_id": 181
+  },
+  "campfire_2": {
+    "path": "/assets/tiles/props/campfire_2.png",
+    "category": "props",
+    "tile_id": 206
+  },
+  "command_post": {
+    "path": "/assets/tiles/buildings/command_post.png",
+    "category": "buildings",
+    "tile_id": 143
+  },
+  "barracks": {
+    "path": "/assets/tiles/buildings/barracks.png",
+    "category": "buildings",
+    "tile_id": 168
+  },
+  "armory": {
+    "path": "/assets/tiles/buildings/armory.png",
+    "category": "buildings",
+    "tile_id": 147
+  },
+  "watchtower": {
+    "path": "/assets/tiles/buildings/watchtower.png",
+    "category": "buildings",
+    "tile_id": 146
+  },
+  "fish_trap": {
+    "path": "/assets/tiles/buildings/fish_trap.png",
+    "category": "buildings",
+    "tile_id": 144
+  },
+  "burrow": {
+    "path": "/assets/tiles/buildings/burrow.png",
+    "category": "buildings",
+    "tile_id": 145
+  },
+  "dock": {
+    "path": "/assets/tiles/buildings/dock.png",
+    "category": "buildings",
+    "tile_id": 165
+  },
+  "field_hospital": {
+    "path": "/assets/tiles/buildings/field_hospital.png",
+    "category": "buildings",
+    "tile_id": 166
+  },
+  "sandbag_wall": {
+    "path": "/assets/tiles/buildings/sandbag_wall.png",
+    "category": "buildings",
+    "tile_id": 193
+  },
+  "stone_wall": {
+    "path": "/assets/tiles/buildings/stone_wall.png",
+    "category": "buildings",
+    "tile_id": 175
+  },
+  "gun_tower": {
+    "path": "/assets/tiles/buildings/gun_tower.png",
+    "category": "buildings",
+    "tile_id": 164
+  },
+  "minefield": {
+    "path": "/assets/tiles/buildings/minefield.png",
+    "category": "buildings",
+    "tile_id": 169
+  },
+  "flag_post": {
+    "path": "/assets/tiles/buildings/flag_post.png",
+    "category": "buildings",
+    "tile_id": 173
+  },
+  "fuel_tank": {
+    "path": "/assets/tiles/buildings/fuel_tank.png",
+    "category": "buildings",
+    "tile_id": 171
+  },
+  "great_siphon": {
+    "path": "/assets/tiles/buildings/great_siphon.png",
+    "category": "buildings",
+    "tile_id": 185
+  },
+  "sludge_pit": {
+    "path": "/assets/tiles/buildings/sludge_pit.png",
+    "category": "buildings",
+    "tile_id": 186
+  },
+  "spawning_pool": {
+    "path": "/assets/tiles/buildings/spawning_pool.png",
+    "category": "buildings",
+    "tile_id": 190
+  },
+  "venom_spire": {
+    "path": "/assets/tiles/buildings/venom_spire.png",
+    "category": "buildings",
+    "tile_id": 191
+  },
+  "siphon": {
+    "path": "/assets/tiles/buildings/siphon.png",
+    "category": "buildings",
+    "tile_id": 188
+  },
+  "scale_wall": {
+    "path": "/assets/tiles/buildings/scale_wall.png",
+    "category": "buildings",
+    "tile_id": 196
+  },
+  "shield_generator": {
+    "path": "/assets/tiles/buildings/shield_generator.png",
+    "category": "buildings",
+    "tile_id": 189
+  },
+  "salvage_cache": {
+    "path": "/assets/tiles/resources/salvage_cache.png",
+    "category": "resources",
+    "tile_id": 81
+  },
+  "supply_crate": {
+    "path": "/assets/tiles/resources/supply_crate.png",
+    "category": "resources",
+    "tile_id": 82
+  },
+  "intel_marker": {
+    "path": "/assets/tiles/resources/intel_marker.png",
+    "category": "resources",
+    "tile_id": 80
+  },
+  "floor_wood_1": {
+    "path": "/assets/tiles/terrain/floor_wood_1.png",
+    "category": "terrain",
+    "tile_id": 138
+  },
+  "floor_wood_2": {
+    "path": "/assets/tiles/terrain/floor_wood_2.png",
+    "category": "terrain",
+    "tile_id": 139
+  },
+  "floor_wood_dark": {
+    "path": "/assets/tiles/terrain/floor_wood_dark.png",
+    "category": "terrain",
+    "tile_id": 140
+  },
+  "floor_stone": {
+    "path": "/assets/tiles/terrain/floor_stone.png",
+    "category": "terrain",
+    "tile_id": 141
+  },
+  "floor_checker": {
+    "path": "/assets/tiles/terrain/floor_checker.png",
+    "category": "terrain",
+    "tile_id": 142
+  },
+  "arrow_down_red": {
+    "path": "/assets/tiles/ui/arrow_down_red.png",
+    "category": "ui",
+    "tile_id": 176
+  },
+  "arrow_up_red": {
+    "path": "/assets/tiles/ui/arrow_up_red.png",
+    "category": "ui",
+    "tile_id": 177
+  },
+  "arrow_right_red_1": {
+    "path": "/assets/tiles/ui/arrow_right_red_1.png",
+    "category": "ui",
+    "tile_id": 178
+  },
+  "arrow_right_red_2": {
+    "path": "/assets/tiles/ui/arrow_right_red_2.png",
+    "category": "ui",
+    "tile_id": 179
+  },
+  "arrow_left_red": {
+    "path": "/assets/tiles/ui/arrow_left_red.png",
+    "category": "ui",
+    "tile_id": 180
+  },
+  "arrow_up_orange": {
+    "path": "/assets/tiles/ui/arrow_up_orange.png",
+    "category": "ui",
+    "tile_id": 203
+  },
+  "arrow_right_orange": {
+    "path": "/assets/tiles/ui/arrow_right_orange.png",
+    "category": "ui",
+    "tile_id": 204
+  },
+  "lonesome_forest_detail_objects": {
+    "path": "/assets/tiles/props/lonesome_forest_detail_objects.png",
+    "category": "props"
+  },
+  "lonesome_forest_river_and_water_edges": {
+    "path": "/assets/tiles/props/lonesome_forest_river_and_water_edges.png",
+    "category": "props"
+  },
+  "forest_trees_sheet": {
+    "path": "/assets/tiles/props/forest_trees_sheet.png",
+    "category": "props"
+  }
+}

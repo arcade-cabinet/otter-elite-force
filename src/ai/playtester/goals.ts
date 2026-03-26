@@ -410,7 +410,7 @@ export class RightClickUnexploredGoal extends PlaytesterGoal {
 	}
 }
 
-/** Placeholder: click a building placement spot. */
+/** Click a building placement spot via keyboard hotkey then canvas click. */
 export class PlaceBuildingGoal extends PlaytesterGoal {
 	private buildingHotkey: string;
 	private nearTileX: number;

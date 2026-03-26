@@ -13,7 +13,7 @@
  *   - src/ai/playtester/perception.ts
  *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
  */
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type {
 	PlayerPerception,
 	Viewport,
@@ -211,8 +211,8 @@ describe("AI Playtester Perception Queries", () => {
 			const tile = findNearestUnexploredTile(p, 0, 0);
 			expect(tile).not.toBeNull();
 			// (1,1) is distance sqrt(2), closest to (0,0) among unexplored
-			expect(tile!.tileX).toBe(1);
-			expect(tile!.tileY).toBe(1);
+			expect(tile?.tileX).toBe(1);
+			expect(tile?.tileY).toBe(1);
 		});
 	});
 
@@ -231,8 +231,8 @@ describe("AI Playtester Perception Queries", () => {
 			});
 			const nearest = findNearestResource(p, 0, 0);
 			expect(nearest).not.toBeNull();
-			expect(nearest!.tileX).toBe(1);
-			expect(nearest!.tileY).toBe(1);
+			expect(nearest?.tileX).toBe(1);
+			expect(nearest?.tileY).toBe(1);
 		});
 
 		it("filters by resource type", () => {
@@ -244,7 +244,7 @@ describe("AI Playtester Perception Queries", () => {
 			});
 			const nearest = findNearestResource(p, 0, 0, "timber");
 			expect(nearest).not.toBeNull();
-			expect(nearest!.resourceType).toBe("timber");
+			expect(nearest?.resourceType).toBe("timber");
 		});
 
 		it("skips depleted resources (remaining=0)", () => {
@@ -255,7 +255,7 @@ describe("AI Playtester Perception Queries", () => {
 				],
 			});
 			const nearest = findNearestResource(p, 0, 0);
-			expect(nearest!.tileX).toBe(5);
+			expect(nearest?.tileX).toBe(5);
 		});
 	});
 

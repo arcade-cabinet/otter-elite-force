@@ -21,7 +21,7 @@ import { clampCameraScroll, minimapToWorld } from "@/input/minimapInput";
 import { PanelFrame } from "@/ui/hud/PanelFrame";
 import { cn } from "@/ui/lib/utils";
 
-const TILE_SIZE = 32;
+const CELL_SIZE = 32;
 const CANVAS_SIZE = 160;
 
 /** US-037 phosphor-green CRT palette */
@@ -45,14 +45,40 @@ export function Minimap({
 	const world = useWorld();
 	const currentMission = useTrait(world, CurrentMission);
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
-	const sceneRef = useRef<Phaser.Scene | null>(null);
+	const sceneRef = useRef<{
+		cameras: {
+			main: {
+				scrollX: number;
+				scrollY: number;
+				zoom: number;
+				width: number;
+				height: number;
+				worldView: { x: number; y: number; width: number; height: number };
+				getBounds(): { x: number; y: number; width: number; height: number };
+			};
+		};
+		scene: { key: string };
+	} | null>(null);
 	/** Track whether the user is dragging on the minimap. */
 	const isDraggingRef = useRef(false);
 	/** Cached world dimensions (tiles) for pointer handlers. */
 	const worldDimsRef = useRef({ w: 1, h: 1 });
 
 	useEffect(() => {
-		const onSceneReady = (scene: Phaser.Scene) => {
+		const onSceneReady = (scene: {
+			scene: { key: string };
+			cameras: {
+				main: {
+					scrollX: number;
+					scrollY: number;
+					zoom: number;
+					width: number;
+					height: number;
+					worldView: { x: number; y: number; width: number; height: number };
+					getBounds(): { x: number; y: number; width: number; height: number };
+				};
+			};
+		}) => {
 			if (scene.scene.key === "Game") {
 				sceneRef.current = scene;
 			}
@@ -225,10 +251,10 @@ export function Minimap({
 				ctx.lineWidth = 1.5;
 				ctx.globalAlpha = 0.9;
 				ctx.strokeRect(
-					(camera.worldView.x / TILE_SIZE) * scaleX,
-					(camera.worldView.y / TILE_SIZE) * scaleY,
-					(camera.worldView.width / TILE_SIZE) * scaleX,
-					(camera.worldView.height / TILE_SIZE) * scaleY,
+					(camera.worldView.x / CELL_SIZE) * scaleX,
+					(camera.worldView.y / CELL_SIZE) * scaleY,
+					(camera.worldView.width / CELL_SIZE) * scaleX,
+					(camera.worldView.height / CELL_SIZE) * scaleY,
 				);
 				ctx.globalAlpha = 1;
 			}

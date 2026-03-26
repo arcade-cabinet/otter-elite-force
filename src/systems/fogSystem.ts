@@ -1,5 +1,5 @@
 /**
- * Fog of War system — Phaser RenderTexture overlay with three states:
+ * Fog of War system — RenderTexture overlay with three states:
  *   - Unexplored: fully black (never seen)
  *   - Explored: dark tint (terrain visible, no units)
  *   - Visible: fully clear (real-time view within friendly unit vision)
@@ -10,11 +10,38 @@
  */
 
 import type { World } from "koota";
-import type Phaser from "phaser";
 import { VisionRadius } from "@/ecs/traits/combat";
 import { Faction } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
-import { TILE_SIZE } from "@/maps/loader";
+import { CELL_SIZE } from "@/maps/constants";
+
+/** Minimal graphics-like object used by the fog system. */
+interface FogGraphics {
+	setVisible(v: boolean): void;
+	clear(): void;
+	fillStyle(color: number, alpha: number): void;
+	fillRect(x: number, y: number, w: number, h: number): void;
+	destroy(): void;
+}
+
+/** Minimal render-texture-like object used by the fog system. */
+interface FogRenderTexture {
+	setOrigin(x: number, y: number): void;
+	setDepth(d: number): void;
+	fill(color: number, alpha: number): void;
+	clear(): void;
+	erase(obj: FogGraphics): void;
+	draw(obj: FogGraphics): void;
+	destroy(): void;
+}
+
+/** Scene-like object providing factory methods for fog rendering. */
+export interface FogScene {
+	add: {
+		renderTexture(x: number, y: number, w: number, h: number): FogRenderTexture;
+		graphics(): FogGraphics;
+	};
+}
 
 /** Fog state for each tile */
 export enum FogState {
@@ -30,9 +57,9 @@ export class FogOfWarSystem {
 	private world: World;
 	private cols: number;
 	private rows: number;
-	private fogTexture: Phaser.GameObjects.RenderTexture;
+	private fogTexture: FogRenderTexture;
 	private exploredGrid: FogState[][];
-	private eraserGraphics: Phaser.GameObjects.Graphics;
+	private eraserGraphics: FogGraphics;
 
 	/** Color for unexplored fog */
 	private static readonly FOG_COLOR_UNEXPLORED = 0x000000;
@@ -43,13 +70,7 @@ export class FogOfWarSystem {
 	/** Player faction ID */
 	private playerFaction: string;
 
-	constructor(
-		scene: Phaser.Scene,
-		world: World,
-		cols: number,
-		rows: number,
-		playerFaction = "ura",
-	) {
+	constructor(scene: FogScene, world: World, cols: number, rows: number, playerFaction = "ura") {
 		this.world = world;
 		this.cols = cols;
 		this.rows = rows;
@@ -65,8 +86,8 @@ export class FogOfWarSystem {
 		}
 
 		// Create a RenderTexture the size of the full map
-		const mapWidth = cols * TILE_SIZE;
-		const mapHeight = rows * TILE_SIZE;
+		const mapWidth = cols * CELL_SIZE;
+		const mapHeight = rows * CELL_SIZE;
 		this.fogTexture = scene.add.renderTexture(0, 0, mapWidth, mapHeight);
 		this.fogTexture.setOrigin(0, 0);
 		// Fog renders above tilemap and units but below HUD (high depth value)
@@ -132,7 +153,7 @@ export class FogOfWarSystem {
 		for (let y = 0; y < this.rows; y++) {
 			for (let x = 0; x < this.cols; x++) {
 				if (this.exploredGrid[y][x] === FogState.Explored) {
-					this.eraserGraphics.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					this.eraserGraphics.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 				}
 			}
 		}
@@ -149,7 +170,7 @@ export class FogOfWarSystem {
 		for (let y = 0; y < this.rows; y++) {
 			for (let x = 0; x < this.cols; x++) {
 				if (this.exploredGrid[y][x] === FogState.Explored && !visibleTiles.has(`${x},${y}`)) {
-					this.eraserGraphics.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					this.eraserGraphics.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 				}
 			}
 		}
@@ -160,7 +181,7 @@ export class FogOfWarSystem {
 		this.eraserGraphics.fillStyle(0xffffff, 1);
 		for (const key of visibleTiles) {
 			const [tx, ty] = key.split(",").map(Number);
-			this.eraserGraphics.fillRect(tx * TILE_SIZE, ty * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+			this.eraserGraphics.fillRect(tx * CELL_SIZE, ty * CELL_SIZE, CELL_SIZE, CELL_SIZE);
 		}
 		this.fogTexture.erase(this.eraserGraphics);
 	}

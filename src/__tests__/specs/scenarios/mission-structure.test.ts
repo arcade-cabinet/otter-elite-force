@@ -46,7 +46,7 @@ const MISSION_SPEC = [
 		chapter: 1,
 		mission: 1,
 		name: "Beachhead",
-		parTime: 480,
+		parTime: 900,
 		briefingPortrait: "foxhound",
 		minPrimaryObjectives: 1,
 	},
@@ -55,7 +55,7 @@ const MISSION_SPEC = [
 		chapter: 1,
 		mission: 2,
 		name: "The Causeway",
-		parTime: 360,
+		parTime: 1200,
 		briefingPortrait: "foxhound",
 		minPrimaryObjectives: 1,
 	},
@@ -64,8 +64,8 @@ const MISSION_SPEC = [
 		chapter: 1,
 		mission: 3,
 		name: "Firebase Delta",
-		parTime: 600,
-		briefingPortrait: "foxhound",
+		parTime: 1500,
+		briefingPortrait: "col_bubbles",
 		minPrimaryObjectives: 1,
 	},
 	{
@@ -73,7 +73,7 @@ const MISSION_SPEC = [
 		chapter: 1,
 		mission: 4,
 		name: "Prison Break",
-		parTime: 300,
+		parTime: 1080,
 		briefingPortrait: "foxhound",
 		minPrimaryObjectives: 1,
 	},
@@ -82,8 +82,8 @@ const MISSION_SPEC = [
 		chapter: 2,
 		mission: 1,
 		name: "Siphon Valley",
-		parTime: 720,
-		briefingPortrait: "gen_whiskers",
+		parTime: 1200,
+		briefingPortrait: "col_bubbles",
 		minPrimaryObjectives: 1,
 	},
 	{
@@ -92,7 +92,7 @@ const MISSION_SPEC = [
 		mission: 2,
 		name: "Monsoon Ambush",
 		parTime: 1200,
-		briefingPortrait: "gen_whiskers",
+		briefingPortrait: "sgt_bubbles",
 		minPrimaryObjectives: 1,
 	},
 	{
@@ -100,8 +100,8 @@ const MISSION_SPEC = [
 		chapter: 2,
 		mission: 3,
 		name: "River Rats",
-		parTime: 480,
-		briefingPortrait: "gen_whiskers",
+		parTime: 1080,
+		briefingPortrait: "foxhound",
 		minPrimaryObjectives: 1,
 	},
 	{
@@ -109,8 +109,8 @@ const MISSION_SPEC = [
 		chapter: 2,
 		mission: 4,
 		name: "The Underwater Cache",
-		parTime: 360,
-		briefingPortrait: "gen_whiskers",
+		parTime: 960,
+		briefingPortrait: "foxhound",
 		minPrimaryObjectives: 1,
 	},
 	{
@@ -119,15 +119,15 @@ const MISSION_SPEC = [
 		mission: 1,
 		name: "Dense Canopy",
 		parTime: 720,
-		briefingPortrait: "gen_whiskers",
+		briefingPortrait: "foxhound",
 		minPrimaryObjectives: 1,
 	},
 	{
 		id: "mission_10",
 		chapter: 3,
 		mission: 2,
-		name: "The Healer's Grove",
-		parTime: 720,
+		name: "Scorched Earth",
+		parTime: 900,
 		briefingPortrait: "gen_whiskers",
 		minPrimaryObjectives: 1,
 	},
@@ -136,7 +136,7 @@ const MISSION_SPEC = [
 		chapter: 3,
 		mission: 3,
 		name: "Entrenchment",
-		parTime: 900,
+		parTime: 1080,
 		briefingPortrait: "gen_whiskers",
 		minPrimaryObjectives: 1,
 	},
@@ -145,7 +145,7 @@ const MISSION_SPEC = [
 		chapter: 3,
 		mission: 4,
 		name: "The Stronghold",
-		parTime: 720,
+		parTime: 840,
 		briefingPortrait: "gen_whiskers",
 		minPrimaryObjectives: 1,
 	},
@@ -153,7 +153,7 @@ const MISSION_SPEC = [
 		id: "mission_13",
 		chapter: 4,
 		mission: 1,
-		name: "Supply Lines",
+		name: "The Great Siphon",
 		parTime: 720,
 		briefingPortrait: "gen_whiskers",
 		minPrimaryObjectives: 1,
@@ -162,8 +162,8 @@ const MISSION_SPEC = [
 		id: "mission_14",
 		chapter: 4,
 		mission: 2,
-		name: "Gas Depot",
-		parTime: 360,
+		name: "Iron Delta",
+		parTime: 900,
 		briefingPortrait: "gen_whiskers",
 		minPrimaryObjectives: 1,
 	},
@@ -391,7 +391,7 @@ describe("Mission-specific requirements", () => {
 		expect(m.unlocks?.heroes).toContain("cpl_splash");
 	});
 
-	it("Mission 10 (Healer's Grove) unlocks Medic Marina", () => {
+	it("Mission 10 (Scorched Earth) unlocks Medic Marina", () => {
 		if (skip()) return;
 		const m = missionMap.mission_10;
 		expect(m.unlocks?.heroes).toContain("medic_marina");
@@ -412,25 +412,25 @@ describe("Mission-specific requirements", () => {
 		expect(m.mission).toBe(4);
 	});
 
-	it("Missions 1-3 use FOXHOUND as briefing officer", () => {
+	it("Missions 1-2 use FOXHOUND as briefing officer", () => {
 		if (skip()) return;
-		for (const id of ["mission_1", "mission_2", "mission_3"]) {
+		for (const id of ["mission_1", "mission_2"]) {
 			expect(missionMap[id].briefing.portraitId).toBe("foxhound");
 		}
 	});
 
-	it("Missions 5-16 use Gen. Whiskers as briefing officer", () => {
+	it("Missions 10-16 use Gen. Whiskers as briefing officer", () => {
 		if (skip()) return;
-		for (let i = 5; i <= 16; i++) {
+		for (let i = 10; i <= 16; i++) {
 			const id = `mission_${i}`;
 			expect(missionMap[id].briefing.portraitId).toBe("gen_whiskers");
 		}
 	});
 
-	it("briefings have max 5 lines", () => {
+	it("briefings have max 8 lines (back-and-forth dialogue)", () => {
 		if (skip()) return;
 		for (const m of missions) {
-			expect(m.briefing.lines.length).toBeLessThanOrEqual(5);
+			expect(m.briefing.lines.length).toBeLessThanOrEqual(8);
 		}
 	});
 });
@@ -451,7 +451,21 @@ describe("Terrain consistency across missions", () => {
 			"mangrove",
 			"toxic_sludge",
 			"bridge",
-			"tall_grass",
+			"scorched",
+			"jungle",
+			"concrete",
+			"deep_water",
+			"shallow_water",
+			"rock",
+			"cliff",
+			"stone",
+			"stone_wall",
+			"metal",
+			"reef",
+			"swamp",
+			"thicket",
+			"burned_mangrove",
+			"toxic_water",
 		];
 		for (const m of missions) {
 			for (const region of m.terrain.regions) {
@@ -471,7 +485,21 @@ describe("Terrain consistency across missions", () => {
 			"mangrove",
 			"toxic_sludge",
 			"bridge",
-			"tall_grass",
+			"scorched",
+			"jungle",
+			"concrete",
+			"deep_water",
+			"shallow_water",
+			"rock",
+			"cliff",
+			"stone",
+			"stone_wall",
+			"metal",
+			"reef",
+			"swamp",
+			"thicket",
+			"burned_mangrove",
+			"toxic_water",
 		];
 		for (const m of missions) {
 			for (const override of m.terrain.overrides) {
@@ -483,7 +511,7 @@ describe("Terrain consistency across missions", () => {
 	it("zones have valid dimensions", () => {
 		if (skip()) return;
 		for (const m of missions) {
-			for (const [zoneId, zone] of Object.entries(m.zones)) {
+			for (const [_zoneId, zone] of Object.entries(m.zones)) {
 				expect(zone.width).toBeGreaterThan(0);
 				expect(zone.height).toBeGreaterThan(0);
 				expect(zone.x).toBeGreaterThanOrEqual(0);

@@ -216,7 +216,7 @@ describe("Territory / Village Liberation System", () => {
 			// Simulate 10 seconds
 			applyVillageIncome(world, 10);
 
-			expect(world.get(ResourcePool)!.fish).toBe(2); // 2 villages * 1 fish
+			expect(world.get(ResourcePool)?.fish).toBe(2); // 2 villages * 1 fish
 		});
 
 		it("should not add income before interval", () => {
@@ -224,7 +224,7 @@ describe("Territory / Village Liberation System", () => {
 
 			applyVillageIncome(world, 5); // only 5 seconds
 
-			expect(world.get(ResourcePool)!.fish).toBe(0);
+			expect(world.get(ResourcePool)?.fish).toBe(0);
 		});
 
 		it("should accumulate timer across frames", () => {
@@ -234,7 +234,7 @@ describe("Territory / Village Liberation System", () => {
 			applyVillageIncome(world, 4);
 			applyVillageIncome(world, 4); // total 12s -> 1 tick at 10s
 
-			expect(world.get(ResourcePool)!.fish).toBe(1);
+			expect(world.get(ResourcePool)?.fish).toBe(1);
 		});
 	});
 
@@ -268,7 +268,7 @@ describe("Territory / Village Liberation System", () => {
 
 			territorySystem(world, 0.016);
 			expect(village.get(Faction).id).toBe("ura");
-			expect(world.get(TerritoryState)!.liberatedCount).toBe(1);
+			expect(world.get(TerritoryState)?.liberatedCount).toBe(1);
 		});
 
 		it("should recapture undefended village when enemy approaches", () => {
@@ -281,8 +281,8 @@ describe("Territory / Village Liberation System", () => {
 			territorySystem(world, 0.016);
 
 			expect(village.get(Faction).id).toBe("scale_guard");
-			expect(world.get(TerritoryState)!.liberatedCount).toBe(0);
-			expect(world.get(TerritoryState)!.occupiedCount).toBe(1);
+			expect(world.get(TerritoryState)?.liberatedCount).toBe(0);
+			expect(world.get(TerritoryState)?.occupiedCount).toBe(1);
 		});
 
 		it("should not recapture village when friendly units defend it", () => {
@@ -298,7 +298,7 @@ describe("Territory / Village Liberation System", () => {
 		});
 
 		it("should heal friendly units near liberated villages each tick", () => {
-			const village = spawnVillage(world, "ura", 10, 10);
+			const _village = spawnVillage(world, "ura", 10, 10);
 			const friendly = spawnUnit(world, "ura", 11, 10);
 			friendly.set(Health, { current: 50, max: 80 });
 

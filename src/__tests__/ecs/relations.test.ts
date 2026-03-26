@@ -38,8 +38,8 @@ describe("Koota ECS Relations", () => {
 
 		it("should query all squad members with wildcard", () => {
 			const squad = world.spawn();
-			const unit1 = world.spawn(BelongsToSquad(squad));
-			const unit2 = world.spawn(BelongsToSquad(squad));
+			const _unit1 = world.spawn(BelongsToSquad(squad));
+			const _unit2 = world.spawn(BelongsToSquad(squad));
 
 			const results = world.query(BelongsToSquad(squad));
 			expect(results.length).toBe(2);
@@ -101,7 +101,7 @@ describe("Koota ECS Relations", () => {
 
 		it("should find idle workers (not gathering)", () => {
 			const tree = world.spawn(Position);
-			const busyWorker = world.spawn(Gatherer, GatheringFrom(tree));
+			const _busyWorker = world.spawn(Gatherer, GatheringFrom(tree));
 			const idleWorker = world.spawn(Gatherer);
 
 			const idle = world.query(Gatherer, Not(GatheringFrom("*")));
@@ -157,7 +157,7 @@ describe("Koota ECS Relations", () => {
 	describe("targetsFor", () => {
 		it("should return all targets for a relation", () => {
 			const squad1 = world.spawn();
-			const squad2 = world.spawn();
+			const _squad2 = world.spawn();
 			const unit = world.spawn(BelongsToSquad(squad1));
 
 			const targets = unit.targetsFor(BelongsToSquad);

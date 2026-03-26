@@ -91,7 +91,7 @@ describe("siphonSystem — Fish Trap suppression", () => {
 	});
 
 	it("should restore Fish Trap when siphon is destroyed (HP <= 0)", () => {
-		const siphon = spawnSiphon(10, 10, 0); // already dead
+		const _siphon = spawnSiphon(10, 10, 0); // already dead
 		const ura = spawnUraFaction();
 		const trap = spawnFishTrap(12, 10, ura);
 

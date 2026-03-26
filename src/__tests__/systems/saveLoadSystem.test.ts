@@ -5,7 +5,7 @@
  * - serializeWorld captures all serializable traits and relations
  * - deserializeWorld recreates entities with correct trait values
  * - Round-trip: spawn -> serialize -> reset -> deserialize -> verify
- * - Non-serializable traits (PhaserSprite, SteeringAgent) are skipped
+ * - Non-serializable traits (SteeringAgent) are skipped
  * - Relations (Targeting, GatheringFrom, OwnedBy) survive round-trip
  * - CompletedResearch (Set) and WeatherCondition survive round-trip
  *
@@ -122,13 +122,12 @@ describe("saveLoadSystem — serializeWorld", () => {
 		expect(e.traits.AIState).toEqual({ state: "moving", target: null, alertLevel: 0 });
 	});
 
-	it("should skip PhaserSprite and SteeringAgent traits", () => {
+	it("should skip non-serializable traits (SteeringAgent)", () => {
 		world.spawn(Position({ x: 0, y: 0 }), SteeringAgent);
 
 		const data = serializeWorld(world);
 		const e = data.entities[0];
 		expect(e.traits).not.toHaveProperty("SteeringAgent");
-		expect(e.traits).not.toHaveProperty("PhaserSprite");
 	});
 
 	it("should serialize multiple entities", () => {

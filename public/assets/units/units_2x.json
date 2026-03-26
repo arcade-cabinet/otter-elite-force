@@ -1880,7 +1880,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles": {
+    "col_bubbles": {
       "frame": {
         "x": 1056,
         "y": 66,
@@ -1892,7 +1892,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_idle_0": {
+    "col_bubbles_idle_0": {
       "frame": {
         "x": 1089,
         "y": 66,
@@ -1904,7 +1904,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_walk_0": {
+    "col_bubbles_walk_0": {
       "frame": {
         "x": 1122,
         "y": 66,
@@ -1916,7 +1916,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_walk_1": {
+    "col_bubbles_walk_1": {
       "frame": {
         "x": 1155,
         "y": 66,
@@ -1928,7 +1928,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_attack_0": {
+    "col_bubbles_attack_0": {
       "frame": {
         "x": 1188,
         "y": 66,
@@ -1940,7 +1940,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_attack_1": {
+    "col_bubbles_attack_1": {
       "frame": {
         "x": 1221,
         "y": 66,
@@ -1952,7 +1952,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles__proc_hitflash": {
+    "col_bubbles__proc_hitflash": {
       "frame": {
         "x": 1254,
         "y": 66,
@@ -1964,7 +1964,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_idle_0__proc_hitflash": {
+    "col_bubbles_idle_0__proc_hitflash": {
       "frame": {
         "x": 1287,
         "y": 66,
@@ -1976,7 +1976,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_walk_0__proc_hitflash": {
+    "col_bubbles_walk_0__proc_hitflash": {
       "frame": {
         "x": 1320,
         "y": 66,
@@ -1988,7 +1988,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_walk_1__proc_hitflash": {
+    "col_bubbles_walk_1__proc_hitflash": {
       "frame": {
         "x": 1353,
         "y": 66,
@@ -2000,7 +2000,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_attack_0__proc_hitflash": {
+    "col_bubbles_attack_0__proc_hitflash": {
       "frame": {
         "x": 1386,
         "y": 66,
@@ -2012,7 +2012,7 @@
         "h": 32
       }
     },
-    "sgt_bubbles_attack_1__proc_hitflash": {
+    "col_bubbles_attack_1__proc_hitflash": {
       "frame": {
         "x": 1419,
         "y": 66,

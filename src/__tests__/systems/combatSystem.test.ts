@@ -437,15 +437,15 @@ describe("combatSystem", () => {
 
 			// First attack
 			combatSystem(world, 1.1);
-			expect(defender.get(Health)!.current).toBe(112);
+			expect(defender.get(Health)?.current).toBe(112);
 
 			// Not enough time for second attack
 			combatSystem(world, 0.5);
-			expect(defender.get(Health)!.current).toBe(112);
+			expect(defender.get(Health)?.current).toBe(112);
 
 			// Enough time for second attack
 			combatSystem(world, 0.6);
-			expect(defender.get(Health)!.current).toBe(104);
+			expect(defender.get(Health)?.current).toBe(104);
 		});
 	});
 

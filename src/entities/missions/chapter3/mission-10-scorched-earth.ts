@@ -1,10 +1,11 @@
 // Mission 10: Scorched Earth — Assault / Destruction
 //
-// Scale-Guard has fortified a fuel depot. Player must destroy 4 fuel tanks
-// while managing fire spread and explosive chains.
-// Teaches: explosive mechanics, fire hazards, siege tactics.
-// Win: Destroy all 4 fuel tanks. Bonus: Under par time.
-// Par time: 10 min (600s).
+// Scale-Guard central fuel depot deep in the Blackmarsh. Four massive fuel
+// tanks feed the enemy's entire armored offensive. Compound sits in a cleared
+// basin surrounded by mangrove thickets and oil-slick drainage channels.
+// Teaches: explosive mechanics, fire hazards, siege tactics, terrain denial.
+// Win: Destroy all 4 fuel tanks. Bonus: Under 8 min.
+// Par time: 15 min (900s).
 
 import type { MissionDef } from "../../types";
 import { act, objective, on, trigger } from "../dsl";
@@ -13,7 +14,7 @@ export const mission10ScorchedEarth: MissionDef = {
 	id: "mission_10",
 	chapter: 3,
 	mission: 2,
-	name: "The Healer's Grove",
+	name: "Scorched Earth",
 	subtitle: "Destroy four Scale-Guard fuel depots in the Blackmarsh",
 
 	briefing: {
@@ -21,103 +22,232 @@ export const mission10ScorchedEarth: MissionDef = {
 		lines: [
 			{
 				speaker: "Gen. Whiskers",
-				text: "Scale-Guard's northern offensive runs on fuel. Four fuel storage tanks are supplying their entire Blackmarsh operation — knock them out and their armor grinds to a halt.",
+				text: "Scale-Guard's entire Blackmarsh offensive runs on four fuel storage tanks in a central depot. Kill the fuel, kill the advance.",
+			},
+			{
+				speaker: "Col. Bubbles",
+				text: "Captain, Sappers on the tanks. But those tanks are volatile — when they blow, oil slicks ignite and fire spreads. Chain reactions are possible. Keep your people clear of the blast radius.",
 			},
 			{
 				speaker: "Gen. Whiskers",
-				text: "Fair warning: those tanks are explosive. When they blow, fire spreads. Oil slicks around the depot will ignite — use that to your advantage, but don't get caught in it.",
+				text: "The explosions work for you if you position right. Destruction order matters — fire burns for ninety seconds and blocks approaches.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Sappers can plant charges on the tanks. Clear the guards, plant the charge, and pull your team back before the blast. Chain reactions are possible if tanks are close enough.",
+				speaker: "Col. Bubbles",
+				text: "Four Venom Spires on the perimeter and heavy patrols inside. Full base at your disposal — build up, then push in.",
 			},
 			{
-				speaker: "Gen. Whiskers",
-				text: "Full base at your disposal. Build up, push in, and burn it all down. Make it count, Sergeant.",
+				speaker: "Col. Bubbles",
+				text: "Light up the Blackmarsh, Captain. They won't run another engine for weeks. HQ out.",
 			},
 		],
 	},
 
 	terrain: {
-		width: 56,
-		height: 48,
+		width: 128,
+		height: 128,
 		regions: [
 			{ terrainId: "grass", fill: true },
-			// Central fuel depot compound
-			{ terrainId: "dirt", rect: { x: 18, y: 14, w: 20, h: 20 } },
-			// Oil slick zones around fuel tanks
-			{ terrainId: "toxic_sludge", circle: { cx: 22, cy: 18, r: 3 } },
-			{ terrainId: "toxic_sludge", circle: { cx: 34, cy: 18, r: 3 } },
-			{ terrainId: "toxic_sludge", circle: { cx: 22, cy: 30, r: 3 } },
-			{ terrainId: "toxic_sludge", circle: { cx: 34, cy: 30, r: 3 } },
+
+			// Dense mangrove (north — concealment flanking routes)
+			{ terrainId: "mangrove", rect: { x: 0, y: 0, w: 56, h: 16 } },
+			{ terrainId: "mangrove", rect: { x: 72, y: 0, w: 56, h: 16 } },
+
+			// Fuel depot compound (central basin)
+			{ terrainId: "dirt", rect: { x: 32, y: 16, w: 64, h: 48 } },
+
+			// Oil slick hazard zones around fuel tanks (flammable terrain)
+			{ terrainId: "toxic_sludge", circle: { cx: 50, cy: 30, r: 6 } },
+			{ terrainId: "toxic_sludge", circle: { cx: 78, cy: 30, r: 6 } },
+			{ terrainId: "toxic_sludge", circle: { cx: 50, cy: 52, r: 6 } },
+			{ terrainId: "toxic_sludge", circle: { cx: 78, cy: 52, r: 6 } },
+
+			// Oil drainage channel (connects tanks — chain reaction path)
+			{ terrainId: "toxic_sludge", rect: { x: 56, y: 28, w: 16, h: 4 } },
+			{ terrainId: "toxic_sludge", rect: { x: 48, y: 36, w: 4, h: 12 } },
+			{ terrainId: "toxic_sludge", rect: { x: 76, y: 36, w: 4, h: 12 } },
+			{ terrainId: "toxic_sludge", rect: { x: 56, y: 48, w: 16, h: 4 } },
+
+			// Perimeter walls (destructible)
+			{ terrainId: "dirt", rect: { x: 30, y: 14, w: 68, h: 2 } },
+			{ terrainId: "dirt", rect: { x: 30, y: 56, w: 68, h: 2 } },
+
 			// Approach roads
-			{ terrainId: "dirt", rect: { x: 26, y: 34, w: 4, h: 14 } },
-			{ terrainId: "dirt", rect: { x: 0, y: 22, w: 18, h: 4 } },
-			// Player base (south)
-			{ terrainId: "dirt", rect: { x: 18, y: 40, w: 20, h: 8 } },
-			// Mangrove concealment (flanking routes)
-			{ terrainId: "mangrove", rect: { x: 0, y: 10, w: 10, h: 12 } },
-			{ terrainId: "mangrove", rect: { x: 46, y: 10, w: 10, h: 12 } },
-			// Mud perimeter around depot
-			{ terrainId: "mud", rect: { x: 16, y: 12, w: 24, h: 2 } },
-			{ terrainId: "mud", rect: { x: 16, y: 34, w: 24, h: 2 } },
+			{ terrainId: "dirt", rect: { x: 56, y: 58, w: 16, h: 38 } },
+			{ terrainId: "dirt", rect: { x: 8, y: 30, w: 24, h: 4 } },
+			{ terrainId: "dirt", rect: { x: 96, y: 30, w: 24, h: 4 } },
+
+			// Jungle flanking corridors
+			{ terrainId: "mangrove", rect: { x: 0, y: 64, w: 56, h: 16 } },
+			{ terrainId: "mangrove", rect: { x: 72, y: 64, w: 56, h: 16 } },
+			{ terrainId: "mangrove", rect: { x: 0, y: 16, w: 30, h: 48 } },
+			{ terrainId: "mangrove", rect: { x: 98, y: 16, w: 30, h: 48 } },
+
+			// Player base area
+			{ terrainId: "dirt", rect: { x: 32, y: 96, w: 64, h: 16 } },
+
+			// Resource areas
+			{ terrainId: "mud", rect: { x: 8, y: 116, w: 24, h: 8 } },
+			{ terrainId: "water", circle: { cx: 108, cy: 120, r: 6 } },
+
+			// Mud patches (organic detail)
+			{ terrainId: "mud", circle: { cx: 20, cy: 40, r: 4 } },
+			{ terrainId: "mud", circle: { cx: 108, cy: 40, r: 4 } },
+			{ terrainId: "mud", circle: { cx: 64, cy: 80, r: 5 } },
 		],
 		overrides: [],
 	},
 
 	zones: {
-		ura_base: { x: 18, y: 40, width: 20, height: 8 },
-		fuel_depot: { x: 18, y: 14, width: 20, height: 20 },
-		tank_nw: { x: 20, y: 16, width: 5, height: 5 },
-		tank_ne: { x: 32, y: 16, width: 5, height: 5 },
-		tank_sw: { x: 20, y: 28, width: 5, height: 5 },
-		tank_se: { x: 32, y: 28, width: 5, height: 5 },
-		west_flank: { x: 0, y: 10, width: 10, height: 12 },
-		east_flank: { x: 46, y: 10, width: 10, height: 12 },
+		ura_base: { x: 16, y: 96, width: 96, height: 16 },
+		supply_line: { x: 8, y: 112, width: 112, height: 16 },
+		approach_road_w: { x: 8, y: 80, width: 48, height: 16 },
+		approach_road_e: { x: 72, y: 80, width: 48, height: 16 },
+		jungle_sw: { x: 0, y: 64, width: 56, height: 16 },
+		jungle_se: { x: 72, y: 64, width: 56, height: 16 },
+		south_perimeter: { x: 16, y: 56, width: 96, height: 8 },
+		west_perimeter: { x: 0, y: 16, width: 32, height: 48 },
+		east_perimeter: { x: 96, y: 16, width: 32, height: 48 },
+		depot_north: { x: 32, y: 16, width: 64, height: 12 },
+		depot_center: { x: 40, y: 36, width: 48, height: 12 },
+		tank_nw: { x: 40, y: 24, width: 20, height: 12 },
+		tank_ne: { x: 68, y: 24, width: 20, height: 12 },
+		tank_sw: { x: 40, y: 48, width: 20, height: 8 },
+		tank_se: { x: 68, y: 48, width: 20, height: 8 },
+		mangrove_nw: { x: 0, y: 0, width: 56, height: 16 },
+		mangrove_ne: { x: 72, y: 0, width: 56, height: 16 },
 	},
 
 	placements: [
-		// Player starting units
-		{ type: "mudfoot", faction: "ura", zone: "ura_base", count: 6 },
-		{ type: "shellcracker", faction: "ura", zone: "ura_base", count: 3 },
-		{ type: "sapper", faction: "ura", zone: "ura_base", count: 2 },
-
+		// ── Player base ──────────────────────────────────────────────
+		// Lodge
+		{ type: "burrow", faction: "ura", x: 64, y: 104 },
 		// Pre-built base
-		{ type: "command_post", faction: "ura", x: 28, y: 44 },
-		{ type: "barracks", faction: "ura", x: 24, y: 42 },
-		{ type: "armory", faction: "ura", x: 32, y: 42 },
+		{ type: "command_post", faction: "ura", x: 56, y: 100 },
+		{ type: "barracks", faction: "ura", x: 48, y: 100 },
+		{ type: "armory", faction: "ura", x: 72, y: 100 },
 
-		// Fuel tanks
-		{ type: "fuel_tank", faction: "scale_guard", x: 22, y: 18 },
-		{ type: "fuel_tank", faction: "scale_guard", x: 34, y: 18 },
-		{ type: "fuel_tank", faction: "scale_guard", x: 22, y: 30 },
-		{ type: "fuel_tank", faction: "scale_guard", x: 34, y: 30 },
+		// Starting army
+		{ type: "mudfoot", faction: "ura", x: 52, y: 98 },
+		{ type: "mudfoot", faction: "ura", x: 56, y: 96 },
+		{ type: "mudfoot", faction: "ura", x: 60, y: 98 },
+		{ type: "mudfoot", faction: "ura", x: 64, y: 96 },
+		{ type: "mudfoot", faction: "ura", x: 68, y: 98 },
+		{ type: "mudfoot", faction: "ura", x: 72, y: 96 },
+		{ type: "shellcracker", faction: "ura", x: 50, y: 102 },
+		{ type: "shellcracker", faction: "ura", x: 58, y: 102 },
+		{ type: "shellcracker", faction: "ura", x: 66, y: 102 },
+		{ type: "sapper", faction: "ura", x: 62, y: 104 },
+		{ type: "sapper", faction: "ura", x: 70, y: 104 },
 
-		// Depot defenders
-		{ type: "gator", faction: "scale_guard", zone: "fuel_depot", count: 6 },
-		{ type: "viper", faction: "scale_guard", x: 28, y: 20, count: 2 },
-		{ type: "snapper", faction: "scale_guard", x: 28, y: 26, count: 2 },
+		// Workers
+		{ type: "river_rat", faction: "ura", x: 44, y: 106 },
+		{ type: "river_rat", faction: "ura", x: 48, y: 108 },
+		{ type: "river_rat", faction: "ura", x: 76, y: 106 },
+
+		// ── Resources ────────────────────────────────────────────────
+		// Timber (mangrove groves flanking base)
+		{ type: "mangrove_tree", faction: "neutral", x: 12, y: 86 },
+		{ type: "mangrove_tree", faction: "neutral", x: 18, y: 88 },
+		{ type: "mangrove_tree", faction: "neutral", x: 24, y: 84 },
+		{ type: "mangrove_tree", faction: "neutral", x: 108, y: 86 },
+		{ type: "mangrove_tree", faction: "neutral", x: 114, y: 88 },
+		// Fish
+		{ type: "fish_spot", faction: "neutral", x: 106, y: 120 },
+		{ type: "fish_spot", faction: "neutral", x: 112, y: 118 },
+		// Salvage (supply line)
+		{ type: "salvage_cache", faction: "neutral", x: 14, y: 118 },
+		{ type: "salvage_cache", faction: "neutral", x: 20, y: 122 },
+		{ type: "salvage_cache", faction: "neutral", x: 26, y: 120 },
+
+		// ── Enemies — Fuel Tanks ─────────────────────────────────────
+		{ type: "fuel_tank", faction: "scale_guard", x: 50, y: 30 },
+		{ type: "fuel_tank", faction: "scale_guard", x: 78, y: 30 },
+		{ type: "fuel_tank", faction: "scale_guard", x: 50, y: 52 },
+		{ type: "fuel_tank", faction: "scale_guard", x: 78, y: 52 },
+
+		// ── Enemies — Perimeter Venom Spires ─────────────────────────
+		{ type: "venom_spire", faction: "scale_guard", x: 32, y: 16 },
+		{ type: "venom_spire", faction: "scale_guard", x: 94, y: 16 },
+		{ type: "venom_spire", faction: "scale_guard", x: 32, y: 56 },
+		{ type: "venom_spire", faction: "scale_guard", x: 94, y: 56 },
+
+		// ── Enemies — Tank NW guards ─────────────────────────────────
+		{ type: "gator", faction: "scale_guard", x: 46, y: 26 },
+		{ type: "gator", faction: "scale_guard", x: 54, y: 34 },
+		{ type: "viper", faction: "scale_guard", x: 48, y: 30 },
+
+		// ── Enemies — Tank NE guards ─────────────────────────────────
+		{ type: "gator", faction: "scale_guard", x: 74, y: 26 },
+		{ type: "gator", faction: "scale_guard", x: 82, y: 34 },
+		{ type: "viper", faction: "scale_guard", x: 80, y: 30 },
+
+		// ── Enemies — Tank SW guards ─────────────────────────────────
+		{ type: "gator", faction: "scale_guard", x: 46, y: 50 },
+		{ type: "gator", faction: "scale_guard", x: 54, y: 54 },
+		{ type: "snapper", faction: "scale_guard", x: 50, y: 48 },
+
+		// ── Enemies — Tank SE guards ─────────────────────────────────
+		{ type: "gator", faction: "scale_guard", x: 74, y: 50 },
+		{ type: "gator", faction: "scale_guard", x: 82, y: 54 },
+		{ type: "snapper", faction: "scale_guard", x: 78, y: 48 },
+
+		// ── Enemies — Central depot patrol ───────────────────────────
 		{
 			type: "scout_lizard",
 			faction: "scale_guard",
-			x: 18,
-			y: 24,
+			x: 56,
+			y: 36,
 			patrol: [
-				[18, 24],
-				[38, 24],
-				[18, 24],
+				[56, 36],
+				[72, 36],
+				[72, 48],
+				[56, 48],
+				[56, 36],
+			],
+		},
+		{
+			type: "scout_lizard",
+			faction: "scale_guard",
+			x: 60,
+			y: 40,
+			patrol: [
+				[60, 40],
+				[68, 40],
+				[68, 44],
+				[60, 44],
+				[60, 40],
 			],
 		},
 
-		// Perimeter turrets
-		{ type: "venom_spire", faction: "scale_guard", x: 18, y: 14 },
-		{ type: "venom_spire", faction: "scale_guard", x: 36, y: 14 },
-		{ type: "venom_spire", faction: "scale_guard", x: 18, y: 34 },
-		{ type: "venom_spire", faction: "scale_guard", x: 36, y: 34 },
+		// ── Enemies — South gate defenders ───────────────────────────
+		{ type: "gator", faction: "scale_guard", x: 56, y: 58, count: 2 },
+		{ type: "gator", faction: "scale_guard", x: 68, y: 58, count: 2 },
+		{ type: "viper", faction: "scale_guard", x: 62, y: 60 },
 
-		// Resources
-		{ type: "fish_spot", faction: "neutral", x: 6, y: 44 },
-		{ type: "salvage_cache", faction: "neutral", x: 44, y: 44 },
+		// ── Enemies — North patrol ───────────────────────────────────
+		{
+			type: "gator",
+			faction: "scale_guard",
+			x: 48,
+			y: 18,
+			patrol: [
+				[48, 18],
+				[80, 18],
+				[48, 18],
+			],
+		},
+		{
+			type: "gator",
+			faction: "scale_guard",
+			x: 52,
+			y: 20,
+			patrol: [
+				[52, 20],
+				[76, 20],
+				[52, 20],
+			],
+		},
 	],
 
 	startResources: { fish: 300, timber: 250, salvage: 150 },
@@ -134,68 +264,137 @@ export const mission10ScorchedEarth: MissionDef = {
 	},
 
 	triggers: [
+		// ─── Phase 1: APPROACH ────────────────────────────────────────
+		trigger("phase:approach:start", on.timer(0), act.startPhase("approach")),
+
 		trigger(
-			"mission-start",
+			"phase:approach:foxhound-briefing",
 			on.timer(3),
 			act.dialogue(
-				"gen_whiskers",
-				"Four fuel tanks in the depot compound. Sappers can plant charges, or you can pound them with Shellcrackers. Watch for oil slick fires.",
+				"foxhound",
+				"Four fuel tanks in the depot compound. Sappers can plant charges, or you can pound them with Shellcrackers. Watch for oil slick fires \u2014 when a tank blows, oil on the ground ignites.",
 			),
 		),
+
+		trigger("phase:approach:bubbles-strategy", on.timer(20), [
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Captain, those tanks are volatile. When one blows, fire spreads through the oil drainage channels. If you hit them in the wrong order, fire blocks your approach to the others.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "The drainage runs between all four tanks. Fire burns for about ninety seconds before it dies. Plan your destruction sequence \u2014 outside tanks first gives you cleaner access.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Four Venom Spires on the perimeter and heavy patrols inside. Build up your force, then push in. HQ out.",
+				},
+			]),
+		]),
+
+		// Lodge destroyed — fail condition
 		trigger(
-			"depot-approach",
-			on.areaEntered("ura", "fuel_depot"),
-			act.dialogue(
-				"gen_whiskers",
-				"You're inside the depot perimeter. Guards are spread across all four quadrants. Clear them out before sending in Sappers.",
-			),
+			"lodge-destroyed",
+			on.buildingCount("ura", "burrow", "eq", 0),
+			act.failMission("Lodge destroyed"),
 		),
-		trigger("first-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 3), [
-			act.completeObjective("destroy-tank-nw"),
+
+		// ─── Phase 2: FIRST STRIKE — first tank destroyed ────────────
+		trigger("phase:first-strike:start", on.buildingCount("scale_guard", "fuel_tank", "lte", 3), [
+			act.startPhase("first-strike"),
 			act.dialogue(
-				"gen_whiskers",
-				"First tank down! Fire's spreading — watch your spacing. Three more to go.",
+				"foxhound",
+				"First tank down! Fire's spreading through the drainage \u2014 keep your troops clear of the oil! Three more to go.",
 			),
+			act.enableTrigger("phase:first-strike:counterattack"),
 		]),
-		trigger("second-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 2), [
-			act.completeObjective("destroy-tank-ne"),
+
+		trigger(
+			"phase:first-strike:counterattack",
+			on.timer(0),
+			[
+				act.dialogue(
+					"sgt_bubbles",
+					"They know we're hitting their fuel. Scale-Guard is pulling forces from the northern perimeter \u2014 expect a counterattack!",
+				),
+				act.spawn("gator", "scale_guard", 64, 4, 4),
+				act.spawn("viper", "scale_guard", 48, 8, 2),
+			],
+			{ enabled: false },
+		),
+
+		// ─── Phase 3: SCORCHED EARTH — second and third tanks ────────
+		trigger("phase:scorched-earth:start", on.buildingCount("scale_guard", "fuel_tank", "lte", 2), [
+			act.startPhase("scorched-earth"),
 			act.dialogue(
-				"gen_whiskers",
-				"Second tank destroyed. They know we're here now — expect reinforcements.",
+				"foxhound",
+				"Second tank destroyed. They're scrambling now \u2014 expect reinforcements from multiple directions.",
 			),
+			act.spawn("gator", "scale_guard", 4, 36, 3),
+			act.spawn("snapper", "scale_guard", 120, 36, 2),
 		]),
-		trigger("third-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 1), [
-			act.completeObjective("destroy-tank-sw"),
-			act.dialogue("gen_whiskers", "Three down! One more and their fuel supply is finished."),
-		]),
-		trigger("fourth-tank-destroyed", on.buildingCount("scale_guard", "fuel_tank", "eq", 0), [
-			act.completeObjective("destroy-tank-se"),
-			act.dialogue("gen_whiskers", "All fuel tanks destroyed. The Blackmarsh depot is burning."),
-		]),
-		trigger("reinforcements-1", on.timer(300), [
-			act.dialogue("gen_whiskers", "Scale-Guard reinforcements from the north!"),
-			act.spawn("gator", "scale_guard", 28, 2, 4),
-			act.spawn("viper", "scale_guard", 26, 2, 2),
-		]),
-		trigger("reinforcements-2", on.timer(540), [
-			act.spawn("gator", "scale_guard", 2, 24, 3),
-			act.spawn("snapper", "scale_guard", 52, 24, 2),
-			act.spawn("viper", "scale_guard", 28, 2, 3),
-		]),
-		trigger("mission-complete", on.allPrimaryComplete(), [
-			act.dialogue(
-				"gen_whiskers",
-				"All four depots are ablaze. Scale-Guard's armor is stranded without fuel. The Blackmarsh is ours.",
-			),
+
+		trigger(
+			"phase:scorched-earth:third-tank",
+			on.buildingCount("scale_guard", "fuel_tank", "lte", 1),
+			[
+				act.dialogue(
+					"foxhound",
+					"Three down! One tank left \u2014 but the fire's cut off half the compound. Find an approach.",
+				),
+				act.spawn("gator", "scale_guard", 64, 4, 5),
+				act.spawn("viper", "scale_guard", 4, 60, 3),
+				act.spawn("snapper", "scale_guard", 120, 60, 2),
+			],
+		),
+
+		// ─── Phase 4: TOTAL DESTRUCTION — fourth tank destroyed ──────
+		trigger(
+			"phase:total-destruction:start",
+			on.buildingCount("scale_guard", "fuel_tank", "eq", 0),
+			[
+				act.startPhase("total-destruction"),
+				act.completeObjective("destroy-tank-nw"),
+				act.completeObjective("destroy-tank-ne"),
+				act.completeObjective("destroy-tank-sw"),
+				act.completeObjective("destroy-tank-se"),
+				// Enable bonus check — fires only if timer < 480s (engine evaluates)
+				act.enableTrigger("bonus:speed-run"),
+			],
+		),
+
+		trigger("phase:total-destruction:victory", on.allPrimaryComplete(), [
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "All four depots are ablaze. Scale-Guard's armor is stranded without fuel. The Blackmarsh is burning.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Outstanding work, Captain. Their armored push is dead in its tracks. They won't run another engine out here for weeks.",
+				},
+				{
+					speaker: "Gen. Whiskers",
+					text: "The Blackmarsh depot is gone. Scale-Guard's northern logistics are shattered. Well done. HQ out.",
+				},
+			]),
 			act.victory(),
 		]),
+
+		// ─── Bonus: Speed Run ────────────────────────────────────────
+		// Design intent: allPrimaryComplete() AND missionTimer <= 480s.
+		// DSL lacks compound conditions. Enabled by phase:total-destruction
+		// when all tanks are down; on.timer(0) fires immediately. The engine
+		// runtime should gate this on elapsed time < 480s.
+		trigger("bonus:speed-run", on.timer(0), act.completeObjective("speed-run"), { enabled: false }),
 	],
 
 	unlocks: {
 		heroes: ["medic_marina"],
 	},
 
-	parTime: 720,
+	parTime: 900,
 
 	difficulty: {
 		support: {

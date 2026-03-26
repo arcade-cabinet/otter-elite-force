@@ -44,7 +44,7 @@ describe("asset variant recipes", () => {
 		expect(ASSET_VARIANT_RECIPES).toHaveLength(expectedCount);
 		expect(
 			ASSET_VARIANT_RECIPES.find(
-				(recipe) => recipe.entityKey === toAssetEntityKey("hero", "sgt_bubbles"),
+				(recipe) => recipe.entityKey === toAssetEntityKey("hero", "col_bubbles"),
 			),
 		).toBeDefined();
 		expect(
@@ -65,7 +65,7 @@ describe("asset variant recipes", () => {
 		expect(manifest).toHaveLength(ASSET_VARIANT_RECIPES.length);
 
 		const heroRecipe = manifest.find(
-			(recipe) => recipe.entityKey === toAssetEntityKey("hero", "sgt_bubbles"),
+			(recipe) => recipe.entityKey === toAssetEntityKey("hero", "col_bubbles"),
 		);
 		expect(heroRecipe?.familyId).toBe("oef-command-hero-units");
 		expect(heroRecipe?.promptRecipe.entityName.toUpperCase()).toContain("BUBBLES");

@@ -221,7 +221,7 @@ function MapCard({
 					: "cursor-not-allowed border-border/40 bg-black/40 opacity-50",
 			)}
 		>
-			{/* Preview placeholder */}
+			{/* Map preview thumbnail */}
 			<div
 				className={cn(
 					"flex h-20 items-center justify-center rounded-none border text-center",

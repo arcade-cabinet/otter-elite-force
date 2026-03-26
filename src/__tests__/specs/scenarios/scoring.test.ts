@@ -60,7 +60,7 @@ const skip = () => !!loadError || !calculateScore;
 describe("Gold star scoring", () => {
 	it("perfect play = Gold (3 stars)", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 400,
 			unitsLost: 0,
@@ -73,7 +73,7 @@ describe("Gold star scoring", () => {
 
 	it("par time met, 0 losses, all bonuses = score >= 90", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 600,
 			elapsedTime: 600, // Exactly par
 			unitsLost: 0,
@@ -86,14 +86,14 @@ describe("Gold star scoring", () => {
 
 	it("under par time boosts score", () => {
 		if (skip()) return;
-		const atPar = calculateScore!({
+		const atPar = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 0,
 			bonusObjectivesCompleted: 0,
 			bonusObjectivesTotal: 2,
 		});
-		const underPar = calculateScore!({
+		const underPar = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 300,
 			unitsLost: 0,
@@ -111,7 +111,7 @@ describe("Gold star scoring", () => {
 describe("Silver star scoring", () => {
 	it("moderate losses with par time = Silver (2 stars)", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 500,
 			unitsLost: 4,
@@ -131,7 +131,7 @@ describe("Silver star scoring", () => {
 describe("Bronze star scoring", () => {
 	it("over 2x par time = Bronze max", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 960, // 2x par
 			unitsLost: 0,
@@ -144,7 +144,7 @@ describe("Bronze star scoring", () => {
 
 	it("heavy losses with good time = Bronze", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 12,
@@ -162,7 +162,7 @@ describe("Bronze star scoring", () => {
 describe("No star scoring", () => {
 	it("terrible performance = 0 stars", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 1440, // 3x par
 			unitsLost: 20,
@@ -181,7 +181,7 @@ describe("No star scoring", () => {
 describe("Score component calculations", () => {
 	it("time score is 100% at par time or under", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 0,
@@ -193,14 +193,14 @@ describe("Score component calculations", () => {
 
 	it("time score degrades linearly past par time", () => {
 		if (skip()) return;
-		const atPar = calculateScore!({
+		const atPar = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 0,
 			bonusObjectivesCompleted: 0,
 			bonusObjectivesTotal: 0,
 		});
-		const overPar = calculateScore!({
+		const overPar = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 720,
 			unitsLost: 0,
@@ -213,7 +213,7 @@ describe("Score component calculations", () => {
 
 	it("time score reaches 0 at 3x par time", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 1440, // 3x par
 			unitsLost: 0,
@@ -225,7 +225,7 @@ describe("Score component calculations", () => {
 
 	it("loss score is 100% with 0 losses", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 0,
@@ -237,14 +237,14 @@ describe("Score component calculations", () => {
 
 	it("loss score decreases 5% per unit lost", () => {
 		if (skip()) return;
-		const noLoss = calculateScore!({
+		const noLoss = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 0,
 			bonusObjectivesCompleted: 0,
 			bonusObjectivesTotal: 0,
 		});
-		const someLoss = calculateScore!({
+		const someLoss = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 4,
@@ -256,7 +256,7 @@ describe("Score component calculations", () => {
 
 	it("loss score floors at 0%", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 25,
@@ -268,14 +268,14 @@ describe("Score component calculations", () => {
 
 	it("bonus score adds 10% per completed bonus objective", () => {
 		if (skip()) return;
-		const noBonus = calculateScore!({
+		const noBonus = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 0,
 			bonusObjectivesCompleted: 0,
 			bonusObjectivesTotal: 3,
 		});
-		const oneBonus = calculateScore!({
+		const oneBonus = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 0,
@@ -287,7 +287,7 @@ describe("Score component calculations", () => {
 
 	it("total score is weighted combination of components", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 480,
 			unitsLost: 0,
@@ -307,7 +307,7 @@ describe("Score component calculations", () => {
 describe("Star thresholds", () => {
 	it("score 90+ = 3 stars (Gold)", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 400,
 			unitsLost: 0,
@@ -322,7 +322,7 @@ describe("Star thresholds", () => {
 	it("score 60-89 = 2 stars (Silver)", () => {
 		if (skip()) return;
 		// Engineer a scenario that lands in Silver range
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 600,
 			unitsLost: 3,
@@ -336,7 +336,7 @@ describe("Star thresholds", () => {
 
 	it("score 30-59 = 1 star (Bronze)", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 900,
 			unitsLost: 8,
@@ -350,7 +350,7 @@ describe("Star thresholds", () => {
 
 	it("score < 30 = 0 stars", () => {
 		if (skip()) return;
-		const result = calculateScore!({
+		const result = calculateScore?.({
 			parTime: 480,
 			elapsedTime: 1440,
 			unitsLost: 20,
@@ -388,7 +388,7 @@ describe("Par time validation", () => {
 	};
 
 	it("par times are all positive", () => {
-		for (const [id, time] of Object.entries(PAR_TIMES)) {
+		for (const [_id, time] of Object.entries(PAR_TIMES)) {
 			expect(time).toBeGreaterThan(0);
 		}
 	});
