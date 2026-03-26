@@ -104,6 +104,8 @@ jobs:
           java-version: "17"
 
       - uses: gradle/actions/setup-gradle@39e147cb9de83bb9910b8ef8bd7fff0ee20fcd6f # v6.0.1
+        with:
+          cache-disabled: true
 
       - run: pnpm install --frozen-lockfile
 
@@ -115,9 +117,12 @@ jobs:
       - name: Sync Capacitor to Android
         run: npx cap sync android
 
+      - name: Clear Gradle JAR cache (workaround bcprov digest issue)
+        run: rm -rf ~/.gradle/caches/jars-*
+
       - name: Build debug APKs (all ABIs)
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew clean assembleDebug --no-daemon --no-build-cache --refresh-dependencies
 
       - name: Collect APKs
         run: |
