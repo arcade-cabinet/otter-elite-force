@@ -65,7 +65,7 @@ export function isGarrisonCleared(world: World, village: Entity): boolean {
  */
 export function liberateVillage(village: Entity, world: World): boolean {
 	const faction = village.get(Faction);
-	if (faction.id === "ura") return false;
+	if (!faction || faction.id === "ura") return false;
 
 	village.set(Faction, { id: "ura" });
 	const territory = world.get(TerritoryState);
@@ -85,7 +85,7 @@ export function liberateVillage(village: Entity, world: World): boolean {
  */
 export function recaptureVillage(village: Entity, world: World): boolean {
 	const faction = village.get(Faction);
-	if (faction.id !== "ura") return false;
+	if (!faction || faction.id !== "ura") return false;
 
 	village.set(Faction, { id: "scale_guard" });
 	const territory = world.get(TerritoryState);
@@ -103,11 +103,17 @@ export function recaptureVillage(village: Entity, world: World): boolean {
  * Check if a liberated village is undefended and an enemy is nearby.
  * Returns true if the village should be recaptured.
  */
-export function isVillageUndefended(_world: World, village: Entity, allUnits: Entity[]): boolean {
+export function isVillageUndefended(
+	_world: World,
+	village: Entity,
+	allUnits: readonly Entity[],
+): boolean {
 	const villageFaction = village.get(Faction);
-	if (villageFaction.id !== "ura") return false;
+	if (!villageFaction || villageFaction.id !== "ura") return false;
 
 	const villagePos = village.get(Position);
+	if (!villagePos) return false;
+
 	let hasFriendlyNearby = false;
 	let hasEnemyNearby = false;
 
@@ -115,6 +121,7 @@ export function isVillageUndefended(_world: World, village: Entity, allUnits: En
 		if (!unit.has(Position) || !unit.has(Faction)) continue;
 		const unitPos = unit.get(Position);
 		const unitFaction = unit.get(Faction);
+		if (!unitPos || !unitFaction) continue;
 		const dist = tileDistance(villagePos.x, villagePos.y, unitPos.x, unitPos.y);
 
 		if (unitFaction.id === "ura" && dist <= DEFENSE_RADIUS) {
@@ -133,25 +140,28 @@ export function isVillageUndefended(_world: World, village: Entity, allUnits: En
  */
 export function applyVillageHealing(
 	_world: World,
-	villages: Entity[],
-	friendlyUnits: Entity[],
+	villages: readonly Entity[],
+	friendlyUnits: readonly Entity[],
 	delta: number,
 ): void {
 	const healAmount = VILLAGE_HEAL_RATE * delta;
 
 	for (const village of villages) {
 		const faction = village.get(Faction);
-		if (faction.id !== "ura") continue;
+		if (!faction || faction.id !== "ura") continue;
 
 		const villagePos = village.get(Position);
+		if (!villagePos) continue;
 
 		for (const unit of friendlyUnits) {
 			if (!unit.has(Position) || !unit.has(Health)) continue;
 			const unitPos = unit.get(Position);
+			if (!unitPos) continue;
 			const dist = tileDistance(villagePos.x, villagePos.y, unitPos.x, unitPos.y);
 
 			if (dist <= HEALING_RADIUS) {
 				const health = unit.get(Health);
+				if (!health) continue;
 				if (health.current < health.max) {
 					const healed = Math.min(health.current + healAmount, health.max);
 					unit.set(Health, { current: healed });
@@ -185,14 +195,14 @@ export function applyVillageIncome(world: World, delta: number): void {
 /**
  * Get all village entities from the world.
  */
-export function getVillages(world: World): Entity[] {
+export function getVillages(world: World): readonly Entity[] {
 	return world.query(IsVillage, IsBuilding, Faction, Position);
 }
 
 /**
  * Get all combat units (entities with Faction + Position + Health, excluding buildings/villages).
  */
-function getCombatUnits(world: World): Entity[] {
+function getCombatUnits(world: World): readonly Entity[] {
 	return world.query(UnitType, Faction, Position, Health);
 }
 
@@ -205,10 +215,14 @@ function getCombatUnits(world: World): Entity[] {
 export function territorySystem(world: World, delta: number): void {
 	const villages = getVillages(world);
 	const allUnits = getCombatUnits(world);
-	const friendlyUnits = allUnits.filter((u) => u.get(Faction).id === "ura");
+	const friendlyUnits = allUnits.filter((u) => {
+		const f = u.get(Faction);
+		return f?.id === "ura";
+	});
 
 	for (const village of villages) {
 		const faction = village.get(Faction);
+		if (!faction) continue;
 
 		if (faction.id === "scale_guard") {
 			// Check if garrison is cleared → liberate

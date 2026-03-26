@@ -55,12 +55,16 @@ export function findNearestCPInRadius(world: World, workerEntity: Entity): Entit
 	let nearest: Entity | null = null;
 	let nearestDist = Number.POSITIVE_INFINITY;
 
+	if (!workerPos) return null;
+
 	for (const cp of cps) {
 		const cpHealth = cp.get(Health);
-		if (cpHealth.current <= 0) continue;
+		if (!cpHealth || cpHealth.current <= 0) continue;
 
 		const cpPos = cp.get(Position);
 		const radius = cp.get(CollectionRadius);
+		if (!cpPos || !radius) continue;
+
 		const dist = tileDistance(workerPos.x, workerPos.y, cpPos.x, cpPos.y);
 
 		if (dist <= radius.radius && dist < nearestDist) {
@@ -80,14 +84,18 @@ export function findNearestCPGlobal(world: World, workerEntity: Entity): Entity 
 	const workerPos = workerEntity.get(Position);
 	const cps = world.query(IsBuilding, IsCommandPost, Position, Health);
 
+	if (!workerPos) return null;
+
 	let nearest: Entity | null = null;
 	let nearestDist = Number.POSITIVE_INFINITY;
 
 	for (const cp of cps) {
 		const cpHealth = cp.get(Health);
-		if (cpHealth.current <= 0) continue;
+		if (!cpHealth || cpHealth.current <= 0) continue;
 
 		const cpPos = cp.get(Position);
+		if (!cpPos) continue;
+
 		const dist = tileDistance(workerPos.x, workerPos.y, cpPos.x, cpPos.y);
 
 		if (dist < nearestDist) {
@@ -123,6 +131,7 @@ export function canPlaceSecondaryCP(
 	const cps = world.query(IsBuilding, IsCommandPost, Position);
 	for (const cp of cps) {
 		const cpPos = cp.get(Position);
+		if (!cpPos) continue;
 		if (tileDistance(cpPos.x, cpPos.y, location.x, location.y) < PLACEMENT_SNAP) {
 			return false;
 		}
@@ -152,13 +161,17 @@ export function createSupplyCaravan(
 	// Set starting position to first CP in route
 	if (routeCPs.length > 0 && routeCPs[0].has(Position)) {
 		const startPos = routeCPs[0].get(Position);
-		caravan.set(Position, { x: startPos.x, y: startPos.y });
+		if (startPos) {
+			caravan.set(Position, { x: startPos.x, y: startPos.y });
+		}
 	}
 
 	// Store entity references in the route (AoS trait — mutate directly)
 	const caravanData = caravan.get(SupplyCaravan);
-	caravanData.route = [...routeCPs];
-	caravanData.routeIndex = 0;
+	if (caravanData) {
+		caravanData.route = [...routeCPs];
+		caravanData.routeIndex = 0;
+	}
 
 	return caravan;
 }
@@ -176,10 +189,10 @@ export function tickCaravans(world: World, delta: number): void {
 
 	for (const caravan of caravans) {
 		const health = caravan.get(Health);
-		if (health.current <= 0) continue;
+		if (!health || health.current <= 0) continue;
 
 		const data = caravan.get(SupplyCaravan);
-		if (data.route.length === 0) continue;
+		if (!data || data.route.length === 0) continue;
 
 		// Get destination CP entity reference from route
 		const destCP = data.route[data.routeIndex] as Entity | null;
@@ -199,6 +212,7 @@ export function tickCaravans(world: World, delta: number): void {
 
 		const caravanPos = caravan.get(Position); // SoA snapshot — read only
 		const destPos = destCP.get(Position);
+		if (!caravanPos || !destPos) continue;
 
 		const dist = tileDistance(caravanPos.x, caravanPos.y, destPos.x, destPos.y);
 		const arrivalThreshold = 1.0;
@@ -290,6 +304,7 @@ export function tickCaravanDelivery(caravanData: ReturnType<Entity["get"]>, worl
  */
 export function getCaravanCargo(caravanEntity: Entity): { type: string; amount: number } {
 	const data = caravanEntity.get(SupplyCaravan);
+	if (!data) return { type: "", amount: 0 };
 	return { type: data.carrying, amount: data.amount };
 }
 
