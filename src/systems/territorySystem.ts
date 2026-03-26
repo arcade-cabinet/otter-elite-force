@@ -103,7 +103,11 @@ export function recaptureVillage(village: Entity, world: World): boolean {
  * Check if a liberated village is undefended and an enemy is nearby.
  * Returns true if the village should be recaptured.
  */
-export function isVillageUndefended(_world: World, village: Entity, allUnits: readonly Entity[]): boolean {
+export function isVillageUndefended(
+	_world: World,
+	village: Entity,
+	allUnits: readonly Entity[],
+): boolean {
 	const villageFaction = village.get(Faction);
 	if (!villageFaction || villageFaction.id !== "ura") return false;
 
