@@ -9,15 +9,15 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.2.1'
         classpath 'com.google.gms:google-services:4.4.0'
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
+        // Pin BouncyCastle to 1.78.1 — 1.79 has Java 21 bytecode Gradle 8.2.1 can't process
+        classpath 'org.bouncycastle:bcprov-jdk18on:1.78.1'
     }
-    // Force BouncyCastle to 1.78.1 in buildscript classpath — version 1.79
-    // has Java 21 bytecode that Gradle 8.2.1 can't process
-    configurations.all {
-        resolutionStrategy {
-            force 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+    configurations.classpath {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcprov-jdk18on') {
+                details.useVersion '1.78.1'
+                details.because 'Version 1.79 has Java 21 bytecode incompatible with Gradle 8.2.1'
+            }
         }
     }
 }
