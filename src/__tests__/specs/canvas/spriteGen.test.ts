@@ -23,7 +23,6 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 const origCreateElement = document.createElement.bind(document);
 
 beforeAll(() => {
-	// biome-ignore lint/suspicious/noExplicitAny: test setup for node-canvas
 	(document as any).createElement = (tagName: string, ...args: any[]) => {
 		if (tagName === "canvas") {
 			return createCanvas(300, 300) as unknown as HTMLCanvasElement;

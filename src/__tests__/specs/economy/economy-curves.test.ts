@@ -37,7 +37,7 @@ const BURROW_POP_CAP_BONUS = 6;
 // Economy simulation helpers
 // ---------------------------------------------------------------------------
 
-interface EconomyState {
+interface _EconomyState {
 	fish: number;
 	timber: number;
 	salvage: number;
