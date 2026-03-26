@@ -17,14 +17,10 @@
  */
 
 import type { Entity, World } from "koota";
+import { Health } from "../ecs/traits/combat";
 import { Faction } from "../ecs/traits/identity";
 import { FacingDirection, Position } from "../ecs/traits/spatial";
-import {
-	AlarmState,
-	DetectionCone,
-	Stealthed,
-} from "../ecs/traits/stealth";
-import { Health } from "../ecs/traits/combat";
+import { AlarmState, DetectionCone, Stealthed } from "../ecs/traits/stealth";
 import { EventBus } from "../game/EventBus";
 import { distanceBetween } from "./combatSystem";
 

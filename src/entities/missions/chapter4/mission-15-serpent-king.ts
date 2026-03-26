@@ -18,12 +18,7 @@ import { act, objective, on, trigger } from "../dsl";
 // ---------------------------------------------------------------------------
 
 /** Create a vertical strip of bridge tiles from (x, yStart) to (x, yEnd-1). */
-function bridgeTiles(
-	x: number,
-	yStart: number,
-	_xEnd: number,
-	yEnd: number,
-): TileOverride[] {
+function bridgeTiles(x: number, yStart: number, _xEnd: number, yEnd: number): TileOverride[] {
 	const tiles: TileOverride[] = [];
 	for (let y = yStart; y < yEnd; y++) {
 		tiles.push({ x, y, terrainId: "bridge" });
@@ -52,8 +47,7 @@ export const mission15SerpentKing: MissionDef = {
 	chapter: 4,
 	mission: 3,
 	name: "Serpent's Lair",
-	subtitle:
-		"Breach Ironjaw's citadel and defeat the Scale-Guard supreme commander",
+	subtitle: "Breach Ironjaw's citadel and defeat the Scale-Guard supreme commander",
 
 	briefing: {
 		portraitId: "gen_whiskers",
@@ -344,14 +338,8 @@ export const mission15SerpentKing: MissionDef = {
 			objective("defeat-ironjaw", "Defeat Kommandant Ironjaw"),
 		],
 		bonus: [
-			objective(
-				"bonus-flawless-breach",
-				"Clear the outer ring with zero casualties",
-			),
-			objective(
-				"bonus-war-plunder",
-				"Collect 600+ salvage from the citadel",
-			),
+			objective("bonus-flawless-breach", "Clear the outer ring with zero casualties"),
+			objective("bonus-war-plunder", "Collect 600+ salvage from the citadel"),
 		],
 	},
 
@@ -406,53 +394,41 @@ export const mission15SerpentKing: MissionDef = {
 		),
 
 		// Player enters the outer ring
-		trigger(
-			"phase:outer-ring:entered",
-			on.areaEntered("ura", "outer_ring_south"),
-			[
-				act.completeObjective("cross-moat"),
-				act.dialogue(
-					"col_bubbles",
-					"Inside the outer ring! Clear these defenses — towers, sandbags, all of it.",
-				),
-				act.revealZone("outer_ring_south"),
-				act.revealZone("outer_ring_w"),
-				act.revealZone("outer_ring_e"),
-			],
-		),
+		trigger("phase:outer-ring:entered", on.areaEntered("ura", "outer_ring_south"), [
+			act.completeObjective("cross-moat"),
+			act.dialogue(
+				"col_bubbles",
+				"Inside the outer ring! Clear these defenses — towers, sandbags, all of it.",
+			),
+			act.revealZone("outer_ring_south"),
+			act.revealZone("outer_ring_w"),
+			act.revealZone("outer_ring_e"),
+		]),
 
 		// Outer ring cleared — advance to Phase 2
-		trigger(
-			"phase:outer-ring:clear",
-			on.unitCount("scale_guard", "gator", "lte", 8),
-			[
-				act.completeObjective("clear-outer-ring"),
-				act.dialogue(
-					"foxhound",
-					"Outer ring is clear. Middle ring ahead — fortified walls and Venom Spires. This is where it gets ugly.",
-				),
-				act.revealZone("middle_ring"),
-				act.revealZone("middle_ring_south"),
-				act.startPhase("middle-ring"),
-				act.enableTrigger("phase:middle-ring:briefing"),
-				act.enableTrigger("phase:middle-ring:nest-spawn-1"),
-				act.enableTrigger("phase:middle-ring:nest-spawn-2"),
-				act.enableTrigger("phase:middle-ring:nest-spawn-3"),
-			],
-		),
+		trigger("phase:outer-ring:clear", on.unitCount("scale_guard", "gator", "lte", 8), [
+			act.completeObjective("clear-outer-ring"),
+			act.dialogue(
+				"foxhound",
+				"Outer ring is clear. Middle ring ahead — fortified walls and Venom Spires. This is where it gets ugly.",
+			),
+			act.revealZone("middle_ring"),
+			act.revealZone("middle_ring_south"),
+			act.startPhase("middle-ring"),
+			act.enableTrigger("phase:middle-ring:briefing"),
+			act.enableTrigger("phase:middle-ring:nest-spawn-1"),
+			act.enableTrigger("phase:middle-ring:nest-spawn-2"),
+			act.enableTrigger("phase:middle-ring:nest-spawn-3"),
+		]),
 
 		// Bonus: flawless outer ring breach
-		trigger(
-			"phase:outer-ring:flawless",
-			on.objectiveComplete("clear-outer-ring"),
-			[
-				act.dialogue(
-					"col_bubbles",
-					"Outer ring cleared without a single casualty. Textbook assault, Captain.",
-				),
-				act.completeObjective("bonus-flawless-breach"),
-			],
-		),
+		trigger("phase:outer-ring:flawless", on.objectiveComplete("clear-outer-ring"), [
+			act.dialogue(
+				"col_bubbles",
+				"Outer ring cleared without a single casualty. Textbook assault, Captain.",
+			),
+			act.completeObjective("bonus-flawless-breach"),
+		]),
 
 		// ===================================================================
 		// PHASE 2: SHATTER THE MIDDLE RING (~5:00 - ~10:00)
@@ -485,10 +461,7 @@ export const mission15SerpentKing: MissionDef = {
 		trigger(
 			"phase:middle-ring:nest-destroyed",
 			on.buildingCount("scale_guard", "predator_nest", "eq", 0),
-			act.dialogue(
-				"col_bubbles",
-				"Predator Nest is rubble. No more fresh Gators from that hole.",
-			),
+			act.dialogue("col_bubbles", "Predator Nest is rubble. No more fresh Gators from that hole."),
 		),
 
 		// Predator Nest spawns — enabled by Phase 1 completion
@@ -525,32 +498,28 @@ export const mission15SerpentKing: MissionDef = {
 		),
 
 		// Middle ring cleared — advance to Phase 3
-		trigger(
-			"phase:middle-ring:clear",
-			on.buildingCount("scale_guard", "predator_nest", "eq", 0),
-			[
-				act.completeObjective("destroy-spires"),
-				act.completeObjective("breach-middle-ring"),
-				act.exchange([
-					{
-						speaker: "Col. Bubbles",
-						text: "Middle ring is broken! Inner wall is all that's left between us and Ironjaw.",
-					},
-					{
-						speaker: "FOXHOUND",
-						text: "Two Croc Champions guarding the inner gate. The throne room is beyond. Ironjaw is in there — confirmed by thermal signatures.",
-					},
-					{
-						speaker: "Gen. Whiskers",
-						text: "Blow that gate open. I want to look that iron-jawed monster in the eye.",
-					},
-				]),
-				act.revealZone("inner_wall"),
-				act.revealZone("throne_room"),
-				act.startPhase("throne-room"),
-				act.enableTrigger("phase:throne-room:briefing"),
-			],
-		),
+		trigger("phase:middle-ring:clear", on.buildingCount("scale_guard", "predator_nest", "eq", 0), [
+			act.completeObjective("destroy-spires"),
+			act.completeObjective("breach-middle-ring"),
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Middle ring is broken! Inner wall is all that's left between us and Ironjaw.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Two Croc Champions guarding the inner gate. The throne room is beyond. Ironjaw is in there — confirmed by thermal signatures.",
+				},
+				{
+					speaker: "Gen. Whiskers",
+					text: "Blow that gate open. I want to look that iron-jawed monster in the eye.",
+				},
+			]),
+			act.revealZone("inner_wall"),
+			act.revealZone("throne_room"),
+			act.startPhase("throne-room"),
+			act.enableTrigger("phase:throne-room:briefing"),
+		]),
 
 		// ===================================================================
 		// PHASE 3: THE SERPENT KING (~10:00 - ~15:00)
@@ -579,88 +548,74 @@ export const mission15SerpentKing: MissionDef = {
 			on.buildingCount("scale_guard", "fortified_wall", "lte", 2),
 			[
 				act.panCamera(64, 52, 2000),
-				act.dialogue(
-					"foxhound",
-					"Inner wall breached. Throne room is open.",
-				),
+				act.dialogue("foxhound", "Inner wall breached. Throne room is open."),
 			],
 		),
 
 		// Player enters throne room — spawn Ironjaw boss + royal guard
-		trigger(
-			"phase:throne-room:entered",
-			on.areaEntered("ura", "throne_room"),
-			[
-				act.spawnBossUnit({
-					name: "Kommandant Ironjaw",
-					unitType: "kommandant_ironjaw",
-					faction: "scale_guard",
-					x: 64,
-					y: 52,
-					hp: 5000,
-					armor: 8,
-					damage: 40,
-					range: 2,
-					attackCooldown: 1.5,
-					speed: 3,
-					visionRadius: 10,
-					phases: [
-						{
-							name: "The Commander",
-							hpThreshold: 100,
-							abilities: ["heavy_melee", "call_reinforcements"],
-							dialogue: {
-								speaker: "Kommandant Ironjaw",
-								text: "So. The otters finally arrive. You've broken my walls. You've killed my soldiers. But you will not break ME.",
-							},
-						},
-						{
-							name: "Enraged",
-							hpThreshold: 60,
-							abilities: [
-								"heavy_melee",
-								"iron_jaw_slam",
-								"call_reinforcements",
-							],
-							dialogue: {
-								speaker: "Kommandant Ironjaw",
-								text: "ENOUGH! You want to see what a real predator can do?",
-							},
-						},
-						{
-							name: "Last Stand",
-							hpThreshold: 25,
-							abilities: [
-								"heavy_melee",
-								"desperation_aoe",
-							],
-							dialogue: {
-								speaker: "Kommandant Ironjaw",
-								text: "I... will not... be defeated by OTTERS!",
-							},
-						},
-					],
-					aoeRadius: 4,
-					aoeDamage: 35,
-					aoeCooldown: 5,
-					summonCooldown: 30,
-					summonType: "croc_champion",
-					summonCount: 2,
-				}),
-				act.spawn("croc_champion", "scale_guard", 56, 54, 2),
-				act.exchange([
+		trigger("phase:throne-room:entered", on.areaEntered("ura", "throne_room"), [
+			act.spawnBossUnit({
+				name: "Kommandant Ironjaw",
+				unitType: "kommandant_ironjaw",
+				faction: "scale_guard",
+				x: 64,
+				y: 52,
+				hp: 5000,
+				armor: 8,
+				damage: 40,
+				range: 2,
+				attackCooldown: 1.5,
+				speed: 3,
+				visionRadius: 10,
+				phases: [
 					{
-						speaker: "Kommandant Ironjaw",
-						text: "So. The otters finally arrive. You've broken my walls. You've killed my soldiers. But you will not break ME.",
+						name: "The Commander",
+						hpThreshold: 100,
+						abilities: ["heavy_melee", "call_reinforcements"],
+						dialogue: {
+							speaker: "Kommandant Ironjaw",
+							text: "So. The otters finally arrive. You've broken my walls. You've killed my soldiers. But you will not break ME.",
+						},
 					},
 					{
-						speaker: "Gen. Whiskers",
-						text: "We'll see about that, Ironjaw. Captain — put him down.",
+						name: "Enraged",
+						hpThreshold: 60,
+						abilities: ["heavy_melee", "iron_jaw_slam", "call_reinforcements"],
+						dialogue: {
+							speaker: "Kommandant Ironjaw",
+							text: "ENOUGH! You want to see what a real predator can do?",
+						},
 					},
-				]),
-				act.enableTrigger("phase:throne-room:ironjaw-reinf"),
-			],
-		),
+					{
+						name: "Last Stand",
+						hpThreshold: 25,
+						abilities: ["heavy_melee", "desperation_aoe"],
+						dialogue: {
+							speaker: "Kommandant Ironjaw",
+							text: "I... will not... be defeated by OTTERS!",
+						},
+					},
+				],
+				aoeRadius: 4,
+				aoeDamage: 35,
+				aoeCooldown: 5,
+				summonCooldown: 30,
+				summonType: "croc_champion",
+				summonCount: 2,
+			}),
+			act.spawn("croc_champion", "scale_guard", 56, 54, 2),
+			act.exchange([
+				{
+					speaker: "Kommandant Ironjaw",
+					text: "So. The otters finally arrive. You've broken my walls. You've killed my soldiers. But you will not break ME.",
+				},
+				{
+					speaker: "Gen. Whiskers",
+					text: "We'll see about that, Ironjaw. Captain — put him down.",
+				},
+			]),
+			act.enableTrigger("phase:throne-room:ironjaw-reinf"),
+		]),
 
 		// Boss Phase 1 reinforcements — Croc Champions every 30s (100%-60% HP)
 		trigger(
@@ -681,77 +636,59 @@ export const mission15SerpentKing: MissionDef = {
 		),
 
 		// Boss Phase 2 transition at 60% HP — Enraged
-		trigger(
-			"phase:throne-room:ironjaw-60",
-			on.healthThreshold("kommandant_ironjaw", 60, "below"),
-			[
-				act.exchange([
-					{
-						speaker: "Kommandant Ironjaw",
-						text: "ENOUGH! You want to see what a real predator can do?",
-					},
-					{
-						speaker: "FOXHOUND",
-						text: "Captain — he's powering up some kind of... his jaw is glowing. Area attack incoming! Spread your units!",
-					},
-				]),
-			],
-		),
+		trigger("phase:throne-room:ironjaw-60", on.healthThreshold("kommandant_ironjaw", 60, "below"), [
+			act.exchange([
+				{
+					speaker: "Kommandant Ironjaw",
+					text: "ENOUGH! You want to see what a real predator can do?",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Captain — he's powering up some kind of... his jaw is glowing. Area attack incoming! Spread your units!",
+				},
+			]),
+		]),
 
 		// Boss taunt at 40% HP + Viper reinforcements
-		trigger(
-			"phase:throne-room:ironjaw-40",
-			on.healthThreshold("kommandant_ironjaw", 40, "below"),
-			[
-				act.dialogue(
-					"ironjaw",
-					"You think this changes anything? Destroy me and another will take my place. The Scale-Guard endures!",
-				),
-				act.spawn("viper", "scale_guard", 52, 50, 2),
-				act.spawn("viper", "scale_guard", 76, 50, 2),
-			],
-		),
+		trigger("phase:throne-room:ironjaw-40", on.healthThreshold("kommandant_ironjaw", 40, "below"), [
+			act.dialogue(
+				"ironjaw",
+				"You think this changes anything? Destroy me and another will take my place. The Scale-Guard endures!",
+			),
+			act.spawn("viper", "scale_guard", 52, 50, 2),
+			act.spawn("viper", "scale_guard", 76, 50, 2),
+		]),
 
 		// Boss Phase 3 transition at 25% HP — Last Stand
-		trigger(
-			"phase:throne-room:ironjaw-25",
-			on.healthThreshold("kommandant_ironjaw", 25, "below"),
-			[
-				act.exchange([
-					{
-						speaker: "Kommandant Ironjaw",
-						text: "I... will not... be defeated by OTTERS!",
-					},
-					{
-						speaker: "FOXHOUND",
-						text: "He's destabilizing! His prosthetic jaw is overloading — massive energy buildup! Hit him NOW while he's vulnerable!",
-					},
-					{
-						speaker: "Gen. Whiskers",
-						text: "Pour it on! Everything you've got, Captain! Finish this!",
-					},
-				]),
-			],
-		),
+		trigger("phase:throne-room:ironjaw-25", on.healthThreshold("kommandant_ironjaw", 25, "below"), [
+			act.exchange([
+				{
+					speaker: "Kommandant Ironjaw",
+					text: "I... will not... be defeated by OTTERS!",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "He's destabilizing! His prosthetic jaw is overloading — massive energy buildup! Hit him NOW while he's vulnerable!",
+				},
+				{
+					speaker: "Gen. Whiskers",
+					text: "Pour it on! Everything you've got, Captain! Finish this!",
+				},
+			]),
+		]),
 
 		// Boss taunt at 10% HP
 		trigger(
 			"phase:throne-room:ironjaw-10",
 			on.healthThreshold("kommandant_ironjaw", 10, "below"),
-			act.dialogue(
-				"ironjaw",
-				"The Reach... was supposed to be... mine...",
-			),
+			act.dialogue("ironjaw", "The Reach... was supposed to be... mine..."),
 		),
 
 		// Boss defeated
 		trigger(
 			"phase:throne-room:ironjaw-defeated",
 			on.unitCount("scale_guard", "kommandant_ironjaw", "eq", 0),
-			[
-				act.completeObjective("defeat-ironjaw"),
-				act.panCamera(64, 52, 1500),
-			],
+			[act.completeObjective("defeat-ironjaw"), act.panCamera(64, 52, 1500)],
 		),
 
 		// ===================================================================

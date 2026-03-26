@@ -125,5 +125,4 @@ describe("SelectionManager", () => {
 		manager.selectAt(5 * 32 + 16, 5 * 32 + 16);
 		expect(unit.has(Selected)).toBe(false);
 	});
-
 });

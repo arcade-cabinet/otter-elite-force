@@ -309,28 +309,36 @@ export const mission03FirebaseDelta: MissionDef = {
 		// ════════════════════════════════════════════════════════════════
 
 		// [0:05] Opening briefing from Col. Bubbles
-		trigger("phase:recon:bubbles-briefing", on.timer(5), act.exchange([
-			{
-				speaker: "Col. Bubbles",
-				text: "Captain, Firebase Delta is a triangle of three hilltops overlooking the river valley. Scale-Guard holds all three.",
-			},
-			{
-				speaker: "Col. Bubbles",
-				text: "We take those hills, we control the central Reach. Hilltop Charlie is closest — start there.",
-			},
-		])),
+		trigger(
+			"phase:recon:bubbles-briefing",
+			on.timer(5),
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Captain, Firebase Delta is a triangle of three hilltops overlooking the river valley. Scale-Guard holds all three.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "We take those hills, we control the central Reach. Hilltop Charlie is closest — start there.",
+				},
+			]),
+		),
 
 		// [0:15] FOXHOUND terrain assessment
-		trigger("phase:recon:foxhound-terrain", on.timer(15), act.exchange([
-			{
-				speaker: "FOXHOUND",
-				text: "Terrain report: Charlie is southeast, lightly garrisoned. Bravo is west across the river — stronger. Alpha is far north, heavily fortified with a radio tower.",
-			},
-			{
-				speaker: "FOXHOUND",
-				text: "The river gorge cuts the map in two. Two ford crossings — one west, one east. Plan your approach.",
-			},
-		])),
+		trigger(
+			"phase:recon:foxhound-terrain",
+			on.timer(15),
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "Terrain report: Charlie is southeast, lightly garrisoned. Bravo is west across the river — stronger. Alpha is far north, heavily fortified with a radio tower.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "The river gorge cuts the map in two. Two ford crossings — one west, one east. Plan your approach.",
+				},
+			]),
+		),
 
 		// [0:30] Build-up hint
 		trigger(
@@ -352,22 +360,18 @@ export const mission03FirebaseDelta: MissionDef = {
 		]),
 
 		// Charlie captured — Flag Post destroyed (2 of 3 remaining)
-		trigger(
-			"phase:recon:charlie-captured",
-			on.buildingCount("scale_guard", "flag_post", "eq", 2),
-			[
-				act.completeObjective("capture-charlie"),
-				act.dialogue(
-					"sgt_bubbles",
-					"Charlie is ours! Good. Get some troops dug in there — they'll try to take it back.",
-				),
-				act.dialogue(
-					"foxhound",
-					"Recommend building defenses on the hilltop. Watchtower, walls — whatever you can manage before the next push.",
-				),
-				act.startPhase("two-front-war"),
-			],
-		),
+		trigger("phase:recon:charlie-captured", on.buildingCount("scale_guard", "flag_post", "eq", 2), [
+			act.completeObjective("capture-charlie"),
+			act.dialogue(
+				"sgt_bubbles",
+				"Charlie is ours! Good. Get some troops dug in there — they'll try to take it back.",
+			),
+			act.dialogue(
+				"foxhound",
+				"Recommend building defenses on the hilltop. Watchtower, walls — whatever you can manage before the next push.",
+			),
+			act.startPhase("two-front-war"),
+		]),
 
 		// ════════════════════════════════════════════════════════════════
 		// PHASE 2: TWO-FRONT WAR (~6:00 - ~14:00)
@@ -375,32 +379,28 @@ export const mission03FirebaseDelta: MissionDef = {
 		// ════════════════════════════════════════════════════════════════
 
 		// Phase 2 briefing — enabled by charlie-captured
-		trigger(
-			"phase:two-front-war:briefing",
-			on.objectiveComplete("capture-charlie"),
-			[
-				act.exchange([
-					{
-						speaker: "Col. Bubbles",
-						text: "Don't get comfortable. Bravo is next — west side, across the river. Use the southern ford to cross.",
-					},
-					{
-						speaker: "FOXHOUND",
-						text: "Be warned: they'll counterattack Charlie while you're pushing Bravo. Split your force or build defenses.",
-					},
-				]),
-				// Reveal new zones for Phase 2
-				act.revealZone("hilltop_bravo"),
-				act.revealZone("valley_center"),
-				act.revealZone("jungle_west"),
-				act.revealZone("river_south"),
-				act.revealZone("approach_south"),
-				// Add persistent defense objective
-				act.addObjective("defend-charlie", "Defend Hilltop Charlie", "primary"),
-				// Enable Phase 2 counterattack trigger
-				act.enableTrigger("phase:two-front-war:counterattack-charlie"),
-			],
-		),
+		trigger("phase:two-front-war:briefing", on.objectiveComplete("capture-charlie"), [
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Don't get comfortable. Bravo is next — west side, across the river. Use the southern ford to cross.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Be warned: they'll counterattack Charlie while you're pushing Bravo. Split your force or build defenses.",
+				},
+			]),
+			// Reveal new zones for Phase 2
+			act.revealZone("hilltop_bravo"),
+			act.revealZone("valley_center"),
+			act.revealZone("jungle_west"),
+			act.revealZone("river_south"),
+			act.revealZone("approach_south"),
+			// Add persistent defense objective
+			act.addObjective("defend-charlie", "Defend Hilltop Charlie", "primary"),
+			// Enable Phase 2 counterattack trigger
+			act.enableTrigger("phase:two-front-war:counterattack-charlie"),
+		]),
 
 		// [Phase 2 + ~60s] Counterattack on Charlie from the east
 		trigger(
@@ -409,10 +409,7 @@ export const mission03FirebaseDelta: MissionDef = {
 			[
 				act.spawn("gator", "scale_guard", 108, 52, 4),
 				act.spawn("skink", "scale_guard", 112, 56, 2),
-				act.dialogue(
-					"foxhound",
-					"Counterattack on Charlie! Hostiles approaching from the east!",
-				),
+				act.dialogue("foxhound", "Counterattack on Charlie! Hostiles approaching from the east!"),
 				act.dialogue(
 					"sgt_bubbles",
 					"Hold that hill, Captain! If they retake it, we lose everything.",
@@ -446,10 +443,7 @@ export const mission03FirebaseDelta: MissionDef = {
 			on.buildingCount("scale_guard", "flag_post", "eq", 1),
 			[
 				act.completeObjective("capture-bravo"),
-				act.dialogue(
-					"sgt_bubbles",
-					"Bravo is down! Two hills secured. One more — the big one.",
-				),
+				act.dialogue("sgt_bubbles", "Bravo is down! Two hills secured. One more — the big one."),
 				act.dialogue(
 					"foxhound",
 					"Alpha is across the gorge, northeast. Heavily defended. Radio tower is calling in reinforcements — take that out and the counterattack will be weaker.",
@@ -464,35 +458,31 @@ export const mission03FirebaseDelta: MissionDef = {
 		// ════════════════════════════════════════════════════════════════
 
 		// Phase 3 briefing — enabled by bravo-captured
-		trigger(
-			"phase:assault-alpha:briefing",
-			on.objectiveComplete("capture-bravo"),
-			[
-				act.exchange([
-					{
-						speaker: "Col. Bubbles",
-						text: "Alpha is the keystone. Radio tower, gun emplacement, full garrison. This is the hard one, Captain.",
-					},
-					{
-						speaker: "FOXHOUND",
-						text: "Cross at the western ford, push through the northwest jungle, and hit them from the flank. The front approach through the valley is a kill zone.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "Build defenses on Charlie and Bravo. They will hit both while you push Alpha.",
-					},
-				]),
-				// Reveal northern zones
-				act.revealZone("hilltop_alpha"),
-				act.revealZone("jungle_ne"),
-				act.revealZone("jungle_nw"),
-				act.revealZone("river_gorge"),
-				// Add defense objective for Bravo
-				act.addObjective("defend-bravo", "Defend Hilltop Bravo", "primary"),
-				// Enable Phase 3 dual counterattack
-				act.enableTrigger("phase:assault-alpha:dual-counterattack"),
-			],
-		),
+		trigger("phase:assault-alpha:briefing", on.objectiveComplete("capture-bravo"), [
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Alpha is the keystone. Radio tower, gun emplacement, full garrison. This is the hard one, Captain.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Cross at the western ford, push through the northwest jungle, and hit them from the flank. The front approach through the valley is a kill zone.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Build defenses on Charlie and Bravo. They will hit both while you push Alpha.",
+				},
+			]),
+			// Reveal northern zones
+			act.revealZone("hilltop_alpha"),
+			act.revealZone("jungle_ne"),
+			act.revealZone("jungle_nw"),
+			act.revealZone("river_gorge"),
+			// Add defense objective for Bravo
+			act.addObjective("defend-bravo", "Defend Hilltop Bravo", "primary"),
+			// Enable Phase 3 dual counterattack
+			act.enableTrigger("phase:assault-alpha:dual-counterattack"),
+		]),
 
 		// [Phase 3 + ~45s] Dual counterattack on both captured hilltops
 		trigger(
@@ -518,17 +508,13 @@ export const mission03FirebaseDelta: MissionDef = {
 		),
 
 		// Radio tower destroyed (bonus objective)
-		trigger(
-			"phase:assault-alpha:radio-tower-destroyed",
-			on.buildingDestroyed("radio_tower"),
-			[
-				act.completeObjective("bonus-radio-tower"),
-				act.dialogue(
-					"foxhound",
-					"Radio tower is down! Scale-Guard comms are disrupted — their counterattack coordination is crippled.",
-				),
-			],
-		),
+		trigger("phase:assault-alpha:radio-tower-destroyed", on.buildingDestroyed("radio_tower"), [
+			act.completeObjective("bonus-radio-tower"),
+			act.dialogue(
+				"foxhound",
+				"Radio tower is down! Scale-Guard comms are disrupted — their counterattack coordination is crippled.",
+			),
+		]),
 
 		// Player approaches Hilltop Alpha
 		trigger("phase:assault-alpha:approach-alpha", on.areaEntered("ura", "hilltop_alpha"), [
@@ -536,10 +522,7 @@ export const mission03FirebaseDelta: MissionDef = {
 				"foxhound",
 				"You're in Alpha's perimeter. Gun emplacement dead ahead — heaviest resistance on the map.",
 			),
-			act.dialogue(
-				"sgt_bubbles",
-				"Everything we've got, Captain. Take that hill.",
-			),
+			act.dialogue("sgt_bubbles", "Everything we've got, Captain. Take that hill."),
 		]),
 
 		// Alpha captured — all 3 Flag Posts destroyed
@@ -566,27 +549,23 @@ export const mission03FirebaseDelta: MissionDef = {
 		// ════════════════════════════════════════════════════════════════
 
 		// Phase 4 briefing — enabled by alpha-captured
-		trigger(
-			"phase:hold-the-line:briefing",
-			on.objectiveComplete("capture-alpha"),
-			[
-				act.exchange([
-					{
-						speaker: "Col. Bubbles",
-						text: "Three minutes, Captain. Hold every hill for three minutes and Firebase Delta is permanently ours. Reinforcements are en route but they need time.",
-					},
-					{
-						speaker: "FOXHOUND",
-						text: "Multiple hostile formations inbound from all directions. This is their last shot. Make it count.",
-					},
-				]),
-				// Enable all Phase 4 wave triggers
-				act.enableTrigger("phase:hold-the-line:wave-1"),
-				act.enableTrigger("phase:hold-the-line:wave-2"),
-				act.enableTrigger("phase:hold-the-line:wave-3"),
-				act.enableTrigger("phase:hold-the-line:hold-complete"),
-			],
-		),
+		trigger("phase:hold-the-line:briefing", on.objectiveComplete("capture-alpha"), [
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Three minutes, Captain. Hold every hill for three minutes and Firebase Delta is permanently ours. Reinforcements are en route but they need time.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Multiple hostile formations inbound from all directions. This is their last shot. Make it count.",
+				},
+			]),
+			// Enable all Phase 4 wave triggers
+			act.enableTrigger("phase:hold-the-line:wave-1"),
+			act.enableTrigger("phase:hold-the-line:wave-2"),
+			act.enableTrigger("phase:hold-the-line:wave-3"),
+			act.enableTrigger("phase:hold-the-line:hold-complete"),
+		]),
 
 		// [Phase 4 + 15s] Wave 1 — all sectors
 		trigger(
@@ -619,10 +598,7 @@ export const mission03FirebaseDelta: MissionDef = {
 				// Alpha from north
 				act.spawn("gator", "scale_guard", 68, 18, 3),
 				act.spawn("viper", "scale_guard", 72, 14, 2),
-				act.dialogue(
-					"sgt_bubbles",
-					"Second wave! They're hitting harder! Keep those lines tight!",
-				),
+				act.dialogue("sgt_bubbles", "Second wave! They're hitting harder! Keep those lines tight!"),
 			],
 			{ enabled: false },
 		),

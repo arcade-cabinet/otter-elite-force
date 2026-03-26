@@ -244,10 +244,7 @@ export const mission12FangRescue: MissionDef = {
 	objectives: {
 		primary: [
 			objective("rescue-fang", "Rescue Sgt. Fang from the detention block"),
-			objective(
-				"extract-south",
-				"Extract all heroes to the southern extraction LZ",
-			),
+			objective("extract-south", "Extract all heroes to the southern extraction LZ"),
 		],
 		bonus: [
 			objective("no-casualties", "Complete without losing any units"),
@@ -293,78 +290,59 @@ export const mission12FangRescue: MissionDef = {
 		trigger(
 			"phase:ravine:entered",
 			on.areaEntered("ura", "ravine_upper"),
-			act.dialogue(
-				"foxhound",
-				"Ravine narrows ahead. Watch for ambush patrols between the walls.",
-			),
+			act.dialogue("foxhound", "Ravine narrows ahead. Watch for ambush patrols between the walls."),
 		),
 
 		// ────────────────────────────────────────────────────
 		// PHASE 2: OUTER BREACH (~4:00 - ~7:00)
 		// ────────────────────────────────────────────────────
-		trigger(
-			"phase:outer:wall-approach",
-			on.areaEntered("ura", "wall_south"),
-			[
-				act.startPhase("outer_breach"),
-				act.dialogue(
-					"sgt_bubbles",
-					"Outer wall ahead. Sappers — plant charges on that gate. Everyone else, covering fire!",
-				),
-			],
-		),
+		trigger("phase:outer:wall-approach", on.areaEntered("ura", "wall_south"), [
+			act.startPhase("outer_breach"),
+			act.dialogue(
+				"sgt_bubbles",
+				"Outer wall ahead. Sappers — plant charges on that gate. Everyone else, covering fire!",
+			),
+		]),
 
-		trigger(
-			"phase:outer:compound-entered-w",
-			on.areaEntered("ura", "outer_compound_w"),
-			[
-				act.exchange([
-					{
-						speaker: "FOXHOUND",
-						text: "You're past the outer wall. Inner courtyard ahead — Vipers and Snappers are guarding the mid-gate. Two more walls to go.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "Mortar Otters — set up behind the infantry. Suppress those courtyard defenders while the Sappers move up.",
-					},
-				]),
-			],
-		),
+		trigger("phase:outer:compound-entered-w", on.areaEntered("ura", "outer_compound_w"), [
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "You're past the outer wall. Inner courtyard ahead — Vipers and Snappers are guarding the mid-gate. Two more walls to go.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Mortar Otters — set up behind the infantry. Suppress those courtyard defenders while the Sappers move up.",
+				},
+			]),
+		]),
 
-		trigger(
-			"phase:outer:compound-entered-e",
-			on.areaEntered("ura", "outer_compound_e"),
-			[
-				act.exchange([
-					{
-						speaker: "FOXHOUND",
-						text: "You're past the outer wall. Inner courtyard ahead — Vipers and Snappers are guarding the mid-gate. Two more walls to go.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "Mortar Otters — set up behind the infantry. Suppress those courtyard defenders while the Sappers move up.",
-					},
-				]),
-			],
-		),
+		trigger("phase:outer:compound-entered-e", on.areaEntered("ura", "outer_compound_e"), [
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "You're past the outer wall. Inner courtyard ahead — Vipers and Snappers are guarding the mid-gate. Two more walls to go.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Mortar Otters — set up behind the infantry. Suppress those courtyard defenders while the Sappers move up.",
+				},
+			]),
+		]),
 
 		// ────────────────────────────────────────────────────
 		// PHASE 3: COURTYARD ASSAULT (~7:00 - ~10:00)
 		// ────────────────────────────────────────────────────
-		trigger(
-			"phase:courtyard:entered",
-			on.areaEntered("ura", "inner_courtyard"),
-			[
-				act.startPhase("courtyard_assault"),
-				act.dialogue(
-					"foxhound",
-					"Inside the courtyard. Detention block is through the north gate. Clear these guards and push through — this is the hardest room in the stronghold.",
-				),
-				// Reinforcement spawn on courtyard entry
-				act.spawn("gator", "scale_guard", 48, 28, 2),
-				act.spawn("gator", "scale_guard", 80, 28, 2),
-			],
-		),
+		trigger("phase:courtyard:entered", on.areaEntered("ura", "inner_courtyard"), [
+			act.startPhase("courtyard_assault"),
+			act.dialogue(
+				"foxhound",
+				"Inside the courtyard. Detention block is through the north gate. Clear these guards and push through — this is the hardest room in the stronghold.",
+			),
+			// Reinforcement spawn on courtyard entry
+			act.spawn("gator", "scale_guard", 48, 28, 2),
+			act.spawn("gator", "scale_guard", 80, 28, 2),
+		]),
 
 		trigger(
 			"phase:courtyard:spires-down",
@@ -378,68 +356,60 @@ export const mission12FangRescue: MissionDef = {
 		// ────────────────────────────────────────────────────
 		// PHASE 4: RESCUE (~10:00 - ~11:00)
 		// ────────────────────────────────────────────────────
-		trigger(
-			"phase:rescue:detention-reached",
-			on.areaEntered("ura", "detention_block"),
-			[
-				act.startPhase("rescue"),
-				act.completeObjective("rescue-fang"),
-				act.spawn("sgt_fang", "ura", 76, 10, 1),
-				act.exchange([
-					{
-						speaker: "Sgt. Fang",
-						text: "Took your sweet time, Captain.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "Fang, this is Bubbles. Can you fight?",
-					},
-					{
-						speaker: "Sgt. Fang",
-						text: "Can I fight? I've been breaking rocks with my bare hands for two weeks. Give me something to hit.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "You'll get your chance. They're about to lock this place down.",
-					},
-					{
-						speaker: "Sgt. Fang",
-						text: "Good. I know a shortcut through the west wing. Stay behind me — I'll put a hole in anything that moves.",
-					},
-				]),
-				// Arm the fang-death trigger only after Fang is spawned
-				act.enableTrigger("phase:retreat:fang-death"),
-			],
-		),
+		trigger("phase:rescue:detention-reached", on.areaEntered("ura", "detention_block"), [
+			act.startPhase("rescue"),
+			act.completeObjective("rescue-fang"),
+			act.spawn("sgt_fang", "ura", 76, 10, 1),
+			act.exchange([
+				{
+					speaker: "Sgt. Fang",
+					text: "Took your sweet time, Captain.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Fang, this is Bubbles. Can you fight?",
+				},
+				{
+					speaker: "Sgt. Fang",
+					text: "Can I fight? I've been breaking rocks with my bare hands for two weeks. Give me something to hit.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "You'll get your chance. They're about to lock this place down.",
+				},
+				{
+					speaker: "Sgt. Fang",
+					text: "Good. I know a shortcut through the west wing. Stay behind me — I'll put a hole in anything that moves.",
+				},
+			]),
+			// Arm the fang-death trigger only after Fang is spawned
+			act.enableTrigger("phase:retreat:fang-death"),
+		]),
 
 		// ────────────────────────────────────────────────────
 		// PHASE 5: FIGHTING RETREAT (~11:00+)
 		// ────────────────────────────────────────────────────
 
 		// Lockdown — immediate reinforcement wave on rescue
-		trigger(
-			"phase:retreat:lockdown",
-			on.objectiveComplete("rescue-fang"),
-			[
-				act.startPhase("fighting_retreat"),
-				act.dialogue(
-					"foxhound",
-					"Fang is free! Compound lockdown! Reinforcements flooding in from every direction! Fight your way to the southern extraction!",
-				),
-				// Wave 1: immediate compound reinforcements
-				act.spawn("gator", "scale_guard", 20, 32, 4),
-				act.spawn("gator", "scale_guard", 108, 32, 4),
-				act.spawn("viper", "scale_guard", 64, 50, 3),
-				// Wave 1: ravine blockers
-				act.spawn("gator", "scale_guard", 44, 72, 3),
-				act.spawn("gator", "scale_guard", 84, 72, 3),
-				act.spawn("scout_lizard", "scale_guard", 52, 80, 2),
-				act.spawn("scout_lizard", "scale_guard", 76, 80, 2),
-				// Arm the timed reinforcement waves
-				act.enableTrigger("phase:retreat:wave-2"),
-				act.enableTrigger("phase:retreat:wave-3"),
-			],
-		),
+		trigger("phase:retreat:lockdown", on.objectiveComplete("rescue-fang"), [
+			act.startPhase("fighting_retreat"),
+			act.dialogue(
+				"foxhound",
+				"Fang is free! Compound lockdown! Reinforcements flooding in from every direction! Fight your way to the southern extraction!",
+			),
+			// Wave 1: immediate compound reinforcements
+			act.spawn("gator", "scale_guard", 20, 32, 4),
+			act.spawn("gator", "scale_guard", 108, 32, 4),
+			act.spawn("viper", "scale_guard", 64, 50, 3),
+			// Wave 1: ravine blockers
+			act.spawn("gator", "scale_guard", 44, 72, 3),
+			act.spawn("gator", "scale_guard", 84, 72, 3),
+			act.spawn("scout_lizard", "scale_guard", 52, 80, 2),
+			act.spawn("scout_lizard", "scale_guard", 76, 80, 2),
+			// Arm the timed reinforcement waves
+			act.enableTrigger("phase:retreat:wave-2"),
+			act.enableTrigger("phase:retreat:wave-3"),
+		]),
 
 		// Wave 2: +30s after lockdown (enabled by lockdown trigger)
 		trigger(
@@ -462,10 +432,7 @@ export const mission12FangRescue: MissionDef = {
 			"phase:retreat:wave-3",
 			on.timer(60),
 			[
-				act.dialogue(
-					"foxhound",
-					"Third wave! They're pulling everything — this is it, Captain!",
-				),
+				act.dialogue("foxhound", "Third wave! They're pulling everything — this is it, Captain!"),
 				act.spawn("gator", "scale_guard", 32, 56, 5),
 				act.spawn("gator", "scale_guard", 96, 56, 5),
 				act.spawn("viper", "scale_guard", 16, 80, 3),
@@ -518,9 +485,7 @@ export const mission12FangRescue: MissionDef = {
 		trigger(
 			"phase:retreat:fang-death",
 			on.unitCount("ura", "sgt_fang", "eq", 0),
-			act.failMission(
-				"Sgt. Fang has been killed during extraction. Mission failed.",
-			),
+			act.failMission("Sgt. Fang has been killed during extraction. Mission failed."),
 			{ enabled: false },
 		),
 
@@ -532,10 +497,7 @@ export const mission12FangRescue: MissionDef = {
 			on.buildingCount("scale_guard", "venom_spire", "eq", 0),
 			[
 				act.completeObjective("destroy-all-spires"),
-				act.dialogue(
-					"foxhound",
-					"All Venom Spires neutralized. Stronghold defenses are stripped.",
-				),
+				act.dialogue("foxhound", "All Venom Spires neutralized. Stronghold defenses are stripped."),
 			],
 		),
 

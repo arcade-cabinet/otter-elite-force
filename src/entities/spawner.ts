@@ -10,12 +10,12 @@ import { Gatherer, PopulationCost, ProductionQueue, ResourceNode } from "@/ecs/t
 import { Category, Faction, IsBuilding, IsHero, IsResource, UnitType } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 import { PopulationState } from "@/ecs/traits/state";
+import { type BossPhase, BossUnit } from "../ecs/traits/boss";
 import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
 import { ConvoyVehicle, ConvoyWaypoints } from "../ecs/traits/convoy";
 import { Position } from "../ecs/traits/spatial";
 import { DetectionRadius } from "../ecs/traits/stealth";
 import { CanSwim } from "../ecs/traits/water";
-import { BossUnit, type BossPhase } from "../ecs/traits/boss";
 import type { BuildingDef, HeroDef, ResourceDef, UnitDef } from "./types";
 
 export function ensureFactionOwner(world: World, factionId: string) {
@@ -277,12 +277,7 @@ export interface BossUnitConfig {
  * Spawn a boss / super-unit from a config into the ECS world.
  * Returns the Koota entity handle.
  */
-export function spawnBossUnit(
-	world: World,
-	config: BossUnitConfig,
-	x: number,
-	y: number,
-) {
+export function spawnBossUnit(world: World, config: BossUnitConfig, x: number, y: number) {
 	const faction = config.faction ?? "scale_guard";
 
 	const traits: ConfigurableTrait[] = [

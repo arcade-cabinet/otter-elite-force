@@ -362,18 +362,14 @@ export const mission09FogOfWar: MissionDef = {
 			),
 		]),
 
-		trigger(
-			"phase:deep-recon:intel-center-found",
-			on.areaEntered("ura", "intel_center"),
-			[
-				act.completeObjective("discover-intel-center"),
-				act.revealZone("intel_center"),
-				act.dialogue(
-					"foxhound",
-					"Central marker confirmed \u2014 communications relay. This is how they're coordinating patrols through the canopy.",
-				),
-			],
-		),
+		trigger("phase:deep-recon:intel-center-found", on.areaEntered("ura", "intel_center"), [
+			act.completeObjective("discover-intel-center"),
+			act.revealZone("intel_center"),
+			act.dialogue(
+				"foxhound",
+				"Central marker confirmed \u2014 communications relay. This is how they're coordinating patrols through the canopy.",
+			),
+		]),
 
 		trigger("phase:deep-recon:intel-se-found", on.areaEntered("ura", "intel_se"), [
 			act.completeObjective("discover-intel-se"),

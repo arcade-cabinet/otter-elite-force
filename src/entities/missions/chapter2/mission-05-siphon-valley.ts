@@ -13,12 +13,7 @@ import { act, objective, on, trigger } from "../dsl";
 // ---------------------------------------------------------------------------
 // Ford tile helper — generates shallow-crossing overrides for a rect region
 // ---------------------------------------------------------------------------
-function fordTiles(
-	x1: number,
-	y1: number,
-	x2: number,
-	y2: number,
-): TileOverride[] {
+function fordTiles(x1: number, y1: number, x2: number, y2: number): TileOverride[] {
 	const tiles: TileOverride[] = [];
 	for (let x = x1; x < x2; x++) {
 		for (let y = y1; y < y2; y++) {
@@ -254,20 +249,24 @@ export const mission05SiphonValley: MissionDef = {
 		// ==================================================================
 
 		// [0:10] FOXHOUND briefing — three siphon overview
-		trigger("phase:recon:foxhound-briefing", on.timer(10), act.exchange([
-			{
-				speaker: "FOXHOUND",
-				text: "Captain, intelligence confirms three siphon installations in this valley. They're pumping toxic runoff into the Copper-Silt river — killing everything downstream.",
-			},
-			{
-				speaker: "Col. Bubbles",
-				text: "Those siphons are your targets. Each one has a Fuel Tank at its core — destroy the tank and the siphon goes offline.",
-			},
-			{
-				speaker: "FOXHOUND",
-				text: "Siphon Alpha is to the northwest across the river. Lightly defended. Start there.",
-			},
-		])),
+		trigger(
+			"phase:recon:foxhound-briefing",
+			on.timer(10),
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "Captain, intelligence confirms three siphon installations in this valley. They're pumping toxic runoff into the Copper-Silt river — killing everything downstream.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Those siphons are your targets. Each one has a Fuel Tank at its core — destroy the tank and the siphon goes offline.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Siphon Alpha is to the northwest across the river. Lightly defended. Start there.",
+				},
+			]),
+		),
 
 		// [0:30] Bubbles — Raftsman schematic unlock hint
 		trigger(
@@ -331,35 +330,43 @@ export const mission05SiphonValley: MissionDef = {
 		// ==================================================================
 
 		// Alpha approach — intel on defenders
-		trigger("phase:first-siphon:alpha-approach", on.areaEntered("ura", "siphon_alpha"), act.exchange([
-			{
-				speaker: "FOXHOUND",
-				text: "Siphon Alpha in visual range. Fuel Tank is the cylindrical structure at center. Two Gators on patrol, one Skink scout, and a Siphon Drone pumping unit.",
-			},
-			{
-				speaker: "Col. Bubbles",
-				text: "Take out the Fuel Tank. The drone will shut down on its own once the tank is gone.",
-			},
-		])),
-
-		// Alpha destroyed — complete objective, reveal next zones, start phase 3
-		trigger("phase:first-siphon:alpha-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 2), [
-			act.completeObjective("destroy-siphon-alpha"),
+		trigger(
+			"phase:first-siphon:alpha-approach",
+			on.areaEntered("ura", "siphon_alpha"),
 			act.exchange([
 				{
 					speaker: "FOXHOUND",
-					text: "Siphon Alpha offline. River contamination dropping in this sector. Good hit, Captain.",
+					text: "Siphon Alpha in visual range. Fuel Tank is the cylindrical structure at center. Two Gators on patrol, one Skink scout, and a Siphon Drone pumping unit.",
 				},
 				{
 					speaker: "Col. Bubbles",
-					text: "One down, two to go. FOXHOUND is marking the next target — Siphon Bravo, northeast across the pipe corridor.",
+					text: "Take out the Fuel Tank. The drone will shut down on its own once the tank is gone.",
 				},
 			]),
-			act.revealZone("siphon_bravo"),
-			act.revealZone("pipe_corridor"),
-			act.enableTrigger("phase:toxic-terrain:briefing"),
-			act.startPhase("toxic-terrain"),
-		]),
+		),
+
+		// Alpha destroyed — complete objective, reveal next zones, start phase 3
+		trigger(
+			"phase:first-siphon:alpha-destroyed",
+			on.buildingCount("scale_guard", "fuel_tank", "lte", 2),
+			[
+				act.completeObjective("destroy-siphon-alpha"),
+				act.exchange([
+					{
+						speaker: "FOXHOUND",
+						text: "Siphon Alpha offline. River contamination dropping in this sector. Good hit, Captain.",
+					},
+					{
+						speaker: "Col. Bubbles",
+						text: "One down, two to go. FOXHOUND is marking the next target — Siphon Bravo, northeast across the pipe corridor.",
+					},
+				]),
+				act.revealZone("siphon_bravo"),
+				act.revealZone("pipe_corridor"),
+				act.enableTrigger("phase:toxic-terrain:briefing"),
+				act.startPhase("toxic-terrain"),
+			],
+		),
 
 		// ==================================================================
 		// Phase 3: TOXIC TERRAIN (~10:00 — ~16:00)
@@ -393,39 +400,47 @@ export const mission05SiphonValley: MissionDef = {
 		),
 
 		// Bravo approach — toxic damage warning
-		trigger("phase:toxic-terrain:bravo-approach", on.areaEntered("ura", "siphon_bravo"), act.exchange([
-			{
-				speaker: "FOXHOUND",
-				text: "You're in the sludge zone. Toxic damage is active — your units are taking hits every few seconds.",
-			},
-			{
-				speaker: "Col. Bubbles",
-				text: "Hit the Fuel Tank and get out. Don't linger in that filth.",
-			},
-		])),
-
-		// Bravo destroyed — spawn reinforcements from north, reveal Charlie
-		trigger("phase:toxic-terrain:bravo-destroyed", on.buildingCount("scale_guard", "fuel_tank", "lte", 1), [
-			act.completeObjective("destroy-siphon-bravo"),
+		trigger(
+			"phase:toxic-terrain:bravo-approach",
+			on.areaEntered("ura", "siphon_bravo"),
 			act.exchange([
 				{
 					speaker: "FOXHOUND",
-					text: "Siphon Bravo neutralized. Two down. But Captain — enemy reinforcements are mobilizing from the northern ridge.",
+					text: "You're in the sludge zone. Toxic damage is active — your units are taking hits every few seconds.",
 				},
 				{
 					speaker: "Col. Bubbles",
-					text: "They know what we're doing. Last siphon is Siphon Charlie — it's a fortress on the eastern ridge. Regroup before you push.",
+					text: "Hit the Fuel Tank and get out. Don't linger in that filth.",
 				},
 			]),
-			act.revealZone("siphon_charlie"),
-			act.revealZone("northern_ridge"),
-			act.spawn("gator", "scale_guard", 80, 8, 4),
-			act.spawn("skink", "scale_guard", 72, 6, 2),
-			act.spawn("viper", "scale_guard", 88, 10, 1),
-			act.enableTrigger("phase:fortress-siphon:briefing"),
-			act.enableTrigger("phase:fortress-siphon:northern-reinforcements"),
-			act.startPhase("fortress-siphon"),
-		]),
+		),
+
+		// Bravo destroyed — spawn reinforcements from north, reveal Charlie
+		trigger(
+			"phase:toxic-terrain:bravo-destroyed",
+			on.buildingCount("scale_guard", "fuel_tank", "lte", 1),
+			[
+				act.completeObjective("destroy-siphon-bravo"),
+				act.exchange([
+					{
+						speaker: "FOXHOUND",
+						text: "Siphon Bravo neutralized. Two down. But Captain — enemy reinforcements are mobilizing from the northern ridge.",
+					},
+					{
+						speaker: "Col. Bubbles",
+						text: "They know what we're doing. Last siphon is Siphon Charlie — it's a fortress on the eastern ridge. Regroup before you push.",
+					},
+				]),
+				act.revealZone("siphon_charlie"),
+				act.revealZone("northern_ridge"),
+				act.spawn("gator", "scale_guard", 80, 8, 4),
+				act.spawn("skink", "scale_guard", 72, 6, 2),
+				act.spawn("viper", "scale_guard", 88, 10, 1),
+				act.enableTrigger("phase:fortress-siphon:briefing"),
+				act.enableTrigger("phase:fortress-siphon:northern-reinforcements"),
+				act.startPhase("fortress-siphon"),
+			],
+		),
 
 		// ==================================================================
 		// Phase 4: FORTRESS SIPHON (~16:00+)
@@ -449,16 +464,20 @@ export const mission05SiphonValley: MissionDef = {
 		),
 
 		// Charlie approach — inside perimeter
-		trigger("phase:fortress-siphon:charlie-approach", on.areaEntered("ura", "siphon_charlie"), act.exchange([
-			{
-				speaker: "FOXHOUND",
-				text: "Inside Charlie's perimeter. Heavy resistance. Watchtowers have long range — take them out first if you can.",
-			},
-			{
-				speaker: "Col. Bubbles",
-				text: "Use your mortar on those towers. Then push the infantry in.",
-			},
-		])),
+		trigger(
+			"phase:fortress-siphon:charlie-approach",
+			on.areaEntered("ura", "siphon_charlie"),
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "Inside Charlie's perimeter. Heavy resistance. Watchtowers have long range — take them out first if you can.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Use your mortar on those towers. Then push the infantry in.",
+				},
+			]),
+		),
 
 		// [Phase 4 + 90s] Northern reinforcements — enabled by bravo-destroyed
 		trigger(
@@ -476,10 +495,14 @@ export const mission05SiphonValley: MissionDef = {
 		),
 
 		// Charlie destroyed — all fuel tanks gone
-		trigger("phase:fortress-siphon:charlie-destroyed", on.buildingCount("scale_guard", "fuel_tank", "eq", 0), [
-			act.completeObjective("destroy-siphon-charlie"),
-			act.completeObjective("destroy-all-siphons"),
-		]),
+		trigger(
+			"phase:fortress-siphon:charlie-destroyed",
+			on.buildingCount("scale_guard", "fuel_tank", "eq", 0),
+			[
+				act.completeObjective("destroy-siphon-charlie"),
+				act.completeObjective("destroy-all-siphons"),
+			],
+		),
 
 		// ==================================================================
 		// Bonus: Supply depot

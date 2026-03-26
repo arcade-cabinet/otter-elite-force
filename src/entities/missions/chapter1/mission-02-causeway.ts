@@ -317,11 +317,7 @@ export const mission02Causeway: MissionDef = {
 					"Convoy is rolling. Stay ahead of the trucks, Captain. They'll follow the road — you handle the ambushes.",
 				),
 				act.startPhase("first-ambush"),
-				act.addObjective(
-					"keep-trucks-alive",
-					"Keep at least 1 truck alive",
-					"primary",
-				),
+				act.addObjective("keep-trucks-alive", "Keep at least 1 truck alive", "primary"),
 			],
 		),
 
@@ -337,10 +333,7 @@ export const mission02Causeway: MissionDef = {
 				"foxhound",
 				"Ambush! Contacts in the treeline, east side! They're targeting the trucks!",
 			),
-			act.dialogue(
-				"sgt_bubbles",
-				"Get your Mudfoots in front of those trucks NOW!",
-			),
+			act.dialogue("sgt_bubbles", "Get your Mudfoots in front of those trucks NOW!"),
 		]),
 
 		// Truck damage warnings
@@ -391,20 +384,16 @@ export const mission02Causeway: MissionDef = {
 		),
 
 		// First ambush cleared → advance to Phase 3
-		trigger(
-			"phase:first-ambush:ambush-1-cleared",
-			on.areaEntered("ura", "causeway_mid"),
-			[
-				act.completeObjective("clear-ambush-1"),
-				act.dialogue(
-					"foxhound",
-					"First ambush site clear. Convoy's moving again. Road narrows up ahead — stay sharp.",
-				),
-				act.revealZone("causeway_mid"),
-				act.revealZone("supply_cache"),
-				act.startPhase("ravine-ambush"),
-			],
-		),
+		trigger("phase:first-ambush:ambush-1-cleared", on.areaEntered("ura", "causeway_mid"), [
+			act.completeObjective("clear-ambush-1"),
+			act.dialogue(
+				"foxhound",
+				"First ambush site clear. Convoy's moving again. Road narrows up ahead — stay sharp.",
+			),
+			act.revealZone("causeway_mid"),
+			act.revealZone("supply_cache"),
+			act.startPhase("ravine-ambush"),
+		]),
 
 		// ────────────────────────────────────────────
 		// Phase 3: THE RAVINE (~9:00 → ~15:00)
@@ -425,42 +414,27 @@ export const mission02Causeway: MissionDef = {
 			]),
 		),
 
-		trigger(
-			"phase:ravine-ambush:barricade-approach",
-			on.areaEntered("ura", "ambush_2"),
-			[
-				act.dialogue(
-					"foxhound",
-					"Multiple contacts along the ravine. They're dug in. Watch the flanks — Skinks in the treeline.",
-				),
-				act.addObjective("clear-barricade-obj", "Clear the road barricade", "primary"),
-				act.addObjective("clear-ravine-obj", "Escort the convoy past the ravine", "primary"),
-			],
-		),
+		trigger("phase:ravine-ambush:barricade-approach", on.areaEntered("ura", "ambush_2"), [
+			act.dialogue(
+				"foxhound",
+				"Multiple contacts along the ravine. They're dug in. Watch the flanks — Skinks in the treeline.",
+			),
+			act.addObjective("clear-barricade-obj", "Clear the road barricade", "primary"),
+			act.addObjective("clear-ravine-obj", "Escort the convoy past the ravine", "primary"),
+		]),
 
-		trigger(
-			"phase:ravine-ambush:barricade-destroyed",
-			on.buildingDestroyed("log_barricade"),
-			[
-				act.completeObjective("clear-barricade"),
-				act.dialogue(
-					"sgt_bubbles",
-					"Barricade is down. Convoy, roll forward!",
-				),
-			],
-		),
+		trigger("phase:ravine-ambush:barricade-destroyed", on.buildingDestroyed("log_barricade"), [
+			act.completeObjective("clear-barricade"),
+			act.dialogue("sgt_bubbles", "Barricade is down. Convoy, roll forward!"),
+		]),
 
 		// Bonus: supply cache
-		trigger(
-			"phase:ravine-ambush:supply-cache-found",
-			on.areaEntered("ura", "supply_cache"),
-			[
-				act.dialogue(
-					"foxhound",
-					"Looks like Scale-Guard left supplies behind east of the road. Salvage for the taking, Captain.",
-				),
-			],
-		),
+		trigger("phase:ravine-ambush:supply-cache-found", on.areaEntered("ura", "supply_cache"), [
+			act.dialogue(
+				"foxhound",
+				"Looks like Scale-Guard left supplies behind east of the road. Salvage for the taking, Captain.",
+			),
+		]),
 
 		trigger(
 			"phase:ravine-ambush:supply-cache-collected",
@@ -469,21 +443,14 @@ export const mission02Causeway: MissionDef = {
 		),
 
 		// Ravine cleared → advance to Phase 4
-		trigger(
-			"phase:ravine-ambush:ravine-cleared",
-			on.objectiveComplete("clear-barricade"),
-			[
-				act.completeObjective("clear-ravine"),
-				act.dialogue(
-					"foxhound",
-					"Ravine clear. One more stretch, Captain. And it's the worst one.",
-				),
-				act.revealZone("ambush_3"),
-				act.revealZone("swamp_north"),
-				act.revealZone("extraction_point"),
-				act.startPhase("final-push"),
-			],
-		),
+		trigger("phase:ravine-ambush:ravine-cleared", on.objectiveComplete("clear-barricade"), [
+			act.completeObjective("clear-ravine"),
+			act.dialogue("foxhound", "Ravine clear. One more stretch, Captain. And it's the worst one."),
+			act.revealZone("ambush_3"),
+			act.revealZone("swamp_north"),
+			act.revealZone("extraction_point"),
+			act.startPhase("final-push"),
+		]),
 
 		// ────────────────────────────────────────────
 		// Phase 4: FINAL PUSH (~15:00+)
@@ -505,19 +472,15 @@ export const mission02Causeway: MissionDef = {
 		),
 
 		// Mortar fires when player approaches ambush_3
-		trigger(
-			"phase:final-push:mortar-fires",
-			on.areaEntered("ura", "ambush_3"),
-			[
-				act.dialogue(
-					"foxhound",
-					"Mortar firing! Incoming on the convoy! Take out that emplacement, Captain!",
-				),
-				act.addObjective("destroy-mortar-obj", "Destroy the mortar pit on the ridge", "primary"),
-				// Arm delayed reinforcement trigger
-				act.enableTrigger("phase:final-push:ridge-reinforcements"),
-			],
-		),
+		trigger("phase:final-push:mortar-fires", on.areaEntered("ura", "ambush_3"), [
+			act.dialogue(
+				"foxhound",
+				"Mortar firing! Incoming on the convoy! Take out that emplacement, Captain!",
+			),
+			act.addObjective("destroy-mortar-obj", "Destroy the mortar pit on the ridge", "primary"),
+			// Arm delayed reinforcement trigger
+			act.enableTrigger("phase:final-push:ridge-reinforcements"),
+		]),
 
 		// Ridge reinforcements — 45s after mortar fires
 		trigger(
@@ -535,17 +498,10 @@ export const mission02Causeway: MissionDef = {
 		),
 
 		// Mortar destroyed
-		trigger(
-			"phase:final-push:mortar-destroyed",
-			on.buildingDestroyed("mortar_pit"),
-			[
-				act.completeObjective("destroy-mortar"),
-				act.dialogue(
-					"sgt_bubbles",
-					"Mortar's down! Clear the ridge and get those trucks moving!",
-				),
-			],
-		),
+		trigger("phase:final-push:mortar-destroyed", on.buildingDestroyed("mortar_pit"), [
+			act.completeObjective("destroy-mortar"),
+			act.dialogue("sgt_bubbles", "Mortar's down! Clear the ridge and get those trucks moving!"),
+		]),
 
 		// Ridge fully cleared
 		trigger(
@@ -587,17 +543,13 @@ export const mission02Causeway: MissionDef = {
 		]),
 
 		// Lodge destroyed — mission failure
-		trigger(
-			"phase:complete:lodge-destroyed",
-			on.buildingDestroyed("burrow"),
-			[
-				act.dialogue(
-					"sgt_bubbles",
-					"The lodge is gone! We've lost our command structure. Fall back!",
-				),
-				act.failMission("Lodge destroyed"),
-			],
-		),
+		trigger("phase:complete:lodge-destroyed", on.buildingDestroyed("burrow"), [
+			act.dialogue(
+				"sgt_bubbles",
+				"The lodge is gone! We've lost our command structure. Fall back!",
+			),
+			act.failMission("Lodge destroyed"),
+		]),
 	],
 
 	// ─── Unlocks ───

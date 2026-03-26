@@ -71,7 +71,10 @@ describe("CommandDispatcher", () => {
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
-			expect(emit).toHaveBeenCalledWith("command-marker", expect.objectContaining({ color: 0x00ff00 }));
+			expect(emit).toHaveBeenCalledWith(
+				"command-marker",
+				expect.objectContaining({ color: 0x00ff00 }),
+			);
 		});
 
 		it("does not issue move to enemy-faction units", () => {
@@ -191,7 +194,10 @@ describe("CommandDispatcher", () => {
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
 			// A red command marker should have been emitted
-			expect(emit).toHaveBeenCalledWith("command-marker", expect.objectContaining({ color: 0xff0000 }));
+			expect(emit).toHaveBeenCalledWith(
+				"command-marker",
+				expect.objectContaining({ color: 0xff0000 }),
+			);
 		});
 	});
 
@@ -259,7 +265,10 @@ describe("CommandDispatcher", () => {
 
 			dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context");
 
-			expect(emit).toHaveBeenCalledWith("command-marker", expect.objectContaining({ color: 0xfbbf24 }));
+			expect(emit).toHaveBeenCalledWith(
+				"command-marker",
+				expect.objectContaining({ color: 0xfbbf24 }),
+			);
 		});
 	});
 

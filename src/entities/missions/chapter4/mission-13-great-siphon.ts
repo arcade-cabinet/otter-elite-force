@@ -14,11 +14,7 @@ import { act, objective, on, trigger } from "../dsl";
 // ─── Bridge Helper ───
 
 /** Generate a vertical bridge column (walkable tiles over toxic water). */
-function bridgeTiles(
-	x: number,
-	yStart: number,
-	yEnd: number,
-): TileOverride[] {
+function bridgeTiles(x: number, yStart: number, yEnd: number): TileOverride[] {
 	const tiles: TileOverride[] = [];
 	for (let y = yStart; y <= yEnd; y++) {
 		tiles.push({ x, y, terrainId: "bridge" });
@@ -31,8 +27,7 @@ export const mission13GreatSiphon: MissionDef = {
 	chapter: 4,
 	mission: 1,
 	name: "The Great Siphon",
-	subtitle:
-		"Assault Scale-Guard headquarters and destroy the Great Siphon",
+	subtitle: "Assault Scale-Guard headquarters and destroy the Great Siphon",
 
 	briefing: {
 		portraitId: "gen_whiskers",
@@ -344,10 +339,7 @@ export const mission13GreatSiphon: MissionDef = {
 	objectives: {
 		primary: [objective("breach-line-1", "Breach Bunker Line 1")],
 		bonus: [
-			objective(
-				"build-shield-gen",
-				"Build a Shield Generator to protect your base",
-			),
+			objective("build-shield-gen", "Build a Shield Generator to protect your base"),
 			objective("bonus-war-chest", "Amass a war chest of 500 salvage"),
 		],
 	},
@@ -409,31 +401,23 @@ export const mission13GreatSiphon: MissionDef = {
 		),
 
 		// Bunker Line 1 cleared — watchtowers destroyed signals the line is breached
-		trigger(
-			"phase:breach:line-1-clear",
-			on.buildingCount("scale_guard", "watchtower", "lte", 4),
-			[
-				act.completeObjective("breach-line-1"),
-				act.dialogue(
-					"foxhound",
-					"Bunker Line 1 is down. Pushing forward — second line is visible now.",
-				),
-				act.revealZone("no_mans_land"),
-				act.revealZone("scarred_jungle_w"),
-				act.revealZone("scarred_jungle_e"),
-				act.revealZone("bunker_line_2"),
-				act.addObjective(
-					"breach-line-2",
-					"Break through Bunker Line 2",
-					"primary",
-				),
-				act.startPhase("no-mans-land"),
-				act.enableTrigger("phase:no-mans-land:briefing"),
-				act.enableTrigger("phase:no-mans-land:reinforcement-wave-1"),
-				act.enableTrigger("phase:no-mans-land:entered"),
-				act.enableTrigger("phase:no-mans-land:line-2-clear"),
-			],
-		),
+		trigger("phase:breach:line-1-clear", on.buildingCount("scale_guard", "watchtower", "lte", 4), [
+			act.completeObjective("breach-line-1"),
+			act.dialogue(
+				"foxhound",
+				"Bunker Line 1 is down. Pushing forward — second line is visible now.",
+			),
+			act.revealZone("no_mans_land"),
+			act.revealZone("scarred_jungle_w"),
+			act.revealZone("scarred_jungle_e"),
+			act.revealZone("bunker_line_2"),
+			act.addObjective("breach-line-2", "Break through Bunker Line 2", "primary"),
+			act.startPhase("no-mans-land"),
+			act.enableTrigger("phase:no-mans-land:briefing"),
+			act.enableTrigger("phase:no-mans-land:reinforcement-wave-1"),
+			act.enableTrigger("phase:no-mans-land:entered"),
+			act.enableTrigger("phase:no-mans-land:line-2-clear"),
+		]),
 
 		// =====================================================================
 		// PHASE 2: NO MAN'S LAND
@@ -487,19 +471,12 @@ export const mission13GreatSiphon: MissionDef = {
 			on.buildingCount("scale_guard", "bunker", "eq", 0),
 			[
 				act.completeObjective("breach-line-2"),
-				act.dialogue(
-					"sgt_bubbles",
-					"Second line broken! One more between us and the siphon.",
-				),
+				act.dialogue("sgt_bubbles", "Second line broken! One more between us and the siphon."),
 				act.revealZone("trench_west"),
 				act.revealZone("kill_zone"),
 				act.revealZone("trench_east"),
 				act.revealZone("bunker_line_3"),
-				act.addObjective(
-					"reach-siphon",
-					"Reach the Great Siphon",
-					"primary",
-				),
+				act.addObjective("reach-siphon", "Reach the Great Siphon", "primary"),
 				act.startPhase("kill-zone"),
 				act.enableTrigger("phase:kill-zone:briefing"),
 				act.enableTrigger("phase:kill-zone:entered"),
@@ -552,10 +529,7 @@ export const mission13GreatSiphon: MissionDef = {
 		trigger(
 			"phase:kill-zone:artillery-destroyed",
 			on.buildingCount("scale_guard", "venom_spire", "eq", 0),
-			act.dialogue(
-				"sgt_bubbles",
-				"Artillery battery silenced. That opens up the center approach.",
-			),
+			act.dialogue("sgt_bubbles", "Artillery battery silenced. That opens up the center approach."),
 			{ enabled: false },
 		),
 
@@ -573,21 +547,9 @@ export const mission13GreatSiphon: MissionDef = {
 					"gen_whiskers",
 					"There it is. The Great Siphon. Three pumping sections — west, center, east. Destroy them all, Captain. End this.",
 				),
-				act.addObjective(
-					"destroy-siphon-west",
-					"Destroy Siphon Section — WEST",
-					"primary",
-				),
-				act.addObjective(
-					"destroy-siphon-center",
-					"Destroy Siphon Section — CENTER",
-					"primary",
-				),
-				act.addObjective(
-					"destroy-siphon-east",
-					"Destroy Siphon Section — EAST",
-					"primary",
-				),
+				act.addObjective("destroy-siphon-west", "Destroy Siphon Section — WEST", "primary"),
+				act.addObjective("destroy-siphon-center", "Destroy Siphon Section — CENTER", "primary"),
+				act.addObjective("destroy-siphon-east", "Destroy Siphon Section — EAST", "primary"),
 				act.startPhase("destroy-siphon"),
 				act.enableTrigger("phase:destroy-siphon:briefing"),
 				act.enableTrigger("phase:destroy-siphon:west-50"),
@@ -625,10 +587,7 @@ export const mission13GreatSiphon: MissionDef = {
 			"phase:destroy-siphon:west-50",
 			on.healthThreshold("great_siphon_west", 50, "below"),
 			[
-				act.dialogue(
-					"foxhound",
-					"West section at half integrity. Keep the pressure on.",
-				),
+				act.dialogue("foxhound", "West section at half integrity. Keep the pressure on."),
 				act.spawn("croc_champion", "scale_guard", 40, 6, 2),
 			],
 			{ enabled: false },
@@ -682,10 +641,7 @@ export const mission13GreatSiphon: MissionDef = {
 		trigger(
 			"phase:destroy-siphon:east-50",
 			on.healthThreshold("great_siphon_east", 50, "below"),
-			act.dialogue(
-				"foxhound",
-				"East section at half. Almost there, Captain.",
-			),
+			act.dialogue("foxhound", "East section at half. Almost there, Captain."),
 			{ enabled: false },
 		),
 
@@ -705,10 +661,7 @@ export const mission13GreatSiphon: MissionDef = {
 		trigger(
 			"phase:bonus:flank-salvage-w",
 			on.areaEntered("ura", "scarred_jungle_w"),
-			act.dialogue(
-				"foxhound",
-				"Salvage caches in the western ruins. Grab what you can.",
-			),
+			act.dialogue("foxhound", "Salvage caches in the western ruins. Grab what you can."),
 		),
 
 		// Eastern scarred jungle salvage callout

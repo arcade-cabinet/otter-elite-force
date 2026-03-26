@@ -9,11 +9,10 @@
  * Uses the shared noise utility for deterministic-per-tick rolls.
  */
 
-import type { World } from "koota";
+import type { Entity, World } from "koota";
 import { Faction } from "@/ecs/traits/identity";
 import { GameClock, ResourcePool } from "@/ecs/traits/state";
 import { createNoise } from "@/utils/noise";
-import type { Entity } from "koota";
 
 // ─── Loot Table ───
 
@@ -33,31 +32,21 @@ export interface LootEntry {
  */
 export const LOOT_TABLES: Record<string, LootEntry[]> = {
 	// Basic enemies — small resource drops
-	skink: [
-		{ resource: "fish", chance: 0.3, min: 5, max: 10 },
-	],
+	skink: [{ resource: "fish", chance: 0.3, min: 5, max: 10 }],
 	gator: [
 		{ resource: "salvage", chance: 0.5, min: 10, max: 20 },
 		{ resource: "fish", chance: 0.3, min: 5, max: 15 },
 	],
-	viper: [
-		{ resource: "salvage", chance: 0.4, min: 8, max: 15 },
-	],
-	scout_lizard: [
-		{ resource: "timber", chance: 0.2, min: 5, max: 10 },
-	],
-	snapper: [
-		{ resource: "salvage", chance: 0.6, min: 15, max: 30 },
-	],
+	viper: [{ resource: "salvage", chance: 0.4, min: 8, max: 15 }],
+	scout_lizard: [{ resource: "timber", chance: 0.2, min: 5, max: 10 }],
+	snapper: [{ resource: "salvage", chance: 0.6, min: 15, max: 30 }],
 	// Elite enemies — guaranteed drops
 	croc_champion: [
 		{ resource: "salvage", chance: 0.9, min: 25, max: 50 },
 		{ resource: "fish", chance: 0.6, min: 15, max: 30 },
 		{ resource: "timber", chance: 0.4, min: 10, max: 20 },
 	],
-	siphon_drone: [
-		{ resource: "salvage", chance: 0.7, min: 10, max: 25 },
-	],
+	siphon_drone: [{ resource: "salvage", chance: 0.7, min: 10, max: 25 }],
 	serpent_king: [
 		{ resource: "salvage", chance: 1.0, min: 100, max: 200 },
 		{ resource: "fish", chance: 1.0, min: 50, max: 100 },
@@ -72,11 +61,7 @@ export const LOOT_TABLES: Record<string, LootEntry[]> = {
  * @param entity - The entity that just died (must still have traits).
  * @param unitType - The unit type string.
  */
-export function rollLootDrops(
-	world: World,
-	entity: Entity,
-	unitType: string,
-): void {
+export function rollLootDrops(world: World, entity: Entity, unitType: string): void {
 	const table = LOOT_TABLES[unitType];
 	if (!table) return;
 
@@ -99,9 +84,15 @@ export function rollLootDrops(
 		if (!noise.chance(entry.chance)) continue;
 		const amount = noise.int(entry.min, entry.max);
 		switch (entry.resource) {
-			case "fish": fishDrop += amount; break;
-			case "timber": timberDrop += amount; break;
-			case "salvage": salvageDrop += amount; break;
+			case "fish":
+				fishDrop += amount;
+				break;
+			case "timber":
+				timberDrop += amount;
+				break;
+			case "salvage":
+				salvageDrop += amount;
+				break;
 		}
 	}
 

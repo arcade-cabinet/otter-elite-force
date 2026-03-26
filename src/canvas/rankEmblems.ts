@@ -12,9 +12,9 @@
 // ─── Faction colors ───
 
 const FACTION_COLORS: Record<string, string> = {
-	ura: "#4ade80",        // green — OEF
+	ura: "#4ade80", // green — OEF
 	scale_guard: "#ef4444", // red — Scale-Guard
-	neutral: "#a1a1aa",     // gray — neutral
+	neutral: "#a1a1aa", // gray — neutral
 };
 
 const FACTION_OUTLINE: Record<string, string> = {
@@ -29,7 +29,21 @@ interface EmblemDef {
 	/** Faction id for color. */
 	faction: string;
 	/** Small symbol drawn at the emblem position. */
-	symbol: "chevron" | "star" | "cross" | "diamond" | "wrench" | "skull" | "crown" | "bolt" | "shield" | "eye" | "fang" | "wave" | "arrow" | "circle";
+	symbol:
+		| "chevron"
+		| "star"
+		| "cross"
+		| "diamond"
+		| "wrench"
+		| "skull"
+		| "crown"
+		| "bolt"
+		| "shield"
+		| "eye"
+		| "fang"
+		| "wave"
+		| "arrow"
+		| "circle";
 	/** Symbol accent color override (defaults to faction color). */
 	color?: string;
 }
@@ -37,31 +51,31 @@ interface EmblemDef {
 /** Maps entity type IDs to their emblem definition. */
 const EMBLEM_DEFS: Record<string, EmblemDef> = {
 	// ─── OEF Units ───
-	river_rat:     { faction: "ura", symbol: "circle" },     // basic worker — plain dot
-	mudfoot:       { faction: "ura", symbol: "chevron" },    // infantry — single chevron
-	shellcracker:  { faction: "ura", symbol: "diamond" },    // heavy — diamond
-	sapper:        { faction: "ura", symbol: "bolt" },       // engineer — lightning bolt
-	raftsman:      { faction: "ura", symbol: "wave" },       // water transport — wave
-	mortar_otter:  { faction: "ura", symbol: "star" },       // artillery — star
-	diver:         { faction: "ura", symbol: "arrow" },      // stealth — downward arrow
+	river_rat: { faction: "ura", symbol: "circle" }, // basic worker — plain dot
+	mudfoot: { faction: "ura", symbol: "chevron" }, // infantry — single chevron
+	shellcracker: { faction: "ura", symbol: "diamond" }, // heavy — diamond
+	sapper: { faction: "ura", symbol: "bolt" }, // engineer — lightning bolt
+	raftsman: { faction: "ura", symbol: "wave" }, // water transport — wave
+	mortar_otter: { faction: "ura", symbol: "star" }, // artillery — star
+	diver: { faction: "ura", symbol: "arrow" }, // stealth — downward arrow
 
 	// ─── OEF Heroes ───
-	col_bubbles:   { faction: "ura", symbol: "star", color: "#facc15" },    // gold star (HQ only)
-	gen_whiskers:  { faction: "ura", symbol: "crown", color: "#facc15" },   // gold crown
-	cpl_splash:    { faction: "ura", symbol: "wave", color: "#38bdf8" },    // blue wave
-	sgt_fang:      { faction: "ura", symbol: "fang", color: "#facc15" },    // gold fang
-	medic_marina:  { faction: "ura", symbol: "cross", color: "#f87171" },   // red cross
-	pvt_muskrat:   { faction: "ura", symbol: "bolt", color: "#fb923c" },    // orange bolt
+	col_bubbles: { faction: "ura", symbol: "star", color: "#facc15" }, // gold star (HQ only)
+	gen_whiskers: { faction: "ura", symbol: "crown", color: "#facc15" }, // gold crown
+	cpl_splash: { faction: "ura", symbol: "wave", color: "#38bdf8" }, // blue wave
+	sgt_fang: { faction: "ura", symbol: "fang", color: "#facc15" }, // gold fang
+	medic_marina: { faction: "ura", symbol: "cross", color: "#f87171" }, // red cross
+	pvt_muskrat: { faction: "ura", symbol: "bolt", color: "#fb923c" }, // orange bolt
 
 	// ─── Scale-Guard Units ───
-	skink:         { faction: "scale_guard", symbol: "circle" },
-	gator:         { faction: "scale_guard", symbol: "chevron" },
-	viper:         { faction: "scale_guard", symbol: "fang" },
-	snapper:       { faction: "scale_guard", symbol: "shield" },
-	scout_lizard:  { faction: "scale_guard", symbol: "eye" },
+	skink: { faction: "scale_guard", symbol: "circle" },
+	gator: { faction: "scale_guard", symbol: "chevron" },
+	viper: { faction: "scale_guard", symbol: "fang" },
+	snapper: { faction: "scale_guard", symbol: "shield" },
+	scout_lizard: { faction: "scale_guard", symbol: "eye" },
 	croc_champion: { faction: "scale_guard", symbol: "diamond" },
-	siphon_drone:  { faction: "scale_guard", symbol: "bolt" },
-	serpent_king:  { faction: "scale_guard", symbol: "crown", color: "#facc15" },
+	siphon_drone: { faction: "scale_guard", symbol: "bolt" },
+	serpent_king: { faction: "scale_guard", symbol: "crown", color: "#facc15" },
 };
 
 // ─── Emblem drawing ───
@@ -233,7 +247,14 @@ export function drawRankEmblem(
 	}
 }
 
-function drawStar(ctx: CanvasRenderingContext2D, cx: number, cy: number, outerR: number, innerR: number, points: number): void {
+function drawStar(
+	ctx: CanvasRenderingContext2D,
+	cx: number,
+	cy: number,
+	outerR: number,
+	innerR: number,
+	points: number,
+): void {
 	ctx.beginPath();
 	for (let i = 0; i < points * 2; i++) {
 		const r = i % 2 === 0 ? outerR : innerR;

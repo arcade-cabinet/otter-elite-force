@@ -9,8 +9,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { initSprites, spriteCache, getSprite, type SpriteType } from "../../canvas/spriteGen";
-import { initPortraits, getPortraitCanvas, getPortraitIds } from "../../canvas/portraitRenderer";
+import { getPortraitCanvas, getPortraitIds, initPortraits } from "../../canvas/portraitRenderer";
+import { getSprite, initSprites, type SpriteType, spriteCache } from "../../canvas/spriteGen";
 
 describe("Visual: Sprite generation", () => {
 	it("generates all 47+ entity sprites without errors", () => {

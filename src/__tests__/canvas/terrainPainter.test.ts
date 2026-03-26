@@ -5,7 +5,7 @@
  * dimensions (terrain.width * 32 × terrain.height * 32) and exercises
  * the region/override painting paths.
  */
-import { describe, expect, it, vi, beforeAll } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import type { MissionDef } from "@/entities/types";
 
 // ---------------------------------------------------------------------------
@@ -42,7 +42,12 @@ beforeAll(() => {
 // Import after mocks are in place
 // ---------------------------------------------------------------------------
 
-import { paintTerrain, paintTerrainChunks, paintMinimapTerrain, TERRAIN_CELL_SIZE } from "@/canvas/terrainPainter";
+import {
+	paintMinimapTerrain,
+	paintTerrain,
+	paintTerrainChunks,
+	TERRAIN_CELL_SIZE,
+} from "@/canvas/terrainPainter";
 
 // ---------------------------------------------------------------------------
 // Minimal MissionDef fixture (only .terrain is read by paintTerrain)
@@ -60,7 +65,16 @@ const minimalMission: MissionDef = {
 		height: 44,
 		regions: [
 			{ terrainId: "grass", fill: true },
-			{ terrainId: "water", river: { points: [[0, 20], [48, 20]], width: 3 } },
+			{
+				terrainId: "water",
+				river: {
+					points: [
+						[0, 20],
+						[48, 20],
+					],
+					width: 3,
+				},
+			},
 			{ terrainId: "dirt", rect: { x: 0, y: 36, w: 48, h: 8 } },
 			{ terrainId: "mangrove", circle: { cx: 8, cy: 30, r: 5 } },
 		],
@@ -138,7 +152,16 @@ describe("paintTerrainChunks — large map support", () => {
 			height: 96,
 			regions: [
 				{ terrainId: "grass", fill: true },
-				{ terrainId: "water", river: { points: [[0, 48], [128, 48]], width: 6 } },
+				{
+					terrainId: "water",
+					river: {
+						points: [
+							[0, 48],
+							[128, 48],
+						],
+						width: 6,
+					},
+				},
 			],
 			overrides: [],
 		},
@@ -151,7 +174,16 @@ describe("paintTerrainChunks — large map support", () => {
 			height: 160,
 			regions: [
 				{ terrainId: "grass", fill: true },
-				{ terrainId: "water", river: { points: [[0, 80], [160, 80]], width: 8 } },
+				{
+					terrainId: "water",
+					river: {
+						points: [
+							[0, 80],
+							[160, 80],
+						],
+						width: 8,
+					},
+				},
 				{ terrainId: "dirt", rect: { x: 0, y: 140, w: 160, h: 20 } },
 			],
 			overrides: [],
@@ -207,8 +239,8 @@ describe("paintTerrainChunks — large map support", () => {
 
 	it("chunk coverage matches full world size", () => {
 		const chunks = paintTerrainChunks(largeMission160x160);
-		const maxX = Math.max(...chunks.map(c => c.x + c.width));
-		const maxY = Math.max(...chunks.map(c => c.y + c.height));
+		const maxX = Math.max(...chunks.map((c) => c.x + c.width));
+		const maxY = Math.max(...chunks.map((c) => c.y + c.height));
 		expect(maxX).toBe(160 * 32);
 		expect(maxY).toBe(160 * 32);
 	});
@@ -237,4 +269,3 @@ describe("paintMinimapTerrain — large map minimap", () => {
 		expect(canvas.height).toBe(44 * 32);
 	});
 });
-

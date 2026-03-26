@@ -401,39 +401,28 @@ export const mission04PrisonBreak: MissionDef = {
 		),
 
 		// Obs post cleared (silently — no alarm)
-		trigger(
-			"phase:insertion:obs-post-cleared",
-			on.unitCount("scale_guard", "skink", "eq", 0),
-			[
-				act.completeObjective("neutralize-obs-post"),
-				act.dialogue(
-					"sgt_bubbles",
-					"Observation post is dark. Good work. Move on the compound.",
-				),
-				act.revealZone("jungle_east"),
-				act.revealZone("drainage_canal"),
-				act.revealZone("jungle_approach"),
-				act.revealZone("compound_wall_s"),
-			],
-		),
+		trigger("phase:insertion:obs-post-cleared", on.unitCount("scale_guard", "skink", "eq", 0), [
+			act.completeObjective("neutralize-obs-post"),
+			act.dialogue("sgt_bubbles", "Observation post is dark. Good work. Move on the compound."),
+			act.revealZone("jungle_east"),
+			act.revealZone("drainage_canal"),
+			act.revealZone("jungle_approach"),
+			act.revealZone("compound_wall_s"),
+		]),
 
 		// Compound entered via gate (south)
-		trigger(
-			"phase:insertion:compound-entered-gate",
-			on.areaEntered("ura", "barracks_yard"),
-			[
-				act.completeObjective("infiltrate-compound"),
-				act.dialogue(
-					"foxhound",
-					"You're inside the compound. Prison block is northeast. Stay quiet.",
-				),
-				act.revealZone("barracks_yard"),
-				act.revealZone("motor_pool"),
-				act.revealZone("officer_quarters"),
-				act.revealZone("prison_block"),
-				act.startPhase("inside-the-wire"),
-			],
-		),
+		trigger("phase:insertion:compound-entered-gate", on.areaEntered("ura", "barracks_yard"), [
+			act.completeObjective("infiltrate-compound"),
+			act.dialogue(
+				"foxhound",
+				"You're inside the compound. Prison block is northeast. Stay quiet.",
+			),
+			act.revealZone("barracks_yard"),
+			act.revealZone("motor_pool"),
+			act.revealZone("officer_quarters"),
+			act.revealZone("prison_block"),
+			act.startPhase("inside-the-wire"),
+		]),
 
 		// Compound entered via drainage canal
 		trigger(
@@ -446,22 +435,18 @@ export const mission04PrisonBreak: MissionDef = {
 		),
 
 		// Canal exit into prison block area
-		trigger(
-			"phase:insertion:canal-exit",
-			on.areaEntered("ura", "prison_block"),
-			[
-				act.completeObjective("infiltrate-compound"),
-				act.dialogue(
-					"foxhound",
-					"You're inside, east wall. Prison block is right there. Nice and quiet.",
-				),
-				act.revealZone("barracks_yard"),
-				act.revealZone("motor_pool"),
-				act.revealZone("officer_quarters"),
-				act.revealZone("prison_block"),
-				act.startPhase("inside-the-wire"),
-			],
-		),
+		trigger("phase:insertion:canal-exit", on.areaEntered("ura", "prison_block"), [
+			act.completeObjective("infiltrate-compound"),
+			act.dialogue(
+				"foxhound",
+				"You're inside, east wall. Prison block is right there. Nice and quiet.",
+			),
+			act.revealZone("barracks_yard"),
+			act.revealZone("motor_pool"),
+			act.revealZone("officer_quarters"),
+			act.revealZone("prison_block"),
+			act.startPhase("inside-the-wire"),
+		]),
 
 		// ════════════════════════════════════════════════════════════════════
 		// PHASE 2: INSIDE THE WIRE
@@ -526,38 +511,30 @@ export const mission04PrisonBreak: MissionDef = {
 		),
 
 		// Prison block approach
-		trigger(
-			"phase:inside-the-wire:prison-block-approach",
-			on.areaEntered("ura", "prison_block"),
-			[
-				act.completeObjective("reach-prison"),
-				act.dialogue(
-					"foxhound",
-					"Prison block. Heavy guard — two Gators, a Viper, and a Skink on interior patrol. Gen. Whiskers's cell is in the center.",
-				),
-			],
-		),
+		trigger("phase:inside-the-wire:prison-block-approach", on.areaEntered("ura", "prison_block"), [
+			act.completeObjective("reach-prison"),
+			act.dialogue(
+				"foxhound",
+				"Prison block. Heavy guard — two Gators, a Viper, and a Skink on interior patrol. Gen. Whiskers's cell is in the center.",
+			),
+		]),
 
 		// Cell door opened — rescue Gen. Whiskers
-		trigger(
-			"phase:inside-the-wire:cell-door-opened",
-			on.buildingDestroyed("cell_door"),
-			[
-				act.completeObjective("rescue-whiskers"),
-				act.exchange([
-					{
-						speaker: "Gen. Whiskers",
-						text: "Captain! I knew OEF would come. I can move — let's get out of here.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "Whiskers is free. Now get him to exfil — south wall, through the jungle, to the extraction point.",
-					},
-				]),
-				act.spawn("gen_whiskers", "ura", 84, 18, 1),
-				act.startPhase("exfiltration"),
-			],
-		),
+		trigger("phase:inside-the-wire:cell-door-opened", on.buildingDestroyed("cell_door"), [
+			act.completeObjective("rescue-whiskers"),
+			act.exchange([
+				{
+					speaker: "Gen. Whiskers",
+					text: "Captain! I knew OEF would come. I can move — let's get out of here.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Whiskers is free. Now get him to exfil — south wall, through the jungle, to the extraction point.",
+				},
+			]),
+			act.spawn("gen_whiskers", "ura", 84, 18, 1),
+			act.startPhase("exfiltration"),
+		]),
 
 		// ════════════════════════════════════════════════════════════════════
 		// ALARM SYSTEM (can fire in any phase)
@@ -592,10 +569,7 @@ export const mission04PrisonBreak: MissionDef = {
 				act.spawn("gator", "scale_guard", 32, 4, 4),
 				act.spawn("viper", "scale_guard", 40, 8, 2),
 				act.spawn("skink", "scale_guard", 24, 6, 2),
-				act.dialogue(
-					"foxhound",
-					"More hostiles from the north! They keep coming!",
-				),
+				act.dialogue("foxhound", "More hostiles from the north! They keep coming!"),
 			],
 			{ enabled: false },
 		),
@@ -609,10 +583,7 @@ export const mission04PrisonBreak: MissionDef = {
 				act.spawn("gator", "scale_guard", 108, 44, 4),
 				act.spawn("skink", "scale_guard", 60, 4, 2),
 				act.spawn("viper", "scale_guard", 64, 8, 2),
-				act.dialogue(
-					"foxhound",
-					"Third wave inbound from all directions! Move NOW!",
-				),
+				act.dialogue("foxhound", "Third wave inbound from all directions! Move NOW!"),
 			],
 			{ enabled: false },
 		),
@@ -621,29 +592,21 @@ export const mission04PrisonBreak: MissionDef = {
 		// PHASE 3: EXFILTRATION
 		// ════════════════════════════════════════════════════════════════════
 
-		trigger(
-			"phase:exfiltration:briefing",
-			on.objectiveComplete("rescue-whiskers"),
-			[
-				act.addObjective(
-					"escort-whiskers",
-					"Escort Gen. Whiskers to the exfil zone",
-					"primary",
-				),
-				act.exchange([
-					{
-						speaker: "FOXHOUND",
-						text: "Whiskers is with you. Guards near the cell heard the door — they're investigating. You have maybe thirty seconds before they reach the block.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "Fastest route out is back the way you came. If the alarm goes off, just run for it — don't stop to fight.",
-					},
-				]),
-				act.enableTrigger("phase:exfiltration:guards-investigate"),
-				act.enableTrigger("phase:exfiltration:empty-cell-discovered"),
-			],
-		),
+		trigger("phase:exfiltration:briefing", on.objectiveComplete("rescue-whiskers"), [
+			act.addObjective("escort-whiskers", "Escort Gen. Whiskers to the exfil zone", "primary"),
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "Whiskers is with you. Guards near the cell heard the door — they're investigating. You have maybe thirty seconds before they reach the block.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Fastest route out is back the way you came. If the alarm goes off, just run for it — don't stop to fight.",
+				},
+			]),
+			act.enableTrigger("phase:exfiltration:guards-investigate"),
+			act.enableTrigger("phase:exfiltration:empty-cell-discovered"),
+		]),
 
 		// Guards investigate cell — 30s after rescue (if no alarm yet)
 		trigger(
@@ -661,14 +624,8 @@ export const mission04PrisonBreak: MissionDef = {
 			"phase:exfiltration:empty-cell-discovered",
 			on.timer(90),
 			[
-				act.dialogue(
-					"foxhound",
-					"They found the empty cell! Alarm is up — full compound alert!",
-				),
-				act.dialogue(
-					"sgt_bubbles",
-					"RUN! Get to exfil! Extraction boat is waiting!",
-				),
+				act.dialogue("foxhound", "They found the empty cell! Alarm is up — full compound alert!"),
+				act.dialogue("sgt_bubbles", "RUN! Get to exfil! Extraction boat is waiting!"),
 				act.enableTrigger("phase:alarm:triggered"),
 			],
 			{ enabled: false },
@@ -688,19 +645,13 @@ export const mission04PrisonBreak: MissionDef = {
 		trigger(
 			"phase:exfiltration:whiskers-damaged",
 			on.healthThreshold("gen_whiskers", 75, "below"),
-			act.dialogue(
-				"gen_whiskers",
-				"I'm hit! Keep going — don't stop for me!",
-			),
+			act.dialogue("gen_whiskers", "I'm hit! Keep going — don't stop for me!"),
 		),
 
 		trigger(
 			"phase:exfiltration:whiskers-critical",
 			on.healthThreshold("gen_whiskers", 30, "below"),
-			act.dialogue(
-				"sgt_bubbles",
-				"Whiskers is in bad shape! Get him to exfil immediately!",
-			),
+			act.dialogue("sgt_bubbles", "Whiskers is in bad shape! Get him to exfil immediately!"),
 		),
 
 		// ════════════════════════════════════════════════════════════════════
@@ -708,42 +659,34 @@ export const mission04PrisonBreak: MissionDef = {
 		// ════════════════════════════════════════════════════════════════════
 
 		// Gen. Whiskers killed after rescue
-		trigger(
-			"phase:exfiltration:whiskers-killed",
-			on.unitCount("ura", "gen_whiskers", "eq", 0),
-			[
-				act.exchange([
-					{
-						speaker: "FOXHOUND",
-						text: "Whiskers is down. He's gone, Captain.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "Mission failed. We lost him. Pull your team out — there's nothing more we can do here.",
-					},
-				]),
-				act.failMission("Gen. Whiskers was killed"),
-			],
-		),
+		trigger("phase:exfiltration:whiskers-killed", on.unitCount("ura", "gen_whiskers", "eq", 0), [
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "Whiskers is down. He's gone, Captain.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Mission failed. We lost him. Pull your team out — there's nothing more we can do here.",
+				},
+			]),
+			act.failMission("Gen. Whiskers was killed"),
+		]),
 
 		// All commando units killed
-		trigger(
-			"phase:fail:all-commandos-killed",
-			on.unitCount("ura", "mudfoot", "eq", 0),
-			[
-				act.exchange([
-					{
-						speaker: "FOXHOUND",
-						text: "All commando units lost. We've got nothing left in there.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "The team is gone. Mission is over. God help Whiskers.",
-					},
-				]),
-				act.failMission("All commando units were lost"),
-			],
-		),
+		trigger("phase:fail:all-commandos-killed", on.unitCount("ura", "mudfoot", "eq", 0), [
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "All commando units lost. We've got nothing left in there.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "The team is gone. Mission is over. God help Whiskers.",
+				},
+			]),
+			act.failMission("All commando units were lost"),
+		]),
 
 		// ════════════════════════════════════════════════════════════════════
 		// VICTORY
@@ -755,17 +698,13 @@ export const mission04PrisonBreak: MissionDef = {
 		]),
 
 		// Stealth bonus — completed without alarm
-		trigger(
-			"phase:victory:stealth-bonus",
-			on.objectiveComplete("escort-whiskers"),
-			[
-				act.completeObjective("no-alarm"),
-				act.dialogue(
-					"gen_whiskers",
-					"Not a single alarm raised. Your team is a ghost, Captain. Command is impressed.",
-				),
-			],
-		),
+		trigger("phase:victory:stealth-bonus", on.objectiveComplete("escort-whiskers"), [
+			act.completeObjective("no-alarm"),
+			act.dialogue(
+				"gen_whiskers",
+				"Not a single alarm raised. Your team is a ghost, Captain. Command is impressed.",
+			),
+		]),
 
 		// Mission complete — all primary objectives done
 		trigger("phase:victory:mission-complete", on.allPrimaryComplete(), [

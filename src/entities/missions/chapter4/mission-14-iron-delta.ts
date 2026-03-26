@@ -439,27 +439,23 @@ export const mission14IronDelta: MissionDef = {
 			),
 		),
 
-		trigger(
-			"phase:fishbone:captured",
-			on.buildingCount("scale_guard", "flag_post", "eq", 2),
-			[
-				act.startPhase("fishbone-secured"),
-				act.completeObjective("capture-fishbone"),
-				act.exchange([
-					{
-						speaker: "Col. Bubbles",
-						text: "Fishbone Island is ours! Establish a forward dock there — you'll need it for the push to Ironhull.",
-					},
-					{
-						speaker: "FOXHOUND",
-						text: "Mire Rock garrison is mobilizing. They know we're in the delta now. Expect heavier resistance on the next island.",
-					},
-				]),
-				// Mire Rock reinforces in response
-				act.spawn("gator", "scale_guard", 112, 34, 3),
-				act.spawn("viper", "scale_guard", 108, 36, 2),
-			],
-		),
+		trigger("phase:fishbone:captured", on.buildingCount("scale_guard", "flag_post", "eq", 2), [
+			act.startPhase("fishbone-secured"),
+			act.completeObjective("capture-fishbone"),
+			act.exchange([
+				{
+					speaker: "Col. Bubbles",
+					text: "Fishbone Island is ours! Establish a forward dock there — you'll need it for the push to Ironhull.",
+				},
+				{
+					speaker: "FOXHOUND",
+					text: "Mire Rock garrison is mobilizing. They know we're in the delta now. Expect heavier resistance on the next island.",
+				},
+			]),
+			// Mire Rock reinforces in response
+			act.spawn("gator", "scale_guard", 112, 34, 3),
+			act.spawn("viper", "scale_guard", 108, 36, 2),
+		]),
 
 		trigger(
 			"phase:fishbone:dock-built",
@@ -532,23 +528,19 @@ export const mission14IronDelta: MissionDef = {
 
 		// ─── PHASE 4: IRONHULL ASSAULT (~12:00+) ────────────────────────
 
-		trigger(
-			"phase:ironhull:approach",
-			on.areaEntered("ura", "ironhull_atoll"),
-			[
-				act.startPhase("ironhull-assault"),
-				act.exchange([
-					{
-						speaker: "FOXHOUND",
-						text: "On the atoll. They've concentrated everything here — watchtowers at every approach, Venom Spire covering the center, Croc Champions at the flag.",
-					},
-					{
-						speaker: "Col. Bubbles",
-						text: "Hit the Venom Spire first — it'll shred your forces if you ignore it. Then push for the Flag Post.",
-					},
-				]),
-			],
-		),
+		trigger("phase:ironhull:approach", on.areaEntered("ura", "ironhull_atoll"), [
+			act.startPhase("ironhull-assault"),
+			act.exchange([
+				{
+					speaker: "FOXHOUND",
+					text: "On the atoll. They've concentrated everything here — watchtowers at every approach, Venom Spire covering the center, Croc Champions at the flag.",
+				},
+				{
+					speaker: "Col. Bubbles",
+					text: "Hit the Venom Spire first — it'll shred your forces if you ignore it. Then push for the Flag Post.",
+				},
+			]),
+		]),
 
 		trigger(
 			"phase:ironhull:predator-nest-destroyed",
@@ -587,12 +579,9 @@ export const mission14IronDelta: MissionDef = {
 
 		// ─── BONUS OBJECTIVES ────────────────────────────────────────────
 
-		trigger(
-			"phase:bonus:untouchable-base",
-			on.healthThreshold("lodge", 100, "above"),
-			[],
-			{ enabled: false },
-		),
+		trigger("phase:bonus:untouchable-base", on.healthThreshold("lodge", 100, "above"), [], {
+			enabled: false,
+		}),
 
 		// Enable lodge health check when all primaries complete
 		trigger("phase:bonus:check-lodge-health", on.allPrimaryComplete(), [
@@ -611,10 +600,7 @@ export const mission14IronDelta: MissionDef = {
 			"phase:bonus:mass-assault",
 			on.areaEntered("ura", "shallows", { unitType: "mudfoot", minUnits: 6 }),
 			[
-				act.dialogue(
-					"foxhound",
-					"Mass crossing through the shallows. Bold move, Captain.",
-				),
+				act.dialogue("foxhound", "Mass crossing through the shallows. Bold move, Captain."),
 				act.completeObjective("bonus-mass-assault"),
 			],
 		),

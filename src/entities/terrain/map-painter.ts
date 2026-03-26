@@ -98,7 +98,14 @@ function paintRegionFill(ctx: Ctx, width: number, height: number, tile: TerrainT
 }
 
 /** Paint an organic scatter patch — a cluster of small rects in a rough circle. */
-function paintScatterPatch(ctx: Ctx, cx: number, cy: number, radius: number, color: string, density: number): void {
+function paintScatterPatch(
+	ctx: Ctx,
+	cx: number,
+	cy: number,
+	radius: number,
+	color: string,
+	density: number,
+): void {
 	const count = Math.floor(radius * density * 12);
 	ctx.fillStyle = color;
 	for (let i = 0; i < count; i++) {
@@ -111,7 +118,12 @@ function paintScatterPatch(ctx: Ctx, cx: number, cy: number, radius: number, col
 
 // ─── Rectangle region with edge feathering ───
 
-function paintRect(ctx: Ctx, rect: NonNullable<TerrainRegion["rect"]>, tileSize: number, tile: TerrainTileDef): void {
+function paintRect(
+	ctx: Ctx,
+	rect: NonNullable<TerrainRegion["rect"]>,
+	tileSize: number,
+	tile: TerrainTileDef,
+): void {
 	const px = rect.x * tileSize;
 	const py = rect.y * tileSize;
 	const pw = rect.w * tileSize;
@@ -137,7 +149,14 @@ function paintRect(ctx: Ctx, rect: NonNullable<TerrainRegion["rect"]>, tileSize:
 		const pcx = px + Math.random() * pw;
 		const pcy = py + Math.random() * ph;
 		const radius = 10 + Math.random() * 30;
-		paintScatterPatch(ctx, pcx, pcy, radius, noiseColors[Math.floor(Math.random() * noiseColors.length)], 0.3);
+		paintScatterPatch(
+			ctx,
+			pcx,
+			pcy,
+			radius,
+			noiseColors[Math.floor(Math.random() * noiseColors.length)],
+			0.3,
+		);
 	}
 
 	// Edge feathering — scatter base-color dots along edges to soften transitions
@@ -145,7 +164,15 @@ function paintRect(ctx: Ctx, rect: NonNullable<TerrainRegion["rect"]>, tileSize:
 }
 
 /** Scatter noise along region edges to create softer transitions. */
-function paintEdgeFeather(ctx: Ctx, px: number, py: number, pw: number, ph: number, color: string, featherWidth: number): void {
+function paintEdgeFeather(
+	ctx: Ctx,
+	px: number,
+	py: number,
+	pw: number,
+	ph: number,
+	color: string,
+	featherWidth: number,
+): void {
 	const fw = Math.min(featherWidth, 16);
 	const count = Math.floor((2 * (pw + ph)) / 3);
 	ctx.fillStyle = color;
@@ -154,10 +181,22 @@ function paintEdgeFeather(ctx: Ctx, px: number, py: number, pw: number, ph: numb
 		let x: number, y: number;
 		const offset = (Math.random() - 0.5) * fw * 2;
 		switch (side) {
-			case 0: x = px + Math.random() * pw; y = py + offset; break; // top
-			case 1: x = px + Math.random() * pw; y = py + ph + offset; break; // bottom
-			case 2: x = px + offset; y = py + Math.random() * ph; break; // left
-			default: x = px + pw + offset; y = py + Math.random() * ph; break; // right
+			case 0:
+				x = px + Math.random() * pw;
+				y = py + offset;
+				break; // top
+			case 1:
+				x = px + Math.random() * pw;
+				y = py + ph + offset;
+				break; // bottom
+			case 2:
+				x = px + offset;
+				y = py + Math.random() * ph;
+				break; // left
+			default:
+				x = px + pw + offset;
+				y = py + Math.random() * ph;
+				break; // right
 		}
 		const size = 2 + Math.floor(Math.random() * 4);
 		ctx.fillRect(x, y, size, size);
@@ -166,7 +205,12 @@ function paintEdgeFeather(ctx: Ctx, px: number, py: number, pw: number, ph: numb
 
 // ─── Circle region ───
 
-function paintCircle(ctx: Ctx, circle: NonNullable<TerrainRegion["circle"]>, tileSize: number, tile: TerrainTileDef): void {
+function paintCircle(
+	ctx: Ctx,
+	circle: NonNullable<TerrainRegion["circle"]>,
+	tileSize: number,
+	tile: TerrainTileDef,
+): void {
 	const cx = circle.cx * tileSize;
 	const cy = circle.cy * tileSize;
 	const radius = circle.r * tileSize;
@@ -195,7 +239,12 @@ function paintCircle(ctx: Ctx, circle: NonNullable<TerrainRegion["circle"]>, til
 
 // ─── River (smooth bezier curves, proper width) ───
 
-function paintRiver(ctx: Ctx, river: NonNullable<TerrainRegion["river"]>, tileSize: number, tile: TerrainTileDef): void {
+function paintRiver(
+	ctx: Ctx,
+	river: NonNullable<TerrainRegion["river"]>,
+	tileSize: number,
+	tile: TerrainTileDef,
+): void {
 	const { baseColor, noiseColors, noiseDensity } = tile.paintRules!;
 	const halfWidth = (river.width * tileSize) / 2;
 
@@ -245,7 +294,12 @@ function paintRiver(ctx: Ctx, river: NonNullable<TerrainRegion["river"]>, tileSi
 	for (let i = 0; i < noiseCount; i++) {
 		ctx.fillStyle = noiseColors[Math.floor(Math.random() * noiseColors.length)];
 		const size = 2 + Math.floor(Math.random() * 4);
-		ctx.fillRect(bounds.x + Math.random() * bounds.w, bounds.y + Math.random() * bounds.h, size, size);
+		ctx.fillRect(
+			bounds.x + Math.random() * bounds.w,
+			bounds.y + Math.random() * bounds.h,
+			size,
+			size,
+		);
 	}
 
 	// Water shimmer highlights

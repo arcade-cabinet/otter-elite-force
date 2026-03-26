@@ -13,8 +13,8 @@
 
 import { useMemo } from "react";
 import { Image as KonvaImage, Layer } from "react-konva";
-import type { MissionDef } from "@/entities/types";
 import { paintTerrainChunks, type TerrainChunk } from "@/canvas/terrainPainter";
+import type { MissionDef } from "@/entities/types";
 
 export interface TerrainLayerProps {
 	/** The mission definition whose terrain should be rendered. */
@@ -32,10 +32,7 @@ export interface TerrainLayerProps {
  * The parent Group in GameCanvas offsets this layer by camera position.
  */
 export function TerrainLayer({ missionDef }: TerrainLayerProps) {
-	const chunks: TerrainChunk[] = useMemo(
-		() => paintTerrainChunks(missionDef),
-		[missionDef],
-	);
+	const chunks: TerrainChunk[] = useMemo(() => paintTerrainChunks(missionDef), [missionDef]);
 
 	return (
 		<Layer listening={false}>
@@ -51,4 +48,3 @@ export function TerrainLayer({ missionDef }: TerrainLayerProps) {
 		</Layer>
 	);
 }
-

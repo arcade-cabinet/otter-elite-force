@@ -70,13 +70,7 @@ export class FogOfWarSystem {
 	/** Player faction ID */
 	private playerFaction: string;
 
-	constructor(
-		scene: FogScene,
-		world: World,
-		cols: number,
-		rows: number,
-		playerFaction = "ura",
-	) {
+	constructor(scene: FogScene, world: World, cols: number, rows: number, playerFaction = "ura") {
 		this.world = world;
 		this.cols = cols;
 		this.rows = rows;

@@ -8,7 +8,7 @@ import { createWorld, type World } from "koota";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { initSingletons } from "@/ecs/singletons";
 import { GamePhase } from "@/ecs/traits/state";
-import { tickAllSystems, type GameLoopContext } from "@/systems/gameLoop";
+import { type GameLoopContext, tickAllSystems } from "@/systems/gameLoop";
 
 // Mock tickAllSystems to track calls
 vi.mock("@/systems/gameLoop", async () => {
@@ -149,4 +149,3 @@ describe("useGameLoop", () => {
 		expect(phase !== "playing").toBe(true);
 	});
 });
-

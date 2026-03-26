@@ -6,15 +6,14 @@
  * Cleans up the animation frame on unmount.
  */
 
-import { useCallback, useEffect, useRef } from "react";
 import type { World } from "koota";
+import { useCallback, useEffect, useRef } from "react";
 import type { TerrainType } from "@/ai/terrainTypes";
 import { GamePhase } from "@/ecs/traits/state";
-import { type GameLoopContext, tickAllSystems } from "@/systems/gameLoop";
-import type { FogOfWarSystem } from "@/systems/fogSystem";
-import type { WeatherSystem } from "@/systems/weatherSystem";
-
 import type { ScenarioEngine, ScenarioWorldQuery } from "@/scenarios/engine";
+import type { FogOfWarSystem } from "@/systems/fogSystem";
+import { type GameLoopContext, tickAllSystems } from "@/systems/gameLoop";
+import type { WeatherSystem } from "@/systems/weatherSystem";
 
 export interface UseGameLoopOptions {
 	/** Canvas/viewport width in pixels. */
@@ -106,9 +105,7 @@ export function useGameLoop(world: World, options: UseGameLoopOptions): UseGameL
 				const samples = fpsAccRef.current;
 				samples.push(instantFps);
 				if (samples.length > 30) samples.shift();
-				resultRef.current.fps = Math.round(
-					samples.reduce((a, b) => a + b, 0) / samples.length,
-				);
+				resultRef.current.fps = Math.round(samples.reduce((a, b) => a + b, 0) / samples.length);
 			}
 
 			rafRef.current = requestAnimationFrame(tick);
@@ -133,4 +130,3 @@ export function useGameLoop(world: World, options: UseGameLoopOptions): UseGameL
 
 	return resultRef.current;
 }
-

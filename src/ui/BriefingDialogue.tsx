@@ -53,10 +53,16 @@ const SPEAKER_PORTRAITS: Record<string, string> = {
 
 // Characters who speak from the RIGHT side (player/responder)
 const RESPONDERS = new Set([
-	"col. bubbles", "col_bubbles", "sgt. bubbles", "sgt_bubbles",
-	"gen. whiskers", "gen_whiskers",
-	"cpl. splash", "sgt. fang",
-	"medic marina", "pvt. muskrat",
+	"col. bubbles",
+	"col_bubbles",
+	"sgt. bubbles",
+	"sgt_bubbles",
+	"gen. whiskers",
+	"gen_whiskers",
+	"cpl. splash",
+	"sgt. fang",
+	"medic marina",
+	"pvt. muskrat",
 ]);
 
 function resolvePortraitId(speaker: string, override?: string): string {
@@ -82,7 +88,10 @@ function useTypewriter(text: string, charsPerSecond = 40) {
 				// Play typewriter clack every 3rd character (subtle, not overwhelming)
 				if (next % 3 === 0 && next < text.length) {
 					try {
-						const actx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+						const actx = new (
+							window.AudioContext ||
+							(window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+						)();
 						const osc = actx.createOscillator();
 						const gain = actx.createGain();
 						osc.type = "square";
@@ -93,7 +102,9 @@ function useTypewriter(text: string, charsPerSecond = 40) {
 						gain.connect(actx.destination);
 						osc.start();
 						osc.stop(actx.currentTime + 0.03);
-					} catch { /* audio not available */ }
+					} catch {
+						/* audio not available */
+					}
 				}
 				return next;
 			});
@@ -152,10 +163,7 @@ export function BriefingDialogue({
 	const allDone = lineIndex >= lines.length;
 	const currentLine = allDone ? null : lines[lineIndex];
 
-	const { displayed, isComplete, complete } = useTypewriter(
-		currentLine?.text ?? "",
-		40,
-	);
+	const { displayed, isComplete, complete } = useTypewriter(currentLine?.text ?? "", 40);
 
 	const advance = useCallback(() => {
 		if (!isComplete) {
@@ -250,30 +258,36 @@ export function BriefingDialogue({
 			</div>
 
 			{/* Dialogue box — portrait + text */}
-			<div className={cn(
-				"flex w-full max-w-3xl items-end gap-3 px-4 md:gap-4",
-				isResponder && "flex-row-reverse",
-			)}>
+			<div
+				className={cn(
+					"flex w-full max-w-3xl items-end gap-3 px-4 md:gap-4",
+					isResponder && "flex-row-reverse",
+				)}
+			>
 				{/* Portrait */}
 				<div className="flex flex-shrink-0 flex-col items-center gap-1">
 					<div className="overflow-hidden border-2 border-slate-600 bg-slate-900">
 						<PortraitImage portraitId={portraitId} size={80} />
 					</div>
-					<span className={cn(
-						"font-mono text-[9px] uppercase tracking-[0.2em]",
-						isResponder ? "text-sky-400" : "text-amber-500",
-					)}>
+					<span
+						className={cn(
+							"font-mono text-[9px] uppercase tracking-[0.2em]",
+							isResponder ? "text-sky-400" : "text-amber-500",
+						)}
+					>
 						{speakerName}
 					</span>
 				</div>
 
 				{/* Text bubble */}
-				<div className={cn(
-					"flex-1 border-2 bg-slate-900/95 p-3 md:p-4",
-					isResponder
-						? "border-slate-700 border-r-sky-700"
-						: "border-slate-700 border-l-amber-700",
-				)}>
+				<div
+					className={cn(
+						"flex-1 border-2 bg-slate-900/95 p-3 md:p-4",
+						isResponder
+							? "border-slate-700 border-r-sky-700"
+							: "border-slate-700 border-l-amber-700",
+					)}
+				>
 					<p className="min-h-[3em] font-body text-sm leading-relaxed text-slate-200 md:text-base">
 						{displayed}
 						{!isComplete && <span className="animate-pulse text-amber-400">|</span>}

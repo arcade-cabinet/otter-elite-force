@@ -10,11 +10,11 @@
  */
 
 import type { Entity, World } from "koota";
+import { AIState } from "@/ecs/traits/ai";
+import { Health } from "@/ecs/traits/combat";
 import { Gatherer, ResourceNode } from "@/ecs/traits/economy";
 import { Faction, IsBuilding, IsResource, Selected } from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
-import { AIState } from "@/ecs/traits/ai";
-import { Health } from "@/ecs/traits/combat";
 import { Position } from "@/ecs/traits/spatial";
 import { EventBus } from "@/game/EventBus";
 import { CELL_SIZE } from "@/maps/constants";

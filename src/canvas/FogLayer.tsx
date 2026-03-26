@@ -10,11 +10,11 @@
  * Renders via Canvas2D `destination-out` compositing on a tiled noise texture.
  */
 
-import { useEffect, useMemo, useRef } from "react";
-import { Layer, Shape } from "react-konva";
-import { useQuery } from "koota/react";
 import type { Context } from "konva/lib/Context";
 import type { Shape as KonvaShape } from "konva/lib/Shape";
+import { useQuery } from "koota/react";
+import { useEffect, useMemo, useRef } from "react";
+import { Layer, Shape } from "react-konva";
 
 import { VisionRadius } from "@/ecs/traits/combat";
 import { Faction } from "@/ecs/traits/identity";
@@ -46,9 +46,15 @@ function buildFogTexture(): HTMLCanvasElement {
 	ctx.fillRect(0, 0, size, size);
 
 	const offsets = [
-		[-1, -1], [0, -1], [1, -1],
-		[-1, 0], [0, 0], [1, 0],
-		[-1, 1], [0, 1], [1, 1],
+		[-1, -1],
+		[0, -1],
+		[1, -1],
+		[-1, 0],
+		[0, 0],
+		[1, 0],
+		[-1, 1],
+		[0, 1],
+		[1, 1],
 	];
 
 	for (let i = 0; i < CLOUD_COUNT; i++) {
@@ -84,7 +90,14 @@ export interface FogLayerProps {
 
 // ─── Component ───
 
-export function FogLayer({ camX, camY, viewportW, viewportH, worldTilesW, worldTilesH }: Readonly<FogLayerProps>) {
+export function FogLayer({
+	camX,
+	camY,
+	viewportW,
+	viewportH,
+	worldTilesW,
+	worldTilesH,
+}: Readonly<FogLayerProps>) {
 	const fogTile = useMemo(() => buildFogTexture(), []);
 
 	// Explored-state grid: 0 = unexplored, 1 = explored (seen before), 2 = currently visible
@@ -140,7 +153,12 @@ export function FogLayer({ camX, camY, viewportW, viewportH, worldTilesW, worldT
 			const driftY = -(camY * 0.2) % FOG_NOISE_SIZE;
 			canvas2d.translate(driftX, driftY);
 			canvas2d.fillStyle = pattern;
-			canvas2d.fillRect(-FOG_NOISE_SIZE, -FOG_NOISE_SIZE, viewportW + FOG_NOISE_SIZE * 2, viewportH + FOG_NOISE_SIZE * 2);
+			canvas2d.fillRect(
+				-FOG_NOISE_SIZE,
+				-FOG_NOISE_SIZE,
+				viewportW + FOG_NOISE_SIZE * 2,
+				viewportH + FOG_NOISE_SIZE * 2,
+			);
 			canvas2d.restore();
 		}
 
@@ -159,8 +177,13 @@ export function FogLayer({ camX, camY, viewportW, viewportH, worldTilesW, worldT
 				const screenY = gy * cellPx - camY + cellPx / 2;
 
 				// Skip off-screen cells
-				if (screenX + cellPx < 0 || screenX - cellPx > viewportW ||
-					screenY + cellPx < 0 || screenY - cellPx > viewportH) continue;
+				if (
+					screenX + cellPx < 0 ||
+					screenX - cellPx > viewportW ||
+					screenY + cellPx < 0 ||
+					screenY - cellPx > viewportH
+				)
+					continue;
 
 				if (state === 1) {
 					// Explored but not visible — punch 50% (leaves dimmed fog)
@@ -181,13 +204,15 @@ export function FogLayer({ camX, camY, viewportW, viewportH, worldTilesW, worldT
 			const screenY = pos.y * CELL_SIZE - camY;
 			const radiusPx = vision.radius * CELL_SIZE;
 
-			if (screenX + radiusPx < 0 || screenX - radiusPx > viewportW ||
-				screenY + radiusPx < 0 || screenY - radiusPx > viewportH) continue;
+			if (
+				screenX + radiusPx < 0 ||
+				screenX - radiusPx > viewportW ||
+				screenY + radiusPx < 0 ||
+				screenY - radiusPx > viewportH
+			)
+				continue;
 
-			const grad = canvas2d.createRadialGradient(
-				screenX, screenY, 0,
-				screenX, screenY, radiusPx,
-			);
+			const grad = canvas2d.createRadialGradient(screenX, screenY, 0, screenX, screenY, radiusPx);
 			grad.addColorStop(0, "rgba(0,0,0,1)");
 			grad.addColorStop(0.4, "rgba(0,0,0,1)");
 			grad.addColorStop(0.7, "rgba(0,0,0,0.6)");
@@ -206,12 +231,7 @@ export function FogLayer({ camX, camY, viewportW, viewportH, worldTilesW, worldT
 
 	return (
 		<Layer listening={false} opacity={0.85}>
-			<Shape
-				sceneFunc={sceneFunc}
-				width={viewportW}
-				height={viewportH}
-				listening={false}
-			/>
+			<Shape sceneFunc={sceneFunc} width={viewportW} height={viewportH} listening={false} />
 		</Layer>
 	);
 }

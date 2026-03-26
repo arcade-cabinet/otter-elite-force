@@ -16,7 +16,7 @@ import type { World } from "koota";
 import { buildGraphFromTilemap } from "../ai/graphBuilder";
 import type { TerrainType } from "../ai/terrainTypes";
 import { Health } from "../ecs/traits/combat";
-import { TidalState, type TidalPhase } from "../ecs/traits/environment";
+import { type TidalPhase, TidalState } from "../ecs/traits/environment";
 import { Position } from "../ecs/traits/spatial";
 import { NavGraphState } from "../ecs/traits/state";
 import { EventBus } from "../game/EventBus";

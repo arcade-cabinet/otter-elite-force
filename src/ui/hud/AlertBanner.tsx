@@ -136,8 +136,7 @@ export function AlertBanner() {
 		const onConvoyArrived = () =>
 			push({ message: "Convoy arrived at destination", severity: "info" });
 
-		const onConvoyDestroyed = () =>
-			push({ message: "Convoy destroyed!", severity: "critical" });
+		const onConvoyDestroyed = () => push({ message: "Convoy destroyed!", severity: "critical" });
 
 		const onConvoyWaypointReached = (data?: { waypointIndex?: number }) =>
 			push({

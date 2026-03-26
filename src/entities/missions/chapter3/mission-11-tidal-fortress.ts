@@ -251,11 +251,7 @@ export const mission11TidalFortress: MissionDef = {
 	triggers: [
 		// ─── Phase 1: RECON TIDE (0:00 – ~3:00) — LOW TIDE ───
 
-		trigger(
-			"phase:recon:start",
-			on.timer(0),
-			act.startPhase("recon"),
-		),
+		trigger("phase:recon:start", on.timer(0), act.startPhase("recon")),
 		trigger(
 			"phase:recon:foxhound-briefing",
 			on.timer(3),
@@ -372,10 +368,7 @@ export const mission11TidalFortress: MissionDef = {
 		trigger(
 			"phase:siege:tide-warning",
 			on.timer(690),
-			act.dialogue(
-				"foxhound",
-				"Next low tide in thirty seconds. Reinforcements can cross then.",
-			),
+			act.dialogue("foxhound", "Next low tide in thirty seconds. Reinforcements can cross then."),
 		),
 
 		// ─── Phase 5: FINAL PUSH (~12:00+) — LOW TIDE ───
@@ -404,13 +397,17 @@ export const mission11TidalFortress: MissionDef = {
 			on.buildingCount("scale_guard", "command_post", "eq", 0),
 			act.completeObjective("destroy-enemy-cp"),
 		),
-		trigger("phase:objective:spires-destroyed", on.buildingCount("scale_guard", "venom_spire", "eq", 0), [
-			act.completeObjective("destroy-all-spires"),
-			act.dialogue(
-				"foxhound",
-				"All Venom Spires neutralized. Approaches are wide open — no more tower fire on the bridges.",
-			),
-		]),
+		trigger(
+			"phase:objective:spires-destroyed",
+			on.buildingCount("scale_guard", "venom_spire", "eq", 0),
+			[
+				act.completeObjective("destroy-all-spires"),
+				act.dialogue(
+					"foxhound",
+					"All Venom Spires neutralized. Approaches are wide open — no more tower fire on the bridges.",
+				),
+			],
+		),
 		trigger("phase:objective:mission-complete", on.allPrimaryComplete(), [
 			act.exchange([
 				{

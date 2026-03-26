@@ -22,12 +22,12 @@
  */
 
 import type { World } from "koota";
+import { AIState } from "../ecs/traits/ai";
 import { BossUnit } from "../ecs/traits/boss";
 import { Armor, Attack, Health, VisionRadius } from "../ecs/traits/combat";
 import { Faction, UnitType } from "../ecs/traits/identity";
-import { Position } from "../ecs/traits/spatial";
-import { AIState } from "../ecs/traits/ai";
 import { OrderQueue } from "../ecs/traits/orders";
+import { Position } from "../ecs/traits/spatial";
 import { EventBus } from "../game/EventBus";
 import { distanceBetween } from "./combatSystem";
 
@@ -77,9 +77,7 @@ export function bossSystem(world: World, delta: number): void {
 			continue;
 		}
 
-		const effectiveAoeCooldown = boss.enraged
-			? boss.aoeCooldown / 2
-			: boss.aoeCooldown;
+		const effectiveAoeCooldown = boss.enraged ? boss.aoeCooldown / 2 : boss.aoeCooldown;
 
 		// --- AoE timer ---
 		const newAoeTimer = boss.aoeTimer + delta;

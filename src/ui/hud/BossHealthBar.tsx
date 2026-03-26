@@ -6,8 +6,9 @@
  *
  * Reads BossUnit + Health traits from the first matching entity in the world.
  */
-import { useQuery, useTrait } from "koota/react";
+
 import type { Entity } from "koota";
+import { useQuery, useTrait } from "koota/react";
 import { BossUnit } from "@/ecs/traits/boss";
 import { Health } from "@/ecs/traits/combat";
 import { cn } from "@/ui/lib/utils";

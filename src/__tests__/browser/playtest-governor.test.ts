@@ -15,30 +15,33 @@
  * Run: pnpm test:browser
  */
 
-import { describe, expect, it } from "vitest";
 import { createWorld, type World } from "koota";
+import { describe, expect, it } from "vitest";
+import { AIPlaytester } from "../../ai/playtester/index";
+import { createKootaGameStateReader } from "../../ai/playtester/perception";
+import { initSprites } from "../../canvas/spriteGen";
 import { initSingletons, resetSessionState } from "../../ecs/singletons";
-import {
-	CampaignProgress, CurrentMission, GameClock, GamePhase,
-	Objectives, PopulationState, ResourcePool,
-} from "../../ecs/traits/state";
+import { Health } from "../../ecs/traits/combat";
 // ResourcePool imported above — used by getResourceAmount in worldQuery
 import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
-import { Health } from "../../ecs/traits/combat";
 import { Position } from "../../ecs/traits/spatial";
-import { getMissionById, CAMPAIGN } from "../../entities/missions";
-import { compileMissionScenario } from "../../entities/missions/compileMissionScenario";
-import { spawnUnit, spawnBuilding, spawnResource } from "../../entities/spawner";
-import { getUnit, getHero, getBuilding, getResource } from "../../entities/registry";
-import { ScenarioEngine, type ScenarioWorldQuery } from "../../scenarios/engine";
-import { tickAllSystems, type GameLoopContext } from "../../systems/gameLoop";
-import { initSprites } from "../../canvas/spriteGen";
 import {
-	AIPlaytester,
-} from "../../ai/playtester/index";
-import { createKootaGameStateReader } from "../../ai/playtester/perception";
-import { FogState, type FogOfWarSystem } from "../../systems/fogSystem";
+	CampaignProgress,
+	CurrentMission,
+	GameClock,
+	GamePhase,
+	Objectives,
+	PopulationState,
+	ResourcePool,
+} from "../../ecs/traits/state";
+import { CAMPAIGN, getMissionById } from "../../entities/missions";
+import { compileMissionScenario } from "../../entities/missions/compileMissionScenario";
+import { getBuilding, getHero, getResource, getUnit } from "../../entities/registry";
+import { spawnBuilding, spawnResource, spawnUnit } from "../../entities/spawner";
 import type { MissionDef } from "../../entities/types";
+import { ScenarioEngine, type ScenarioWorldQuery } from "../../scenarios/engine";
+import { type FogOfWarSystem, FogState } from "../../systems/fogSystem";
+import { type GameLoopContext, tickAllSystems } from "../../systems/gameLoop";
 
 /** Stub fog system that reports everything as visible — for governor testing. */
 function createAllVisibleFog(): FogOfWarSystem {
@@ -73,11 +76,19 @@ function initMission(world: World, mission: MissionDef): void {
 			const y = p.y ?? 10 + i * 2;
 			const f = p.faction ?? "neutral";
 			const u = getUnit(p.type) ?? getHero(p.type);
-			if (u) { spawnUnit(world, u, x, y, f); continue; }
+			if (u) {
+				spawnUnit(world, u, x, y, f);
+				continue;
+			}
 			const b = getBuilding(p.type);
-			if (b) { spawnBuilding(world, b, x, y, f); continue; }
+			if (b) {
+				spawnBuilding(world, b, x, y, f);
+				continue;
+			}
 			const r = getResource(p.type);
-			if (r) { spawnResource(world, r, x, y); }
+			if (r) {
+				spawnResource(world, r, x, y);
+			}
 		}
 	}
 }
@@ -127,7 +138,11 @@ describe("Yuka Governor Playtest", () => {
 
 		const world = createWorld();
 		initSingletons(world);
-		world.set(CampaignProgress, { missions: {}, currentMission: "mission_1", difficulty: "tactical" });
+		world.set(CampaignProgress, {
+			missions: {},
+			currentMission: "mission_1",
+			difficulty: "tactical",
+		});
 
 		const mission = getMissionById("mission_1")!;
 		initMission(world, mission);
@@ -150,7 +165,10 @@ describe("Yuka Governor Playtest", () => {
 
 		world.set(Objectives, {
 			list: scenario.objectives.map((o) => ({
-				id: o.id, description: o.description, status: o.status, bonus: o.type === "bonus",
+				id: o.id,
+				description: o.description,
+				status: o.status,
+				bonus: o.type === "bonus",
 			})),
 		});
 
@@ -162,26 +180,24 @@ describe("Yuka Governor Playtest", () => {
 		const mapRows = mission.terrain.height;
 
 		const fog = createAllVisibleFog();
-		const governor = new AIPlaytester(
-			canvas,
-			world,
-			fog,
-			stateReader,
-			mapCols,
-			mapRows,
-			{
-				viewportWidth: 800,
-				viewportHeight: 600,
-				errorRate: 0, // perfect play — no misclicks
-				maxMisclickOffset: 0,
-			},
-		);
+		const governor = new AIPlaytester(canvas, world, fog, stateReader, mapCols, mapRows, {
+			viewportWidth: 800,
+			viewportHeight: 600,
+			errorRate: 0, // perfect play — no misclicks
+			maxMisclickOffset: 0,
+		});
 
 		// Game loop context
 		const ctx: GameLoopContext = {
-			world, delta: 1 / 60, width: 800, height: 600,
-			scenarioEngine: engine, scenarioWorldQuery: wq,
-			fogSystem: null, weatherSystem: null, elapsedMs: 0,
+			world,
+			delta: 1 / 60,
+			width: 800,
+			height: 600,
+			scenarioEngine: engine,
+			scenarioWorldQuery: wq,
+			fogSystem: null,
+			weatherSystem: null,
+			elapsedMs: 0,
 			terrainGrid: null,
 		};
 
@@ -245,7 +261,9 @@ describe("Yuka Governor Playtest", () => {
 		console.log(`Triggers: ${triggersLog.length} fired`);
 		console.log(`Objectives: ${objectivesDone.join(", ") || "none"}`);
 		for (const s of snapshots) {
-			console.log(`  [${s.sec}s] F:${s.fish} T:${s.timber} S:${s.salvage} Pop:${s.pop} Obj:${s.objectives.join(",")}`);
+			console.log(
+				`  [${s.sec}s] F:${s.fish} T:${s.timber} S:${s.salvage} Pop:${s.pop} Obj:${s.objectives.join(",")}`,
+			);
 		}
 
 		// Cleanup

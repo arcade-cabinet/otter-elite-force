@@ -31,9 +31,7 @@ describe("compileMissionScenario", () => {
 		expect(welcomeTrigger?.condition).toEqual({ type: "timer", time: 15 });
 
 		// Salvage discovery trigger uses salvage_field zone
-		const salvageTrigger = scenario.triggers.find(
-			(trigger) => trigger.id === "salvage-discovery",
-		);
+		const salvageTrigger = scenario.triggers.find((trigger) => trigger.id === "salvage-discovery");
 		expect(salvageTrigger?.condition).toEqual({
 			type: "areaEntered",
 			faction: "ura",

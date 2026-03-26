@@ -51,13 +51,25 @@ const entityTileMap = new Map<string, string>();
 
 const ATLAS_MANIFEST: Array<{ name: string; png: string; json: string }> = [
 	{ name: "otter", png: "/assets/sprites/otter.png", json: "/assets/sprites/otter.json" },
-	{ name: "crocodile", png: "/assets/sprites/crocodile.png", json: "/assets/sprites/crocodile.json" },
+	{
+		name: "crocodile",
+		png: "/assets/sprites/crocodile.png",
+		json: "/assets/sprites/crocodile.json",
+	},
 	{ name: "boar", png: "/assets/sprites/boar.png", json: "/assets/sprites/boar.json" },
 	{ name: "cobra", png: "/assets/sprites/cobra.png", json: "/assets/sprites/cobra.json" },
 	{ name: "fox", png: "/assets/sprites/fox.png", json: "/assets/sprites/fox.json" },
 	{ name: "hedgehog", png: "/assets/sprites/hedgehog.png", json: "/assets/sprites/hedgehog.json" },
-	{ name: "naked_mole_rat", png: "/assets/sprites/naked_mole_rat.png", json: "/assets/sprites/naked_mole_rat.json" },
-	{ name: "porcupine", png: "/assets/sprites/porcupine.png", json: "/assets/sprites/porcupine.json" },
+	{
+		name: "naked_mole_rat",
+		png: "/assets/sprites/naked_mole_rat.png",
+		json: "/assets/sprites/naked_mole_rat.json",
+	},
+	{
+		name: "porcupine",
+		png: "/assets/sprites/porcupine.png",
+		json: "/assets/sprites/porcupine.json",
+	},
 	{ name: "skunk", png: "/assets/sprites/skunk.png", json: "/assets/sprites/skunk.json" },
 	{ name: "snake", png: "/assets/sprites/snake.png", json: "/assets/sprites/snake.json" },
 	{ name: "squirrel", png: "/assets/sprites/squirrel.png", json: "/assets/sprites/squirrel.json" },
@@ -76,7 +88,10 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 interface AsepriteAtlas {
-	frames: Record<string, { frame: { x: number; y: number; w: number; h: number }; duration: number }>;
+	frames: Record<
+		string,
+		{ frame: { x: number; y: number; w: number; h: number }; duration: number }
+	>;
 	meta: {
 		frameTags?: Array<{ name: string; from: number; to: number; direction: string }>;
 		size: { w: number; h: number };
@@ -138,10 +153,7 @@ function sliceFrames(
 }
 
 async function loadAtlas(entry: { name: string; png: string; json: string }): Promise<void> {
-	const [image, response] = await Promise.all([
-		loadImage(entry.png),
-		fetch(entry.json),
-	]);
+	const [image, response] = await Promise.all([loadImage(entry.png), fetch(entry.json)]);
 
 	const data: AsepriteAtlas = await response.json();
 	const animations = parseAtlas(data);
@@ -166,10 +178,7 @@ async function loadAtlas(entry: { name: string; png: string; json: string }): Pr
  * Call once at app boot.
  */
 export async function loadAllAtlases(): Promise<void> {
-	await Promise.all([
-		...ATLAS_MANIFEST.map(loadAtlas),
-		loadTileSprites(),
-	]);
+	await Promise.all([...ATLAS_MANIFEST.map(loadAtlas), loadTileSprites()]);
 	buildEntitySpriteMap();
 	buildEntityTileMap();
 }

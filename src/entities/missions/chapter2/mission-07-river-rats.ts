@@ -342,20 +342,24 @@ export const mission07RiverRats: MissionDef = {
 		),
 
 		// --- Escalation at 3 barges destroyed (transition to Phase 3) ---
-		trigger("phase:intercepts:crate-threshold-3", on.unitCount("scale_guard", "supply_barge", "lte", 0), [
-			act.exchange([
-				{
-					speaker: "Col. Bubbles",
-					text: "Three crates captured. They're going to tighten security on the remaining runs.",
-				},
-				{
-					speaker: "FOXHOUND",
-					text: "Confirmed — enemy is adding Gator escorts to the next barges. And they're speeding up.",
-				},
-			]),
-			act.startPhase("contested-waters"),
-			act.enableTrigger("phase:contested:briefing"),
-		]),
+		trigger(
+			"phase:intercepts:crate-threshold-3",
+			on.unitCount("scale_guard", "supply_barge", "lte", 0),
+			[
+				act.exchange([
+					{
+						speaker: "Col. Bubbles",
+						text: "Three crates captured. They're going to tighten security on the remaining runs.",
+					},
+					{
+						speaker: "FOXHOUND",
+						text: "Confirmed — enemy is adding Gator escorts to the next barges. And they're speeding up.",
+					},
+				]),
+				act.startPhase("contested-waters"),
+				act.enableTrigger("phase:contested:briefing"),
+			],
+		),
 
 		// =====================================================================
 		// PHASE 3: CONTESTED WATERS (~9:00 - ~15:00)
@@ -411,10 +415,7 @@ export const mission07RiverRats: MissionDef = {
 		trigger(
 			"phase:contested:barge-5-capture",
 			on.areaEntered("ura", "south_bend"),
-			act.dialogue(
-				"sgt_bubbles",
-				"That's five! Outstanding interception work, Captain.",
-			),
+			act.dialogue("sgt_bubbles", "That's five! Outstanding interception work, Captain."),
 		),
 
 		// --- Barge 6 (13:00) — North Fork, fast, heavy escort (backup) ---
@@ -488,17 +489,13 @@ export const mission07RiverRats: MissionDef = {
 		// BONUS OBJECTIVE
 		// =====================================================================
 
-		trigger(
-			"phase:bonus:destroy-sg-depot",
-			on.buildingCount("scale_guard", "flag_post", "eq", 0),
-			[
-				act.completeObjective("bonus-destroy-depot"),
-				act.dialogue(
-					"foxhound",
-					"Scale-Guard depot destroyed. They won't be running supplies through this sector again. Massive salvage haul, Captain.",
-				),
-			],
-		),
+		trigger("phase:bonus:destroy-sg-depot", on.buildingCount("scale_guard", "flag_post", "eq", 0), [
+			act.completeObjective("bonus-destroy-depot"),
+			act.dialogue(
+				"foxhound",
+				"Scale-Guard depot destroyed. They won't be running supplies through this sector again. Massive salvage haul, Captain.",
+			),
+		]),
 
 		// =====================================================================
 		// FAIL CONDITION

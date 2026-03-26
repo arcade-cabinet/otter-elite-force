@@ -598,7 +598,8 @@ function drawBroodmother(c: Ctx): void {
  * Left half warm brown tones. Right half cold green tones.
  */
 function drawConfrontationSplash(c: CanvasRenderingContext2D): void {
-	const W = 160, H = 64;
+	const W = 160,
+		H = 64;
 
 	// ── Background: split warm/cold with dark water divide ──
 	// Left half — warm dark gradient (otter territory)
@@ -620,17 +621,17 @@ function drawConfrontationSplash(c: CanvasRenderingContext2D): void {
 	const by = 20; // head y
 
 	// Head — side profile otter snout pointing right
-	ellipse(c, bx, by + 8, 12, 10, P.furMid);        // head mass
-	rect(c, bx, by + 4, 14, 12, P.furMid);             // snout extension right
-	ellipse(c, bx - 2, by + 10, 8, 7, P.skinLight);   // lighter face
-	rect(c, bx + 8, by + 8, 8, 6, P.skinLight);        // snout front
-	rect(c, bx + 14, by + 10, 3, 3, P.skinShadow);     // nose tip
-	px(c, bx + 15, by + 11, P.nose);                    // nostril
+	ellipse(c, bx, by + 8, 12, 10, P.furMid); // head mass
+	rect(c, bx, by + 4, 14, 12, P.furMid); // snout extension right
+	ellipse(c, bx - 2, by + 10, 8, 7, P.skinLight); // lighter face
+	rect(c, bx + 8, by + 8, 8, 6, P.skinLight); // snout front
+	rect(c, bx + 14, by + 10, 3, 3, P.skinShadow); // nose tip
+	px(c, bx + 15, by + 11, P.nose); // nostril
 
 	// Eye — fierce, looking right
 	rect(c, bx + 4, by + 5, 4, 3, P.eyeWhite);
 	rect(c, bx + 6, by + 5, 2, 3, P.eyeBlack);
-	px(c, bx + 7, by + 5, P.eyeTeal);                   // teal glint
+	px(c, bx + 7, by + 5, P.eyeTeal); // teal glint
 
 	// Ear
 	ellipse(c, bx - 8, by + 2, 3, 3, P.furDark);
@@ -638,9 +639,9 @@ function drawConfrontationSplash(c: CanvasRenderingContext2D): void {
 
 	// Red bandana — trailing behind
 	rect(c, bx - 10, by + 1, 16, 3, P.bandanaRed);
-	rect(c, bx - 12, by + 2, 4, 2, P.bandanaDark);     // trailing tail
-	rect(c, bx - 14, by + 3, 3, 3, P.bandanaDark);     // trailing end
-	rect(c, bx - 16, by + 5, 2, 3, P.bandanaRed);      // wind flutter
+	rect(c, bx - 12, by + 2, 4, 2, P.bandanaDark); // trailing tail
+	rect(c, bx - 14, by + 3, 3, 3, P.bandanaDark); // trailing end
+	rect(c, bx - 16, by + 5, 2, 3, P.bandanaRed); // wind flutter
 
 	// Mouth — slight snarl
 	rect(c, bx + 10, by + 14, 6, 1, P.nose);
@@ -659,12 +660,12 @@ function drawConfrontationSplash(c: CanvasRenderingContext2D): void {
 
 	// ── KOMMANDANT IRONJAW — right side profile, facing left ──
 	const ix = W - 22; // center of Ironjaw
-	const iy = 16;     // head y
+	const iy = 16; // head y
 
 	// Head — side profile croc snout pointing left
-	ellipse(c, ix, iy + 10, 14, 12, SG.scalesDark);    // head mass (bigger than Bubbles)
-	rect(c, ix - 16, iy + 6, 16, 14, SG.scalesDark);   // snout extension left
-	rect(c, ix - 20, iy + 8, 6, 8, SG.scalesDark);     // snout tip
+	ellipse(c, ix, iy + 10, 14, 12, SG.scalesDark); // head mass (bigger than Bubbles)
+	rect(c, ix - 16, iy + 6, 16, 14, SG.scalesDark); // snout extension left
+	rect(c, ix - 20, iy + 8, 6, 8, SG.scalesDark); // snout tip
 	// Jaw — the IRON prosthetic, lower half
 	rect(c, ix - 18, iy + 14, 20, 6, SG.jawIronDark);
 	rect(c, ix - 16, iy + 15, 16, 4, SG.jawIron);
@@ -690,7 +691,7 @@ function drawConfrontationSplash(c: CanvasRenderingContext2D): void {
 	// Eye — cold, calculating, slit pupil
 	rect(c, ix - 6, iy + 6, 5, 4, SG.eyeYellow);
 	rect(c, ix - 5, iy + 6, 2, 4, SG.eyeSlitBlack);
-	px(c, ix - 4, iy + 6, SG.eyeYellow);               // highlight
+	px(c, ix - 4, iy + 6, SG.eyeYellow); // highlight
 
 	// Brow ridge
 	rect(c, ix - 8, iy + 4, 8, 2, SG.scalesDark);

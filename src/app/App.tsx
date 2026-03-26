@@ -6,6 +6,9 @@
 
 import { useTrait, useWorld, WorldProvider } from "koota/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { GameCanvas } from "@/canvas/GameCanvas";
+import { loadAllAtlases } from "@/canvas/spriteAtlas";
+import { loadTerrainTiles } from "@/canvas/tilePainter";
 import { Button } from "@/components/ui/button";
 import { initSingletons } from "@/ecs/singletons";
 import {
@@ -13,17 +16,19 @@ import {
 	type AppScreenType,
 	CampaignProgress,
 	CurrentMission,
+	DialogueState,
 	GamePhase,
 	UserSettings,
 } from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
-import { CAMPAIGN } from "@/entities/missions";
+import { CAMPAIGN, getMissionById } from "@/entities/missions";
 import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
 import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
 import { saveMission } from "@/systems/saveLoadSystem";
+import { BriefingDialogue } from "@/ui/BriefingDialogue";
 import { CampaignView } from "@/ui/command-post/CampaignView";
 import { MainMenu } from "@/ui/command-post/MainMenu";
 import {
@@ -32,28 +37,19 @@ import {
 	ToggleSetting,
 } from "@/ui/command-post/SettingsControls";
 import { SettingsPanel } from "@/ui/command-post/SettingsPanel";
+import { GameLayout } from "@/ui/GameLayout";
 import { AlertBanner } from "@/ui/hud/AlertBanner";
 import { ErrorFeedback } from "@/ui/hud/ErrorFeedback";
 import { PauseOverlay } from "@/ui/hud/PauseOverlay";
-import { BriefingDialogue } from "@/ui/BriefingDialogue";
-import { GameLayout } from "@/ui/GameLayout";
 import { BriefingShell } from "@/ui/layout/shells";
 import { cn } from "@/ui/lib/utils";
-import { GameCanvas } from "@/canvas/GameCanvas";
-import { loadAllAtlases } from "@/canvas/spriteAtlas";
-import { loadTerrainTiles } from "@/canvas/tilePainter";
-import { DialogueState } from "@/ecs/traits/state";
-import { getMissionById } from "@/entities/missions";
 
 initSingletons(world);
 // NO procedural fallback — all sprites come from atlas/tile system
 
 // Asset loading promise — game screens wait for this before rendering
 let assetsReady = false;
-const assetsPromise = Promise.all([
-	loadAllAtlases(),
-	loadTerrainTiles(),
-]).then(() => {
+const assetsPromise = Promise.all([loadAllAtlases(), loadTerrainTiles()]).then(() => {
 	assetsReady = true;
 	console.log("[boot] All sprites + terrain tiles loaded");
 });
@@ -62,7 +58,10 @@ const assetsPromise = Promise.all([
 function useAssetsReady(): boolean {
 	const [ready, setReady] = useState(assetsReady);
 	useEffect(() => {
-		if (assetsReady) { setReady(true); return; }
+		if (assetsReady) {
+			setReady(true);
+			return;
+		}
 		assetsPromise.then(() => setReady(true));
 	}, []);
 	return ready;
@@ -141,10 +140,11 @@ function GameplayScreen() {
 	const [briefingDone, setBriefingDone] = useState(false);
 	const mission = useMemo(() => getMissionById(currentMission), [currentMission]);
 	const briefingLines = useMemo(
-		() => mission?.briefing?.lines?.map((l) => ({
-			speaker: l.speaker,
-			text: l.text,
-		})) ?? [],
+		() =>
+			mission?.briefing?.lines?.map((l) => ({
+				speaker: l.speaker,
+				text: l.text,
+			})) ?? [],
 		[mission],
 	);
 
@@ -255,7 +255,13 @@ function GameplayScreen() {
 					missionName={mission?.name ?? ""}
 					lines={dialogueState.lines}
 					onComplete={() => {
-						w.set(DialogueState, { active: false, lines: [], currentLine: 0, pauseGame: true, triggerId: null });
+						w.set(DialogueState, {
+							active: false,
+							lines: [],
+							currentLine: 0,
+							pauseGame: true,
+							triggerId: null,
+						});
 						if (dialogueState.pauseGame) {
 							w.set(GamePhase, { phase: "playing" });
 						}
@@ -366,7 +372,6 @@ function InGameSettingsOverlay({ onBack }: { onBack: () => void }) {
 		</div>
 	);
 }
-
 
 function MissionResultOverlay() {
 	const w = useWorld();

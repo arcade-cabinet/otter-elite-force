@@ -38,13 +38,15 @@ import type { World } from "koota";
 import { CompletedResearch } from "../ecs/traits/state";
 import type { ScenarioEngine, ScenarioWorldQuery } from "../scenarios/engine";
 import { aiSystem, cleanupAIRunners } from "./aiSystem";
-import { buildingSystem } from "./buildingSystem";
 import { bossSystem } from "./bossSystem";
+import { buildingSystem } from "./buildingSystem";
 import { aggroSystem, combatSystem, deathSystem, projectileSystem } from "./combatSystem";
 
 import { convoySystem } from "./convoySystem";
 import { chargeTickSystem } from "./demolitionSystem";
+import { coneDetectionSystem } from "./detectionSystem";
 import { economySystem } from "./economySystem";
+import { fireSystem } from "./fireSystem";
 import type { FogOfWarSystem } from "./fogSystem";
 import { movementSystem } from "./movementSystem";
 import { orderSystem } from "./orderSystem";
@@ -52,9 +54,7 @@ import { productionSystem } from "./productionSystem";
 import { researchSystem } from "./researchSystem";
 import { scenarioSystem } from "./scenarioSystem";
 import { aoeSplashSystem, siegeCombatSystem } from "./siegeSystem";
-import { coneDetectionSystem } from "./detectionSystem";
 import { alertCascadeSystem, detectionSystem } from "./stealthSystem";
-import { fireSystem } from "./fireSystem";
 import { tidalSystem } from "./tidalSystem";
 import { waterSystem } from "./waterSystem";
 import type { WeatherSystem } from "./weatherSystem";
@@ -169,5 +169,4 @@ export function tickAllSystems(ctx: GameLoopContext): void {
 	if (ctx.fogSystem) {
 		ctx.fogSystem.update();
 	}
-
 }

@@ -14,9 +14,9 @@
 
 import type { Entity, World } from "koota";
 import { Vector3 } from "yuka";
+import { findPath } from "../ai/pathfinder";
 import type { SteeringVehicle } from "../ai/steeringFactory";
 import { setVehiclePath } from "../ai/steeringFactory";
-import { findPath } from "../ai/pathfinder";
 import { ConstructingAt, GatheringFrom, Targeting } from "../ecs/relations";
 import { AIState, SteeringAgent } from "../ecs/traits/ai";
 import { Attack } from "../ecs/traits/combat";
@@ -40,7 +40,14 @@ function distanceBetween(ax: number, ay: number, bx: number, by: number): number
  * Set a path on a steering vehicle.
  * Uses A* pathfinding when nav graph is available, falls back to direct path.
  */
-function dispatchPath(world: World, agent: SteeringVehicle, fromX: number, fromY: number, targetX: number, targetY: number): void {
+function dispatchPath(
+	world: World,
+	agent: SteeringVehicle,
+	fromX: number,
+	fromY: number,
+	targetX: number,
+	targetY: number,
+): void {
 	const navState = world.get(NavGraphState);
 	if (navState?.graph) {
 		const waypoints = findPath(

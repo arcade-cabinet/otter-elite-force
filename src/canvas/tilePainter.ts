@@ -13,8 +13,8 @@
  * using chunked rendering to stay within browser canvas limits (~4096px).
  */
 
-import type { MissionDef } from "@/entities/types";
 import type { TerrainType as PathfindingTerrainType } from "@/ai/terrainTypes";
+import type { MissionDef } from "@/entities/types";
 
 const TILE_SIZE = 32;
 
@@ -49,7 +49,16 @@ export interface TerrainChunk {
 
 // ─── Terrain type enum ───
 
-type TerrainType = "grass" | "water" | "dirt" | "sand" | "mud" | "mangrove" | "bridge" | "beach" | "toxic_sludge";
+type TerrainType =
+	| "grass"
+	| "water"
+	| "dirt"
+	| "sand"
+	| "mud"
+	| "mangrove"
+	| "bridge"
+	| "beach"
+	| "toxic_sludge";
 
 // ─── Tile image cache ───
 
@@ -239,9 +248,18 @@ const TINT_RULES: Record<string, { hueRotate: number; saturate: number; brightne
 
 // Tree/prop tiles: aggressive jungle green tint (must match dark fill tiles)
 for (const name of [
-	"tree_pine_sm", "tree_pine_lg", "tree_round_sm", "tree_round_lg",
-	"tree_cluster_1", "tree_tall_1", "tree_tall_2", "bush_green",
-	"forest_sparse", "forest_dense_1", "forest_dense_2", "forest_full",
+	"tree_pine_sm",
+	"tree_pine_lg",
+	"tree_round_sm",
+	"tree_round_lg",
+	"tree_cluster_1",
+	"tree_tall_1",
+	"tree_tall_2",
+	"bush_green",
+	"forest_sparse",
+	"forest_dense_1",
+	"forest_dense_2",
+	"forest_full",
 	"tree_pine_tall",
 ]) {
 	TINT_RULES[name] = { hueRotate: -35, saturate: 1.6, brightness: 0.55 };
@@ -307,9 +325,7 @@ function buildTerrainGrid(terrain: MissionDef["terrain"]): TerrainType[][] {
 	const base = regions.find((r) => r.fill);
 	if (base) {
 		const t = base.terrainId as TerrainType;
-		for (let y = 0; y < height; y++)
-			for (let x = 0; x < width; x++)
-				grid[y][x] = t;
+		for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) grid[y][x] = t;
 	}
 
 	// Apply regions
@@ -320,16 +336,13 @@ function buildTerrainGrid(terrain: MissionDef["terrain"]): TerrainType[][] {
 		if (region.rect) {
 			const { x: rx, y: ry, w, h } = region.rect;
 			for (let y = ry; y < Math.min(ry + h, height); y++)
-				for (let x = rx; x < Math.min(rx + w, width); x++)
-					grid[y][x] = t;
+				for (let x = rx; x < Math.min(rx + w, width); x++) grid[y][x] = t;
 		}
 
 		if (region.circle) {
 			const { cx, cy, r } = region.circle;
 			for (let y = 0; y < height; y++)
-				for (let x = 0; x < width; x++)
-					if ((x - cx) ** 2 + (y - cy) ** 2 <= r * r)
-						grid[y][x] = t;
+				for (let x = 0; x < width; x++) if ((x - cx) ** 2 + (y - cy) ** 2 <= r * r) grid[y][x] = t;
 		}
 
 		if (region.river) {
@@ -362,7 +375,14 @@ function buildTerrainGrid(terrain: MissionDef["terrain"]): TerrainType[][] {
 	return grid;
 }
 
-function pointToSegmentDist(px: number, py: number, ax: number, ay: number, bx: number, by: number): number {
+function pointToSegmentDist(
+	px: number,
+	py: number,
+	ax: number,
+	ay: number,
+	bx: number,
+	by: number,
+): number {
 	const dx = bx - ax;
 	const dy = by - ay;
 	const lenSq = dx * dx + dy * dy;
@@ -411,12 +431,7 @@ function resolveBlendTile(inside: string, outside: string, dir: string): string 
 	return key in TILE_PATHS ? key : null;
 }
 
-function getAutoTile(
-	grid: TerrainType[][],
-	x: number,
-	y: number,
-	rand: () => number,
-): string {
+function getAutoTile(grid: TerrainType[][], x: number, y: number, rand: () => number): string {
 	const h = grid.length;
 	const w = grid[0].length;
 	const t = grid[y][x];
@@ -553,7 +568,13 @@ function scatterPropsRegion(
 
 			if (t === "mangrove") {
 				if (r < 0.45) {
-					const treeNames = ["tree_pine_lg", "tree_round_lg", "tree_tall_1", "tree_tall_2", "tree_cluster_1"];
+					const treeNames = [
+						"tree_pine_lg",
+						"tree_round_lg",
+						"tree_tall_1",
+						"tree_tall_2",
+						"tree_cluster_1",
+					];
 					const treeName = treeNames[Math.floor(rand() * treeNames.length)];
 					const tree = getTile(treeName);
 					if (tree) {
@@ -631,14 +652,25 @@ function paintRegion(
 
 	if (!tilesLoaded) {
 		const colors: Record<string, string> = {
-			grass: "#14532d", water: "#0f2b32", dirt: "#713f12",
-			sand: "#d4a574", mud: "#5c4033", mangrove: "#0f3d0f",
-			bridge: "#8B6914", beach: "#d4a574", toxic_sludge: "#2d1b4e",
+			grass: "#14532d",
+			water: "#0f2b32",
+			dirt: "#713f12",
+			sand: "#d4a574",
+			mud: "#5c4033",
+			mangrove: "#0f3d0f",
+			bridge: "#8B6914",
+			beach: "#d4a574",
+			toxic_sludge: "#2d1b4e",
 		};
 		for (let ty = startTileY; ty < endTileY; ty++) {
 			for (let tx = startTileX; tx < endTileX; tx++) {
 				ctx.fillStyle = colors[grid[ty][tx]] ?? "#14532d";
-				ctx.fillRect((tx - startTileX) * TILE_SIZE, (ty - startTileY) * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+				ctx.fillRect(
+					(tx - startTileX) * TILE_SIZE,
+					(ty - startTileY) * TILE_SIZE,
+					TILE_SIZE,
+					TILE_SIZE,
+				);
 			}
 		}
 		return canvas;
@@ -757,7 +789,11 @@ export function paintTerrainChunked(missionDef: MissionDef): TerrainChunk[] {
  * Always returns a single canvas ≤ MAX_CANVAS_DIM regardless of map size.
  * Uses a simplified color-fill approach for speed when the map is very large.
  */
-export function paintTerrainMinimap(missionDef: MissionDef, maxW = 256, maxH = 256): HTMLCanvasElement {
+export function paintTerrainMinimap(
+	missionDef: MissionDef,
+	maxW = 256,
+	maxH = 256,
+): HTMLCanvasElement {
 	const { terrain } = missionDef;
 
 	// For small maps, just scale down the full render
@@ -858,10 +894,22 @@ function blendTileBoundariesRegion(
 					const along = rand() * TILE_SIZE;
 
 					switch (edge) {
-						case "n": sx = px + along; sy = py + rand() * spread; break;
-						case "s": sx = px + along; sy = py + TILE_SIZE - rand() * spread; break;
-						case "e": sx = px + TILE_SIZE - rand() * spread; sy = py + along; break;
-						case "w": sx = px + rand() * spread; sy = py + along; break;
+						case "n":
+							sx = px + along;
+							sy = py + rand() * spread;
+							break;
+						case "s":
+							sx = px + along;
+							sy = py + TILE_SIZE - rand() * spread;
+							break;
+						case "e":
+							sx = px + TILE_SIZE - rand() * spread;
+							sy = py + along;
+							break;
+						case "w":
+							sx = px + rand() * spread;
+							sy = py + along;
+							break;
 					}
 
 					const useNeighborColor = rand() < 0.55;

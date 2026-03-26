@@ -12,8 +12,8 @@ import { describe, expect, it } from "vitest";
 import { CAMPAIGN, getMissionById } from "../../entities/missions";
 import { compileMissionScenario } from "../../entities/missions/compileMissionScenario";
 import type { MissionDef } from "../../entities/types";
-import { ScenarioEngine } from "../../scenarios/engine";
 import type { ScenarioWorldQuery } from "../../scenarios/engine";
+import { ScenarioEngine } from "../../scenarios/engine";
 import type { TriggerAction } from "../../scenarios/types";
 
 // ---------------------------------------------------------------------------

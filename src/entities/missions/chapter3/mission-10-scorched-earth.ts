@@ -265,11 +265,7 @@ export const mission10ScorchedEarth: MissionDef = {
 
 	triggers: [
 		// ─── Phase 1: APPROACH ────────────────────────────────────────
-		trigger(
-			"phase:approach:start",
-			on.timer(0),
-			act.startPhase("approach"),
-		),
+		trigger("phase:approach:start", on.timer(0), act.startPhase("approach")),
 
 		trigger(
 			"phase:approach:foxhound-briefing",
@@ -339,26 +335,34 @@ export const mission10ScorchedEarth: MissionDef = {
 			act.spawn("snapper", "scale_guard", 120, 36, 2),
 		]),
 
-		trigger("phase:scorched-earth:third-tank", on.buildingCount("scale_guard", "fuel_tank", "lte", 1), [
-			act.dialogue(
-				"foxhound",
-				"Three down! One tank left \u2014 but the fire's cut off half the compound. Find an approach.",
-			),
-			act.spawn("gator", "scale_guard", 64, 4, 5),
-			act.spawn("viper", "scale_guard", 4, 60, 3),
-			act.spawn("snapper", "scale_guard", 120, 60, 2),
-		]),
+		trigger(
+			"phase:scorched-earth:third-tank",
+			on.buildingCount("scale_guard", "fuel_tank", "lte", 1),
+			[
+				act.dialogue(
+					"foxhound",
+					"Three down! One tank left \u2014 but the fire's cut off half the compound. Find an approach.",
+				),
+				act.spawn("gator", "scale_guard", 64, 4, 5),
+				act.spawn("viper", "scale_guard", 4, 60, 3),
+				act.spawn("snapper", "scale_guard", 120, 60, 2),
+			],
+		),
 
 		// ─── Phase 4: TOTAL DESTRUCTION — fourth tank destroyed ──────
-		trigger("phase:total-destruction:start", on.buildingCount("scale_guard", "fuel_tank", "eq", 0), [
-			act.startPhase("total-destruction"),
-			act.completeObjective("destroy-tank-nw"),
-			act.completeObjective("destroy-tank-ne"),
-			act.completeObjective("destroy-tank-sw"),
-			act.completeObjective("destroy-tank-se"),
-			// Enable bonus check — fires only if timer < 480s (engine evaluates)
-			act.enableTrigger("bonus:speed-run"),
-		]),
+		trigger(
+			"phase:total-destruction:start",
+			on.buildingCount("scale_guard", "fuel_tank", "eq", 0),
+			[
+				act.startPhase("total-destruction"),
+				act.completeObjective("destroy-tank-nw"),
+				act.completeObjective("destroy-tank-ne"),
+				act.completeObjective("destroy-tank-sw"),
+				act.completeObjective("destroy-tank-se"),
+				// Enable bonus check — fires only if timer < 480s (engine evaluates)
+				act.enableTrigger("bonus:speed-run"),
+			],
+		),
 
 		trigger("phase:total-destruction:victory", on.allPrimaryComplete(), [
 			act.exchange([
@@ -383,12 +387,7 @@ export const mission10ScorchedEarth: MissionDef = {
 		// DSL lacks compound conditions. Enabled by phase:total-destruction
 		// when all tanks are down; on.timer(0) fires immediately. The engine
 		// runtime should gate this on elapsed time < 480s.
-		trigger(
-			"bonus:speed-run",
-			on.timer(0),
-			act.completeObjective("speed-run"),
-			{ enabled: false },
-		),
+		trigger("bonus:speed-run", on.timer(0), act.completeObjective("speed-run"), { enabled: false }),
 	],
 
 	unlocks: {

@@ -240,18 +240,11 @@ export const mission01Beachhead: MissionDef = {
 		),
 
 		// Timber gathered -> complete objective, advance to Phase 2
-		trigger(
-			"phase:landfall:timber-gathered",
-			on.resourceThreshold("timber", "gte", 150),
-			[
-				act.completeObjective("gather-timber"),
-				act.dialogue(
-					"foxhound",
-					"Resource stockpile building nicely, Captain.",
-				),
-				act.startPhase("base-building"),
-			],
-		),
+		trigger("phase:landfall:timber-gathered", on.resourceThreshold("timber", "gte", 150), [
+			act.completeObjective("gather-timber"),
+			act.dialogue("foxhound", "Resource stockpile building nicely, Captain."),
+			act.startPhase("base-building"),
+		]),
 
 		// =================================================================
 		// PHASE 2: BASE BUILDING (enabled by startPhase("base-building"))
@@ -363,10 +356,7 @@ export const mission01Beachhead: MissionDef = {
 			on.unitCount("ura", "mudfoot", "gte", 3),
 			[
 				act.completeObjective("train-mudfoots"),
-				act.dialogue(
-					"col_bubbles",
-					"Squad's ready. Move on that bridge, Captain.",
-				),
+				act.dialogue("col_bubbles", "Squad's ready. Move on that bridge, Captain."),
 			],
 			{ enabled: false },
 		),
@@ -376,16 +366,10 @@ export const mission01Beachhead: MissionDef = {
 			"phase:crossing:bridge-repair-start",
 			on.areaEntered("ura", "bridge_crossing", { unitType: "river_rat" }),
 			[
-				act.dialogue(
-					"foxhound",
-					"Bridge repair underway. This will draw attention, Captain.",
-				),
+				act.dialogue("foxhound", "Bridge repair underway. This will draw attention, Captain."),
 				act.spawn("gator", "scale_guard", 60, 28, 4),
 				act.spawn("skink", "scale_guard", 64, 26, 2),
-				act.dialogue(
-					"col_bubbles",
-					"Contacts north of the bridge! Defend the workers!",
-				),
+				act.dialogue("col_bubbles", "Contacts north of the bridge! Defend the workers!"),
 				act.enableTrigger("phase:crossing:bridge-repaired"),
 			],
 			{ enabled: false },
@@ -397,10 +381,7 @@ export const mission01Beachhead: MissionDef = {
 			on.timer(30),
 			[
 				act.completeObjective("repair-bridge"),
-				act.dialogue(
-					"foxhound",
-					"Bridge is passable. Send your forces across.",
-				),
+				act.dialogue("foxhound", "Bridge is passable. Send your forces across."),
 			],
 			{ enabled: false },
 		),
@@ -409,10 +390,7 @@ export const mission01Beachhead: MissionDef = {
 		trigger(
 			"phase:crossing:river-crossed",
 			on.areaEntered("ura", "jungle_north"),
-			[
-				act.completeObjective("cross-river"),
-				act.startPhase("outpost"),
-			],
+			[act.completeObjective("cross-river"), act.startPhase("outpost")],
 			{ enabled: false },
 		),
 
@@ -441,10 +419,7 @@ export const mission01Beachhead: MissionDef = {
 		trigger(
 			"phase:outpost:approach",
 			on.areaEntered("ura", "enemy_outpost"),
-			act.dialogue(
-				"foxhound",
-				"You're in their perimeter. Multiple hostiles. Watch the flanks.",
-			),
+			act.dialogue("foxhound", "You're in their perimeter. Multiple hostiles. Watch the flanks."),
 			{ enabled: false },
 		),
 
@@ -479,10 +454,7 @@ export const mission01Beachhead: MissionDef = {
 		trigger(
 			"salvage-discovery",
 			on.areaEntered("ura", "salvage_field"),
-			act.dialogue(
-				"foxhound",
-				"Wreckage to the east, Captain. Usable salvage in there.",
-			),
+			act.dialogue("foxhound", "Wreckage to the east, Captain. Usable salvage in there."),
 		),
 
 		trigger(
@@ -506,14 +478,7 @@ export const mission01Beachhead: MissionDef = {
 	// -----------------------------------------------------------------------
 	unlocks: {
 		units: ["river_rat", "mudfoot"],
-		buildings: [
-			"command_post",
-			"barracks",
-			"watchtower",
-			"fish_trap",
-			"burrow",
-			"sandbag_wall",
-		],
+		buildings: ["command_post", "barracks", "watchtower", "fish_trap", "burrow", "sandbag_wall"],
 	},
 
 	// -----------------------------------------------------------------------

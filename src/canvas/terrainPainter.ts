@@ -2,9 +2,9 @@
 // Terrain painter — uses tile-based rendering from curated Kenney tiles,
 // with procedural fallback if tiles haven't loaded yet.
 
-import type { MissionDef } from "@/entities/types";
-import { paintTerrainTiled, paintTerrainChunked, paintTerrainMinimap } from "@/canvas/tilePainter";
 import type { TerrainChunk } from "@/canvas/tilePainter";
+import { paintTerrainChunked, paintTerrainMinimap, paintTerrainTiled } from "@/canvas/tilePainter";
+import type { MissionDef } from "@/entities/types";
 
 export type { TerrainChunk };
 

@@ -709,11 +709,7 @@ export const mission16LastStand: MissionDef = {
 						text: "I'm revealing their base layout now. Three bridges across the river, two fords. Their wall mirrors ours. Sappers will need to breach it.",
 					},
 				]),
-				act.addObjective(
-					"destroy-command-post",
-					"Destroy the Scale-Guard Command Post",
-					"primary",
-				),
+				act.addObjective("destroy-command-post", "Destroy the Scale-Guard Command Post", "primary"),
 			],
 			{ enabled: false },
 		),
@@ -812,10 +808,7 @@ export const mission16LastStand: MissionDef = {
 		trigger(
 			"phase:counterattack:spires-destroyed",
 			on.buildingCount("scale_guard", "venom_spire", "eq", 0),
-			act.dialogue(
-				"foxhound",
-				"Both Venom Spires down. Path to the command post is clear.",
-			),
+			act.dialogue("foxhound", "Both Venom Spires down. Path to the command post is clear."),
 		),
 
 		// Predator Nests destroyed

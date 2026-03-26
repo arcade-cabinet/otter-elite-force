@@ -81,7 +81,9 @@ export function OverlayLayer({
 
 	useEffect(() => {
 		EventBus.on("command-marker", addMarker);
-		return () => { EventBus.off("command-marker", addMarker); };
+		return () => {
+			EventBus.off("command-marker", addMarker);
+		};
 	}, [addMarker]);
 
 	// Selection box rect (screen-space)

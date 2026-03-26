@@ -485,11 +485,7 @@ export const mission08UnderwaterCache: MissionDef = {
 			on.areaEntered("ura", "cache_vault", { unitType: "cpl_splash" }),
 			[
 				act.completeObjective("recover-cache"),
-				act.addObjective(
-					"extract-splash",
-					"Get Cpl. Splash to the extraction point",
-					"primary",
-				),
+				act.addObjective("extract-splash", "Get Cpl. Splash to the extraction point", "primary"),
 				act.exchange([
 					{
 						speaker: "Cpl. Splash",
@@ -582,10 +578,7 @@ export const mission08UnderwaterCache: MissionDef = {
 			[
 				act.spawn("gator", "scale_guard", 48, 6, 2),
 				act.spawn("croc_champion", "scale_guard", 32, 4, 1),
-				act.dialogue(
-					"foxhound",
-					"They're coming hard now! Almost there -- push through!",
-				),
+				act.dialogue("foxhound", "They're coming hard now! Almost there -- push through!"),
 			],
 			{ enabled: false },
 		),

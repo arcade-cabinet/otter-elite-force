@@ -222,10 +222,7 @@ export const mission06MonsoonAmbush: MissionDef = {
 
 		// [2:30] Weather warning — overcast transition
 		trigger("phase:fortify:weather-warning", on.timer(150), [
-			act.dialogue(
-				"foxhound",
-				"Thirty seconds to monsoon. Final preparations, Captain.",
-			),
+			act.dialogue("foxhound", "Thirty seconds to monsoon. Final preparations, Captain."),
 			act.changeWeather("rain"),
 		]),
 
@@ -233,10 +230,7 @@ export const mission06MonsoonAmbush: MissionDef = {
 		trigger("phase:fortify:monsoon-hits", on.timer(180), [
 			act.completeObjective("prepare-defenses"),
 			act.changeWeather("monsoon"),
-			act.dialogue(
-				"sgt_bubbles",
-				"The storm is here. And so are they. First wave incoming!",
-			),
+			act.dialogue("sgt_bubbles", "The storm is here. And so are they. First wave incoming!"),
 			act.startPhase("early-waves"),
 		]),
 
@@ -246,10 +240,7 @@ export const mission06MonsoonAmbush: MissionDef = {
 
 		// === WAVE 1 (3:00) — Probing attack from north: 4 Skinks ===
 		trigger("phase:early-waves:wave-1-spawn", on.timer(180), [
-			act.dialogue(
-				"foxhound",
-				"Wave one — Skinks from the north! Scout force, fast movers.",
-			),
+			act.dialogue("foxhound", "Wave one — Skinks from the north! Scout force, fast movers."),
 			act.spawn("skink", "scale_guard", 60, 2, 2),
 			act.spawn("skink", "scale_guard", 68, 4, 2),
 		]),
@@ -278,18 +269,12 @@ export const mission06MonsoonAmbush: MissionDef = {
 
 		// Wave 2 clear
 		trigger("phase:early-waves:wave-2-clear", on.timer(340), [
-			act.dialogue(
-				"foxhound",
-				"Wave two cleared. No time to rest — next wave is forming.",
-			),
+			act.dialogue("foxhound", "Wave two cleared. No time to rest — next wave is forming."),
 		]),
 
 		// === WAVE 3 (6:00) — Heavy push from south: 4 Gators + 2 Vipers ===
 		trigger("phase:early-waves:wave-3-spawn", on.timer(360), [
-			act.dialogue(
-				"foxhound",
-				"Wave three — heavy force from the south! Gators and Vipers!",
-			),
+			act.dialogue("foxhound", "Wave three — heavy force from the south! Gators and Vipers!"),
 			act.spawn("gator", "scale_guard", 56, 124, 2),
 			act.spawn("gator", "scale_guard", 72, 124, 2),
 			act.spawn("viper", "scale_guard", 64, 122, 2),
@@ -325,10 +310,7 @@ export const mission06MonsoonAmbush: MissionDef = {
 
 		// === WAVE 4 (8:30) — Multi-direction Gator assault: 16 Gators (north + east) ===
 		trigger("phase:heavy-waves:wave-4-spawn", on.timer(510), [
-			act.dialogue(
-				"foxhound",
-				"Wave four — massed Gators from the north and east!",
-			),
+			act.dialogue("foxhound", "Wave four — massed Gators from the north and east!"),
 			// North
 			act.spawn("gator", "scale_guard", 56, 2, 4),
 			act.spawn("gator", "scale_guard", 68, 4, 4),
@@ -351,10 +333,7 @@ export const mission06MonsoonAmbush: MissionDef = {
 				"foxhound",
 				"Wave five — Snappers from the south! Heavy armor, slow but devastating.",
 			),
-			act.dialogue(
-				"sgt_bubbles",
-				"Snappers! Focus fire on them. Don't let them reach the walls.",
-			),
+			act.dialogue("sgt_bubbles", "Snappers! Focus fire on them. Don't let them reach the walls."),
 			act.spawn("snapper", "scale_guard", 56, 126, 2),
 			act.spawn("snapper", "scale_guard", 72, 126, 2),
 			act.spawn("gator", "scale_guard", 64, 124, 2),
@@ -362,10 +341,7 @@ export const mission06MonsoonAmbush: MissionDef = {
 
 		// Wave 5 clear
 		trigger("phase:heavy-waves:wave-5-clear", on.timer(720), [
-			act.dialogue(
-				"foxhound",
-				"Snappers down. Heavy casualties on their side.",
-			),
+			act.dialogue("foxhound", "Snappers down. Heavy casualties on their side."),
 		]),
 
 		// === WAVE 6 (12:30) — All directions simultaneously ===
