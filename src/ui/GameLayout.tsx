@@ -291,7 +291,9 @@ function ContextHints() {
 			<button
 				type="button"
 				className="mt-auto min-h-[36px] px-2 py-1 bg-red-900/40 hover:bg-red-800/50 border border-red-800/30 text-red-400 font-bold uppercase tracking-wider text-[10px] transition-colors"
-				onClick={() => world.query(Selected).forEach((e) => e.remove(Selected))}
+				onClick={() => {
+					for (const e of world.query(Selected)) e.remove(Selected);
+				}}
 			>
 				Deselect [Esc]
 			</button>

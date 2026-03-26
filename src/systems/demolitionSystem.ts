@@ -138,7 +138,7 @@ export function applyExplosion(
 			}
 		} else {
 			// Non-building entities take damage reduced by armor
-			const armorValue = entity.has(Armor) ? entity.get(Armor)?.value ?? 0 : 0;
+			const armorValue = entity.has(Armor) ? (entity.get(Armor)?.value ?? 0) : 0;
 			const dmg = calculateDamage(damage, armorValue);
 			entity.set(Health, (prev) => ({ current: prev.current - dmg }));
 		}

@@ -36,9 +36,9 @@ export function TerrainLayer({ missionDef }: TerrainLayerProps) {
 
 	return (
 		<Layer listening={false}>
-			{chunks.map((chunk, i) => (
+			{chunks.map((chunk) => (
 				<KonvaImage
-					key={`terrain-chunk-${i}`}
+					key={`terrain-${chunk.x}-${chunk.y}`}
 					image={chunk.canvas}
 					x={chunk.x}
 					y={chunk.y}

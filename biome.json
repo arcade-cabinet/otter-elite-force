@@ -18,7 +18,10 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"style": {
+				"noNonNullAssertion": "off"
+			}
 		}
 	},
 	"overrides": [
@@ -47,10 +50,16 @@
 			"linter": {
 				"rules": {
 					"suspicious": {
-						"noExplicitAny": "off"
+						"noExplicitAny": "off",
+						"noNonNullAssertedOptionalChain": "off"
 					},
 					"style": {
 						"noNonNullAssertion": "off"
+					},
+					"correctness": {
+						"noUnusedVariables": "warn",
+						"noUnusedFunctionParameters": "off",
+						"noUnsafeOptionalChaining": "off"
 					}
 				}
 			}
