@@ -1,9 +1,8 @@
 {
 	"compilerOptions": {
-		"ignoreDeprecations": "5.0",
-		"target": "ES2022",
+		"target": "ES2024",
 		"useDefineForClassFields": true,
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"lib": ["ES2024", "DOM", "DOM.Iterable"],
 		"module": "ESNext",
 		"skipLibCheck": true,
 		"types": ["vite/client"],
@@ -19,10 +18,9 @@
 		"moduleDetection": "force",
 		"noEmit": true,
 
-		/* Paths */
-		"baseUrl": ".",
+		/* Paths — TS 6.x: use relative ./src/* with baseUrl removed */
 		"paths": {
-			"@/*": ["src/*"]
+			"@/*": ["./src/*"]
 		},
 
 		/* Linting */
@@ -32,46 +30,7 @@
 		"noFallthroughCasesInSwitch": true
 	},
 	"include": [
-		"src/main.tsx",
-		"src/app",
-		"src/game",
-		"src/ui",
-		"src/config",
-		"src/ecs",
-		"src/data",
-		"src/entities",
-		"src/systems/bossSystem.ts",
-		"src/systems/combatSystem.ts",
-		"src/systems/convoySystem.ts",
-		"src/systems/economySystem.ts",
-		"src/systems/productionSystem.ts",
-		"src/systems/buildingSystem.ts",
-		"src/systems/fogSystem.ts",
-		"src/systems/movementSystem.ts",
-		"src/systems/orderSystem.ts",
-		"src/systems/scenarioSystem.ts",
-		"src/systems/detectionSystem.ts",
-		"src/systems/stealthSystem.ts",
-		"src/systems/waterSystem.ts",
-		"src/systems/weatherSystem.ts",
-		"src/systems/tidalSystem.ts",
-		"src/systems/fireSystem.ts",
-		"src/systems/dayNightSystem.ts",
-		"src/systems/gameLoop.ts",
-		"src/ai",
-		"src/audio",
-		"src/maps",
-		"src/input",
-		"src/persistence",
-		"src/stores",
-		"src/sprites/parser.ts",
-		"src/sprites/compiler.ts",
-		"src/sprites/atlas.ts",
-		"src/sprites/types.ts",
-		"src/canvas",
-		"src/scenarios",
-		"src/types",
-		"src/features"
+		"src"
 	],
-	"exclude": ["src/**/*.test.ts", "src/**/__tests__/**"]
+	"exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/__tests__/**"]
 }

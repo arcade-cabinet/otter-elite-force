@@ -42,7 +42,7 @@ function getActiveSiphons(world: World): Entity[] {
 	const active: Entity[] = [];
 	for (const siphon of siphons) {
 		const health = siphon.get(Health);
-		if (health.current > 0) {
+		if (health && health.current > 0) {
 			active.push(siphon);
 		}
 	}
@@ -61,10 +61,13 @@ export function isSuppressedBySiphon(world: World, fishTrap: Entity): boolean {
 	if (!fishTrap.has(Position)) return false;
 
 	const trapPos = fishTrap.get(Position);
+	if (!trapPos) return false;
+
 	const activeSiphons = getActiveSiphons(world);
 
 	for (const siphon of activeSiphons) {
 		const siphonPos = siphon.get(Position);
+		if (!siphonPos) continue;
 		const dist = distanceBetween(trapPos.x, trapPos.y, siphonPos.x, siphonPos.y);
 		if (dist <= SIPHON_RADIUS) {
 			return true;
@@ -101,14 +104,16 @@ export function siphonSystem(world: World, delta: number): void {
 
 		// Skip Scale-Guard units — siphons don't damage their own faction
 		const faction = unit.get(Faction);
-		if (faction.id === "scale_guard") continue;
+		if (!faction || faction.id === "scale_guard") continue;
 
 		const unitPos = unit.get(Position);
+		if (!unitPos) continue;
 
 		// Accumulate damage from all siphons in range
 		let siphonsInRange = 0;
 		for (const siphon of activeSiphons) {
 			const siphonPos = siphon.get(Position);
+			if (!siphonPos) continue;
 			const dist = distanceBetween(unitPos.x, unitPos.y, siphonPos.x, siphonPos.y);
 			if (dist <= SIPHON_RADIUS) {
 				siphonsInRange++;
