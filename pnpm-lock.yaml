@@ -47,9 +47,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      koota:
-        specifier: ^0.2.0
-        version: 0.2.3(@types/react@19.2.14)(react@19.2.4)
       littlejsengine:
         specifier: ^1.18.0
         version: 1.18.0
@@ -930,9 +927,6 @@ packages:
   '@types/node@25.5.0':
     resolution: {integrity: sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw==}
 
-  '@types/react@19.2.14':
-    resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
-
   '@types/slice-ansi@4.0.0':
     resolution: {integrity: sha512-+OpjSaq85gvlZAYINyzKpLeiFkSC4EsC6IIiT6v6TLSU5k5U83fHGj9Lel8oKEXM0HqgrMVCjXPDPVICtxF7EQ==}
 
@@ -1361,17 +1355,6 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  koota@0.2.3:
-    resolution: {integrity: sha512-s1g2x5T8wmmnBLsVbgLtpKptwcrIxAPJONS3V5zUUAG+MEQYP9DaR/h8PXF3h4aQTOBE2TeTODoLCqYX3M2nJA==}
-    peerDependencies:
-      '@types/react': '>=18.0.0'
-      react: '>=18.0.0'
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-      react:
-        optional: true
-
   lie@3.1.1:
     resolution: {integrity: sha512-RiNhHysUjhrDQntfYSfY4MU24coXXdEOgw9WGcKHNeEwffDYbF//u87M1EWaMGzuFoSbqW0C9C6lEEhDOAswfw==}
 
@@ -1603,10 +1586,6 @@ packages:
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
-
-  react@19.2.4:
-    resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
-    engines: {node: '>=0.10.0'}
 
   readable-stream@2.3.8:
     resolution: {integrity: sha512-8p0AUk4XODgIewSi0l8Epjs+EVnWiK7NoDIEGU0HhE7+ZyY8D1IMY7odu5lRrFXGg71L15KG8QrPmum45RTtdA==}
@@ -2744,11 +2723,6 @@ snapshots:
     dependencies:
       undici-types: 7.18.2
 
-  '@types/react@19.2.14':
-    dependencies:
-      csstype: 3.2.3
-    optional: true
-
   '@types/slice-ansi@4.0.0': {}
 
   '@types/statuses@2.0.6':
@@ -3179,11 +3153,6 @@ snapshots:
 
   kleur@4.1.5: {}
 
-  koota@0.2.3(@types/react@19.2.14)(react@19.2.4):
-    optionalDependencies:
-      '@types/react': 19.2.14
-      react: 19.2.4
-
   lie@3.1.1:
     dependencies:
       immediate: 3.0.6
@@ -3409,9 +3378,6 @@ snapshots:
       sisteransi: 1.0.5
 
   react-is@17.0.2: {}
-
-  react@19.2.4:
-    optional: true
 
   readable-stream@2.3.8:
     dependencies:
