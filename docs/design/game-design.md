@@ -15,8 +15,15 @@ status: active
 2. **Desktop AND mobile** — identical experience on mouse and touch
 3. **Every pixel counts** — purchased sprite art, Kenney tiles, zero procedural placeholders
 4. **The war is about logistics** — crossings, depots, settlements, salvage, and control
+5. **Modern lens, nostalgic core** — build a modern adaptive strategy UX that evokes 90s RTS ideas without copying their ergonomic limitations
 
 ## Interaction Model
+
+Interaction rule:
+
+- If a tactical action cannot be performed cleanly with mouse and touch, the UX is wrong and must be redesigned.
+- Desktop may have accelerators, but the primary model must also work on a phone.
+- Layout, spacing, HUD density, and affordance placement must adapt by form factor rather than shrinking a desktop UI onto mobile.
 
 ### Desktop
 - **Left click** on unit → select it
@@ -27,8 +34,8 @@ status: active
 - **Right click drag** → camera pan
 - **Middle click drag** → camera pan
 - **Mouse wheel** → zoom
-- **Arrow keys / WASD** → camera pan
 - **NO edge scroll** — mouse at viewport edge does nothing
+- **No keyboard-only camera movement** — desktop interaction must map cleanly to touch/mobile equivalents
 
 ### Mobile
 - **Tap** on unit → select it
@@ -36,6 +43,11 @@ status: active
 - **Tap** on ground/resource/enemy → same as left click
 - **Two-finger drag** → camera pan
 - **Pinch** → zoom
+
+### Layout Adaptation
+- Phone HUD must prioritize large tap targets, lower information density, and quick access to primary actions
+- Tablet HUD may expose more persistent tactical information, but must still remain touch-first
+- Desktop HUD may show richer persistent panels, but cannot depend on hover-only or keyboard-only core flows
 
 ### Build System
 - Sidebar shows build grid when nothing selected
@@ -66,3 +78,4 @@ status: active
 - Workers auto-loop: gather → return to lodge → gather
 - Trees are impassable harvestable resources (harvest outer to reach inner)
 - Fog of war: unexplored (black), explored (dimmed), visible (clear)
+- Escape may act as a desktop accelerator for deselection or closing overlays, but every such action must also have a visible on-screen control

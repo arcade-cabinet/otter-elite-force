@@ -102,25 +102,25 @@ export async function getTotalStars(): Promise<number> {
 export async function seedCampaign(): Promise<void> {
 	const missions = [
 		// Chapter 1
-		{ id: "ch1-m1", chapter: 1, mission: 1, status: "available" as const },
-		{ id: "ch1-m2", chapter: 1, mission: 2, status: "locked" as const },
-		{ id: "ch1-m3", chapter: 1, mission: 3, status: "locked" as const },
-		{ id: "ch1-m4", chapter: 1, mission: 4, status: "locked" as const },
+		{ id: "mission_1", chapter: 1, mission: 1, status: "available" as const },
+		{ id: "mission_2", chapter: 1, mission: 2, status: "locked" as const },
+		{ id: "mission_3", chapter: 1, mission: 3, status: "locked" as const },
+		{ id: "mission_4", chapter: 1, mission: 4, status: "locked" as const },
 		// Chapter 2
-		{ id: "ch2-m5", chapter: 2, mission: 5, status: "locked" as const },
-		{ id: "ch2-m6", chapter: 2, mission: 6, status: "locked" as const },
-		{ id: "ch2-m7", chapter: 2, mission: 7, status: "locked" as const },
-		{ id: "ch2-m8", chapter: 2, mission: 8, status: "locked" as const },
+		{ id: "mission_5", chapter: 2, mission: 5, status: "locked" as const },
+		{ id: "mission_6", chapter: 2, mission: 6, status: "locked" as const },
+		{ id: "mission_7", chapter: 2, mission: 7, status: "locked" as const },
+		{ id: "mission_8", chapter: 2, mission: 8, status: "locked" as const },
 		// Chapter 3
-		{ id: "ch3-m9", chapter: 3, mission: 9, status: "locked" as const },
-		{ id: "ch3-m10", chapter: 3, mission: 10, status: "locked" as const },
-		{ id: "ch3-m11", chapter: 3, mission: 11, status: "locked" as const },
-		{ id: "ch3-m12", chapter: 3, mission: 12, status: "locked" as const },
+		{ id: "mission_9", chapter: 3, mission: 9, status: "locked" as const },
+		{ id: "mission_10", chapter: 3, mission: 10, status: "locked" as const },
+		{ id: "mission_11", chapter: 3, mission: 11, status: "locked" as const },
+		{ id: "mission_12", chapter: 3, mission: 12, status: "locked" as const },
 		// Chapter 4
-		{ id: "ch4-m13", chapter: 4, mission: 13, status: "locked" as const },
-		{ id: "ch4-m14", chapter: 4, mission: 14, status: "locked" as const },
-		{ id: "ch4-m15", chapter: 4, mission: 15, status: "locked" as const },
-		{ id: "ch4-m16", chapter: 4, mission: 16, status: "locked" as const },
+		{ id: "mission_13", chapter: 4, mission: 13, status: "locked" as const },
+		{ id: "mission_14", chapter: 4, mission: 14, status: "locked" as const },
+		{ id: "mission_15", chapter: 4, mission: 15, status: "locked" as const },
+		{ id: "mission_16", chapter: 4, mission: 16, status: "locked" as const },
 	];
 
 	for (const m of missions) {

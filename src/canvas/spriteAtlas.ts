@@ -329,7 +329,7 @@ export function getSpriteFrame(
 
 /**
  * Get the idle frame (frame 0) for a game entity type.
- * This is the main entry point for EntityLayer rendering.
+ * This is the main entry point for tactical entity sprite rendering.
  *
  * Falls back through: tile sprite → atlas sprite → undefined (procedural fallback).
  */

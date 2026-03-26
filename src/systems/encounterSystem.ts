@@ -43,7 +43,7 @@ export function resetEncounterState(): void {
  * Check if a random encounter should spawn this frame.
  *
  * Returns null if no encounter, or an encounter descriptor if one should spawn.
- * The caller (GameCanvas action handler) is responsible for actual entity spawning.
+ * The active tactical runtime action handler is responsible for actual entity spawning.
  */
 export function checkEncounter(
 	world: World,

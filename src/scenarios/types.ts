@@ -90,6 +90,48 @@ export interface ResourceThresholdCondition {
 	amount: number;
 }
 
+export interface EntityDestroyedCondition {
+	type: "entityDestroyed";
+	entityTag: string;
+	match?: "first" | "any" | "all";
+}
+
+export interface EntityDestroyedCountCondition {
+	type: "entityDestroyedCount";
+	entityTag: string;
+	operator: "gte" | "lte" | "eq";
+	count: number;
+}
+
+export interface EnemyCountInZoneCondition {
+	type: "enemyCountInZone";
+	zoneId: string;
+	operator: "gte" | "lte" | "eq";
+	count: number;
+	faction?: string;
+}
+
+export interface BuildingCountInZoneCondition {
+	type: "buildingCountInZone";
+	faction: string;
+	zoneId: string;
+	operator: "gte" | "lte" | "eq";
+	count: number;
+	buildingType?: string;
+}
+
+export interface WaveCounterCondition {
+	type: "waveCounter";
+	operator: "gte" | "lte" | "eq";
+	wave: number;
+}
+
+export interface ConvoyEntersZoneCondition {
+	type: "convoyEntersZone";
+	zoneId: string;
+	convoyTag?: string;
+}
+
 export type TriggerCondition =
 	| TimerCondition
 	| UnitCountCondition
@@ -99,7 +141,13 @@ export type TriggerCondition =
 	| ObjectiveCompleteCondition
 	| AllObjectivesCompleteCondition
 	| HealthThresholdCondition
-	| ResourceThresholdCondition;
+	| ResourceThresholdCondition
+	| EntityDestroyedCondition
+	| EntityDestroyedCountCondition
+	| EnemyCountInZoneCondition
+	| BuildingCountInZoneCondition
+	| WaveCounterCondition
+	| ConvoyEntersZoneCondition;
 
 // ---------------------------------------------------------------------------
 // Trigger Actions
@@ -300,6 +348,27 @@ export interface SpawnBossUnitAction {
 	summonCount?: number;
 }
 
+export interface ActivateEntityAction {
+	type: "activateEntity";
+	entityTag: string;
+	mode?: string;
+}
+
+export interface DeactivateEntityAction {
+	type: "deactivateEntity";
+	entityTag: string;
+}
+
+export interface SetWaveCounterAction {
+	type: "setWaveCounter";
+	value: number;
+}
+
+export interface IncrementWaveCounterAction {
+	type: "incrementWaveCounter";
+	amount?: number;
+}
+
 export type TriggerAction =
 	| SpawnUnitsAction
 	| ShowDialogueAction
@@ -319,7 +388,11 @@ export type TriggerAction =
 	| VictoryAction
 	| EnableTriggerAction
 	| GrantResourceAction
-	| SpawnBossUnitAction;
+	| SpawnBossUnitAction
+	| ActivateEntityAction
+	| DeactivateEntityAction
+	| SetWaveCounterAction
+	| IncrementWaveCounterAction;
 
 // ---------------------------------------------------------------------------
 // Scenario Trigger
@@ -431,6 +504,8 @@ export interface Scenario {
 	triggers: ScenarioTrigger[];
 	/** Weather schedule (optional) */
 	weather?: "clear" | "rain" | "monsoon";
+	/** Buried deterministic mission seed phrase. */
+	seedPhrase?: string;
 	/** New unit types unlocked this mission */
 	unitUnlocks?: string[];
 	/** New building types unlocked this mission */

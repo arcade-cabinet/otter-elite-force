@@ -10,43 +10,87 @@
  */
 
 import { useTrait, useWorld } from "koota/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AppScreen, CampaignProgress } from "@/ecs/traits/state";
+import { AppScreen, CampaignProgress, SkirmishSession } from "@/ecs/traits/state";
 import { cn } from "@/ui/lib/utils";
+import {
+	applySkirmishConfigToWorld,
+	createDefaultSkirmishConfig,
+	loadSkirmishConfig,
+	saveSkirmishConfig,
+	updateSkirmishSeedPhrase,
+} from "./persistence";
 import {
 	countCampaignStars,
 	hasGoldUnlock,
 	isMapUnlocked,
 	SKIRMISH_DIFFICULTIES,
 	SKIRMISH_MAPS,
+	SKIRMISH_PRESETS,
 	type SkirmishDifficultyOption,
 	type SkirmishMapDef,
+	type SkirmishSessionConfig,
 } from "./types";
 
 export function SkirmishSetup() {
 	const world = useWorld();
 	const campaign = useTrait(world, CampaignProgress);
+	const skirmishSession = useTrait(world, SkirmishSession);
 	const totalStars = useMemo(
 		() => countCampaignStars(campaign?.missions ?? {}),
 		[campaign?.missions],
 	);
 	const allUnlocked = hasGoldUnlock(totalStars);
 
-	const [selectedMapId, setSelectedMapId] = useState<string>(SKIRMISH_MAPS[0].id);
+	const [selectedMapId, setSelectedMapId] = useState<string>(skirmishSession?.mapId ?? SKIRMISH_MAPS[0].id);
 	const [selectedDifficulty, setSelectedDifficulty] = useState<SkirmishDifficultyOption>(
 		SKIRMISH_DIFFICULTIES[1], // Medium default
 	);
-	const [playAsScaleGuard, setPlayAsScaleGuard] = useState(false);
+	const [playAsScaleGuard, setPlayAsScaleGuard] = useState(skirmishSession?.playAsScaleGuard ?? false);
+	const [seedPhrase, setSeedPhrase] = useState(skirmishSession?.seedPhrase ?? createDefaultSkirmishConfig().seed.phrase);
+	const [selectedPreset, setSelectedPreset] = useState<SkirmishSessionConfig["preset"]>(
+		skirmishSession?.mapPreset ?? "meso",
+	);
+	const [isHydrated, setIsHydrated] = useState(false);
 
 	const selectedMap = SKIRMISH_MAPS.find((m) => m.id === selectedMapId) ?? SKIRMISH_MAPS[0];
 	const canStart = allUnlocked || isMapUnlocked(selectedMap, totalStars);
 
-	const handleStart = () => {
+	useEffect(() => {
+		void (async () => {
+			const persisted = await loadSkirmishConfig();
+			if (persisted) {
+				setSelectedMapId(persisted.mapId);
+				setSelectedPreset(persisted.preset);
+				setPlayAsScaleGuard(persisted.playAsScaleGuard);
+				setSeedPhrase(persisted.seed.phrase);
+				const difficulty =
+					SKIRMISH_DIFFICULTIES.find((option) => option.id === persisted.difficulty) ??
+					SKIRMISH_DIFFICULTIES[1];
+				setSelectedDifficulty(difficulty);
+				applySkirmishConfigToWorld(world, persisted);
+			}
+			setIsHydrated(true);
+		})();
+	}, [world]);
+
+	const handleStart = async () => {
 		if (!canStart) return;
-		// Store skirmish config in world state for the game scene to consume
-		// For now, transition to game screen — the game scene will detect
-		// skirmish mode from the stored config.
+		const config = updateSkirmishSeedPhrase(
+			{
+				mapId: selectedMap.id,
+				mapName: selectedMap.name,
+				difficulty: selectedDifficulty.id,
+				playAsScaleGuard,
+				preset: selectedPreset,
+				seed: createDefaultSkirmishConfig().seed,
+				startingResources: resolveStartingResources(selectedPreset),
+			},
+			seedPhrase,
+		);
+		applySkirmishConfigToWorld(world, config);
+		await saveSkirmishConfig(config);
 		world.set(AppScreen, { screen: "game" });
 	};
 
@@ -106,7 +150,7 @@ export function SkirmishSetup() {
 							<div className="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
 								Difficulty
 							</div>
-							<div className="grid gap-2">
+						<div className="grid gap-2">
 								{SKIRMISH_DIFFICULTIES.map((d) => (
 									<button
 										key={d.id}
@@ -124,6 +168,34 @@ export function SkirmishSetup() {
 										</div>
 										<div className="mt-1 font-body text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
 											{d.note}
+										</div>
+									</button>
+								))}
+							</div>
+						</div>
+
+						<div>
+							<div className="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
+								Test Preset
+							</div>
+							<div className="grid gap-2">
+								{SKIRMISH_PRESETS.map((preset) => (
+									<button
+										key={preset.id}
+										type="button"
+										onClick={() => setSelectedPreset(preset.id)}
+										className={cn(
+											"rounded-none border px-4 py-3 text-left transition",
+											preset.id === selectedPreset
+												? "border-accent/60 bg-accent/15 text-accent"
+												: "border-border/70 bg-background/40 text-foreground hover:border-accent/30 hover:bg-background/55",
+										)}
+									>
+										<div className="font-heading text-sm uppercase tracking-[0.16em]">
+											{preset.label}
+										</div>
+										<div className="mt-1 font-body text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+											{preset.note}
 										</div>
 									</button>
 								))}
@@ -150,6 +222,30 @@ export function SkirmishSetup() {
 							</label>
 						</div>
 
+						<div className="rounded-none border border-border/70 bg-black/24 p-4">
+							<div className="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
+								Seed Phrase
+							</div>
+							<div className="flex gap-2">
+								<input
+									type="text"
+									value={seedPhrase}
+									onChange={(event) => setSeedPhrase(event.target.value)}
+									className="min-w-0 flex-1 rounded-none border border-border/70 bg-background/40 px-3 py-2 font-mono text-xs uppercase tracking-[0.14em] text-foreground"
+								/>
+								<Button
+									type="button"
+									variant="command"
+									onClick={() => setSeedPhrase(createDefaultSkirmishConfig().seed.phrase)}
+								>
+									Shuffle
+								</Button>
+							</div>
+							<div className="mt-2 font-body text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+								Exposed deterministic seed for skirmish generation and diagnostics.
+							</div>
+						</div>
+
 						{/* Map info */}
 						<div className="rounded-none border border-border/70 bg-black/24 p-4">
 							<div className="font-heading text-lg uppercase tracking-[0.16em] text-primary">
@@ -174,8 +270,8 @@ export function SkirmishSetup() {
 								variant="accent"
 								size="lg"
 								className="w-full"
-								disabled={!canStart}
-								onClick={handleStart}
+								disabled={!canStart || !isHydrated}
+								onClick={() => void handleStart()}
 							>
 								Start Skirmish
 							</Button>
@@ -188,6 +284,18 @@ export function SkirmishSetup() {
 			</div>
 		</div>
 	);
+}
+
+function resolveStartingResources(preset: SkirmishSessionConfig["preset"]): SkirmishSessionConfig["startingResources"] {
+	switch (preset) {
+		case "macro":
+			return { fish: 600, timber: 450, salvage: 250 };
+		case "micro":
+			return { fish: 180, timber: 120, salvage: 90 };
+		case "meso":
+		default:
+			return { fish: 300, timber: 200, salvage: 100 };
+	}
 }
 
 // ---------------------------------------------------------------------------

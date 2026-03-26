@@ -2,7 +2,7 @@
  * Selection Manager — handles unit selection via click and drag-rectangle.
  *
  * Pure ECS logic: operates on a Koota World, no framework dependency.
- * Visual feedback (selection rectangle) is handled by the OverlayLayer.
+ * Visual feedback (selection rectangle) is handled by the tactical runtime overlay.
  */
 
 import type { Entity, World } from "koota";

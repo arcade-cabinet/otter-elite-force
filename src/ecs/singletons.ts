@@ -16,10 +16,13 @@ import {
 	DialogueState,
 	GameClock,
 	GamePhase,
+	MissionResultState,
 	NavGraphState,
 	Objectives,
 	PopulationState,
 	ResourcePool,
+	ScenarioRuntimeState,
+	SkirmishSession,
 	TerritoryState,
 	UserSettings,
 	WeatherCondition,
@@ -34,9 +37,11 @@ export function initSingletons(world: World): void {
 	world.add(PopulationState);
 	world.add(CompletedResearch);
 	world.add(GamePhase);
+	world.add(MissionResultState);
 	world.add(GameClock);
 	world.add(CurrentMission);
 	world.add(Objectives);
+	world.add(ScenarioRuntimeState);
 	world.add(AppScreen);
 	world.add(CampaignProgress);
 	world.add(TerritoryState);
@@ -44,6 +49,7 @@ export function initSingletons(world: World): void {
 	world.add(WeatherCondition);
 	world.add(DialogueState);
 	world.add(NavGraphState);
+	world.add(SkirmishSession);
 }
 
 /**
@@ -54,9 +60,29 @@ export function resetSessionState(world: World): void {
 	world.set(ResourcePool, { fish: 0, timber: 0, salvage: 0 });
 	world.set(PopulationState, { current: 0, max: 4 });
 	world.set(GamePhase, { phase: "loading" });
+	world.set(MissionResultState, {
+		active: false,
+		missionId: null,
+		outcome: "victory",
+		stars: 0,
+		isSkirmish: false,
+	});
 	world.set(GameClock, { elapsedMs: 0, lastDeltaMs: 0, tick: 0, paused: false });
 	world.set(CurrentMission, { missionId: null });
 	world.set(Objectives, { list: [] });
+	world.set(ScenarioRuntimeState, { phase: "initial", waveCounter: 0 });
+	world.set(SkirmishSession, {
+		active: false,
+		mapId: null,
+		mapName: null,
+		mapPreset: "meso",
+		difficulty: "medium",
+		playAsScaleGuard: false,
+		seedPhrase: "silent-ember-heron",
+		designSeed: 0,
+		gameplaySeeds: {},
+		startingResources: { fish: 300, timber: 200, salvage: 100 },
+	});
 	world.set(TerritoryState, {
 		totalVillages: 0,
 		liberatedCount: 0,

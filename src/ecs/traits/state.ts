@@ -58,6 +58,12 @@ export const Objectives = trait(() => ({
 	}>,
 }));
 
+/** Scenario runtime metadata for phase progression and mission-specific counters. */
+export const ScenarioRuntimeState = trait(() => ({
+	phase: "initial" as string,
+	waveCounter: 0,
+}));
+
 // ---------------------------------------------------------------------------
 // Dialogue state — drives the portrait overlay dialogue system
 // ---------------------------------------------------------------------------
@@ -86,6 +92,31 @@ export const DialogueState = trait(() => ({
 	pauseGame: true,
 	/** Callback ID for the trigger that initiated this dialogue (for tracking). */
 	triggerId: null as string | null,
+}));
+
+export const SkirmishSession = trait(() => ({
+	active: false,
+	mapId: null as string | null,
+	mapName: null as string | null,
+	mapPreset: "meso" as "macro" | "meso" | "micro",
+	difficulty: "medium" as "easy" | "medium" | "hard" | "brutal",
+	playAsScaleGuard: false,
+	seedPhrase: "silent-ember-heron",
+	designSeed: 0,
+	gameplaySeeds: {} as Record<string, number>,
+	startingResources: {
+		fish: 300,
+		timber: 200,
+		salvage: 100,
+	},
+}));
+
+export const MissionResultState = trait(() => ({
+	active: false,
+	missionId: null as string | null,
+	outcome: "victory" as "victory" | "defeat",
+	stars: 0 as 0 | 1 | 2 | 3,
+	isSkirmish: false,
 }));
 
 // ---------------------------------------------------------------------------

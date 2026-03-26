@@ -9,7 +9,7 @@
  *   1..9 — Select control group
  *   Escape — Deselect all / cancel current action
  *   Space — Center camera on last alert
- *   WASD/Arrows — Camera pan (handled in useCamera, not here)
+ *   Keyboard shortcuts may accelerate commands, but core camera movement is pointer-first
  */
 
 import type { World } from "koota";

@@ -74,11 +74,9 @@ describe("US-089: Bundle size audit", () => {
 			expect(mod.musicController).toBeDefined();
 		});
 
-		it("canvas module exists at the expected path", async () => {
-			// The GameCanvas module uses react-konva for rendering.
-			// We verify the module path resolves correctly.
-			const mod = await import("@/canvas/GameCanvas");
-			expect(mod.GameCanvas).toBeDefined();
+		it("engine-owned campaign runtime surface exists at the expected path", async () => {
+			const mod = await import("@/engine");
+			expect(mod.RuntimeHost).toBeDefined();
 		});
 	});
 
@@ -94,7 +92,7 @@ describe("US-089: Bundle size audit", () => {
 			 *   Total:       ~156 KB gzip  ✅ well under 500 KB target
 			 *
 			 * GAME (game screen entered):
-			 *   konva.js      ~40 KB gzip  — Konva 2D canvas engine
+			 *   littlejs.js   runtime-owned tactical canvas
 			 *   yuka.js       ~11 KB gzip  — AI/pathfinding
 			 *
 			 * LAZY (first user gesture):
@@ -103,7 +101,7 @@ describe("US-089: Bundle size audit", () => {
 			 *
 			 * Key optimizations:
 			 * 1. EventBus: lightweight emitter (no framework dependency)
-			 * 2. GameCanvas: react-konva Stage for 2D rendering
+			 * 2. RuntimeHost: engine-owned tactical entry for campaign and skirmish
 			 * 3. useAudioUnlock: dynamic import() for audio/engine (loads Tone.js)
 			 * 4. useMusicWiring: dynamic import() for audio/musicController
 			 * 5. manualChunks: tone, yuka, koota in separate chunks

@@ -7,7 +7,15 @@ import { createSteeringVehicle } from "@/ai/steeringFactory";
 import { OwnedBy } from "@/ecs/relations";
 import { AIState, SteeringAgent } from "@/ecs/traits/ai";
 import { Gatherer, PopulationCost, ProductionQueue, ResourceNode } from "@/ecs/traits/economy";
-import { Category, Faction, IsBuilding, IsHero, IsResource, UnitType } from "@/ecs/traits/identity";
+import {
+	Category,
+	Faction,
+	IsBuilding,
+	IsHero,
+	IsResource,
+	ScriptTag,
+	UnitType,
+} from "@/ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
 import { PopulationState } from "@/ecs/traits/state";
 import { type BossPhase, BossUnit } from "../ecs/traits/boss";
@@ -46,6 +54,7 @@ export function spawnUnit(
 	x: number,
 	y: number,
 	faction?: string,
+	scriptId?: string,
 ) {
 	const traits: ConfigurableTrait[] = [
 		Position({ x, y }),
@@ -91,6 +100,10 @@ export function spawnUnit(
 		traits.push(IsHero);
 	}
 
+	if (scriptId) {
+		traits.push(ScriptTag({ id: scriptId }));
+	}
+
 	// Dynamic trait composition — Koota's spawn() is variadic over ConfigurableTrait.
 	const entity = world.spawn(...traits);
 	const factionId = faction ?? def.faction;
@@ -126,6 +139,7 @@ export function spawnBuilding(
 	x: number,
 	y: number,
 	faction?: string,
+	scriptId?: string,
 ) {
 	const traits: ConfigurableTrait[] = [
 		Position({ x, y }),
@@ -151,6 +165,10 @@ export function spawnBuilding(
 		);
 	}
 
+	if (scriptId) {
+		traits.push(ScriptTag({ id: scriptId }));
+	}
+
 	const entity = world.spawn(...traits);
 	const factionId = faction ?? def.faction;
 	if (factionId !== "neutral") {
@@ -163,16 +181,20 @@ export function spawnBuilding(
 /**
  * Spawn a resource node from its definition into the ECS world.
  */
-export function spawnResource(world: World, def: ResourceDef, x: number, y: number) {
+export function spawnResource(world: World, def: ResourceDef, x: number, y: number, scriptId?: string) {
 	const amount = def.yield.min + Math.floor(Math.random() * (def.yield.max - def.yield.min + 1));
-
-	return world.spawn(
+	const traits: ConfigurableTrait[] = [
 		Position({ x, y }),
 		UnitType({ type: def.id }),
 		Faction({ id: "neutral" }),
 		ResourceNode({ type: def.resourceType, remaining: amount }),
 		IsResource,
-	);
+	];
+	if (scriptId) {
+		traits.push(ScriptTag({ id: scriptId }));
+	}
+
+	return world.spawn(...traits);
 }
 
 /**

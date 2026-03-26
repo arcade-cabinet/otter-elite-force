@@ -62,21 +62,18 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      konva:
-        specifier: ^10.2.3
-        version: 10.2.3
       koota:
         specifier: ^0.2.0
         version: 0.2.3(@types/react@19.2.14)(react@19.2.4)
+      littlejsengine:
+        specifier: ^1.18.0
+        version: 1.18.0
       react:
         specifier: ^19.2.4
         version: 19.2.4
       react-dom:
         specifier: ^19.2.4
         version: 19.2.4(react@19.2.4)
-      react-konva:
-        specifier: ^19.2.3
-        version: 19.2.3(@types/react@19.2.14)(konva@10.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       solid-js:
         specifier: ^1.9.12
         version: 1.9.12
@@ -1398,16 +1395,6 @@ packages:
     peerDependencies:
       '@types/react': ^19.2.0
 
-  '@types/react-reconciler@0.28.9':
-    resolution: {integrity: sha512-HHM3nxyUZ3zAylX8ZEyrDNd2XZOnQ0D5XfunJF5FLQnZbHHYq4UWvW1QfelQNXv1ICNkwYhfxjwfnqivYB6bFg==}
-    peerDependencies:
-      '@types/react': '*'
-
-  '@types/react-reconciler@0.33.0':
-    resolution: {integrity: sha512-HZOXsKT0tGI9LlUw2LuedXsVeB88wFa536vVL0M6vE8zN63nI+sSr1ByxmPToP5K5bukaVscyeCJcF9guVNJ1g==}
-    peerDependencies:
-      '@types/react': '*'
-
   '@types/react@19.2.14':
     resolution: {integrity: sha512-ilcTH/UniCkMdtexkoCN0bI7pMcJDvmQFPvuPvmEaYA/NSfFTAgdUSLAoVjaRJm7+6PvcM+q1zYOwS4wTYMF9w==}
 
@@ -2254,11 +2241,6 @@ packages:
     resolution: {integrity: sha512-HGYWWS/ehqTV3xN10i23tkPkpH46MLCIMFNCaaKNavAXTF1RkqxawEPtnjnGZ6XKSInBKkiOA5BKS+aZiY3AvA==}
     engines: {node: '>=8'}
 
-  its-fine@2.0.0:
-    resolution: {integrity: sha512-KLViCmWx94zOvpLwSlsx6yOCeMhZYaxrJV87Po5k/FoZzcPSahvK5qJ7fYhS61sZi5ikmh2S3Hz55A2l3U69ng==}
-    peerDependencies:
-      react: ^19.0.0
-
   jeep-sqlite@2.8.0:
     resolution: {integrity: sha512-FWNUP6OAmrUHwiW7H1xH5YUQ8tN2O4l4psT1sLd7DQtHd5PfrA1nvNdeKPNj+wQBtu7elJa8WoUibTytNTaaCg==}
 
@@ -2311,9 +2293,6 @@ packages:
   kleur@4.1.5:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
-
-  konva@10.2.3:
-    resolution: {integrity: sha512-NDGeIxm2nsQcp6oqZKS9T764JEi53RpQvpUxV2EK7Awm49fwdd1+EB1Nq1nyspRc0hOAKyKssoTFvPaKwiSUog==}
 
   koota@0.2.3:
     resolution: {integrity: sha512-s1g2x5T8wmmnBLsVbgLtpKptwcrIxAPJONS3V5zUUAG+MEQYP9DaR/h8PXF3h4aQTOBE2TeTODoLCqYX3M2nJA==}
@@ -2404,6 +2383,9 @@ packages:
 
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
+
+  littlejsengine@1.18.0:
+    resolution: {integrity: sha512-4xF+JbxH9i5O7PR+Be7oK9ZlYMqED37Ao08tlXpFRc44iw+Xb9Ye6dkUlo8/39qjv5nQ7TYQSdXOV2iJfq1+dw==}
 
   localforage@1.10.0:
     resolution: {integrity: sha512-14/H1aX7hzBBmmh7sGPd+AOMkkIrHM3Z1PAyGgZigA1H1p5O5ANnMyWzvpAETtG68/dC4pC0ncy3+PPGzXZHPg==}
@@ -2729,19 +2711,6 @@ packages:
 
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
-
-  react-konva@19.2.3:
-    resolution: {integrity: sha512-VsO5CJZwUo12xFa33UEIDOQn6ZZBeE6jlkStGFvpR/3NiDA/9RPQTzw6Ri++C0Pnh3Arco1AehB8qJNv9YCRwg==}
-    peerDependencies:
-      konva: ^8.0.1 || ^7.2.5 || ^9.0.0 || ^10.0.0
-      react: ^19.2.0
-      react-dom: ^19.2.0
-
-  react-reconciler@0.33.0:
-    resolution: {integrity: sha512-KetWRytFv1epdpJc3J4G75I4WrplZE5jOL7Yq0p34+OVOKF4Se7WrdIdVC45XsSSmUTlht2FM/fM1FZb1mfQeA==}
-    engines: {node: '>=0.10.0'}
-    peerDependencies:
-      react: ^19.2.0
 
   react-remove-scroll-bar@2.3.8:
     resolution: {integrity: sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==}
@@ -4535,14 +4504,6 @@ snapshots:
     dependencies:
       '@types/react': 19.2.14
 
-  '@types/react-reconciler@0.28.9(@types/react@19.2.14)':
-    dependencies:
-      '@types/react': 19.2.14
-
-  '@types/react-reconciler@0.33.0(@types/react@19.2.14)':
-    dependencies:
-      '@types/react': 19.2.14
-
   '@types/react@19.2.14':
     dependencies:
       csstype: 3.2.3
@@ -5349,13 +5310,6 @@ snapshots:
       html-escaper: 2.0.2
       istanbul-lib-report: 3.0.1
 
-  its-fine@2.0.0(@types/react@19.2.14)(react@19.2.4):
-    dependencies:
-      '@types/react-reconciler': 0.28.9(@types/react@19.2.14)
-      react: 19.2.4
-    transitivePeerDependencies:
-      - '@types/react'
-
   jeep-sqlite@2.8.0:
     dependencies:
       '@stencil/core': 4.43.3
@@ -5402,8 +5356,6 @@ snapshots:
   kleur@3.0.3: {}
 
   kleur@4.1.5: {}
-
-  konva@10.2.3: {}
 
   koota@0.2.3(@types/react@19.2.14)(react@19.2.4):
     optionalDependencies:
@@ -5468,6 +5420,8 @@ snapshots:
       lightningcss-win32-x64-msvc: 1.32.0
 
   lines-and-columns@1.2.4: {}
+
+  littlejsengine@1.18.0: {}
 
   localforage@1.10.0:
     dependencies:
@@ -5786,23 +5740,6 @@ snapshots:
       scheduler: 0.27.0
 
   react-is@17.0.2: {}
-
-  react-konva@19.2.3(@types/react@19.2.14)(konva@10.2.3)(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      '@types/react-reconciler': 0.33.0(@types/react@19.2.14)
-      its-fine: 2.0.0(@types/react@19.2.14)(react@19.2.4)
-      konva: 10.2.3
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-      react-reconciler: 0.33.0(react@19.2.4)
-      scheduler: 0.27.0
-    transitivePeerDependencies:
-      - '@types/react'
-
-  react-reconciler@0.33.0(react@19.2.4):
-    dependencies:
-      react: 19.2.4
-      scheduler: 0.27.0
 
   react-remove-scroll-bar@2.3.8(@types/react@19.2.14)(react@19.2.4):
     dependencies:

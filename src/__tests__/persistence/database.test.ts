@@ -108,8 +108,8 @@ describe("campaignRepo", () => {
 
 	it("should set mission 1 as available, rest as locked", async () => {
 		await seedCampaign();
-		const m1 = await getMissionProgress("ch1-m1");
-		const m2 = await getMissionProgress("ch1-m2");
+		const m1 = await getMissionProgress("mission_1");
+		const m2 = await getMissionProgress("mission_2");
 
 		expect(m1?.status).toBe("available");
 		expect(m2?.status).toBe("locked");

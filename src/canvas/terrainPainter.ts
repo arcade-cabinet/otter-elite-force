@@ -26,7 +26,7 @@ export function paintTerrain(missionDef: MissionDef): HTMLCanvasElement {
 /**
  * Paint the terrain as an array of chunked canvases.
  * Each chunk stays within browser canvas limits (≤4096px per axis).
- * TerrainLayer should use this for rendering large maps.
+ * The tactical runtime should use this for rendering large maps.
  */
 export function paintTerrainChunks(missionDef: MissionDef): TerrainChunk[] {
 	return paintTerrainChunked(missionDef);

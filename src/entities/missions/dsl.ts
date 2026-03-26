@@ -91,6 +91,39 @@ export const on = {
 	): MissionTriggerCondition {
 		return { type: "resourceThreshold", resource, operator, amount };
 	},
+	entityDestroyed(entityTag: string, match: "first" | "any" | "all" = "first"): MissionTriggerCondition {
+		return { type: "entityDestroyed", entityTag, match };
+	},
+	entityDestroyedCount(
+		entityTag: string,
+		operator: "gte" | "lte" | "eq",
+		count: number,
+	): MissionTriggerCondition {
+		return { type: "entityDestroyedCount", entityTag, operator, count };
+	},
+	enemyCountInZone(
+		zoneId: string,
+		operator: "gte" | "lte" | "eq",
+		count: number,
+		faction?: string,
+	): MissionTriggerCondition {
+		return { type: "enemyCountInZone", zoneId, operator, count, faction };
+	},
+	buildingCountInZone(
+		faction: string,
+		zoneId: string,
+		operator: "gte" | "lte" | "eq",
+		count: number,
+		buildingType?: string,
+	): MissionTriggerCondition {
+		return { type: "buildingCountInZone", faction, zoneId, operator, count, buildingType };
+	},
+	waveCounter(operator: "gte" | "lte" | "eq", wave: number): MissionTriggerCondition {
+		return { type: "waveCounter", operator, wave };
+	},
+	convoyEntersZone(zoneId: string, convoyTag?: string): MissionTriggerCondition {
+		return { type: "convoyEntersZone", zoneId, convoyTag };
+	},
 };
 
 export const act = {
@@ -122,6 +155,18 @@ export const act = {
 	},
 	enableTrigger(triggerId: string): TriggerAction {
 		return { type: "enableTrigger", triggerId };
+	},
+	activateEntity(entityTag: string, mode?: string): TriggerAction {
+		return { type: "activateEntity", entityTag, mode };
+	},
+	deactivateEntity(entityTag: string): TriggerAction {
+		return { type: "deactivateEntity", entityTag };
+	},
+	setWaveCounter(value: number): TriggerAction {
+		return { type: "setWaveCounter", value };
+	},
+	incrementWaveCounter(amount = 1): TriggerAction {
+		return { type: "incrementWaveCounter", amount };
 	},
 	/**
 	 * Trigger a multi-line dialogue exchange.

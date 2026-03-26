@@ -2,7 +2,7 @@
  * Command Dispatcher — translates pointer actions into ECS orders.
  *
  * Pure ECS logic: operates on a Koota World, no framework dependency.
- * Visual feedback (command markers) is emitted via EventBus for the OverlayLayer.
+ * Visual feedback (command markers) is emitted via EventBus for the tactical runtime overlay.
  *
  * Context command on empty ground → Move order
  * Context command on enemy entity → Attack order
@@ -234,7 +234,7 @@ export class CommandDispatcher {
 		return buildings;
 	}
 
-	/** Emit a command-marker event for the OverlayLayer to render. */
+	/** Emit a command-marker event for the tactical runtime overlay to render. */
 	private showCommandMarker(tileX: number, tileY: number, color: number): void {
 		const px = tileX * CELL_SIZE + CELL_SIZE / 2;
 		const py = tileY * CELL_SIZE + CELL_SIZE / 2;

@@ -59,5 +59,5 @@ export function lerpZoom(current: number, target: number, factor: number): numbe
 /** Edge scroll threshold in pixels */
 export const EDGE_SCROLL_THRESHOLD = 20;
 
-/** Default camera pan speed in pixels per second (matches WASD) */
+/** Default pointer-driven camera pan speed in pixels per second */
 export const DEFAULT_PAN_SPEED = 400;

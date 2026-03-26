@@ -166,12 +166,10 @@ export async function onMissionDefeat(world: World, missionId: string): Promise<
 
 /** Unlock the next sequential mission after completing the given one. */
 async function unlockNextMission(completedMissionId: string): Promise<void> {
-	// Mission IDs follow the pattern: ch{X}-m{Y}
-	const match = completedMissionId.match(/^ch(\d+)-m(\d+)$/);
+	const match = completedMissionId.match(/^mission_(\d+)$/);
 	if (!match) return;
 
-	const chapter = Number.parseInt(match[1], 10);
-	const mission = Number.parseInt(match[2], 10);
+	const mission = Number.parseInt(match[1], 10);
 
 	// Check if this is the last mission in the chapter (4 missions per chapter)
 	const missionInChapter = ((mission - 1) % 4) + 1;
@@ -179,12 +177,10 @@ async function unlockNextMission(completedMissionId: string): Promise<void> {
 
 	if (missionInChapter < 4) {
 		// Next mission in same chapter
-		nextMissionId = `ch${chapter}-m${mission + 1}`;
-	} else if (chapter < 4) {
-		// First mission of next chapter
-		nextMissionId = `ch${chapter + 1}-m${mission + 1}`;
+		nextMissionId = `mission_${mission + 1}`;
+	} else if (mission < 16) {
+		nextMissionId = `mission_${mission + 1}`;
 	} else {
-		// Last mission of the game
 		return;
 	}
 

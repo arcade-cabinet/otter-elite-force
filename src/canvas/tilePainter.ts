@@ -751,7 +751,7 @@ export function paintTerrainTiled(missionDef: MissionDef): HTMLCanvasElement {
  * For small maps (≤128 tiles per axis) this returns a single chunk.
  * For larger maps it tiles the terrain into a grid of chunks.
  *
- * Use this for the main game view (TerrainLayer) to avoid exceeding
+ * Use this for the main tactical view to avoid exceeding
  * mobile browser canvas limits on maps up to 160×160.
  */
 export function paintTerrainChunked(missionDef: MissionDef): TerrainChunk[] {

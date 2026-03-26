@@ -6,7 +6,9 @@
 
 import { useTrait, useWorld, WorldProvider } from "koota/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { GameCanvas } from "@/canvas/GameCanvas";
+import { RuntimeHost } from "@/engine";
+import { applySkirmishConfigToWorld, loadSkirmishConfig } from "@/features/skirmish";
+import { isFinalCampaignMission, resolveMissionVictory } from "@/app/missionResult";
 import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import { loadTerrainTiles } from "@/canvas/tilePainter";
 import { Button } from "@/components/ui/button";
@@ -14,20 +16,24 @@ import { initSingletons } from "@/ecs/singletons";
 import {
 	AppScreen,
 	type AppScreenType,
-	CampaignProgress,
-	CurrentMission,
-	DialogueState,
-	GamePhase,
-	UserSettings,
-} from "@/ecs/traits/state";
+		CampaignProgress,
+		CurrentMission,
+		DialogueState,
+		GamePhase,
+		MissionResultState,
+		SkirmishSession,
+		UserSettings,
+	} from "@/ecs/traits/state";
 import { world } from "@/ecs/world";
-import { CAMPAIGN, getMissionById } from "@/entities/missions";
+import { getMissionById } from "@/entities/missions";
 import { SkirmishSetup } from "@/features/skirmish/SkirmishSetup";
-import type { DeploymentData, DifficultyMode } from "@/game/deployment";
 import { EventBus } from "@/game/EventBus";
 import { useAudioUnlock } from "@/hooks/useAudioUnlock";
 import { useMusicWiring } from "@/hooks/useMusicWiring";
 import { saveMission } from "@/systems/saveLoadSystem";
+import { loadPersistedState } from "@/persistence/campaignPersistence";
+import { initDatabase } from "@/persistence/database";
+import { runMigrations } from "@/persistence/migrations";
 import { BriefingDialogue } from "@/ui/BriefingDialogue";
 import { CampaignView } from "@/ui/command-post/CampaignView";
 import { MainMenu } from "@/ui/command-post/MainMenu";
@@ -89,6 +95,7 @@ function AppRouter() {
 	const w = useWorld();
 	const appScreen = useTrait(w, AppScreen);
 	const screen = appScreen?.screen ?? "menu";
+	const [bootReady, setBootReady] = useState(false);
 
 	// Initialize audio on first user gesture (US-029)
 	useAudioUnlock();
@@ -100,6 +107,40 @@ function AppRouter() {
 		const theme = SCREEN_THEMES[screen] ?? "command-post";
 		document.documentElement.setAttribute("data-theme", theme);
 	}, [screen]);
+
+	useEffect(() => {
+		let cancelled = false;
+
+		void (async () => {
+			const db = await initDatabase();
+			await runMigrations(db);
+			await loadPersistedState(w);
+			const skirmishConfig = await loadSkirmishConfig();
+			if (skirmishConfig) {
+				applySkirmishConfigToWorld(w, skirmishConfig);
+			}
+			if (!cancelled) {
+				setBootReady(true);
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [w]);
+
+	if (!bootReady) {
+		return (
+			<div className="flex h-screen w-screen items-center justify-center bg-slate-950 text-slate-200">
+				<div className="text-center">
+					<div className="text-2xl font-bold tracking-[0.22em]">BOOTING</div>
+					<div className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-400">
+						Loading command state and field archives
+					</div>
+				</div>
+			</div>
+		);
+	}
 
 	switch (screen) {
 		case "menu":
@@ -126,19 +167,47 @@ function GameplayScreen() {
 	const campaign = useTrait(w, CampaignProgress);
 	const gamePhase = useTrait(w, GamePhase);
 	const dialogueState = useTrait(w, DialogueState);
+	const skirmishSession = useTrait(w, SkirmishSession);
 	const ready = useAssetsReady();
 	const isPaused = gamePhase?.phase === "paused";
+	const isSkirmish = skirmishSession?.active === true;
 	const currentMission = campaign?.currentMission ?? "mission_1";
-	const difficulty = (campaign?.difficulty ?? "support") as DifficultyMode;
-	const deploymentData = useMemo<DeploymentData>(
-		() => ({ missionId: currentMission, difficulty }),
-		[currentMission, difficulty],
-	);
 	const [pauseView, setPauseView] = useState<"pause" | "settings">("pause");
+
+	const finalizeMissionVictory = useCallback(
+		(missionId: string) => {
+			const progress = w.get(CampaignProgress);
+			if (!progress) return;
+			const resolution = resolveMissionVictory(progress, missionId, 1);
+			w.set(CampaignProgress, resolution.progress);
+			w.set(MissionResultState, {
+				active: true,
+				missionId,
+				outcome: "victory",
+				stars: resolution.stars,
+				isSkirmish,
+			});
+			w.set(GamePhase, { phase: "victory" });
+			w.set(AppScreen, { screen: isSkirmish ? "skirmish_result" : "victory" });
+		},
+		[isSkirmish, w],
+	);
+
+	const finalizeMissionDefeat = useCallback((missionId: string) => {
+		w.set(MissionResultState, {
+			active: true,
+			missionId,
+			outcome: "defeat",
+			stars: 0,
+			isSkirmish,
+		});
+		w.set(GamePhase, { phase: "defeat" });
+		w.set(AppScreen, { screen: isSkirmish ? "skirmish_result" : "victory" });
+	}, [isSkirmish, w]);
 
 	// Mission briefing state — shows before gameplay starts
 	const [briefingDone, setBriefingDone] = useState(false);
-	const mission = useMemo(() => getMissionById(currentMission), [currentMission]);
+	const mission = useMemo(() => (isSkirmish ? undefined : getMissionById(currentMission)), [currentMission, isSkirmish]);
 	const briefingLines = useMemo(
 		() =>
 			mission?.briefing?.lines?.map((l) => ({
@@ -170,51 +239,22 @@ function GameplayScreen() {
 	}, [handlePause]);
 
 	useEffect(() => {
-		const onMissionComplete = (data: {
-			missionId: string;
-			stars: number;
-			stats?: { timeElapsed?: number; timeElapsedMs?: number };
-		}) => {
-			const progress = w.get(CampaignProgress);
-			if (!progress) return;
-
-			const currentIndex = CAMPAIGN.findIndex((mission) => mission.id === data.missionId);
-			const nextMission = currentIndex >= 0 ? CAMPAIGN[currentIndex + 1] : undefined;
-			const existing = progress.missions[data.missionId];
-			const bestTime =
-				data.stats?.timeElapsedMs ??
-				(data.stats?.timeElapsed != null
-					? data.stats.timeElapsed * 1000
-					: (existing?.bestTime ?? 0));
-
-			w.set(CampaignProgress, {
-				...progress,
-				missions: {
-					...progress.missions,
-					[data.missionId]: {
-						status: "completed",
-						stars: Math.max(existing?.stars ?? 0, data.stars),
-						bestTime: existing?.bestTime != null ? Math.min(existing.bestTime, bestTime) : bestTime,
-					},
-				},
-				currentMission: nextMission?.id ?? data.missionId,
-			});
-			w.set(AppScreen, { screen: "victory" });
-		};
-
-		const onMissionFailed = () => {
-			w.set(AppScreen, { screen: "victory" });
-		};
-
-		EventBus.on("mission-complete", onMissionComplete);
-		EventBus.on("mission-failed", onMissionFailed);
-
 		return () => {
-			EventBus.off("mission-complete", onMissionComplete);
-			EventBus.off("mission-failed", onMissionFailed);
 			import("@/input/screenOrientation").then((m) => m.unlockOrientation());
 		};
-	}, [w]);
+	}, []);
+
+	const handleRuntimePhaseChange = useCallback(
+		(phase: "loading" | "briefing" | "playing" | "paused" | "victory" | "defeat") => {
+			if (phase === "victory") {
+				finalizeMissionVictory(currentMission);
+			}
+			if (phase === "defeat") {
+				finalizeMissionDefeat(currentMission);
+			}
+		},
+		[currentMission, finalizeMissionDefeat, finalizeMissionVictory],
+	);
 
 	// Gate: wait for all visual assets before rendering game
 	if (!ready) {
@@ -229,7 +269,7 @@ function GameplayScreen() {
 	}
 
 	// Handle mission start: show briefing before gameplay
-	if (!briefingDone && briefingLines.length > 0) {
+	if (!isSkirmish && !briefingDone && briefingLines.length > 0) {
 		return (
 			<BriefingDialogue
 				missionName={mission?.name ?? "Mission"}
@@ -245,11 +285,16 @@ function GameplayScreen() {
 	}
 
 	// Handle mid-mission dialogue exchanges (from scenario triggers)
-	if (dialogueState?.active && dialogueState.lines.length > 0) {
+	if (!isSkirmish && dialogueState?.active && dialogueState.lines.length > 0) {
 		return (
 			<>
 				<GameLayout>
-					<GameCanvas deploymentData={deploymentData} />
+					<GameplayRuntimeSurface
+						missionId={currentMission}
+						isSkirmish={isSkirmish}
+						skirmishSession={skirmishSession}
+						onRuntimePhaseChange={handleRuntimePhaseChange}
+					/>
 				</GameLayout>
 				<BriefingDialogue
 					missionName={mission?.name ?? ""}
@@ -274,7 +319,12 @@ function GameplayScreen() {
 
 	return (
 		<GameLayout>
-			<GameCanvas deploymentData={deploymentData} />
+			<GameplayRuntimeSurface
+				missionId={currentMission}
+				isSkirmish={isSkirmish}
+				skirmishSession={skirmishSession}
+				onRuntimePhaseChange={handleRuntimePhaseChange}
+			/>
 			<AlertBanner />
 			<ErrorFeedback />
 			{isPaused && pauseView === "pause" ? (
@@ -298,6 +348,60 @@ function GameplayScreen() {
 			) : null}
 		</GameLayout>
 	);
+}
+
+function GameplayRuntimeSurface({
+	missionId,
+	isSkirmish,
+	skirmishSession,
+	onRuntimePhaseChange,
+}: {
+	missionId: string;
+	isSkirmish: boolean;
+	skirmishSession:
+		| {
+				mapId: string | null;
+				mapName: string | null;
+				mapPreset: "macro" | "meso" | "micro";
+				difficulty: "easy" | "medium" | "hard" | "brutal";
+				playAsScaleGuard: boolean;
+				seedPhrase: string;
+				designSeed: number;
+				gameplaySeeds: Record<string, number>;
+				startingResources: {
+					fish: number;
+					timber: number;
+					salvage: number;
+				};
+		  }
+		| null
+		| undefined;
+	onRuntimePhaseChange?: (phase: "loading" | "briefing" | "playing" | "paused" | "victory" | "defeat") => void;
+}) {
+	const skirmishConfig = useMemo(() => {
+		if (!isSkirmish || !skirmishSession) return null;
+		return {
+			mapId: skirmishSession.mapId ?? "sk_river_crossing",
+			mapName: skirmishSession.mapName ?? "Skirmish",
+			difficulty: skirmishSession.difficulty,
+			playAsScaleGuard: skirmishSession.playAsScaleGuard,
+			preset: skirmishSession.mapPreset,
+			seed: {
+				phrase: skirmishSession.seedPhrase,
+				source: "skirmish" as const,
+				numericSeed: 0,
+				designSeed: skirmishSession.designSeed,
+				gameplaySeeds: skirmishSession.gameplaySeeds,
+			},
+			startingResources: skirmishSession.startingResources,
+		};
+	}, [isSkirmish, skirmishSession]);
+
+	if (skirmishConfig) {
+		return <RuntimeHost mode="skirmish" skirmish={skirmishConfig} onPhaseChange={onRuntimePhaseChange} />;
+	}
+
+	return <RuntimeHost mode="campaign" missionId={missionId} onPhaseChange={onRuntimePhaseChange} />;
 }
 
 /** Inline settings overlay shown from the pause menu (stays on game screen). */
@@ -376,16 +480,13 @@ function InGameSettingsOverlay({ onBack }: { onBack: () => void }) {
 function MissionResultOverlay() {
 	const w = useWorld();
 	const campaign = useTrait(w, CampaignProgress);
+	const result = useTrait(w, MissionResultState);
 	const phase = useTrait(w, GamePhase)?.phase ?? "victory";
-	const finalMissionId = CAMPAIGN.at(-1)?.id ?? null;
-	const finalMissionComplete =
-		finalMissionId !== null && campaign?.missions[finalMissionId]?.status === "completed";
+	const completedMissionId = result?.missionId ?? campaign?.currentMission ?? null;
+	const finalMissionComplete = completedMissionId ? isFinalCampaignMission(completedMissionId) : false;
 	const isDefeat = phase === "defeat";
-
-	// US-053: Retrieve star rating for the just-completed mission
-	const completedMissionId = campaign?.currentMission ?? null;
 	const missionResult = completedMissionId ? campaign?.missions[completedMissionId] : null;
-	const stars = (missionResult?.stars ?? 0) as 0 | 1 | 2 | 3;
+	const stars = (result?.stars ?? missionResult?.stars ?? 0) as 0 | 1 | 2 | 3;
 
 	const primaryLabel = isDefeat
 		? "Retry Mission"
@@ -393,6 +494,16 @@ function MissionResultOverlay() {
 			? "Return to Menu"
 			: "Next Mission";
 	const primaryTarget: AppScreenType = isDefeat ? "game" : finalMissionComplete ? "menu" : "game";
+
+	const clearMissionResult = () => {
+		w.set(MissionResultState, {
+			active: false,
+			missionId: null,
+			outcome: "victory",
+			stars: 0,
+			isSkirmish: false,
+		});
+	};
 
 	return (
 		<BriefingShell
@@ -406,15 +517,42 @@ function MissionResultOverlay() {
 			}
 			footer={
 				<div className="flex flex-wrap gap-2">
-					<Button variant="accent" onClick={() => w.set(AppScreen, { screen: primaryTarget })}>
+					<Button
+						variant="accent"
+						onClick={() => {
+							if (isDefeat && completedMissionId) {
+								w.set(CampaignProgress, {
+									...(campaign ?? { missions: {}, currentMission: null, difficulty: "support" }),
+									currentMission: completedMissionId,
+								});
+							}
+							clearMissionResult();
+							w.set(AppScreen, { screen: primaryTarget });
+						}}
+					>
 						{primaryLabel}
 					</Button>
 					{!isDefeat && !finalMissionComplete ? (
-						<Button variant="command" onClick={() => w.set(AppScreen, { screen: "game" })}>
+						<Button
+							variant="command"
+							onClick={() => {
+								if (completedMissionId && campaign) {
+									w.set(CampaignProgress, { ...campaign, currentMission: completedMissionId });
+								}
+								clearMissionResult();
+								w.set(AppScreen, { screen: "game" });
+							}}
+						>
 							Replay
 						</Button>
 					) : null}
-					<Button variant="command" onClick={() => w.set(AppScreen, { screen: "menu" })}>
+					<Button
+						variant="command"
+						onClick={() => {
+							clearMissionResult();
+							w.set(AppScreen, { screen: "menu" });
+						}}
+					>
 						Main Menu
 					</Button>
 				</div>

@@ -6,6 +6,7 @@
  */
 
 import type { SkirmishDifficulty } from "@/ai/skirmishAI";
+import type { SeedBundle } from "@/engine";
 import type { SkirmishMapSize, SkirmishTerrainType } from "@/maps/skirmishMapGenerator";
 
 // ---------------------------------------------------------------------------
@@ -35,6 +36,20 @@ export interface SkirmishDifficultyOption {
 	label: string;
 	note: string;
 }
+
+export type SkirmishPreset = "macro" | "meso" | "micro";
+
+export interface SkirmishPresetOption {
+	id: SkirmishPreset;
+	label: string;
+	note: string;
+}
+
+export const SKIRMISH_PRESETS: SkirmishPresetOption[] = [
+	{ id: "macro", label: "Macro", note: "Economy, expansion, and long-form pressure." },
+	{ id: "meso", label: "Meso", note: "Mid-scale encounter and objective flow validation." },
+	{ id: "micro", label: "Micro", note: "Tight control, pathing, and combat interaction checks." },
+];
 
 export const SKIRMISH_DIFFICULTIES: SkirmishDifficultyOption[] = [
 	{ id: "easy", label: "Easy", note: "Slow AI, small armies, predictable attacks." },
@@ -66,6 +81,20 @@ export interface SkirmishMatchResult {
 	difficulty: SkirmishDifficulty;
 	playedAsScaleGuard: boolean;
 	stats: SkirmishMatchStats;
+}
+
+export interface SkirmishSessionConfig {
+	mapId: string;
+	mapName: string;
+	difficulty: SkirmishDifficulty;
+	playAsScaleGuard: boolean;
+	preset: SkirmishPreset;
+	seed: SeedBundle;
+	startingResources: {
+		fish: number;
+		timber: number;
+		salvage: number;
+	};
 }
 
 // ---------------------------------------------------------------------------
