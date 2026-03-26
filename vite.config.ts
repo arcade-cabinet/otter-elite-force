@@ -1,10 +1,22 @@
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import solid from "vite-plugin-solid";
 import { defineConfig } from "vite";
 
 export default defineConfig(({ mode: _mode }) => ({
-	plugins: [react(), tailwindcss()],
+	plugins: [
+		// Solid plugin handles src/solid/ directory only (new engine UI)
+		solid({
+			include: ["src/solid/**/*.tsx", "src/solid/**/*.ts"],
+			extensions: [".tsx", ".ts"],
+		}),
+		// React plugin handles everything else (legacy UI during migration)
+		react({
+			include: /(?<!src\/solid\/.*)\.tsx?$/,
+		}),
+		tailwindcss(),
+	],
 	base: "./",
 	resolve: {
 		alias: {

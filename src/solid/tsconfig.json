@@ -6,29 +6,21 @@
 		"module": "ESNext",
 		"skipLibCheck": true,
 		"types": ["vite/client"],
-
-		/* JSX */
-		"jsx": "react-jsx",
-
-		/* Bundler mode */
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js",
 		"moduleResolution": "bundler",
 		"allowImportingTsExtensions": true,
 		"resolveJsonModule": true,
 		"isolatedModules": true,
 		"moduleDetection": "force",
 		"noEmit": true,
-
-		/* Paths — TS 6.x: use relative ./src/* with baseUrl removed */
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["../src/*"]
 		},
-
-		/* Linting */
 		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["src"],
-	"exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/__tests__/**", "src/solid/**"]
+	"include": ["./**/*.ts", "./**/*.tsx"]
 }

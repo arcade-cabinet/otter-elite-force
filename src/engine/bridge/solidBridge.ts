@@ -9,9 +9,9 @@
  */
 
 import { batch, createSignal } from "solid-js";
-import { createStore, produce, type SetStoreFunction } from "solid-js/store";
+import { createStore, produce } from "solid-js/store";
 import type { GameWorld } from "../world/gameWorld";
-import { Faction, Flags, Health, Position, Selection } from "../world/components";
+import { Faction, Flags, Health, Selection } from "../world/components";
 import type {
 	AlertViewModel,
 	BossViewModel,
