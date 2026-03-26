@@ -10,6 +10,8 @@
  *   // frame is an HTMLCanvasElement with one animation frame
  */
 
+const BASE = import.meta.env.BASE_URL ?? "./";
+
 // ─── Types ───
 
 export interface AtlasFrame {
@@ -50,30 +52,30 @@ const entityTileMap = new Map<string, string>();
 // ─── Atlas manifest — lists every sprite sheet to load ───
 
 const ATLAS_MANIFEST: Array<{ name: string; png: string; json: string }> = [
-	{ name: "otter", png: "/assets/sprites/otter.png", json: "/assets/sprites/otter.json" },
+	{ name: "otter", png: BASE + "assets/sprites/otter.png", json: BASE + "assets/sprites/otter.json" },
 	{
 		name: "crocodile",
-		png: "/assets/sprites/crocodile.png",
-		json: "/assets/sprites/crocodile.json",
+		png: BASE + "assets/sprites/crocodile.png",
+		json: BASE + "assets/sprites/crocodile.json",
 	},
-	{ name: "boar", png: "/assets/sprites/boar.png", json: "/assets/sprites/boar.json" },
-	{ name: "cobra", png: "/assets/sprites/cobra.png", json: "/assets/sprites/cobra.json" },
-	{ name: "fox", png: "/assets/sprites/fox.png", json: "/assets/sprites/fox.json" },
-	{ name: "hedgehog", png: "/assets/sprites/hedgehog.png", json: "/assets/sprites/hedgehog.json" },
+	{ name: "boar", png: BASE + "assets/sprites/boar.png", json: BASE + "assets/sprites/boar.json" },
+	{ name: "cobra", png: BASE + "assets/sprites/cobra.png", json: BASE + "assets/sprites/cobra.json" },
+	{ name: "fox", png: BASE + "assets/sprites/fox.png", json: BASE + "assets/sprites/fox.json" },
+	{ name: "hedgehog", png: BASE + "assets/sprites/hedgehog.png", json: BASE + "assets/sprites/hedgehog.json" },
 	{
 		name: "naked_mole_rat",
-		png: "/assets/sprites/naked_mole_rat.png",
-		json: "/assets/sprites/naked_mole_rat.json",
+		png: BASE + "assets/sprites/naked_mole_rat.png",
+		json: BASE + "assets/sprites/naked_mole_rat.json",
 	},
 	{
 		name: "porcupine",
-		png: "/assets/sprites/porcupine.png",
-		json: "/assets/sprites/porcupine.json",
+		png: BASE + "assets/sprites/porcupine.png",
+		json: BASE + "assets/sprites/porcupine.json",
 	},
-	{ name: "skunk", png: "/assets/sprites/skunk.png", json: "/assets/sprites/skunk.json" },
-	{ name: "snake", png: "/assets/sprites/snake.png", json: "/assets/sprites/snake.json" },
-	{ name: "squirrel", png: "/assets/sprites/squirrel.png", json: "/assets/sprites/squirrel.json" },
-	{ name: "vulture", png: "/assets/sprites/vulture.png", json: "/assets/sprites/vulture.json" },
+	{ name: "skunk", png: BASE + "assets/sprites/skunk.png", json: BASE + "assets/sprites/skunk.json" },
+	{ name: "snake", png: BASE + "assets/sprites/snake.png", json: BASE + "assets/sprites/snake.json" },
+	{ name: "squirrel", png: BASE + "assets/sprites/squirrel.png", json: BASE + "assets/sprites/squirrel.json" },
+	{ name: "vulture", png: BASE + "assets/sprites/vulture.png", json: BASE + "assets/sprites/vulture.json" },
 ];
 
 // ─── Loading ───
@@ -186,7 +188,7 @@ export async function loadAllAtlases(): Promise<void> {
 /** Load building/resource tile sprites from the tile manifest. */
 async function loadTileSprites(): Promise<void> {
 	try {
-		const response = await fetch("/assets/tiles/tile-manifest.json");
+		const response = await fetch(BASE + "assets/tiles/tile-manifest.json");
 		const manifest: Record<string, { path: string; category: string }> = await response.json();
 
 		// Only load buildings and resources (terrain/props are used by the terrain painter)
@@ -196,7 +198,8 @@ async function loadTileSprites(): Promise<void> {
 
 		await Promise.all(
 			toLoad.map(async ([name, entry]) => {
-				const img = await loadImage(entry.path);
+				const assetPath = entry.path.startsWith("/") ? BASE + entry.path.slice(1) : entry.path;
+				const img = await loadImage(assetPath);
 				const canvas = document.createElement("canvas");
 				canvas.width = img.width;
 				canvas.height = img.height;
