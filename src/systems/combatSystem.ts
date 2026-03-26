@@ -255,7 +255,7 @@ export function projectileSystem(world: World, delta: number): void {
 			// Hit! Apply damage
 			if (target.has(Health)) {
 				const attack = proj.get(Attack)!;
-				const armorValue = target.has(Armor) ? target.get(Armor)?.value ?? 0 : 0;
+				const armorValue = target.has(Armor) ? (target.get(Armor)?.value ?? 0) : 0;
 				const dmg = calculateDamage(attack.damage, armorValue);
 				target.set(Health, (prev) => ({ current: prev.current - dmg }));
 

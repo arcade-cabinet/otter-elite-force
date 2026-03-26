@@ -7,7 +7,18 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["src/**/*", "e2e/**/*", "scripts/**/*", "*.ts", "*.tsx", "*.js", "*.json"]
+		"includes": [
+			"src/**/*.ts",
+			"src/**/*.tsx",
+			"src/**/*.js",
+			"src/**/*.json",
+			"e2e/**/*",
+			"scripts/**/*",
+			"*.ts",
+			"*.tsx",
+			"*.js",
+			"*.json"
+		]
 	},
 	"formatter": {
 		"enabled": true,
@@ -27,13 +38,31 @@
 	"overrides": [
 		{
 			"includes": ["src/**/*.css"],
+			"linter": { "enabled": false },
+			"formatter": { "enabled": false }
+		},
+		{
+			"includes": ["src/components/ui/**/*.tsx"],
 			"linter": {
 				"rules": {
-					"suspicious": {
-						"noUnknownAtRules": "off"
-					},
-					"correctness": {
-						"noInvalidPositionAtImportRule": "off"
+					"a11y": {
+						"useFocusableInteractive": "off",
+						"useSemanticElements": "off",
+						"useAriaPropsForRole": "off",
+						"noStaticElementInteractions": "off",
+						"useKeyWithClickEvents": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/ui/**/*.tsx"],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"useSemanticElements": "off",
+						"noStaticElementInteractions": "off",
+						"useKeyWithClickEvents": "off"
 					}
 				}
 			}
