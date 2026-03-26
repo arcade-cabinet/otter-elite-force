@@ -1,147 +1,45 @@
+---
+title: Architecture Overview
+description: System architecture, data flow, technology decisions
+version: 1.0.0
+updated: 2026-03-26
+tags: [architecture, systems, dataflow]
+status: active
+---
+
 # Architecture Overview
 
-## Current Runtime Shape
+## Target Stack
 
-OTTER: ELITE FORCE is now structured as a **campaign-first RTS** with a React command/UI layer and Phaser tactical runtime.
+See [Engine Rewrite Plan](../engine-rewrite-plan.md) for full migration details.
 
-### Core stack
+```
+SolidJS → UI overlay (sidebar, menus, briefing)
+    ↕ signals (bridge.ts)
+LittleJS → game canvas (rendering, input, animations, tiles)
+    ↕ direct array access
+bitECS → state (components, queries, relations)
+    ↕ direct function calls
+Systems → game logic (combat, economy, movement, scenarios)
+    ↕ library calls
+Yuka → AI (steering, pathfinding, FSM)
+```
 
-- **UI:** React 19 + shadcn/ui + Tailwind v4
-- **Rendering:** Phaser 3
-- **State:** Koota ECS + singleton traits
-- **Simulation support:** Yuka
-- **Audio:** Tone.js
-- **Build:** Vite + TypeScript + pnpm
+## Data Flow
 
-## Screen Flow
+1. **Input** → LittleJS reads `mousePos`, `mouseWasPressed()`, `keyIsDown()`
+2. **Commands** → input handler writes to bitECS OrderQueue components
+3. **Systems** → game loop processes orders, moves units, resolves combat
+4. **Rendering** → LittleJS reads bitECS Position/UnitType/Health, draws sprites
+5. **UI sync** → game loop pushes selected unit/resources to SolidJS signals
 
-The active front-door flow is intentionally simple:
+## Key Design Decisions
 
-1. **Menu**
-2. **Game**
-3. **Mission Result**
-4. **Menu** or **Next Mission**
-
-There is no longer an active canteen/store loop, detached campaign-map start flow, or standalone pre-mission briefing screen in the main app path.
-
-## UI Layer
-
-### `src/app/App.tsx`
-
-Owns:
-
-- screen routing via `AppScreen`
-- theme switching by screen
-- tactical HUD shell composition
-- mission completion / failure routing
-
-### `src/ui/command-post/`
-
-Owns command-post and front-door UX, especially:
-
-- `MainMenu.tsx` — classic RTS landing structure
-- `SettingsPanel.tsx` / `SettingsControls.tsx` — player settings and accessibility/readability controls
-
-### `src/ui/hud/`
-
-Owns tactical overlays such as:
-
-- resource bar (with screen reader aria-labels)
-- action bar (with MilitaryTooltip on train/research buttons)
-- minimap
-- unit panel
-- alert banner
-- combat text
-- command transmission panel for diegetic mission intro dialogue
-- tutorial overlay (dismissible prompts for missions 1-4)
-- error feedback (command-error event listener, auto-dismissing)
-- military tooltip (Radix UI with dark bg / stencil header / typewriter body)
-
-## Gameplay Layer
-
-### `src/Scenes/`
-
-Phaser scenes own tactical runtime responsibilities such as:
-
-- boot/loading
-- map setup
-- mission runtime state
-- objective/event integration
-
-`BootScene.ts` is responsible for selecting and loading the built atlas outputs under `public/assets/`.
-
-## Campaign / Mission Data
-
-### `src/entities/missions/`
-
-Mission authoring lives in the typed mission registry.
-
-That data defines:
-
-- mission IDs and ordering
-- subtitles and narrative framing
-- objectives and scenario compilation inputs
-- briefing/transmission lines used for mission intro dialogue
-
-`App.tsx` and the tactical HUD now use the mission briefing data as **on-ground command dialogue**, rather than routing through a detached briefing screen.
-
-## ECS State
-
-### `src/ecs/traits/state.ts`
-
-Key singleton traits include:
-
-- `AppScreen`
-- `CampaignProgress`
-- `GamePhase`
-- `UserSettings`
-- `CompletedResearch`
-
-Current product-facing screens are:
-
-- `menu`
-- `campaign`
-- `game`
-- `victory`
-- `settings`
-
-### Accessibility Traits
-
-- `UserSettings.skipTutorials` — disables tutorial prompts
-- `UserSettings.reduceFx` — reduces visual effects
-
-### CSS Accessibility
-
-- `prefers-reduced-motion: reduce` disables typewriter, camo drift, radar sweep, canvas grain, screen noise, and all transitions/animations
-- `:focus-visible` shows accent-colored outline on interactive elements
-- WCAG AA contrast validated across all three themes (see `docs/architecture/wcag-contrast-audit.md`)
-
-## Asset Pipeline
-
-### Source
-
-Procedural and SP-DSL-authored asset source data lives under `src/entities/**`.
-
-Important registries include:
-
-- `asset-contracts.ts`
-- `asset-families.ts`
-- `asset-generator-presets.ts`
-- `asset-variant-recipes.ts`
-
-### Build
-
-`scripts/build-sprites.ts` compiles source definitions into runtime outputs under `public/assets/`.
-
-Outputs include:
-
-- atlas PNG/JSON files by category and scale
-- contract/family/preset/recipe manifest JSON files
-
-## Current Product Principles Reflected In Architecture
-
-- **new game means start the campaign immediately**
-- **continue means resume the current campaign immediately**
-- **progression is earned through play, not purchased in a shop**
-- **dialogue should land inside the tactical experience when possible**
-- **UI shell complexity should support readability, not concept-art theater**
+| Decision | Rationale |
+|----------|-----------|
+| LittleJS over Konva | Built-in input, camera, tiles, animations. Wendol proves it works for RTS. |
+| bitECS over Koota | SoA storage, no framework bindings needed, faster queries. |
+| SolidJS over React | Fine-grained reactivity, no virtual DOM overhead for game UI. |
+| Purchased sprites over procedural | Visual quality. 12 animal atlases with 465 animation frames. |
+| Kenney tiles over procedural terrain | Consistent art style, proper edge transitions, CC0 licensed. |
+| POC input pattern | 100 lines, proven on mobile+desktop, no gesture detector needed. |

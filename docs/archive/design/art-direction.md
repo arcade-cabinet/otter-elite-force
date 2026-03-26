@@ -1,12 +1,3 @@
----
-title: Art Direction
-description: Visual style guide — pixel art, color palette, sprite conventions
-version: 1.0.0
-updated: 2026-03-26
-tags: [design, art, sprites, visual]
-status: active
----
-
 # Art Direction Bible
 
 ## Visual Identity

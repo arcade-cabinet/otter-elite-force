@@ -1,3 +1,12 @@
+---
+title: Mission Design Framework
+description: Standards and templates for mission design documents
+version: 1.0.0
+updated: 2026-03-26
+tags: [missions, design, framework]
+status: active
+---
+
 # Mission Design Framework
 
 ## Map Standard

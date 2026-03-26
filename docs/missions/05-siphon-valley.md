@@ -1,3 +1,12 @@
+---
+title: "Mission 05: Siphon Valley"
+description: Mission design document with zones, phases, triggers, and dialogue
+version: 1.0.0
+updated: 2026-03-26
+tags: [mission, chapter2, assault, design]
+status: active
+---
+
 # Mission 2-1: SIPHON VALLEY
 
 ## Header

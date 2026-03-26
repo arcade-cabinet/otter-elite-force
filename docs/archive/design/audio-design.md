@@ -1,12 +1,3 @@
----
-title: Audio Design
-description: Sound design, music, procedural audio with Tone.js
-version: 1.0.0
-updated: 2026-03-26
-tags: [design, audio, tonejs]
-status: active
----
-
 # Audio Design
 
 ## Engine

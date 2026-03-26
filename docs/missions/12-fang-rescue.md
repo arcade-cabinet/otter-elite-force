@@ -1,3 +1,12 @@
+---
+title: "Mission 12: Fang Rescue"
+description: Mission design document with zones, phases, triggers, and dialogue
+version: 1.0.0
+updated: 2026-03-26
+tags: [mission, chapter3, assault, design]
+status: active
+---
+
 # Mission 3-4: THE STRONGHOLD (Fang Rescue)
 
 ## Header
