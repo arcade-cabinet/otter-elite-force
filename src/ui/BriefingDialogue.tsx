@@ -75,7 +75,26 @@ function useTypewriter(text: string, charsPerSecond = 40) {
 	useEffect(() => {
 		if (isComplete) return;
 		const interval = setInterval(() => {
-			setDisplayedChars((prev) => Math.min(prev + 1, text.length));
+			setDisplayedChars((prev) => {
+				const next = Math.min(prev + 1, text.length);
+				// Play typewriter clack every 3rd character (subtle, not overwhelming)
+				if (next % 3 === 0 && next < text.length) {
+					try {
+						const actx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+						const osc = actx.createOscillator();
+						const gain = actx.createGain();
+						osc.type = "square";
+						osc.frequency.setValueAtTime(800 + (next % 5) * 40, actx.currentTime);
+						gain.gain.setValueAtTime(0.02, actx.currentTime);
+						gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.03);
+						osc.connect(gain);
+						gain.connect(actx.destination);
+						osc.start();
+						osc.stop(actx.currentTime + 0.03);
+					} catch { /* audio not available */ }
+				}
+				return next;
+			});
 		}, 1000 / charsPerSecond);
 		return () => clearInterval(interval);
 	}, [text, charsPerSecond, isComplete]);
