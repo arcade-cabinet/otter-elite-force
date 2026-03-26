@@ -2,9 +2,8 @@ import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ConstructingAt } from "../../ecs/relations";
 import { initSingletons } from "../../ecs/singletons";
-import { Health } from "../../ecs/traits/combat";
 import { ConstructionProgress } from "../../ecs/traits/economy";
-import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
+import { Faction } from "../../ecs/traits/identity";
 import { Position } from "../../ecs/traits/spatial";
 import { PopulationState, ResourcePool } from "../../ecs/traits/state";
 import { buildingSystem, placeBuilding, type TileMap } from "../../systems/buildingSystem";
@@ -53,7 +52,7 @@ describe("buildingSystem — population cap (P0 fix)", () => {
 
 		// Population cap should have increased from 4 to 10
 		const pop = world.get(PopulationState);
-		expect(pop!.max).toBe(10);
+		expect(pop?.max).toBe(10);
 	});
 
 	it("does not increase pop cap for buildings without populationCapacity", () => {
@@ -71,7 +70,7 @@ describe("buildingSystem — population cap (P0 fix)", () => {
 
 		// Population cap should remain unchanged
 		const pop = world.get(PopulationState);
-		expect(pop!.max).toBe(4);
+		expect(pop?.max).toBe(4);
 	});
 
 	it("accumulates pop cap from multiple Burrows", () => {
@@ -81,14 +80,14 @@ describe("buildingSystem — population cap (P0 fix)", () => {
 
 		// Build first burrow
 		const b1 = placeBuilding(world, "burrow", 3, 3, tileMap, uraFaction)!;
-		const builder1 = world.spawn(Position({ x: 3, y: 3 }), ConstructingAt(b1));
+		const _builder1 = world.spawn(Position({ x: 3, y: 3 }), ConstructingAt(b1));
 		buildingSystem(world, 10);
-		expect(world.get(PopulationState)!.max).toBe(10);
+		expect(world.get(PopulationState)?.max).toBe(10);
 
 		// Build second burrow
 		const b2 = placeBuilding(world, "burrow", 7, 7, tileMap, uraFaction)!;
 		world.spawn(Position({ x: 7, y: 7 }), ConstructingAt(b2));
 		buildingSystem(world, 10);
-		expect(world.get(PopulationState)!.max).toBe(16);
+		expect(world.get(PopulationState)?.max).toBe(16);
 	});
 });

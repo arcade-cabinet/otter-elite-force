@@ -138,7 +138,7 @@ export function applyExplosion(
 			}
 		} else {
 			// Non-building entities take damage reduced by armor
-			const armorValue = entity.has(Armor) ? entity.get(Armor)!.value : 0;
+			const armorValue = entity.has(Armor) ? entity.get(Armor)?.value ?? 0 : 0;
 			const dmg = calculateDamage(damage, armorValue);
 			entity.set(Health, (prev) => ({ current: prev.current - dmg }));
 		}
@@ -191,7 +191,7 @@ export function chargeTickSystem(world: World, delta: number): ChargeTickResult 
 
 			const buildingPos = explosiveBuilding.get(Position)!;
 			const chainRadius = explosiveBuilding.has(ChainExplosionRadius)
-				? explosiveBuilding.get(ChainExplosionRadius)!.radius
+				? (explosiveBuilding.get(ChainExplosionRadius)?.radius ?? CHAIN_EXPLOSION_RADIUS)
 				: CHAIN_EXPLOSION_RADIUS;
 
 			const chain = applyExplosion(world, buildingPos.x, buildingPos.y, chainRadius, CHARGE_DAMAGE);

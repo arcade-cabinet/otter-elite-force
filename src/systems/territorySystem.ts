@@ -103,7 +103,7 @@ export function recaptureVillage(village: Entity, world: World): boolean {
  * Check if a liberated village is undefended and an enemy is nearby.
  * Returns true if the village should be recaptured.
  */
-export function isVillageUndefended(world: World, village: Entity, allUnits: Entity[]): boolean {
+export function isVillageUndefended(_world: World, village: Entity, allUnits: Entity[]): boolean {
 	const villageFaction = village.get(Faction);
 	if (villageFaction.id !== "ura") return false;
 
@@ -132,7 +132,7 @@ export function isVillageUndefended(world: World, village: Entity, allUnits: Ent
  * Apply healing zone: heal friendly units within 3 tiles of liberated villages.
  */
 export function applyVillageHealing(
-	world: World,
+	_world: World,
 	villages: Entity[],
 	friendlyUnits: Entity[],
 	delta: number,

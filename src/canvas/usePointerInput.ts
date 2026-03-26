@@ -146,7 +146,7 @@ export function usePointerInput({
 			dragSelectRef.current = { active, startX, startY, endX, endY };
 			setDragTick((t) => t + 1);
 		},
-		[setDragTick],
+		[],
 	);
 
 	// ─── Event handlers ───
@@ -169,7 +169,7 @@ export function usePointerInput({
 
 			gestureDetector.onPointerDown(getActivePointers());
 		},
-		[world, commandDispatcher, gestureDetector, toPointerState, getActivePointers],
+		[commandDispatcher, gestureDetector, toPointerState, getActivePointers],
 	);
 
 	const onPointerMove = useCallback(
@@ -263,7 +263,7 @@ export function usePointerInput({
 				}
 			}
 		},
-		[world, selectionManager, commandDispatcher, gestureDetector, toPointerState, updateDragSelect],
+		[selectionManager, commandDispatcher, gestureDetector, toPointerState, updateDragSelect],
 	);
 
 	const onWheel = useCallback(

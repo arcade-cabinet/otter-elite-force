@@ -12,7 +12,7 @@
  *   - src/ai/playtester/input.ts
  *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import {
 	APMLimiter,
 	applyMisclick,

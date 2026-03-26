@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import type { MissionDef, TerrainTileDef } from "@/entities/types";
+import type { MissionDef } from "@/entities/types";
 
 // Mock canvas context for happy-dom
 const mockGradient = { addColorStop: vi.fn() };
@@ -60,10 +60,10 @@ describe("TERRAIN_TILES", () => {
 	it("every tile has paintRules with baseColor and noiseColors", () => {
 		for (const [id, tile] of Object.entries(TERRAIN_TILES)) {
 			expect(tile.paintRules, `${id} missing paintRules`).toBeDefined();
-			expect(tile.paintRules!.baseColor).toMatch(/^#[0-9a-fA-F]{6}$/);
-			expect(tile.paintRules!.noiseColors.length).toBeGreaterThan(0);
-			expect(tile.paintRules!.noiseDensity).toBeGreaterThan(0);
-			expect(tile.paintRules!.noiseDensity).toBeLessThanOrEqual(1);
+			expect(tile.paintRules?.baseColor).toMatch(/^#[0-9a-fA-F]{6}$/);
+			expect(tile.paintRules?.noiseColors.length).toBeGreaterThan(0);
+			expect(tile.paintRules?.noiseDensity).toBeGreaterThan(0);
+			expect(tile.paintRules?.noiseDensity).toBeLessThanOrEqual(1);
 		}
 	});
 

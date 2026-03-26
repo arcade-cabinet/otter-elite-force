@@ -10,28 +10,17 @@
  * implemented once the game pipeline is complete.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-	AIPlaytester,
-	type AIPlaytesterConfig,
-	type GameStateReader,
-	type PlayerPerception,
-	runUntilComplete,
-} from "@/ai/playtester";
+import { describe, expect, it } from "vitest";
+import type { PlayerPerception } from "@/ai/playtester";
 import {
 	AttackNearestEnemyGoal,
-	BuildArmyGoal,
 	BuildEconomyGoal,
 	ClickTrainButtonGoal,
 	createPlaytesterBrain,
 	DefendBaseGoal,
 	EconomyEvaluator,
 	ExplorationEvaluator,
-	GoalStatus,
 	MilitaryEvaluator,
-	ObjectiveEvaluator,
-	PlaytesterBrain,
-	ScoutMapGoal,
 	SelectIdleWorkerGoal,
 	SurviveEvaluator,
 } from "@/ai/playtester/goals";
@@ -39,11 +28,9 @@ import {
 	APMLimiter,
 	applyMisclick,
 	clickAtTile,
-	DEFAULT_INPUT_CONFIG,
 	dragSelectTiles,
 	executeAction,
 	type InputConfig,
-	type PlayerAction,
 	pressKey,
 	rightClickAtTile,
 } from "@/ai/playtester/input";
@@ -52,13 +39,10 @@ import {
 	countIdleWorkers,
 	countMilitaryUnits,
 	explorationProgress,
-	findBuildings,
 	findNearestResource,
-	findNearestUnexploredTile,
 	findWeakestEnemy,
 	hasPopulationRoom,
 	isBaseUnderThreat,
-	PerceptionBuilder,
 } from "@/ai/playtester/perception";
 
 // ---------------------------------------------------------------------------

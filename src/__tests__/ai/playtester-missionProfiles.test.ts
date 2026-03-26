@@ -7,12 +7,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import {
-	BuildArmyGoal,
-	BuildEconomyGoal,
-	DefendBaseGoal,
-	ScoutMapGoal,
-} from "@/ai/playtester/goals";
+import { BuildEconomyGoal, DefendBaseGoal } from "@/ai/playtester/goals";
 import {
 	BossPhaseEvaluator,
 	BossPhaseGoal,

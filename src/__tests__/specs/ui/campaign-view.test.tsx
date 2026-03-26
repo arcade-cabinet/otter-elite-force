@@ -111,7 +111,7 @@ describe("US-051: Difficulty mode selection", () => {
 			currentMission: "mission_1",
 			difficulty: "elite",
 		});
-		expect(world.get(CampaignProgress)!.difficulty).toBe("elite");
+		expect(world.get(CampaignProgress)?.difficulty).toBe("elite");
 	});
 
 	it("difficulty cannot be lowered mid-campaign", () => {
@@ -134,6 +134,6 @@ describe("US-051: Difficulty mode selection", () => {
 			difficulty: "support",
 		});
 		world.set(AppScreen, { screen: "campaign" });
-		expect(world.get(AppScreen)!.screen).toBe("campaign");
+		expect(world.get(AppScreen)?.screen).toBe("campaign");
 	});
 });

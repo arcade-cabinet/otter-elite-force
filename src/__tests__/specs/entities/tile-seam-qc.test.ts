@@ -11,7 +11,6 @@
  * color to avoid stark black/transparent seams between identical tiles.
  */
 import { describe, expect, it } from "vitest";
-import { PALETTES } from "@/entities/palettes";
 import {
 	getCategoryDimensions,
 	materializeSpriteToLegacy,

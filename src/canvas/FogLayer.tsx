@@ -40,7 +40,8 @@ function buildFogTexture(): HTMLCanvasElement {
 	const canvas = document.createElement("canvas");
 	canvas.width = size;
 	canvas.height = size;
-	const ctx = canvas.getContext("2d")!;
+	const ctx = canvas.getContext("2d");
+	if (!ctx) return canvas;
 
 	ctx.fillStyle = FOG_BASE;
 	ctx.fillRect(0, 0, size, size);

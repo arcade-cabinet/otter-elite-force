@@ -36,7 +36,7 @@ function mockCancelRaf(id: number): void {
 }
 
 /** Flush one rAF tick at the given timestamp. */
-function flushRaf(timestamp: number): void {
+function _flushRaf(timestamp: number): void {
 	const pending = [...rafCallbacks];
 	rafCallbacks = [];
 	for (const { cb } of pending) {

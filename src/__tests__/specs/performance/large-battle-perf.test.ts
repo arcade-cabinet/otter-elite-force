@@ -9,7 +9,7 @@ import { createWorld, type World } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { Targeting } from "@/ecs/relations";
 import { initSingletons } from "@/ecs/singletons";
-import { AIState, SteeringAgent } from "@/ecs/traits/ai";
+import { AIState } from "@/ecs/traits/ai";
 import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
 import { Faction, UnitType } from "@/ecs/traits/identity";
 import { Position, Velocity } from "@/ecs/traits/spatial";
@@ -309,7 +309,7 @@ describe("US-088: Large battle performance profiling", () => {
 		console.log("");
 
 		// No individual system should average more than 2ms per tick
-		for (const [name, times] of Object.entries(systemTimings)) {
+		for (const [_name, times] of Object.entries(systemTimings)) {
 			const avg = times.reduce((a, b) => a + b, 0) / times.length;
 			expect(avg).toBeLessThan(2.0);
 		}

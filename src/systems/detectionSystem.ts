@@ -191,8 +191,8 @@ export function coneDetectionSystem(world: World, delta: number): void {
 				alarm.active = true;
 				alarm.triggeredAt = performance.now();
 				EventBus.emit("alarm-triggered", {
-					x: alertedSources[0].get(Position)!.x,
-					y: alertedSources[0].get(Position)!.y,
+					x: alertedSources[0].get(Position)?.x,
+					y: alertedSources[0].get(Position)?.y,
 				});
 			}
 		}

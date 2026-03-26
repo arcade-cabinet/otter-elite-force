@@ -12,7 +12,7 @@ import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { AIState } from "@/ecs/traits/ai";
 import { Attack, Health, VisionRadius } from "@/ecs/traits/combat";
-import { Faction, IsBuilding, UnitType } from "@/ecs/traits/identity";
+import { Faction, UnitType } from "@/ecs/traits/identity";
 import { OrderQueue } from "@/ecs/traits/orders";
 import { Position } from "@/ecs/traits/spatial";
 import { aiSystem, resetAIRunners } from "@/systems/aiSystem";

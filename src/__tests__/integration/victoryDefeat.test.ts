@@ -6,7 +6,7 @@
  * transitions correctly.
  */
 import { createWorld, type World } from "koota";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { initSingletons } from "../../ecs/singletons";
 import { GamePhase } from "../../ecs/traits/state";
 import { ScenarioEngine } from "../../scenarios/engine";

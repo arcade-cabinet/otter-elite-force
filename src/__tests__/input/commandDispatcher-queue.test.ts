@@ -39,13 +39,13 @@ describe("CommandDispatcher — shift+right-click command queuing (P0 fix)", () 
 		// Issue first move
 		dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context", false);
 		expect(unit.get(OrderQueue)).toHaveLength(1);
-		expect(unit.get(OrderQueue)![0]).toEqual({ type: "move", targetX: 5, targetY: 5 });
+		expect(unit.get(OrderQueue)?.[0]).toEqual({ type: "move", targetX: 5, targetY: 5 });
 
 		// Issue second move with queue=true (shift)
 		dispatcher.issueCommandAt(10 * 32 + 16, 10 * 32 + 16, "context", true);
 		expect(unit.get(OrderQueue)).toHaveLength(2);
-		expect(unit.get(OrderQueue)![0]).toEqual({ type: "move", targetX: 5, targetY: 5 });
-		expect(unit.get(OrderQueue)![1]).toEqual({ type: "move", targetX: 10, targetY: 10 });
+		expect(unit.get(OrderQueue)?.[0]).toEqual({ type: "move", targetX: 5, targetY: 5 });
+		expect(unit.get(OrderQueue)?.[1]).toEqual({ type: "move", targetX: 10, targetY: 10 });
 	});
 
 	it("appends attack order when queue=true", () => {
@@ -72,15 +72,15 @@ describe("CommandDispatcher — shift+right-click command queuing (P0 fix)", () 
 		// Issue first attack
 		dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context", false);
 		expect(attacker.get(OrderQueue)).toHaveLength(1);
-		expect(attacker.get(OrderQueue)![0].type).toBe("attack");
+		expect(attacker.get(OrderQueue)?.[0].type).toBe("attack");
 
 		// Queue second attack with shift
 		dispatcher.issueCommandAt(15 * 32 + 16, 15 * 32 + 16, "context", true);
 		expect(attacker.get(OrderQueue)).toHaveLength(2);
-		expect(attacker.get(OrderQueue)![0].type).toBe("attack");
-		expect(attacker.get(OrderQueue)![1].type).toBe("attack");
-		expect(attacker.get(OrderQueue)![0].targetEntity).toBe(enemy1.id());
-		expect(attacker.get(OrderQueue)![1].targetEntity).toBe(enemy2.id());
+		expect(attacker.get(OrderQueue)?.[0].type).toBe("attack");
+		expect(attacker.get(OrderQueue)?.[1].type).toBe("attack");
+		expect(attacker.get(OrderQueue)?.[0].targetEntity).toBe(enemy1.id());
+		expect(attacker.get(OrderQueue)?.[1].targetEntity).toBe(enemy2.id());
 	});
 
 	it("appends gather order when queue=true", () => {
@@ -93,9 +93,13 @@ describe("CommandDispatcher — shift+right-click command queuing (P0 fix)", () 
 			Gatherer,
 		);
 
-		const resource1 = world.spawn(IsResource, Faction({ id: "neutral" }), Position({ x: 5, y: 5 }));
+		const _resource1 = world.spawn(
+			IsResource,
+			Faction({ id: "neutral" }),
+			Position({ x: 5, y: 5 }),
+		);
 
-		const resource2 = world.spawn(
+		const _resource2 = world.spawn(
 			IsResource,
 			Faction({ id: "neutral" }),
 			Position({ x: 15, y: 15 }),
@@ -104,13 +108,13 @@ describe("CommandDispatcher — shift+right-click command queuing (P0 fix)", () 
 		// Issue first gather
 		dispatcher.issueCommandAt(5 * 32 + 16, 5 * 32 + 16, "context", false);
 		expect(worker.get(OrderQueue)).toHaveLength(1);
-		expect(worker.get(OrderQueue)![0].type).toBe("gather");
+		expect(worker.get(OrderQueue)?.[0].type).toBe("gather");
 
 		// Queue second gather with shift
 		dispatcher.issueCommandAt(15 * 32 + 16, 15 * 32 + 16, "context", true);
 		expect(worker.get(OrderQueue)).toHaveLength(2);
-		expect(worker.get(OrderQueue)![0].type).toBe("gather");
-		expect(worker.get(OrderQueue)![1].type).toBe("gather");
+		expect(worker.get(OrderQueue)?.[0].type).toBe("gather");
+		expect(worker.get(OrderQueue)?.[1].type).toBe("gather");
 	});
 
 	it("replaces orders when queue=false (default behavior preserved)", () => {
@@ -128,6 +132,6 @@ describe("CommandDispatcher — shift+right-click command queuing (P0 fix)", () 
 		dispatcher.issueCommandAt(10 * 32 + 16, 10 * 32 + 16, "context", false);
 
 		expect(unit.get(OrderQueue)).toHaveLength(1);
-		expect(unit.get(OrderQueue)![0]).toEqual({ type: "move", targetX: 10, targetY: 10 });
+		expect(unit.get(OrderQueue)?.[0]).toEqual({ type: "move", targetX: 10, targetY: 10 });
 	});
 });

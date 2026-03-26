@@ -354,7 +354,7 @@
 /* === PRINT STYLES === */
 @media print {
 	.no-print {
-		display: none !important;
+		display: none;
 	}
 
 	.print-break-before {
@@ -371,8 +371,8 @@
 	*,
 	*::before,
 	*::after {
-		animation-duration: 0.01ms !important;
-		animation-iteration-count: 1 !important;
-		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms;
+		animation-iteration-count: 1;
+		transition-duration: 0.01ms;
 	}
 }

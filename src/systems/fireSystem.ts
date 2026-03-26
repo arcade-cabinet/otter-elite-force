@@ -52,7 +52,7 @@ export function fireSystem(
 	const { spreadRadius, damagePerSecond } = fireState;
 
 	const height = terrainGrid ? terrainGrid.length : 0;
-	const width = height > 0 ? terrainGrid![0].length : 0;
+	const width = height > 0 ? (terrainGrid?.[0]?.length ?? 0) : 0;
 
 	// Build a set of currently-burning tile coords for fast lookup
 	const burningSet = new Set<string>();

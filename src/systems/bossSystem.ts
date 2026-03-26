@@ -95,7 +95,7 @@ export function bossSystem(world: World, delta: number): void {
 				const dist = distanceBetween(bossPos.x, bossPos.y, targetPos.x, targetPos.y);
 
 				if (dist <= boss.aoeRadius) {
-					const armorValue = target.has(Armor) ? target.get(Armor)!.value : 0;
+					const armorValue = target.has(Armor) ? (target.get(Armor)?.value ?? 0) : 0;
 					const dmg = Math.max(1, boss.aoeDamage - armorValue);
 					target.set(Health, (prev) => ({ current: prev.current - dmg }));
 					hitCount++;

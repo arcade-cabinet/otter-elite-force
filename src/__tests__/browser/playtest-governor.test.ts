@@ -24,17 +24,15 @@ import { initSingletons, resetSessionState } from "../../ecs/singletons";
 import { Health } from "../../ecs/traits/combat";
 // ResourcePool imported above — used by getResourceAmount in worldQuery
 import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
-import { Position } from "../../ecs/traits/spatial";
 import {
 	CampaignProgress,
 	CurrentMission,
-	GameClock,
 	GamePhase,
 	Objectives,
 	PopulationState,
 	ResourcePool,
 } from "../../ecs/traits/state";
-import { CAMPAIGN, getMissionById } from "../../entities/missions";
+import { getMissionById } from "../../entities/missions";
 import { compileMissionScenario } from "../../entities/missions/compileMissionScenario";
 import { getBuilding, getHero, getResource, getUnit } from "../../entities/registry";
 import { spawnBuilding, spawnResource, spawnUnit } from "../../entities/spawner";

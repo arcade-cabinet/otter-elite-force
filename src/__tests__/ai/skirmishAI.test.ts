@@ -9,12 +9,11 @@
  * Covers US-080: AI opponent for single-player skirmish.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
 	DIFFICULTY_CONFIG,
 	type GameAdapter,
 	SkirmishAI,
-	type SkirmishDifficulty,
 	type SkirmishState,
 } from "../../ai/skirmishAI";
 
@@ -44,7 +43,7 @@ function createMockAdapter(overrides: Partial<GameAdapter> = {}): GameAdapter {
 	};
 }
 
-function createState(overrides: Partial<SkirmishState> = {}): SkirmishState {
+function _createState(overrides: Partial<SkirmishState> = {}): SkirmishState {
 	return {
 		thinkTimer: 0,
 		phase: "economy",

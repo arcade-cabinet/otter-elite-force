@@ -20,7 +20,7 @@ describe("Visual: Sprite generation", () => {
 
 	it("each sprite canvas has non-zero dimensions", () => {
 		initSprites();
-		for (const [id, canvas] of spriteCache) {
+		for (const [_id, canvas] of spriteCache) {
 			expect(canvas.width).toBeGreaterThan(0);
 			expect(canvas.height).toBeGreaterThan(0);
 		}
@@ -30,8 +30,8 @@ describe("Visual: Sprite generation", () => {
 		initSprites();
 		const sprite = getSprite("river_rat" as SpriteType);
 		expect(sprite).not.toBeNull();
-		const ctx = sprite!.getContext("2d")!;
-		const data = ctx.getImageData(0, 0, sprite!.width, sprite!.height).data;
+		const ctx = sprite?.getContext("2d")!;
+		const data = ctx.getImageData(0, 0, sprite?.width, sprite?.height).data;
 		// Check at least some non-transparent pixels exist
 		let nonTransparent = 0;
 		for (let i = 3; i < data.length; i += 4) {
@@ -44,8 +44,8 @@ describe("Visual: Sprite generation", () => {
 		initSprites();
 		const sprite = getSprite("gator" as SpriteType);
 		expect(sprite).not.toBeNull();
-		const ctx = sprite!.getContext("2d")!;
-		const data = ctx.getImageData(0, 0, sprite!.width, sprite!.height).data;
+		const ctx = sprite?.getContext("2d")!;
+		const data = ctx.getImageData(0, 0, sprite?.width, sprite?.height).data;
 		let nonTransparent = 0;
 		for (let i = 3; i < data.length; i += 4) {
 			if (data[i] > 0) nonTransparent++;
@@ -66,8 +66,8 @@ describe("Visual: Portrait generation", () => {
 		for (const id of getPortraitIds()) {
 			const canvas = getPortraitCanvas(id);
 			expect(canvas).not.toBeNull();
-			expect(canvas!.width).toBe(128);
-			expect(canvas!.height).toBe(128);
+			expect(canvas?.width).toBe(128);
+			expect(canvas?.height).toBe(128);
 		}
 	});
 
@@ -75,26 +75,26 @@ describe("Visual: Portrait generation", () => {
 		initPortraits();
 		const canvas = getPortraitCanvas("sgt_bubbles");
 		expect(canvas).not.toBeNull();
-		const ctx = canvas!.getContext("2d")!;
-		const data = ctx.getImageData(0, 0, canvas!.width, canvas!.height).data;
+		const ctx = canvas?.getContext("2d")!;
+		const data = ctx.getImageData(0, 0, canvas?.width, canvas?.height).data;
 		let nonTransparent = 0;
 		for (let i = 3; i < data.length; i += 4) {
 			if (data[i] > 0) nonTransparent++;
 		}
 		// Portrait should have substantial content (at least 20% of pixels)
-		expect(nonTransparent).toBeGreaterThan(canvas!.width * canvas!.height * 0.2);
+		expect(nonTransparent).toBeGreaterThan(canvas?.width * canvas?.height * 0.2);
 	});
 
 	it("Ironjaw portrait has visible pixels", () => {
 		initPortraits();
 		const canvas = getPortraitCanvas("ironjaw");
 		expect(canvas).not.toBeNull();
-		const ctx = canvas!.getContext("2d")!;
-		const data = ctx.getImageData(0, 0, canvas!.width, canvas!.height).data;
+		const ctx = canvas?.getContext("2d")!;
+		const data = ctx.getImageData(0, 0, canvas?.width, canvas?.height).data;
 		let nonTransparent = 0;
 		for (let i = 3; i < data.length; i += 4) {
 			if (data[i] > 0) nonTransparent++;
 		}
-		expect(nonTransparent).toBeGreaterThan(canvas!.width * canvas!.height * 0.2);
+		expect(nonTransparent).toBeGreaterThan(canvas?.width * canvas?.height * 0.2);
 	});
 });

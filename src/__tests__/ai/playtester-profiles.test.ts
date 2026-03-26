@@ -10,13 +10,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import {
-	BuildArmyGoal,
-	BuildEconomyGoal,
-	CompleteObjectiveGoal,
-	DefendBaseGoal,
-	ScoutMapGoal,
-} from "@/ai/playtester/goals";
+import { BuildArmyGoal, BuildEconomyGoal, DefendBaseGoal } from "@/ai/playtester/goals";
 import type { PlayerPerception } from "@/ai/playtester/perception";
 import {
 	createPlaytesterBrainWithProfile,
@@ -74,7 +68,7 @@ describe("US-071: AI Playtester Strategy Profiles", () => {
 
 		it("all bias values are positive numbers", () => {
 			for (const profile of Object.values(STRATEGY_PROFILES)) {
-				for (const [key, value] of Object.entries(profile.biases)) {
+				for (const [_key, value] of Object.entries(profile.biases)) {
 					expect(value).toBeGreaterThan(0);
 					expect(typeof value).toBe("number");
 				}

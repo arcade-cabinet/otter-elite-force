@@ -4,7 +4,7 @@ import { OwnedBy } from "../../ecs/relations";
 import { initSingletons } from "../../ecs/singletons";
 import { AIState, SteeringAgent } from "../../ecs/traits/ai";
 import { Health } from "../../ecs/traits/combat";
-import { PopulationCost, ProductionQueue } from "../../ecs/traits/economy";
+import { ProductionQueue } from "../../ecs/traits/economy";
 import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
 import { OrderQueue, RallyPoint } from "../../ecs/traits/orders";
 import { Position } from "../../ecs/traits/spatial";
@@ -109,7 +109,7 @@ describe("productionSystem", () => {
 			expect(result).toBe(true);
 
 			// river_rat costs 50 fish
-			expect(world.get(ResourcePool)!.fish).toBe(50);
+			expect(world.get(ResourcePool)?.fish).toBe(50);
 		});
 
 		it("should reserve population when queueing", () => {
@@ -118,7 +118,7 @@ describe("productionSystem", () => {
 
 			queueUnit(barracks, "mudfoot", world);
 
-			expect(world.get(PopulationState)!.current).toBe(1);
+			expect(world.get(PopulationState)?.current).toBe(1);
 		});
 	});
 
@@ -222,7 +222,7 @@ describe("productionSystem", () => {
 		});
 
 		it("should not process empty queues", () => {
-			const barracks = spawnBarracks();
+			const _barracks = spawnBarracks();
 
 			// Should not throw
 			expect(() => productionSystem(world, 1)).not.toThrow();

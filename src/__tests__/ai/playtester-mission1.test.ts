@@ -17,7 +17,6 @@ import {
 	buildPerceptionFromSim,
 	createMission1Sim,
 	runMission1Simulation,
-	type SimState,
 	tickSimulation,
 } from "@/ai/playtester/simulation";
 
@@ -152,7 +151,7 @@ describe("US-070: AI Playtester Mission 1 Automated Playthrough", () => {
 
 			const commandPost = state.buildings.find((b) => b.unitType === "command_post");
 			expect(commandPost).toBeDefined();
-			expect(commandPost!.faction).toBe("ura");
+			expect(commandPost?.faction).toBe("ura");
 		});
 
 		it("builds barracks after command post", () => {
@@ -238,7 +237,7 @@ describe("US-070: AI Playtester Mission 1 Automated Playthrough", () => {
 			// Starting resources minus building costs should be reflected
 			const endEvent = result.log.find((e) => e.event === "mission_end");
 			expect(endEvent).toBeDefined();
-			expect(endEvent!.details?.unitCount).toBeGreaterThanOrEqual(4);
+			expect(endEvent?.details?.unitCount).toBeGreaterThanOrEqual(4);
 		});
 	});
 });

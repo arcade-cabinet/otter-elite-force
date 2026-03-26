@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { type AIContext, createDefaultAIContext, type EnemyInfo } from "@/ai/fsm/context";
+import { createDefaultAIContext, type EnemyInfo } from "@/ai/fsm/context";
 import {
 	AI_PROFILES,
 	CROC_CHAMPION_PROFILE,
@@ -11,7 +11,6 @@ import {
 	getAIProfile,
 	SCOUT_LIZARD_PROFILE,
 	SIPHON_DRONE_PROFILE,
-	SKINK_PROFILE,
 	SNAPPER_PROFILE,
 	VIPER_PROFILE,
 } from "@/ai/fsm/profiles";

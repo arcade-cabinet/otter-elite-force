@@ -2,7 +2,7 @@ import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { GarrisonedIn } from "@/ecs/relations";
 import { Health } from "@/ecs/traits/combat";
-import { Faction, UnitType } from "@/ecs/traits/identity";
+import { UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 import { CanSwim, Submerged } from "@/ecs/traits/water";
 import {

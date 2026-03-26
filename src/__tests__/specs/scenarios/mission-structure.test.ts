@@ -511,7 +511,7 @@ describe("Terrain consistency across missions", () => {
 	it("zones have valid dimensions", () => {
 		if (skip()) return;
 		for (const m of missions) {
-			for (const [zoneId, zone] of Object.entries(m.zones)) {
+			for (const [_zoneId, zone] of Object.entries(m.zones)) {
 				expect(zone.width).toBeGreaterThan(0);
 				expect(zone.height).toBeGreaterThan(0);
 				expect(zone.x).toBeGreaterThanOrEqual(0);

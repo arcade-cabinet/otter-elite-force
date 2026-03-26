@@ -78,7 +78,7 @@ function useTypewriter(text: string, charsPerSecond = 40) {
 
 	useEffect(() => {
 		setDisplayedChars(0);
-	}, [text]);
+	}, []);
 
 	useEffect(() => {
 		if (isComplete) return;

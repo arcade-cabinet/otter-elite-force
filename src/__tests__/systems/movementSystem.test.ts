@@ -4,7 +4,7 @@ import type { SteeringVehicle } from "../../ai/steeringFactory";
 import { SteeringAgent } from "../../ecs/traits/ai";
 import { OrderQueue } from "../../ecs/traits/orders";
 import { FacingDirection, Position, Velocity } from "../../ecs/traits/spatial";
-import { assignSteeringAgent, movementSystem } from "../../systems/movementSystem";
+import { movementSystem } from "../../systems/movementSystem";
 
 /**
  * Create a mock SteeringVehicle for testing.

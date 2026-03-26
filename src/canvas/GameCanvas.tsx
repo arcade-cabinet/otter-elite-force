@@ -411,7 +411,17 @@ export function GameCanvas({ deploymentData }: GameCanvasProps) {
 		});
 
 		scenarioRef.current = { engine, worldQuery };
-	}, [world, mission, setBounds, worldW, worldH, handleAction]);
+	}, [
+		world,
+		mission,
+		setBounds,
+		worldW,
+		worldH,
+		handleAction,
+		setPosition,
+		size.height,
+		size.width,
+	]);
 
 	// Game loop — pass scenario engine to tickAllSystems
 	const scenarioEngine = scenarioRef.current?.engine ?? null;

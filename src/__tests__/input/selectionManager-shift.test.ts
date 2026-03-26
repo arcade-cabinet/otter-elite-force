@@ -1,6 +1,6 @@
 import { createWorld } from "koota";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Faction, IsBuilding, Selected, UnitType } from "@/ecs/traits/identity";
+import { Faction, Selected, UnitType } from "@/ecs/traits/identity";
 import { Position } from "@/ecs/traits/spatial";
 
 vi.mock("@/game/EventBus", () => ({

@@ -83,7 +83,7 @@ describe("US-066: Gator AI behavior", () => {
 
 		// 7. Alert timeout → return to patrol
 		for (let i = 0; i < 62; i++) {
-			const result = runner.state;
+			const _result = runner.state;
 			runner.update(ctx);
 			if (runner.state === STATE.PATROL) break;
 		}

@@ -15,7 +15,7 @@
  */
 
 import type { World } from "koota";
-import { GameClock, type GamePhaseType } from "@/ecs/traits/state";
+import { GameClock } from "@/ecs/traits/state";
 import { createNoise } from "@/utils/noise";
 
 // ─── Types ───

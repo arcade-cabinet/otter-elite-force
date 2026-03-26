@@ -165,7 +165,7 @@ describe("spriteGen", () => {
 				expect(spriteCache.has(type)).toBe(true);
 				const s = spriteCache.get(type);
 				expect(s).toBeDefined();
-				expect(s!.getContext("2d")).not.toBeNull();
+				expect(s?.getContext("2d")).not.toBeNull();
 			}
 		});
 
@@ -187,7 +187,7 @@ describe("spriteGen", () => {
 			initSprites();
 			const sprite = getSprite("river_rat");
 			expect(sprite).toBeDefined();
-			expect(sprite!.getContext("2d")).not.toBeNull();
+			expect(sprite?.getContext("2d")).not.toBeNull();
 			expect(sprite).toBe(spriteCache.get("river_rat"));
 		});
 

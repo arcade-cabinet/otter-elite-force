@@ -18,7 +18,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { ALL_BUILDINGS, type BuildingDef } from "../../../data/buildings";
+import { ALL_BUILDINGS } from "../../../data/buildings";
 import { ALL_UNITS, type UnitDef } from "../../../data/units";
 import { calculateDamage } from "../../../systems/combatSystem";
 import {

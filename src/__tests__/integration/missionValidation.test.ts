@@ -170,7 +170,7 @@ describe("US-049: Mission 1 (Beachhead) validation", () => {
 	it("should have starting resources", () => {
 		const mission = getMissionDef(1);
 		expect(mission.startResources).toBeTruthy();
-		expect(mission.startResources!.fish).toBeGreaterThan(0);
+		expect(mission.startResources?.fish).toBeGreaterThan(0);
 	});
 });
 

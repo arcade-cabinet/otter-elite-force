@@ -31,7 +31,7 @@ class LightEventEmitter {
 		if (!this.listeners.has(event)) {
 			this.listeners.set(event, []);
 		}
-		this.listeners.get(event)!.push({ fn, context: context ?? null, once: false });
+		this.listeners.get(event)?.push({ fn, context: context ?? null, once: false });
 		return this;
 	}
 
@@ -39,7 +39,7 @@ class LightEventEmitter {
 		if (!this.listeners.has(event)) {
 			this.listeners.set(event, []);
 		}
-		this.listeners.get(event)!.push({ fn, context: context ?? null, once: true });
+		this.listeners.get(event)?.push({ fn, context: context ?? null, once: true });
 		return this;
 	}
 

@@ -157,7 +157,7 @@ describe("URA Buildings", () => {
 			if (skip()) return;
 			const b = buildings.armory;
 			expect(b.researches).toBeDefined();
-			expect(b.researches!.length).toBeGreaterThan(0);
+			expect(b.researches?.length).toBeGreaterThan(0);
 		});
 
 		it("unlocks at mission 5", () => {
@@ -229,9 +229,9 @@ describe("URA Buildings", () => {
 			if (skip()) return;
 			const b = buildings.fish_trap;
 			expect(b.passiveIncome).toBeDefined();
-			expect(b.passiveIncome!.type).toBe("fish");
-			expect(b.passiveIncome!.amount).toBe(3);
-			expect(b.passiveIncome!.interval).toBe(10);
+			expect(b.passiveIncome?.type).toBe("fish");
+			expect(b.passiveIncome?.amount).toBe(3);
+			expect(b.passiveIncome?.interval).toBe(10);
 		});
 
 		it("is an economy building", () => {
@@ -692,7 +692,7 @@ describe("Building aggregates", () => {
 		];
 		for (const id of productionIds) {
 			expect(buildings[id]?.trains).toBeDefined();
-			expect(buildings[id]?.trains!.length).toBeGreaterThan(0);
+			expect(buildings[id]?.trains?.length).toBeGreaterThan(0);
 		}
 	});
 

@@ -232,27 +232,27 @@ describe("Palette", () => {
 	it("maps specific palette chars to correct hex values", () => {
 		if (skip()) return;
 		expect(PALETTE["#"]).toBe("#000000");
-		expect(PALETTE["S"]).toBe("#ffcc99");
-		expect(PALETTE["s"]).toBe("#eebb88");
-		expect(PALETTE["B"]).toBe("#1e3a8a");
-		expect(PALETTE["b"]).toBe("#3b82f6");
-		expect(PALETTE["R"]).toBe("#7f1d1d");
-		expect(PALETTE["r"]).toBe("#ef4444");
-		expect(PALETTE["G"]).toBe("#166534");
-		expect(PALETTE["g"]).toBe("#22c55e");
-		expect(PALETTE["W"]).toBe("#78350f");
-		expect(PALETTE["w"]).toBe("#b45309");
-		expect(PALETTE["Y"]).toBe("#eab308");
-		expect(PALETTE["y"]).toBe("#fef08a");
-		expect(PALETTE["C"]).toBe("#4b5563");
-		expect(PALETTE["c"]).toBe("#9ca3af");
-		expect(PALETTE["M"]).toBe("#1f2937");
-		expect(PALETTE["T"]).toBe("#0d9488");
-		expect(PALETTE["t"]).toBe("#5eead4");
-		expect(PALETTE["O"]).toBe("#c2410c");
-		expect(PALETTE["o"]).toBe("#fb923c");
-		expect(PALETTE["P"]).toBe("#7e22ce");
-		expect(PALETTE["p"]).toBe("#c084fc");
+		expect(PALETTE.S).toBe("#ffcc99");
+		expect(PALETTE.s).toBe("#eebb88");
+		expect(PALETTE.B).toBe("#1e3a8a");
+		expect(PALETTE.b).toBe("#3b82f6");
+		expect(PALETTE.R).toBe("#7f1d1d");
+		expect(PALETTE.r).toBe("#ef4444");
+		expect(PALETTE.G).toBe("#166534");
+		expect(PALETTE.g).toBe("#22c55e");
+		expect(PALETTE.W).toBe("#78350f");
+		expect(PALETTE.w).toBe("#b45309");
+		expect(PALETTE.Y).toBe("#eab308");
+		expect(PALETTE.y).toBe("#fef08a");
+		expect(PALETTE.C).toBe("#4b5563");
+		expect(PALETTE.c).toBe("#9ca3af");
+		expect(PALETTE.M).toBe("#1f2937");
+		expect(PALETTE.T).toBe("#0d9488");
+		expect(PALETTE.t).toBe("#5eead4");
+		expect(PALETTE.O).toBe("#c2410c");
+		expect(PALETTE.o).toBe("#fb923c");
+		expect(PALETTE.P).toBe("#7e22ce");
+		expect(PALETTE.p).toBe("#c084fc");
 	});
 });
 
@@ -301,7 +301,7 @@ describe("Unit sprite validity", () => {
 
 	it("every unit has at least idle animation", () => {
 		if (skip()) return;
-		for (const [id, unit] of Object.entries(units)) {
+		for (const [_id, unit] of Object.entries(units)) {
 			expect(unit.sprite.frames.idle).toBeDefined();
 			expect(unit.sprite.frames.idle.length).toBeGreaterThanOrEqual(1);
 		}
@@ -311,7 +311,7 @@ describe("Unit sprite validity", () => {
 		if (skip()) return;
 		// All non-stationary units should have walk frames
 		const mobileUnits = Object.entries(units).filter(([, u]) => u.speed > 0);
-		for (const [id, unit] of mobileUnits) {
+		for (const [_id, unit] of mobileUnits) {
 			expect(unit.sprite.frames.walk).toBeDefined();
 			expect(unit.sprite.frames.walk.length).toBeGreaterThanOrEqual(2);
 		}
@@ -334,7 +334,7 @@ describe("Building sprite validity", () => {
 
 	it("every building has idle animation", () => {
 		if (skip()) return;
-		for (const [id, building] of Object.entries(buildings)) {
+		for (const [_id, building] of Object.entries(buildings)) {
 			expect(building.sprite.frames.idle).toBeDefined();
 			expect(building.sprite.frames.idle.length).toBeGreaterThanOrEqual(1);
 		}
@@ -357,7 +357,7 @@ describe("Portrait sprite validity", () => {
 
 	it("every portrait has idle frame", () => {
 		if (skip()) return;
-		for (const [id, portrait] of Object.entries(portraits)) {
+		for (const [_id, portrait] of Object.entries(portraits)) {
 			expect(portrait.sprite.frames.idle).toBeDefined();
 			expect(portrait.sprite.frames.idle.length).toBeGreaterThanOrEqual(1);
 		}
