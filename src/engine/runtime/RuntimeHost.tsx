@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 import type { SkirmishSessionConfig } from "@/features/skirmish/types";
 import { createGameBridge, type GameBridgeState } from "../bridge/gameBridge";
 import {
@@ -97,13 +97,13 @@ function buildRuntimeViewModel(props: RuntimeHostProps): ResolvedRuntimeState {
 }
 
 export function RuntimeHost(props: RuntimeHostProps) {
-	const containerRef = useRef<HTMLDivElement>(null);
-	const runtimeRef = useRef<TacticalRuntime | null>(null);
-	const bridgeRef = useRef<ReturnType<typeof createGameBridge> | null>(null);
-	const worldRef = useRef<ReturnType<typeof createGameWorld> | null>(null);
-	const [runtimeReady, setRuntimeReady] = useState(false);
-	const [runtimeError, setRuntimeError] = useState<string | null>(null);
-	const [hudState, setHudState] = useState<GameBridgeState>({
+	let containerEl: HTMLDivElement | undefined;
+	let runtimeInstance: TacticalRuntime | null = null;
+	let bridgeInstance: ReturnType<typeof createGameBridge> | null = null;
+	let worldInstance: ReturnType<typeof createGameWorld> | null = null;
+	const [runtimeReady, setRuntimeReady] = createSignal(false);
+	const [runtimeError, setRuntimeError] = createSignal<string | null>(null);
+	const [hudState, setHudState] = createSignal<GameBridgeState>({
 		screen: "game",
 		resources: { fish: 0, timber: 0, salvage: 0 },
 		population: { current: 0, max: 0 },
@@ -115,25 +115,27 @@ export function RuntimeHost(props: RuntimeHostProps) {
 		boss: null,
 	});
 
-	const runtimeState = useMemo(() => buildRuntimeViewModel(props), [props]);
-	const viewModel = runtimeState.viewModel;
-	const lastReportedPhaseRef = useRef(hudState.screen === "paused" ? "paused" : "playing");
+	const runtimeState = createMemo(() => buildRuntimeViewModel(props));
+	const viewModel = createMemo(() => runtimeState().viewModel);
+	let lastReportedPhase = hudState().screen === "paused" ? "paused" : "playing";
 
-	useEffect(() => {
-		const container = containerRef.current;
+	onMount(() => {
+		const container = containerEl;
 		if (!container) return;
 		let cancelled = false;
+		const vm = viewModel();
+		const rs = runtimeState();
 		const seed =
 			props.mode === "skirmish" && props.skirmish
 				? props.skirmish.seed
-				: createSeedBundle({ phrase: viewModel.seedPhrase, source: "manual" });
+				: createSeedBundle({ phrase: vm.seedPhrase, source: "manual" });
 		const world = createGameWorld(seed);
-		worldRef.current = world;
+		worldInstance = world;
 		const bridge = createGameBridge({
 			screen: "game",
 		});
-		bridgeRef.current = bridge;
-		runtimeState.seedWorld(world);
+		bridgeInstance = bridge;
+		rs.seedWorld(world);
 
 		// Bootstrap mission entities into the world for campaign mode
 		if (props.mode === "campaign" && props.missionId) {
@@ -142,13 +144,13 @@ export function RuntimeHost(props: RuntimeHostProps) {
 
 		world.diagnostics = {
 			...world.diagnostics,
-			...runtimeState.diagnostics,
-			events: [...runtimeState.diagnostics.events],
-			objectives: [...runtimeState.diagnostics.objectives],
+			...rs.diagnostics,
+			events: [...rs.diagnostics.events],
+			objectives: [...rs.diagnostics.objectives],
 		};
 		recordDiagnosticEvent(world.diagnostics, "runtime-host-mounted", {
 			mode: props.mode,
-			runId: viewModel.runId,
+			runId: vm.runId,
 		});
 		void persistDiagnosticSnapshot(syncGameWorldDiagnostics(world));
 		const missionFlow =
@@ -179,7 +181,7 @@ export function RuntimeHost(props: RuntimeHostProps) {
 					await runtime.stop();
 					return;
 				}
-				runtimeRef.current = runtime;
+				runtimeInstance = runtime;
 				await runtime.start();
 				runtime.resize(container.clientWidth, container.clientHeight);
 				recordDiagnosticEvent(world.diagnostics, "runtime-started", {
@@ -202,39 +204,31 @@ export function RuntimeHost(props: RuntimeHostProps) {
 
 		const observer = new ResizeObserver((entries) => {
 			const entry = entries[0];
-			if (!entry || !runtimeRef.current) return;
-			runtimeRef.current.resize(
+			if (!entry || !runtimeInstance) return;
+			runtimeInstance.resize(
 				Math.round(entry.contentRect.width),
 				Math.round(entry.contentRect.height),
 			);
 		});
 		observer.observe(container);
 
-		return () => {
+		onCleanup(() => {
 			cancelled = true;
 			observer.disconnect();
 			missionFlow?.dispose();
 			pipeline.dispose();
-			bridgeRef.current = null;
-			worldRef.current = null;
-			if (runtimeRef.current) {
-				void runtimeRef.current.stop();
-				runtimeRef.current = null;
+			bridgeInstance = null;
+			worldInstance = null;
+			if (runtimeInstance) {
+				void runtimeInstance.stop();
+				runtimeInstance = null;
 			}
-		};
-	}, [
-		props.mode,
-		props.missionId,
-		props.skirmish,
-		runtimeState.diagnostics,
-		runtimeState.seedWorld,
-		viewModel.runId,
-		viewModel.seedPhrase,
-	]);
+		});
+	});
 
-	useEffect(() => {
+	onMount(() => {
 		const interval = window.setInterval(() => {
-			const bridge = bridgeRef.current;
+			const bridge = bridgeInstance;
 			if (!bridge) return;
 			setHudState({
 				screen: bridge.state.screen,
@@ -257,211 +251,223 @@ export function RuntimeHost(props: RuntimeHostProps) {
 				boss: bridge.state.boss ? { ...bridge.state.boss } : null,
 			});
 			const worldPhase =
-				worldRef.current?.session.phase ??
+				worldInstance?.session.phase ??
 				(bridge.state.screen === "paused" ? "paused" : "playing");
-			if (worldPhase !== lastReportedPhaseRef.current) {
-				lastReportedPhaseRef.current = worldPhase;
+			if (worldPhase !== lastReportedPhase) {
+				lastReportedPhase = worldPhase;
 				props.onPhaseChange?.(worldPhase);
 			}
 		}, 100);
 
-		return () => {
+		onCleanup(() => {
 			window.clearInterval(interval);
-		};
-	}, [props]);
+		});
+	});
+
+	const btnClass = "min-h-11 rounded border border-slate-600/70 bg-slate-950/85 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm";
 
 	return (
-		<div className="relative h-full w-full overflow-hidden bg-slate-950">
-			<div ref={containerRef} className="absolute inset-0" data-testid="runtime-host-container" />
-			<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(30,41,59,0.35),transparent_55%)]" />
-			<div className="absolute right-4 top-4 z-10 flex gap-2">
+		<div class="relative h-full w-full overflow-hidden bg-slate-950">
+			<div ref={containerEl} class="absolute inset-0" data-testid="runtime-host-container" />
+			<div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(30,41,59,0.35),transparent_55%)]" />
+			<div class="absolute right-4 top-4 z-10 flex gap-2">
 				<button
 					type="button"
-					className="min-h-11 rounded border border-slate-600/70 bg-slate-950/85 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm"
-					onClick={() => runtimeRef.current?.clearSelection()}
+					class={btnClass}
+					onClick={() => runtimeInstance?.clearSelection()}
 				>
 					Deselect
 				</button>
 				<button
 					type="button"
-					className="min-h-11 rounded border border-slate-600/70 bg-slate-950/85 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm"
-					onClick={() => runtimeRef.current?.recenter()}
+					class={btnClass}
+					onClick={() => runtimeInstance?.recenter()}
 				>
 					Recenter
 				</button>
 				<button
 					type="button"
-					className="min-h-11 rounded border border-slate-600/70 bg-slate-950/85 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm"
-					onClick={() => runtimeRef.current?.zoomOut()}
+					class={btnClass}
+					onClick={() => runtimeInstance?.zoomOut()}
 				>
 					-
 				</button>
 				<button
 					type="button"
-					className="min-h-11 rounded border border-slate-600/70 bg-slate-950/85 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm"
-					onClick={() => runtimeRef.current?.zoomIn()}
+					class={btnClass}
+					onClick={() => runtimeInstance?.zoomIn()}
 				>
 					+
 				</button>
-				{hudState.dialogue?.lines.length ? (
+				<Show when={hudState().dialogue?.lines.length}>
 					<button
 						type="button"
-						className="min-h-11 rounded border border-fuchsia-600/70 bg-slate-950/85 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm"
-						onClick={() => runtimeRef.current?.dismissDialogue()}
+						class="min-h-11 rounded border border-fuchsia-600/70 bg-slate-950/85 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm"
+						onClick={() => runtimeInstance?.dismissDialogue()}
 					>
 						Dismiss
 					</button>
-				) : null}
+				</Show>
 			</div>
-			<div className="absolute left-4 top-4 z-10 max-w-sm border border-accent/20 bg-black/65 p-4 text-slate-100 shadow-2xl backdrop-blur-sm">
-				<div className="font-mono text-[10px] uppercase tracking-[0.28em] text-accent">
-					{runtimeReady
+			<div class="absolute left-4 top-4 z-10 max-w-sm border border-accent/20 bg-black/65 p-4 text-slate-100 shadow-2xl backdrop-blur-sm">
+				<div class="font-mono text-[10px] uppercase tracking-[0.28em] text-accent">
+					{runtimeReady()
 						? "Runtime Active"
-						: runtimeError
+						: runtimeError()
 							? "Runtime Failed"
 							: "Runtime Boot"}
 				</div>
-				<h2 className="mt-2 font-heading text-xl uppercase tracking-[0.18em] text-primary">
-					{viewModel.title}
+				<h2 class="mt-2 font-heading text-xl uppercase tracking-[0.18em] text-primary">
+					{viewModel().title}
 				</h2>
-				<div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-slate-400">
-					{viewModel.subtitle}
+				<div class="mt-1 text-[10px] uppercase tracking-[0.14em] text-slate-400">
+					{viewModel().subtitle}
 				</div>
-				<div className="mt-3 space-y-1 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-300">
-					<div>Seed: {viewModel.seedPhrase}</div>
-					<div>Design: {viewModel.designSeed}</div>
-					<div>Gameplay Streams: {Object.keys(viewModel.gameplaySeeds).join(", ")}</div>
-					{viewModel.mapSummary ? (
-						<>
-							<div>Run: {viewModel.runId}</div>
-							<div>Map: {viewModel.mapSummary.size}</div>
-							<div>Resources: {viewModel.mapSummary.resourceNodes}</div>
-							<div>Chokepoints: {viewModel.mapSummary.chokepoints}</div>
-							<div>Focus: {viewModel.mapSummary.focusTile}</div>
-							{viewModel.mapSummary.playerStart && viewModel.mapSummary.aiStart ? (
-								<div>
-									Starts: {viewModel.mapSummary.playerStart} / {viewModel.mapSummary.aiStart}
-								</div>
-							) : null}
-						</>
-					) : null}
+				<div class="mt-3 space-y-1 font-mono text-[10px] uppercase tracking-[0.14em] text-slate-300">
+					<div>Seed: {viewModel().seedPhrase}</div>
+					<div>Design: {viewModel().designSeed}</div>
+					<div>Gameplay Streams: {Object.keys(viewModel().gameplaySeeds).join(", ")}</div>
+					<Show when={viewModel().mapSummary}>
+						{(summary) => (
+							<>
+								<div>Run: {viewModel().runId}</div>
+								<div>Map: {summary().size}</div>
+								<div>Resources: {summary().resourceNodes}</div>
+								<div>Chokepoints: {summary().chokepoints}</div>
+								<div>Focus: {summary().focusTile}</div>
+								<Show when={summary().playerStart && summary().aiStart}>
+									<div>
+										Starts: {summary().playerStart} / {summary().aiStart}
+									</div>
+								</Show>
+							</>
+						)}
+					</Show>
 				</div>
-				{runtimeError ? (
-					<div className="mt-3 text-[10px] uppercase tracking-[0.12em] text-amber-300">
+				<Show when={runtimeError()}>
+					<div class="mt-3 text-[10px] uppercase tracking-[0.12em] text-amber-300">
 						LittleJS could not boot in this environment. The tactical runtime failed hard.
 					</div>
-				) : null}
+				</Show>
 			</div>
-			<div className="absolute bottom-4 left-4 z-10 flex max-w-[calc(100%-2rem)] flex-wrap gap-3">
-				<div className="min-w-[200px] border border-emerald-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
+			<div class="absolute bottom-4 left-4 z-10 flex max-w-[calc(100%-2rem)] flex-wrap gap-3">
+				<div class="min-w-[200px] border border-emerald-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
 					<div
 						data-testid="runtime-hud-resources"
-						className="font-mono text-[10px] uppercase tracking-[0.24em] text-emerald-300"
+						class="font-mono text-[10px] uppercase tracking-[0.24em] text-emerald-300"
 					>
 						Resources
 					</div>
-					<div className="mt-2 grid grid-cols-3 gap-3 font-mono text-xs uppercase tracking-[0.12em]">
-						<div>Fish {hudState.resources.fish}</div>
-						<div>Timber {hudState.resources.timber}</div>
-						<div>Salvage {hudState.resources.salvage}</div>
+					<div class="mt-2 grid grid-cols-3 gap-3 font-mono text-xs uppercase tracking-[0.12em]">
+						<div>Fish {hudState().resources.fish}</div>
+						<div>Timber {hudState().resources.timber}</div>
+						<div>Salvage {hudState().resources.salvage}</div>
 					</div>
-					<div className="mt-2 font-mono text-xs uppercase tracking-[0.12em] text-slate-300">
-						Population {hudState.population.current}/{hudState.population.max}
+					<div class="mt-2 font-mono text-xs uppercase tracking-[0.12em] text-slate-300">
+						Population {hudState().population.current}/{hudState().population.max}
 					</div>
 				</div>
-				<div className="min-w-[180px] border border-cyan-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
+				<div class="min-w-[180px] border border-cyan-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
 					<div
 						data-testid="runtime-hud-weather"
-						className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-300"
+						class="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-300"
 					>
 						Weather
 					</div>
-					<div className="mt-2 font-mono text-xs uppercase tracking-[0.12em]">
-						{hudState.weather ?? "clear"}
+					<div class="mt-2 font-mono text-xs uppercase tracking-[0.12em]">
+						{hudState().weather ?? "clear"}
 					</div>
 				</div>
-				<div className="min-w-[220px] border border-sky-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
+				<div class="min-w-[220px] border border-sky-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
 					<div
 						data-testid="runtime-hud-selection"
-						className="font-mono text-[10px] uppercase tracking-[0.24em] text-sky-300"
+						class="font-mono text-[10px] uppercase tracking-[0.24em] text-sky-300"
 					>
 						Selection
 					</div>
-					<div className="mt-2 font-mono text-xs uppercase tracking-[0.12em]">
-						{hudState.selection?.primaryLabel ?? "No selection"}
+					<div class="mt-2 font-mono text-xs uppercase tracking-[0.12em]">
+						{hudState().selection?.primaryLabel ?? "No selection"}
 					</div>
-					<div className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-400">
-						{hudState.selection ? `${hudState.selection.entityIds.length} entities ready` : "Tap or drag to select"}
+					<div class="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-400">
+						{(() => { const sel = hudState().selection; return sel ? `${sel.entityIds.length} entities ready` : "Tap or drag to select"; })()}
 					</div>
 				</div>
-				<div className="min-w-[240px] border border-amber-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
+				<div class="min-w-[240px] border border-amber-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
 					<div
 						data-testid="runtime-hud-objectives"
-						className="font-mono text-[10px] uppercase tracking-[0.24em] text-amber-300"
+						class="font-mono text-[10px] uppercase tracking-[0.24em] text-amber-300"
 					>
 						Objectives
 					</div>
-					<div className="mt-2 space-y-1 font-mono text-[10px] uppercase tracking-[0.12em]">
-						{hudState.objectives.length > 0 ? (
-							hudState.objectives.slice(0, 4).map((objective) => (
-								<div key={objective.id}>
-									{objective.status}: {objective.description}
-								</div>
-							))
-						) : (
-							<div className="text-slate-400">Objectives pending mission bootstrap</div>
-						)}
+					<div class="mt-2 space-y-1 font-mono text-[10px] uppercase tracking-[0.12em]">
+						<Show
+							when={hudState().objectives.length > 0}
+							fallback={<div class="text-slate-400">Objectives pending mission bootstrap</div>}
+						>
+							<For each={hudState().objectives.slice(0, 4)}>
+								{(objective) => (
+									<div>
+										{objective.status}: {objective.description}
+									</div>
+								)}
+							</For>
+						</Show>
 					</div>
 				</div>
-				<div className="min-w-[240px] border border-rose-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
+				<div class="min-w-[240px] border border-rose-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
 					<div
 						data-testid="runtime-hud-alerts"
-						className="font-mono text-[10px] uppercase tracking-[0.24em] text-rose-300"
+						class="font-mono text-[10px] uppercase tracking-[0.24em] text-rose-300"
 					>
 						Alerts
 					</div>
-					<div className="mt-2 space-y-1 font-mono text-[10px] uppercase tracking-[0.12em]">
-						{hudState.alerts.length > 0 ? (
-							hudState.alerts.slice(-3).map((alert) => (
-								<div key={alert.id}>
-									{alert.severity}: {alert.message}
-								</div>
-							))
-						) : (
-							<div className="text-slate-400">No active tactical alerts</div>
-						)}
+					<div class="mt-2 space-y-1 font-mono text-[10px] uppercase tracking-[0.12em]">
+						<Show
+							when={hudState().alerts.length > 0}
+							fallback={<div class="text-slate-400">No active tactical alerts</div>}
+						>
+							<For each={hudState().alerts.slice(-3)}>
+								{(alert) => (
+									<div>
+										{alert.severity}: {alert.message}
+									</div>
+								)}
+							</For>
+						</Show>
 					</div>
 				</div>
-				{hudState.dialogue?.lines.length ? (
-					<div className="min-w-[260px] border border-fuchsia-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
-						<div className="font-mono text-[10px] uppercase tracking-[0.24em] text-fuchsia-300">Dialogue</div>
-						<div className="mt-2 font-mono text-[10px] uppercase tracking-[0.12em]">
-							{hudState.dialogue.lines[0]?.speaker}: {hudState.dialogue.lines[0]?.text}
+				<Show when={hudState().dialogue?.lines.length}>
+					<div class="min-w-[260px] border border-fuchsia-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
+						<div class="font-mono text-[10px] uppercase tracking-[0.24em] text-fuchsia-300">Dialogue</div>
+						<div class="mt-2 font-mono text-[10px] uppercase tracking-[0.12em]">
+							{hudState().dialogue?.lines[0]?.speaker}: {hudState().dialogue?.lines[0]?.text}
 						</div>
 					</div>
-				) : null}
-				{hudState.boss ? (
-					<div className="min-w-[260px] border border-rose-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
-						<div
-							data-testid="runtime-hud-boss"
-							className="font-mono text-[10px] uppercase tracking-[0.24em] text-rose-300"
-						>
-							Boss
-						</div>
-						<div className="mt-2 font-mono text-xs uppercase tracking-[0.12em]">{hudState.boss.name}</div>
-						<div className="mt-2 h-2 overflow-hidden rounded bg-slate-800">
+				</Show>
+				<Show when={hudState().boss}>
+					{(boss) => (
+						<div class="min-w-[260px] border border-rose-500/20 bg-slate-950/85 px-4 py-3 text-slate-100 shadow-xl backdrop-blur-sm">
 							<div
-								className="h-full bg-rose-500"
-								style={{
-									width: `${Math.max(0, Math.min(100, (hudState.boss.currentHp / Math.max(1, hudState.boss.maxHp)) * 100))}%`,
-								}}
-							/>
+								data-testid="runtime-hud-boss"
+								class="font-mono text-[10px] uppercase tracking-[0.24em] text-rose-300"
+							>
+								Boss
+							</div>
+							<div class="mt-2 font-mono text-xs uppercase tracking-[0.12em]">{boss().name}</div>
+							<div class="mt-2 h-2 overflow-hidden rounded bg-slate-800">
+								<div
+									class="h-full bg-rose-500"
+									style={{
+										width: `${Math.max(0, Math.min(100, (boss().currentHp / Math.max(1, boss().maxHp)) * 100))}%`,
+									}}
+								/>
+							</div>
+							<div class="mt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-300">
+								{Math.round(boss().currentHp)} / {Math.round(boss().maxHp)}
+							</div>
 						</div>
-						<div className="mt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-slate-300">
-							{Math.round(hudState.boss.currentHp)} / {Math.round(hudState.boss.maxHp)}
-						</div>
-					</div>
-				) : null}
+					)}
+				</Show>
 			</div>
 		</div>
 	);

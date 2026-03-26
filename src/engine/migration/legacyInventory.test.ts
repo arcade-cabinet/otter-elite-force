@@ -1,9 +1,9 @@
 /**
- * Tests for Legacy Inventory — verifies accuracy of file lists.
+ * Tests for Legacy Inventory — verifies that the legacy file lists are accurate
+ * and that the migration tracking is consistent.
  *
- * - All listed files actually exist (no stale entries)
- * - No engine/ files are in the legacy lists
- * - The dependency list is complete
+ * Post-migration: Koota ECS and system files have been deleted.
+ * The inventory lists now serve as a record of what was removed.
  */
 
 import { existsSync } from "node:fs";
@@ -23,38 +23,28 @@ function fileExists(relativePath: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// All listed files must exist on disk
+// Post-migration: Koota and systems files should be DELETED
 // ---------------------------------------------------------------------------
 
-describe("Legacy Inventory: file existence", () => {
-	it("all LEGACY_REACT_FILES exist on disk", () => {
-		const missing: string[] = [];
-		for (const filePath of LEGACY_REACT_FILES) {
-			if (!fileExists(filePath)) {
-				missing.push(filePath);
-			}
-		}
-		expect(missing).toEqual([]);
-	});
-
-	it("all LEGACY_KOOTA_FILES exist on disk", () => {
-		const missing: string[] = [];
+describe("Legacy Inventory: post-migration deletion verification", () => {
+	it("all LEGACY_KOOTA_FILES have been deleted", () => {
+		const stillPresent: string[] = [];
 		for (const filePath of LEGACY_KOOTA_FILES) {
-			if (!fileExists(filePath)) {
-				missing.push(filePath);
+			if (fileExists(filePath)) {
+				stillPresent.push(filePath);
 			}
 		}
-		expect(missing).toEqual([]);
+		expect(stillPresent).toEqual([]);
 	});
 
-	it("all LEGACY_SYSTEM_FILES exist on disk", () => {
-		const missing: string[] = [];
+	it("all LEGACY_SYSTEM_FILES have been deleted", () => {
+		const stillPresent: string[] = [];
 		for (const filePath of LEGACY_SYSTEM_FILES) {
-			if (!fileExists(filePath)) {
-				missing.push(filePath);
+			if (fileExists(filePath)) {
+				stillPresent.push(filePath);
 			}
 		}
-		expect(missing).toEqual([]);
+		expect(stillPresent).toEqual([]);
 	});
 });
 

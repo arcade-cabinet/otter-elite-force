@@ -199,21 +199,16 @@ export const SVG_DECORATIONS = {
 };
 
 // === SVG COMPONENT HELPERS ===
-export const SVGDecoration = ({
-	type,
-	className = "",
-	style = {},
-}: {
+export const SVGDecoration = (props: {
 	type: keyof typeof SVG_DECORATIONS;
-	className?: string;
-	style?: React.CSSProperties;
+	class?: string;
+	style?: import("solid-js/jsx-runtime").JSX.CSSProperties;
 }) => {
 	return (
 		<div
-			className={className}
-			style={style}
-			// biome-ignore lint/security/noDangerouslySetInnerHtml: Static SVG constants defined in this file, not user input
-			dangerouslySetInnerHTML={{ __html: SVG_DECORATIONS[type] }}
+			class={props.class}
+			style={props.style}
+			innerHTML={SVG_DECORATIONS[props.type]}
 		/>
 	);
 };

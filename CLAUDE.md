@@ -31,12 +31,20 @@ Claude Code instructions for this repository. For full agentic context, see [AGE
 ## Key Directories
 
 ```
-docs/engine-rewrite-plan.md   — CURRENT architecture plan (read this first)
-docs/missions/                — 16 mission design docs with zones, triggers, dialogue
+src/engine/                   — Runtime core (world, systems, rendering, session, bridge)
+src/engine/world/             — GameWorld factory, bitECS components
+src/engine/systems/           — All gameplay systems (movement, combat, economy, etc.)
+src/engine/rendering/         — Terrain, sprite, fog renderers
+src/engine/runtime/           — LittleJS runtime shell, camera, loop, input
+src/engine/session/           — Mission bootstrap, scenario runtime, campaign flow
+src/engine/bridge/            — SolidJS reactive bridge (signals/stores)
+src/solid/                    — SolidJS shell (screens, HUD, mobile)
+src/entities/missions/        — 16 mission TypeScript implementations
+src/scenarios/                — Trigger engine + DSL
+docs/engine-rewrite-plan.md   — Architecture plan
+docs/missions/                — 16 mission design docs
 public/assets/sprites/        — 12 animal sprite atlases with JSON
 public/assets/tiles/          — Kenney tiles + procedural blend tiles
-src/entities/missions/        — Mission TypeScript implementations
-src/scenarios/                — Trigger engine + DSL
 ```
 
 ## Do NOT

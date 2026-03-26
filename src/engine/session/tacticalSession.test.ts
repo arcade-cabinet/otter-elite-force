@@ -1,15 +1,7 @@
-import { createWorld } from "koota";
 import { describe, expect, it } from "vitest";
-import { initSingletons } from "@/ecs/singletons";
-import { ScriptTag } from "@/ecs/traits/identity";
-import { CurrentMission, NavGraphState, Objectives } from "@/ecs/traits/state";
-import { spawnBuilding, spawnUnit } from "@/entities/spawner";
 import { createGameWorld } from "../world/gameWorld";
-import { getBuilding, getUnit } from "@/entities/registry";
 import {
-	bootstrapCampaignWorld,
 	createCampaignRuntimeSession,
-	createScenarioWorldQuery,
 	createSkirmishRuntimeSession,
 	describeCampaignRuntimeSession,
 	describeSkirmishRuntimeSession,
@@ -82,38 +74,6 @@ describe("engine/session/tacticalSession", () => {
 		};
 		expect(resolvePlacementPosition(placement, session.mission, 0)).toEqual(
 			resolvePlacementPosition(placement, session.mission, 0),
-		);
-	});
-
-	it("prefers ScriptTag identity over UnitType fallback in scenario queries", () => {
-		const session = createCampaignRuntimeSession("mission_1");
-		const world = createWorld();
-		const building = getBuilding("flag_post");
-		const unit = getUnit("mudfoot");
-		if (!building || !unit) {
-			throw new Error("Missing test fixture entity definitions");
-		}
-		const taggedBuilding = spawnBuilding(world, building, 10, 10, "scale_guard", "outpost_core");
-		spawnUnit(world, unit, 4, 4, "ura", "captain_alpha");
-
-		taggedBuilding.set(ScriptTag, { id: "outpost_core" });
-		const query = createScenarioWorldQuery(world, session.mission);
-		expect(query.getEntityHealthPercent("outpost_core")).toBe(100);
-		expect(query.isBuildingDestroyed("outpost_core")).toBe(false);
-	});
-
-	it("bootstraps campaign world state, objectives, and navigation through the engine layer", () => {
-		const world = createWorld();
-		initSingletons(world);
-		const bootstrap = bootstrapCampaignWorld(world, "mission_1", () => {});
-
-		expect(world.get(CurrentMission)?.missionId).toBe("mission_1");
-		expect(world.get(Objectives)?.list.length).toBeGreaterThan(0);
-		expect(world.get(NavGraphState)?.graph).toBeTruthy();
-		expect(bootstrap.worldQuery.elapsedTime).toBe(0);
-		expect(bootstrap.focusTile.x).toBeGreaterThanOrEqual(0);
-		expect(bootstrap.session.diagnostics.events.some((event) => event.type === "campaign-bootstrap")).toBe(
-			true,
 		);
 	});
 

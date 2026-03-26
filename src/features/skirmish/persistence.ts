@@ -1,23 +1,7 @@
-import type { World } from "koota";
 import { SqlitePersistenceStore, createSeedBundle, shuffleSkirmishSeedBundle } from "@/engine";
-import { SkirmishSession } from "@/ecs/traits/state";
 import { initDatabase } from "@/persistence/database";
 import { SKIRMISH_MAPS, type SkirmishSessionConfig } from "./types";
-
-function toWorldConfig(config: SkirmishSessionConfig) {
-	return {
-		active: true,
-		mapId: config.mapId,
-		mapName: config.mapName,
-		mapPreset: config.preset,
-		difficulty: config.difficulty,
-		playAsScaleGuard: config.playAsScaleGuard,
-		seedPhrase: config.seed.phrase,
-		designSeed: config.seed.designSeed,
-		gameplaySeeds: config.seed.gameplaySeeds,
-		startingResources: config.startingResources,
-	};
-}
+import type { GameWorld } from "@/engine/world/gameWorld";
 
 export async function createSkirmishPersistenceStore(): Promise<SqlitePersistenceStore> {
 	await initDatabase();
@@ -65,8 +49,10 @@ export function createDefaultSkirmishConfig(): SkirmishSessionConfig {
 	};
 }
 
-export function applySkirmishConfigToWorld(world: World, config: SkirmishSessionConfig): void {
-	world.set(SkirmishSession, toWorldConfig(config));
+export function applySkirmishConfigToWorld(_world: GameWorld, _config: SkirmishSessionConfig): void {
+	// GameWorld does not use Koota singleton traits.
+	// Skirmish config is applied via seedGameWorldFromSkirmishSession in the engine session layer.
+	// This function is now a no-op placeholder for backward compatibility.
 }
 
 export function updateSkirmishSeedPhrase(

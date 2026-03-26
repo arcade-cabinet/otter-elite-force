@@ -1,14 +1,10 @@
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { render, screen } from "@solidjs/testing-library";
+import { describe, expect, it } from "vitest";
 import { RuntimeHost } from "./RuntimeHost";
-
-afterEach(() => {
-	cleanup();
-});
 
 describe("engine/runtime/RuntimeHost", () => {
 	it("mounts a direct tactical runtime host without a bridge overlay", () => {
-		render(<RuntimeHost mode="campaign" missionId="mission_1" />);
+		render(() => <RuntimeHost mode="campaign" missionId="mission_1" />);
 
 		expect(screen.getByTestId("runtime-host-container")).toBeTruthy();
 		expect(screen.queryByTestId("runtime-host-bridge")).toBeNull();
@@ -22,7 +18,7 @@ describe("engine/runtime/RuntimeHost", () => {
 	});
 
 	it("renders campaign runtime summary from the shared engine descriptor", () => {
-		render(<RuntimeHost mode="campaign" missionId="mission_1" />);
+		render(() => <RuntimeHost mode="campaign" missionId="mission_1" />);
 
 		expect(screen.getByText(/Beachhead/i)).toBeTruthy();
 		expect(screen.getByText(/Focus:/i)).toBeTruthy();
@@ -30,7 +26,7 @@ describe("engine/runtime/RuntimeHost", () => {
 	});
 
 	it("renders seeded skirmish runtime summary", () => {
-		render(
+		render(() => (
 			<RuntimeHost
 				mode="skirmish"
 				skirmish={{
@@ -48,8 +44,8 @@ describe("engine/runtime/RuntimeHost", () => {
 					},
 					startingResources: { fish: 300, timber: 200, salvage: 100 },
 				}}
-			/>,
-		);
+			/>
+		));
 
 		expect(screen.getByText(/River Crossing/i)).toBeTruthy();
 		expect(screen.getByText(/Seed:\s+silent-ember-heron/i)).toBeTruthy();

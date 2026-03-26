@@ -4,7 +4,7 @@ description: Authoritative implementation plan for the engine refactor
 version: 3.0.0
 updated: 2026-03-26
 tags: [architecture, migration, littlejs, bitecs, solidjs, capacitor]
-status: active
+status: complete
 ---
 
 # Engine Rewrite Plan

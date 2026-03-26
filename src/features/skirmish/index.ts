@@ -2,8 +2,6 @@
  * Skirmish mode — barrel export
  */
 
-export { SkirmishResult } from "./SkirmishResult";
-export { SkirmishSetup } from "./SkirmishSetup";
 export {
 	applySkirmishConfigToWorld,
 	createDefaultSkirmishConfig,

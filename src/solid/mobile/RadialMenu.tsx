@@ -10,7 +10,7 @@
  */
 
 import { type Component, For, Show } from "solid-js";
-import type { RadialAction, RadialMenuState } from "./radialMenuState";
+import { DEFAULT_RADIAL_ACTIONS, type RadialAction, type RadialMenuState } from "./radialMenuState";
 
 export type { RadialAction, RadialMenuState } from "./radialMenuState";
 // Re-export state and types from the pure-TS module
@@ -37,11 +37,10 @@ export const RadialMenu: Component<{
 	return (
 		<Show when={props.state.open()}>
 			{/* Full-screen dismiss backdrop */}
-			<div
+			<button
+				type="button"
 				data-testid="radial-menu"
-				role="button"
-				tabindex="0"
-				class="fixed inset-0 z-50"
+				class="fixed inset-0 z-50 cursor-default bg-transparent"
 				onClick={handleBackdropClick}
 				onKeyDown={(e) => {
 					if (e.key === "Escape") handleBackdropClick();
@@ -85,7 +84,7 @@ export const RadialMenu: Component<{
 						}}
 					</For>
 				</div>
-			</div>
+			</button>
 		</Show>
 	);
 };

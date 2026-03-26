@@ -9,7 +9,6 @@ export * from "./runtime/littlejsRuntime";
 export * from "./runtime/cameraProjection";
 export * from "./runtime/RuntimeHost";
 export * from "./runtime/loopProjection";
-export * from "./session/scenarioRuntime";
 export * from "./session/runtimeMissionFlow";
 export * from "./session/tacticalSession";
 export * from "./rendering/index";

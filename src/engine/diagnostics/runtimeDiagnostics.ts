@@ -1,5 +1,3 @@
-import type { World } from "koota";
-import { CurrentMission, GameClock, GamePhase, Objectives } from "@/ecs/traits/state";
 import { initDatabase } from "@/persistence/database";
 import type { PersistenceStore } from "../persistence/types";
 import { SqlitePersistenceStore } from "../persistence/sqlitePersistenceStore";
@@ -19,28 +17,6 @@ export function recordDiagnosticEvent(
 		payload,
 	};
 	snapshot.events.push(event);
-	return snapshot;
-}
-
-export function syncKootaDiagnostics(
-	world: World,
-	snapshot: DiagnosticSnapshot,
-): DiagnosticSnapshot {
-	const missionId = world.get(CurrentMission)?.missionId ?? snapshot.missionId;
-	const clock = world.get(GameClock);
-	const objectives = world.get(Objectives)?.list ?? [];
-	const phase = world.get(GamePhase)?.phase ?? "loading";
-
-	snapshot.missionId = missionId;
-	snapshot.tick = clock?.tick ?? snapshot.tick;
-	snapshot.objectives = objectives.map((objective) => ({
-		id: objective.id,
-		status: objective.status,
-	}));
-	if (phase === "defeat" && !snapshot.failures.includes("mission-defeat")) {
-		snapshot.failures.push("mission-defeat");
-	}
-
 	return snapshot;
 }
 

@@ -1,4 +1,5 @@
 import path from "node:path";
+import solid from "vite-plugin-solid";
 import { defineConfig } from "vitest/config";
 
 /**
@@ -11,6 +12,11 @@ import { defineConfig } from "vitest/config";
  * - Separate test patterns for unit and integration tests
  */
 export default defineConfig({
+	plugins: [
+		solid({
+			extensions: [".tsx"],
+		}),
+	],
 	test: {
 		globals: true,
 		environment: "happy-dom",

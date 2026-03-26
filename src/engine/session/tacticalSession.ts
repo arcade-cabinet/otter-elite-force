@@ -1,16 +1,3 @@
-import type { World } from "koota";
-import { buildGraphFromTilemap } from "@/ai/graphBuilder";
-import { buildTerrainGridForPathfinding } from "@/canvas/tilePainter";
-import { resetSessionState } from "@/ecs/singletons";
-import {
-	CurrentMission,
-	GamePhase,
-	NavGraphState,
-	Objectives,
-	PopulationState,
-	ResourcePool,
-	ScenarioRuntimeState,
-} from "@/ecs/traits/state";
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
 import { createMissionSeedBundle, type SeedBundle } from "../random/seed";
@@ -23,15 +10,9 @@ import {
 } from "../world/gameWorld";
 import type { SkirmishSessionConfig } from "@/features/skirmish/types";
 import { generateSkirmishMap, type SkirmishMapData, type SkirmishTerrainType } from "@/maps/skirmishMapGenerator";
-import { compileMissionScenario } from "@/entities/missions/compileMissionScenario";
 import { getMissionById } from "@/entities/missions";
 import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
-import { spawnBuilding, spawnResource, spawnUnit } from "@/entities/spawner";
 import type { MissionDef, Placement } from "@/entities/types";
-import { type ActionHandler, ScenarioEngine, type ScenarioWorldQuery } from "@/scenarios/engine";
-import { Faction, IsBuilding, ScriptTag, UnitType } from "@/ecs/traits/identity";
-import { Health } from "@/ecs/traits/combat";
-import { Position } from "@/ecs/traits/spatial";
 
 export interface CampaignRuntimeSession {
 	mode: "campaign";
@@ -85,8 +66,6 @@ export interface RuntimeSessionDescriptor {
 
 export interface CampaignBootstrapResult {
 	session: CampaignRuntimeSession;
-	engine: ScenarioEngine;
-	worldQuery: ScenarioWorldQuery;
 	worldSize: {
 		width: number;
 		height: number;
@@ -181,50 +160,6 @@ export function createSkirmishRuntimeSession(config: SkirmishSessionConfig): Ski
 	};
 }
 
-function spawnFromPlacement(world: World, placement: Placement, x: number, y: number): void {
-	const faction = placement.faction ?? "neutral";
-	const unitDef = getUnit(placement.type);
-	if (unitDef) {
-		spawnUnit(world, unitDef, x, y, faction, placement.scriptId);
-		return;
-	}
-	const heroDef = getHero(placement.type);
-	if (heroDef) {
-		spawnUnit(world, heroDef, x, y, faction, placement.scriptId);
-		return;
-	}
-	const buildingDef = getBuilding(placement.type);
-	if (buildingDef) {
-		spawnBuilding(world, buildingDef, x, y, faction, placement.scriptId);
-		return;
-	}
-	const resourceDef = getResource(placement.type);
-	if (resourceDef) {
-		spawnResource(world, resourceDef, x, y, placement.scriptId);
-	}
-}
-
-function populateMissionWorld(world: World, mission: MissionDef): void {
-	resetSessionState(world);
-	world.set(CurrentMission, { missionId: mission.id });
-	world.set(GamePhase, { phase: "playing" });
-	const res = mission.startResources;
-	world.set(ResourcePool, {
-		fish: res.fish ?? 0,
-		timber: res.timber ?? 0,
-		salvage: res.salvage ?? 0,
-	});
-	world.set(PopulationState, { current: 0, max: mission.startPopCap });
-	world.set(ScenarioRuntimeState, { phase: "initial", waveCounter: 0 });
-	for (const placement of mission.placements) {
-		const count = placement.count ?? 1;
-		for (let i = 0; i < count; i++) {
-			const pos = resolvePlacementPosition(placement, mission, i);
-			spawnFromPlacement(world, placement, pos.x, pos.y);
-		}
-	}
-}
-
 function resolveMissionFocusTile(mission: MissionDef): { x: number; y: number } {
 	const uraBuilding = mission.placements.find(
 		(placement) =>
@@ -235,63 +170,6 @@ function resolveMissionFocusTile(mission: MissionDef): { x: number; y: number } 
 	return {
 		x: uraBuilding?.x ?? uraUnit?.x ?? mission.zones.ura_start?.x ?? 0,
 		y: uraBuilding?.y ?? uraUnit?.y ?? mission.zones.ura_start?.y ?? 0,
-	};
-}
-
-export function bootstrapCampaignWorld(
-	world: World,
-	missionId: string,
-	actionHandler: ActionHandler,
-): CampaignBootstrapResult {
-	const session = createCampaignRuntimeSession(missionId);
-	const mission = session.mission;
-	populateMissionWorld(world, mission);
-
-	const terrainGrid = buildTerrainGridForPathfinding(mission);
-	const navGraph = buildGraphFromTilemap(terrainGrid, { eightWay: true });
-	world.set(NavGraphState, {
-		graph: navGraph,
-		width: mission.terrain.width,
-		height: mission.terrain.height,
-	});
-
-	const scenario = compileMissionScenario(mission);
-	const engine = new ScenarioEngine(scenario, actionHandler);
-	world.set(Objectives, {
-		list: scenario.objectives.map((objective) => ({
-			id: objective.id,
-			description: objective.description,
-			status: objective.status,
-			bonus: objective.type === "bonus",
-		})),
-	});
-	session.diagnostics.objectives = scenario.objectives.map((objective) => ({
-		id: objective.id,
-		status: objective.status,
-	}));
-
-	const worldQuery = createScenarioWorldQuery(world, mission);
-	worldQuery.elapsedTime = 0;
-
-	session.diagnostics.events.push({
-		tick: 0,
-		type: "campaign-bootstrap",
-		payload: {
-			missionId: mission.id,
-			placements: mission.placements.length,
-			objectives: scenario.objectives.length,
-			width: mission.terrain.width,
-			height: mission.terrain.height,
-			seedPhrase: scenario.seedPhrase,
-		},
-	});
-
-	return {
-		session,
-		engine,
-		worldQuery,
-		worldSize: session.worldSize,
-		focusTile: session.focusTile,
 	};
 }
 
@@ -518,155 +396,4 @@ export function seedGameWorldFromSkirmishSession(world: GameWorld, session: Skir
 			scriptId: `resource_${index}`,
 		});
 	}
-}
-
-function findEntitiesByTag(world: World, tag: string) {
-	return world.query(ScriptTag, Health).filter((entity) => entity.get(ScriptTag)?.id === tag);
-}
-
-export function createScenarioWorldQuery(world: World, mission: MissionDef): ScenarioWorldQuery {
-	return {
-		elapsedTime: 0,
-		countUnits: (faction, unitType) => {
-			let count = 0;
-			for (const e of world.query(Faction, Health)) {
-				if (e.get(Faction)?.id !== faction) continue;
-				if (unitType && e.get(UnitType)?.type !== unitType) continue;
-				count++;
-			}
-			return count;
-		},
-		countBuildings: (faction, buildingType) => {
-			let count = 0;
-			for (const e of world.query(Faction, UnitType, Health, IsBuilding)) {
-				if (e.get(Faction)?.id !== faction) continue;
-				if (buildingType && e.get(UnitType)?.type !== buildingType) continue;
-				count++;
-			}
-			return count;
-		},
-		countUnitsInArea: (faction, area, unitType) => {
-			let count = 0;
-			for (const e of world.query(Faction, Position, Health)) {
-				if (e.get(Faction)?.id !== faction) continue;
-				if (unitType && e.get(UnitType)?.type !== unitType) continue;
-				const pos = e.get(Position);
-				if (!pos) continue;
-				if (
-					pos.x >= area.x &&
-					pos.x < area.x + area.width &&
-					pos.y >= area.y &&
-					pos.y < area.y + area.height
-				) {
-					count++;
-				}
-			}
-			return count;
-		},
-		isBuildingDestroyed: (buildingTag) => {
-			const tagged = findEntitiesByTag(world, buildingTag);
-			if (tagged.length > 0) {
-				return tagged.every((entity) => (entity.get(Health)?.current ?? 1) <= 0);
-			}
-			for (const e of world.query(Faction, UnitType, Health, IsBuilding)) {
-				if (e.get(UnitType)?.type === buildingTag) {
-					const hp = e.get(Health);
-					if (hp && hp.current <= 0) return true;
-				}
-			}
-			return false;
-		},
-		getEntityHealthPercent: (entityTag) => {
-			const tagged = findEntitiesByTag(world, entityTag);
-			if (tagged.length > 0) {
-				const hp = tagged[0]?.get(Health);
-				return hp ? (hp.current / Math.max(hp.max, 1)) * 100 : null;
-			}
-			for (const e of world.query(UnitType, Health)) {
-				if (e.get(UnitType)?.type === entityTag) {
-					const hp = e.get(Health);
-					if (hp) return (hp.current / Math.max(hp.max, 1)) * 100;
-				}
-			}
-			return null;
-		},
-		getResourceAmount: (resource) => {
-			const pool = world.get(ResourcePool);
-			return pool?.[resource] ?? 0;
-		},
-		countEnemiesInZone: (zoneId, operatorContext) => {
-			const zone = mission.zones[zoneId];
-			if (!zone) return 0;
-			const blockedFaction = operatorContext?.faction ?? "ura";
-			let count = 0;
-			for (const e of world.query(Faction, Position, Health)) {
-				const faction = e.get(Faction)?.id;
-				if (!faction || faction === blockedFaction || faction === "neutral") continue;
-				const pos = e.get(Position);
-				if (!pos) continue;
-				if (
-					pos.x >= zone.x &&
-					pos.x < zone.x + zone.width &&
-					pos.y >= zone.y &&
-					pos.y < zone.y + zone.height
-				) {
-					count++;
-				}
-			}
-			return count;
-		},
-		countBuildingsInZone: (faction, zoneId, buildingType) => {
-			const zone = mission.zones[zoneId];
-			if (!zone) return 0;
-			let count = 0;
-			for (const e of world.query(Faction, Position, UnitType, Health, IsBuilding)) {
-				if (e.get(Faction)?.id !== faction) continue;
-				if (buildingType && e.get(UnitType)?.type !== buildingType) continue;
-				const pos = e.get(Position);
-				if (!pos) continue;
-				if (
-					pos.x >= zone.x &&
-					pos.x < zone.x + zone.width &&
-					pos.y >= zone.y &&
-					pos.y < zone.y + zone.height
-				) {
-					count++;
-				}
-			}
-			return count;
-		},
-		isEntityDestroyed: (entityTag, match = "first") => {
-			const tagged = findEntitiesByTag(world, entityTag);
-			if (tagged.length === 0) return false;
-			if (match === "all") {
-				return tagged.every((entity) => (entity.get(Health)?.current ?? 1) <= 0);
-			}
-			return tagged.some((entity) => (entity.get(Health)?.current ?? 1) <= 0);
-		},
-		getDestroyedEntityCount: (entityTag) => {
-			return findEntitiesByTag(world, entityTag).filter(
-				(entity) => (entity.get(Health)?.current ?? 1) <= 0,
-			).length;
-		},
-		getWaveCounter: () => world.get(ScenarioRuntimeState)?.waveCounter ?? 0,
-		hasConvoyEnteredZone: (zoneId) => {
-			const zone = mission.zones[zoneId];
-			if (!zone) return false;
-			for (const e of world.query(UnitType, Position, Health)) {
-				const type = e.get(UnitType)?.type ?? "";
-				if (!type.startsWith("convoy_")) continue;
-				const pos = e.get(Position);
-				if (!pos) continue;
-				if (
-					pos.x >= zone.x &&
-					pos.x < zone.x + zone.width &&
-					pos.y >= zone.y &&
-					pos.y < zone.y + zone.height
-				) {
-					return true;
-				}
-			}
-			return false;
-		},
-	};
 }

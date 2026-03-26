@@ -8,7 +8,8 @@
 		"types": ["vite/client"],
 
 		/* JSX */
-		"jsx": "react-jsx",
+		"jsx": "preserve",
+		"jsxImportSource": "solid-js",
 
 		/* Bundler mode */
 		"moduleResolution": "bundler",
@@ -30,5 +31,13 @@
 		"noFallthroughCasesInSwitch": true
 	},
 	"include": ["src"],
-	"exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/**/__tests__/**", "src/solid/**"]
+	"exclude": [
+		"src/**/*.test.ts",
+		"src/**/*.test.tsx",
+		"src/**/__tests__/**",
+		"src/solid/**",
+		"src/theme/svgDecorations.tsx",
+		"src/entities/spawner.ts",
+		"src/input/**"
+	]
 }

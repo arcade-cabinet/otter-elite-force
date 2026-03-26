@@ -1,7 +1,4 @@
-import { createWorld } from "koota";
 import { beforeEach, describe, expect, it } from "vitest";
-import { initSingletons } from "@/ecs/singletons";
-import { CurrentMission, GameClock, GamePhase, Objectives } from "@/ecs/traits/state";
 import { InMemoryDatabase } from "@/persistence/database";
 import { SqlitePersistenceStore } from "../persistence/sqlitePersistenceStore";
 import { createGameWorld } from "../world/gameWorld";
@@ -10,33 +7,15 @@ import {
 	persistDiagnosticSnapshot,
 	recordDiagnosticEvent,
 	syncGameWorldDiagnostics,
-	syncKootaDiagnostics,
 } from "./runtimeDiagnostics";
 
 describe("engine/diagnostics/runtimeDiagnostics", () => {
-	let kootaWorld: ReturnType<typeof createWorld>;
-
-	beforeEach(() => {
-		kootaWorld = createWorld();
-		initSingletons(kootaWorld);
-	});
-
-	it("synchronizes koota world mission, tick, and objective state into diagnostics", () => {
+	it("records diagnostic events into a snapshot", () => {
 		const snapshot = createEmptyDiagnosticsSnapshot();
-		kootaWorld.set(CurrentMission, { missionId: "mission_3" });
-		kootaWorld.set(GameClock, { elapsedMs: 1000, lastDeltaMs: 16, tick: 42, paused: false });
-		kootaWorld.set(GamePhase, { phase: "playing" });
-		kootaWorld.set(Objectives, {
-			list: [{ id: "hold-ridge", description: "Hold the ridge", status: "active", bonus: false }],
-		});
-
 		recordDiagnosticEvent(snapshot, "mission-started", { missionId: "mission_3" });
-		const synced = syncKootaDiagnostics(kootaWorld, snapshot);
 
-		expect(synced.missionId).toBe("mission_3");
-		expect(synced.tick).toBe(42);
-		expect(synced.objectives[0]?.id).toBe("hold-ridge");
-		expect(synced.events[0]?.type).toBe("mission-started");
+		expect(snapshot.events[0]?.type).toBe("mission-started");
+		expect(snapshot.events[0]?.payload?.missionId).toBe("mission_3");
 	});
 
 	it("synchronizes bitECS game world runtime state into diagnostics", () => {

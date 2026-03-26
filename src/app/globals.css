@@ -15,11 +15,10 @@
  * Components read these via Tailwind utilities (e.g. bg-background, text-foreground).
  */
 
-@import "../ui/themes/tactical.css";
-@import "../ui/themes/command-post.css";
-@import "../ui/themes/briefing.css";
+@import "../styles/themes/tactical.css";
+@import "../styles/themes/command-post.css";
+@import "../styles/themes/briefing.css";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 /*
  ---break---
  */

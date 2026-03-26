@@ -13,18 +13,19 @@ Authoritative context for AI coding agents (Claude, Codex, Gemini, etc.) working
 
 The design target is not a literal 1990s RTS replica. It is a modern game that is emblematic of 1990s RTS ideas. Nostalgic strategy, pacing, readability, and fantasy are desired. Outdated ergonomics are not.
 
-## Architecture (Target)
+## Architecture
 
-Engine rewrite in progress. See [docs/engine-rewrite-plan.md](docs/engine-rewrite-plan.md).
+| Layer | Stack |
+|-------|-------|
+| Rendering | **LittleJS** (Canvas2D tactical runtime) |
+| ECS | **bitECS** (scalar stores) + world-owned maps |
+| UI Shell | **SolidJS** (screens, HUD, mobile) |
+| AI | Yuka |
+| Audio | Tone.js |
+| Persistence | **@capacitor-community/sqlite** |
+| Build | Vite 8 |
 
-| Layer | Current | Target |
-|-------|---------|--------|
-| Rendering | react-konva (Konva.js) | **LittleJS** |
-| ECS | Koota | **bitECS** |
-| UI | React 19 | **SolidJS** |
-| AI | Yuka | Yuka (unchanged) |
-| Audio | Tone.js | Tone.js (unchanged) |
-| Build | Vite 8 | Vite (unchanged) |
+See [docs/engine-rewrite-plan.md](docs/engine-rewrite-plan.md) for full architecture details.
 
 ## Reference Codebases
 

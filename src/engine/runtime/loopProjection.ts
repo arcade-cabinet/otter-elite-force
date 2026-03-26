@@ -1,4 +1,5 @@
-import type { GamePhaseType } from "@/ecs/traits/state";
+/** Game phase type — mirrors GameWorld.session.phase */
+export type GamePhaseType = "loading" | "briefing" | "playing" | "paused" | "victory" | "defeat";
 
 const DEFAULT_FRAME_DELTA_MS = 16.67;
 const MAX_FRAME_DELTA_MS = 100;
