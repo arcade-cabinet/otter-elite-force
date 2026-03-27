@@ -43,8 +43,8 @@ const PROJECTILE_SPEED = 480;
 /** Hit radius — projectile hits when this close to target. */
 const HIT_RADIUS = 16;
 
-/** Melee vs ranged threshold in pixels. */
-const MELEE_RANGE_THRESHOLD = 48;
+/** Melee vs ranged threshold in pixels. Units with range <= 64 attack directly. */
+const MELEE_RANGE_THRESHOLD = 64;
 
 /** Default mortar splash radius in pixels. */
 const MORTAR_SPLASH_RADIUS = 64;

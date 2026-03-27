@@ -16,11 +16,28 @@
  */
 
 import { getEntityAnimFrame, getEntityFrameSize, getEntitySprite } from "@/canvas/spriteAtlas";
+import { getSpriteForUnit } from "@/engine/content/spriteMapping";
 import { Faction, Flags, Health, Position, Selection } from "../world/components";
 import type { GameWorld } from "../world/gameWorld";
 
 /** Track entity types that have been warned about missing sprites (one-time per type). */
 const warnedMissingSprites = new Set<string>();
+const resolvedAtlasNames = new Map<string, string>();
+
+/** Resolve a unit type ID (e.g., "river_rat") to its atlas animal name (e.g., "otter"). */
+export function resolveAtlasName(entityType: string): string {
+	const cached = resolvedAtlasNames.get(entityType);
+	if (cached) return cached;
+	try {
+		const mapping = getSpriteForUnit(entityType);
+		resolvedAtlasNames.set(entityType, mapping.atlas);
+		return mapping.atlas;
+	} catch {
+		// Not in unit registry — try using entityType directly as atlas name
+		resolvedAtlasNames.set(entityType, entityType);
+		return entityType;
+	}
+}
 
 /** Frames between animation ticks. At 60fps, 6 frames = ~100ms per sprite frame. */
 const ANIM_FRAME_DURATION_MS = 100;
@@ -190,7 +207,8 @@ export function createSpriteRenderer(): SpriteRenderer {
 			// This way entities render as soon as their individual atlas loads,
 			// even if other atlases are still loading or failed.
 			if (entity.entityType) {
-				// Try animated frame first
+				// Pass entity type directly — spriteAtlas.ts has its own entitySpriteMap
+				// that resolves unit IDs (river_rat) → animal atlas (otter) internally
 				const animName = resolveAnimation(entity.eid);
 				const animFrame = getEntityAnimFrame(
 					entity.entityType,

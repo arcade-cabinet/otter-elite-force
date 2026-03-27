@@ -4,15 +4,23 @@ import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
 import { resolveFactionId } from "../content/ids";
 import { createSeedBundle, type SeedBundle } from "../random/seed";
 import {
+	Armor,
 	Attack,
 	Construction,
 	Content,
+	Facing,
 	Faction,
 	Flags,
+	Gatherer,
 	Health,
 	Position,
+	ResourceNode,
 	Selection,
+	Speed,
+	SplashRadius,
 	TargetRef,
+	Velocity,
+	VisionRadius,
 } from "./components";
 
 export interface Order {
@@ -246,6 +254,25 @@ function spawnEntity(world: GameWorld, options: {
 	Flags.canSwim[eid] = options.flags?.canSwim ?? 0;
 	Flags.submerged[eid] = options.flags?.submerged ?? 0;
 	Flags.stealthed[eid] = options.flags?.stealthed ?? 0;
+
+	// Zero out SoA fields to prevent stale data from reused entity IDs
+	Attack.damage[eid] = 0;
+	Attack.range[eid] = 0;
+	Attack.cooldown[eid] = 0;
+	Attack.timer[eid] = 0;
+	Armor.value[eid] = 0;
+	Speed.value[eid] = 0;
+	VisionRadius.value[eid] = 0;
+	TargetRef.eid[eid] = 0;
+	Velocity.x[eid] = 0;
+	Velocity.y[eid] = 0;
+	Facing.radians[eid] = 0;
+	Construction.progress[eid] = 0;
+	Construction.buildTime[eid] = 0;
+	Gatherer.amount[eid] = 0;
+	Gatherer.capacity[eid] = 0;
+	ResourceNode.remaining[eid] = 0;
+	SplashRadius.radius[eid] = 0;
 
 	world.runtime.alive.add(eid);
 	return eid;
