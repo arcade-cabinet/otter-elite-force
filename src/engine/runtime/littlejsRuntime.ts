@@ -1,13 +1,15 @@
+import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import {
 	initAudioRuntime,
 	playBattleMusic,
 	playSfx,
 	syncAudioFromWorld,
 } from "@/engine/audio/audioRuntime";
-import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import type { GameBridge, SelectionViewModel } from "../bridge/gameBridge";
+import { serializeGameWorld } from "../persistence/gameWorldSaveLoad";
+import { SqlitePersistenceStore } from "../persistence/sqlitePersistenceStore";
 import { loadTileImages } from "../rendering/assetLoader";
-import { createCombatTextRenderer, type CombatTextRenderer } from "../rendering/combatText";
+import { type CombatTextRenderer, createCombatTextRenderer } from "../rendering/combatText";
 import { renderFogOverlay } from "../rendering/fogRenderer";
 import { createSpriteRenderer, type SpriteRenderer } from "../rendering/spriteRenderer";
 import { createTerrainRenderer, type TerrainRenderer } from "../rendering/terrainRenderer";
@@ -212,9 +214,7 @@ export async function createLittleJsRuntime(
 		// Load terrain tile images and build terrain renderer if navigation data exists
 		loadTileImages()
 			.then((tileImages) => {
-				console.log(
-					`[littlejsRuntime] Terrain tiles ready: ${tileImages.size} images loaded`,
-				);
+				console.log(`[littlejsRuntime] Terrain tiles ready: ${tileImages.size} images loaded`);
 				const navW = options.world.navigation.width;
 				const navH = options.world.navigation.height;
 				if (navW > 0 && navH > 0) {
@@ -233,9 +233,7 @@ export async function createLittleJsRuntime(
 
 					// Reveal tiles around player entities at startup
 					revealFogAroundPlayerEntities();
-					console.log(
-						`[littlejsRuntime] Terrain renderer ready (${navW}x${navH} grid)`,
-					);
+					console.log(`[littlejsRuntime] Terrain renderer ready (${navW}x${navH} grid)`);
 				} else {
 					console.error(
 						`[littlejsRuntime] No navigation data — terrain renderer not created (navW=${navW}, navH=${navH})`,
@@ -447,11 +445,20 @@ export async function createLittleJsRuntime(
 				continue;
 			}
 			if (event.type === "boss-spawned") {
-				pushAlert(`Boss engaged: ${String(event.payload?.name ?? "Unknown")}`, "critical");
+				const bossX = event.payload?.x as number | undefined;
+				const bossY = event.payload?.y as number | undefined;
+				pushAlert(
+					`Boss engaged: ${String(event.payload?.name ?? "Unknown")}`,
+					"critical",
+					bossX,
+					bossY,
+				);
 				continue;
 			}
 			if (event.type === "building-complete") {
-				pushAlert("Construction complete", "info");
+				const bx = event.payload?.x as number | undefined;
+				const by = event.payload?.y as number | undefined;
+				pushAlert("Construction complete", "info", bx, by);
 				playSfx("buildComplete");
 				continue;
 			}
@@ -461,16 +468,65 @@ export async function createLittleJsRuntime(
 				continue;
 			}
 			if (event.type === "reinforcements-arrived") {
-				pushAlert("Reinforcements have arrived", "info");
+				const rx = event.payload?.x as number | undefined;
+				const ry = event.payload?.y as number | undefined;
+				pushAlert("Reinforcements have arrived", "info", rx, ry);
+			}
+			if (event.type === "under-attack") {
+				const ax = event.payload?.x as number | undefined;
+				const ay = event.payload?.y as number | undefined;
+				pushAlert("Under Attack!", "critical", ax, ay);
+				continue;
+			}
+			if (event.type === "enemy-spotted") {
+				const ex = event.payload?.x as number | undefined;
+				const ey = event.payload?.y as number | undefined;
+				pushAlert("Enemy Spotted", "warning", ex, ey);
+				continue;
+			}
+			if (event.type === "save-requested") {
+				const snapshot = serializeGameWorld(options.world);
+				const store = new SqlitePersistenceStore();
+				void store
+					.initialize()
+					.then(() =>
+						store.saveMission({
+							slot: 0,
+							missionId: options.world.session.currentMissionId ?? "unknown",
+							seed: {
+								phrase: options.world.rng.phrase,
+								source: options.world.rng.source,
+								numericSeed: options.world.rng.numericSeed,
+								designSeed: options.world.rng.designSeed,
+								gameplaySeeds: { ...options.world.rng.gameplaySeeds },
+							},
+							snapshot: JSON.stringify(snapshot),
+							playTimeMs: options.world.time.elapsedMs,
+							savedAt: Date.now(),
+						}),
+					)
+					.then(() => {
+						pushAlert("Game saved", "info");
+					})
+					.catch((err: unknown) => {
+						console.error("[littlejsRuntime] Save failed:", err);
+						pushAlert("Save failed", "critical");
+					});
 			}
 		}
 	}
 
-	function pushAlert(message: string, severity: "info" | "warning" | "critical"): void {
+	function pushAlert(
+		message: string,
+		severity: "info" | "warning" | "critical",
+		worldX?: number,
+		worldY?: number,
+	): void {
 		const id = `runtime-alert-${options.world.time.tick}-${options.bridge.state.alerts.length}`;
-		options.bridge.state.alerts = [...options.bridge.state.alerts, { id, message, severity }].slice(
-			-4,
-		);
+		options.bridge.state.alerts = [
+			...options.bridge.state.alerts,
+			{ id, message, severity, worldX, worldY },
+		].slice(-4);
 	}
 
 	function syncBridgeState(): void {

@@ -391,6 +391,64 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* CRT Scanline effect (US-039)                                        */
+/* Toggle via [data-crt-scanlines="true"] on the root or a panel.      */
+/* Opt-in via settings for the retro aesthetic.                         */
+/* ------------------------------------------------------------------ */
+
+@keyframes scanline-scroll {
+	0% {
+		transform: translateY(0);
+	}
+	100% {
+		transform: translateY(4px);
+	}
+}
+
+.crt-scanlines {
+	position: relative;
+}
+
+.crt-scanlines::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	z-index: 2;
+	background: repeating-linear-gradient(
+		180deg,
+		rgba(0, 0, 0, 0.06) 0px,
+		rgba(0, 0, 0, 0.06) 1px,
+		transparent 1px,
+		transparent 3px
+	);
+	animation: scanline-scroll 0.15s linear infinite;
+}
+
+[data-crt-scanlines="false"] .crt-scanlines::before {
+	display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Slide-in animation for alerts                                       */
+/* ------------------------------------------------------------------ */
+
+@keyframes slide-in-right {
+	from {
+		opacity: 0;
+		transform: translateX(100%);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+.animate-slide-in-right {
+	animation: slide-in-right 0.3s ease-out both;
+}
+
+/* ------------------------------------------------------------------ */
 /* US-092: Reduced motion support                                      */
 /* Disable typewriter, floating text, particles, and decorative        */
 /* animations when the user prefers reduced motion.                    */
@@ -421,6 +479,14 @@
 
 	.screen-noise {
 		display: none;
+	}
+
+	.crt-scanlines::before {
+		display: none;
+	}
+
+	.animate-slide-in-right {
+		animation: none;
 	}
 
 	/* Disable all transitions and animations globally */

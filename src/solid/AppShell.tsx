@@ -9,25 +9,29 @@
  * mounted via a DOM bridge. Post-migration, all screens are pure Solid.
  */
 
-import { Switch, Match, type Component } from "solid-js";
-import { createAppState, type AppState } from "./appState";
-import { RuntimeHost } from "@/engine/runtime/RuntimeHost";
+import { type Component, Match, Switch } from "solid-js";
+import { isFinalCampaignMission, resolveMissionVictory } from "@/app/missionResult";
+import { SqlitePersistenceStore } from "@/engine/persistence/sqlitePersistenceStore";
+import { type PhaseChangeStats, RuntimeHost } from "@/engine/runtime/RuntimeHost";
+import { type AppState, createAppState } from "./appState";
 import {
-	MainMenu,
-	CampaignView,
-	SettingsPanel,
-	SkirmishSetup,
 	BriefingOverlay,
+	CampaignView,
+	MainMenu,
 	MissionResult,
+	SettingsPanel,
 	SkirmishResult,
+	SkirmishSetup,
 } from "./screens";
+import type { MissionResultData } from "./screens/MissionResult";
 
-// Re-export for consumers
-export { createAppState, type AppState };
 export type { ScreenId } from "./appState";
+// Re-export for consumers
+export { type AppState, createAppState };
 
 /**
  * Game screen — mounts the LittleJS tactical runtime via RuntimeHost.
+ * On victory/defeat, captures stats and navigates to result screen.
  */
 const GameScreen: Component<{ app: AppState }> = (props) => {
 	return (
@@ -35,8 +39,87 @@ const GameScreen: Component<{ app: AppState }> = (props) => {
 			<RuntimeHost
 				mode={props.app.isSkirmish() ? "skirmish" : "campaign"}
 				missionId={props.app.currentMissionId() ?? undefined}
-				onPhaseChange={(phase) => {
+				onPhaseChange={(phase, stats?: PhaseChangeStats) => {
 					if (phase === "victory" || phase === "defeat") {
+						const missionId = props.app.currentMissionId() ?? "unknown";
+						const elapsedSec = stats ? Math.floor(stats.timeElapsedMs / 1000) : 0;
+						// Star rating: 1 star base, +1 for > half objectives, +1 for all objectives
+						let stars: 0 | 1 | 2 | 3 = 0;
+						if (phase === "victory" && stats) {
+							stars = 1;
+							if (stats.objectivesTotal > 0) {
+								if (stats.objectivesCompleted >= stats.objectivesTotal) {
+									stars = 3;
+								} else if (stats.objectivesCompleted > stats.objectivesTotal / 2) {
+									stars = 2;
+								}
+							}
+						}
+						const resultData: MissionResultData = {
+							outcome: phase as "victory" | "defeat",
+							missionId,
+							missionName: phase === "victory" ? "MISSION COMPLETE" : "MISSION FAILED",
+							stars,
+							stats: {
+								timeElapsed: elapsedSec,
+								unitsLost: stats?.unitsLost ?? 0,
+								resourcesGathered: stats?.resourcesGathered ?? 0,
+								unitsDeployed: stats?.unitsDeployed ?? 0,
+							},
+							isFinalMission: isFinalCampaignMission(missionId),
+						};
+						props.app.setMissionResult(resultData);
+
+						// Persist campaign progress on victory
+						if (phase === "victory" && !props.app.isSkirmish()) {
+							const store = new SqlitePersistenceStore();
+							void store
+								.initialize()
+								.then(async () => {
+									const existing = await store.loadCampaign();
+									const progress = existing ?? {
+										currentMissionId: missionId,
+										difficulty: "tactical" as const,
+										missions: {},
+									};
+									const resolution = resolveMissionVictory(
+										{
+											missions: Object.fromEntries(
+												Object.entries(progress.missions).map(([k, v]) => [
+													k,
+													{
+														status: v.status,
+														stars: v.stars,
+														bestTime: v.bestTimeMs ?? 0,
+													},
+												]),
+											),
+											currentMission: progress.currentMissionId,
+											difficulty: progress.difficulty,
+										},
+										missionId,
+										stars,
+									);
+									await store.saveCampaign({
+										currentMissionId: resolution.nextMissionId,
+										difficulty: progress.difficulty,
+										missions: Object.fromEntries(
+											Object.entries(resolution.progress.missions).map(([k, v]) => [
+												k,
+												{
+													status: v.status as "locked" | "available" | "completed",
+													stars: v.stars,
+													bestTimeMs: v.bestTime,
+												},
+											]),
+										),
+									});
+								})
+								.catch((err: unknown) => {
+									console.error("[AppShell] Failed to persist campaign progress:", err);
+								});
+						}
+
 						props.app.setScreen("result");
 					}
 				}}
@@ -75,7 +158,7 @@ export const AppShell: Component = () => {
 				{app.isSkirmish() ? (
 					<SkirmishResult app={app} />
 				) : (
-					<MissionResult app={app} />
+					<MissionResult app={app} result={app.missionResult() ?? undefined} />
 				)}
 			</Match>
 		</Switch>

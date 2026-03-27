@@ -14,6 +14,7 @@
  */
 
 import { playSfx } from "@/engine/audio/audioRuntime";
+import { FACTION_IDS } from "@/engine/content/ids";
 import {
 	Armor,
 	Attack,
@@ -26,12 +27,8 @@ import {
 	Velocity,
 	VisionRadius,
 } from "@/engine/world/components";
-import { FACTION_IDS } from "@/engine/content/ids";
-import {
-	markForRemoval,
-	spawnProjectile,
-	type GameWorld,
-} from "@/engine/world/gameWorld";
+import { type GameWorld, markForRemoval, spawnProjectile } from "@/engine/world/gameWorld";
+import { recordDamageAssist } from "./veterancySystem";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -187,7 +184,10 @@ export function runCombatSystem(world: GameWorld): void {
 		if (targetEid <= 0) continue;
 
 		// Range check
-		if (distSq(Position.x[eid], Position.y[eid], Position.x[targetEid], Position.y[targetEid]) > range * range) {
+		if (
+			distSq(Position.x[eid], Position.y[eid], Position.x[targetEid], Position.y[targetEid]) >
+			range * range
+		) {
 			continue;
 		}
 
@@ -207,10 +207,19 @@ export function runCombatSystem(world: GameWorld): void {
 			Health.current[targetEid] -= dmg;
 			playSfx("meleeHit");
 
-			world.events.push({ type: "melee-hit", payload: { attacker: eid, target: targetEid, damage: dmg } });
+			// Track damage for veterancy assists
+			recordDamageAssist(world, eid, targetEid);
+
+			world.events.push({
+				type: "melee-hit",
+				payload: { attacker: eid, target: targetEid, damage: dmg },
+			});
 
 			if (Faction.id[targetEid] === FACTION_IDS.ura) {
-				world.events.push({ type: "under-attack", payload: { x: Position.x[targetEid], y: Position.y[targetEid] } });
+				world.events.push({
+					type: "under-attack",
+					payload: { x: Position.x[targetEid], y: Position.y[targetEid] },
+				});
 			}
 
 			if (Health.current[targetEid] <= 0) {
@@ -219,9 +228,12 @@ export function runCombatSystem(world: GameWorld): void {
 			}
 		} else {
 			// Ranged: spawn projectile
-			const fName = Faction.id[eid] === FACTION_IDS.ura ? "ura"
-				: Faction.id[eid] === FACTION_IDS.scale_guard ? "scale_guard"
-				: "neutral";
+			const fName =
+				Faction.id[eid] === FACTION_IDS.ura
+					? "ura"
+					: Faction.id[eid] === FACTION_IDS.scale_guard
+						? "scale_guard"
+						: "neutral";
 			const projEid = spawnProjectile(world, {
 				x: Position.x[eid],
 				y: Position.y[eid],
@@ -235,6 +247,9 @@ export function runCombatSystem(world: GameWorld): void {
 			if (uType === "mortar_otter") {
 				SplashRadius.radius[projEid] = MORTAR_SPLASH_RADIUS;
 			}
+
+			// Track damage for veterancy assists (at fire time, so assists are recorded even if projectile is in flight)
+			recordDamageAssist(world, eid, targetEid);
 
 			playSfx("rangedFire");
 			world.events.push({ type: "ranged-fire", payload: { attacker: eid, target: targetEid } });
@@ -333,7 +348,10 @@ function applyAoe(
 		Health.current[eid] -= dmg;
 
 		if (Faction.id[eid] === FACTION_IDS.ura) {
-			world.events.push({ type: "under-attack", payload: { x: Position.x[eid], y: Position.y[eid] } });
+			world.events.push({
+				type: "under-attack",
+				payload: { x: Position.x[eid], y: Position.y[eid] },
+			});
 		}
 		if (Health.current[eid] <= 0) {
 			playSfx("unitDeath");
@@ -368,53 +386,11 @@ function processDeaths(world: GameWorld): void {
 	}
 
 	for (const eid of deadEids) {
-		// Roll loot
-		const unitType = world.runtime.entityTypeIndex.get(eid);
-		if (unitType && Faction.id[eid] !== FACTION_IDS.ura) {
-			rollLoot(world, eid, unitType);
-		}
-
-		world.events.push({ type: "unit-died", payload: { eid, x: Position.x[eid], y: Position.y[eid] } });
+		world.events.push({
+			type: "unit-died",
+			payload: { eid, x: Position.x[eid], y: Position.y[eid] },
+		});
 		markForRemoval(world, eid);
-	}
-}
-
-// ---------------------------------------------------------------------------
-// Loot tables
-// ---------------------------------------------------------------------------
-
-const DEFAULT_LOOT: Record<string, Array<{ resource: "fish" | "timber" | "salvage"; chance: number; min: number; max: number }>> = {
-	skink: [{ resource: "fish", chance: 0.3, min: 5, max: 10 }],
-	gator: [
-		{ resource: "salvage", chance: 0.5, min: 10, max: 20 },
-		{ resource: "fish", chance: 0.3, min: 5, max: 15 },
-	],
-	viper: [{ resource: "salvage", chance: 0.4, min: 8, max: 15 }],
-	scout_lizard: [{ resource: "timber", chance: 0.2, min: 5, max: 10 }],
-	snapper: [{ resource: "salvage", chance: 0.6, min: 15, max: 30 }],
-	croc_champion: [
-		{ resource: "salvage", chance: 0.9, min: 25, max: 50 },
-		{ resource: "fish", chance: 0.6, min: 15, max: 30 },
-		{ resource: "timber", chance: 0.4, min: 10, max: 20 },
-	],
-	siphon_drone: [{ resource: "salvage", chance: 0.7, min: 10, max: 25 }],
-	serpent_king: [
-		{ resource: "salvage", chance: 1.0, min: 100, max: 200 },
-		{ resource: "fish", chance: 1.0, min: 50, max: 100 },
-		{ resource: "timber", chance: 1.0, min: 50, max: 100 },
-	],
-};
-
-function rollLoot(world: GameWorld, eid: number, unitType: string): void {
-	const table = world.runtime.lootTables.get(unitType) ?? DEFAULT_LOOT[unitType];
-	if (!table) return;
-
-	for (const entry of table) {
-		if (Math.random() > entry.chance) continue;
-		const amount = Math.floor(entry.min + Math.random() * (entry.max - entry.min + 1));
-		if (amount <= 0) continue;
-		world.session.resources[entry.resource] += amount;
-		world.events.push({ type: "loot-collected", payload: { eid, resource: entry.resource, amount } });
 	}
 }
 
@@ -424,8 +400,11 @@ function rollLoot(world: GameWorld, eid: number, unitType: string): void {
 
 function getDifficultyMod(world: GameWorld): number {
 	switch (world.campaign.difficulty) {
-		case "support": return 0.75;
-		case "tactical": return 1.0;
-		case "elite": return 1.25;
+		case "support":
+			return 0.75;
+		case "tactical":
+			return 1.0;
+		case "elite":
+			return 1.25;
 	}
 }

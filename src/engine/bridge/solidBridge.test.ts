@@ -286,4 +286,83 @@ describe("engine/bridge/solidBridge", () => {
 			dispose();
 		});
 	});
+
+	it("emit.focusCamera enqueues focusCamera command", () => {
+		createRoot((dispose) => {
+			const bridge = createSolidBridge();
+
+			bridge.emit.focusCamera(128, 256);
+
+			const commands = bridge.drainCommands();
+			expect(commands).toHaveLength(1);
+			expect(commands[0].type).toBe("focusCamera");
+			expect(commands[0].payload?.worldX).toBe(128);
+			expect(commands[0].payload?.worldY).toBe(256);
+
+			dispose();
+		});
+	});
+
+	it("emit.dismissAlert removes alert from store", () => {
+		createRoot((dispose) => {
+			const bridge = createSolidBridge();
+			const world = createGameWorld();
+			world.session.phase = "playing";
+
+			// Push a hud-alert event so the bridge picks it up
+			world.events.push({
+				type: "hud-alert",
+				payload: { severity: "critical", message: "Under Attack!", worldX: 100, worldY: 200 },
+			});
+
+			bridge.syncFromWorld(world);
+			expect(bridge.accessors.alerts.length).toBe(1);
+
+			const alertId = bridge.accessors.alerts[0].id;
+			bridge.emit.dismissAlert(alertId);
+			expect(bridge.accessors.alerts.length).toBe(0);
+
+			dispose();
+		});
+	});
+
+	it("emit.saveGame enqueues save command", () => {
+		createRoot((dispose) => {
+			const bridge = createSolidBridge();
+
+			bridge.emit.saveGame();
+
+			const commands = bridge.drainCommands();
+			expect(commands).toHaveLength(1);
+			expect(commands[0].type).toBe("save");
+
+			dispose();
+		});
+	});
+
+	it("syncs alert worldX/worldY from hud-alert events", () => {
+		createRoot((dispose) => {
+			const bridge = createSolidBridge();
+			const world = createGameWorld();
+			world.session.phase = "playing";
+
+			world.events.push({
+				type: "hud-alert",
+				payload: {
+					severity: "critical",
+					message: "Under Attack!",
+					worldX: 320,
+					worldY: 640,
+				},
+			});
+
+			bridge.syncFromWorld(world);
+
+			expect(bridge.accessors.alerts.length).toBe(1);
+			expect(bridge.accessors.alerts[0].worldX).toBe(320);
+			expect(bridge.accessors.alerts[0].worldY).toBe(640);
+
+			dispose();
+		});
+	});
 });

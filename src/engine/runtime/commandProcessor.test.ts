@@ -7,7 +7,7 @@ import {
 	spawnBuilding,
 	spawnUnit,
 } from "@/engine/world/gameWorld";
-import { processCommands, type BridgeCommand } from "./commandProcessor";
+import { type BridgeCommand, processCommands } from "./commandProcessor";
 
 // Mock audio to avoid Tone.js in tests
 vi.mock("@/engine/audio/audioRuntime", () => ({
@@ -28,10 +28,7 @@ describe("commandProcessor", () => {
 	describe("processCommands", () => {
 		it("drains the command queue completely", () => {
 			const world = createTestWorld();
-			const queue: BridgeCommand[] = [
-				{ type: "pause" },
-				{ type: "resume" },
-			];
+			const queue: BridgeCommand[] = [{ type: "pause" }, { type: "resume" }];
 			processCommands(world, queue);
 			expect(queue).toHaveLength(0);
 		});
@@ -74,9 +71,7 @@ describe("commandProcessor", () => {
 			Selection.selected[eid1] = 1;
 			Selection.selected[eid2] = 1;
 
-			processCommands(world, [
-				{ type: "move", payload: { targetX: 100, targetY: 200 } },
-			]);
+			processCommands(world, [{ type: "move", payload: { targetX: 100, targetY: 200 } }]);
 
 			const q1 = getOrderQueue(world, eid1);
 			const q2 = getOrderQueue(world, eid2);
@@ -91,9 +86,7 @@ describe("commandProcessor", () => {
 		it("does nothing when no entities selected", () => {
 			const world = createTestWorld();
 			spawnUnit(world, { x: 10, y: 10, faction: "ura" });
-			processCommands(world, [
-				{ type: "move", payload: { targetX: 100, targetY: 200 } },
-			]);
+			processCommands(world, [{ type: "move", payload: { targetX: 100, targetY: 200 } }]);
 			// No crash, no orders set
 			expect(world.runtime.orderQueues.size).toBe(0);
 		});
@@ -138,9 +131,7 @@ describe("commandProcessor", () => {
 			Position.x[eid] = 10;
 			Position.y[eid] = 20;
 
-			processCommands(world, [
-				{ type: "patrol", payload: { targetX: 100, targetY: 200 } },
-			]);
+			processCommands(world, [{ type: "patrol", payload: { targetX: 100, targetY: 200 } }]);
 
 			const q = getOrderQueue(world, eid);
 			expect(q).toHaveLength(2);
@@ -156,9 +147,7 @@ describe("commandProcessor", () => {
 	describe("startBuild command", () => {
 		it("emits enter-build-mode event", () => {
 			const world = createTestWorld();
-			processCommands(world, [
-				{ type: "startBuild", payload: { buildingId: "barracks" } },
-			]);
+			processCommands(world, [{ type: "startBuild", payload: { buildingId: "barracks" } }]);
 
 			expect(world.events).toHaveLength(1);
 			expect(world.events[0].type).toBe("enter-build-mode");
@@ -178,9 +167,7 @@ describe("commandProcessor", () => {
 			});
 			Selection.selected[buildingEid] = 1;
 
-			processCommands(world, [
-				{ type: "queueUnit", payload: { unitId: "mudfoot" } },
-			]);
+			processCommands(world, [{ type: "queueUnit", payload: { unitId: "mudfoot" } }]);
 
 			const q = getProductionQueue(world, buildingEid);
 			expect(q).toHaveLength(1);
@@ -199,9 +186,7 @@ describe("commandProcessor", () => {
 				health: { current: 500, max: 500 },
 			});
 
-			processCommands(world, [
-				{ type: "queueUnit", payload: { unitId: "mudfoot" } },
-			]);
+			processCommands(world, [{ type: "queueUnit", payload: { unitId: "mudfoot" } }]);
 
 			const q = getProductionQueue(world, buildingEid);
 			expect(q).toHaveLength(1);
@@ -241,6 +226,18 @@ describe("commandProcessor", () => {
 			expect(world.events).toHaveLength(1);
 			expect(world.events[0].type).toBe("save-requested");
 			expect(world.events[0].payload?.tick).toBe(42);
+		});
+	});
+
+	describe("focusCamera command", () => {
+		it("emits camera-focus event with tile coordinates", () => {
+			const world = createTestWorld();
+			processCommands(world, [{ type: "focusCamera", payload: { worldX: 320, worldY: 640 } }]);
+
+			expect(world.events).toHaveLength(1);
+			expect(world.events[0].type).toBe("camera-focus");
+			expect(world.events[0].payload?.x).toBe(10); // 320 / 32
+			expect(world.events[0].payload?.y).toBe(20); // 640 / 32
 		});
 	});
 

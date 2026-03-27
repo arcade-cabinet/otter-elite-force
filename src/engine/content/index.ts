@@ -1,24 +1,51 @@
 /**
- * Content barrel — exports all game content registries.
+ * Content barrel — exports all game content types and accessors.
  *
- * Import from '@/engine/content' to access units, buildings, balance,
- * research, and sprite mappings.
+ * Game data lives in JSON files under public/data/ and is loaded at runtime
+ * via loadTemplates(). TypeScript types and accessor functions live here.
  */
 
-export type { DifficultyLevel } from "./balance";
-export { BALANCE } from "./balance";
-export type { ContentBuildingDef } from "./buildings";
-export { BUILDING_REGISTRY, getBuildingDef } from "./buildings";
+// IDs — faction/category numeric IDs for bitECS components
 export type { CategoryId, CategoryName, FactionId, FactionName } from "./ids";
 export { CATEGORY_IDS, FACTION_IDS, resolveCategoryId, resolveFactionId } from "./ids";
-export type { ContentResearchDef } from "./research";
-export { getResearchDef, RESEARCH_REGISTRY } from "./research";
-export type { SpriteMapping } from "./spriteMapping";
+
+// Template types
+export type {
+	AbilityDef,
+	BalanceConfig,
+	BuildingStatBlock,
+	BuildingTemplate,
+	BuildingVisualConfig,
+	ConstructionConfig,
+	DifficultyConfig,
+	GameTemplates,
+	MissionData,
+	PassiveIncome,
+	ResearchDef,
+	ResearchEffect,
+	ResourceCost,
+	StatBlock,
+	TrainingConfig,
+	UnitTemplate,
+	VisualConfig,
+} from "./templateTypes";
+
+// Template loader — async load + synchronous accessors
 export {
-	getSpriteForBuilding,
-	getSpriteForUnit,
-	hasBuildingSprite,
-	hasUnitSprite,
-} from "./spriteMapping";
-export type { ContentUnitDef } from "./units";
-export { getUnitDef, UNIT_REGISTRY } from "./units";
+	_injectTemplatesForTest,
+	getAbilityDef,
+	getBalance,
+	getBuildingRegistry,
+	getBuildingTemplate,
+	getMissionData,
+	getResearchRegistry,
+	getResearchTemplate,
+	getTemplates,
+	getUnitRegistry,
+	getUnitTemplate,
+	loadMission,
+	loadTemplates,
+} from "./templateLoader";
+
+// Template resolver (mostly internal, but exported for tests)
+export { deepMerge, resolveAllTemplates, resolveTemplate } from "./templateResolver";

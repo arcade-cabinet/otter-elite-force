@@ -25,6 +25,10 @@ export interface AlertViewModel {
 	id: string;
 	severity: "info" | "warning" | "critical";
 	message: string;
+	/** World X position to center camera on when clicked. */
+	worldX?: number;
+	/** World Y position to center camera on when clicked. */
+	worldY?: number;
 }
 
 export interface DialogueViewModel {

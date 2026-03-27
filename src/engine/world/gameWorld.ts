@@ -1,7 +1,7 @@
 import { addEntity, createWorld, removeEntity } from "bitecs";
+import { resolveFactionId } from "../content/ids";
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
-import { resolveFactionId } from "../content/ids";
 import { createSeedBundle, type SeedBundle } from "../random/seed";
 import {
 	Armor,
@@ -20,6 +20,7 @@ import {
 	SplashRadius,
 	TargetRef,
 	Velocity,
+	Veterancy,
 	VisionRadius,
 } from "./components";
 
@@ -75,9 +76,59 @@ export interface GameWorld {
 		/** Population tracking: {current, max}. */
 		population: { current: number; max: number };
 		/** Loot tables keyed by unit type. */
-		lootTables: Map<string, Array<{ resource: "fish" | "timber" | "salvage"; chance: number; min: number; max: number }>>;
+		lootTables: Map<
+			string,
+			Array<{ resource: "fish" | "timber" | "salvage"; chance: number; min: number; max: number }>
+		>;
 		/** AI FSM state per entity. */
-		aiStates: Map<number, { state: string; alertLevel: number; stateTimer: number; homeX: number; homeY: number; patrolIndex: number }>;
+		aiStates: Map<
+			number,
+			{
+				state: string;
+				alertLevel: number;
+				stateTimer: number;
+				homeX: number;
+				homeY: number;
+				patrolIndex: number;
+			}
+		>;
+		/** Kill counts per entity (for veterancy). */
+		killCounts: Map<number, number>;
+		/** Damage assist tracking: targetEid -> Map<attackerEid, lastDamageTimeMs>. */
+		damageAssists: Map<number, Map<number, number>>;
+		/** Ability IDs per entity. */
+		entityAbilities: Map<number, string[]>;
+		/** Per-entity per-ability cooldown timers (remaining ms). */
+		abilityCooldowns: Map<number, Map<string, number>>;
+		/** Pending ability activations to process this tick. */
+		abilityQueue: Array<{
+			casterEid: number;
+			abilityId: string;
+			targetEid?: number;
+			targetX?: number;
+			targetY?: number;
+		}>;
+		/** Active timed effects (e.g. rally_cry buff, demolition_charge fuse). */
+		activeEffects: Array<{
+			type: string;
+			casterEid: number;
+			targetEid?: number;
+			x?: number;
+			y?: number;
+			remainingMs: number;
+			payload?: Record<string, unknown>;
+		}>;
+		/** Encounter table entries for PRNG-driven spawns. */
+		encounterEntries: Array<{
+			composition: Array<{ unitType: string; count: number; variance: number }>;
+			spawnZone: string;
+			intervalMs: number;
+			intervalVariance: number;
+			maxSpawns: number;
+			requiresPhase?: string;
+		}>;
+		/** Per-encounter accumulated timer (ms) and spawn count. */
+		encounterState: Array<{ timerMs: number; spawnCount: number }>;
 	};
 	session: {
 		currentMissionId: string | null;
@@ -118,7 +169,9 @@ export interface GameWorld {
 	diagnostics: DiagnosticSnapshot;
 }
 
-export function createGameWorld(seed = createSeedBundle({ phrase: "silent-ember-heron", source: "manual" })): GameWorld {
+export function createGameWorld(
+	seed = createSeedBundle({ phrase: "silent-ember-heron", source: "manual" }),
+): GameWorld {
 	return {
 		ecs: createWorld(),
 		time: {
@@ -149,6 +202,14 @@ export function createGameWorld(seed = createSeedBundle({ phrase: "silent-ember-
 			population: { current: 0, max: 10 },
 			lootTables: new Map(),
 			aiStates: new Map(),
+			killCounts: new Map(),
+			damageAssists: new Map(),
+			entityAbilities: new Map(),
+			abilityCooldowns: new Map(),
+			abilityQueue: [],
+			activeEffects: [],
+			encounterEntries: [],
+			encounterState: [],
 		},
 		session: {
 			currentMissionId: null,
@@ -223,23 +284,34 @@ export function resetWorldSession(world: GameWorld): void {
 	world.runtime.population = { current: 0, max: 10 };
 	world.runtime.lootTables.clear();
 	world.runtime.aiStates.clear();
+	world.runtime.killCounts.clear();
+	world.runtime.damageAssists.clear();
+	world.runtime.entityAbilities.clear();
+	world.runtime.abilityCooldowns.clear();
+	world.runtime.abilityQueue.length = 0;
+	world.runtime.activeEffects.length = 0;
+	world.runtime.encounterEntries.length = 0;
+	world.runtime.encounterState.length = 0;
 }
 
-function spawnEntity(world: GameWorld, options: {
-	x: number;
-	y: number;
-	faction?: string;
-	health?: { current: number; max: number };
-	categoryId?: number;
-	flags?: Partial<{
-		isBuilding: number;
-		isProjectile: number;
-		isResource: number;
-		canSwim: number;
-		submerged: number;
-		stealthed: number;
-	}>;
-}): number {
+function spawnEntity(
+	world: GameWorld,
+	options: {
+		x: number;
+		y: number;
+		faction?: string;
+		health?: { current: number; max: number };
+		categoryId?: number;
+		flags?: Partial<{
+			isBuilding: number;
+			isProjectile: number;
+			isResource: number;
+			canSwim: number;
+			submerged: number;
+			stealthed: number;
+		}>;
+	},
+): number {
 	const eid = addEntity(world.ecs);
 	Position.x[eid] = options.x;
 	Position.y[eid] = options.y;
@@ -273,21 +345,26 @@ function spawnEntity(world: GameWorld, options: {
 	Gatherer.capacity[eid] = 0;
 	ResourceNode.remaining[eid] = 0;
 	SplashRadius.radius[eid] = 0;
+	Veterancy.xp[eid] = 0;
+	Veterancy.rank[eid] = 0;
 
 	world.runtime.alive.add(eid);
 	return eid;
 }
 
-export function spawnUnit(world: GameWorld, options: {
-	x: number;
-	y: number;
-	faction?: string;
-	unitId?: number;
-	unitType?: string;
-	categoryId?: number;
-	health?: { current: number; max: number };
-	scriptId?: string;
-}): number {
+export function spawnUnit(
+	world: GameWorld,
+	options: {
+		x: number;
+		y: number;
+		faction?: string;
+		unitId?: number;
+		unitType?: string;
+		categoryId?: number;
+		health?: { current: number; max: number };
+		scriptId?: string;
+	},
+): number {
 	const eid = spawnEntity(world, {
 		x: options.x,
 		y: options.y,
@@ -305,17 +382,20 @@ export function spawnUnit(world: GameWorld, options: {
 	return eid;
 }
 
-export function spawnBuilding(world: GameWorld, options: {
-	x: number;
-	y: number;
-	faction?: string;
-	buildingId?: number;
-	buildingType?: string;
-	categoryId?: number;
-	health?: { current: number; max: number };
-	construction?: { progress: number; buildTime: number };
-	scriptId?: string;
-}): number {
+export function spawnBuilding(
+	world: GameWorld,
+	options: {
+		x: number;
+		y: number;
+		faction?: string;
+		buildingId?: number;
+		buildingType?: string;
+		categoryId?: number;
+		health?: { current: number; max: number };
+		construction?: { progress: number; buildTime: number };
+		scriptId?: string;
+	},
+): number {
 	const eid = spawnEntity(world, {
 		x: options.x,
 		y: options.y,
@@ -336,14 +416,17 @@ export function spawnBuilding(world: GameWorld, options: {
 	return eid;
 }
 
-export function spawnResource(world: GameWorld, options: {
-	x: number;
-	y: number;
-	resourceId?: number;
-	resourceType?: string;
-	categoryId?: number;
-	scriptId?: string;
-}): number {
+export function spawnResource(
+	world: GameWorld,
+	options: {
+		x: number;
+		y: number;
+		resourceId?: number;
+		resourceType?: string;
+		categoryId?: number;
+		scriptId?: string;
+	},
+): number {
 	const eid = spawnEntity(world, {
 		x: options.x,
 		y: options.y,
@@ -360,13 +443,16 @@ export function spawnResource(world: GameWorld, options: {
 	return eid;
 }
 
-export function spawnProjectile(world: GameWorld, options: {
-	x: number;
-	y: number;
-	faction?: string;
-	damage: number;
-	targetEid?: number;
-}): number {
+export function spawnProjectile(
+	world: GameWorld,
+	options: {
+		x: number;
+		y: number;
+		faction?: string;
+		damage: number;
+		targetEid?: number;
+	},
+): number {
 	const eid = spawnEntity(world, {
 		x: options.x,
 		y: options.y,
@@ -392,6 +478,10 @@ export function flushRemovals(world: GameWorld): void {
 		world.runtime.steeringAgents.delete(eid);
 		world.runtime.bossConfigs.delete(eid);
 		world.runtime.convoyRoutes.delete(eid);
+		world.runtime.killCounts.delete(eid);
+		world.runtime.damageAssists.delete(eid);
+		world.runtime.entityAbilities.delete(eid);
+		world.runtime.abilityCooldowns.delete(eid);
 		for (const [scriptId, taggedEid] of world.runtime.scriptTagIndex.entries()) {
 			if (taggedEid === eid) {
 				world.runtime.scriptTagIndex.delete(scriptId);

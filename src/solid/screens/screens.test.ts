@@ -165,6 +165,53 @@ describe("solid/screens navigation", () => {
 			app.setScreen("main-menu");
 			expect(app.screen()).toBe("main-menu");
 		});
+
+		it("mission result data flows through appState", () => {
+			const app = createAppState();
+			expect(app.missionResult()).toBeNull();
+
+			app.setMissionResult({
+				outcome: "victory",
+				missionId: "mission_1",
+				missionName: "MISSION COMPLETE",
+				stars: 3,
+				stats: {
+					timeElapsed: 120,
+					unitsLost: 2,
+					resourcesGathered: 500,
+					unitsDeployed: 10,
+				},
+				isFinalMission: false,
+			});
+			app.setScreen("result");
+
+			expect(app.screen()).toBe("result");
+			expect(app.missionResult()).not.toBeNull();
+			expect(app.missionResult()?.outcome).toBe("victory");
+			expect(app.missionResult()?.stars).toBe(3);
+			expect(app.missionResult()?.stats.timeElapsed).toBe(120);
+		});
+
+		it("defeat result data flows through appState", () => {
+			const app = createAppState();
+			app.setMissionResult({
+				outcome: "defeat",
+				missionId: "mission_3",
+				missionName: "MISSION FAILED",
+				stars: 0,
+				stats: {
+					timeElapsed: 60,
+					unitsLost: 8,
+					resourcesGathered: 100,
+					unitsDeployed: 12,
+				},
+				isFinalMission: false,
+			});
+			app.setScreen("result");
+
+			expect(app.missionResult()?.outcome).toBe("defeat");
+			expect(app.missionResult()?.stars).toBe(0);
+		});
 	});
 
 	describe("SkirmishResult navigation", () => {

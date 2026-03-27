@@ -10,8 +10,9 @@
  * flows to the command queue -> commandProcessor -> game systems.
  */
 
-import { For, Show, createMemo, type Component } from "solid-js";
+import { type Component, createMemo, For, Show } from "solid-js";
 import type { SolidBridgeAccessors, SolidBridgeEmit } from "@/engine/bridge/solidBridge";
+import { PanelFrame } from "./PanelFrame";
 
 interface ActionDef {
 	id: string;
@@ -193,72 +194,74 @@ export const SelectionPanel: Component<{
 	return (
 		<Show when={selection()}>
 			{(sel) => (
-				<div
-					data-testid="selection-panel"
-					class="border border-slate-600/70 bg-slate-950/88 shadow-[0_18px_40px_rgba(0,0,0,0.34)]"
-				>
-					<div class="flex flex-col gap-2 p-3">
-						{/* Header */}
-						<div class="flex items-center justify-between gap-2 border-b border-slate-600/60 pb-2">
-							<span class="font-mono text-xs uppercase tracking-[0.18em] text-slate-100">
-								{sel().primaryLabel}
-							</span>
-							<span class="rounded border border-green-500/25 bg-green-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-green-400">
-								{sel().entityIds.length} UNIT{sel().entityIds.length !== 1 ? "S" : ""}
-							</span>
-						</div>
-
-						{/* Action buttons for workers and military */}
-						<Show when={actions().length > 0}>
-							<div class="grid grid-cols-2 gap-2">
-								<For each={actions()}>
-									{(action) => (
-										<button
-											type="button"
-											class={ACTION_STYLE}
-											onClick={() => action.handler(props.emit)}
-										>
-											{action.label}
-											<span class="text-[9px] tracking-[0.2em] text-slate-500">
-												{action.hotkey}
-											</span>
-										</button>
-									)}
-								</For>
-							</div>
-						</Show>
-
-						{/* Training options for buildings */}
-						<Show when={trainOptions().length > 0}>
-							<div class="border-t border-slate-600/60 pt-2">
-								<span class="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">
-									Train Units
+				<PanelFrame>
+					<div
+						data-testid="selection-panel"
+						class="canvas-grain border border-slate-600/70 bg-slate-950/88 shadow-[0_18px_40px_rgba(0,0,0,0.34)]"
+					>
+						<div class="flex flex-col gap-2 p-3">
+							{/* Header */}
+							<div class="flex items-center justify-between gap-2 border-b border-slate-600/60 pb-2">
+								<span class="font-mono text-xs uppercase tracking-[0.18em] text-slate-100">
+									{sel().primaryLabel}
 								</span>
-								<div class="mt-2 grid grid-cols-2 gap-2">
-									<For each={trainOptions()}>
-										{(opt) => {
-											const affordable = () => {
-												// Basic affordability check
-												return props.bridge.resources.fish >= 0;
-											};
-											return (
-												<button
-													type="button"
-													class={affordable() ? ACTION_STYLE : DISABLED_STYLE}
-													disabled={!affordable()}
-													onClick={() => props.emit.queueUnit(opt.unitId)}
-												>
-													{opt.name}
-													<span class="text-[9px] tracking-[0.2em] text-slate-500">T</span>
-												</button>
-											);
-										}}
+								<span class="rounded border border-green-500/25 bg-green-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-green-400">
+									{sel().entityIds.length} UNIT{sel().entityIds.length !== 1 ? "S" : ""}
+								</span>
+							</div>
+
+							{/* Action buttons for workers and military */}
+							<Show when={actions().length > 0}>
+								<div class="grid grid-cols-2 gap-2">
+									<For each={actions()}>
+										{(action) => (
+											<button
+												type="button"
+												class={ACTION_STYLE}
+												onClick={() => action.handler(props.emit)}
+											>
+												{action.label}
+												<span class="text-[9px] tracking-[0.2em] text-slate-500">
+													{action.hotkey}
+												</span>
+											</button>
+										)}
 									</For>
 								</div>
-							</div>
-						</Show>
+							</Show>
+
+							{/* Training options for buildings */}
+							<Show when={trainOptions().length > 0}>
+								<div class="border-t border-slate-600/60 pt-2">
+									<span class="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">
+										Train Units
+									</span>
+									<div class="mt-2 grid grid-cols-2 gap-2">
+										<For each={trainOptions()}>
+											{(opt) => {
+												const affordable = () => {
+													// Basic affordability check
+													return props.bridge.resources.fish >= 0;
+												};
+												return (
+													<button
+														type="button"
+														class={affordable() ? ACTION_STYLE : DISABLED_STYLE}
+														disabled={!affordable()}
+														onClick={() => props.emit.queueUnit(opt.unitId)}
+													>
+														{opt.name}
+														<span class="text-[9px] tracking-[0.2em] text-slate-500">T</span>
+													</button>
+												);
+											}}
+										</For>
+									</div>
+								</div>
+							</Show>
+						</div>
 					</div>
-				</div>
+				</PanelFrame>
 			)}
 		</Show>
 	);

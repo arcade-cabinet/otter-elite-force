@@ -75,6 +75,10 @@ export interface SolidBridgeEmit {
 	issueStop(): void;
 	issuePatrol(targetX: number, targetY: number): void;
 	setScreen(screen: string): void;
+	/** Focus the camera on a world position (e.g. from alert click). */
+	focusCamera(worldX: number, worldY: number): void;
+	/** Dismiss a specific alert by ID. */
+	dismissAlert(alertId: string): void;
 }
 
 /**
@@ -224,6 +228,8 @@ export function createSolidBridge(): SolidBridge {
 						id: `alert-${world.time.tick}-${newAlerts.length}`,
 						severity: (event.payload.severity as AlertViewModel["severity"]) ?? "info",
 						message: (event.payload.message as string) ?? "",
+						worldX: event.payload.worldX as number | undefined,
+						worldY: event.payload.worldY as number | undefined,
 					});
 				}
 			}
@@ -335,6 +341,17 @@ export function createSolidBridge(): SolidBridge {
 			},
 			setScreen(s: string): void {
 				setScreen(s);
+			},
+			focusCamera(worldX: number, worldY: number): void {
+				enqueueCommand("focusCamera", { worldX, worldY });
+			},
+			dismissAlert(alertId: string): void {
+				setAlerts(
+					produce((arr) => {
+						const idx = arr.findIndex((a) => a.id === alertId);
+						if (idx >= 0) arr.splice(idx, 1);
+					}),
+				);
 			},
 		},
 		syncFromWorld,

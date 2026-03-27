@@ -16,8 +16,9 @@
  */
 
 import { getEntityAnimFrame, getEntityFrameSize, getEntitySprite } from "@/canvas/spriteAtlas";
-import { getSpriteForUnit } from "@/engine/content/spriteMapping";
-import { Faction, Flags, Health, Position, Selection } from "../world/components";
+import { getUnitTemplate } from "@/engine/content/templateLoader";
+import { RANK_EMBLEMS } from "../systems/veterancySystem";
+import { Faction, Flags, Health, Position, Selection, Veterancy } from "../world/components";
 import type { GameWorld } from "../world/gameWorld";
 
 /** Track entity types that have been warned about missing sprites (one-time per type). */
@@ -29,9 +30,9 @@ export function resolveAtlasName(entityType: string): string {
 	const cached = resolvedAtlasNames.get(entityType);
 	if (cached) return cached;
 	try {
-		const mapping = getSpriteForUnit(entityType);
-		resolvedAtlasNames.set(entityType, mapping.atlas);
-		return mapping.atlas;
+		const template = getUnitTemplate(entityType);
+		resolvedAtlasNames.set(entityType, template.visual.sprite);
+		return template.visual.sprite;
 	} catch {
 		// Not in unit registry — try using entityType directly as atlas name
 		resolvedAtlasNames.set(entityType, entityType);
@@ -125,6 +126,7 @@ interface RenderableEntity {
 	factionId: number;
 	healthRatio: number;
 	entityType: string | undefined;
+	veterancyRank: number;
 }
 
 /**
@@ -194,6 +196,7 @@ export function createSpriteRenderer(): SpriteRenderer {
 				factionId,
 				healthRatio,
 				entityType,
+				veterancyRank: Veterancy.rank[eid],
 			});
 		}
 
@@ -262,6 +265,11 @@ export function createSpriteRenderer(): SpriteRenderer {
 			// HP bar (skip for resources — they don't have meaningful HP)
 			if (!entity.isResource) {
 				drawHpBar(ctx, entity, camera.zoom);
+			}
+
+			// Veterancy rank emblem (above-right of entity)
+			if (!entity.isResource && entity.veterancyRank > 0) {
+				drawRankEmblem(ctx, entity, camera.zoom);
 			}
 
 			// Entity label below
@@ -410,6 +418,81 @@ function drawHpBar(ctx: CanvasRenderingContext2D, entity: RenderableEntity, zoom
 	ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
 	ctx.lineWidth = 0.5;
 	ctx.strokeRect(barX, barY, barWidth, barHeight);
+}
+
+/** Emblem colors per veterancy rank. */
+const EMBLEM_COLORS: Record<number, { fill: string; stroke: string }> = {
+	1: { fill: "#c0c0c0", stroke: "#808080" }, // Silver chevron (Veteran)
+	2: { fill: "#ffd700", stroke: "#b8860b" }, // Gold chevron (Elite)
+	3: { fill: "#ffffff", stroke: "#ffd700" }, // Star (Hero)
+};
+
+function drawRankEmblem(
+	ctx: CanvasRenderingContext2D,
+	entity: RenderableEntity,
+	zoom: number,
+): void {
+	const rank = entity.veterancyRank;
+	if (rank <= 0) return;
+
+	const colors = EMBLEM_COLORS[rank];
+	if (!colors) return;
+
+	const emblemSize = Math.max(4, 6 * zoom);
+	// Position above-right of entity
+	const ex = entity.screenX + 8 * zoom;
+	const ey = entity.screenY - (entity.isBuilding ? 20 : 16) * zoom;
+
+	ctx.fillStyle = colors.fill;
+	ctx.strokeStyle = colors.stroke;
+	ctx.lineWidth = Math.max(1, 1.5 * zoom);
+
+	const emblemType = RANK_EMBLEMS[rank];
+
+	if (emblemType === "star") {
+		// 5-pointed star
+		drawStar(ctx, ex, ey, emblemSize, 5);
+	} else {
+		// Chevron (V shape)
+		ctx.beginPath();
+		ctx.moveTo(ex - emblemSize * 0.5, ey - emblemSize * 0.3);
+		ctx.lineTo(ex, ey + emblemSize * 0.3);
+		ctx.lineTo(ex + emblemSize * 0.5, ey - emblemSize * 0.3);
+		ctx.stroke();
+		// Second chevron for gold
+		if (emblemType === "gold_chevron") {
+			ctx.beginPath();
+			ctx.moveTo(ex - emblemSize * 0.5, ey - emblemSize * 0.6);
+			ctx.lineTo(ex, ey);
+			ctx.lineTo(ex + emblemSize * 0.5, ey - emblemSize * 0.6);
+			ctx.stroke();
+		}
+	}
+}
+
+function drawStar(
+	ctx: CanvasRenderingContext2D,
+	cx: number,
+	cy: number,
+	radius: number,
+	points: number,
+): void {
+	const innerRadius = radius * 0.4;
+	ctx.beginPath();
+	for (let i = 0; i < points * 2; i++) {
+		const angle = (i * Math.PI) / points - Math.PI / 2;
+		const r = i % 2 === 0 ? radius : innerRadius;
+		const x = cx + r * Math.cos(angle);
+		const y = cy + r * Math.sin(angle);
+		if (i === 0) {
+			ctx.moveTo(x, y);
+		} else {
+			ctx.lineTo(x, y);
+		}
+	}
+	ctx.closePath();
+	ctx.fill();
+	ctx.stroke();
 }
 
 function drawEntityLabel(

@@ -9,7 +9,7 @@ import { runTerritorySystem } from "./territorySystem";
 import { runDemolitionSystem } from "./demolitionSystem";
 import { runSiegeSystem } from "./siegeSystem";
 import { runLootSystem } from "./lootSystem";
-import { runEncounterSystem, resetEncounterTimer } from "./encounterSystemEngine";
+import { runEncounterSystem, resetEncounterState } from "./encounterSystemEngine";
 import { runDifficultyScalingSystem, resetDifficultyScaling } from "./difficultyScalingSystem";
 import { calculateMissionScore } from "./scoringSystem";
 
@@ -111,11 +111,15 @@ describe("engine/systems/demolitionSystem", () => {
 });
 
 describe("engine/systems/lootSystem", () => {
-	it("grants salvage when enemy units are destroyed", () => {
+	it("grants resources when enemy units are destroyed", () => {
 		const world = createGameWorld();
 		world.session.resources = { fish: 0, timber: 0, salvage: 0 };
 
-		const enemy = spawnUnit(world, { x: 100, y: 100, faction: "scale_guard", health: { current: 0, max: 10 } });
+		const enemy = spawnUnit(world, { x: 100, y: 100, faction: "scale_guard", unitType: "gator", health: { current: 0, max: 10 } });
+		// Use runtime loot table with guaranteed drops (probability 1.0)
+		world.runtime.lootTables.set("gator", [
+			{ resource: "salvage", chance: 1.0, min: 5, max: 10 },
+		]);
 		markForRemoval(world, enemy);
 
 		runLootSystem(world);
@@ -125,7 +129,7 @@ describe("engine/systems/lootSystem", () => {
 });
 
 describe("engine/systems/encounterSystemEngine", () => {
-	beforeEach(() => resetEncounterTimer());
+	beforeEach(() => resetEncounterState());
 
 	it("does not spawn encounters too quickly", () => {
 		const world = createGameWorld();

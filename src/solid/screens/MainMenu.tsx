@@ -6,7 +6,9 @@
  * Each button navigates via appState.setScreen().
  */
 
-import { type Component } from "solid-js";
+import { type Component, createSignal, onMount } from "solid-js";
+import { SqlitePersistenceStore } from "@/engine/persistence/sqlitePersistenceStore";
+import type { CampaignProgressRecord } from "@/engine/persistence/types";
 import type { AppState } from "../appState";
 
 /** Reusable menu button for the command-post theme. */
@@ -34,6 +36,23 @@ const MenuButton: Component<{
 };
 
 export const MainMenu: Component<{ app: AppState }> = (props) => {
+	const [campaignProgress, setCampaignProgress] = createSignal<CampaignProgressRecord | null>(null);
+	const [loadingProgress, setLoadingProgress] = createSignal(true);
+
+	onMount(() => {
+		const store = new SqlitePersistenceStore();
+		void store
+			.initialize()
+			.then(() => store.loadCampaign())
+			.then((progress) => {
+				setCampaignProgress(progress);
+				setLoadingProgress(false);
+			})
+			.catch(() => {
+				setLoadingProgress(false);
+			});
+	});
+
 	return (
 		<div
 			role="main"
@@ -57,10 +76,7 @@ export const MainMenu: Component<{ app: AppState }> = (props) => {
 				</header>
 
 				{/* Navigation buttons */}
-				<nav
-					aria-label="Main Navigation"
-					class="mt-10 flex w-full max-w-md flex-col gap-3"
-				>
+				<nav aria-label="Main Navigation" class="mt-10 flex w-full max-w-md flex-col gap-3">
 					<MenuButton
 						label="New Campaign"
 						subtitle="Start Campaign"
@@ -72,10 +88,21 @@ export const MainMenu: Component<{ app: AppState }> = (props) => {
 					/>
 					<MenuButton
 						label="Continue"
-						subtitle="Resume Campaign"
+						subtitle={
+							campaignProgress()?.currentMissionId
+								? `Resume: ${campaignProgress()?.currentMissionId}`
+								: "Resume Campaign"
+						}
+						disabled={loadingProgress() || !campaignProgress()}
 						onClick={() => {
+							const progress = campaignProgress();
 							props.app.setIsSkirmish(false);
-							props.app.setScreen("campaign");
+							if (progress?.currentMissionId) {
+								props.app.setCurrentMissionId(progress.currentMissionId);
+								props.app.setScreen("briefing");
+							} else {
+								props.app.setScreen("campaign");
+							}
 						}}
 					/>
 					<MenuButton

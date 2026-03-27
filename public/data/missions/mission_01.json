@@ -1,0 +1,17 @@
+{
+  "id": "mission_01",
+  "availableBuildings": ["burrow", "command_post", "barracks", "fish_trap", "watchtower", "sandbag_wall"],
+  "availableUnits": ["river_rat", "mudfoot"],
+  "startingResources": { "fish": 100, "timber": 50, "salvage": 0 },
+  "placements": [],
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 2 }], "intervalMs": 60000, "variance": 0.3 },
+      { "composition": [{ "type": "gator", "count": 1 }], "intervalMs": 90000, "variance": 0.4 }
+    ]
+  },
+  "lootTable": {
+    "skink": { "drops": [{ "resource": "fish", "amount": 5, "probability": 0.5 }] },
+    "gator": { "drops": [{ "resource": "salvage", "amount": 8, "probability": 0.4 }] }
+  }
+}

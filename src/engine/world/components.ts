@@ -148,3 +148,13 @@ export const PopulationState = {
 	current: createU16Store(),
 	max: createU16Store(),
 };
+
+/**
+ * Veterancy — XP and promotion rank for combat units.
+ * xp: accumulated experience points (Uint32)
+ * rank: 0=Recruit, 1=Veteran, 2=Elite, 3=Hero (Uint8)
+ */
+export const Veterancy = {
+	xp: createU32Store(),
+	rank: createU8Store(),
+};

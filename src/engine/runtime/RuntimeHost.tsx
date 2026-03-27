@@ -24,12 +24,23 @@ import { createGameWorld } from "../world/gameWorld";
 import { processCommands } from "./commandProcessor";
 import { createLittleJsRuntime, type TacticalRuntime } from "./littlejsRuntime";
 
+/** Stats snapshot passed on victory/defeat phase transitions. */
+export interface PhaseChangeStats {
+	timeElapsedMs: number;
+	unitsDeployed: number;
+	unitsLost: number;
+	resourcesGathered: number;
+	objectivesCompleted: number;
+	objectivesTotal: number;
+}
+
 export interface RuntimeHostProps {
 	mode: "campaign" | "skirmish";
 	missionId?: string;
 	skirmish?: SkirmishSessionConfig | null;
 	onPhaseChange?: (
 		phase: "loading" | "briefing" | "playing" | "paused" | "victory" | "defeat",
+		stats?: PhaseChangeStats,
 	) => void;
 }
 
@@ -261,7 +272,22 @@ export function RuntimeHost(props: RuntimeHostProps) {
 				worldInstance?.session.phase ?? (bridge.state.screen === "paused" ? "paused" : "playing");
 			if (worldPhase !== lastReportedPhase) {
 				lastReportedPhase = worldPhase;
-				props.onPhaseChange?.(worldPhase);
+				let stats: PhaseChangeStats | undefined;
+				if ((worldPhase === "victory" || worldPhase === "defeat") && worldInstance) {
+					const objectives = worldInstance.session.objectives;
+					stats = {
+						timeElapsedMs: worldInstance.time.elapsedMs,
+						unitsDeployed: bridge.state.population.current,
+						unitsLost: 0,
+						resourcesGathered:
+							bridge.state.resources.fish +
+							bridge.state.resources.timber +
+							bridge.state.resources.salvage,
+						objectivesCompleted: objectives.filter((o) => o.status === "completed").length,
+						objectivesTotal: objectives.length,
+					};
+				}
+				props.onPhaseChange?.(worldPhase, stats);
 			}
 		}, 100);
 

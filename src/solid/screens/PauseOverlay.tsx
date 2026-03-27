@@ -1,15 +1,17 @@
 /**
  * PauseOverlay — SolidJS in-game pause screen (US-F04).
  *
- * Semi-transparent overlay with Resume, Settings, and Quit to Menu buttons.
- * Each navigates appropriately via appState.
+ * Semi-transparent overlay with Resume, Save, Settings, and Quit to Menu buttons.
+ * Save dispatches saveGame() through the bridge command queue.
  */
 
-import { type Component, Show, createSignal, onCleanup, onMount } from "solid-js";
+import { type Component, createSignal, onCleanup, onMount, Show } from "solid-js";
+import type { SolidBridgeEmit } from "@/engine/bridge/solidBridge";
 import type { AppState } from "../appState";
 
-export const PauseOverlay: Component<{ app: AppState }> = (props) => {
+export const PauseOverlay: Component<{ app: AppState; emit?: SolidBridgeEmit }> = (props) => {
 	const [showQuitConfirm, setShowQuitConfirm] = createSignal(false);
+	const [saveStatus, setSaveStatus] = createSignal<"idle" | "saving" | "saved">("idle");
 
 	const handleResume = () => {
 		props.app.setScreen("game");
@@ -72,6 +74,26 @@ export const PauseOverlay: Component<{ app: AppState }> = (props) => {
 							class="min-h-11 w-full rounded border border-accent/60 bg-accent/15 px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent/25"
 						>
 							Resume
+						</button>
+						<button
+							type="button"
+							onClick={() => {
+								if (props.emit && saveStatus() !== "saving") {
+									setSaveStatus("saving");
+									props.emit.saveGame();
+									// Optimistic feedback — the actual save is async in the runtime
+									setTimeout(() => setSaveStatus("saved"), 500);
+									setTimeout(() => setSaveStatus("idle"), 2500);
+								}
+							}}
+							disabled={saveStatus() === "saving"}
+							class="min-h-11 w-full rounded border border-emerald-600/60 bg-emerald-900/20 px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-emerald-300 transition-colors hover:bg-emerald-900/40 disabled:opacity-50"
+						>
+							{saveStatus() === "saving"
+								? "Saving..."
+								: saveStatus() === "saved"
+									? "Saved"
+									: "Save Game"}
 						</button>
 						<button
 							type="button"

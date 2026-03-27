@@ -5,8 +5,13 @@
  * "Next Mission" or "Retry" buttons, "Return to Campaign" button.
  */
 
-import { type Component, For, Show } from "solid-js";
+import { type Component, Show } from "solid-js";
 import type { AppState } from "../appState";
+import {
+	calculateStarRating,
+	type ScoreBreakdown,
+	StarRatingDisplay,
+} from "../hud/StarRatingDisplay";
 
 export interface MissionResultStats {
 	/** Total mission time in seconds. */
@@ -26,6 +31,8 @@ export interface MissionResultData {
 	stars: 0 | 1 | 2 | 3;
 	stats: MissionResultStats;
 	isFinalMission: boolean;
+	/** Optional full score breakdown for the animated star display. */
+	scoreBreakdown?: ScoreBreakdown;
 }
 
 /** Format seconds as M:SS. */
@@ -49,30 +56,32 @@ const StatRow: Component<{ label: string; value: string }> = (props) => {
 	);
 };
 
-/** Star rating display for mission result. */
-const StarRating: Component<{ stars: number }> = (props) => {
-	return (
-		<div class="flex gap-2 text-2xl">
-			<For each={[1, 2, 3]}>
-				{(i) => (
-					<span
-						class={
-							i <= props.stars
-								? props.stars === 3
-									? "text-yellow-400"
-									: props.stars === 2
-										? "text-gray-300"
-										: "text-amber-600"
-								: "text-slate-700"
-						}
-					>
-						{i <= props.stars ? "\u2605" : "\u2606"}
-					</span>
-				)}
-			</For>
-		</div>
-	);
-};
+/**
+ * Build a ScoreBreakdown from result data (for backward compat
+ * when scoreBreakdown is not provided).
+ */
+function buildFallbackBreakdown(stars: 0 | 1 | 2 | 3, stats: MissionResultStats): ScoreBreakdown {
+	// If we have actual stats, attempt a real calculation
+	if (stats.timeElapsed > 0) {
+		return calculateStarRating({
+			parTimeMs: stats.timeElapsed * 1000 * 0.8, // assume par = 80% of elapsed
+			elapsedMs: stats.timeElapsed * 1000,
+			unitsLost: stats.unitsLost,
+			totalUnits: stats.unitsDeployed || 1,
+			bonusObjectivesCompleted: stars >= 3 ? 1 : 0,
+			bonusObjectivesTotal: 1,
+		});
+	}
+	// Pure fallback: synthesize from star count
+	const totalScore = stars === 3 ? 95 : stars === 2 ? 70 : stars === 1 ? 40 : 10;
+	return {
+		timeScore: totalScore,
+		survivalScore: totalScore,
+		bonusScore: stars >= 3 ? 100 : 0,
+		totalScore,
+		stars,
+	};
+}
 
 /**
  * Default result data used when no external data is provided.
@@ -128,9 +137,14 @@ export const MissionResult: Component<{
 						: "Mission failed. Regroup and try again."}
 				</p>
 
-				{/* Star rating (victory only) */}
+				{/* Star rating with animated reveal + score breakdown (victory only) */}
 				<Show when={isVictory()}>
-					<StarRating stars={result().stars} />
+					<StarRatingDisplay
+						breakdown={
+							result().scoreBreakdown ?? buildFallbackBreakdown(result().stars, result().stats)
+						}
+						animate={true}
+					/>
 				</Show>
 
 				{/* Stats panel */}

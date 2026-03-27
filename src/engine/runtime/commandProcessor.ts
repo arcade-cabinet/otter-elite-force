@@ -7,10 +7,15 @@
  * every HUD button is cosmetic.
  */
 
-import { Faction, Flags, Position, Selection } from "@/engine/world/components";
-import { getOrderQueue, getProductionQueue, type GameWorld, type Order } from "@/engine/world/gameWorld";
-import { queueResearch } from "@/engine/systems/researchSystem";
 import { playSfx } from "@/engine/audio/audioRuntime";
+import { queueResearch } from "@/engine/systems/researchSystem";
+import { Faction, Flags, Position, Selection } from "@/engine/world/components";
+import {
+	type GameWorld,
+	getOrderQueue,
+	getProductionQueue,
+	type Order,
+} from "@/engine/world/gameWorld";
 
 /**
  * A command from the UI bridge command queue.
@@ -24,10 +29,7 @@ export interface BridgeCommand {
  * Drain the command queue and dispatch each command to the game systems.
  * Call this once per tick, before running systems.
  */
-export function processCommands(
-	world: GameWorld,
-	commandQueue: BridgeCommand[],
-): void {
+export function processCommands(world: GameWorld, commandQueue: BridgeCommand[]): void {
 	while (commandQueue.length > 0) {
 		const command = commandQueue.shift();
 		if (!command) break;
@@ -86,6 +88,9 @@ function dispatchCommand(world: GameWorld, command: BridgeCommand): void {
 			break;
 		case "save":
 			handleSaveCommand(world);
+			break;
+		case "focusCamera":
+			handleFocusCameraCommand(world, command);
 			break;
 		default:
 			// Unknown command type — ignore
@@ -248,5 +253,14 @@ function handleSaveCommand(world: GameWorld): void {
 	world.events.push({
 		type: "save-requested",
 		payload: { tick: world.time.tick },
+	});
+}
+
+function handleFocusCameraCommand(world: GameWorld, command: BridgeCommand): void {
+	const worldX = Number(command.payload?.worldX ?? 0);
+	const worldY = Number(command.payload?.worldY ?? 0);
+	world.events.push({
+		type: "camera-focus",
+		payload: { x: Math.floor(worldX / 32), y: Math.floor(worldY / 32) },
 	});
 }

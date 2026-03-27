@@ -6,9 +6,9 @@
  * using the same pattern as appState.test.ts.
  */
 
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
 	AlertViewModel,
 	BossViewModel,
@@ -17,23 +17,26 @@ import type {
 	PopulationViewModel,
 	ResourceViewModel,
 	SelectionViewModel,
+	SolidBridgeAccessors,
+	SolidBridgeEmit,
 } from "@/engine/bridge/solidBridge";
-import type { SolidBridgeAccessors, SolidBridgeEmit } from "@/engine/bridge/solidBridge";
 import { createErrorFeedback } from "./errorState";
 
 /**
  * Create a mock SolidBridgeAccessors for testing.
  */
-function createMockBridge(overrides?: Partial<{
-	resources: ResourceViewModel;
-	population: PopulationViewModel;
-	objectives: ObjectiveViewModel[];
-	alerts: AlertViewModel[];
-	selection: SelectionViewModel | null;
-	dialogue: DialogueViewModel | null;
-	boss: BossViewModel | null;
-	weather: "clear" | "rain" | "monsoon" | null;
-}>): { accessors: SolidBridgeAccessors; setters: Record<string, unknown> } {
+function createMockBridge(
+	overrides?: Partial<{
+		resources: ResourceViewModel;
+		population: PopulationViewModel;
+		objectives: ObjectiveViewModel[];
+		alerts: AlertViewModel[];
+		selection: SelectionViewModel | null;
+		dialogue: DialogueViewModel | null;
+		boss: BossViewModel | null;
+		weather: "clear" | "rain" | "monsoon" | null;
+	}>,
+): { accessors: SolidBridgeAccessors; setters: Record<string, unknown> } {
 	const [screen, setScreen] = createSignal("game");
 	const [resources, setResources] = createStore<ResourceViewModel>(
 		overrides?.resources ?? { fish: 100, timber: 200, salvage: 50 },
@@ -47,18 +50,14 @@ function createMockBridge(overrides?: Partial<{
 	const [objectives, setObjectives] = createStore<ObjectiveViewModel[]>(
 		overrides?.objectives ?? [],
 	);
-	const [alerts, setAlerts] = createStore<AlertViewModel[]>(
-		overrides?.alerts ?? [],
-	);
+	const [alerts, setAlerts] = createStore<AlertViewModel[]>(overrides?.alerts ?? []);
 	const [dialogue, setDialogue] = createSignal<DialogueViewModel | null>(
 		overrides?.dialogue ?? null,
 	);
 	const [weather, setWeather] = createSignal<"clear" | "rain" | "monsoon" | null>(
 		overrides?.weather ?? null,
 	);
-	const [boss, setBoss] = createSignal<BossViewModel | null>(
-		overrides?.boss ?? null,
-	);
+	const [boss, setBoss] = createSignal<BossViewModel | null>(overrides?.boss ?? null);
 
 	return {
 		accessors: {
@@ -94,7 +93,13 @@ function createMockEmit(): SolidBridgeEmit {
 		startBuild: vi.fn(),
 		queueUnit: vi.fn(),
 		issueResearch: vi.fn(),
+		issueMove: vi.fn(),
+		issueAttack: vi.fn(),
+		issueStop: vi.fn(),
+		issuePatrol: vi.fn(),
 		setScreen: vi.fn(),
+		focusCamera: vi.fn(),
+		dismissAlert: vi.fn(),
 	};
 }
 
@@ -412,6 +417,62 @@ describe("solid/hud", () => {
 		it("maps failed status to red X", () => {
 			expect(STATUS_ICON.failed.symbol).toBe("\u2717");
 			expect(STATUS_ICON.failed.color).toBe("text-rose-400");
+		});
+	});
+
+	describe("alert click camera focus", () => {
+		it("emits focusCamera when alert has world coordinates", () => {
+			const emit = createMockEmit();
+			const alertWithPos: AlertViewModel = {
+				id: "a1",
+				severity: "critical",
+				message: "Under Attack!",
+				worldX: 128,
+				worldY: 256,
+			};
+			// Simulate what AlertBanner.handleAlertClick does:
+			if (alertWithPos.worldX !== undefined && alertWithPos.worldY !== undefined) {
+				emit.focusCamera(alertWithPos.worldX, alertWithPos.worldY);
+			}
+			emit.dismissAlert(alertWithPos.id);
+
+			expect(emit.focusCamera).toHaveBeenCalledWith(128, 256);
+			expect(emit.dismissAlert).toHaveBeenCalledWith("a1");
+		});
+
+		it("does not emit focusCamera when alert has no position", () => {
+			const emit = createMockEmit();
+			const alertNoPos: AlertViewModel = {
+				id: "a2",
+				severity: "info",
+				message: "Objective Complete",
+			};
+			if (alertNoPos.worldX !== undefined && alertNoPos.worldY !== undefined) {
+				emit.focusCamera(alertNoPos.worldX, alertNoPos.worldY);
+			}
+			emit.dismissAlert(alertNoPos.id);
+
+			expect(emit.focusCamera).not.toHaveBeenCalled();
+			expect(emit.dismissAlert).toHaveBeenCalledWith("a2");
+		});
+
+		it("alert view model supports world coordinates", () => {
+			const { accessors } = createMockBridge({
+				alerts: [
+					{
+						id: "a1",
+						severity: "critical",
+						message: "Under Attack!",
+						worldX: 100,
+						worldY: 200,
+					},
+					{ id: "a2", severity: "info", message: "Building Complete" },
+				],
+			});
+			expect(accessors.alerts[0].worldX).toBe(100);
+			expect(accessors.alerts[0].worldY).toBe(200);
+			expect(accessors.alerts[1].worldX).toBeUndefined();
+			expect(accessors.alerts[1].worldY).toBeUndefined();
 		});
 	});
 

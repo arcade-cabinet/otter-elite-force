@@ -5,6 +5,7 @@
  */
 
 import { createSignal } from "solid-js";
+import type { MissionResultData } from "./screens/MissionResult";
 
 /**
  * Screen types for the Solid app shell routing.
@@ -28,6 +29,9 @@ export interface AppState {
 	setCurrentMissionId: (id: string | null) => void;
 	isSkirmish: () => boolean;
 	setIsSkirmish: (v: boolean) => void;
+	/** Mission result data passed from game screen to result screen. */
+	missionResult: () => MissionResultData | null;
+	setMissionResult: (data: MissionResultData | null) => void;
 }
 
 /**
@@ -37,6 +41,7 @@ export function createAppState(): AppState {
 	const [screen, setScreen] = createSignal<ScreenId>("main-menu");
 	const [currentMissionId, setCurrentMissionId] = createSignal<string | null>(null);
 	const [isSkirmish, setIsSkirmish] = createSignal(false);
+	const [missionResult, setMissionResult] = createSignal<MissionResultData | null>(null);
 
 	return {
 		screen,
@@ -45,5 +50,7 @@ export function createAppState(): AppState {
 		setCurrentMissionId,
 		isSkirmish,
 		setIsSkirmish,
+		missionResult,
+		setMissionResult,
 	};
 }
