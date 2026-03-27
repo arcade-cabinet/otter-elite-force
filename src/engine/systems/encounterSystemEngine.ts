@@ -8,6 +8,7 @@
  * Pure function on GameWorld.
  */
 
+import { TILE_SIZE } from "@/config/constants";
 import { resolveCategoryId } from "@/engine/content/ids";
 import { createRng, deriveGameplaySeed, type Rng } from "@/engine/random/seed";
 import { Attack, Speed, VisionRadius } from "@/engine/world/components";
@@ -125,10 +126,10 @@ function spawnEncounterUnit(
 		health: { current: unitDef.hp, max: unitDef.hp },
 	});
 	Attack.damage[eid] = unitDef.damage;
-	Attack.range[eid] = unitDef.range;
-	Attack.cooldown[eid] = unitDef.attackCooldown / 1000;
-	Speed.value[eid] = unitDef.speed;
-	VisionRadius.value[eid] = unitDef.visionRadius;
+	Attack.range[eid] = unitDef.range * TILE_SIZE;
+	Attack.cooldown[eid] = unitDef.attackCooldown;
+	Speed.value[eid] = unitDef.speed * TILE_SIZE;
+	VisionRadius.value[eid] = unitDef.visionRadius * TILE_SIZE;
 	return eid;
 }
 

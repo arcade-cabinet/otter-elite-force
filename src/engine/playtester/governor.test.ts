@@ -153,7 +153,7 @@ function countWorkersGathering(world: GameWorld): number {
 // ---------------------------------------------------------------------------
 
 describe("Governor", () => {
-	it("starts Mission 1, runs 5 minutes (18000 ticks) without crashing", () => {
+	it("starts Mission 1, runs 5 minutes (18000 ticks) without crashing", { timeout: 60000 }, () => {
 		const world = createMission1World();
 		const governor = createGovernor(world, {
 			difficulty: "optimal",

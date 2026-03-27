@@ -151,9 +151,14 @@ export const MainMenu: Component<{ app: AppState }> = (props) => {
 				</nav>
 
 				<div
-					class={`mt-12 font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50 transition-all delay-500 duration-700 ease-out ${titleVisible() ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
+					class={`mt-12 flex items-center gap-2 transition-all delay-500 duration-700 ease-out ${titleVisible() ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"}`}
 				>
-					Otter: Elite Force / Build Alpha
+					<span class="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground/50">
+						Otter: Elite Force
+					</span>
+					<span class="border border-accent/20 bg-accent/5 px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.18em] text-accent/50">
+						v0.2.0-alpha
+					</span>
 				</div>
 			</div>
 		</main>

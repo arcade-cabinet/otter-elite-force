@@ -9,6 +9,7 @@
  * Pure function on GameWorld.
  */
 
+import { TILE_SIZE } from "@/config/constants";
 import { Attack, Speed, VisionRadius } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
 import { spawnUnit } from "@/engine/world/gameWorld";
@@ -60,10 +61,10 @@ export function runWaveSpawnerSystem(world: GameWorld): void {
 				health: { current: 10, max: 10 },
 			});
 			Attack.damage[eid] = 2;
-			Attack.range[eid] = 48;
+			Attack.range[eid] = 1 * TILE_SIZE;
 			Attack.cooldown[eid] = 1.5;
-			Speed.value[eid] = 48;
-			VisionRadius.value[eid] = 96;
+			Speed.value[eid] = 5 * TILE_SIZE;
+			VisionRadius.value[eid] = 5 * TILE_SIZE;
 		}
 
 		world.events.push({

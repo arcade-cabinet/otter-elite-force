@@ -73,9 +73,9 @@ export function calculateStarRating(params: {
 }
 
 const STAR_COLORS: Record<number, string> = {
-	1: "text-amber-600", // bronze
-	2: "text-gray-300", // silver
-	3: "text-yellow-400", // gold
+	1: "text-faded-yellow", // bronze
+	2: "text-khaki-200", // silver
+	3: "text-highlight", // gold
 };
 
 const STAR_LABELS: Record<number, string> = {
@@ -94,21 +94,21 @@ const ScoreBar: Component<{
 	return (
 		<div class="grid gap-1">
 			<div class="flex items-center justify-between">
-				<span class="font-mono text-[9px] uppercase tracking-[0.22em] text-slate-500">
+				<span class="font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
 					{props.label} ({props.weight})
 				</span>
-				<span class="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-100">
+				<span class="font-mono text-[10px] uppercase tracking-[0.2em] text-foreground">
 					{props.score}%
 				</span>
 			</div>
-			<div class="h-1.5 overflow-hidden rounded-full bg-slate-800/50">
+			<div class="h-1.5 overflow-hidden bg-muted/50">
 				<div
-					class={`h-full rounded-full transition-all duration-700 ${
+					class={`h-full transition-all duration-700 ${
 						props.score >= 80
-							? "bg-green-500"
+							? "bg-accent/80"
 							: props.score >= 50
-								? "bg-green-400/70"
-								: "bg-slate-500"
+								? "bg-accent/50"
+								: "bg-muted-foreground/40"
 					}`}
 					style={{ width: `${Math.min(100, props.score)}%` }}
 				/>
@@ -149,7 +149,7 @@ export const StarRatingDisplay: Component<{
 		for (const t of timers) clearTimeout(t);
 	});
 
-	const starColor = () => STAR_COLORS[props.breakdown.stars] ?? "text-slate-600";
+	const starColor = () => STAR_COLORS[props.breakdown.stars] ?? "text-muted-foreground/40";
 
 	return (
 		<div data-testid="star-rating-display" class="grid gap-4">
@@ -160,7 +160,7 @@ export const StarRatingDisplay: Component<{
 						<span
 							data-testid={`star-${i}`}
 							class={`text-4xl transition-all duration-300 ${
-								i <= revealedStars() ? starColor() : "text-slate-700"
+								i <= revealedStars() ? starColor() : "text-muted-foreground/30"
 							} ${
 								i <= revealedStars() && shouldAnimate()
 									? "scale-100 opacity-100"
@@ -177,16 +177,16 @@ export const StarRatingDisplay: Component<{
 
 			{/* Rating label */}
 			<div class="text-center">
-				<span class="rounded border border-green-500/25 bg-green-500/10 px-3 py-1 font-heading text-sm uppercase tracking-[0.2em] text-green-400">
+				<span class="border border-accent/30 bg-accent/10 px-3 py-1 font-heading text-sm uppercase tracking-[0.2em] text-accent">
 					{STAR_LABELS[props.breakdown.stars]}
 				</span>
-				<div class="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
+				<div class="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
 					Total Score: {props.breakdown.totalScore}%
 				</div>
 			</div>
 
 			{/* Score breakdown */}
-			<div class="grid gap-2 border border-slate-600/60 bg-slate-900/20 p-3">
+			<div class="grid gap-2 border border-border/50 bg-card/20 p-3">
 				<ScoreBar label="Time" score={props.breakdown.timeScore} weight="40%" />
 				<ScoreBar label="Survival" score={props.breakdown.survivalScore} weight="30%" />
 				<ScoreBar label="Bonus" score={props.breakdown.bonusScore} weight="30%" />

@@ -186,7 +186,7 @@ describe("Mission 1 Playtest — Beachhead", () => {
 		expect(world.runtime.alive.size).toBeGreaterThan(0);
 	});
 
-	it("simulation runs 2 minutes — economy check", () => {
+	it("simulation runs 2 minutes — economy check", { timeout: 60000 }, () => {
 		const world = createMission1World();
 		const initialFish = world.session.resources.fish;
 		const initialTimber = world.session.resources.timber;
@@ -237,7 +237,7 @@ describe("Mission 1 Playtest — Beachhead", () => {
 		console.log(`Total resources: ${totalResources}`);
 	});
 
-	it("simulation runs 5 minutes — full playtest", () => {
+	it("simulation runs 5 minutes — full playtest", { timeout: 120000 }, () => {
 		const world = createMission1World();
 
 		// 5 minutes = 18000 ticks

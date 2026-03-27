@@ -19,6 +19,7 @@
  * The grid is stored on world.runtime.fogGrid (added by this system).
  */
 
+import { TILE_SIZE } from "@/config/constants";
 import { FACTION_IDS } from "@/engine/content/ids";
 import { Faction, Flags, Position, VisionRadius } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
@@ -73,10 +74,11 @@ export function runFogSystem(world: GameWorld): void {
 	for (const eid of world.runtime.alive) {
 		if (Faction.id[eid] !== playerFactionId) continue;
 
-		let visionRadius = VisionRadius.value[eid];
+		// VisionRadius.value is stored in pixels; convert to tile radius for fog grid.
+		let visionRadius = VisionRadius.value[eid] / TILE_SIZE;
 		if (visionRadius <= 0) continue;
 
-		// Apply vision bonuses for buildings
+		// Apply vision bonuses for buildings (in tile units)
 		if (Flags.isBuilding[eid] === 1) {
 			const buildingType = world.runtime.entityTypeIndex.get(eid);
 			if (buildingType === "watchtower") {
@@ -86,8 +88,9 @@ export function runFogSystem(world: GameWorld): void {
 			}
 		}
 
-		const entityTileX = Math.floor(Position.x[eid]);
-		const entityTileY = Math.floor(Position.y[eid]);
+		// Position is in pixel space; convert to tile coordinates for fog grid.
+		const entityTileX = Math.floor(Position.x[eid] / TILE_SIZE);
+		const entityTileY = Math.floor(Position.y[eid] / TILE_SIZE);
 		const radiusInt = Math.ceil(visionRadius);
 		const radiusSq = visionRadius * visionRadius;
 

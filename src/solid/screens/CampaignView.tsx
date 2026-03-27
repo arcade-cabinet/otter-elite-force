@@ -65,11 +65,11 @@ const StarRating: Component<{ stars: number }> = (props) => {
 						class={
 							i <= props.stars
 								? props.stars === 3
-									? "text-yellow-400"
+									? "text-highlight"
 									: props.stars === 2
-										? "text-gray-300"
-										: "text-amber-600"
-								: "text-slate-600"
+										? "text-khaki-300"
+										: "text-faded-yellow"
+								: "text-muted-foreground/40"
 						}
 					>
 						{i <= props.stars ? "\u2605" : "\u2606"}
@@ -93,33 +93,33 @@ const MissionCard: Component<{
 			type="button"
 			disabled={isLocked()}
 			onClick={props.onClick}
-			class={`group relative rounded-md border px-3 py-3 text-left transition ${
+			class={`group relative border px-3 py-3 text-left transition ${
 				isLocked()
-					? "cursor-not-allowed border-slate-700/40 bg-slate-900/15 opacity-50"
+					? "cursor-not-allowed border-border/30 bg-card/15 opacity-50"
 					: isCompleted()
 						? "border-primary/35 bg-primary/8 hover:border-primary/55 hover:bg-primary/12"
-						: "border-accent/30 bg-slate-900/30 hover:border-accent/55 hover:bg-slate-900/45"
+						: "border-accent/30 bg-card/30 hover:border-accent/55 hover:bg-card/45"
 			}`}
 		>
 			<div class="flex items-start justify-between gap-2">
 				<div class="min-w-0 flex-1">
-					<div class="font-mono text-[9px] uppercase tracking-[0.22em] text-slate-500">
+					<div class="font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
 						{props.slot.def.chapter}-{props.slot.def.mission}
 					</div>
 					<div
 						class={`mt-0.5 font-heading text-sm uppercase tracking-[0.14em] ${
-							isLocked() ? "text-slate-500" : "text-slate-100"
+							isLocked() ? "text-muted-foreground" : "text-foreground"
 						}`}
 					>
 						{props.slot.def.name}
 					</div>
-					<div class="mt-1 line-clamp-1 font-body text-[10px] uppercase tracking-[0.1em] text-slate-500">
+					<div class="mt-1 line-clamp-1 font-body text-[10px] uppercase tracking-[0.1em] text-muted-foreground/70">
 						{props.slot.def.subtitle}
 					</div>
 				</div>
 				<div class="flex shrink-0 flex-col items-end gap-1">
 					<Show when={isLocked()}>
-						<span role="img" class="font-mono text-sm text-slate-600" aria-label="Locked">
+						<span role="img" class="font-mono text-sm text-muted-foreground/50" aria-label="Locked">
 							&#x1F512;
 						</span>
 					</Show>
@@ -127,7 +127,7 @@ const MissionCard: Component<{
 						<StarRating stars={props.slot.stars} />
 					</Show>
 					<Show when={!isLocked() && !isCompleted()}>
-						<span class="rounded border border-accent/25 bg-accent/10 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.2em] text-accent">
+						<span class="border border-accent/25 bg-accent/10 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-[0.2em] text-accent">
 							Available
 						</span>
 					</Show>
@@ -150,7 +150,9 @@ export const CampaignView: Component<{ app: AppState }> = (props) => {
 	};
 
 	return (
-		<div class="flex min-h-screen w-screen flex-col items-center bg-slate-950 text-slate-100">
+		<div class="canvas-grain relative flex min-h-screen w-screen flex-col items-center bg-background text-foreground">
+			<div class="riverine-camo absolute inset-0 opacity-15" />
+			<div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.5)_100%)]" />
 			<div class="relative z-10 flex w-full max-w-4xl flex-col gap-6 px-4 py-8">
 				{/* Header */}
 				<div class="flex flex-col items-center gap-2 text-center">
@@ -158,7 +160,7 @@ export const CampaignView: Component<{ app: AppState }> = (props) => {
 						Copper-Silt Reach
 					</div>
 					<h2 class="font-heading text-2xl uppercase tracking-[0.22em] text-primary">Campaign</h2>
-					<p class="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-400">
+					<p class="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
 						{completedCount()} of {CAMPAIGN.length} missions completed
 					</p>
 				</div>
@@ -172,7 +174,7 @@ export const CampaignView: Component<{ app: AppState }> = (props) => {
 									<span class="rounded border border-accent/20 bg-accent/8 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.24em] text-accent">
 										Chapter {chapter.chapter}
 									</span>
-									<span class="font-heading text-sm uppercase tracking-[0.16em] text-slate-100">
+									<span class="font-heading text-sm uppercase tracking-[0.16em] text-foreground">
 										{chapter.name}
 									</span>
 								</div>
@@ -192,7 +194,7 @@ export const CampaignView: Component<{ app: AppState }> = (props) => {
 				<div class="flex justify-center">
 					<button
 						type="button"
-						class="min-h-11 rounded border border-slate-600/70 bg-slate-900/85 px-6 py-2 font-mono text-xs uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm transition-colors hover:border-accent/50 hover:bg-slate-800/85"
+						class="min-h-11 border border-border/50 bg-card/60 px-6 py-2 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
 						onClick={() => props.app.setScreen("main-menu")}
 					>
 						Back to Menu

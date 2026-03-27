@@ -105,6 +105,8 @@ describe("engine/world/gameWorld", () => {
 	it("spawns river_rat with full template stats wired into bitECS SoA stores", () => {
 		const world = createGameWorld();
 
+		// Stats use tile-based units (matching entity definitions):
+		// speed=10 tiles/s, attackRange=1 tile, visionRadius=6 tiles
 		const eid = spawnUnit(world, {
 			x: 100,
 			y: 200,
@@ -113,10 +115,10 @@ describe("engine/world/gameWorld", () => {
 			stats: {
 				hp: 40,
 				armor: 0,
-				speed: 80,
+				speed: 10,
 				attackDamage: 5,
-				attackRange: 32,
-				attackCooldownMs: 1500,
+				attackRange: 1,
+				attackCooldownMs: 1.5,
 				visionRadius: 6,
 				popCost: 1,
 			},
@@ -127,11 +129,12 @@ describe("engine/world/gameWorld", () => {
 		expect(Health.current[eid]).toBe(40);
 		expect(Health.max[eid]).toBe(40);
 		expect(Armor.value[eid]).toBe(0);
-		expect(Speed.value[eid]).toBe(80);
+		// Speed, range, and visionRadius are converted from tiles to pixels (* 32)
+		expect(Speed.value[eid]).toBe(320);
 		expect(Attack.damage[eid]).toBe(5);
 		expect(Attack.range[eid]).toBe(32);
-		expect(Attack.cooldown[eid]).toBe(1500);
-		expect(VisionRadius.value[eid]).toBe(6);
+		expect(Attack.cooldown[eid]).toBe(1.5);
+		expect(VisionRadius.value[eid]).toBe(192);
 		expect(Flags.canSwim[eid]).toBe(1);
 		expect(world.runtime.entityAbilities.get(eid)).toEqual(["gather", "build", "swim"]);
 		expect(world.runtime.entityTypeIndex.get(eid)).toBe("river_rat");
@@ -140,6 +143,7 @@ describe("engine/world/gameWorld", () => {
 	it("spawns a building with template stats wired into bitECS SoA stores", () => {
 		const world = createGameWorld();
 
+		// Stats use tile-based units for range and visionRadius
 		const eid = spawnBuilding(world, {
 			x: 300,
 			y: 400,
@@ -150,8 +154,8 @@ describe("engine/world/gameWorld", () => {
 				armor: 3,
 				visionRadius: 10,
 				attackDamage: 15,
-				attackRange: 160,
-				attackCooldownMs: 2000,
+				attackRange: 5,
+				attackCooldownMs: 2,
 				populationCapacity: 0,
 			},
 		});
@@ -160,8 +164,9 @@ describe("engine/world/gameWorld", () => {
 		expect(Health.max[eid]).toBe(200);
 		expect(Armor.value[eid]).toBe(3);
 		expect(Attack.damage[eid]).toBe(15);
+		// Range and visionRadius converted from tiles to pixels (* 32)
 		expect(Attack.range[eid]).toBe(160);
-		expect(VisionRadius.value[eid]).toBe(10);
+		expect(VisionRadius.value[eid]).toBe(320);
 		expect(Flags.isBuilding[eid]).toBe(1);
 		expect(world.runtime.entityTypeIndex.get(eid)).toBe("watchtower");
 	});

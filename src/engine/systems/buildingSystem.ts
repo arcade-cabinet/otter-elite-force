@@ -16,6 +16,7 @@
  * Runs every game tick via `runBuildingSystem(world)`.
  */
 
+import { TILE_SIZE } from "@/config/constants";
 import { CATEGORY_IDS } from "@/engine/content/ids";
 import {
 	Attack,
@@ -354,16 +355,17 @@ function activateBuilding(world: GameWorld, buildingEid: number): void {
 	}
 
 	// Set up defensive attack stats
+	// Building defs use tile-based range; convert to pixels for runtime.
 	if (def.attackDamage !== undefined && def.attackDamage > 0) {
 		Attack.damage[buildingEid] = def.attackDamage;
-		Attack.range[buildingEid] = def.attackRange ?? 0;
+		Attack.range[buildingEid] = (def.attackRange ?? 0) * TILE_SIZE;
 		Attack.cooldown[buildingEid] = def.attackCooldown ?? 2;
 		Attack.timer[buildingEid] = 0;
 	}
 
-	// Apply vision bonus
+	// Apply vision bonus (tile-based; convert to pixels for runtime)
 	if (def.visionBonus !== undefined && def.visionBonus > 0) {
-		VisionRadius.value[buildingEid] = def.visionBonus;
+		VisionRadius.value[buildingEid] = def.visionBonus * TILE_SIZE;
 	}
 }
 

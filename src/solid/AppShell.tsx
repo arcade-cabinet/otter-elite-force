@@ -9,11 +9,11 @@
  * mounted via a DOM bridge. Post-migration, all screens are pure Solid.
  */
 
-import { type Component, Match, Switch } from "solid-js";
+import { type Component, createEffect, Match, Switch } from "solid-js";
 import { isFinalCampaignMission, resolveMissionVictory } from "@/app/missionResult";
 import { SqlitePersistenceStore } from "@/engine/persistence/sqlitePersistenceStore";
 import { type PhaseChangeStats, RuntimeHost } from "@/engine/runtime/RuntimeHost";
-import { type AppState, createAppState } from "./appState";
+import { type AppState, createAppState, type ScreenId } from "./appState";
 import {
 	BriefingOverlay,
 	CampaignView,
@@ -131,8 +131,25 @@ const GameScreen: Component<{ app: AppState }> = (props) => {
 /**
  * Root SolidJS App Shell — manages screen routing via Switch/Match.
  */
+/** Map screen IDs to their visual theme for CSS custom properties. */
+function screenToTheme(screen: ScreenId): string {
+	switch (screen) {
+		case "game":
+			return "tactical";
+		case "briefing":
+			return "briefing";
+		default:
+			return "command-post";
+	}
+}
+
 export const AppShell: Component = () => {
 	const app = createAppState();
+
+	// Synchronize the data-theme attribute on <html> so CSS custom properties resolve
+	createEffect(() => {
+		document.documentElement.setAttribute("data-theme", screenToTheme(app.screen()));
+	});
 
 	return (
 		<Switch fallback={<MainMenu app={app} />}>

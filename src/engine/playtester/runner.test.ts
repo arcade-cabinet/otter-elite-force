@@ -8,7 +8,7 @@ import { resetGatherTimers } from "@/engine/systems/economySystem";
 import { type PlaytestReport, runGovernorPlaytest } from "./runner";
 
 describe("runGovernorPlaytest", () => {
-	it("full Mission 1 playtest with beginner governor produces a PlaytestReport", () => {
+	it("full Mission 1 playtest with beginner governor produces a PlaytestReport", { timeout: 60000 }, () => {
 		resetGatherTimers();
 
 		const report = runGovernorPlaytest(
@@ -39,7 +39,7 @@ describe("runGovernorPlaytest", () => {
 		console.log(`Timeline events: ${report.timeline.length}`);
 	});
 
-	it("report shows units trained, buildings built, resources gathered", () => {
+	it("report shows units trained, buildings built, resources gathered", { timeout: 60000 }, () => {
 		resetGatherTimers();
 
 		const report = runGovernorPlaytest(

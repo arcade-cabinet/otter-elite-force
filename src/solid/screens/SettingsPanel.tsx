@@ -42,7 +42,7 @@ const SliderSetting: Component<{
 					step={0.05}
 					value={props.value()}
 					onInput={(e) => props.onChange(Number(e.currentTarget.value))}
-					class="relative z-10 h-4 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-accent/60 [&::-webkit-slider-thumb]:bg-accent/80"
+					class="relative z-10 h-6 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-accent/70 [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-[0_0_6px_rgba(255,226,138,0.3)]"
 				/>
 			</div>
 		</div>
@@ -145,7 +145,12 @@ export const SettingsPanel: Component<{ app: AppState }> = (props) => {
 						<p>Analog, gritty, river-war aesthetic -- not futuristic.</p>
 					</div>
 				</section>
-				<div class="flex justify-center">
+				<div class="flex flex-col items-center gap-4">
+					<div class="flex items-center gap-3">
+						<div class="h-px w-8 bg-accent/20" />
+						<div class="h-1 w-1 rotate-45 border border-accent/30 bg-accent/15" />
+						<div class="h-px w-8 bg-accent/20" />
+					</div>
 					<button
 						type="button"
 						class="min-h-11 border border-border/50 bg-card/60 px-8 py-2 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"

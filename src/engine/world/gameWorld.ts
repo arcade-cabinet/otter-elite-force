@@ -1,4 +1,5 @@
 import { addEntity, createWorld, removeEntity } from "bitecs";
+import { TILE_SIZE } from "@/config/constants";
 import { resolveFactionId } from "../content/ids";
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
@@ -445,14 +446,17 @@ export function spawnUnit(
 
 	Content.unitId[eid] = options.unitId ?? 0;
 
-	// Wire template stats into bitECS SoA stores
+	// Wire template stats into bitECS SoA stores.
+	// Entity definitions use tile-based units for speed, range, and visionRadius.
+	// Runtime systems operate in pixel space, so convert: tiles * TILE_SIZE = pixels.
+	// Attack cooldown is in seconds (despite the "Ms" naming in the interface).
 	if (stats) {
 		Armor.value[eid] = stats.armor;
-		Speed.value[eid] = stats.speed;
+		Speed.value[eid] = stats.speed * TILE_SIZE;
 		Attack.damage[eid] = stats.attackDamage;
-		Attack.range[eid] = stats.attackRange;
+		Attack.range[eid] = stats.attackRange * TILE_SIZE;
 		Attack.cooldown[eid] = stats.attackCooldownMs;
-		VisionRadius.value[eid] = stats.visionRadius;
+		VisionRadius.value[eid] = stats.visionRadius * TILE_SIZE;
 		// Worker units get gather capacity
 		if (options.abilities?.includes("gather")) {
 			Gatherer.capacity[eid] = 10;
@@ -508,12 +512,14 @@ export function spawnBuilding(
 
 	Content.buildingId[eid] = options.buildingId ?? 0;
 
-	// Wire template stats into bitECS SoA stores
+	// Wire template stats into bitECS SoA stores.
+	// Building definitions use tile-based units for range and visionRadius.
+	// Runtime systems operate in pixel space, so convert: tiles * TILE_SIZE = pixels.
 	if (stats) {
 		Armor.value[eid] = stats.armor;
-		VisionRadius.value[eid] = stats.visionRadius;
+		VisionRadius.value[eid] = stats.visionRadius * TILE_SIZE;
 		Attack.damage[eid] = stats.attackDamage;
-		Attack.range[eid] = stats.attackRange;
+		Attack.range[eid] = stats.attackRange * TILE_SIZE;
 		Attack.cooldown[eid] = stats.attackCooldownMs;
 	}
 

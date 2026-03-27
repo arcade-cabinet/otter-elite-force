@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { TILE_SIZE } from "@/config/constants";
 import { FACTION_IDS } from "@/engine/content/ids";
 import { Faction, VisionRadius } from "@/engine/world/components";
 import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
@@ -33,8 +34,10 @@ describe("engine/systems/fogSystem", () => {
 	it("marks tiles around player entities as visible", () => {
 		const world = makeWorld(20, 20);
 
-		const unit = spawnUnit(world, { x: 10, y: 10, faction: "ura" });
-		VisionRadius.value[unit] = 3;
+		// Position in pixel space: tile (10,10) = pixel (320+16, 320+16)
+		const unit = spawnUnit(world, { x: 10 * TILE_SIZE + 16, y: 10 * TILE_SIZE + 16, faction: "ura" });
+		// VisionRadius stored in pixels; 3 tiles = 3 * TILE_SIZE pixels
+		VisionRadius.value[unit] = 3 * TILE_SIZE;
 
 		runFogSystem(world);
 
@@ -49,8 +52,8 @@ describe("engine/systems/fogSystem", () => {
 	it("demotes previously visible tiles to explored", () => {
 		const world = makeWorld(20, 20);
 
-		const unit = spawnUnit(world, { x: 10, y: 10, faction: "ura" });
-		VisionRadius.value[unit] = 2;
+		const unit = spawnUnit(world, { x: 10 * TILE_SIZE + 16, y: 10 * TILE_SIZE + 16, faction: "ura" });
+		VisionRadius.value[unit] = 2 * TILE_SIZE;
 
 		// First tick: marks tiles visible
 		runFogSystem(world);
@@ -67,8 +70,8 @@ describe("engine/systems/fogSystem", () => {
 	it("does not reveal tiles for enemy faction entities", () => {
 		const world = makeWorld(20, 20);
 
-		const enemy = spawnUnit(world, { x: 10, y: 10, faction: "scale_guard" });
-		VisionRadius.value[enemy] = 5;
+		const enemy = spawnUnit(world, { x: 10 * TILE_SIZE + 16, y: 10 * TILE_SIZE + 16, faction: "scale_guard" });
+		VisionRadius.value[enemy] = 5 * TILE_SIZE;
 
 		runFogSystem(world);
 
@@ -78,8 +81,9 @@ describe("engine/systems/fogSystem", () => {
 	it("handles edge tiles without going out of bounds", () => {
 		const world = makeWorld(10, 10);
 
-		const unit = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
-		VisionRadius.value[unit] = 3;
+		// Position at tile (0,0) center = pixel (16, 16)
+		const unit = spawnUnit(world, { x: 16, y: 16, faction: "ura" });
+		VisionRadius.value[unit] = 3 * TILE_SIZE;
 
 		// Should not throw
 		runFogSystem(world);
@@ -108,7 +112,7 @@ describe("engine/systems/fogSystem", () => {
 	it("skips entities with zero vision radius", () => {
 		const world = makeWorld(20, 20);
 
-		const unit = spawnUnit(world, { x: 10, y: 10, faction: "ura" });
+		const unit = spawnUnit(world, { x: 10 * TILE_SIZE + 16, y: 10 * TILE_SIZE + 16, faction: "ura" });
 		VisionRadius.value[unit] = 0;
 
 		runFogSystem(world);

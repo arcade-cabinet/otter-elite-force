@@ -223,11 +223,11 @@ export function runBossSystem(world: GameWorld): void {
 						stats: {
 							hp: 50,
 							armor: 1,
-							speed: 48,
+							speed: 1.5,
 							attackDamage: 8,
-							attackRange: 32,
-							attackCooldownMs: 1000,
-							visionRadius: 160,
+							attackRange: 1,
+							attackCooldownMs: 1,
+							visionRadius: 5,
 							popCost: 0,
 						},
 					});
