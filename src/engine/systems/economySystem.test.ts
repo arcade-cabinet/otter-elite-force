@@ -17,8 +17,8 @@ describe("engine/systems/economySystem", () => {
 		resetGatherTimers();
 	});
 
-	it("gathers 1 fish after 2 seconds of gathering", () => {
-		const world = makeWorld(2000); // 2 seconds
+	it("gathers fish after sufficient gather time", () => {
+		const world = makeWorld(2000); // 2 seconds (above 1.5s gather interval)
 
 		const worker = spawnUnit(world, { x: 10, y: 10, faction: "ura" });
 		Content.categoryId[worker] = CATEGORY_IDS.worker;
@@ -34,7 +34,8 @@ describe("engine/systems/economySystem", () => {
 
 		runEconomySystem(world);
 
-		expect(world.session.resources.fish).toBe(1);
+		// Default harvest amount for unknown resource types is 2
+		expect(world.session.resources.fish).toBe(2);
 	});
 
 	it("gathers timber from timber nodes", () => {
@@ -54,7 +55,8 @@ describe("engine/systems/economySystem", () => {
 
 		runEconomySystem(world);
 
-		expect(world.session.resources.timber).toBe(1);
+		// Default harvest amount for unknown resource types is 2
+		expect(world.session.resources.timber).toBe(2);
 	});
 
 	it("gathers salvage from salvage nodes", () => {
@@ -74,7 +76,8 @@ describe("engine/systems/economySystem", () => {
 
 		runEconomySystem(world);
 
-		expect(world.session.resources.salvage).toBe(1);
+		// Default harvest amount for unknown resource types is 2
+		expect(world.session.resources.salvage).toBe(2);
 	});
 
 	it("does not gather if worker is too far from resource", () => {
@@ -97,8 +100,8 @@ describe("engine/systems/economySystem", () => {
 		expect(world.session.resources.fish).toBe(0);
 	});
 
-	it("does not gather if time is less than 2 seconds", () => {
-		const world = makeWorld(1000); // 1 second
+	it("does not gather if time is less than gather interval", () => {
+		const world = makeWorld(1000); // 1 second (below 1.5s gather interval)
 
 		const worker = spawnUnit(world, { x: 10, y: 10, faction: "ura" });
 		Content.categoryId[worker] = CATEGORY_IDS.worker;
@@ -168,13 +171,13 @@ describe("engine/systems/economySystem", () => {
 		const orders = getOrderQueue(world, worker);
 		orders.push({ type: "gather", targetEid: node });
 
-		// Tick 1: 1 second accumulated (not enough)
+		// Tick 1: 1 second accumulated (not enough, interval is 1.5s)
 		runEconomySystem(world);
 		expect(world.session.resources.fish).toBe(0);
 
-		// Tick 2: 2 seconds accumulated (gather 1)
+		// Tick 2: 2 seconds accumulated (gather — default harvest amount is 2)
 		runEconomySystem(world);
-		expect(world.session.resources.fish).toBe(1);
+		expect(world.session.resources.fish).toBe(2);
 	});
 
 	it("worker moves to nearby resource and gathers within 200 ticks (16ms each)", () => {

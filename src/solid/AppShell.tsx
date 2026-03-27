@@ -42,10 +42,31 @@ const GameScreen: Component<{ app: AppState }> = (props) => {
 			<RuntimeHost
 				mode={props.app.isSkirmish() ? "skirmish" : "campaign"}
 				missionId={props.app.currentMissionId() ?? undefined}
+				skirmish={props.app.isSkirmish() ? props.app.skirmishConfig() : null}
 				onPhaseChange={(phase, stats?: PhaseChangeStats) => {
 					if (phase === "victory" || phase === "defeat") {
 						const missionId = props.app.currentMissionId() ?? "unknown";
 						const elapsedSec = stats ? Math.floor(stats.timeElapsedMs / 1000) : 0;
+
+						// Skirmish result flow
+						if (props.app.isSkirmish()) {
+							const skCfg = props.app.skirmishConfig();
+							props.app.setSkirmishResult({
+								outcome: phase as "victory" | "defeat",
+								mapId: skCfg?.mapId ?? "unknown",
+								difficulty: skCfg?.difficulty ?? "medium",
+								playedAsScaleGuard: skCfg?.playAsScaleGuard ?? false,
+								stats: {
+									timeElapsed: elapsedSec,
+									unitsTrained: stats?.unitsDeployed ?? 0,
+									unitsLost: stats?.unitsLost ?? 0,
+									resourcesGathered: stats?.resourcesGathered ?? 0,
+								},
+							});
+							props.app.setScreen("result");
+							return;
+						}
+
 						// Star rating: 1 star base, +1 for > half objectives, +1 for all objectives
 						let stars: 0 | 1 | 2 | 3 = 0;
 						if (phase === "victory" && stats) {
@@ -74,7 +95,7 @@ const GameScreen: Component<{ app: AppState }> = (props) => {
 						props.app.setMissionResult(resultData);
 
 						// Persist campaign progress on victory
-						if (phase === "victory" && !props.app.isSkirmish()) {
+						if (phase === "victory") {
 							const store = new SqlitePersistenceStore();
 							void store
 								.initialize()
@@ -176,7 +197,11 @@ export const AppShell: Component = () => {
 			</Match>
 			<Match when={app.screen() === "result"}>
 				{app.isSkirmish() ? (
-					<SkirmishResult app={app} />
+					<SkirmishResult
+						app={app}
+						result={app.skirmishResult() ?? undefined}
+						seedPhrase={app.skirmishSeedPhrase() ?? undefined}
+					/>
 				) : (
 					<MissionResult app={app} result={app.missionResult() ?? undefined} />
 				)}

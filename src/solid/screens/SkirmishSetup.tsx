@@ -6,6 +6,7 @@
  */
 
 import { type Component, createSignal, For, Show } from "solid-js";
+import { createSeedBundle } from "@/engine/random/seed";
 import {
 	isMapUnlocked,
 	SKIRMISH_DIFFICULTIES,
@@ -14,6 +15,7 @@ import {
 	type SkirmishDifficultyOption,
 	type SkirmishMapDef,
 	type SkirmishPreset,
+	type SkirmishSessionConfig,
 } from "@/features/skirmish/types";
 import type { AppState } from "../appState";
 
@@ -272,7 +274,27 @@ export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 							<button
 								type="button"
 								disabled={!canStart()}
-								onClick={() => canStart() && props.app.setScreen("game")}
+								onClick={() => {
+									if (!canStart()) return;
+									const map = selectedMap();
+									const seed = createSeedBundle({
+										phrase: seedPhrase(),
+										source: "skirmish",
+									});
+									const config: SkirmishSessionConfig = {
+										mapId: map.id,
+										mapName: map.name,
+										difficulty: selectedDifficulty().id,
+										playAsScaleGuard: playAsScaleGuard(),
+										preset: selectedPreset(),
+										seed,
+										startingResources: { fish: 300, timber: 200, salvage: 100 },
+									};
+									props.app.setSkirmishConfig(config);
+									props.app.setSkirmishSeedPhrase(seedPhrase());
+									props.app.setIsSkirmish(true);
+									props.app.setScreen("game");
+								}}
 								class="min-h-12 w-full border-2 border-accent/60 bg-accent/15 px-4 py-3 font-heading text-sm uppercase tracking-[0.2em] text-accent transition-all duration-200 hover:border-accent/80 hover:bg-accent/25 hover:shadow-[0_0_20px_rgba(255,226,138,0.1)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
 							>
 								Start Skirmish

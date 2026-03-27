@@ -269,7 +269,7 @@ export function createSkirmishGameAdapter(world: GameWorld): GameAdapter {
 			for (const eid of world.runtime.alive) {
 				if (Faction.id[eid] !== AI_FACTION || Flags.isBuilding[eid] !== 1) continue;
 				const type = world.runtime.entityTypeIndex.get(eid);
-				if (type === "sludge_pit" || type === "command_post") return false;
+				if (type === "sludge_pit" || type === "command_post" || type === "flag_post") return false;
 			}
 			return true;
 		},

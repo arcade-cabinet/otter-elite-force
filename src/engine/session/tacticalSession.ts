@@ -1,6 +1,8 @@
 import { buildGraphFromTilemap } from "@/ai/graphBuilder";
+import type { TerrainType as PathfindingTerrainType } from "@/ai/terrainTypes";
 import { buildTerrainGridForPathfinding } from "@/canvas/tilePainter";
 import { resolveCategoryId } from "@/engine/content/ids";
+import { TerrainTypeId } from "@/engine/content/terrainTypes";
 import { buildTerrainGrid } from "./missionBootstrap";
 import { getMissionById } from "@/entities/missions";
 import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
@@ -11,6 +13,7 @@ import {
 	type SkirmishMapData,
 	type SkirmishTerrainType,
 } from "@/maps/skirmishMapGenerator";
+import { TerrainType as MapTerrainType } from "@/maps/types";
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
 import { createMissionSeedBundle, type SeedBundle } from "../random/seed";
@@ -443,13 +446,16 @@ export function seedGameWorldFromCampaignSession(
 		}
 	}
 
-	// ── Task 2: Initialize encounter entries with an early patrol near player ──
+	// ── Task 2: Initialize encounter entries ──
+	// Early encounters are light scouts near the river (mud_banks), not near
+	// the player base, so the lodge survives while the player learns.
+	// Heavier encounters require phase progression and spawn further away.
 	const earlyPatrolEntries: EncounterEntry[] = [
 		{
 			composition: [{ unitType: "skink", count: 2, variance: 1 }],
-			spawnZone: "jungle_south",
-			intervalMs: 45_000,
-			intervalVariance: 15_000,
+			spawnZone: "mud_banks",
+			intervalMs: 90_000,
+			intervalVariance: 20_000,
 			maxSpawns: 2,
 		},
 		{
@@ -457,23 +463,87 @@ export function seedGameWorldFromCampaignSession(
 				{ unitType: "gator", count: 2, variance: 1 },
 				{ unitType: "skink", count: 1, variance: 1 },
 			],
-			spawnZone: "patrol",
-			intervalMs: 120_000,
+			spawnZone: "jungle_north",
+			intervalMs: 180_000,
 			intervalVariance: 30_000,
-			maxSpawns: 5,
+			maxSpawns: 3,
+			requiresPhase: "crossing",
 		},
 		{
 			composition: [
 				{ unitType: "viper", count: 1, variance: 1 },
 				{ unitType: "gator", count: 1, variance: 0 },
 			],
-			spawnZone: "encounter",
-			intervalMs: 180_000,
+			spawnZone: "enemy_outpost",
+			intervalMs: 240_000,
 			intervalVariance: 45_000,
 			maxSpawns: 3,
+			requiresPhase: "outpost",
 		},
 	];
 	initEncounterEntries(world, earlyPatrolEntries);
+}
+
+// ---------------------------------------------------------------------------
+// Skirmish terrain conversion helpers
+// ---------------------------------------------------------------------------
+
+/** Map from skirmish MapTerrainType enum to engine TerrainTypeId numeric values. */
+function mapTerrainToEngineId(t: MapTerrainType): number {
+	switch (t) {
+		case MapTerrainType.Grass:
+			return TerrainTypeId.grass;
+		case MapTerrainType.Dirt:
+			return TerrainTypeId.dirt;
+		case MapTerrainType.Mud:
+			return TerrainTypeId.mud;
+		case MapTerrainType.Water:
+			return TerrainTypeId.water;
+		case MapTerrainType.Mangrove:
+			return TerrainTypeId.mangrove;
+		case MapTerrainType.Bridge:
+			return TerrainTypeId.bridge;
+		case MapTerrainType.ToxicSludge:
+			return TerrainTypeId.toxic_sludge;
+		case MapTerrainType.TallGrass:
+			return TerrainTypeId.grass; // No tall_grass ID in engine, use grass
+		default:
+			return TerrainTypeId.grass;
+	}
+}
+
+/** Map from skirmish MapTerrainType enum to pathfinding string terrain type. */
+function mapTerrainToPathfinding(t: MapTerrainType): PathfindingTerrainType {
+	switch (t) {
+		case MapTerrainType.Grass:
+			return "grass";
+		case MapTerrainType.Dirt:
+			return "dirt";
+		case MapTerrainType.Mud:
+			return "mud";
+		case MapTerrainType.Water:
+			return "water";
+		case MapTerrainType.Mangrove:
+			return "mangrove";
+		case MapTerrainType.Bridge:
+			return "bridge";
+		case MapTerrainType.ToxicSludge:
+			return "toxic_sludge";
+		case MapTerrainType.TallGrass:
+			return "tall_grass";
+		default:
+			return "grass";
+	}
+}
+
+/** Convert a skirmish map's numeric terrain grid to engine TerrainTypeId grid. */
+function convertSkirmishTerrainToGrid(terrain: MapTerrainType[][]): number[][] {
+	return terrain.map((row) => row.map((t) => mapTerrainToEngineId(t)));
+}
+
+/** Convert a skirmish map's numeric terrain grid to pathfinding string grid. */
+function convertSkirmishTerrainToPathfinding(terrain: MapTerrainType[][]): PathfindingTerrainType[][] {
+	return terrain.map((row) => row.map((t) => mapTerrainToPathfinding(t)));
 }
 
 export function seedGameWorldFromSkirmishSession(
@@ -504,6 +574,22 @@ export function seedGameWorldFromSkirmishSession(
 	world.diagnostics.mode = session.diagnostics.mode;
 	world.diagnostics.skirmishPresetId = session.diagnostics.skirmishPresetId;
 
+	// Build terrain grid from skirmish map data (convert map enum to engine terrain IDs)
+	world.runtime.terrainGrid = convertSkirmishTerrainToGrid(session.map.terrain);
+
+	// Build pathfinding nav graph from skirmish terrain
+	const pathGrid = convertSkirmishTerrainToPathfinding(session.map.terrain);
+	const navGraph = buildGraphFromTilemap(pathGrid, { eightWay: false });
+	world.runtime.navGraphs.set("main", navGraph);
+	world.navigation.activeGraphId = "main";
+
+	// Initialize AI resource pool
+	const aiRes = { ...session.config.startingResources };
+	(world.runtime as { aiResources?: { fish: number; timber: number; salvage: number } }).aiResources = aiRes;
+
+	// Set starting population cap for skirmish
+	world.runtime.population.max = 20;
+
 	const playerFaction = session.config.playAsScaleGuard ? "scale_guard" : "ura";
 	const enemyFaction = session.config.playAsScaleGuard ? "ura" : "scale_guard";
 
@@ -529,23 +615,23 @@ export function seedGameWorldFromSkirmishSession(
 	});
 	setSelection(world, playerBase, true);
 
-	const flagPostDef = getBuilding("flag_post");
+	const sludgePitDef = getBuilding("sludge_pit");
 	spawnRuntimeBuilding(world, {
 		x: session.map.aiStart.tileX * 32 + 16,
 		y: session.map.aiStart.tileY * 32 + 16,
 		faction: enemyFaction,
-		buildingType: "flag_post",
-		health: { current: flagPostDef?.hp ?? 40, max: flagPostDef?.hp ?? 40 },
+		buildingType: "sludge_pit",
+		health: { current: sludgePitDef?.hp ?? 40, max: sludgePitDef?.hp ?? 40 },
 		scriptId: "enemy_base",
-		stats: flagPostDef
+		stats: sludgePitDef
 			? {
-					hp: flagPostDef.hp,
-					armor: flagPostDef.armor ?? 0,
+					hp: sludgePitDef.hp,
+					armor: sludgePitDef.armor ?? 0,
 					visionRadius: 5,
-					attackDamage: flagPostDef.attackDamage ?? 0,
-					attackRange: flagPostDef.attackRange ?? 0,
-					attackCooldownMs: flagPostDef.attackCooldown ?? 0,
-					populationCapacity: flagPostDef.populationCapacity ?? 0,
+					attackDamage: sludgePitDef.attackDamage ?? 0,
+					attackRange: sludgePitDef.attackRange ?? 0,
+					attackCooldownMs: sludgePitDef.attackCooldown ?? 0,
+					populationCapacity: sludgePitDef.populationCapacity ?? 0,
 				}
 			: undefined,
 	});
@@ -558,6 +644,7 @@ export function seedGameWorldFromSkirmishSession(
 			y: session.map.playerStart.tileY * 32 + 48,
 			faction: playerFaction,
 			unitType: playerUnitType,
+			categoryId: playerUnitDef ? resolveCategoryId(playerUnitDef.category) : undefined,
 			health: { current: playerUnitDef?.hp ?? 10, max: playerUnitDef?.hp ?? 10 },
 			scriptId: `player_unit_${i}`,
 			stats: playerUnitDef
@@ -579,6 +666,7 @@ export function seedGameWorldFromSkirmishSession(
 			y: session.map.aiStart.tileY * 32 - 24,
 			faction: enemyFaction,
 			unitType: "gator",
+			categoryId: enemyUnitDef ? resolveCategoryId(enemyUnitDef.category) : undefined,
 			health: { current: enemyUnitDef?.hp ?? 10, max: enemyUnitDef?.hp ?? 10 },
 			scriptId: `enemy_unit_${i}`,
 			stats: enemyUnitDef
@@ -604,4 +692,18 @@ export function seedGameWorldFromSkirmishSession(
 			scriptId: `resource_${index}`,
 		});
 	}
+
+	// Count initial player unit count for population tracking
+	const playerFactionId = session.config.playAsScaleGuard ? 2 : 1;
+	let playerUnitCount = 0;
+	for (const eid of world.runtime.alive) {
+		if (
+			Faction.id[eid] === playerFactionId &&
+			Flags.isBuilding[eid] === 0 &&
+			Flags.isResource[eid] === 0
+		) {
+			playerUnitCount++;
+		}
+	}
+	world.runtime.population.current = playerUnitCount;
 }

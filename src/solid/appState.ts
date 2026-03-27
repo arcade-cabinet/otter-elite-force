@@ -5,6 +5,7 @@
  */
 
 import { createSignal } from "solid-js";
+import type { SkirmishMatchResult, SkirmishSessionConfig } from "@/features/skirmish/types";
 import type { MissionResultData } from "./screens/MissionResult";
 
 /**
@@ -32,6 +33,15 @@ export interface AppState {
 	/** Mission result data passed from game screen to result screen. */
 	missionResult: () => MissionResultData | null;
 	setMissionResult: (data: MissionResultData | null) => void;
+	/** Skirmish session config passed from setup screen to game screen. */
+	skirmishConfig: () => SkirmishSessionConfig | null;
+	setSkirmishConfig: (config: SkirmishSessionConfig | null) => void;
+	/** Skirmish match result passed from game screen to result screen. */
+	skirmishResult: () => SkirmishMatchResult | null;
+	setSkirmishResult: (result: SkirmishMatchResult | null) => void;
+	/** Seed phrase used in the current skirmish for the result screen. */
+	skirmishSeedPhrase: () => string | null;
+	setSkirmishSeedPhrase: (phrase: string | null) => void;
 }
 
 /**
@@ -42,6 +52,9 @@ export function createAppState(): AppState {
 	const [currentMissionId, setCurrentMissionId] = createSignal<string | null>(null);
 	const [isSkirmish, setIsSkirmish] = createSignal(false);
 	const [missionResult, setMissionResult] = createSignal<MissionResultData | null>(null);
+	const [skirmishConfig, setSkirmishConfig] = createSignal<SkirmishSessionConfig | null>(null);
+	const [skirmishResult, setSkirmishResult] = createSignal<SkirmishMatchResult | null>(null);
+	const [skirmishSeedPhrase, setSkirmishSeedPhrase] = createSignal<string | null>(null);
 
 	return {
 		screen,
@@ -52,5 +65,11 @@ export function createAppState(): AppState {
 		setIsSkirmish,
 		missionResult,
 		setMissionResult,
+		skirmishConfig,
+		setSkirmishConfig,
+		skirmishResult,
+		setSkirmishResult,
+		skirmishSeedPhrase,
+		setSkirmishSeedPhrase,
 	};
 }

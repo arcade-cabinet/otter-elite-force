@@ -214,6 +214,19 @@ export async function createTacticalRuntime(
 	let buildPlacementMode = false;
 	let pendingBuildType: string | null = null;
 
+	// Build menu state: cycle through available building types with B key.
+	// When true, the ghost building label includes a "B to cycle" hint.
+	let buildMenuCycleActive = false;
+	const BUILD_CYCLE: string[] = [
+		"command_post",
+		"barracks",
+		"burrow",
+		"fish_trap",
+		"watchtower",
+		"sandbag_wall",
+	];
+	let buildCycleIndex = 0;
+
 	// Selection box (screen-space during drag)
 	let selectionBoxScreen: {
 		startX: number;
@@ -524,9 +537,27 @@ export async function createTacticalRuntime(
 			if (!event) break;
 			if (event.type === "enter-build-mode") {
 				const buildingId = String(event.payload?.buildingId ?? "");
-				if (buildingId) {
+				if (buildingId === "__open_menu__") {
+					// Toggle build cycling mode
+					if (buildPlacementMode) {
+						buildPlacementMode = false;
+						pendingBuildType = null;
+						buildMenuCycleActive = false;
+					} else {
+						buildPlacementMode = true;
+						buildCycleIndex = 0;
+						pendingBuildType = BUILD_CYCLE[0];
+						buildMenuCycleActive = true;
+						inputMode = "normal";
+						pushAlert(
+							`Build: ${pendingBuildType.replace(/_/g, " ")} (B to cycle, ESC to cancel)`,
+							"info",
+						);
+					}
+				} else if (buildingId) {
 					buildPlacementMode = true;
 					pendingBuildType = buildingId;
+					buildMenuCycleActive = false;
 					inputMode = "normal";
 					pushAlert(`Place building: ${buildingId.replace(/_/g, " ")}`, "info");
 				}
@@ -1080,6 +1111,7 @@ export async function createTacticalRuntime(
 				}
 				buildPlacementMode = false;
 				pendingBuildType = null;
+				buildMenuCycleActive = false;
 			} else if (dragStartWorldPos && !isDragging) {
 				const mouseWorld = ljs.mousePos;
 				const mousePx = tileToPixel(mouseWorld.x, mouseWorld.y);
@@ -1111,6 +1143,7 @@ export async function createTacticalRuntime(
 			if (buildPlacementMode) {
 				buildPlacementMode = false;
 				pendingBuildType = null;
+				buildMenuCycleActive = false;
 				pushAlert("Build cancelled", "info");
 			} else {
 			const mouseScreen = ljs.mousePosScreen;
@@ -1195,11 +1228,35 @@ export async function createTacticalRuntime(
 			}
 		}
 
+		// B — enter build placement mode (cycle through building types)
+		if (ljs.keyWasPressed("KeyB")) {
+			if (buildPlacementMode) {
+				// Cycle to next building type
+				buildCycleIndex = (buildCycleIndex + 1) % BUILD_CYCLE.length;
+				pendingBuildType = BUILD_CYCLE[buildCycleIndex];
+				pushAlert(
+					`Build: ${pendingBuildType.replace(/_/g, " ")} (B to cycle)`,
+					"info",
+				);
+			} else {
+				buildPlacementMode = true;
+				buildCycleIndex = 0;
+				pendingBuildType = BUILD_CYCLE[0];
+				buildMenuCycleActive = true;
+				inputMode = "normal";
+				pushAlert(
+					`Build: ${pendingBuildType.replace(/_/g, " ")} (B to cycle, ESC to cancel)`,
+					"info",
+				);
+			}
+		}
+
 		// Escape — cancel build mode, cancel current mode, or deselect all
 		if (ljs.keyWasPressed("Escape")) {
 			if (buildPlacementMode) {
 				buildPlacementMode = false;
 				pendingBuildType = null;
+				buildMenuCycleActive = false;
 				pushAlert("Build cancelled", "info");
 			} else if (inputMode !== "normal") {
 				inputMode = "normal";
@@ -1661,8 +1718,10 @@ export async function createTacticalRuntime(
 			} else {
 				ljs.drawRect(ghostPos, ljs.vec2(0.9, 0.9), ghostColor);
 			}
-			// Draw label
-			const ghostLabel = pendingBuildType.replace(/_/g, " ");
+			// Draw label (include cycle hint when in B-key cycling mode)
+			const ghostLabel = buildMenuCycleActive
+				? `${pendingBuildType.replace(/_/g, " ")} [B:next]`
+				: pendingBuildType.replace(/_/g, " ");
 			ljs.drawText(
 				ghostLabel,
 				ljs.vec2(ghostPos.x, ghostPos.y - 0.6),

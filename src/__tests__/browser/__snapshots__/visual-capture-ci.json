@@ -21,8 +21,8 @@
           "eid": 2,
           "x": 1168,
           "y": 144,
-          "health": 200,
-          "type": "flag_post"
+          "health": 500,
+          "type": "sludge_pit"
         },
         {
           "eid": 3,
@@ -161,8 +161,8 @@
           "eid": 2,
           "x": 1168,
           "y": 144,
-          "health": 200,
-          "type": "flag_post"
+          "health": 500,
+          "type": "sludge_pit"
         },
         {
           "eid": 3,
@@ -301,8 +301,8 @@
           "eid": 2,
           "x": 1168,
           "y": 144,
-          "health": 200,
-          "type": "flag_post"
+          "health": 500,
+          "type": "sludge_pit"
         },
         {
           "eid": 3,
