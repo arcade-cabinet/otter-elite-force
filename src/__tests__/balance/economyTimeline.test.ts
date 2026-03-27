@@ -22,6 +22,7 @@ import { resetLootRng } from "@/engine/systems/lootSystem";
 import { Faction, Flags, Gatherer, Position, ResourceNode } from "@/engine/world/components";
 import {
 	createGameWorld,
+	getOrderQueue,
 	spawnBuilding,
 	spawnResource,
 	spawnUnit,
@@ -167,7 +168,7 @@ describe("Economy Timeline Validation (Task 1)", () => {
 				createMission1EconomySandbox();
 
 			// Assign 3 workers to timber, 1 to fish (simulating optimal opening)
-			const { getOrderQueue } = require("@/engine/world/gameWorld");
+			// getOrderQueue imported statically at top
 			for (let i = 0; i < 3; i++) {
 				const orders = getOrderQueue(world, workerEids[i]);
 				orders.length = 0;
@@ -478,7 +479,7 @@ describe("Economy Timeline Validation (Task 1)", () => {
 			}
 
 			// Spawn 3 workers on fish
-			const { getOrderQueue } = require("@/engine/world/gameWorld");
+			// getOrderQueue imported statically at top
 			for (let i = 0; i < 3; i++) {
 				const wEid = spawnUnit(world, {
 					x: 220 + i * 48,
