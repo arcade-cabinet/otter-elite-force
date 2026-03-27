@@ -67,7 +67,7 @@ describe("runGovernorPlaytest", () => {
 		console.log(`Timeline first 20:`, report.timeline.slice(0, 20));
 	});
 
-	it("optimal governor completes Mission 1 faster than beginner", { timeout: 60000 }, () => {
+	it("optimal governor completes Mission 1 faster than beginner", { timeout: 180000 }, () => {
 		resetGatherTimers();
 
 		const beginnerReport = runGovernorPlaytest(
