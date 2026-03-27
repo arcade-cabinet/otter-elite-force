@@ -44,6 +44,29 @@ export interface SessionObjective {
 	bonus?: boolean;
 }
 
+/** Stats that can be applied to a spawned unit from template data. */
+export interface UnitSpawnStats {
+	hp: number;
+	armor: number;
+	speed: number;
+	attackDamage: number;
+	attackRange: number;
+	attackCooldownMs: number;
+	visionRadius: number;
+	popCost: number;
+}
+
+/** Stats that can be applied to a spawned building from template data. */
+export interface BuildingSpawnStats {
+	hp: number;
+	armor: number;
+	visionRadius: number;
+	attackDamage: number;
+	attackRange: number;
+	attackCooldownMs: number;
+	populationCapacity: number;
+}
+
 export interface GameWorld {
 	ecs: ReturnType<typeof createWorld>;
 	time: {
@@ -352,6 +375,13 @@ function spawnEntity(
 	return eid;
 }
 
+/**
+ * Spawn a unit entity with full stats from template data.
+ *
+ * When `stats` is provided, HP/armor/speed/attack/vision are written to
+ * the bitECS SoA stores. When `abilities` is provided, they are registered
+ * in the runtime entityAbilities map.
+ */
 export function spawnUnit(
 	world: GameWorld,
 	options: {
@@ -363,25 +393,64 @@ export function spawnUnit(
 		categoryId?: number;
 		health?: { current: number; max: number };
 		scriptId?: string;
+		/** Template stats — armor, speed, attack, vision, popCost. */
+		stats?: UnitSpawnStats;
+		/** Ability IDs from template. */
+		abilities?: string[];
+		/** Template flags (canSwim, canStealth, etc.). */
+		flags?: Record<string, boolean>;
 	},
 ): number {
+	const stats = options.stats;
+	const hp = stats ? stats.hp : options.health?.max ?? 1;
+	const hpCurrent = options.health?.current ?? hp;
+
 	const eid = spawnEntity(world, {
 		x: options.x,
 		y: options.y,
 		faction: options.faction,
-		health: options.health,
+		health: { current: hpCurrent, max: hp },
 		categoryId: options.categoryId,
+		flags: {
+			canSwim: options.flags?.canSwim ? 1 : 0,
+			stealthed: options.flags?.canStealth ? 1 : 0,
+		},
 	});
+
 	Content.unitId[eid] = options.unitId ?? 0;
+
+	// Wire template stats into bitECS SoA stores
+	if (stats) {
+		Armor.value[eid] = stats.armor;
+		Speed.value[eid] = stats.speed;
+		Attack.damage[eid] = stats.attackDamage;
+		Attack.range[eid] = stats.attackRange;
+		Attack.cooldown[eid] = stats.attackCooldownMs;
+		VisionRadius.value[eid] = stats.visionRadius;
+		// Worker units get gather capacity
+		if (options.abilities?.includes("gather")) {
+			Gatherer.capacity[eid] = 10;
+		}
+	}
+
 	if (options.unitType) {
 		world.runtime.entityTypeIndex.set(eid, options.unitType);
 	}
+
+	// Register abilities
+	if (options.abilities && options.abilities.length > 0) {
+		world.runtime.entityAbilities.set(eid, [...options.abilities]);
+	}
+
 	if (options.scriptId) {
 		setScriptTag(world, eid, options.scriptId);
 	}
 	return eid;
 }
 
+/**
+ * Spawn a building entity with full stats from template data.
+ */
 export function spawnBuilding(
 	world: GameWorld,
 	options: {
@@ -394,17 +463,34 @@ export function spawnBuilding(
 		health?: { current: number; max: number };
 		construction?: { progress: number; buildTime: number };
 		scriptId?: string;
+		/** Template stats — armor, vision, attack, populationCapacity. */
+		stats?: BuildingSpawnStats;
 	},
 ): number {
+	const stats = options.stats;
+	const hp = stats ? stats.hp : options.health?.max ?? 1;
+	const hpCurrent = options.health?.current ?? hp;
+
 	const eid = spawnEntity(world, {
 		x: options.x,
 		y: options.y,
 		faction: options.faction,
-		health: options.health,
+		health: { current: hpCurrent, max: hp },
 		categoryId: options.categoryId,
 		flags: { isBuilding: 1 },
 	});
+
 	Content.buildingId[eid] = options.buildingId ?? 0;
+
+	// Wire template stats into bitECS SoA stores
+	if (stats) {
+		Armor.value[eid] = stats.armor;
+		VisionRadius.value[eid] = stats.visionRadius;
+		Attack.damage[eid] = stats.attackDamage;
+		Attack.range[eid] = stats.attackRange;
+		Attack.cooldown[eid] = stats.attackCooldownMs;
+	}
+
 	if (options.buildingType) {
 		world.runtime.entityTypeIndex.set(eid, options.buildingType);
 	}

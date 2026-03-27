@@ -3,7 +3,7 @@
  *
  * Takes a mission ID, looks up the definition from the mission registry,
  * and populates the GameWorld with:
- *   - All entity placements (units, buildings, resources)
+ *   - All entity placements (units, buildings, resources) with full stats
  *   - Starting resources
  *   - Terrain/navigation dimensions
  *   - Script tags for named entities
@@ -21,6 +21,9 @@ import { resolvePlacementPosition } from "./tacticalSession";
 
 /**
  * Spawn a single placement into the GameWorld using the runtime spawn helpers.
+ * Reads full stats from the entity registry and passes them to spawn functions
+ * so bitECS SoA stores (Armor, Speed, Attack, VisionRadius) are populated.
+ *
  * Returns the entity ID if spawned, or null if the type was not found.
  */
 function spawnPlacement(
@@ -43,6 +46,23 @@ function spawnPlacement(
 			unitType: placement.type,
 			health: { current: unitDef.hp, max: unitDef.hp },
 			scriptId: placement.scriptId,
+			stats: {
+				hp: unitDef.hp,
+				armor: unitDef.armor,
+				speed: unitDef.speed,
+				attackDamage: unitDef.damage,
+				attackRange: unitDef.range,
+				attackCooldownMs: unitDef.attackCooldown,
+				visionRadius: unitDef.visionRadius,
+				popCost: unitDef.populationCost,
+			},
+			abilities: unitDef.tags.filter((t) =>
+				["gather", "build", "swim", "heal", "snipe", "demolition", "stealth", "rally", "shield_bash"].includes(t),
+			),
+			flags: {
+				canSwim: unitDef.canSwim ?? false,
+				canStealth: unitDef.canCrouch ?? false,
+			},
 		});
 	}
 
@@ -56,6 +76,15 @@ function spawnPlacement(
 			buildingType: placement.type,
 			health: { current: buildingDef.hp, max: buildingDef.hp },
 			scriptId: placement.scriptId,
+			stats: {
+				hp: buildingDef.hp,
+				armor: buildingDef.armor ?? 0,
+				visionRadius: 5,
+				attackDamage: buildingDef.attackDamage ?? 0,
+				attackRange: buildingDef.attackRange ?? 0,
+				attackCooldownMs: buildingDef.attackCooldown ?? 0,
+				populationCapacity: buildingDef.populationCapacity ?? 0,
+			},
 		});
 	}
 
@@ -95,7 +124,6 @@ function buildTerrainGrid(mission: MissionDef): number[][] {
 		const tid = resolveTerrainId(region.terrainId);
 
 		if (region.fill) {
-			// Full map fill (base layer)
 			for (let y = 0; y < height; y++) {
 				for (let x = 0; x < width; x++) {
 					grid[y][x] = tid;
@@ -131,7 +159,6 @@ function buildTerrainGrid(mission: MissionDef): number[][] {
 		} else if (region.river) {
 			const { points, width: riverWidth } = region.river;
 			const halfW = riverWidth / 2;
-			// Rasterize river as a polyline with width
 			for (let i = 0; i < points.length - 1; i++) {
 				const [ax, ay] = points[i];
 				const [bx, by] = points[i + 1];
@@ -155,7 +182,6 @@ function buildTerrainGrid(mission: MissionDef): number[][] {
 		}
 	}
 
-	// Apply tile overrides (e.g., bridge tiles)
 	for (const override of overrides) {
 		if (override.x >= 0 && override.x < width && override.y >= 0 && override.y < height) {
 			grid[override.y][override.x] = resolveTerrainId(override.terrainId);
@@ -167,10 +193,9 @@ function buildTerrainGrid(mission: MissionDef): number[][] {
 
 /**
  * Populate the GameWorld from a resolved MissionDef.
- * Spawns all placements, sets resources, dimensions, zones, and objectives.
+ * Spawns all placements with full stats, sets resources, dimensions, zones, and objectives.
  */
 function seedWorldFromMission(world: GameWorld, mission: MissionDef): void {
-	// Set session state
 	world.session.currentMissionId = mission.id;
 	world.session.phase = "playing";
 	world.session.resources = {
@@ -179,7 +204,6 @@ function seedWorldFromMission(world: GameWorld, mission: MissionDef): void {
 		salvage: mission.startResources.salvage ?? 0,
 	};
 
-	// Set objectives
 	world.session.objectives = [
 		...mission.objectives.primary.map((obj) => ({
 			id: obj.id,
@@ -195,18 +219,12 @@ function seedWorldFromMission(world: GameWorld, mission: MissionDef): void {
 		})),
 	];
 
-	// Set navigation/terrain dimensions
 	world.navigation.width = mission.terrain.width;
 	world.navigation.height = mission.terrain.height;
-
-	// Build terrain grid from mission regions and overrides
 	world.runtime.terrainGrid = buildTerrainGrid(mission);
-
-	// Set runtime scenario state
 	world.runtime.scenarioPhase = "initial";
 	world.runtime.waveCounter = 0;
 
-	// Register zone rectangles (convert tile coords to pixel coords)
 	world.runtime.zoneRects = new Map(
 		Object.entries(mission.zones).map(([zoneId, zone]) => [
 			zoneId,
@@ -219,7 +237,6 @@ function seedWorldFromMission(world: GameWorld, mission: MissionDef): void {
 		]),
 	);
 
-	// Spawn all placements
 	let firstPlayerUnitSelected = false;
 	for (const [placementIndex, placement] of mission.placements.entries()) {
 		const count = placement.count ?? 1;
@@ -227,7 +244,6 @@ function seedWorldFromMission(world: GameWorld, mission: MissionDef): void {
 			const pos = resolvePlacementPosition(placement, mission, placementIndex * 100 + i);
 			const eid = spawnPlacement(world, placement, pos.x, pos.y);
 
-			// Auto-select the first player unit for camera focus
 			if (eid !== null && !firstPlayerUnitSelected && placement.faction === "ura") {
 				setSelection(world, eid, true);
 				firstPlayerUnitSelected = true;
@@ -235,7 +251,6 @@ function seedWorldFromMission(world: GameWorld, mission: MissionDef): void {
 		}
 	}
 
-	// Set campaign metadata
 	world.campaign.currentMissionId = mission.id;
 }
 
@@ -243,7 +258,8 @@ function seedWorldFromMission(world: GameWorld, mission: MissionDef): void {
  * Bootstrap a mission into a GameWorld by mission ID.
  *
  * Looks up the mission definition from the registry, then seeds the world
- * with all entities, resources, objectives, and navigation data.
+ * with all entities (with full stats from templates), resources, objectives,
+ * and navigation data.
  *
  * Throws if the mission ID is not found.
  */
@@ -258,7 +274,6 @@ export function bootstrapMission(world: GameWorld, missionId: string): void {
 
 	seedWorldFromMission(world, mission);
 
-	// Record bootstrap in diagnostics
 	world.diagnostics.missionId = missionId;
 	world.diagnostics.events.push({
 		tick: 0,

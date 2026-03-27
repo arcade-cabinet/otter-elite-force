@@ -15,7 +15,7 @@ import {
 	spawnResource,
 	spawnUnit,
 } from "./gameWorld";
-import { Faction, Selection } from "./components";
+import { Armor, Attack, Flags, Health, Selection, Speed, VisionRadius, Faction } from "./components";
 
 describe("engine/world/gameWorld", () => {
 	it("creates a world with deterministic seed metadata", () => {
@@ -91,5 +91,69 @@ describe("engine/world/gameWorld", () => {
 		expect(world.navigation.width).toBe(0);
 		expect(world.runtime.orderQueues.size).toBe(0);
 		expect(world.runtime.scriptTagIndex.size).toBe(0);
+	});
+
+	it("spawns river_rat with full template stats wired into bitECS SoA stores", () => {
+		const world = createGameWorld();
+
+		const eid = spawnUnit(world, {
+			x: 100,
+			y: 200,
+			faction: "ura",
+			unitType: "river_rat",
+			stats: {
+				hp: 40,
+				armor: 0,
+				speed: 80,
+				attackDamage: 5,
+				attackRange: 32,
+				attackCooldownMs: 1500,
+				visionRadius: 6,
+				popCost: 1,
+			},
+			abilities: ["gather", "build", "swim"],
+			flags: { canSwim: true, canStealth: false },
+		});
+
+		expect(Health.current[eid]).toBe(40);
+		expect(Health.max[eid]).toBe(40);
+		expect(Armor.value[eid]).toBe(0);
+		expect(Speed.value[eid]).toBe(80);
+		expect(Attack.damage[eid]).toBe(5);
+		expect(Attack.range[eid]).toBe(32);
+		expect(Attack.cooldown[eid]).toBe(1500);
+		expect(VisionRadius.value[eid]).toBe(6);
+		expect(Flags.canSwim[eid]).toBe(1);
+		expect(world.runtime.entityAbilities.get(eid)).toEqual(["gather", "build", "swim"]);
+		expect(world.runtime.entityTypeIndex.get(eid)).toBe("river_rat");
+	});
+
+	it("spawns a building with template stats wired into bitECS SoA stores", () => {
+		const world = createGameWorld();
+
+		const eid = spawnBuilding(world, {
+			x: 300,
+			y: 400,
+			faction: "ura",
+			buildingType: "watchtower",
+			stats: {
+				hp: 200,
+				armor: 3,
+				visionRadius: 10,
+				attackDamage: 15,
+				attackRange: 160,
+				attackCooldownMs: 2000,
+				populationCapacity: 0,
+			},
+		});
+
+		expect(Health.current[eid]).toBe(200);
+		expect(Health.max[eid]).toBe(200);
+		expect(Armor.value[eid]).toBe(3);
+		expect(Attack.damage[eid]).toBe(15);
+		expect(Attack.range[eid]).toBe(160);
+		expect(VisionRadius.value[eid]).toBe(10);
+		expect(Flags.isBuilding[eid]).toBe(1);
+		expect(world.runtime.entityTypeIndex.get(eid)).toBe("watchtower");
 	});
 });
