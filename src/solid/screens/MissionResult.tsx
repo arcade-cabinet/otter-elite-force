@@ -1,11 +1,13 @@
 /**
  * MissionResult — SolidJS mission result screen (US-F04).
  *
- * Victory or defeat banner, star rating display, stats summary,
- * "Next Mission" or "Retry" buttons, "Return to Campaign" button.
+ * Victory: golden banner, animated star reveal, triumphant styling.
+ * Defeat: red/dark banner, somber styling.
+ * Stats table with After Action Report header.
+ * Star rating with animated reveal (staggered 400ms per star).
  */
 
-import { type Component, Show } from "solid-js";
+import { type Component, createSignal, onMount, Show } from "solid-js";
 import type { AppState } from "../appState";
 import {
 	calculateStarRating,
@@ -14,13 +16,9 @@ import {
 } from "../hud/StarRatingDisplay";
 
 export interface MissionResultStats {
-	/** Total mission time in seconds. */
 	timeElapsed: number;
-	/** Units the player lost. */
 	unitsLost: number;
-	/** Total resources gathered. */
 	resourcesGathered: number;
-	/** Units deployed over the mission. */
 	unitsDeployed: number;
 }
 
@@ -31,40 +29,30 @@ export interface MissionResultData {
 	stars: 0 | 1 | 2 | 3;
 	stats: MissionResultStats;
 	isFinalMission: boolean;
-	/** Optional full score breakdown for the animated star display. */
 	scoreBreakdown?: ScoreBreakdown;
 }
 
-/** Format seconds as M:SS. */
 function formatTime(seconds: number): string {
 	const mins = Math.floor(seconds / 60);
 	const secs = Math.floor(seconds % 60);
 	return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-/** Stat row display. */
-const StatRow: Component<{ label: string; value: string }> = (props) => {
-	return (
-		<div>
-			<div class="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-500">
-				{props.label}
-			</div>
-			<div class="mt-0.5 font-heading text-lg uppercase tracking-[0.12em] text-slate-100">
-				{props.value}
-			</div>
-		</div>
-	);
-};
+const StatRow: Component<{ label: string; value: string }> = (props) => (
+	<div class="flex items-baseline justify-between border-b border-border/20 py-2 last:border-0">
+		<span class="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+			{props.label}
+		</span>
+		<span class="font-mono text-base tabular-nums tracking-[0.14em] text-foreground">
+			{props.value}
+		</span>
+	</div>
+);
 
-/**
- * Build a ScoreBreakdown from result data (for backward compat
- * when scoreBreakdown is not provided).
- */
 function buildFallbackBreakdown(stars: 0 | 1 | 2 | 3, stats: MissionResultStats): ScoreBreakdown {
-	// If we have actual stats, attempt a real calculation
 	if (stats.timeElapsed > 0) {
 		return calculateStarRating({
-			parTimeMs: stats.timeElapsed * 1000 * 0.8, // assume par = 80% of elapsed
+			parTimeMs: stats.timeElapsed * 1000 * 0.8,
 			elapsedMs: stats.timeElapsed * 1000,
 			unitsLost: stats.unitsLost,
 			totalUnits: stats.unitsDeployed || 1,
@@ -72,7 +60,6 @@ function buildFallbackBreakdown(stars: 0 | 1 | 2 | 3, stats: MissionResultStats)
 			bonusObjectivesTotal: 1,
 		});
 	}
-	// Pure fallback: synthesize from star count
 	const totalScore = stars === 3 ? 95 : stars === 2 ? 70 : stars === 1 ? 40 : 10;
 	return {
 		timeScore: totalScore,
@@ -83,61 +70,56 @@ function buildFallbackBreakdown(stars: 0 | 1 | 2 | 3, stats: MissionResultStats)
 	};
 }
 
-/**
- * Default result data used when no external data is provided.
- * In full integration, this would be populated from the game session.
- */
 const DEFAULT_RESULT: MissionResultData = {
 	outcome: "victory",
 	missionId: "mission_1",
 	missionName: "Mission Complete",
 	stars: 1,
-	stats: {
-		timeElapsed: 0,
-		unitsLost: 0,
-		resourcesGathered: 0,
-		unitsDeployed: 0,
-	},
+	stats: { timeElapsed: 0, unitsLost: 0, resourcesGathered: 0, unitsDeployed: 0 },
 	isFinalMission: false,
 };
 
-export const MissionResult: Component<{
-	app: AppState;
-	result?: MissionResultData;
-}> = (props) => {
+export const MissionResult: Component<{ app: AppState; result?: MissionResultData }> = (props) => {
 	const result = () => props.result ?? DEFAULT_RESULT;
 	const isVictory = () => result().outcome === "victory";
+	const [visible, setVisible] = createSignal(false);
+	onMount(() => setTimeout(() => setVisible(true), 80));
 
 	return (
-		<div class="flex min-h-screen w-screen flex-col items-center justify-center bg-slate-950 text-slate-100">
-			<div class="relative z-10 flex w-full max-w-2xl flex-col items-center gap-8 px-6 py-12">
-				{/* Outcome badge */}
+		<div class="canvas-grain relative flex min-h-screen w-screen flex-col items-center justify-center overflow-hidden bg-background text-foreground">
+			<div class="riverine-camo absolute inset-0 opacity-15" />
+			<div
+				class={`pointer-events-none absolute inset-0 ${isVictory() ? "bg-[radial-gradient(ellipse_at_center,rgba(255,226,138,0.08)_0%,transparent_50%,rgba(0,0,0,0.6)_100%)]" : "bg-[radial-gradient(ellipse_at_center,rgba(217,83,63,0.06)_0%,transparent_40%,rgba(0,0,0,0.7)_100%)]"}`}
+			/>
+			<div
+				class={`relative z-10 flex w-full max-w-2xl flex-col items-center gap-8 px-6 py-12 transition-all duration-700 ease-out ${visible() ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"}`}
+			>
 				<div
-					class={`rounded border px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.32em] ${
-						isVictory()
-							? "border-accent/40 bg-accent/15 text-accent"
-							: "border-red-600/40 bg-red-900/15 text-red-400"
-					}`}
+					class={`border px-5 py-2 font-heading text-[11px] uppercase tracking-[0.36em] ${isVictory() ? "border-accent/40 bg-accent/12 text-accent" : "border-destructive/40 bg-destructive/12 text-destructive"}`}
 				>
-					{isVictory() ? "Victory" : "Defeat"}
+					{isVictory() ? "Mission Complete" : "Mission Failed"}
 				</div>
-
-				{/* Title */}
 				<h1
-					class={`text-center font-heading text-4xl uppercase tracking-[0.24em] sm:text-5xl ${
-						isVictory() ? "text-accent" : "text-red-400"
-					}`}
+					class={`text-center font-heading text-4xl uppercase tracking-[0.26em] text-stencil-shadow sm:text-5xl ${isVictory() ? "text-accent" : "text-destructive"}`}
 				>
 					{result().missionName}
 				</h1>
-
-				<p class="max-w-lg text-center font-body text-xs uppercase tracking-[0.16em] text-slate-400">
+				<p class="max-w-lg text-center font-body text-xs uppercase tracking-[0.14em] text-muted-foreground">
 					{isVictory()
 						? "Objectives secured. Well done, Captain."
 						: "Mission failed. Regroup and try again."}
 				</p>
-
-				{/* Star rating with animated reveal + score breakdown (victory only) */}
+				<div class="flex items-center gap-3">
+					<div class={`h-px w-16 ${isVictory() ? "bg-accent/30" : "bg-destructive/30"}`} />
+					<div
+						class={`h-2 w-2 rotate-45 border ${
+							isVictory()
+								? "border-accent/40 bg-accent/20"
+								: "border-destructive/40 bg-destructive/20"
+						}`}
+					/>
+					<div class={`h-px w-16 ${isVictory() ? "bg-accent/30" : "bg-destructive/30"}`} />
+				</div>
 				<Show when={isVictory()}>
 					<StarRatingDisplay
 						breakdown={
@@ -146,30 +128,24 @@ export const MissionResult: Component<{
 						animate={true}
 					/>
 				</Show>
-
-				{/* Stats panel */}
-				<div class="w-full max-w-md rounded-none border border-slate-700/70 bg-black/30 p-6">
-					<div class="mb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-						After Action Report
+				<div class="w-full max-w-md border border-border/50 bg-card/40 p-6">
+					<div class="mb-4 flex items-center gap-3">
+						<span class="font-heading text-[10px] uppercase tracking-[0.26em] text-accent">
+							After Action Report
+						</span>
+						<div class="h-px flex-1 bg-accent/20" />
 					</div>
-					<div class="grid grid-cols-2 gap-4">
-						<StatRow label="Time" value={formatTime(result().stats.timeElapsed)} />
-						<StatRow label="Units Deployed" value={String(result().stats.unitsDeployed)} />
-						<StatRow label="Units Lost" value={String(result().stats.unitsLost)} />
-						<StatRow label="Resources Gathered" value={String(result().stats.resourcesGathered)} />
-					</div>
+					<StatRow label="Time Elapsed" value={formatTime(result().stats.timeElapsed)} />
+					<StatRow label="Units Deployed" value={String(result().stats.unitsDeployed)} />
+					<StatRow label="Units Lost" value={String(result().stats.unitsLost)} />
+					<StatRow label="Resources Gathered" value={String(result().stats.resourcesGathered)} />
 				</div>
-
-				{/* Action buttons */}
-				<div class="flex flex-wrap gap-3">
+				<div class="flex flex-wrap justify-center gap-3">
 					<Show when={isVictory() && !result().isFinalMission}>
 						<button
 							type="button"
-							onClick={() => {
-								// Advance to next mission briefing
-								props.app.setScreen("briefing");
-							}}
-							class="min-h-11 rounded border border-accent/60 bg-accent/15 px-6 py-2 font-heading text-sm uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent/25"
+							onClick={() => props.app.setScreen("briefing")}
+							class="min-h-12 border-2 border-accent/60 bg-accent/15 px-8 py-3 font-heading text-sm uppercase tracking-[0.2em] text-accent transition-all duration-200 hover:border-accent/80 hover:bg-accent/25 hover:shadow-[0_0_20px_rgba(255,226,138,0.12)]"
 						>
 							Next Mission
 						</button>
@@ -177,10 +153,8 @@ export const MissionResult: Component<{
 					<Show when={!isVictory()}>
 						<button
 							type="button"
-							onClick={() => {
-								props.app.setScreen("briefing");
-							}}
-							class="min-h-11 rounded border border-accent/60 bg-accent/15 px-6 py-2 font-heading text-sm uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent/25"
+							onClick={() => props.app.setScreen("briefing")}
+							class="min-h-12 border-2 border-accent/60 bg-accent/15 px-8 py-3 font-heading text-sm uppercase tracking-[0.2em] text-accent transition-all duration-200 hover:border-accent/80 hover:bg-accent/25"
 						>
 							Retry
 						</button>
@@ -188,14 +162,14 @@ export const MissionResult: Component<{
 					<button
 						type="button"
 						onClick={() => props.app.setScreen("campaign")}
-						class="min-h-11 rounded border border-slate-600/70 bg-slate-900/85 px-6 py-2 font-mono text-xs uppercase tracking-[0.18em] text-slate-100 transition-colors hover:border-accent/50 hover:bg-slate-800/85"
+						class="min-h-11 border border-border/50 bg-card/60 px-6 py-2 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
 					>
-						Return to Campaign
+						Campaign
 					</button>
 					<button
 						type="button"
 						onClick={() => props.app.setScreen("main-menu")}
-						class="min-h-11 rounded border border-slate-600/70 bg-slate-900/85 px-6 py-2 font-mono text-xs uppercase tracking-[0.18em] text-slate-100 transition-colors hover:border-accent/50 hover:bg-slate-800/85"
+						class="min-h-11 border border-border/50 bg-card/60 px-6 py-2 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
 					>
 						Main Menu
 					</button>

@@ -70,38 +70,38 @@ export interface TacticalRuntimeOptions {
 }
 
 /** Terrain type → LittleJS Color (r, g, b, a scaled 0-1).
- * Colors chosen for high contrast and readability:
- *   grass=#14532d water=#1e3a5f sand=#d4a574 forest=#0f3d0f
- *   dirt=#713f12  stone=#5e6166 mud=#5c4033  mangrove=#0f3d0f
- *   bridge=#8B6914 beach=#d9c893 toxic_sludge=#2d1b4e
+ * Colors chosen for high contrast and readability on dark monitors:
+ *   grass=#218c47 water=#2666b3 sand=#d9bf8c forest=#14591f
+ *   dirt=#8c6133  stone=#80858c mud=#664d38  mangrove=#1a6126
+ *   bridge=#997a33 beach=#e6d1a6 toxic_sludge=#4d2673
  */
 const TERRAIN_COLORS: Record<number, [number, number, number, number]> = {
-	[TerrainTypeId.grass]: [0.078, 0.325, 0.176, 1], // #14532d
-	[TerrainTypeId.water]: [0.118, 0.227, 0.373, 1], // #1e3a5f
-	[TerrainTypeId.sand]: [0.831, 0.647, 0.455, 1], // #d4a574
-	[TerrainTypeId.forest]: [0.059, 0.239, 0.059, 1], // #0f3d0f
-	[TerrainTypeId.dirt]: [0.443, 0.247, 0.071, 1], // #713f12
-	[TerrainTypeId.stone]: [0.369, 0.38, 0.4, 1], // #5e6166
-	[TerrainTypeId.mud]: [0.361, 0.251, 0.2, 1], // #5c4033
-	[TerrainTypeId.mangrove]: [0.059, 0.239, 0.059, 1], // #0f3d0f
-	[TerrainTypeId.bridge]: [0.545, 0.412, 0.078, 1], // #8B6914
-	[TerrainTypeId.beach]: [0.851, 0.784, 0.576, 1], // #d9c893
-	[TerrainTypeId.toxic_sludge]: [0.176, 0.106, 0.306, 1], // #2d1b4e
+	[TerrainTypeId.grass]: [0.13, 0.55, 0.28, 1], // #218c47
+	[TerrainTypeId.water]: [0.15, 0.4, 0.7, 1], // #2666b3
+	[TerrainTypeId.sand]: [0.85, 0.75, 0.55, 1], // #d9bf8c
+	[TerrainTypeId.forest]: [0.08, 0.35, 0.12, 1], // #14591f
+	[TerrainTypeId.dirt]: [0.55, 0.38, 0.2, 1], // #8c6133
+	[TerrainTypeId.stone]: [0.5, 0.52, 0.55, 1], // #80858c
+	[TerrainTypeId.mud]: [0.4, 0.3, 0.22, 1], // #664d38
+	[TerrainTypeId.mangrove]: [0.1, 0.38, 0.15, 1], // #1a6126
+	[TerrainTypeId.bridge]: [0.6, 0.48, 0.2, 1], // #997a33
+	[TerrainTypeId.beach]: [0.9, 0.82, 0.65, 1], // #e6d1a6
+	[TerrainTypeId.toxic_sludge]: [0.3, 0.15, 0.45, 1], // #4d2673
 };
 
 /** Minimap colors as CSS strings — brighter than world terrain for readability. */
 const MINIMAP_TERRAIN_COLORS: Record<number, string> = {
-	[TerrainTypeId.grass]: "#2d7a4a",
-	[TerrainTypeId.water]: "#2a5a8f",
-	[TerrainTypeId.sand]: "#d4b888",
-	[TerrainTypeId.forest]: "#1a5c1a",
-	[TerrainTypeId.dirt]: "#8b5e34",
-	[TerrainTypeId.stone]: "#7a7e85",
-	[TerrainTypeId.mud]: "#6b5040",
-	[TerrainTypeId.mangrove]: "#1a5c1a",
-	[TerrainTypeId.bridge]: "#a08030",
-	[TerrainTypeId.beach]: "#e8d8a8",
-	[TerrainTypeId.toxic_sludge]: "#5a3080",
+	[TerrainTypeId.grass]: "#2ecc71",
+	[TerrainTypeId.water]: "#3498db",
+	[TerrainTypeId.sand]: "#f0d9a0",
+	[TerrainTypeId.forest]: "#27ae60",
+	[TerrainTypeId.dirt]: "#b07840",
+	[TerrainTypeId.stone]: "#95a5a6",
+	[TerrainTypeId.mud]: "#8b6c50",
+	[TerrainTypeId.mangrove]: "#229944",
+	[TerrainTypeId.bridge]: "#c8a850",
+	[TerrainTypeId.beach]: "#f5e6c8",
+	[TerrainTypeId.toxic_sludge]: "#7d3ebd",
 };
 
 const TILE_SIZE = 32;
@@ -946,8 +946,10 @@ export async function createTacticalRuntime(
 				);
 				ljs.drawRect(ljs.vec2(tilePos.x, tilePos.y + 0.25), ljs.vec2(0.7, 0.2), roofColor);
 				// Construction progress bar (when building is under construction)
-				// Construction.progress defaults to 0; buildTime > 0 indicates construction in progress
-				const constructionProg = Construction.buildTime[eid] > 0 ? Construction.progress[eid] : -1;
+				// Construction.progress is 0-100; buildTime > 0 indicates construction in progress
+				const rawProgress = Construction.buildTime[eid] > 0 ? Construction.progress[eid] : -1;
+				// Normalize to 0-1 range for rendering
+				const constructionProg = rawProgress >= 0 ? rawProgress / 100 : -1;
 				if (constructionProg >= 0 && constructionProg < 1) {
 					const buildAlpha = 0.4 + 0.6 * constructionProg;
 					// Redraw body with reduced opacity for under-construction appearance
@@ -956,7 +958,7 @@ export async function createTacticalRuntime(
 						ljs.vec2(0.8, 0.8),
 						new ljs.Color(entityColor.r, entityColor.g, entityColor.b, buildAlpha),
 					);
-					// Progress bar
+					// Progress bar background
 					const barWidth = 0.8;
 					const barHeight = 0.07;
 					const barY = tilePos.y + 0.55;
@@ -965,11 +967,20 @@ export async function createTacticalRuntime(
 						ljs.vec2(barWidth, barHeight),
 						new ljs.Color(0.2, 0.2, 0.2, 0.8),
 					);
+					// Progress bar fill
 					const fillWidth = barWidth * constructionProg;
 					ljs.drawRect(
 						ljs.vec2(tilePos.x - (barWidth - fillWidth) / 2, barY),
 						ljs.vec2(fillWidth, barHeight),
 						new ljs.Color(0.3, 0.6, 0.95, 0.9),
+					);
+					// Progress percentage text
+					const pctText = `${Math.round(constructionProg * 100)}%`;
+					ljs.drawText(
+						pctText,
+						ljs.vec2(tilePos.x, barY + 0.12),
+						0.12,
+						new ljs.Color(1, 1, 1, 0.9),
 					);
 				}
 
@@ -1093,6 +1104,17 @@ export async function createTacticalRuntime(
 				if (!rendered) {
 					// Atlas not ready yet — skip rendering until loaded.
 					// After atlas init, missing sprites are an error (no fallback shapes).
+				}
+
+				// Red faction ring for enemy units (factionId === 2) so they stand out
+				if (factionId === 2) {
+					ljs.drawCircle(
+						tilePos,
+						0.45,
+						new ljs.Color(0, 0, 0, 0), // transparent fill
+						0.04,
+						new ljs.Color(0.94, 0.27, 0.27, 0.75), // red outline
+					);
 				}
 			}
 
@@ -1422,6 +1444,7 @@ export async function createTacticalRuntime(
 				ljs.setDebugWatermark(false);
 				ljs.setCanvasPixelated(true);
 				ljs.setTilesPixelated(true);
+				ljs.setCanvasClearColor(new ljs.Color(0.05, 0.15, 0.08));
 
 				// All 12 sprite atlas PNGs as image sources
 				const BASE = import.meta.env.BASE_URL ?? "./";

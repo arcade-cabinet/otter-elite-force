@@ -1,8 +1,8 @@
 /**
  * SkirmishSetup — SolidJS skirmish setup screen (US-F04).
  *
- * Seed phrase input with shuffle, map size selector, faction selector,
- * difficulty selector, and launch button. All form state uses createSignal.
+ * Map selection with preview cards, seed input with shuffle, difficulty
+ * selector, test preset selector, faction swap checkbox, and launch button.
  */
 
 import { type Component, createSignal, For, Show } from "solid-js";
@@ -17,7 +17,6 @@ import {
 } from "@/features/skirmish/types";
 import type { AppState } from "../appState";
 
-/** Generate a random seed phrase from common word-like tokens. */
 function generateSeedPhrase(): string {
 	const words = [
 		"river",
@@ -45,60 +44,76 @@ function generateSeedPhrase(): string {
 	return `${pick()}-${pick()}-${pick()}`;
 }
 
-/** Map selection card. */
 const MapCard: Component<{
 	map: SkirmishMapDef;
 	unlocked: boolean;
 	selected: boolean;
 	onSelect: () => void;
-}> = (props) => {
-	return (
-		<button
-			type="button"
-			onClick={props.onSelect}
-			disabled={!props.unlocked}
-			class={`group relative rounded-none border p-4 text-left transition ${
+}> = (props) => (
+	<button
+		type="button"
+		onClick={props.onSelect}
+		disabled={!props.unlocked}
+		class={`group relative border p-3 text-left transition-all duration-150 ${
+			props.unlocked
+				? props.selected
+					? "border-accent/60 bg-accent/10 shadow-[0_0_0_1px_rgba(255,226,138,0.15)]"
+					: "border-border/50 bg-card/30 hover:border-accent/35 hover:bg-card/50"
+				: "cursor-not-allowed border-border/25 bg-card/15 opacity-50"
+		}`}
+	>
+		<div
+			class={`flex h-16 items-center justify-center border text-center ${
 				props.unlocked
 					? props.selected
-						? "border-accent/60 bg-accent/12 shadow-[0_0_0_1px_rgba(255,226,138,0.2)]"
-						: "border-slate-700/70 bg-black/28 hover:border-accent/40 hover:bg-black/36"
-					: "cursor-not-allowed border-slate-700/40 bg-black/40 opacity-50"
+						? "border-accent/20 bg-[radial-gradient(circle,rgba(212,165,116,0.1),transparent_50%)]"
+						: "border-border/30 bg-muted/20"
+					: "border-border/20 bg-muted/10"
 			}`}
 		>
-			<div
-				class={`flex h-20 items-center justify-center rounded-none border text-center ${
-					props.unlocked
-						? "border-accent/15 bg-[radial-gradient(circle,rgba(212,165,116,0.12),transparent_40%)]"
-						: "border-slate-700/30 bg-black/30"
-				}`}
-			>
-				<Show when={props.unlocked}>
-					<span class="font-mono text-[10px] uppercase tracking-[0.2em] text-accent/60">
-						{props.map.terrainType} / {props.map.size}
-					</span>
-				</Show>
-				<Show when={!props.unlocked}>
-					<span class="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-						{props.map.starsRequired} stars needed
-					</span>
-				</Show>
-			</div>
-			<div class="mt-2 font-heading text-sm uppercase tracking-[0.14em] text-primary">
-				{props.unlocked ? props.map.name : "Locked"}
-			</div>
 			<Show when={props.unlocked}>
-				<div class="mt-1 font-body text-[10px] uppercase tracking-[0.1em] text-slate-500">
-					{props.map.description}
+				<div class="flex flex-col items-center gap-0.5">
+					<span class="font-mono text-[9px] uppercase tracking-[0.2em] text-accent/60">
+						{props.map.terrainType}
+					</span>
+					<span class="font-mono text-[8px] uppercase tracking-[0.16em] text-muted-foreground/60">
+						{props.map.size}
+					</span>
 				</div>
 			</Show>
 			<Show when={!props.unlocked}>
-				<div class="mt-1 font-body text-[10px] uppercase tracking-[0.1em] text-slate-500">
-					Requires {props.map.starsRequired} stars
-				</div>
+				<span class="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground/50">
+					{props.map.starsRequired} stars
+				</span>
 			</Show>
-		</button>
-	);
-};
+		</div>
+		<div class="mt-2 font-heading text-sm uppercase tracking-[0.16em] text-primary">
+			{props.unlocked ? props.map.name : "Locked"}
+		</div>
+		<Show when={props.unlocked}>
+			<div class="mt-1 font-body text-[10px] uppercase tracking-[0.08em] text-muted-foreground/70">
+				{props.map.description}
+			</div>
+		</Show>
+		<Show when={!props.unlocked}>
+			<div class="mt-1 font-body text-[10px] uppercase tracking-[0.08em] text-muted-foreground/50">
+				Requires {props.map.starsRequired} campaign stars
+			</div>
+		</Show>
+		<Show when={props.selected && props.unlocked}>
+			<div class="absolute right-2 top-2 h-2 w-2 bg-accent/70" />
+		</Show>
+	</button>
+);
+
+const SectionLabel: Component<{ label: string }> = (props) => (
+	<div class="mb-2 flex items-center gap-3">
+		<span class="font-heading text-[10px] uppercase tracking-[0.26em] text-accent">
+			{props.label}
+		</span>
+		<div class="h-px flex-1 bg-accent/15" />
+	</div>
+);
 
 export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 	const [selectedMapId, setSelectedMapId] = createSignal<string>(SKIRMISH_MAPS[0].id);
@@ -108,44 +123,30 @@ export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 	const [playAsScaleGuard, setPlayAsScaleGuard] = createSignal(false);
 	const [seedPhrase, setSeedPhrase] = createSignal(generateSeedPhrase());
 	const [selectedPreset, setSelectedPreset] = createSignal<SkirmishPreset>("meso");
-
-	const totalStars = 0; // Will be wired to campaign persistence
+	const totalStars = 0;
 	const allUnlocked = false;
-
 	const selectedMap = () => SKIRMISH_MAPS.find((m) => m.id === selectedMapId()) ?? SKIRMISH_MAPS[0];
-
 	const canStart = () => allUnlocked || isMapUnlocked(selectedMap(), totalStars);
 
-	const handleLaunch = () => {
-		if (!canStart()) return;
-		props.app.setScreen("game");
-	};
-
 	return (
-		<div class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
-			<div class="riverine-camo absolute inset-0 opacity-20" />
-
+		<div class="canvas-grain relative min-h-screen overflow-hidden bg-background text-foreground">
+			<div class="riverine-camo absolute inset-0 opacity-15" />
+			<div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(255,226,138,0.04),transparent_40%)]" />
 			<div class="relative z-10 mx-auto flex min-h-screen w-full max-w-7xl flex-col px-6 py-8 sm:px-10 lg:px-14 lg:py-10">
-				{/* Header */}
 				<header class="flex flex-col items-center gap-2 text-center">
-					<div class="rounded border border-accent/25 bg-black/20 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.32em] text-accent">
+					<div class="border border-accent/30 bg-accent/10 px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.36em] text-accent">
 						Skirmish Operations
 					</div>
-					<h1 class="font-heading text-3xl uppercase tracking-[0.22em] text-primary sm:text-4xl">
+					<h1 class="font-heading text-3xl uppercase tracking-[0.24em] text-primary sm:text-4xl">
 						Skirmish
 					</h1>
-					<p class="font-body text-[11px] uppercase tracking-[0.18em] text-slate-400">
+					<p class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
 						{totalStars} campaign stars earned
 					</p>
 				</header>
-
-				{/* Content grid */}
 				<div class="mt-6 grid flex-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
-					{/* Map grid */}
 					<section>
-						<div class="mb-3 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-							Select Map
-						</div>
+						<SectionLabel label="Select Map" />
 						<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
 							<For each={SKIRMISH_MAPS}>
 								{(map) => {
@@ -162,28 +163,19 @@ export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 							</For>
 						</div>
 					</section>
-
-					{/* Sidebar: difficulty + options */}
 					<aside class="flex flex-col gap-4">
-						{/* Difficulty */}
 						<div>
-							<div class="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-								Difficulty
-							</div>
+							<SectionLabel label="Difficulty" />
 							<div class="grid gap-2">
 								<For each={SKIRMISH_DIFFICULTIES}>
 									{(d) => (
 										<button
 											type="button"
 											onClick={() => setSelectedDifficulty(d)}
-											class={`rounded-none border px-4 py-3 text-left transition ${
-												d.id === selectedDifficulty().id
-													? "border-accent/60 bg-accent/15 text-accent"
-													: "border-slate-700/70 bg-slate-900/40 text-slate-100 hover:border-accent/30 hover:bg-slate-900/55"
-											}`}
+											class={`border px-4 py-3 text-left transition-all duration-150 ${d.id === selectedDifficulty().id ? "border-accent/50 bg-accent/12 text-accent" : "border-border/40 bg-card/30 text-foreground hover:border-accent/30 hover:bg-card/50"}`}
 										>
-											<div class="font-heading text-sm uppercase tracking-[0.16em]">{d.label}</div>
-											<div class="mt-1 font-body text-[10px] uppercase tracking-[0.1em] text-slate-500">
+											<div class="font-heading text-sm uppercase tracking-[0.18em]">{d.label}</div>
+											<div class="mt-1 font-body text-[10px] uppercase tracking-[0.08em] text-muted-foreground/70">
 												{d.note}
 											</div>
 										</button>
@@ -191,28 +183,20 @@ export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 								</For>
 							</div>
 						</div>
-
-						{/* Test Preset */}
 						<div>
-							<div class="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-								Test Preset
-							</div>
+							<SectionLabel label="Test Preset" />
 							<div class="grid gap-2">
 								<For each={SKIRMISH_PRESETS}>
 									{(preset) => (
 										<button
 											type="button"
 											onClick={() => setSelectedPreset(preset.id)}
-											class={`rounded-none border px-4 py-3 text-left transition ${
-												preset.id === selectedPreset()
-													? "border-accent/60 bg-accent/15 text-accent"
-													: "border-slate-700/70 bg-slate-900/40 text-slate-100 hover:border-accent/30 hover:bg-slate-900/55"
-											}`}
+											class={`border px-4 py-3 text-left transition-all duration-150 ${preset.id === selectedPreset() ? "border-accent/50 bg-accent/12 text-accent" : "border-border/40 bg-card/30 text-foreground hover:border-accent/30 hover:bg-card/50"}`}
 										>
-											<div class="font-heading text-sm uppercase tracking-[0.16em]">
+											<div class="font-heading text-sm uppercase tracking-[0.18em]">
 												{preset.label}
 											</div>
-											<div class="mt-1 font-body text-[10px] uppercase tracking-[0.1em] text-slate-500">
+											<div class="mt-1 font-body text-[10px] uppercase tracking-[0.08em] text-muted-foreground/70">
 												{preset.note}
 											</div>
 										</button>
@@ -220,84 +204,83 @@ export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 								</For>
 							</div>
 						</div>
-
-						{/* Play as Scale-Guard */}
-						<div class="rounded-none border border-slate-700/70 bg-black/24 p-4">
+						<div class="border border-border/40 bg-card/25 p-4">
+							{/* biome-ignore lint/a11y/noLabelWithoutControl: sr-only input inside label */}
 							<label class="flex cursor-pointer items-center gap-3">
 								<input
 									type="checkbox"
 									checked={playAsScaleGuard()}
 									onChange={(e) => setPlayAsScaleGuard(e.currentTarget.checked)}
-									class="size-4 accent-accent"
+									class="sr-only"
 								/>
+								<div
+									class={`flex h-4 w-4 items-center justify-center border transition-colors ${playAsScaleGuard() ? "border-accent/60 bg-accent/30" : "border-border/50 bg-muted/30"}`}
+									aria-hidden="true"
+								>
+									<Show when={playAsScaleGuard()}>
+										<span class="text-[9px] text-accent">&#x2713;</span>
+									</Show>
+								</div>
 								<div>
-									<div class="font-heading text-sm uppercase tracking-[0.14em] text-slate-100">
+									<div class="font-heading text-sm uppercase tracking-[0.16em] text-foreground">
 										Play as Scale-Guard
 									</div>
-									<div class="font-body text-[10px] uppercase tracking-[0.1em] text-slate-500">
+									<div class="font-body text-[10px] uppercase tracking-[0.08em] text-muted-foreground/60">
 										Swap factions. AI controls OEF.
 									</div>
 								</div>
 							</label>
 						</div>
-
-						{/* Seed phrase */}
-						<div class="rounded-none border border-slate-700/70 bg-black/24 p-4">
-							<div class="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-								Seed Phrase
-							</div>
+						<div class="border border-border/40 bg-card/25 p-4">
+							<SectionLabel label="Seed Phrase" />
 							<div class="flex gap-2">
 								<input
 									type="text"
 									value={seedPhrase()}
 									onInput={(e) => setSeedPhrase(e.currentTarget.value)}
-									class="min-w-0 flex-1 rounded-none border border-slate-700/70 bg-slate-900/40 px-3 py-2 font-mono text-xs uppercase tracking-[0.14em] text-slate-100"
+									class="min-w-0 flex-1 border border-border/50 bg-muted/30 px-3 py-2 font-mono text-xs uppercase tracking-[0.14em] text-foreground placeholder:text-muted-foreground/30"
 								/>
 								<button
 									type="button"
 									onClick={() => setSeedPhrase(generateSeedPhrase())}
-									class="rounded-none border border-slate-600/70 bg-slate-900/85 px-3 py-2 font-mono text-xs uppercase tracking-[0.18em] text-slate-100 transition-colors hover:border-accent/50 hover:bg-slate-800/85"
+									class="border border-border/50 bg-card/60 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
 								>
 									Shuffle
 								</button>
 							</div>
-							<div class="mt-2 font-body text-[10px] uppercase tracking-[0.1em] text-slate-500">
-								Deterministic seed for skirmish generation.
+							<div class="mt-2 font-body text-[9px] uppercase tracking-[0.1em] text-muted-foreground/50">
+								Deterministic seed for map generation.
 							</div>
 						</div>
-
-						{/* Map info */}
-						<div class="rounded-none border border-slate-700/70 bg-black/24 p-4">
-							<div class="font-heading text-lg uppercase tracking-[0.16em] text-primary">
+						<div class="border border-border/40 bg-card/25 p-4">
+							<div class="font-heading text-lg uppercase tracking-[0.18em] text-primary">
 								{selectedMap().name}
 							</div>
-							<div class="mt-1 font-body text-[11px] uppercase tracking-[0.12em] text-slate-500">
+							<div class="mt-1 font-body text-[11px] uppercase tracking-[0.1em] text-muted-foreground/70">
 								{selectedMap().description}
 							</div>
 							<div class="mt-3 flex flex-wrap gap-2">
-								<span class="rounded border border-accent/25 bg-accent/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-accent">
+								<span class="border border-accent/25 bg-accent/8 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-accent">
 									{selectedMap().size}
 								</span>
-								<span class="rounded border border-accent/25 bg-accent/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-accent">
+								<span class="border border-accent/25 bg-accent/8 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-accent">
 									{selectedMap().terrainType}
 								</span>
 							</div>
 						</div>
-
-						{/* Actions */}
 						<div class="mt-auto flex flex-col gap-2">
 							<button
 								type="button"
 								disabled={!canStart()}
-								onClick={handleLaunch}
-								class="min-h-11 w-full rounded border border-accent/60 bg-accent/15 px-4 py-3 font-heading text-sm uppercase tracking-[0.18em] text-accent transition-colors hover:bg-accent/25 disabled:cursor-not-allowed disabled:opacity-50"
+								onClick={() => canStart() && props.app.setScreen("game")}
+								class="min-h-12 w-full border-2 border-accent/60 bg-accent/15 px-4 py-3 font-heading text-sm uppercase tracking-[0.2em] text-accent transition-all duration-200 hover:border-accent/80 hover:bg-accent/25 hover:shadow-[0_0_20px_rgba(255,226,138,0.1)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
 							>
 								Start Skirmish
 							</button>
 							<button
 								type="button"
 								onClick={() => props.app.setScreen("main-menu")}
-								class="min-h-11 w-full rounded border border-slate-600/70 bg-slate-900/85 px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-slate-100 transition-colors hover:border-accent/50 hover:bg-slate-800/85"
+								class="min-h-11 w-full border border-border/50 bg-card/60 px-4 py-2 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
 							>
 								Back to Menu
 							</button>

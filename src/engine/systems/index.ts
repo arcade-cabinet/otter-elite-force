@@ -3,7 +3,7 @@
  */
 
 import type { GameWorld } from "@/engine/world/gameWorld";
-import { flushRemovals } from "@/engine/world/gameWorld";
+import { flushRemovals, tickFloatingTexts } from "@/engine/world/gameWorld";
 import { runAbilitySystem } from "./abilitySystem";
 import { runAiSystem } from "./aiSystem";
 import { runBuildingSystem } from "./buildingSystem";
@@ -105,7 +105,8 @@ export {
  * 12. Detection (stealth/cone detection)
  * 13. Encounters (PRNG-driven random spawns)
  * 14. Fog (visibility grid)
- * 15. Flush removals
+ * 15. Floating text cleanup
+ * 16. Flush removals
  */
 export function runAllSystems(world: GameWorld): void {
 	runOrderSystem(world);
@@ -122,5 +123,6 @@ export function runAllSystems(world: GameWorld): void {
 	runDetectionSystem(world);
 	runEncounterSystem(world);
 	runFogSystem(world);
+	tickFloatingTexts(world);
 	flushRemovals(world);
 }

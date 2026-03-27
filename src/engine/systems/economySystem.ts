@@ -338,6 +338,22 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 				const gatherAmount = Math.min(1, capacity - Gatherer.amount[eid]);
 				Gatherer.amount[eid] += gatherAmount;
 
+				// Show gather tick floating text at the resource node
+				const ftGatherColor =
+					resourceType === "fish"
+						? ("green" as const)
+						: resourceType === "timber"
+							? ("yellow" as const)
+							: ("white" as const);
+				spawnFloatingText(
+					world,
+					Position.x[targetEid],
+					Position.y[targetEid],
+					`+${gatherAmount}`,
+					ftGatherColor,
+					600,
+				);
+
 				// Deplete the resource node
 				if (ResourceNode.remaining[targetEid] > 0) {
 					ResourceNode.remaining[targetEid] -= gatherAmount;
@@ -352,6 +368,21 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 			} else {
 				// Simple mode: deposit 1 resource directly to session
 				world.session.resources[resourceType] += 1;
+
+				// Show floating text at the resource node for visual feedback
+				const ftColor =
+					resourceType === "fish"
+						? ("green" as const)
+						: resourceType === "timber"
+							? ("yellow" as const)
+							: ("white" as const);
+				spawnFloatingText(
+					world,
+					Position.x[targetEid],
+					Position.y[targetEid],
+					`+1 ${resourceType.toUpperCase()}`,
+					ftColor,
+				);
 
 				// Deplete the resource node
 				if (ResourceNode.remaining[targetEid] > 0) {

@@ -1,42 +1,54 @@
 /**
  * SettingsPanel — SolidJS settings screen (US-F04).
  *
- * Audio: master, music, SFX volume sliders.
- * Visual: subtitles toggle, reduce motion toggle.
- * All state managed via createSignal.
+ * Military equipment panel aesthetic: grouped settings (Audio, Visual,
+ * Accessibility), sliders styled as equipment dials with stencil/uppercase
+ * labels, toggles with on/off indicator, back button at bottom.
  */
 
-import { type Component, createSignal } from "solid-js";
+import { type Component, createSignal, For } from "solid-js";
 import type { AppState } from "../appState";
 
-/** Slider setting row. */
 const SliderSetting: Component<{
 	label: string;
 	value: () => number;
 	onChange: (v: number) => void;
 }> = (props) => {
 	return (
-		<div class="flex flex-col gap-1 rounded-[2px] border border-slate-700/70 bg-slate-900/20 p-3">
+		<div class="group border border-border/50 bg-card/40 p-3 transition-colors hover:border-border/70">
 			<div class="flex items-center justify-between">
-				<span class="font-body text-xs uppercase tracking-wider text-slate-400">{props.label}</span>
-				<span class="font-mono text-xs tabular-nums text-slate-100">
-					{Math.round(props.value() * 100)}%
+				<span class="font-heading text-[11px] uppercase tracking-[0.2em] text-foreground">
+					{props.label}
+				</span>
+				<span class="min-w-[4ch] text-right font-mono text-sm tabular-nums tracking-[0.14em] text-accent">
+					{Math.round(props.value() * 100)}
 				</span>
 			</div>
-			<input
-				type="range"
-				min={0}
-				max={1}
-				step={0.05}
-				value={props.value()}
-				onInput={(e) => props.onChange(Number(e.currentTarget.value))}
-				class="h-2 w-full cursor-pointer appearance-none bg-slate-700 accent-accent"
-			/>
+			<div class="relative mt-2">
+				<div class="absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-muted/80" />
+				<div
+					class="absolute left-0 top-1/2 h-1 -translate-y-1/2 bg-accent/60"
+					style={{ width: `${props.value() * 100}%` }}
+				/>
+				<div class="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-between px-0.5">
+					<For each={[0, 25, 50, 75, 100]}>
+						{() => <div class="h-2 w-px bg-muted-foreground/30" />}
+					</For>
+				</div>
+				<input
+					type="range"
+					min={0}
+					max={1}
+					step={0.05}
+					value={props.value()}
+					onInput={(e) => props.onChange(Number(e.currentTarget.value))}
+					class="relative z-10 h-4 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-none [&::-webkit-slider-thumb]:border [&::-webkit-slider-thumb]:border-accent/60 [&::-webkit-slider-thumb]:bg-accent/80"
+				/>
+			</div>
 		</div>
 	);
 };
 
-/** Toggle setting row. */
 const ToggleSetting: Component<{
 	label: string;
 	value: () => boolean;
@@ -46,15 +58,35 @@ const ToggleSetting: Component<{
 		<button
 			type="button"
 			onClick={() => props.onChange(!props.value())}
-			class="flex items-center justify-between rounded-[2px] border border-slate-700/70 bg-slate-900/20 px-3 py-3"
+			class="flex items-center justify-between border border-border/50 bg-card/40 px-3 py-3 transition-colors hover:border-border/70"
 		>
-			<span class="font-body text-xs uppercase tracking-wider text-slate-400">{props.label}</span>
-			<span
-				class={`font-mono text-xs uppercase ${props.value() ? "text-accent" : "text-slate-500"}`}
-			>
-				{props.value() ? "ON" : "OFF"}
+			<span class="font-heading text-[11px] uppercase tracking-[0.2em] text-foreground">
+				{props.label}
 			</span>
+			<div class="flex items-center gap-2">
+				<span
+					class={`font-mono text-[10px] uppercase tracking-[0.16em] ${props.value() ? "text-accent" : "text-muted-foreground/50"}`}
+				>
+					{props.value() ? "ON" : "OFF"}
+				</span>
+				<div class="flex h-5 w-9 items-center border border-border/50 bg-muted/60 p-0.5">
+					<div
+						class={`h-3.5 w-3.5 transition-all duration-150 ${props.value() ? "ml-auto border border-accent/60 bg-accent/50" : "border border-muted-foreground/30 bg-muted-foreground/20"}`}
+					/>
+				</div>
+			</div>
 		</button>
+	);
+};
+
+const SectionHeader: Component<{ label: string }> = (props) => {
+	return (
+		<div class="mb-3 flex items-center gap-3">
+			<span class="font-heading text-[11px] uppercase tracking-[0.28em] text-accent">
+				{props.label}
+			</span>
+			<div class="h-px flex-1 bg-accent/20" />
+		</div>
 	);
 };
 
@@ -68,58 +100,55 @@ export const SettingsPanel: Component<{ app: AppState }> = (props) => {
 	const [reduceFx, setReduceFx] = createSignal(false);
 
 	return (
-		<div class="flex min-h-screen w-screen flex-col items-center bg-slate-950 text-slate-100">
-			<div class="relative z-10 flex w-full max-w-2xl flex-col gap-6 px-4 py-8">
-				{/* Header */}
-				<div class="flex flex-col items-center gap-2 text-center">
-					<h2 class="font-heading text-2xl uppercase tracking-[0.22em] text-primary">Settings</h2>
-					<p class="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-400">
-						Field controls for audio, visuals, and readability
+		<div class="canvas-grain relative min-h-screen w-screen overflow-hidden bg-background text-foreground">
+			<div class="riverine-camo absolute inset-0 opacity-15" />
+			<div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.5)_100%)]" />
+			<div class="relative z-10 mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8">
+				<div class="flex flex-col items-center gap-3 text-center">
+					<div class="inline-block border border-accent/30 bg-accent/10 px-4 py-1.5 font-mono text-[10px] uppercase tracking-[0.32em] text-accent">
+						Field Controls
+					</div>
+					<h2 class="font-heading text-2xl uppercase tracking-[0.24em] text-primary">Settings</h2>
+					<p class="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+						Audio, visuals, and readability configuration
 					</p>
 				</div>
-
-				{/* Audio section */}
 				<section>
-					<div class="mb-3 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-						Audio
-					</div>
-					<div class="flex flex-col gap-3">
+					<SectionHeader label="Audio" />
+					<div class="flex flex-col gap-2">
 						<SliderSetting label="Master Volume" value={masterVolume} onChange={setMasterVolume} />
 						<SliderSetting label="Music Volume" value={musicVolume} onChange={setMusicVolume} />
 						<SliderSetting label="SFX Volume" value={sfxVolume} onChange={setSfxVolume} />
 					</div>
 				</section>
-
-				{/* Visual section */}
 				<section>
-					<div class="mb-3 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-						Visual
-					</div>
-					<div class="flex flex-col gap-3">
-						<ToggleSetting label="Subtitles" value={subtitles} onChange={setSubtitles} />
-						<ToggleSetting label="Reduce Motion" value={reduceMotion} onChange={setReduceMotion} />
-						<ToggleSetting label="Show Grid" value={showGrid} onChange={setShowGrid} />
+					<SectionHeader label="Visual" />
+					<div class="flex flex-col gap-2">
+						<ToggleSetting label="Show Grid Overlay" value={showGrid} onChange={setShowGrid} />
 						<ToggleSetting label="Reduce FX" value={reduceFx} onChange={setReduceFx} />
 					</div>
 				</section>
-
-				{/* Operator notes */}
-				<section class="rounded-[2px] border border-slate-700/30 bg-slate-900/20 p-4">
-					<div class="mb-2 font-mono text-[10px] uppercase tracking-[0.24em] text-accent">
-						Operator Notes
-					</div>
-					<div class="grid gap-3 text-xs uppercase tracking-[0.14em] text-slate-500">
-						<p>Audio context still waits for user gesture before playback begins.</p>
-						<p>Touch-first controls must stay readable at narrow mobile widths.</p>
-						<p>Keep the look analog, gritty, and river-war instead of futuristic.</p>
+				<section>
+					<SectionHeader label="Accessibility" />
+					<div class="flex flex-col gap-2">
+						<ToggleSetting label="Subtitles" value={subtitles} onChange={setSubtitles} />
+						<ToggleSetting label="Reduce Motion" value={reduceMotion} onChange={setReduceMotion} />
 					</div>
 				</section>
-
-				{/* Back button */}
+				<section class="border border-border/30 bg-card/20 p-4">
+					<div class="mb-2 font-heading text-[10px] uppercase tracking-[0.24em] text-accent/70">
+						Operator Notes
+					</div>
+					<div class="grid gap-2 font-body text-[10px] uppercase tracking-[0.1em] text-muted-foreground/60">
+						<p>Audio context waits for user gesture before playback.</p>
+						<p>Touch-first controls stay readable at narrow widths.</p>
+						<p>Analog, gritty, river-war aesthetic -- not futuristic.</p>
+					</div>
+				</section>
 				<div class="flex justify-center">
 					<button
 						type="button"
-						class="min-h-11 rounded border border-slate-600/70 bg-slate-900/85 px-6 py-2 font-mono text-xs uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm transition-colors hover:border-accent/50 hover:bg-slate-800/85"
+						class="min-h-11 border border-border/50 bg-card/60 px-8 py-2 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-accent/40 hover:text-foreground"
 						onClick={() => props.app.setScreen("main-menu")}
 					>
 						Back to Menu

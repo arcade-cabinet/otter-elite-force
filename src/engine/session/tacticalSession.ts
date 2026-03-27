@@ -1,3 +1,4 @@
+import { resolveCategoryId } from "@/engine/content/ids";
 import { getMissionById } from "@/entities/missions";
 import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
 import type { MissionDef, Placement } from "@/entities/types";
@@ -10,8 +11,16 @@ import {
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
 import { createMissionSeedBundle, type SeedBundle } from "../random/seed";
+import { initEncounterEntries, type EncounterEntry } from "../systems/encounterSystemEngine";
+import {
+	Faction,
+	Flags,
+	Position,
+	ResourceNode,
+} from "../world/components";
 import {
 	type GameWorld,
+	getOrderQueue,
 	setSelection,
 	spawnBuilding as spawnRuntimeBuilding,
 	spawnResource as spawnRuntimeResource,
@@ -296,13 +305,42 @@ export function seedGameWorldFromCampaignSession(
 			const pos = resolvePlacementPosition(placement, session.mission, i);
 			const unitDef = getUnit(placement.type) ?? getHero(placement.type);
 			if (unitDef) {
+				const abilities = unitDef.tags.filter((t) =>
+					[
+						"gather",
+						"build",
+						"swim",
+						"heal",
+						"snipe",
+						"demolition",
+						"stealth",
+						"rally",
+						"shield_bash",
+					].includes(t),
+				);
 				const eid = spawnRuntimeUnit(world, {
 					x: pos.x * 32 + 16,
 					y: pos.y * 32 + 16,
 					faction,
 					unitType: placement.type,
+					categoryId: resolveCategoryId(unitDef.category),
 					health: { current: unitDef.hp, max: unitDef.hp },
 					scriptId: placement.scriptId,
+					stats: {
+						hp: unitDef.hp,
+						armor: unitDef.armor,
+						speed: unitDef.speed,
+						attackDamage: unitDef.damage,
+						attackRange: unitDef.range,
+						attackCooldownMs: unitDef.attackCooldown,
+						visionRadius: unitDef.visionRadius,
+						popCost: unitDef.populationCost,
+					},
+					abilities,
+					flags: {
+						canSwim: unitDef.canSwim ?? false,
+						canStealth: unitDef.canCrouch ?? false,
+					},
 				});
 				if (!selectedAssigned && faction === "ura") {
 					setSelection(world, eid, true);
@@ -319,19 +357,112 @@ export function seedGameWorldFromCampaignSession(
 					buildingType: placement.type,
 					health: { current: buildingDef.hp, max: buildingDef.hp },
 					scriptId: placement.scriptId,
+					stats: {
+						hp: buildingDef.hp,
+						armor: buildingDef.armor ?? 0,
+						visionRadius: 5,
+						attackDamage: buildingDef.attackDamage ?? 0,
+						attackRange: buildingDef.attackRange ?? 0,
+						attackCooldownMs: buildingDef.attackCooldown ?? 0,
+						populationCapacity: buildingDef.populationCapacity ?? 0,
+					},
 				});
 				continue;
 			}
-			if (getResource(placement.type)) {
-				spawnRuntimeResource(world, {
+			const resourceDef = getResource(placement.type);
+			if (resourceDef) {
+				const eid = spawnRuntimeResource(world, {
 					x: pos.x * 32 + 16,
 					y: pos.y * 32 + 16,
 					resourceType: placement.type,
 					scriptId: placement.scriptId,
 				});
+				// Set resource yield — average of min/max
+				const avgYield = Math.round(
+					(resourceDef.yield.min + resourceDef.yield.max) / 2,
+				);
+				ResourceNode.remaining[eid] = avgYield;
 			}
 		}
 	}
+
+	// Set starting population cap from mission definition
+	world.runtime.population.max = session.mission.startPopCap ?? 10;
+
+	// Count initial player (URA) unit count for population tracking
+	let playerUnitCount = 0;
+	for (const eid of world.runtime.alive) {
+		if (
+			Faction.id[eid] === 1 &&
+			Flags.isBuilding[eid] === 0 &&
+			Flags.isResource[eid] === 0
+		) {
+			playerUnitCount++;
+		}
+	}
+	world.runtime.population.current = playerUnitCount;
+
+	// ── Task 1: Auto-assign workers to gather nearest resource ──
+	for (const eid of world.runtime.alive) {
+		if (Faction.id[eid] !== 1) continue; // player only
+		if (Flags.isBuilding[eid] === 1 || Flags.isResource[eid] === 1) continue;
+		const type = world.runtime.entityTypeIndex.get(eid);
+		if (type !== "river_rat") continue;
+		// Find nearest resource
+		let nearestRid = -1;
+		let nearestDist = Infinity;
+		for (const rid of world.runtime.alive) {
+			if (Flags.isResource[rid] !== 1) continue;
+			const dx = Position.x[rid] - Position.x[eid];
+			const dy = Position.y[rid] - Position.y[eid];
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			if (dist < nearestDist) {
+				nearestDist = dist;
+				nearestRid = rid;
+			}
+		}
+		if (nearestRid !== -1) {
+			const orders = getOrderQueue(world, eid);
+			orders.push({
+				type: "gather",
+				targetEid: nearestRid,
+				targetX: Position.x[nearestRid],
+				targetY: Position.y[nearestRid],
+			});
+		}
+	}
+
+	// ── Task 2: Initialize encounter entries with an early patrol near player ──
+	const earlyPatrolEntries: EncounterEntry[] = [
+		{
+			composition: [{ unitType: "skink", count: 2, variance: 1 }],
+			spawnZone: "jungle_south",
+			intervalMs: 45_000,
+			intervalVariance: 15_000,
+			maxSpawns: 2,
+		},
+		{
+			composition: [
+				{ unitType: "gator", count: 2, variance: 1 },
+				{ unitType: "skink", count: 1, variance: 1 },
+			],
+			spawnZone: "patrol",
+			intervalMs: 120_000,
+			intervalVariance: 30_000,
+			maxSpawns: 5,
+		},
+		{
+			composition: [
+				{ unitType: "viper", count: 1, variance: 1 },
+				{ unitType: "gator", count: 1, variance: 0 },
+			],
+			spawnZone: "encounter",
+			intervalMs: 180_000,
+			intervalVariance: 45_000,
+			maxSpawns: 3,
+		},
+	];
+	initEncounterEntries(world, earlyPatrolEntries);
 }
 
 export function seedGameWorldFromSkirmishSession(

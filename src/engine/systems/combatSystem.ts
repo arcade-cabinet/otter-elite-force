@@ -353,6 +353,7 @@ function applyAoe(
 		const falloff = 1 - distFrac * 0.5;
 		const dmg = calculateDamage(damage * falloff, Armor.value[eid]);
 		Health.current[eid] -= dmg;
+		spawnFloatingText(world, Position.x[eid], Position.y[eid], `-${dmg}`, "red");
 
 		if (Faction.id[eid] === FACTION_IDS.ura) {
 			world.events.push({
