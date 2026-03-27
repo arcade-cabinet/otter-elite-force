@@ -203,6 +203,9 @@ describe("engine/runtime/littlejsRuntime", () => {
 		}
 
 		const world = createGameWorld();
+		// Place two ura units close together and one enemy far away.
+		// With default zoom 2.0, screen coords must cover a larger screen area
+		// to encompass the same world-space region.
 		spawnUnit(world, { x: 280, y: 150, faction: "ura", health: { current: 8, max: 10 } });
 		spawnUnit(world, { x: 340, y: 210, faction: "ura", health: { current: 8, max: 10 } });
 		spawnUnit(world, { x: 520, y: 320, faction: "scale_guard", health: { current: 8, max: 10 } });
@@ -219,7 +222,10 @@ describe("engine/runtime/littlejsRuntime", () => {
 			throw new Error("Expected LittleJS canvas to mount");
 		}
 		canvas.getBoundingClientRect = container.getBoundingClientRect;
-		runtime.selectInScreenRect(220, 90, 390, 260);
+		// With zoom 2.0, camera centers on first ura unit at (280,150).
+		// Camera: x=120, y=60. Screen->world: worldX = screenX/2 + 120.
+		// To select (280,150) and (340,210), we need screen rect covering both.
+		runtime.selectInScreenRect(200, 60, 520, 380);
 
 		expect(container.dataset.runtimeSelected).toBe("2");
 		expect(bridge.state.selection?.entityIds.length).toBe(2);
@@ -341,8 +347,10 @@ describe("engine/runtime/littlejsRuntime", () => {
 		}
 		canvas.getBoundingClientRect = container.getBoundingClientRect;
 		canvas.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true }));
-		canvas.dispatchEvent(new PointerEvent("pointerdown", { clientX: 450, clientY: 250, button: 2, bubbles: true }));
-		canvas.dispatchEvent(new PointerEvent("pointerup", { clientX: 450, clientY: 250, button: 2, bubbles: true }));
+		// Right-click inside the locked zone (world coords ~460,260).
+		// With zoom 2.0 and camera at ~(320, 155), screenX = (460-320)*2 = 280, screenY = (260-155)*2 = 210.
+		canvas.dispatchEvent(new PointerEvent("pointerdown", { clientX: 280, clientY: 210, button: 2, bubbles: true }));
+		canvas.dispatchEvent(new PointerEvent("pointerup", { clientX: 280, clientY: 210, button: 2, bubbles: true }));
 
 		expect(Position.x[eid]).toBe(beforeX);
 		expect(Position.y[eid]).toBe(beforeY);

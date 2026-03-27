@@ -60,6 +60,8 @@ export interface GameWorld {
 		diagnosticEvents: DiagnosticSnapshot["events"];
 		removals: Set<number>;
 		alive: Set<number>;
+		/** Terrain grid populated by missionBootstrap from mission terrain regions. */
+		terrainGrid: number[][] | null;
 	};
 	session: {
 		currentMissionId: string | null;
@@ -126,6 +128,7 @@ export function createGameWorld(seed = createSeedBundle({ phrase: "silent-ember-
 			diagnosticEvents: [],
 			removals: new Set(),
 			alive: new Set(),
+			terrainGrid: null,
 		},
 		session: {
 			currentMissionId: null,
@@ -195,6 +198,7 @@ export function resetWorldSession(world: GameWorld): void {
 	world.runtime.diagnosticEvents.length = 0;
 	world.runtime.removals.clear();
 	world.runtime.alive.clear();
+	world.runtime.terrainGrid = null;
 }
 
 function spawnEntity(world: GameWorld, options: {

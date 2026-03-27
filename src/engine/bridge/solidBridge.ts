@@ -10,8 +10,8 @@
 
 import { batch, createSignal } from "solid-js";
 import { createStore, produce } from "solid-js/store";
-import type { GameWorld } from "../world/gameWorld";
 import { Faction, Flags, Health, Selection } from "../world/components";
+import type { GameWorld } from "../world/gameWorld";
 import type {
 	AlertViewModel,
 	BossViewModel,
@@ -155,22 +155,38 @@ export function createSolidBridge(): SolidBridge {
 			setPopulation("current", popCurrent);
 			setPopulation("max", Math.max(popMax, 10)); // minimum pop cap of 10
 
-			// Selection
+			// Selection — build unit type breakdown for HUD display
 			const selectedIds: number[] = [];
-			let primaryLabel = "No selection";
+			const typeCounts = new Map<string, number>();
 			for (const eid of world.runtime.alive) {
 				if (Selection.selected[eid] === 1) {
 					selectedIds.push(eid);
-					if (selectedIds.length === 1) {
-						primaryLabel = world.runtime.entityTypeIndex.get(eid) ?? "Unit";
-					}
+					const raw = world.runtime.entityTypeIndex.get(eid) ?? "unit";
+					typeCounts.set(raw, (typeCounts.get(raw) ?? 0) + 1);
 				}
 			}
 			if (selectedIds.length > 0) {
-				if (selectedIds.length > 1) {
-					primaryLabel = `${selectedIds.length} units selected`;
+				const formatName = (raw: string) =>
+					raw
+						.split("_")
+						.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+						.join(" ");
+				let primaryLabel: string;
+				let unitBreakdown: string;
+				if (selectedIds.length === 1) {
+					const raw = world.runtime.entityTypeIndex.get(selectedIds[0]) ?? "Unit";
+					primaryLabel = formatName(raw);
+					unitBreakdown = primaryLabel;
+				} else {
+					primaryLabel = `${selectedIds.length} units`;
+					const parts: string[] = [];
+					for (const [type, count] of typeCounts) {
+						const name = formatName(type);
+						parts.push(count > 1 ? `${count} ${name}s` : `1 ${name}`);
+					}
+					unitBreakdown = parts.join(", ");
 				}
-				setSelection({ entityIds: selectedIds, primaryLabel });
+				setSelection({ entityIds: selectedIds, primaryLabel, unitBreakdown });
 			} else {
 				setSelection(null);
 			}

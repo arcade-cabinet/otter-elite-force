@@ -1,5 +1,5 @@
 import { loadAllAtlases } from "@/canvas/spriteAtlas";
-import type { GameBridge } from "../bridge/gameBridge";
+import type { GameBridge, SelectionViewModel } from "../bridge/gameBridge";
 import { loadTileImages } from "../rendering/assetLoader";
 import { renderFogOverlay } from "../rendering/fogRenderer";
 import { createSpriteRenderer, type SpriteRenderer } from "../rendering/spriteRenderer";
@@ -76,16 +76,33 @@ const TOUCH_BOX_SELECT_DELAY_MS = 260;
 const MINIMAP_MARGIN = 12;
 
 function createInitialCamera(world: GameWorld, container: HTMLElement): RuntimeCamera {
+	const DEFAULT_ZOOM = 2.0;
+	const viewW = (container.clientWidth || 640) / DEFAULT_ZOOM;
+	const viewH = (container.clientHeight || 360) / DEFAULT_ZOOM;
+
+	// Priority 1: center on first player building (the lodge)
 	for (const eid of world.runtime.alive) {
-		if (Selection.selected[eid] === 1 || Faction.id[eid] === 1) {
+		if (Faction.id[eid] === 1 && Flags.isBuilding[eid] === 1) {
 			return {
-				x: Math.max(0, Position.x[eid] - (container.clientWidth || 640) / 2),
-				y: Math.max(0, Position.y[eid] - (container.clientHeight || 360) / 2),
-				zoom: 1,
+				x: Math.max(0, Position.x[eid] - viewW / 2),
+				y: Math.max(0, Position.y[eid] - viewH / 2),
+				zoom: DEFAULT_ZOOM,
 			};
 		}
 	}
-	return { x: 0, y: 0, zoom: 1 };
+
+	// Priority 2: center on first selected or player unit
+	for (const eid of world.runtime.alive) {
+		if (Selection.selected[eid] === 1 || Faction.id[eid] === 1) {
+			return {
+				x: Math.max(0, Position.x[eid] - viewW / 2),
+				y: Math.max(0, Position.y[eid] - viewH / 2),
+				zoom: DEFAULT_ZOOM,
+			};
+		}
+	}
+
+	return { x: 0, y: 0, zoom: DEFAULT_ZOOM };
 }
 
 let littleJsModulePromise: Promise<typeof import("littlejsengine")> | null = null;
@@ -101,6 +118,40 @@ async function loadLittleJsEngine(): Promise<typeof import("littlejsengine")> {
 		littleJsModulePromise = import("littlejsengine");
 	}
 	return littleJsModulePromise;
+}
+
+function formatUnitTypeName(raw: string): string {
+	return raw
+		.split("_")
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ");
+}
+
+function buildSelectionViewModel(selectedIds: number[], world: GameWorld): SelectionViewModel {
+	const typeCounts = new Map<string, number>();
+	for (const eid of selectedIds) {
+		const raw = world.runtime.entityTypeIndex.get(eid) ?? "unit";
+		typeCounts.set(raw, (typeCounts.get(raw) ?? 0) + 1);
+	}
+
+	let primaryLabel: string;
+	let unitBreakdown: string;
+
+	if (selectedIds.length === 1) {
+		const raw = world.runtime.entityTypeIndex.get(selectedIds[0]) ?? "Unit";
+		primaryLabel = formatUnitTypeName(raw);
+		unitBreakdown = primaryLabel;
+	} else {
+		primaryLabel = `${selectedIds.length} units`;
+		const parts: string[] = [];
+		for (const [type, count] of typeCounts) {
+			const name = formatUnitTypeName(type);
+			parts.push(count > 1 ? `${count} ${name}s` : `1 ${name}`);
+		}
+		unitBreakdown = parts.join(", ");
+	}
+
+	return { entityIds: selectedIds, primaryLabel, unitBreakdown };
 }
 
 export async function createLittleJsRuntime(
@@ -149,18 +200,21 @@ export async function createLittleJsRuntime(
 				const navW = options.world.navigation.width;
 				const navH = options.world.navigation.height;
 				if (navW > 0 && navH > 0) {
-					// Build a simple terrain grid from navigation dimensions
-					// The actual terrain data would come from the mission definition;
-					// for now, create a grass-filled grid sized to the navigation grid.
-					const tileGrid: number[][] = Array.from({ length: navH }, () =>
-						Array.from({ length: navW }, () => 0),
-					);
+					// Use the terrain grid from mission bootstrap if available,
+					// otherwise fall back to an all-grass grid.
+					const tileGrid: number[][] =
+						options.world.runtime.terrainGrid ??
+						Array.from({ length: navH }, () => Array.from({ length: navW }, () => 0));
 					terrainRenderer = createTerrainRenderer(tileGrid, tileImages);
 
-					// Initialize fog grid (all visible for now — scenario system will manage fog)
+					// Initialize fog grid — start with unexplored (0), the scenario
+					// system / vision system will reveal tiles around player units.
 					fogGridWidth = navW;
 					fogGridHeight = navH;
-					fogGrid = new Uint8Array(navW * navH).fill(2);
+					fogGrid = new Uint8Array(navW * navH).fill(0);
+
+					// Reveal tiles around player entities at startup
+					revealFogAroundPlayerEntities();
 				}
 			})
 			.catch((err: unknown) => {
@@ -169,6 +223,48 @@ export async function createLittleJsRuntime(
 
 		// Create sprite renderer immediately (it checks atlasesLoaded() internally)
 		spriteRenderer = createSpriteRenderer();
+	}
+
+	/**
+	 * Reveal fog tiles around all player (faction 1) entities.
+	 * Uses a vision radius of 8 tiles for units, 10 for buildings.
+	 */
+	function revealFogAroundPlayerEntities(): void {
+		if (!fogGrid || fogGridWidth === 0 || fogGridHeight === 0) return;
+
+		for (const eid of options.world.runtime.alive) {
+			if (Faction.id[eid] !== 1) continue;
+			const tileX = Math.floor(Position.x[eid] / 32);
+			const tileY = Math.floor(Position.y[eid] / 32);
+			const isBuilding = Flags.isBuilding[eid] === 1;
+			const visionRadius = isBuilding ? 10 : 8;
+
+			for (let dy = -visionRadius; dy <= visionRadius; dy++) {
+				for (let dx = -visionRadius; dx <= visionRadius; dx++) {
+					if (dx * dx + dy * dy > visionRadius * visionRadius) continue;
+					const fx = tileX + dx;
+					const fy = tileY + dy;
+					if (fx < 0 || fy < 0 || fx >= fogGridWidth || fy >= fogGridHeight) continue;
+					fogGrid[fy * fogGridWidth + fx] = 2; // visible
+				}
+			}
+
+			// Mark tiles in the explored ring (just outside vision) as explored (1)
+			const exploredRadius = visionRadius + 3;
+			for (let dy = -exploredRadius; dy <= exploredRadius; dy++) {
+				for (let dx = -exploredRadius; dx <= exploredRadius; dx++) {
+					const dist2 = dx * dx + dy * dy;
+					if (dist2 <= visionRadius * visionRadius || dist2 > exploredRadius * exploredRadius)
+						continue;
+					const fx = tileX + dx;
+					const fy = tileY + dy;
+					if (fx < 0 || fy < 0 || fx >= fogGridWidth || fy >= fogGridHeight) continue;
+					if (fogGrid[fy * fogGridWidth + fx] === 0) {
+						fogGrid[fy * fogGridWidth + fx] = 1; // explored
+					}
+				}
+			}
+		}
 	}
 
 	function getWorldPixelSize(): { width: number; height: number } {
@@ -354,15 +450,7 @@ export async function createLittleJsRuntime(
 			(eid) => Faction.id[eid] === 1 && Flags.isResource[eid] === 0,
 		).length;
 		options.bridge.state.selection =
-			selectedIds.length > 0
-				? {
-						entityIds: selectedIds,
-						primaryLabel:
-							selectedIds.length === 1
-								? `Entity ${selectedIds[0]}`
-								: `${selectedIds.length} selected`,
-					}
-				: null;
+			selectedIds.length > 0 ? buildSelectionViewModel(selectedIds, options.world) : null;
 		options.bridge.state.population = {
 			current: playerOwned,
 			max: Math.max(playerOwned, 24),
@@ -763,7 +851,7 @@ export async function createLittleJsRuntime(
 				options.world.time.tick,
 			);
 		} else {
-			// Fallback: original colored shape rendering
+			// Minimal fallback: colored dots (spriteRenderer not yet initialized)
 			for (const eid of options.world.runtime.alive) {
 				entityCount += 1;
 				const ex = Position.x[eid];
@@ -777,7 +865,6 @@ export async function createLittleJsRuntime(
 				const isResource = Flags.isResource[eid] === 1;
 				const isSelected = Selection.selected[eid] === 1;
 				const factionId = Faction.id[eid];
-				const healthRatio = Health.max[eid] > 0 ? Health.current[eid] / Health.max[eid] : 1;
 
 				context.fillStyle = isResource
 					? "#facc15"
@@ -787,34 +874,29 @@ export async function createLittleJsRuntime(
 							? "#ef4444"
 							: "#cbd5e1";
 				if (isBuilding) {
-					const size = 16 * camera.zoom;
+					const size = 24 * camera.zoom;
 					context.fillRect(screenX - size / 2, screenY - size / 2, size, size);
+					context.strokeStyle = factionId === 1 ? "#f8fafc" : "#450a0a";
+					context.lineWidth = 2;
+					context.strokeRect(screenX - size / 2, screenY - size / 2, size, size);
+				} else if (isResource) {
+					context.beginPath();
+					context.arc(screenX, screenY, Math.max(6, 10 * camera.zoom), 0, Math.PI * 2);
+					context.fill();
 				} else {
 					context.beginPath();
-					context.arc(screenX, screenY, Math.max(4, 6 * camera.zoom), 0, Math.PI * 2);
+					context.arc(screenX, screenY, Math.max(5, 8 * camera.zoom), 0, Math.PI * 2);
 					context.fill();
+					context.strokeStyle = factionId === 1 ? "#f8fafc" : "#450a0a";
+					context.lineWidth = 2;
+					context.stroke();
 				}
-
-				context.fillStyle = "rgba(15, 23, 42, 0.9)";
-				context.fillRect(
-					screenX - 10 * camera.zoom,
-					screenY - 14 * camera.zoom,
-					20 * camera.zoom,
-					3 * camera.zoom,
-				);
-				context.fillStyle = "#34d399";
-				context.fillRect(
-					screenX - 10 * camera.zoom,
-					screenY - 14 * camera.zoom,
-					20 * camera.zoom * Math.max(0, Math.min(1, healthRatio)),
-					3 * camera.zoom,
-				);
 
 				if (isSelected) {
 					context.strokeStyle = "#f8fafc";
 					context.lineWidth = 2;
 					context.beginPath();
-					context.arc(screenX, screenY, (isBuilding ? 12 : 10) * camera.zoom, 0, Math.PI * 2);
+					context.arc(screenX, screenY, (isBuilding ? 18 : 12) * camera.zoom, 0, Math.PI * 2);
 					context.stroke();
 				}
 			}
@@ -824,14 +906,6 @@ export async function createLittleJsRuntime(
 		if (fogGrid && fogGridWidth > 0 && fogGridHeight > 0) {
 			renderFogOverlay(context, camera, { width, height }, fogGrid, fogGridWidth, fogGridHeight);
 		}
-
-		context.fillStyle = "#f8fafc";
-		context.font = "12px monospace";
-		context.fillText(`Tick ${options.world.time.tick}`, 12, 20);
-		context.fillText(`Entities ${entityCount}`, 12, 36);
-		context.fillText(`Zoom ${camera.zoom.toFixed(2)}`, 12, 52);
-		context.fillText(`Selected ${getSelectedEntityIds().length}`, 12, 68);
-		context.fillText(`Weather ${options.world.runtime.weather}`, 12, 84);
 
 		const minimap = getMinimapLayout(width, height);
 		const worldSize = getWorldPixelSize();
@@ -1060,6 +1134,10 @@ export async function createLittleJsRuntime(
 		};
 		options.onTick?.(options.world);
 		applyWorldEvents();
+		// Update fog of war every simulation tick
+		if (frame.shouldTickSystems) {
+			revealFogAroundPlayerEntities();
+		}
 		drawScene(
 			(canvas?.width ?? options.container.clientWidth) || 1,
 			(canvas?.height ?? options.container.clientHeight) || 1,

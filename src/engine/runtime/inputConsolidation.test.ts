@@ -241,19 +241,20 @@ describe("US-C08: Input Consolidation", () => {
 			if (!canvas) throw new Error("Expected canvas");
 			canvas.getBoundingClientRect = container.getBoundingClientRect;
 
-			// Right-click near enemy position
+			// Right-click near enemy at world (108, 100).
+			// With zoom=2.0, camera at (0, 10): screenX = 108*2 = 216, screenY = (100-10)*2 = 180.
 			canvas.dispatchEvent(
 				new PointerEvent("pointerdown", {
-					clientX: 108,
-					clientY: 100,
+					clientX: 216,
+					clientY: 180,
 					button: 2,
 					bubbles: true,
 				}),
 			);
 			canvas.dispatchEvent(
 				new PointerEvent("pointerup", {
-					clientX: 108,
-					clientY: 100,
+					clientX: 216,
+					clientY: 180,
 					button: 2,
 					bubbles: true,
 				}),
@@ -298,19 +299,20 @@ describe("US-C08: Input Consolidation", () => {
 			if (!canvas) throw new Error("Expected canvas");
 			canvas.getBoundingClientRect = container.getBoundingClientRect;
 
-			// Right-click near resource
+			// Right-click near resource at world (108, 100).
+			// With zoom=2.0, camera at (0, 10): screenX = 216, screenY = 180.
 			canvas.dispatchEvent(
 				new PointerEvent("pointerdown", {
-					clientX: 108,
-					clientY: 100,
+					clientX: 216,
+					clientY: 180,
 					button: 2,
 					bubbles: true,
 				}),
 			);
 			canvas.dispatchEvent(
 				new PointerEvent("pointerup", {
-					clientX: 108,
-					clientY: 100,
+					clientX: 216,
+					clientY: 180,
 					button: 2,
 					bubbles: true,
 				}),
@@ -360,19 +362,21 @@ describe("US-C08: Input Consolidation", () => {
 			if (!canvas) throw new Error("Expected canvas");
 			canvas.getBoundingClientRect = container.getBoundingClientRect;
 
-			// Right-click near own building
+			// Right-click near own building at world (108, 100).
+			// Camera centers on ura building at (108, 100): x=max(0,108-160)=0, y=max(0,100-90)=10.
+			// With zoom=2.0: screenX = (108-0)*2 = 216, screenY = (100-10)*2 = 180.
 			canvas.dispatchEvent(
 				new PointerEvent("pointerdown", {
-					clientX: 108,
-					clientY: 100,
+					clientX: 216,
+					clientY: 180,
 					button: 2,
 					bubbles: true,
 				}),
 			);
 			canvas.dispatchEvent(
 				new PointerEvent("pointerup", {
-					clientX: 108,
-					clientY: 100,
+					clientX: 216,
+					clientY: 180,
 					button: 2,
 					bubbles: true,
 				}),
@@ -556,8 +560,9 @@ describe("US-C08: Input Consolidation", () => {
 			if (!canvas) throw new Error("Expected canvas");
 			canvas.getBoundingClientRect = container.getBoundingClientRect;
 
-			// Mouse drag: box selection should still work
-			runtime.selectInScreenRect(220, 90, 390, 260);
+			// Mouse drag: box selection should still work.
+			// With zoom=2.0, camera at ~(120, 60), need larger screen rect to cover both units.
+			runtime.selectInScreenRect(200, 60, 540, 360);
 			expect(container.dataset.runtimeSelected).toBe("2");
 
 			await runtime.stop();

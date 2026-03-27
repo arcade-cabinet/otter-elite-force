@@ -3,10 +3,10 @@
  * between GameWorld and Solid signals.
  */
 
-import { describe, expect, it } from "vitest";
 import { createRoot } from "solid-js";
-import { createGameWorld, spawnUnit, spawnBuilding } from "../world/gameWorld";
+import { describe, expect, it } from "vitest";
 import { Selection } from "../world/components";
+import { createGameWorld, spawnBuilding, spawnUnit } from "../world/gameWorld";
 import { createSolidBridge } from "./solidBridge";
 
 describe("engine/bridge/solidBridge", () => {
@@ -55,7 +55,10 @@ describe("engine/bridge/solidBridge", () => {
 			world.session.phase = "playing";
 
 			const eid = spawnUnit(world, {
-				x: 100, y: 100, faction: "ura", unitType: "mudfoot",
+				x: 100,
+				y: 100,
+				faction: "ura",
+				unitType: "mudfoot",
 			});
 			Selection.selected[eid] = 1;
 
@@ -64,7 +67,7 @@ describe("engine/bridge/solidBridge", () => {
 			const sel = bridge.accessors.selection();
 			expect(sel).not.toBeNull();
 			expect(sel?.entityIds).toContain(eid);
-			expect(sel?.primaryLabel).toBe("mudfoot");
+			expect(sel?.primaryLabel).toBe("Mudfoot");
 
 			dispose();
 		});
@@ -85,7 +88,9 @@ describe("engine/bridge/solidBridge", () => {
 
 			const sel = bridge.accessors.selection();
 			expect(sel?.entityIds.length).toBe(2);
-			expect(sel?.primaryLabel).toBe("2 units selected");
+			expect(sel?.primaryLabel).toBe("2 units");
+			expect(sel?.unitBreakdown).toContain("Mudfoot");
+			expect(sel?.unitBreakdown).toContain("River Rat");
 
 			dispose();
 		});

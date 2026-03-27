@@ -12,6 +12,7 @@ export interface PopulationViewModel {
 export interface SelectionViewModel {
 	entityIds: number[];
 	primaryLabel: string;
+	unitBreakdown: string;
 }
 
 export interface ObjectiveViewModel {

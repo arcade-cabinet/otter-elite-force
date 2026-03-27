@@ -3,29 +3,25 @@ import { describe, expect, it } from "vitest";
 import { RuntimeHost } from "./RuntimeHost";
 
 describe("engine/runtime/RuntimeHost", () => {
-	it("mounts a direct tactical runtime host without a bridge overlay", () => {
+	it("mounts a direct tactical runtime host with game HUD elements", () => {
 		render(() => <RuntimeHost mode="campaign" missionId="mission_1" />);
 
 		expect(screen.getByTestId("runtime-host-container")).toBeTruthy();
 		expect(screen.queryByTestId("runtime-host-bridge")).toBeNull();
-		expect(screen.getByRole("button", { name: /Deselect/i })).toBeTruthy();
-		expect(screen.getByRole("button", { name: /Recenter/i })).toBeTruthy();
+		expect(screen.getByTestId("runtime-btn-recenter")).toBeTruthy();
 		expect(screen.getByTestId("runtime-hud-resources")).toBeTruthy();
-		expect(screen.getByTestId("runtime-hud-weather")).toBeTruthy();
-		expect(screen.getByTestId("runtime-hud-selection")).toBeTruthy();
 		expect(screen.getByTestId("runtime-hud-objectives")).toBeTruthy();
-		expect(screen.getByTestId("runtime-hud-alerts")).toBeTruthy();
+		// Alerts panel only renders when alerts exist (initially hidden)
+		expect(screen.queryByTestId("runtime-hud-alerts")).toBeNull();
 	});
 
-	it("renders campaign runtime summary from the shared engine descriptor", () => {
+	it("renders campaign mission title from the shared engine descriptor", () => {
 		render(() => <RuntimeHost mode="campaign" missionId="mission_1" />);
 
 		expect(screen.getByText(/Beachhead/i)).toBeTruthy();
-		expect(screen.getByText(/Focus:/i)).toBeTruthy();
-		expect(screen.getByText(/Runtime Boot|Runtime Active|Runtime Failed/i)).toBeTruthy();
 	});
 
-	it("renders seeded skirmish runtime summary", () => {
+	it("renders seeded skirmish mission title", () => {
 		render(() => (
 			<RuntimeHost
 				mode="skirmish"
@@ -48,7 +44,22 @@ describe("engine/runtime/RuntimeHost", () => {
 		));
 
 		expect(screen.getByText(/River Crossing/i)).toBeTruthy();
-		expect(screen.getByText(/Seed:\s+silent-ember-heron/i)).toBeTruthy();
-		expect(screen.getByText(/Runtime Boot|Runtime Active|Runtime Failed/i)).toBeTruthy();
+	});
+
+	it("does not show debug info (seeds, run IDs, map stats)", () => {
+		render(() => <RuntimeHost mode="campaign" missionId="mission_1" />);
+
+		expect(screen.queryByText(/Seed:/i)).toBeNull();
+		expect(screen.queryByText(/Design:/i)).toBeNull();
+		expect(screen.queryByText(/Gameplay Streams:/i)).toBeNull();
+		expect(screen.queryByText(/Focus:/i)).toBeNull();
+		expect(screen.queryByText(/Chokepoints:/i)).toBeNull();
+	});
+
+	it("does not render a weather panel or Deselect button", () => {
+		render(() => <RuntimeHost mode="campaign" missionId="mission_1" />);
+
+		expect(screen.queryByTestId("runtime-hud-weather")).toBeNull();
+		expect(screen.queryByRole("button", { name: /Deselect/i })).toBeNull();
 	});
 });
