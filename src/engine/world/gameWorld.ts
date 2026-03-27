@@ -164,6 +164,8 @@ export interface GameWorld {
 		encounterState: Array<{ timerMs: number; spawnCount: number }>;
 		/** Floating text entries for damage/heal/resource feedback. */
 		floatingTexts: Array<FloatingText>;
+		/** Cached A* path waypoints per entity. Cleared when order changes. */
+		pathWaypoints: Map<number, Array<{ x: number; y: number }>>;
 	};
 	session: {
 		currentMissionId: string | null;
@@ -246,6 +248,7 @@ export function createGameWorld(
 			encounterEntries: [],
 			encounterState: [],
 			floatingTexts: [],
+			pathWaypoints: new Map(),
 		},
 		session: {
 			currentMissionId: null,
@@ -329,6 +332,7 @@ export function resetWorldSession(world: GameWorld): void {
 	world.runtime.encounterEntries.length = 0;
 	world.runtime.encounterState.length = 0;
 	world.runtime.floatingTexts.length = 0;
+	world.runtime.pathWaypoints.clear();
 }
 
 function spawnEntity(

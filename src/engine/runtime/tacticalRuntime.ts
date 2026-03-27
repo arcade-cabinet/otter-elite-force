@@ -12,6 +12,7 @@
  * Our callbacks synchronize bitECS world state with LittleJS each frame.
  */
 
+import { drawRankEmblem, hasEmblem } from "@/canvas/rankEmblems";
 import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import { loadTerrainTiles, paintTerrainChunked, type TerrainChunk } from "@/canvas/tilePainter";
 import { getMissionById } from "@/entities/missions";
@@ -38,7 +39,6 @@ import {
 	Health,
 	Position,
 	Selection,
-	Veterancy,
 } from "../world/components";
 import type { GameWorld, Order } from "../world/gameWorld";
 import { getOrderQueue, tickFloatingTexts } from "../world/gameWorld";
@@ -168,6 +168,32 @@ export async function createTacticalRuntime(
 	let fogGridWidth = 0;
 	let fogGridHeight = 0;
 	let terrainChunks: TerrainChunk[] = [];
+
+	// Building images — keyed by building type (e.g. "barracks", "watchtower")
+	const buildingImages = new Map<string, HTMLImageElement>();
+	const BUILDING_PNG_NAMES = [
+		"armory",
+		"barracks",
+		"burrow",
+		"command_post",
+		"dock",
+		"field_hospital",
+		"fish_trap",
+		"flag_post",
+		"fuel_tank",
+		"great_siphon",
+		"gun_tower",
+		"minefield",
+		"sandbag_wall",
+		"scale_wall",
+		"shield_generator",
+		"siphon",
+		"sludge_pit",
+		"spawning_pool",
+		"stone_wall",
+		"venom_spire",
+		"watchtower",
+	];
 
 	// Selection box (screen-space during drag)
 	let selectionBoxScreen: {
@@ -662,6 +688,19 @@ export async function createTacticalRuntime(
 		initAtlasAdapter().catch((err: unknown) => {
 			console.error("[tacticalRuntime] Failed to init atlas adapter:", err);
 		});
+
+		// Load building PNG images
+		const buildingBase = `${import.meta.env.BASE_URL ?? "./"}assets/tiles/buildings/`;
+		for (const name of BUILDING_PNG_NAMES) {
+			const img = new Image();
+			img.onload = () => {
+				buildingImages.set(name, img);
+			};
+			img.onerror = () => {
+				console.warn(`[tacticalRuntime] Failed to load building image: ${name}.png`);
+			};
+			img.src = `${buildingBase}${name}.png`;
+		}
 
 		// Initialize audio
 		initAudioRuntime();
@@ -1205,29 +1244,16 @@ export async function createTacticalRuntime(
 				);
 			}
 
-			// Rank emblem for veteran/elite/hero units
-			const rank = Veterancy.rank[eid];
-			if (rank > 0 && !isBuilding && !isResource) {
-				const emblemY = tile.y + 0.4;
-				const emblemX = tile.x + 0.25;
-				if (rank === 1) {
-					// Veteran: silver chevron
-					ljs.drawRect(
-						ljs.vec2(emblemX, emblemY),
-						ljs.vec2(0.12, 0.12),
-						new ljs.Color(0.75, 0.75, 0.8, 1),
-					);
-				} else if (rank === 2) {
-					// Elite: gold double-chevron
-					ljs.drawRect(
-						ljs.vec2(emblemX, emblemY),
-						ljs.vec2(0.14, 0.14),
-						new ljs.Color(1.0, 0.84, 0.0, 1),
-					);
-				} else {
-					// Hero: star emblem
-					ljs.drawCircle(ljs.vec2(emblemX, emblemY), 0.08, new ljs.Color(1.0, 0.95, 0.3, 1));
-				}
+			// Rank emblem using the full emblem system from rankEmblems.ts
+			// This draws faction badges + unit-type symbols (chevron, star, etc.)
+			if (!isBuilding && !isResource && entityType && hasEmblem(entityType)) {
+				const screenPos = ljs.worldToScreen(ljs.vec2(tile.x, tile.y));
+				const spriteScreenW = ljs.cameraScale * 0.6;
+				const ctx = ljs.mainContext;
+				ctx.save();
+				ctx.translate(screenPos.x - spriteScreenW / 2, screenPos.y - spriteScreenW);
+				drawRankEmblem(ctx, entityType, spriteScreenW);
+				ctx.restore();
 			}
 		}
 

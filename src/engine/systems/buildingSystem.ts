@@ -314,7 +314,11 @@ export function runBuildingSystem(world: GameWorld): void {
 			releaseBuilders(world, buildingEid);
 			world.events.push({
 				type: "building-complete",
-				payload: { eid: buildingEid },
+				payload: {
+					eid: buildingEid,
+					x: Position.x[buildingEid],
+					y: Position.y[buildingEid],
+				},
 			});
 		}
 	}

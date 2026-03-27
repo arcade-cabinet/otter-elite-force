@@ -361,7 +361,11 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 						ResourceNode.remaining[targetEid] = -1; // Mark as depleted
 						world.events.push({
 							type: "resource-depleted",
-							payload: { eid: targetEid },
+							payload: {
+								entityId: targetEid,
+								x: Position.x[targetEid],
+								y: Position.y[targetEid],
+							},
 						});
 					}
 				}
@@ -391,7 +395,11 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 						ResourceNode.remaining[targetEid] = -1;
 						world.events.push({
 							type: "resource-depleted",
-							payload: { eid: targetEid },
+							payload: {
+								entityId: targetEid,
+								x: Position.x[targetEid],
+								y: Position.y[targetEid],
+							},
 						});
 					}
 				}

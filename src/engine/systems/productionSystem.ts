@@ -94,6 +94,16 @@ export function runProductionSystem(world: GameWorld): void {
 				});
 			}
 
+			world.events.push({
+				type: "training-complete",
+				payload: {
+					entityId: eid,
+					unitType: current.contentId,
+					x: Position.x[eid],
+					y: Position.y[eid],
+				},
+			});
+
 			queue.shift();
 		}
 	}
