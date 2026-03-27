@@ -20,8 +20,10 @@ import { type PlaytestReport, runGovernorPlaytest } from "./runner";
 const COMMANDO_MISSIONS = new Set(["mission_4", "mission_8", "mission_9", "mission_12"]);
 
 /** Missions with complex start conditions that the beginner governor may not handle well.
- *  These get relaxed assertions — must boot and not crash, but progress is optional. */
-const COMPLEX_MISSIONS = new Set(["mission_2", "mission_7", "mission_13", "mission_14", "mission_15", "mission_16"]);
+ *  These get relaxed assertions — must boot and not crash, but progress is optional.
+ *  Previously included missions 2, 7, 13-16 which now have proper entity registrations
+ *  (lodge building alias, convoy_truck and supply_barge unit aliases) and make progress. */
+const COMPLEX_MISSIONS = new Set<string>([]);
 
 const MAX_TICKS = 30000; // ~8 minutes game time
 
