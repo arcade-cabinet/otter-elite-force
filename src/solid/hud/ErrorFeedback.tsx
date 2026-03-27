@@ -7,7 +7,7 @@
  * State management lives in errorState.ts for testability.
  */
 
-import { For, type Component } from "solid-js";
+import { type Component, For } from "solid-js";
 
 // Re-export state management for consumers
 export { createErrorFeedback, type ErrorMessage } from "./errorState";

@@ -9,7 +9,6 @@ import {
 } from "./templateLoader";
 import type {
 	AbilityDef,
-	BalanceConfig,
 	BuildingTemplate,
 	GameTemplates,
 	ResearchDef,
@@ -93,39 +92,88 @@ function makeTestTemplates(overrides: Partial<GameTemplates> = {}): GameTemplate
 		units: new Map([
 			["river_rat", makeUnit({ id: "river_rat", name: "River Rat", category: "worker" })],
 			["mudfoot", makeUnit({ id: "mudfoot", name: "Mudfoot" })],
-			["diver", makeUnit({ id: "diver", name: "Diver", flags: { canSwim: true, canStealth: true } })],
+			[
+				"diver",
+				makeUnit({ id: "diver", name: "Diver", flags: { canSwim: true, canStealth: true } }),
+			],
 		]),
 		buildings: new Map([
 			["barracks", makeBuilding({ id: "barracks", name: "Barracks" })],
 			["burrow", makeBuilding({ id: "burrow", name: "Lodge", flags: { isHQ: true } })],
 		]),
 		abilities: new Map<string, AbilityDef>([
-			["gather", { id: "gather", type: "active", description: "Harvest resources", params: { carryCapacity: 8 } }],
-			["stealth", { id: "stealth", type: "passive", description: "Go invisible", params: { breakOnAttack: true } }],
+			[
+				"gather",
+				{
+					id: "gather",
+					type: "active",
+					description: "Harvest resources",
+					params: { carryCapacity: 8 },
+				},
+			],
+			[
+				"stealth",
+				{
+					id: "stealth",
+					type: "passive",
+					description: "Go invisible",
+					params: { breakOnAttack: true },
+				},
+			],
 		]),
 		research: new Map<string, ResearchDef>([
-			["improved_armor", {
-				id: "improved_armor",
-				name: "Improved Armor",
-				description: "+2 armor",
-				cost: { fish: 100, timber: 0, salvage: 200 },
-				timeMs: 30000,
-				researchedAt: "armory",
-				effects: [{ target: "all_ura_units", stat: "armor", modifier: "+2" }],
-				prerequisite: null,
-				unlocksAtMission: 5,
-			}],
+			[
+				"improved_armor",
+				{
+					id: "improved_armor",
+					name: "Improved Armor",
+					description: "+2 armor",
+					cost: { fish: 100, timber: 0, salvage: 200 },
+					timeMs: 30000,
+					researchedAt: "armory",
+					effects: [{ target: "all_ura_units", stat: "armor", modifier: "+2" }],
+					prerequisite: null,
+					unlocksAtMission: 5,
+				},
+			],
 		]),
 		balance: {
-			gathering: { fishPerTrip: 8, timberPerTrip: 6, salvagePerTrip: 4, tripDurationMs: 4000, returnSpeedMultiplier: 0.8, autoSearchRadius: 320 },
+			gathering: {
+				fishPerTrip: 8,
+				timberPerTrip: 6,
+				salvagePerTrip: 4,
+				tripDurationMs: 4000,
+				returnSpeedMultiplier: 0.8,
+				autoSearchRadius: 320,
+			},
 			startingResources: { mission1: { fish: 100, timber: 50, salvage: 0 } },
 			population: { lodgeCap: 10, commandPostCap: 20, maxCap: 50 },
-			combat: { retreatHealthPercent: 25, lodgeDestroyedDefeat: true, armorReduction: "flat", minimumDamage: 1 },
+			combat: {
+				retreatHealthPercent: 25,
+				lodgeDestroyedDefeat: true,
+				armorReduction: "flat",
+				minimumDamage: 1,
+			},
 			economy: { fishTrapIncome: 3, fishTrapIntervalMs: 10000 },
 			difficulty: {
-				support: { enemyDamageMultiplier: 0.75, enemyHpMultiplier: 0.8, resourceMultiplier: 1.25, xpMultiplier: 0.75 },
-				tactical: { enemyDamageMultiplier: 1.0, enemyHpMultiplier: 1.0, resourceMultiplier: 1.0, xpMultiplier: 1.0 },
-				elite: { enemyDamageMultiplier: 1.3, enemyHpMultiplier: 1.25, resourceMultiplier: 0.8, xpMultiplier: 1.5 },
+				support: {
+					enemyDamageMultiplier: 0.75,
+					enemyHpMultiplier: 0.8,
+					resourceMultiplier: 1.25,
+					xpMultiplier: 0.75,
+				},
+				tactical: {
+					enemyDamageMultiplier: 1.0,
+					enemyHpMultiplier: 1.0,
+					resourceMultiplier: 1.0,
+					xpMultiplier: 1.0,
+				},
+				elite: {
+					enemyDamageMultiplier: 1.3,
+					enemyHpMultiplier: 1.25,
+					resourceMultiplier: 0.8,
+					xpMultiplier: 1.5,
+				},
 			},
 		},
 		missions: new Map(),

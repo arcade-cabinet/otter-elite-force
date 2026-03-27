@@ -1,0 +1,140 @@
+{
+  "id": "mission_14",
+  "title": "Iron Delta",
+  "chapter": 4,
+  "mapWidth": 160,
+  "mapHeight": 128,
+  "parTimeMinutes": 20,
+  "availableBuildings": ["burrow", "command_post", "barracks", "armory", "fish_trap", "watchtower", "sandbag_wall", "gun_tower", "stone_wall", "minefield", "field_hospital", "dock", "shield_generator"],
+  "availableUnits": ["river_rat", "mudfoot", "shellcracker", "mortar_otter", "sapper", "diver", "raftsman"],
+  "startingResources": { "fish": 500, "timber": 300, "salvage": 250 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "stone", "rect": { "x": 40, "y": 0, "w": 80, "h": 48 } },
+    { "terrainId": "dirt", "rect": { "x": 48, "y": 8, "w": 64, "h": 32 } },
+    { "terrainId": "stone", "rect": { "x": 40, "y": 48, "w": 80, "h": 4 } },
+    { "terrainId": "dirt", "rect": { "x": 32, "y": 52, "w": 96, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 0, "y": 0, "w": 40, "h": 48 } },
+    { "terrainId": "mangrove", "rect": { "x": 120, "y": 0, "w": 40, "h": 48 } },
+    { "terrainId": "mud", "rect": { "x": 0, "y": 68, "w": 160, "h": 12 } },
+    { "terrainId": "dirt", "rect": { "x": 24, "y": 80, "w": 112, "h": 16 } },
+    { "terrainId": "dirt", "rect": { "x": 32, "y": 96, "w": 96, "h": 16 } },
+    { "terrainId": "grass", "rect": { "x": 16, "y": 112, "w": 128, "h": 16 } }
+  ],
+
+  "zones": {
+    "fortress_core":     { "x": 48,  "y": 8,   "width": 64, "height": 32 },
+    "fortress_walls":    { "x": 40,  "y": 0,   "width": 80, "height": 48 },
+    "outer_compound":    { "x": 32,  "y": 52,  "width": 96, "height": 16 },
+    "west_jungle":       { "x": 0,   "y": 0,   "width": 40, "height": 48 },
+    "east_jungle":       { "x": 120, "y": 0,   "width": 40, "height": 48 },
+    "no_mans_land":      { "x": 0,   "y": 68,  "width": 160, "height": 12 },
+    "staging_ground":    { "x": 24,  "y": 80,  "width": 112, "height": 16 },
+    "ura_base":          { "x": 32,  "y": 96,  "width": 96, "height": 16 },
+    "supply_line":       { "x": 16,  "y": 112, "width": 128, "height": 16 }
+  },
+
+  "placements": [
+    { "type": "burrow",        "faction": "ura",         "x": 80,  "y": 104, "scriptId": "player_lodge" },
+    { "type": "command_post",  "faction": "ura",         "x": 72,  "y": 100 },
+    { "type": "barracks",      "faction": "ura",         "x": 88,  "y": 100 },
+    { "type": "armory",        "faction": "ura",         "x": 64,  "y": 100 },
+    { "type": "field_hospital","faction": "ura",         "x": 96,  "y": 100 },
+    { "type": "river_rat",     "faction": "ura",         "x": 76,  "y": 106 },
+    { "type": "river_rat",     "faction": "ura",         "x": 84,  "y": 106 },
+    { "type": "river_rat",     "faction": "ura",         "x": 80,  "y": 108 },
+    { "type": "river_rat",     "faction": "ura",         "x": 72,  "y": 108 },
+    { "type": "river_rat",     "faction": "ura",         "x": 88,  "y": 108 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 68,  "y": 102 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 76,  "y": 98 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 84,  "y": 98 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 92,  "y": 102 },
+    { "type": "shellcracker",  "faction": "ura",         "x": 60,  "y": 102 },
+    { "type": "shellcracker",  "faction": "ura",         "x": 100, "y": 102 },
+    { "type": "mortar_otter",  "faction": "ura",         "x": 80,  "y": 102 },
+    { "type": "sapper",        "faction": "ura",         "x": 56,  "y": 104 },
+    { "type": "sapper",        "faction": "ura",         "x": 104, "y": 104 },
+
+    { "type": "fish_spot",     "faction": "neutral",     "x": 32,  "y": 118 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 80,  "y": 120 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 128, "y": 118 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 56,  "y": 122 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 20,  "y": 114 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 28,  "y": 116 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 36,  "y": 114 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 120, "y": 116 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 128, "y": 114 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 136, "y": 116 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 44,  "y": 118 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 112, "y": 118 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 48,  "y": 120 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 64,  "y": 118 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 96,  "y": 120 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 108, "y": 118 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 140, "y": 120 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 80,  "y": 122 },
+
+    { "type": "command_post",  "faction": "scale_guard", "x": 80,  "y": 20, "scriptId": "sg_fortress_hq" },
+    { "type": "gun_tower",     "faction": "scale_guard", "x": 52,  "y": 4 },
+    { "type": "gun_tower",     "faction": "scale_guard", "x": 108, "y": 4 },
+    { "type": "gun_tower",     "faction": "scale_guard", "x": 44,  "y": 44 },
+    { "type": "gun_tower",     "faction": "scale_guard", "x": 116, "y": 44 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 48,  "y": 48 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 56,  "y": 48 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 64,  "y": 48 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 96,  "y": 48 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 104, "y": 48 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 112, "y": 48 },
+    { "type": "gator",         "faction": "scale_guard", "x": 68,  "y": 16 },
+    { "type": "gator",         "faction": "scale_guard", "x": 76,  "y": 12 },
+    { "type": "gator",         "faction": "scale_guard", "x": 84,  "y": 12 },
+    { "type": "gator",         "faction": "scale_guard", "x": 92,  "y": 16 },
+    { "type": "gator",         "faction": "scale_guard", "x": 72,  "y": 24 },
+    { "type": "gator",         "faction": "scale_guard", "x": 88,  "y": 24 },
+    { "type": "gator",         "faction": "scale_guard", "x": 80,  "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 64,  "y": 32 },
+    { "type": "gator",         "faction": "scale_guard", "x": 96,  "y": 32 },
+    { "type": "viper",         "faction": "scale_guard", "x": 60,  "y": 20 },
+    { "type": "viper",         "faction": "scale_guard", "x": 100, "y": 20 },
+    { "type": "viper",         "faction": "scale_guard", "x": 80,  "y": 8 },
+    { "type": "snapper",       "faction": "scale_guard", "x": 56,  "y": 36 },
+    { "type": "snapper",       "faction": "scale_guard", "x": 104, "y": 36 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 80,  "y": 16 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 72,  "y": 36 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 88,  "y": 36 },
+    { "type": "gator",         "faction": "scale_guard", "x": 48,  "y": 56 },
+    { "type": "gator",         "faction": "scale_guard", "x": 64,  "y": 58 },
+    { "type": "gator",         "faction": "scale_guard", "x": 96,  "y": 58 },
+    { "type": "gator",         "faction": "scale_guard", "x": 112, "y": 56 }
+  ],
+
+  "objectives": [
+    { "id": "destroy-fortress", "description": "Destroy the Scale-Guard Fortress HQ",     "type": "primary" },
+    { "id": "breach-walls",     "description": "Breach the fortress walls with Sappers",    "type": "primary" },
+    { "id": "flank-assault",    "description": "Assault from west and east flanks simultaneously", "type": "bonus" },
+    { "id": "clear-compound",   "description": "Clear the outer compound first",           "type": "bonus" }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 6 }], "intervalMs": 25000, "variance": 0.2 },
+      { "composition": [{ "type": "gator", "count": 5 }, { "type": "viper", "count": 3 }], "intervalMs": 35000, "variance": 0.25 },
+      { "composition": [{ "type": "croc_champion", "count": 3 }, { "type": "snapper", "count": 3 }], "intervalMs": 50000, "variance": 0.25 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":         { "drops": [{ "resource": "fish", "amount": 8, "probability": 0.5 }] },
+    "gator":         { "drops": [{ "resource": "salvage", "amount": 14, "probability": 0.4 }] },
+    "viper":         { "drops": [{ "resource": "salvage", "amount": 16, "probability": 0.5 }] },
+    "snapper":       { "drops": [{ "resource": "salvage", "amount": 24, "probability": 0.5 }] },
+    "croc_champion": { "drops": [{ "resource": "salvage", "amount": 30, "probability": 0.6 }] }
+  },
+
+  "difficultyScaling": {
+    "support":  { "resourceMultiplier": 1.5, "enemyHpMultiplier": 0.8, "enemyDamageMultiplier": 0.8, "startingResources": { "fish": 750, "timber": 450, "salvage": 375 } },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0, "enemyDamageMultiplier": 1.0, "startingResources": { "fish": 500, "timber": 300, "salvage": 250 } },
+    "elite":    { "resourceMultiplier": 0.75, "enemyHpMultiplier": 1.2, "enemyDamageMultiplier": 1.2, "startingResources": { "fish": 375, "timber": 225, "salvage": 188 } }
+  }
+}

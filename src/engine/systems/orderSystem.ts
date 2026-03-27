@@ -17,15 +17,15 @@
  * Runs BEFORE movement so that movement always operates on valid orders.
  */
 
-import { Attack, Construction, Content, Flags, Health, Position } from "@/engine/world/components";
 import { CATEGORY_IDS } from "@/engine/content/ids";
+import { Attack, Construction, Content, Flags, Health, Position } from "@/engine/world/components";
 import type { GameWorld, Order } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-// TODO: Gather deposit range — uncomment when gather/deposit cycle is wired in
+// Gather deposit range — uncomment when gather/deposit cycle is wired in
 // const GATHER_DEPOSIT_RANGE = 48;
 
 // ---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ function distanceBetween(ax: number, ay: number, bx: number, by: number): number
 	return Math.sqrt(dx * dx + dy * dy);
 }
 
-// TODO: findNearestDepot — uncomment when gather/deposit cycle is wired in
+// findNearestDepot — uncomment when gather/deposit cycle is wired in
 // function findNearestDepot(world: GameWorld, workerEid: number): number {
 // 	const wx = Position.x[workerEid];
 // 	const wy = Position.y[workerEid];
@@ -190,7 +190,12 @@ function handleFollowOrder(world: GameWorld, _eid: number, orders: Order[], curr
 	current.targetY = Position.y[targetEid];
 }
 
-function handleGarrisonOrder(world: GameWorld, _eid: number, orders: Order[], current: Order): void {
+function handleGarrisonOrder(
+	world: GameWorld,
+	_eid: number,
+	orders: Order[],
+	current: Order,
+): void {
 	if (current.targetEid === undefined || current.targetEid === 0) {
 		orders.shift();
 		return;

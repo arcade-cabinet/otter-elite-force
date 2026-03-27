@@ -1,7 +1,7 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { Attack, Speed, VisionRadius } from "@/engine/world/components";
 import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
-import { runWeatherSystem, resetWeatherSystem } from "./weatherSystem";
+import { resetWeatherSystem, runWeatherSystem } from "./weatherSystem";
 
 describe("engine/systems/weatherSystem", () => {
 	beforeEach(() => {

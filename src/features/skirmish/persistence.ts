@@ -1,7 +1,7 @@
-import { SqlitePersistenceStore, createSeedBundle, shuffleSkirmishSeedBundle } from "@/engine";
+import { createSeedBundle, SqlitePersistenceStore, shuffleSkirmishSeedBundle } from "@/engine";
+import type { GameWorld } from "@/engine/world/gameWorld";
 import { initDatabase } from "@/persistence/database";
 import { SKIRMISH_MAPS, type SkirmishSessionConfig } from "./types";
-import type { GameWorld } from "@/engine/world/gameWorld";
 
 export async function createSkirmishPersistenceStore(): Promise<SqlitePersistenceStore> {
 	await initDatabase();
@@ -49,7 +49,10 @@ export function createDefaultSkirmishConfig(): SkirmishSessionConfig {
 	};
 }
 
-export function applySkirmishConfigToWorld(_world: GameWorld, _config: SkirmishSessionConfig): void {
+export function applySkirmishConfigToWorld(
+	_world: GameWorld,
+	_config: SkirmishSessionConfig,
+): void {
 	// GameWorld does not use Koota singleton traits.
 	// Skirmish config is applied via seedGameWorldFromSkirmishSession in the engine session layer.
 	// This function is now a no-op placeholder for backward compatibility.

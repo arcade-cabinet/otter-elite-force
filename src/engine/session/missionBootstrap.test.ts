@@ -1,14 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { bootstrapMission } from "./missionBootstrap";
-import { createGameWorld, isAlive } from "../world/gameWorld";
 import { Faction, Flags, Position, Selection } from "../world/components";
+import { createGameWorld, isAlive } from "../world/gameWorld";
+import { bootstrapMission } from "./missionBootstrap";
 
 describe("engine/session/missionBootstrap", () => {
 	it("throws for unknown mission ID", () => {
 		const world = createGameWorld();
-		expect(() => bootstrapMission(world, "nonexistent_mission")).toThrow(
-			"unknown mission ID",
-		);
+		expect(() => bootstrapMission(world, "nonexistent_mission")).toThrow("unknown mission ID");
 	});
 
 	it("bootstraps mission_1 with correct session state", () => {
@@ -61,16 +59,12 @@ describe("engine/session/missionBootstrap", () => {
 		// Mission 1 has 7 primary + 1 bonus objectives
 		expect(world.session.objectives.length).toBe(8);
 
-		const gatherTimber = world.session.objectives.find(
-			(obj) => obj.id === "gather-timber",
-		);
+		const gatherTimber = world.session.objectives.find((obj) => obj.id === "gather-timber");
 		expect(gatherTimber).toBeDefined();
 		expect(gatherTimber?.status).toBe("active");
 		expect(gatherTimber?.bonus).toBe(false);
 
-		const bonusSalvage = world.session.objectives.find(
-			(obj) => obj.id === "bonus-salvage",
-		);
+		const bonusSalvage = world.session.objectives.find((obj) => obj.id === "bonus-salvage");
 		expect(bonusSalvage).toBeDefined();
 		expect(bonusSalvage?.bonus).toBe(true);
 	});
@@ -81,9 +75,7 @@ describe("engine/session/missionBootstrap", () => {
 
 		// Find the burrow building
 		const burrowEids = [...world.runtime.alive].filter(
-			(eid) =>
-				world.runtime.entityTypeIndex.get(eid) === "burrow" &&
-				Flags.isBuilding[eid] === 1,
+			(eid) => world.runtime.entityTypeIndex.get(eid) === "burrow" && Flags.isBuilding[eid] === 1,
 		);
 		expect(burrowEids.length).toBe(1);
 
@@ -114,10 +106,7 @@ describe("engine/session/missionBootstrap", () => {
 
 		// Mission 1 has gators, a skink, and a viper in the outpost
 		const enemyEids = [...world.runtime.alive].filter(
-			(eid) =>
-				Faction.id[eid] === 2 &&
-				Flags.isBuilding[eid] === 0 &&
-				Flags.isResource[eid] === 0,
+			(eid) => Faction.id[eid] === 2 && Flags.isBuilding[eid] === 0 && Flags.isResource[eid] === 0,
 		);
 		// 6 gators + 1 skink + 1 viper = 8 enemy units
 		expect(enemyEids.length).toBe(8);
@@ -140,9 +129,7 @@ describe("engine/session/missionBootstrap", () => {
 		const world = createGameWorld();
 		bootstrapMission(world, "mission_1");
 
-		const resourceEids = [...world.runtime.alive].filter(
-			(eid) => Flags.isResource[eid] === 1,
-		);
+		const resourceEids = [...world.runtime.alive].filter((eid) => Flags.isResource[eid] === 1);
 		// 8 mangrove_trees + 3 fish_spots + 3 salvage_caches = 14 resources
 		expect(resourceEids.length).toBe(14);
 	});
@@ -153,9 +140,7 @@ describe("engine/session/missionBootstrap", () => {
 
 		// The burrow is placed at tile (40, 80) -> pixel (40*32+16, 80*32+16) = (1296, 2576)
 		const burrowEid = [...world.runtime.alive].find(
-			(eid) =>
-				world.runtime.entityTypeIndex.get(eid) === "burrow" &&
-				Flags.isBuilding[eid] === 1,
+			(eid) => world.runtime.entityTypeIndex.get(eid) === "burrow" && Flags.isBuilding[eid] === 1,
 		);
 		expect(burrowEid).toBeDefined();
 		if (burrowEid !== undefined) {
@@ -168,9 +153,7 @@ describe("engine/session/missionBootstrap", () => {
 		const world = createGameWorld();
 		bootstrapMission(world, "mission_1");
 
-		const selectedEids = [...world.runtime.alive].filter(
-			(eid) => Selection.selected[eid] === 1,
-		);
+		const selectedEids = [...world.runtime.alive].filter((eid) => Selection.selected[eid] === 1);
 		expect(selectedEids.length).toBeGreaterThanOrEqual(1);
 		// The first player entity (burrow) should be selected
 		expect(Faction.id[selectedEids[0]]).toBe(1);

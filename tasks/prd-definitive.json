@@ -3,79 +3,951 @@
 	"description": "Complete implementation from engine-rewrite-plan v3.0 through shippable game. LittleJS runtime (not Canvas2D), SolidJS shell, bitECS+templates, 16 missions, full balance. Informed by balance-deep-dive.md, gap-analysis-complete.md, all design docs, and paper playtesting.",
 	"branchName": "engine-rewrite",
 	"userStories": [
-
-		{"id":"W1-01","title":"Delete Canvas2D runtime, scaffold LittleJS engineInit bootstrap","description":"As a developer, I want the tactical runtime to use LittleJS engineInit() with the 5 standard callbacks (gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost) instead of a hand-rolled requestAnimationFrame loop.","acceptanceCriteria":["Delete src/engine/runtime/littlejsRuntime.ts (900-line Canvas2D implementation)","Delete src/engine/runtime/cameraProjection.ts and loopProjection.ts (replaced by LittleJS internals)","Delete src/engine/rendering/ directory (terrainRenderer, spriteRenderer, fogRenderer, combatText, assetLoader — all replaced by LittleJS drawing)","Create src/engine/runtime/tacticalRuntime.ts calling engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost, imageSources, rootElement)","imageSources loads all 12 sprite atlas PNGs from public/assets/sprites/","gameInit creates GameWorld, loads templates, bootstraps mission","gameUpdate runs system pipeline + command processor each frame","gameRender draws terrain + entities + fog","gameRenderPost draws minimap + HUD canvas overlays + combat text","Reference: /Users/jbogaty/src/reference-codebases/LittleJS/src/engine.js for engineInit signature","Reference: /Users/jbogaty/src/reference-codebases/wendol-village/main.js for RTS bootstrap pattern","pnpm build passes","pnpm test passes (update/delete tests that reference deleted files)"],"priority":1,"passes":false,"labels":["W1-littlejs","foundation","critical"],"dependsOn":[]},
-
-		{"id":"W1-02","title":"LittleJS camera and input replacing hand-rolled code","description":"As a developer, I want camera control via LittleJS cameraPos/cameraScale and input via mousePos/keyIsDown instead of custom pointer event handlers.","acceptanceCriteria":["Camera position set via setCameraPos()/cameraPos, not custom camera object","Camera zoom set via setCameraScale()/cameraScale, not custom zoom math","Camera clamping uses getCameraSize() for viewport bounds","Mouse position read from mousePos (world space) and mousePosScreen (screen space)","Click detection uses mouseWasPressed(0) for left, mouseWasPressed(2) for right","Key detection uses keyIsDown('KeyA'), keyWasPressed('Digit1') etc","Mouse wheel zoom uses mouseWheel","Touch automatically maps to mouse via LittleJS touchInputEnable","Delete all custom pointer event listeners (onPointerDown/Move/Up/Cancel, onWheel)","screenToWorld() uses LittleJS screenToWorld(), not custom math","Box selection uses mouseIsDown(0) + mousePosScreen delta","Right-drag pan uses mouseIsDown(2) + mouseDelta","pnpm build passes"],"priority":1,"passes":false,"labels":["W1-littlejs","input"],"dependsOn":["W1-01"]},
-
-		{"id":"W1-03","title":"LittleJS TileLayer for terrain rendering","description":"As a developer, I want terrain rendered via LittleJS TileLayer instead of hand-rolled chunk pre-rendering.","acceptanceCriteria":["Create TileLayer from mission terrain grid in gameInit","Use TileLayerData with tileIndex mapping terrain types to sprite sheet positions","Terrain types (grass, water, sand, forest, dirt, stone, mud, mangrove, bridge) each map to a tile index","TileLayer.redraw() called once at mission start and when terrain changes","Terrain tiles loaded as one of the imageSources in engineInit","No custom Canvas2D terrain rendering code remains","Terrain visually shows variety: green grass, blue water, brown dirt, dark forest","pnpm build passes"],"priority":1,"passes":false,"labels":["W1-littlejs","rendering"],"dependsOn":["W1-01"]},
-
-		{"id":"W1-04","title":"LittleJS EngineObject subclasses for units, buildings, resources","description":"As a developer, I want game entities to be LittleJS EngineObject instances so they render automatically via the engine's object system.","acceptanceCriteria":["Create src/engine/objects/GameUnit.ts extending EngineObject — render() draws unit sprite via drawTile with tileInfo from atlas","Create src/engine/objects/GameBuilding.ts extending EngineObject — larger size, faction-colored, building label","Create src/engine/objects/GameResource.ts extending EngineObject — distinct shapes per resource type (tree triangle, fish circle, salvage diamond)","Create src/engine/objects/GameProjectile.ts extending EngineObject — small fast-moving dot with trail","Objects created when entities spawn in GameWorld, destroyed when entities are removed","Object.pos synced from bitECS Position.x/y each frame in gameUpdate","Object.tileInfo set from sprite atlas mapping (unit type → animal atlas → tile info)","renderOrder set to -pos.y for depth sorting","Selection ring drawn in render() when entity is selected","HP bar drawn above entity in render()","Rank emblem drawn for veteran/elite/hero units","pnpm build passes"],"priority":1,"passes":false,"labels":["W1-littlejs","entities"],"dependsOn":["W1-01","W1-03"]},
-
-		{"id":"W1-05","title":"Aseprite atlas adapter for LittleJS tile() system","description":"As a developer, I want our Aseprite JSON+PNG sprite atlases to work with LittleJS drawTile/tile() so actual otter sprites render.","acceptanceCriteria":["Create src/engine/rendering/atlasAdapter.ts that parses Aseprite JSON frame data","For each animation tag, compute tile() parameters: pos (pixel offset in sheet), size (frame size)","Create tileInfo objects that drawTile() can use directly","Animation cycling: given a tag name and elapsed time, return the correct frame's tileInfo","Map unit type ID → animal name → atlas → current animation frame tileInfo","All 12 atlases (otter, crocodile, snake, cobra, boar, fox, hedgehog, naked_mole_rat, porcupine, skunk, vulture, weasel) supported","Test: atlas adapter returns correct frame rect for 'Otter Idle' frame 0","pnpm build passes"],"priority":1,"passes":false,"labels":["W1-littlejs","sprites"],"dependsOn":["W1-01"]},
-
-		{"id":"W1-06","title":"LittleJS fog of war rendering","description":"As a developer, I want fog of war rendered using LittleJS drawing primitives in gameRenderPost.","acceptanceCriteria":["Fog grid (Uint8Array: 0=unexplored, 1=explored, 2=visible) rendered as overlay","In gameRenderPost: iterate visible tiles, draw black rects for unexplored, semi-transparent for explored","Use drawRect() in world space for each fog tile","Entities in unexplored tiles not rendered (skip in EngineObject render)","Fog updates each frame from fogSystem output","Performance: only draw fog tiles within viewport (use isOnScreen)","pnpm build passes"],"priority":2,"passes":false,"labels":["W1-littlejs","fog"],"dependsOn":["W1-04"]},
-
-		{"id":"W1-07","title":"LittleJS minimap in gameRenderPost","description":"As a developer, I want a minimap drawn in screen space during gameRenderPost using LittleJS drawing functions.","acceptanceCriteria":["Minimap rendered at bottom-right corner in screen space (200x150px)","Terrain colors from world grid (drawRect per tile in screen space)","Player entities as green dots, enemy as red, resources as yellow","Camera viewport rectangle in white","Fog applied (unexplored areas dark)","Left-click on minimap area snaps camera (screenToWorld conversion)","Right-click on minimap moves selected units to that world position","drawRect and drawCircle with screenSpace=true parameter","pnpm build passes"],"priority":2,"passes":false,"labels":["W1-littlejs","minimap"],"dependsOn":["W1-06"]},
-
-		{"id":"W1-08","title":"LittleJS combat text as floating EngineObjects","description":"As a developer, I want damage/heal/resource numbers as short-lived EngineObject instances that float up and fade.","acceptanceCriteria":["Create src/engine/objects/FloatingText.ts extending EngineObject","Spawned at entity position when HP changes (red '-X' for damage, green '+X' for heal)","Spawned at depot when resources deposited (yellow '+X FISH')","velocity set to upward drift, destroy after 0.9 seconds","render() uses drawText() with world-space positioning","Opacity fades over lifetime via color alpha","No custom Canvas2D overlay code — pure LittleJS objects","pnpm build passes"],"priority":2,"passes":false,"labels":["W1-littlejs","feedback"],"dependsOn":["W1-04"]},
-
-		{"id":"W1-09","title":"LittleJS Sound for all audio","description":"As a developer, I want audio using LittleJS Sound class instead of a separate Tone.js audio runtime.","acceptanceCriteria":["Delete src/engine/audio/audioRuntime.ts","Create src/engine/audio/sounds.ts using LittleJS Sound class with zzfx arrays","Define all 13 SFX from audio-design.md: click, unit_select, unit_deselect, error, move_order, attack_order, melee_hit, ranged_fire, ranged_hit, unit_death, building_place, building_complete, resource_gather","Define 3 music tracks: menu, combat, briefing (using Sound.playMusic)","Sound.play(pos) for positional audio — sounds near camera are louder","Wire triggers: combatSystem calls melee_hit/ranged_fire/unit_death, commandProcessor calls move_order/attack_order, selection calls unit_select","Use LittleJS soundVolume for master volume, integrated with settings","pnpm build passes"],"priority":2,"passes":false,"labels":["W1-littlejs","audio"],"dependsOn":["W1-01"]},
-
-		{"id":"W1-10","title":"RuntimeHost mounts LittleJS into SolidJS container","description":"As a developer, I want the SolidJS RuntimeHost to mount the LittleJS engine into a DOM container and communicate via GameBridge.","acceptanceCriteria":["RuntimeHost.tsx onMount calls engineInit with the container element as rootElement","GameBridge state updated in gameUpdatePost via batch() for SolidJS reactivity","Command queue drained in gameUpdate before systems run","Phase changes (victory/defeat/pause) communicated to SolidJS via bridge signals","Cleanup: engine destroyed in onCleanup","No React patterns (useState, useEffect, useRef) — pure Solid (createSignal, onMount, onCleanup)","HUD overlay panels from SolidJS positioned absolute over the LittleJS canvas","pnpm build passes"],"priority":1,"passes":false,"labels":["W1-littlejs","integration"],"dependsOn":["W1-01","W1-02"]},
-
-		{"id":"W2-01","title":"ActionBar with context-switching and hotkeys","description":"As a player, I want the action bar to show different commands based on what I have selected (worker/military/building) with keyboard hotkeys.","acceptanceCriteria":["Worker selected: Build(B), Gather(G), Move(M), Stop(S) buttons","Military unit selected: Move(M), Attack(A), Stop(S), Patrol(P), Hold(H) buttons","Building selected: Train queue with unit icons, costs, affordability gating","Nothing selected: action bar hidden","Each button dispatches command through bridge.emit","Hotkey labels visible on each button","Buttons disabled when action unavailable (e.g. can't afford unit)","Context hint text below action bar explaining selected action","MilitaryTooltip on hover showing full stats","pnpm build passes"],"priority":2,"passes":false,"labels":["W2-solidjs","hud"],"dependsOn":["W1-10"]},
-
-		{"id":"W2-02","title":"Build placement ghost mode","description":"As a player, I want to click Build, see a translucent building ghost following my cursor, and place it with a click.","acceptanceCriteria":["Clicking a build button in ActionBar enters placement mode","Ghost building EngineObject follows mousePos with translucent color","Green tint when placement valid, red when invalid (overlap, wrong terrain, insufficient resources)","Left-click places building, deducts resources, creates construction site entity","Right-click or Escape cancels placement mode","Construction site shows progress bar (0-100%) as workers build","Workers auto-rally to nearest construction site","Building completion triggers building_complete sound and alert","pnpm build passes"],"priority":2,"passes":false,"labels":["W2-solidjs","building"],"dependsOn":["W1-04","W2-01"]},
-
-		{"id":"W2-03","title":"Production queue with visible progress","description":"As a player, I want to see unit training progress on selected buildings and queue multiple units.","acceptanceCriteria":["Selecting a production building shows training queue in ActionBar","Queue shows unit icons with costs, click to add to queue","First unit in queue shows progress bar (0-100%)","Cancel button removes from queue and refunds resources","Pop cap enforced — can't queue if at population limit","Queue max depth: 5 units","Trained unit spawns at rally point (or building position if no rally)","Training complete triggers SFX and alert","pnpm build passes"],"priority":2,"passes":false,"labels":["W2-solidjs","production"],"dependsOn":["W2-01"]},
-
-		{"id":"W2-04","title":"Research panel with progress and effects","description":"As a player, I want to research upgrades at the Armory with visible progress and immediate stat effects.","acceptanceCriteria":["Selecting Armory shows available research in ActionBar","Each research shows name, cost, time, effect description","Unavailable research (wrong mission, missing prereq) greyed out with reason","Active research shows progress bar","Completed research shows checkmark","Research completion applies stat bonuses to all matching entities immediately","Research completion triggers SFX and alert","All 10 research types from research.json functional","pnpm build passes"],"priority":3,"passes":false,"labels":["W2-solidjs","research"],"dependsOn":["W2-03"]},
-
-		{"id":"W2-05","title":"AlertBanner with 18+ event types and camera snap","description":"As a player, I want tactical alerts that tell me what's happening and clicking them snaps my camera there.","acceptanceCriteria":["Alert events generated for: under-attack, building-complete, training-complete, enemy-spotted, objective-completed, mission-failed, research-complete, alarm-triggered, boss-phase-change, convoy-arrived, convoy-destroyed, fire-started, tide-changed, resource-depleted, reinforcements-arrived, zone-revealed, promotion","Each alert includes world position of the event","Clicking an alert centers camera on event location","Auto-dismiss after 3 seconds","Max 3 visible, newest at top","Slide-in animation","Severity colors: info=cyan, warning=amber, critical=rose","pnpm build passes"],"priority":2,"passes":false,"labels":["W2-solidjs","alerts"],"dependsOn":["W1-10"]},
-
-		{"id":"W2-06","title":"CommandTransmission with portraits, typewriter, full dialogue system","description":"As a player, I want radio transmissions with character portraits, typewriter text reveal, and proper command chain styling.","acceptanceCriteria":["Portrait loaded from sprite atlas for Col. Bubbles, FOXHOUND, Gen. Whiskers, Medic Marina","Typewriter text reveal at 40 chars/second with blinking cursor","'Receiving' badge while typing, 'Ready' when complete","Speaker name with color: Bubbles=amber, FOXHOUND=cyan, Whiskers=yellow, Marina=green","Skip All button to skip remaining lines","Acknowledge/Move Out contextual advance button","Mission name display in header","Riverine-camo background texture","Keyboard Enter to advance, Escape to skip all","pnpm build passes"],"priority":3,"passes":false,"labels":["W2-solidjs","dialogue"],"dependsOn":["W1-10"]},
-
-		{"id":"W2-07","title":"Mobile-adaptive layout with phone/tablet/desktop breakpoints","description":"As a mobile player, I want HUD that adapts to my screen size with large touch targets.","acceptanceCriteria":["Phone (<640px): stacked layout, large command buttons at bottom, minimap at corner, no tooltip hover","Tablet (640-1024px): side panel layout, medium targets, touch-friendly spacing","Desktop (>1024px): full panel layout with hover tooltips, compact spacing","Form factor detection via matchMedia breakpoints","HUD panels reflow without shrinking — different layouts, not same layout smaller","Touch targets minimum 44x44px on phone and tablet","CommandButtons component for common mobile actions (Move, Attack, Stop, Build)","All interactions work on all form factors — no keyboard-only or hover-only flows","pnpm build passes"],"priority":3,"passes":false,"labels":["W2-solidjs","mobile"],"dependsOn":["W2-01"]},
-
-		{"id":"W3-01","title":"Wire JSON templates into entity spawning","description":"As a developer, I want spawnUnit to read stats from JSON templates via getUnitTemplate() so all entity data is data-driven.","acceptanceCriteria":["loadTemplates() called during gameInit, resolving all extends chains","spawnUnit reads HP, armor, speed, attack, vision, popCost from getUnitTemplate(id).stats","spawnBuilding reads HP, armor, buildTime, popCapacity from getBuildingTemplate(id)","Abilities registered on entity from template abilities array","Visual config (sprite, tint, emblem, scale) stored for renderer","Training costs read from template, not hardcoded","Mission-specific overrides from getMissionData(id) applied","Unknown template ID throws error (no fallback)","Test: spawn river_rat, verify HP=40, speed=80, abilities includes 'gather'","pnpm build passes","pnpm test passes"],"priority":1,"passes":false,"labels":["W3-ecs","templates"],"dependsOn":["W1-01"]},
-
-		{"id":"W3-02","title":"Mission bootstrap from mission JSON with full spawn data","description":"As a developer, I want bootstrapMission to read from mission JSON files for placements, resources, terrain, encounters, and loot tables.","acceptanceCriteria":["Create public/data/missions/mission_01.json through mission_16.json","Each mission JSON contains: availableBuildings, availableUnits, startingResources, placements, terrainRegions, encounterTable, lootTable, phases, objectives","bootstrapMission reads mission JSON via getMissionData()","All entity placements spawn with correct template stats","Starting resources from mission JSON, scaled by difficulty","Terrain grid built from terrainRegions","Encounter tables loaded into world.runtime","Loot tables loaded into world.runtime","Zone rects loaded for scenario triggers","All 16 mission JSONs populated with data from balance-deep-dive.md","pnpm build passes"],"priority":2,"passes":false,"labels":["W3-ecs","missions"],"dependsOn":["W3-01"]},
-
-		{"id":"W4-01","title":"Combat system with visible projectiles and AoE effects","description":"As a player, I want to see projectiles flying and AoE explosions when units fight.","acceptanceCriteria":["Ranged attacks spawn GameProjectile EngineObject that flies toward target","Projectile has trail effect (particle emitter or fading dots)","On hit: GameProjectile destroyed, damage applied, hit SFX plays, FloatingText spawns","AoE attacks show visible explosion radius (expanding circle that fades)","Armor reduction visible in damage numbers (reduced number shown)","Melee attacks show brief slash effect at target position","Death: entity EngineObject plays death animation then destroyed","Kill awards XP to attacker via veterancy system","Loot drops spawned at death position","pnpm build passes"],"priority":2,"passes":false,"labels":["W4-systems","combat"],"dependsOn":["W1-04","W1-08"]},
-
-		{"id":"W4-02","title":"Economy with visible gather-carry-deposit cycle","description":"As a player, I want to see workers walk to resources, harvest with animation, carry back to lodge, deposit, and auto-return.","acceptanceCriteria":["Worker given gather order walks to resource node","At resource: gather animation plays, timer runs, FloatingText shows gathered amount","Worker picks up resources (carry icon shown above head or tint change)","Worker walks to nearest depot (lodge/command post) at 0.8x speed","At depot: deposit animation, FloatingText shows '+X FISH' at depot position","Worker auto-returns to same resource node","Fish Trap passive income: +3 fish per 10s per trap, visible as periodic FloatingText at trap","Lumber mill bonus: +25% timber gather speed when Lumber Mill exists","Resource node depletion: node shrinks or disappears when exhausted","pnpm build passes"],"priority":2,"passes":false,"labels":["W4-systems","economy"],"dependsOn":["W1-04","W1-08"]},
-
-		{"id":"W4-03","title":"AI with visible FSM behavior","description":"As a player, I want enemy units to visibly patrol, chase, attack, and flee.","acceptanceCriteria":["Idle enemies stand at home position with idle animation","Patrol enemies walk between waypoints with walk animation","Chase: enemy turns toward player unit and moves with run animation","Attack: enemy plays attack animation, combat system handles damage","Flee at <20% HP: enemy turns away and runs, different from normal movement","Group assist: nearby idle enemies join chase when ally detects player","De-aggro: enemy returns to home position when player unit escapes 1.5x vision range","State transitions visible via behavior change, no debug text needed","pnpm build passes"],"priority":2,"passes":false,"labels":["W4-systems","ai"],"dependsOn":["W1-04"]},
-
-		{"id":"W4-04","title":"Building construction with visible progress and worker interaction","description":"As a player, I want to see buildings being constructed with progress bars and workers hammering.","acceptanceCriteria":["Construction site shows building outline at reduced opacity","Progress bar above construction site (0-100%)","Workers near construction site play build animation and increase progress","Multiple workers build faster (diminishing returns: 2nd worker +50%, 3rd +25%)","Construction completion: building pops to full opacity, completion SFX, alert","Pop cap increases when population building completes","Defensive buildings (watchtower, gun tower) start attacking when complete","Production buildings can queue units only when construction complete","pnpm build passes"],"priority":2,"passes":false,"labels":["W4-systems","building"],"dependsOn":["W1-04","W2-02"]},
-
-		{"id":"W4-05","title":"Veterancy with visible rank emblems and promotion effects","description":"As a player, I want to see my units gain experience and promote with visible rank changes.","acceptanceCriteria":["XP awarded: 10 per kill, 25 per building, 5 per assist, 1 per gather trip","Promotion at 50 XP (Veteran), 150 XP (Elite), 400 XP (Hero)","Veteran: silver chevron emblem above-right of unit, +10% HP/damage","Elite: gold double-chevron, +20% HP/damage, +5% speed","Hero: star emblem, +30% all stats, special ability slot unlock","Promotion triggers: particle burst effect, promotion SFX, alert 'Promoted: River Rat → Veteran'","HP ratio preserved on promotion (half-health stays half-health)","Rank emblem rendered in EngineObject.render() after sprite","pnpm build passes"],"priority":3,"passes":false,"labels":["W4-systems","veterancy"],"dependsOn":["W1-04"]},
-
-		{"id":"W4-06","title":"10 abilities with visible effects","description":"As a player, I want to use unit abilities and see their effects.","acceptanceCriteria":["Demolition charge: sapper places visible charge, 3s fuse with countdown, explosion particle effect, 200 AoE damage","Heal: medic channels green particles toward target, +20 HP, 5s cooldown","Shield bash: mudfoot stun effect on target (spinning stars above head), 1s duration","Snipe: shellcracker high-damage shot with tracer line, 3x damage","Rally cry: sergeant buff aura (glowing circle) giving +20% damage to allies in 96px for 10s","Stealth: diver fades to semi-transparent when stationary in forest","Underwater strike: diver emerges with splash effect, 2x damage","Swim: units crossing water tiles have ripple effect","Ability cooldown shown on action bar button (greyed with timer)","Ability activation triggers appropriate SFX","pnpm build passes"],"priority":3,"passes":false,"labels":["W4-systems","abilities"],"dependsOn":["W1-04","W2-01"]},
-
-		{"id":"W5-01","title":"Mission 1-4 JSON files with full balance data","description":"As a developer, I want Chapter 1 missions fully defined in JSON with all spawn data, encounters, loot, and terrain from balance-deep-dive.md.","acceptanceCriteria":["mission_01.json: Beachhead — 3 River Rats, lodge, 100 fish/50 timber, 128x96 map, grass/sand/water/mangrove terrain, patrols of 2 gators every 60s, loot tables per enemy type","mission_02.json: Causeway — convoy escort, bridge terrain, phased unlocks","mission_03.json: Firebase Delta — defensive position, wave defense, hilltop terrain","mission_04.json: Prison Break — rescue Gen. Whiskers, stealth optional path, jail terrain","Each mission has availableBuildings/Units matching balance-deep-dive Part 6 progression curve","Starting resources from balance-deep-dive Part 5 per-mission tables","Encounter tables from balance-deep-dive Part 7 PRNG tables","Difficulty scaling from balance-deep-dive Part 8","Par times from game design doc","pnpm build passes"],"priority":2,"passes":false,"labels":["W5-content","chapter1"],"dependsOn":["W3-01"]},
-
-		{"id":"W5-02","title":"Mission 5-8 JSON files (Chapter 2)","description":"As a developer, I want Chapter 2 missions fully defined with siphon, monsoon, river, and underwater mechanics.","acceptanceCriteria":["mission_05.json: Siphon Valley — siphon mechanic, 3 siphon objectives, industrial terrain","mission_06.json: Monsoon Ambush — weather system, 8 wave defense, rain/monsoon terrain","mission_07.json: River Rats — CTF-style capture points, river/bridge terrain","mission_08.json: Underwater Cache — hero mission with Cpl. Splash, underwater terrain, stealth","Each has correct unlocks (dock, field hospital available from mission 6+)","Medic Marina joins in mission 6, Cpl. Splash rescued in mission 8","pnpm build passes"],"priority":3,"passes":false,"labels":["W5-content","chapter2"],"dependsOn":["W5-01"]},
-
-		{"id":"W5-03","title":"Mission 9-12 JSON files (Chapter 3)","description":"As a developer, I want Chapter 3 missions with fog, fire, siege, and rescue mechanics.","acceptanceCriteria":["mission_09.json: Dense Canopy — fog/stealth, canopy terrain, Pvt. Muskrat joins","mission_10.json: Scorched Earth — fire spread system, destructible terrain","mission_11.json: Entrenchment — 12-wave siege defense, fortification terrain","mission_12.json: Fang Rescue — rescue Sgt. Fang, Col. Bubbles joins, fortress assault","Research unlocks expand (night vision, mortar precision from mission 9+)","pnpm build passes"],"priority":3,"passes":false,"labels":["W5-content","chapter3"],"dependsOn":["W5-02"]},
-
-		{"id":"W5-04","title":"Mission 13-16 JSON files (Chapter 4)","description":"As a developer, I want Chapter 4 missions with multi-base, boss, and finale mechanics.","acceptanceCriteria":["mission_13.json: Great Siphon — multi-base system, 3 bases to manage","mission_14.json: Iron Delta — fortress assault, demolition focus","mission_15.json: Serpent Lair — boss fight with Serpent King (3 phases, 500 HP, poison aura, summons)","mission_16.json: Last Stand — final escalation, all units/buildings available, Kommandant Ironjaw","Boss phase configs: HP thresholds, ability unlocks per phase, summon waves","Final mission victory triggers campaign completion screen","pnpm build passes"],"priority":3,"passes":false,"labels":["W5-content","chapter4"],"dependsOn":["W5-03"]},
-
-		{"id":"W7-01","title":"Save/load roundtrip working in browser","description":"As a player, I want to save mid-mission and resume later.","acceptanceCriteria":["Save button in PauseOverlay serializes GameWorld to SQLite","All entity positions, HP, orders, queues, resources, objectives saved","Load deserializes into new GameWorld and resumes at saved tick","Runtime-only objects (nav graph, AI state, Yuka vehicles) reconstructed after load","Campaign progress persisted separately (mission unlocks, stars, best times)","Settings persisted (audio volumes, subtitles, reduce motion)","'Continue' on main menu loads latest campaign save","Test: save at tick 100, load, verify entity positions match","pnpm build passes"],"priority":3,"passes":false,"labels":["W7-persistence"],"dependsOn":["W1-10","W3-01"]},
-
-		{"id":"W7-02","title":"Campaign flow end-to-end with persistence","description":"As a player, I want to play through the campaign with progress saved between sessions.","acceptanceCriteria":["New Campaign creates fresh progress (mission 1 available, rest locked)","Mission victory advances campaign (marks complete, unlocks next, records stars/time)","Campaign view shows correct unlock state from persisted data","'Continue' loads persisted campaign and goes to next available mission briefing","Star ratings: 1 star base victory, 2 for >50% objectives, 3 for all objectives","Best time recorded per mission","Campaign completion screen after mission 16 victory","Difficulty selection persisted (support/tactical/elite)","pnpm build passes"],"priority":3,"passes":false,"labels":["W7-persistence","campaign"],"dependsOn":["W7-01","W5-01"]},
-
-		{"id":"W8-01","title":"Balance validation test suite","description":"As a developer, I want automated tests that validate combat and economy balance numbers from balance-deep-dive.md.","acceptanceCriteria":["Test: Mudfoot vs Gator 1v1 — Gator wins (120 HP+4 armor vs 80 HP+2 armor)","Test: 2 Mudfoots vs 1 Gator — Mudfoots win","Test: Shellcracker vs Gator — Shellcracker wins by kiting (range 5 vs range 2)","Test: Mortar vs 5 clustered Gators — AoE kills at least 3","Test: First Mudfoot trainable by 2:00 with optimal play","Test: Fish Trap ROI — pays for itself in 250s (75 fish cost / 0.3 fish per second)","Test: Mission 1 completable in 13 minutes with paper-playtest economy timeline","Test: Veteran promotion at 50 XP (5 kills) gives +10% damage","Test: Hardshell Armor research gives +2 armor to all units","All tests deterministic via fixed seed","pnpm test passes"],"priority":3,"passes":false,"labels":["W8-testing","balance"],"dependsOn":["W3-01","W4-01"]},
-
-		{"id":"W8-02","title":"Vitest browser visual regression tests","description":"As a developer, I want deterministic visual snapshot tests for rendering.","acceptanceCriteria":["Test boots skirmish with fixed seed","Captures world state at tick 0, 60, 300","Same seed produces identical state (position, HP, fog)","Different seeds produce different states","Tests run in CI via pnpm test","pnpm test passes"],"priority":4,"passes":false,"labels":["W8-testing","visual"],"dependsOn":["W1-01"]},
-
-		{"id":"W9-01","title":"CSS themes and visual polish on all panels","description":"As a player, I want the HUD to have military aesthetic with corner brackets, grain textures, and proper fonts.","acceptanceCriteria":["PanelFrame with corner brackets and rivets on all HUD panels","Canvas-grain texture overlay on panels","Riverine-camo background on transmission panels","CRT scanline effect toggle (tied to settings)","Proper fonts: stencil for labels, terminal for values, typewriter for dialogue","Accent color borders matching military theme (olive/khaki/amber)","No monospace debug text anywhere in the game view","Reduced motion support: animations respect prefers-reduced-motion","pnpm build passes"],"priority":4,"passes":false,"labels":["W9-polish","visual"],"dependsOn":["W2-01"]},
-
-		{"id":"W9-02","title":"Tutorial overlay for missions 1-4","description":"As a new player, I want contextual prompts teaching me how to play.","acceptanceCriteria":["Mission 1: 'Click a River Rat to select' → 'Right-click terrain to move' → 'Click a tree to gather timber' → 'Build a Command Post'","Mission 2: 'Hold Shift to queue orders' → 'Build a Watchtower for vision'","Mission 3: 'Press A then click to attack-move' → 'Research upgrades at the Armory'","Mission 4: 'Drag to box-select multiple units' → 'Use Ctrl+1 to save a group'","Each prompt auto-dismisses after 8 seconds or on Escape","Dismissed prompts don't re-appear (persisted in localStorage)","pnpm build passes"],"priority":4,"passes":false,"labels":["W9-polish","tutorial"],"dependsOn":["W2-01"]},
-
-		{"id":"W9-03","title":"All 16 missions playable and polished against design docs","description":"As a player, I want every mission to play correctly with proper pacing, dialogue, objectives, and balance.","acceptanceCriteria":["Each mission boots with correct starting units, buildings, resources from mission JSON","Scenario triggers fire at correct moments (dialogue, phase changes, zone reveals)","All objectives track correctly (primary win conditions, bonus objectives)","Victory/defeat conditions work (lodge destruction = defeat, all primaries = victory)","Dialogue plays with correct character portraits and typewriter effect","Combat encounters spawn at correct intervals with correct compositions","Loot drops match loot tables","Difficulty scaling applies correctly (support easier, elite harder)","Star rating calculated correctly","Mission 1 completable in ~8-13 minutes at tactical difficulty","Mission 16 completable in ~15-20 minutes at tactical difficulty","No stuck units, no broken triggers, no softlocks","pnpm build passes"],"priority":4,"passes":false,"labels":["W9-polish","missions"],"dependsOn":["W5-04","W4-01","W4-02","W4-03","W4-04"]},
-
-		{"id":"W9-04","title":"Zero fallbacks, zero debug output, zero legacy","description":"As a developer, I want the production build to be clean with no fallbacks, no debug text, and no legacy framework code.","acceptanceCriteria":["grep -r 'from.*react' src/ returns 0 (excluding node_modules and tests)","grep -r 'from.*koota' src/ returns 0","grep -r 'from.*konva' src/ returns 0","No console.log in production code (only console.error for actual errors)","No 'TODO' or 'FIXME' in production code","No shape fallback rendering — missing sprite = error, not colored circle","No debug text overlay on game canvas","Bundle contains zero react/koota/konva chunks","pnpm build passes with zero warnings","pnpm test passes"],"priority":4,"passes":false,"labels":["W9-polish","cleanup"],"dependsOn":["W1-01"]}
+		{
+			"id": "W1-01",
+			"title": "Delete Canvas2D runtime, scaffold LittleJS engineInit bootstrap",
+			"description": "As a developer, I want the tactical runtime to use LittleJS engineInit() with the 5 standard callbacks (gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost) instead of a hand-rolled requestAnimationFrame loop.",
+			"acceptanceCriteria": [
+				"Delete src/engine/runtime/littlejsRuntime.ts (900-line Canvas2D implementation)",
+				"Delete src/engine/runtime/cameraProjection.ts and loopProjection.ts (replaced by LittleJS internals)",
+				"Delete src/engine/rendering/ directory (terrainRenderer, spriteRenderer, fogRenderer, combatText, assetLoader — all replaced by LittleJS drawing)",
+				"Create src/engine/runtime/tacticalRuntime.ts calling engineInit(gameInit, gameUpdate, gameUpdatePost, gameRender, gameRenderPost, imageSources, rootElement)",
+				"imageSources loads all 12 sprite atlas PNGs from public/assets/sprites/",
+				"gameInit creates GameWorld, loads templates, bootstraps mission",
+				"gameUpdate runs system pipeline + command processor each frame",
+				"gameRender draws terrain + entities + fog",
+				"gameRenderPost draws minimap + HUD canvas overlays + combat text",
+				"Reference: /Users/jbogaty/src/reference-codebases/LittleJS/src/engine.js for engineInit signature",
+				"Reference: /Users/jbogaty/src/reference-codebases/wendol-village/main.js for RTS bootstrap pattern",
+				"pnpm build passes",
+				"pnpm test passes (update/delete tests that reference deleted files)"
+			],
+			"priority": 1,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"foundation",
+				"critical"
+			],
+			"dependsOn": []
+		},
+		{
+			"id": "W1-02",
+			"title": "LittleJS camera and input replacing hand-rolled code",
+			"description": "As a developer, I want camera control via LittleJS cameraPos/cameraScale and input via mousePos/keyIsDown instead of custom pointer event handlers.",
+			"acceptanceCriteria": [
+				"Camera position set via setCameraPos()/cameraPos, not custom camera object",
+				"Camera zoom set via setCameraScale()/cameraScale, not custom zoom math",
+				"Camera clamping uses getCameraSize() for viewport bounds",
+				"Mouse position read from mousePos (world space) and mousePosScreen (screen space)",
+				"Click detection uses mouseWasPressed(0) for left, mouseWasPressed(2) for right",
+				"Key detection uses keyIsDown('KeyA'), keyWasPressed('Digit1') etc",
+				"Mouse wheel zoom uses mouseWheel",
+				"Touch automatically maps to mouse via LittleJS touchInputEnable",
+				"Delete all custom pointer event listeners (onPointerDown/Move/Up/Cancel, onWheel)",
+				"screenToWorld() uses LittleJS screenToWorld(), not custom math",
+				"Box selection uses mouseIsDown(0) + mousePosScreen delta",
+				"Right-drag pan uses mouseIsDown(2) + mouseDelta",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"input"
+			],
+			"dependsOn": [
+				"W1-01"
+			]
+		},
+		{
+			"id": "W1-03",
+			"title": "LittleJS TileLayer for terrain rendering",
+			"description": "As a developer, I want terrain rendered via LittleJS TileLayer instead of hand-rolled chunk pre-rendering.",
+			"acceptanceCriteria": [
+				"Create TileLayer from mission terrain grid in gameInit",
+				"Use TileLayerData with tileIndex mapping terrain types to sprite sheet positions",
+				"Terrain types (grass, water, sand, forest, dirt, stone, mud, mangrove, bridge) each map to a tile index",
+				"TileLayer.redraw() called once at mission start and when terrain changes",
+				"Terrain tiles loaded as one of the imageSources in engineInit",
+				"No custom Canvas2D terrain rendering code remains",
+				"Terrain visually shows variety: green grass, blue water, brown dirt, dark forest",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"rendering"
+			],
+			"dependsOn": [
+				"W1-01"
+			]
+		},
+		{
+			"id": "W1-04",
+			"title": "LittleJS EngineObject subclasses for units, buildings, resources",
+			"description": "As a developer, I want game entities to be LittleJS EngineObject instances so they render automatically via the engine's object system.",
+			"acceptanceCriteria": [
+				"Create src/engine/objects/GameUnit.ts extending EngineObject — render() draws unit sprite via drawTile with tileInfo from atlas",
+				"Create src/engine/objects/GameBuilding.ts extending EngineObject — larger size, faction-colored, building label",
+				"Create src/engine/objects/GameResource.ts extending EngineObject — distinct shapes per resource type (tree triangle, fish circle, salvage diamond)",
+				"Create src/engine/objects/GameProjectile.ts extending EngineObject — small fast-moving dot with trail",
+				"Objects created when entities spawn in GameWorld, destroyed when entities are removed",
+				"Object.pos synced from bitECS Position.x/y each frame in gameUpdate",
+				"Object.tileInfo set from sprite atlas mapping (unit type → animal atlas → tile info)",
+				"renderOrder set to -pos.y for depth sorting",
+				"Selection ring drawn in render() when entity is selected",
+				"HP bar drawn above entity in render()",
+				"Rank emblem drawn for veteran/elite/hero units",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"entities"
+			],
+			"dependsOn": [
+				"W1-01",
+				"W1-03"
+			]
+		},
+		{
+			"id": "W1-05",
+			"title": "Aseprite atlas adapter for LittleJS tile() system",
+			"description": "As a developer, I want our Aseprite JSON+PNG sprite atlases to work with LittleJS drawTile/tile() so actual otter sprites render.",
+			"acceptanceCriteria": [
+				"Create src/engine/rendering/atlasAdapter.ts that parses Aseprite JSON frame data",
+				"For each animation tag, compute tile() parameters: pos (pixel offset in sheet), size (frame size)",
+				"Create tileInfo objects that drawTile() can use directly",
+				"Animation cycling: given a tag name and elapsed time, return the correct frame's tileInfo",
+				"Map unit type ID → animal name → atlas → current animation frame tileInfo",
+				"All 12 atlases (otter, crocodile, snake, cobra, boar, fox, hedgehog, naked_mole_rat, porcupine, skunk, vulture, weasel) supported",
+				"Test: atlas adapter returns correct frame rect for 'Otter Idle' frame 0",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"sprites"
+			],
+			"dependsOn": [
+				"W1-01"
+			]
+		},
+		{
+			"id": "W1-06",
+			"title": "LittleJS fog of war rendering",
+			"description": "As a developer, I want fog of war rendered using LittleJS drawing primitives in gameRenderPost.",
+			"acceptanceCriteria": [
+				"Fog grid (Uint8Array: 0=unexplored, 1=explored, 2=visible) rendered as overlay",
+				"In gameRenderPost: iterate visible tiles, draw black rects for unexplored, semi-transparent for explored",
+				"Use drawRect() in world space for each fog tile",
+				"Entities in unexplored tiles not rendered (skip in EngineObject render)",
+				"Fog updates each frame from fogSystem output",
+				"Performance: only draw fog tiles within viewport (use isOnScreen)",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"fog"
+			],
+			"dependsOn": [
+				"W1-04"
+			]
+		},
+		{
+			"id": "W1-07",
+			"title": "LittleJS minimap in gameRenderPost",
+			"description": "As a developer, I want a minimap drawn in screen space during gameRenderPost using LittleJS drawing functions.",
+			"acceptanceCriteria": [
+				"Minimap rendered at bottom-right corner in screen space (200x150px)",
+				"Terrain colors from world grid (drawRect per tile in screen space)",
+				"Player entities as green dots, enemy as red, resources as yellow",
+				"Camera viewport rectangle in white",
+				"Fog applied (unexplored areas dark)",
+				"Left-click on minimap area snaps camera (screenToWorld conversion)",
+				"Right-click on minimap moves selected units to that world position",
+				"drawRect and drawCircle with screenSpace=true parameter",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"minimap"
+			],
+			"dependsOn": [
+				"W1-06"
+			]
+		},
+		{
+			"id": "W1-08",
+			"title": "LittleJS combat text as floating EngineObjects",
+			"description": "As a developer, I want damage/heal/resource numbers as short-lived EngineObject instances that float up and fade.",
+			"acceptanceCriteria": [
+				"Create src/engine/objects/FloatingText.ts extending EngineObject",
+				"Spawned at entity position when HP changes (red '-X' for damage, green '+X' for heal)",
+				"Spawned at depot when resources deposited (yellow '+X FISH')",
+				"velocity set to upward drift, destroy after 0.9 seconds",
+				"render() uses drawText() with world-space positioning",
+				"Opacity fades over lifetime via color alpha",
+				"No custom Canvas2D overlay code — pure LittleJS objects",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"feedback"
+			],
+			"dependsOn": [
+				"W1-04"
+			]
+		},
+		{
+			"id": "W1-09",
+			"title": "LittleJS Sound for all audio",
+			"description": "As a developer, I want audio using LittleJS Sound class instead of a separate Tone.js audio runtime.",
+			"acceptanceCriteria": [
+				"Delete src/engine/audio/audioRuntime.ts",
+				"Create src/engine/audio/sounds.ts using LittleJS Sound class with zzfx arrays",
+				"Define all 13 SFX from audio-design.md: click, unit_select, unit_deselect, error, move_order, attack_order, melee_hit, ranged_fire, ranged_hit, unit_death, building_place, building_complete, resource_gather",
+				"Define 3 music tracks: menu, combat, briefing (using Sound.playMusic)",
+				"Sound.play(pos) for positional audio — sounds near camera are louder",
+				"Wire triggers: combatSystem calls melee_hit/ranged_fire/unit_death, commandProcessor calls move_order/attack_order, selection calls unit_select",
+				"Use LittleJS soundVolume for master volume, integrated with settings",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"audio"
+			],
+			"dependsOn": [
+				"W1-01"
+			]
+		},
+		{
+			"id": "W1-10",
+			"title": "RuntimeHost mounts LittleJS into SolidJS container",
+			"description": "As a developer, I want the SolidJS RuntimeHost to mount the LittleJS engine into a DOM container and communicate via GameBridge.",
+			"acceptanceCriteria": [
+				"RuntimeHost.tsx onMount calls engineInit with the container element as rootElement",
+				"GameBridge state updated in gameUpdatePost via batch() for SolidJS reactivity",
+				"Command queue drained in gameUpdate before systems run",
+				"Phase changes (victory/defeat/pause) communicated to SolidJS via bridge signals",
+				"Cleanup: engine destroyed in onCleanup",
+				"No React patterns (useState, useEffect, useRef) — pure Solid (createSignal, onMount, onCleanup)",
+				"HUD overlay panels from SolidJS positioned absolute over the LittleJS canvas",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": true,
+			"labels": [
+				"W1-littlejs",
+				"integration"
+			],
+			"dependsOn": [
+				"W1-01",
+				"W1-02"
+			]
+		},
+		{
+			"id": "W2-01",
+			"title": "ActionBar with context-switching and hotkeys",
+			"description": "As a player, I want the action bar to show different commands based on what I have selected (worker/military/building) with keyboard hotkeys.",
+			"acceptanceCriteria": [
+				"Worker selected: Build(B), Gather(G), Move(M), Stop(S) buttons",
+				"Military unit selected: Move(M), Attack(A), Stop(S), Patrol(P), Hold(H) buttons",
+				"Building selected: Train queue with unit icons, costs, affordability gating",
+				"Nothing selected: action bar hidden",
+				"Each button dispatches command through bridge.emit",
+				"Hotkey labels visible on each button",
+				"Buttons disabled when action unavailable (e.g. can't afford unit)",
+				"Context hint text below action bar explaining selected action",
+				"MilitaryTooltip on hover showing full stats",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W2-solidjs",
+				"hud"
+			],
+			"dependsOn": [
+				"W1-10"
+			]
+		},
+		{
+			"id": "W2-02",
+			"title": "Build placement ghost mode",
+			"description": "As a player, I want to click Build, see a translucent building ghost following my cursor, and place it with a click.",
+			"acceptanceCriteria": [
+				"Clicking a build button in ActionBar enters placement mode",
+				"Ghost building EngineObject follows mousePos with translucent color",
+				"Green tint when placement valid, red when invalid (overlap, wrong terrain, insufficient resources)",
+				"Left-click places building, deducts resources, creates construction site entity",
+				"Right-click or Escape cancels placement mode",
+				"Construction site shows progress bar (0-100%) as workers build",
+				"Workers auto-rally to nearest construction site",
+				"Building completion triggers building_complete sound and alert",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W2-solidjs",
+				"building"
+			],
+			"dependsOn": [
+				"W1-04",
+				"W2-01"
+			]
+		},
+		{
+			"id": "W2-03",
+			"title": "Production queue with visible progress",
+			"description": "As a player, I want to see unit training progress on selected buildings and queue multiple units.",
+			"acceptanceCriteria": [
+				"Selecting a production building shows training queue in ActionBar",
+				"Queue shows unit icons with costs, click to add to queue",
+				"First unit in queue shows progress bar (0-100%)",
+				"Cancel button removes from queue and refunds resources",
+				"Pop cap enforced — can't queue if at population limit",
+				"Queue max depth: 5 units",
+				"Trained unit spawns at rally point (or building position if no rally)",
+				"Training complete triggers SFX and alert",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W2-solidjs",
+				"production"
+			],
+			"dependsOn": [
+				"W2-01"
+			]
+		},
+		{
+			"id": "W2-04",
+			"title": "Research panel with progress and effects",
+			"description": "As a player, I want to research upgrades at the Armory with visible progress and immediate stat effects.",
+			"acceptanceCriteria": [
+				"Selecting Armory shows available research in ActionBar",
+				"Each research shows name, cost, time, effect description",
+				"Unavailable research (wrong mission, missing prereq) greyed out with reason",
+				"Active research shows progress bar",
+				"Completed research shows checkmark",
+				"Research completion applies stat bonuses to all matching entities immediately",
+				"Research completion triggers SFX and alert",
+				"All 10 research types from research.json functional",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W2-solidjs",
+				"research"
+			],
+			"dependsOn": [
+				"W2-03"
+			]
+		},
+		{
+			"id": "W2-05",
+			"title": "AlertBanner with 18+ event types and camera snap",
+			"description": "As a player, I want tactical alerts that tell me what's happening and clicking them snaps my camera there.",
+			"acceptanceCriteria": [
+				"Alert events generated for: under-attack, building-complete, training-complete, enemy-spotted, objective-completed, mission-failed, research-complete, alarm-triggered, boss-phase-change, convoy-arrived, convoy-destroyed, fire-started, tide-changed, resource-depleted, reinforcements-arrived, zone-revealed, promotion",
+				"Each alert includes world position of the event",
+				"Clicking an alert centers camera on event location",
+				"Auto-dismiss after 3 seconds",
+				"Max 3 visible, newest at top",
+				"Slide-in animation",
+				"Severity colors: info=cyan, warning=amber, critical=rose",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W2-solidjs",
+				"alerts"
+			],
+			"dependsOn": [
+				"W1-10"
+			]
+		},
+		{
+			"id": "W2-06",
+			"title": "CommandTransmission with portraits, typewriter, full dialogue system",
+			"description": "As a player, I want radio transmissions with character portraits, typewriter text reveal, and proper command chain styling.",
+			"acceptanceCriteria": [
+				"Portrait loaded from sprite atlas for Col. Bubbles, FOXHOUND, Gen. Whiskers, Medic Marina",
+				"Typewriter text reveal at 40 chars/second with blinking cursor",
+				"'Receiving' badge while typing, 'Ready' when complete",
+				"Speaker name with color: Bubbles=amber, FOXHOUND=cyan, Whiskers=yellow, Marina=green",
+				"Skip All button to skip remaining lines",
+				"Acknowledge/Move Out contextual advance button",
+				"Mission name display in header",
+				"Riverine-camo background texture",
+				"Keyboard Enter to advance, Escape to skip all",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W2-solidjs",
+				"dialogue"
+			],
+			"dependsOn": [
+				"W1-10"
+			]
+		},
+		{
+			"id": "W2-07",
+			"title": "Mobile-adaptive layout with phone/tablet/desktop breakpoints",
+			"description": "As a mobile player, I want HUD that adapts to my screen size with large touch targets.",
+			"acceptanceCriteria": [
+				"Phone (<640px): stacked layout, large command buttons at bottom, minimap at corner, no tooltip hover",
+				"Tablet (640-1024px): side panel layout, medium targets, touch-friendly spacing",
+				"Desktop (>1024px): full panel layout with hover tooltips, compact spacing",
+				"Form factor detection via matchMedia breakpoints",
+				"HUD panels reflow without shrinking — different layouts, not same layout smaller",
+				"Touch targets minimum 44x44px on phone and tablet",
+				"CommandButtons component for common mobile actions (Move, Attack, Stop, Build)",
+				"All interactions work on all form factors — no keyboard-only or hover-only flows",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W2-solidjs",
+				"mobile"
+			],
+			"dependsOn": [
+				"W2-01"
+			]
+		},
+		{
+			"id": "W3-01",
+			"title": "Wire JSON templates into entity spawning",
+			"description": "As a developer, I want spawnUnit to read stats from JSON templates via getUnitTemplate() so all entity data is data-driven.",
+			"acceptanceCriteria": [
+				"loadTemplates() called during gameInit, resolving all extends chains",
+				"spawnUnit reads HP, armor, speed, attack, vision, popCost from getUnitTemplate(id).stats",
+				"spawnBuilding reads HP, armor, buildTime, popCapacity from getBuildingTemplate(id)",
+				"Abilities registered on entity from template abilities array",
+				"Visual config (sprite, tint, emblem, scale) stored for renderer",
+				"Training costs read from template, not hardcoded",
+				"Mission-specific overrides from getMissionData(id) applied",
+				"Unknown template ID throws error (no fallback)",
+				"Test: spawn river_rat, verify HP=40, speed=80, abilities includes 'gather'",
+				"pnpm build passes",
+				"pnpm test passes"
+			],
+			"priority": 1,
+			"passes": true,
+			"labels": [
+				"W3-ecs",
+				"templates"
+			],
+			"dependsOn": [
+				"W1-01"
+			]
+		},
+		{
+			"id": "W3-02",
+			"title": "Mission bootstrap from mission JSON with full spawn data",
+			"description": "As a developer, I want bootstrapMission to read from mission JSON files for placements, resources, terrain, encounters, and loot tables.",
+			"acceptanceCriteria": [
+				"Create public/data/missions/mission_01.json through mission_16.json",
+				"Each mission JSON contains: availableBuildings, availableUnits, startingResources, placements, terrainRegions, encounterTable, lootTable, phases, objectives",
+				"bootstrapMission reads mission JSON via getMissionData()",
+				"All entity placements spawn with correct template stats",
+				"Starting resources from mission JSON, scaled by difficulty",
+				"Terrain grid built from terrainRegions",
+				"Encounter tables loaded into world.runtime",
+				"Loot tables loaded into world.runtime",
+				"Zone rects loaded for scenario triggers",
+				"All 16 mission JSONs populated with data from balance-deep-dive.md",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W3-ecs",
+				"missions"
+			],
+			"dependsOn": [
+				"W3-01"
+			]
+		},
+		{
+			"id": "W4-01",
+			"title": "Combat system with visible projectiles and AoE effects",
+			"description": "As a player, I want to see projectiles flying and AoE explosions when units fight.",
+			"acceptanceCriteria": [
+				"Ranged attacks spawn GameProjectile EngineObject that flies toward target",
+				"Projectile has trail effect (particle emitter or fading dots)",
+				"On hit: GameProjectile destroyed, damage applied, hit SFX plays, FloatingText spawns",
+				"AoE attacks show visible explosion radius (expanding circle that fades)",
+				"Armor reduction visible in damage numbers (reduced number shown)",
+				"Melee attacks show brief slash effect at target position",
+				"Death: entity EngineObject plays death animation then destroyed",
+				"Kill awards XP to attacker via veterancy system",
+				"Loot drops spawned at death position",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W4-systems",
+				"combat"
+			],
+			"dependsOn": [
+				"W1-04",
+				"W1-08"
+			]
+		},
+		{
+			"id": "W4-02",
+			"title": "Economy with visible gather-carry-deposit cycle",
+			"description": "As a player, I want to see workers walk to resources, harvest with animation, carry back to lodge, deposit, and auto-return.",
+			"acceptanceCriteria": [
+				"Worker given gather order walks to resource node",
+				"At resource: gather animation plays, timer runs, FloatingText shows gathered amount",
+				"Worker picks up resources (carry icon shown above head or tint change)",
+				"Worker walks to nearest depot (lodge/command post) at 0.8x speed",
+				"At depot: deposit animation, FloatingText shows '+X FISH' at depot position",
+				"Worker auto-returns to same resource node",
+				"Fish Trap passive income: +3 fish per 10s per trap, visible as periodic FloatingText at trap",
+				"Lumber mill bonus: +25% timber gather speed when Lumber Mill exists",
+				"Resource node depletion: node shrinks or disappears when exhausted",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W4-systems",
+				"economy"
+			],
+			"dependsOn": [
+				"W1-04",
+				"W1-08"
+			]
+		},
+		{
+			"id": "W4-03",
+			"title": "AI with visible FSM behavior",
+			"description": "As a player, I want enemy units to visibly patrol, chase, attack, and flee.",
+			"acceptanceCriteria": [
+				"Idle enemies stand at home position with idle animation",
+				"Patrol enemies walk between waypoints with walk animation",
+				"Chase: enemy turns toward player unit and moves with run animation",
+				"Attack: enemy plays attack animation, combat system handles damage",
+				"Flee at <20% HP: enemy turns away and runs, different from normal movement",
+				"Group assist: nearby idle enemies join chase when ally detects player",
+				"De-aggro: enemy returns to home position when player unit escapes 1.5x vision range",
+				"State transitions visible via behavior change, no debug text needed",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W4-systems",
+				"ai"
+			],
+			"dependsOn": [
+				"W1-04"
+			]
+		},
+		{
+			"id": "W4-04",
+			"title": "Building construction with visible progress and worker interaction",
+			"description": "As a player, I want to see buildings being constructed with progress bars and workers hammering.",
+			"acceptanceCriteria": [
+				"Construction site shows building outline at reduced opacity",
+				"Progress bar above construction site (0-100%)",
+				"Workers near construction site play build animation and increase progress",
+				"Multiple workers build faster (diminishing returns: 2nd worker +50%, 3rd +25%)",
+				"Construction completion: building pops to full opacity, completion SFX, alert",
+				"Pop cap increases when population building completes",
+				"Defensive buildings (watchtower, gun tower) start attacking when complete",
+				"Production buildings can queue units only when construction complete",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W4-systems",
+				"building"
+			],
+			"dependsOn": [
+				"W1-04",
+				"W2-02"
+			]
+		},
+		{
+			"id": "W4-05",
+			"title": "Veterancy with visible rank emblems and promotion effects",
+			"description": "As a player, I want to see my units gain experience and promote with visible rank changes.",
+			"acceptanceCriteria": [
+				"XP awarded: 10 per kill, 25 per building, 5 per assist, 1 per gather trip",
+				"Promotion at 50 XP (Veteran), 150 XP (Elite), 400 XP (Hero)",
+				"Veteran: silver chevron emblem above-right of unit, +10% HP/damage",
+				"Elite: gold double-chevron, +20% HP/damage, +5% speed",
+				"Hero: star emblem, +30% all stats, special ability slot unlock",
+				"Promotion triggers: particle burst effect, promotion SFX, alert 'Promoted: River Rat → Veteran'",
+				"HP ratio preserved on promotion (half-health stays half-health)",
+				"Rank emblem rendered in EngineObject.render() after sprite",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W4-systems",
+				"veterancy"
+			],
+			"dependsOn": [
+				"W1-04"
+			]
+		},
+		{
+			"id": "W4-06",
+			"title": "10 abilities with visible effects",
+			"description": "As a player, I want to use unit abilities and see their effects.",
+			"acceptanceCriteria": [
+				"Demolition charge: sapper places visible charge, 3s fuse with countdown, explosion particle effect, 200 AoE damage",
+				"Heal: medic channels green particles toward target, +20 HP, 5s cooldown",
+				"Shield bash: mudfoot stun effect on target (spinning stars above head), 1s duration",
+				"Snipe: shellcracker high-damage shot with tracer line, 3x damage",
+				"Rally cry: sergeant buff aura (glowing circle) giving +20% damage to allies in 96px for 10s",
+				"Stealth: diver fades to semi-transparent when stationary in forest",
+				"Underwater strike: diver emerges with splash effect, 2x damage",
+				"Swim: units crossing water tiles have ripple effect",
+				"Ability cooldown shown on action bar button (greyed with timer)",
+				"Ability activation triggers appropriate SFX",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W4-systems",
+				"abilities"
+			],
+			"dependsOn": [
+				"W1-04",
+				"W2-01"
+			]
+		},
+		{
+			"id": "W5-01",
+			"title": "Mission 1-4 JSON files with full balance data",
+			"description": "As a developer, I want Chapter 1 missions fully defined in JSON with all spawn data, encounters, loot, and terrain from balance-deep-dive.md.",
+			"acceptanceCriteria": [
+				"mission_01.json: Beachhead — 3 River Rats, lodge, 100 fish/50 timber, 128x96 map, grass/sand/water/mangrove terrain, patrols of 2 gators every 60s, loot tables per enemy type",
+				"mission_02.json: Causeway — convoy escort, bridge terrain, phased unlocks",
+				"mission_03.json: Firebase Delta — defensive position, wave defense, hilltop terrain",
+				"mission_04.json: Prison Break — rescue Gen. Whiskers, stealth optional path, jail terrain",
+				"Each mission has availableBuildings/Units matching balance-deep-dive Part 6 progression curve",
+				"Starting resources from balance-deep-dive Part 5 per-mission tables",
+				"Encounter tables from balance-deep-dive Part 7 PRNG tables",
+				"Difficulty scaling from balance-deep-dive Part 8",
+				"Par times from game design doc",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": true,
+			"labels": [
+				"W5-content",
+				"chapter1"
+			],
+			"dependsOn": [
+				"W3-01"
+			]
+		},
+		{
+			"id": "W5-02",
+			"title": "Mission 5-8 JSON files (Chapter 2)",
+			"description": "As a developer, I want Chapter 2 missions fully defined with siphon, monsoon, river, and underwater mechanics.",
+			"acceptanceCriteria": [
+				"mission_05.json: Siphon Valley — siphon mechanic, 3 siphon objectives, industrial terrain",
+				"mission_06.json: Monsoon Ambush — weather system, 8 wave defense, rain/monsoon terrain",
+				"mission_07.json: River Rats — CTF-style capture points, river/bridge terrain",
+				"mission_08.json: Underwater Cache — hero mission with Cpl. Splash, underwater terrain, stealth",
+				"Each has correct unlocks (dock, field hospital available from mission 6+)",
+				"Medic Marina joins in mission 6, Cpl. Splash rescued in mission 8",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W5-content",
+				"chapter2"
+			],
+			"dependsOn": [
+				"W5-01"
+			]
+		},
+		{
+			"id": "W5-03",
+			"title": "Mission 9-12 JSON files (Chapter 3)",
+			"description": "As a developer, I want Chapter 3 missions with fog, fire, siege, and rescue mechanics.",
+			"acceptanceCriteria": [
+				"mission_09.json: Dense Canopy — fog/stealth, canopy terrain, Pvt. Muskrat joins",
+				"mission_10.json: Scorched Earth — fire spread system, destructible terrain",
+				"mission_11.json: Entrenchment — 12-wave siege defense, fortification terrain",
+				"mission_12.json: Fang Rescue — rescue Sgt. Fang, Col. Bubbles joins, fortress assault",
+				"Research unlocks expand (night vision, mortar precision from mission 9+)",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W5-content",
+				"chapter3"
+			],
+			"dependsOn": [
+				"W5-02"
+			]
+		},
+		{
+			"id": "W5-04",
+			"title": "Mission 13-16 JSON files (Chapter 4)",
+			"description": "As a developer, I want Chapter 4 missions with multi-base, boss, and finale mechanics.",
+			"acceptanceCriteria": [
+				"mission_13.json: Great Siphon — multi-base system, 3 bases to manage",
+				"mission_14.json: Iron Delta — fortress assault, demolition focus",
+				"mission_15.json: Serpent Lair — boss fight with Serpent King (3 phases, 500 HP, poison aura, summons)",
+				"mission_16.json: Last Stand — final escalation, all units/buildings available, Kommandant Ironjaw",
+				"Boss phase configs: HP thresholds, ability unlocks per phase, summon waves",
+				"Final mission victory triggers campaign completion screen",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W5-content",
+				"chapter4"
+			],
+			"dependsOn": [
+				"W5-03"
+			]
+		},
+		{
+			"id": "W7-01",
+			"title": "Save/load roundtrip working in browser",
+			"description": "As a player, I want to save mid-mission and resume later.",
+			"acceptanceCriteria": [
+				"Save button in PauseOverlay serializes GameWorld to SQLite",
+				"All entity positions, HP, orders, queues, resources, objectives saved",
+				"Load deserializes into new GameWorld and resumes at saved tick",
+				"Runtime-only objects (nav graph, AI state, Yuka vehicles) reconstructed after load",
+				"Campaign progress persisted separately (mission unlocks, stars, best times)",
+				"Settings persisted (audio volumes, subtitles, reduce motion)",
+				"'Continue' on main menu loads latest campaign save",
+				"Test: save at tick 100, load, verify entity positions match",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W7-persistence"
+			],
+			"dependsOn": [
+				"W1-10",
+				"W3-01"
+			]
+		},
+		{
+			"id": "W7-02",
+			"title": "Campaign flow end-to-end with persistence",
+			"description": "As a player, I want to play through the campaign with progress saved between sessions.",
+			"acceptanceCriteria": [
+				"New Campaign creates fresh progress (mission 1 available, rest locked)",
+				"Mission victory advances campaign (marks complete, unlocks next, records stars/time)",
+				"Campaign view shows correct unlock state from persisted data",
+				"'Continue' loads persisted campaign and goes to next available mission briefing",
+				"Star ratings: 1 star base victory, 2 for >50% objectives, 3 for all objectives",
+				"Best time recorded per mission",
+				"Campaign completion screen after mission 16 victory",
+				"Difficulty selection persisted (support/tactical/elite)",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W7-persistence",
+				"campaign"
+			],
+			"dependsOn": [
+				"W7-01",
+				"W5-01"
+			]
+		},
+		{
+			"id": "W8-01",
+			"title": "Balance validation test suite",
+			"description": "As a developer, I want automated tests that validate combat and economy balance numbers from balance-deep-dive.md.",
+			"acceptanceCriteria": [
+				"Test: Mudfoot vs Gator 1v1 — Gator wins (120 HP+4 armor vs 80 HP+2 armor)",
+				"Test: 2 Mudfoots vs 1 Gator — Mudfoots win",
+				"Test: Shellcracker vs Gator — Shellcracker wins by kiting (range 5 vs range 2)",
+				"Test: Mortar vs 5 clustered Gators — AoE kills at least 3",
+				"Test: First Mudfoot trainable by 2:00 with optimal play",
+				"Test: Fish Trap ROI — pays for itself in 250s (75 fish cost / 0.3 fish per second)",
+				"Test: Mission 1 completable in 13 minutes with paper-playtest economy timeline",
+				"Test: Veteran promotion at 50 XP (5 kills) gives +10% damage",
+				"Test: Hardshell Armor research gives +2 armor to all units",
+				"All tests deterministic via fixed seed",
+				"pnpm test passes"
+			],
+			"priority": 3,
+			"passes": true,
+			"labels": [
+				"W8-testing",
+				"balance"
+			],
+			"dependsOn": [
+				"W3-01",
+				"W4-01"
+			]
+		},
+		{
+			"id": "W8-02",
+			"title": "Vitest browser visual regression tests",
+			"description": "As a developer, I want deterministic visual snapshot tests for rendering.",
+			"acceptanceCriteria": [
+				"Test boots skirmish with fixed seed",
+				"Captures world state at tick 0, 60, 300",
+				"Same seed produces identical state (position, HP, fog)",
+				"Different seeds produce different states",
+				"Tests run in CI via pnpm test",
+				"pnpm test passes"
+			],
+			"priority": 4,
+			"passes": true,
+			"labels": [
+				"W8-testing",
+				"visual"
+			],
+			"dependsOn": [
+				"W1-01"
+			]
+		},
+		{
+			"id": "W9-01",
+			"title": "CSS themes and visual polish on all panels",
+			"description": "As a player, I want the HUD to have military aesthetic with corner brackets, grain textures, and proper fonts.",
+			"acceptanceCriteria": [
+				"PanelFrame with corner brackets and rivets on all HUD panels",
+				"Canvas-grain texture overlay on panels",
+				"Riverine-camo background on transmission panels",
+				"CRT scanline effect toggle (tied to settings)",
+				"Proper fonts: stencil for labels, terminal for values, typewriter for dialogue",
+				"Accent color borders matching military theme (olive/khaki/amber)",
+				"No monospace debug text anywhere in the game view",
+				"Reduced motion support: animations respect prefers-reduced-motion",
+				"pnpm build passes"
+			],
+			"priority": 4,
+			"passes": true,
+			"labels": [
+				"W9-polish",
+				"visual"
+			],
+			"dependsOn": [
+				"W2-01"
+			]
+		},
+		{
+			"id": "W9-02",
+			"title": "Tutorial overlay for missions 1-4",
+			"description": "As a new player, I want contextual prompts teaching me how to play.",
+			"acceptanceCriteria": [
+				"Mission 1: 'Click a River Rat to select' → 'Right-click terrain to move' → 'Click a tree to gather timber' → 'Build a Command Post'",
+				"Mission 2: 'Hold Shift to queue orders' → 'Build a Watchtower for vision'",
+				"Mission 3: 'Press A then click to attack-move' → 'Research upgrades at the Armory'",
+				"Mission 4: 'Drag to box-select multiple units' → 'Use Ctrl+1 to save a group'",
+				"Each prompt auto-dismisses after 8 seconds or on Escape",
+				"Dismissed prompts don't re-appear (persisted in localStorage)",
+				"pnpm build passes"
+			],
+			"priority": 4,
+			"passes": true,
+			"labels": [
+				"W9-polish",
+				"tutorial"
+			],
+			"dependsOn": [
+				"W2-01"
+			]
+		},
+		{
+			"id": "W9-03",
+			"title": "All 16 missions playable and polished against design docs",
+			"description": "As a player, I want every mission to play correctly with proper pacing, dialogue, objectives, and balance.",
+			"acceptanceCriteria": [
+				"Each mission boots with correct starting units, buildings, resources from mission JSON",
+				"Scenario triggers fire at correct moments (dialogue, phase changes, zone reveals)",
+				"All objectives track correctly (primary win conditions, bonus objectives)",
+				"Victory/defeat conditions work (lodge destruction = defeat, all primaries = victory)",
+				"Dialogue plays with correct character portraits and typewriter effect",
+				"Combat encounters spawn at correct intervals with correct compositions",
+				"Loot drops match loot tables",
+				"Difficulty scaling applies correctly (support easier, elite harder)",
+				"Star rating calculated correctly",
+				"Mission 1 completable in ~8-13 minutes at tactical difficulty",
+				"Mission 16 completable in ~15-20 minutes at tactical difficulty",
+				"No stuck units, no broken triggers, no softlocks",
+				"pnpm build passes"
+			],
+			"priority": 4,
+			"passes": true,
+			"labels": [
+				"W9-polish",
+				"missions"
+			],
+			"dependsOn": [
+				"W5-04",
+				"W4-01",
+				"W4-02",
+				"W4-03",
+				"W4-04"
+			]
+		},
+		{
+			"id": "W9-04",
+			"title": "Zero fallbacks, zero debug output, zero legacy",
+			"description": "As a developer, I want the production build to be clean with no fallbacks, no debug text, and no legacy framework code.",
+			"acceptanceCriteria": [
+				"grep -r 'from.*react' src/ returns 0 (excluding node_modules and tests)",
+				"grep -r 'from.*koota' src/ returns 0",
+				"grep -r 'from.*konva' src/ returns 0",
+				"No console.log in production code (only console.error for actual errors)",
+				"No 'TODO' or 'FIXME' in production code",
+				"No shape fallback rendering — missing sprite = error, not colored circle",
+				"No debug text overlay on game canvas",
+				"Bundle contains zero react/koota/konva chunks",
+				"pnpm build passes with zero warnings",
+				"pnpm test passes"
+			],
+			"priority": 4,
+			"passes": true,
+			"labels": [
+				"W9-polish",
+				"cleanup"
+			],
+			"dependsOn": [
+				"W1-01"
+			]
+		}
 	]
 }

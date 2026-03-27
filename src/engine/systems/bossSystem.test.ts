@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { Attack, Health, Speed } from "@/engine/world/components";
+import { Attack, Speed } from "@/engine/world/components";
 import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
 import { runBossSystem } from "./bossSystem";
 
 describe("engine/systems/bossSystem", () => {
 	it("applies phase stat changes when boss HP drops below threshold", () => {
 		const world = createGameWorld();
-		const boss = spawnUnit(world, { x: 100, y: 100, faction: "scale_guard", health: { current: 40, max: 100 } });
+		const boss = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 40, max: 100 },
+		});
 		Attack.damage[boss] = 5;
 		Speed.value[boss] = 32;
 
@@ -33,7 +38,12 @@ describe("engine/systems/bossSystem", () => {
 
 	it("applies the most severe phase when HP is very low", () => {
 		const world = createGameWorld();
-		const boss = spawnUnit(world, { x: 100, y: 100, faction: "scale_guard", health: { current: 10, max: 100 } });
+		const boss = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 10, max: 100 },
+		});
 		Attack.damage[boss] = 5;
 		Speed.value[boss] = 32;
 
@@ -60,7 +70,12 @@ describe("engine/systems/bossSystem", () => {
 
 	it("skips dead bosses", () => {
 		const world = createGameWorld();
-		const boss = spawnUnit(world, { x: 100, y: 100, faction: "scale_guard", health: { current: 50, max: 100 } });
+		const boss = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 50, max: 100 },
+		});
 		world.runtime.bossConfigs.set(boss, {
 			name: "Boss",
 			armor: 0,

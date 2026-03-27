@@ -9,7 +9,7 @@
  * Reads from solidBridge objectives store.
  */
 
-import { For, Show, type Component } from "solid-js";
+import { type Component, For, Show } from "solid-js";
 import type { SolidBridgeAccessors } from "@/engine/bridge/solidBridge";
 
 const STATUS_ICON: Record<string, { symbol: string; color: string }> = {
@@ -47,9 +47,7 @@ export const ObjectivesPanel: Component<{ bridge: SolidBridgeAccessors }> = (pro
 								const status = () => STATUS_ICON[objective.status] ?? STATUS_ICON.active;
 								return (
 									<li class="flex items-start gap-2 font-mono text-[11px] uppercase tracking-[0.14em]">
-										<span
-											class={`mt-px flex-shrink-0 text-sm ${status().color}`}
-										>
+										<span class={`mt-px flex-shrink-0 text-sm ${status().color}`}>
 											{status().symbol}
 										</span>
 										<span

@@ -1,0 +1,112 @@
+{
+  "id": "mission_06",
+  "title": "Monsoon Ambush",
+  "chapter": 2,
+  "mapWidth": 128,
+  "mapHeight": 128,
+  "parTimeMinutes": 20,
+  "availableBuildings": ["burrow", "command_post", "barracks", "armory", "fish_trap", "watchtower", "sandbag_wall", "gun_tower", "stone_wall", "minefield", "field_hospital", "dock"],
+  "availableUnits": ["river_rat", "mudfoot", "shellcracker", "mortar_otter", "sapper", "diver", "raftsman"],
+  "startingResources": { "fish": 200, "timber": 150, "salvage": 75 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "dirt", "rect": { "x": 44, "y": 44, "w": 40, "h": 40 } },
+    { "terrainId": "grass", "rect": { "x": 44, "y": 4, "w": 40, "h": 36 } },
+    { "terrainId": "dirt", "rect": { "x": 56, "y": 8, "w": 16, "h": 32 } },
+    { "terrainId": "stone", "rect": { "x": 92, "y": 28, "w": 32, "h": 56 } },
+    { "terrainId": "dirt", "rect": { "x": 88, "y": 48, "w": 8, "h": 16 } },
+    { "terrainId": "grass", "rect": { "x": 44, "y": 88, "w": 40, "h": 36 } },
+    { "terrainId": "mud", "rect": { "x": 52, "y": 96, "w": 24, "h": 20 } },
+    { "terrainId": "mud", "rect": { "x": 4, "y": 28, "w": 36, "h": 56 } },
+    { "terrainId": "mangrove", "rect": { "x": 4, "y": 4, "w": 28, "h": 20 } },
+    { "terrainId": "water", "rect": { "x": 8, "y": 84, "w": 16, "h": 16 } },
+    { "terrainId": "mud", "rect": { "x": 4, "y": 80, "w": 24, "h": 24 } },
+    { "terrainId": "stone", "rect": { "x": 96, "y": 108, "w": 24, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 4, "y": 108, "w": 40, "h": 16 } }
+  ],
+
+  "zones": {
+    "base":            { "x": 40, "y": 40,  "width": 48, "height": 48 },
+    "approach_north":  { "x": 40, "y": 0,   "width": 48, "height": 40 },
+    "approach_east":   { "x": 88, "y": 24,  "width": 40, "height": 64 },
+    "approach_south":  { "x": 40, "y": 88,  "width": 48, "height": 40 },
+    "approach_west":   { "x": 0,  "y": 24,  "width": 40, "height": 64 },
+    "corner_nw":       { "x": 0,  "y": 0,   "width": 40, "height": 24 },
+    "corner_se":       { "x": 88, "y": 104, "width": 40, "height": 24 },
+    "corner_sw":       { "x": 0,  "y": 80,  "width": 40, "height": 24 },
+    "southern_fringe": { "x": 0,  "y": 104, "width": 48, "height": 24 },
+    "resource_grove":  { "x": 4,  "y": 4,   "width": 28, "height": 20 },
+    "fish_pond":       { "x": 4,  "y": 84,  "width": 28, "height": 16 }
+  },
+
+  "placements": [
+    { "type": "burrow",        "faction": "ura",     "x": 64, "y": 64, "scriptId": "player_lodge" },
+    { "type": "watchtower",    "faction": "ura",     "x": 56, "y": 48 },
+    { "type": "sandbag_wall",  "faction": "ura",     "x": 52, "y": 56 },
+    { "type": "sandbag_wall",  "faction": "ura",     "x": 54, "y": 56 },
+    { "type": "sandbag_wall",  "faction": "ura",     "x": 76, "y": 56 },
+    { "type": "sandbag_wall",  "faction": "ura",     "x": 78, "y": 56 },
+
+    { "type": "river_rat",     "faction": "ura",     "x": 60, "y": 66 },
+    { "type": "river_rat",     "faction": "ura",     "x": 68, "y": 66 },
+    { "type": "river_rat",     "faction": "ura",     "x": 62, "y": 70 },
+    { "type": "river_rat",     "faction": "ura",     "x": 66, "y": 70 },
+    { "type": "river_rat",     "faction": "ura",     "x": 64, "y": 74 },
+    { "type": "mudfoot",       "faction": "ura",     "x": 56, "y": 60 },
+    { "type": "mudfoot",       "faction": "ura",     "x": 72, "y": 60 },
+    { "type": "mudfoot",       "faction": "ura",     "x": 64, "y": 58 },
+
+    { "type": "mangrove_tree", "faction": "neutral", "x": 8,   "y": 8 },
+    { "type": "mangrove_tree", "faction": "neutral", "x": 14,  "y": 10 },
+    { "type": "mangrove_tree", "faction": "neutral", "x": 20,  "y": 6 },
+    { "type": "mangrove_tree", "faction": "neutral", "x": 10,  "y": 14 },
+    { "type": "mangrove_tree", "faction": "neutral", "x": 22,  "y": 16 },
+    { "type": "mangrove_tree", "faction": "neutral", "x": 16,  "y": 18 },
+    { "type": "mangrove_tree", "faction": "neutral", "x": 26,  "y": 12 },
+    { "type": "mangrove_tree", "faction": "neutral", "x": 28,  "y": 8 },
+
+    { "type": "fish_spot",     "faction": "neutral", "x": 12,  "y": 88 },
+    { "type": "fish_spot",     "faction": "neutral", "x": 20,  "y": 92 },
+    { "type": "fish_spot",     "faction": "neutral", "x": 16,  "y": 96 },
+
+    { "type": "salvage_cache", "faction": "neutral", "x": 100, "y": 112 },
+    { "type": "salvage_cache", "faction": "neutral", "x": 108, "y": 110 }
+  ],
+
+  "objectives": [
+    { "id": "survive-waves",      "description": "Survive all 8 attack waves",               "type": "primary" },
+    { "id": "prepare-defenses",   "description": "Prepare defenses before the storm hits",     "type": "primary" },
+    { "id": "medic-survives",     "description": "Medic Marina survives the battle",           "type": "bonus" },
+    { "id": "no-wall-breach",     "description": "No enemy reaches the Lodge",                "type": "bonus" }
+  ],
+
+  "waves": [
+    { "wave": 1, "triggerTimeMs": 180000,  "direction": "north",  "composition": [{ "type": "skink", "count": 6 }] },
+    { "wave": 2, "triggerTimeMs": 300000,  "direction": "west",   "composition": [{ "type": "gator", "count": 3 }, { "type": "skink", "count": 2 }] },
+    { "wave": 3, "triggerTimeMs": 420000,  "direction": "south",  "composition": [{ "type": "gator", "count": 4 }, { "type": "viper", "count": 2 }] },
+    { "wave": 4, "triggerTimeMs": 540000,  "direction": "east",   "composition": [{ "type": "gator", "count": 3 }, { "type": "snapper", "count": 1 }] },
+    { "wave": 5, "triggerTimeMs": 660000,  "direction": "north",  "composition": [{ "type": "gator", "count": 5 }, { "type": "viper", "count": 3 }] },
+    { "wave": 6, "triggerTimeMs": 780000,  "direction": "south",  "composition": [{ "type": "gator", "count": 4 }, { "type": "croc_champion", "count": 1 }, { "type": "skink", "count": 4 }] },
+    { "wave": 7, "triggerTimeMs": 900000,  "direction": "west",   "composition": [{ "type": "gator", "count": 6 }, { "type": "viper", "count": 2 }, { "type": "snapper", "count": 1 }] },
+    { "wave": 8, "triggerTimeMs": 1020000, "direction": "all",    "composition": [{ "type": "gator", "count": 8 }, { "type": "viper", "count": 4 }, { "type": "croc_champion", "count": 2 }, { "type": "skink", "count": 6 }] }
+  ],
+
+  "encounterTable": {
+    "patrols": []
+  },
+
+  "lootTable": {
+    "skink":         { "drops": [{ "resource": "fish", "amount": 5, "probability": 0.4 }] },
+    "gator":         { "drops": [{ "resource": "salvage", "amount": 8, "probability": 0.4 }] },
+    "viper":         { "drops": [{ "resource": "salvage", "amount": 12, "probability": 0.45 }] },
+    "snapper":       { "drops": [{ "resource": "salvage", "amount": 20, "probability": 0.5 }] },
+    "croc_champion": { "drops": [{ "resource": "salvage", "amount": 30, "probability": 0.6 }] }
+  },
+
+  "difficultyScaling": {
+    "support":  { "resourceMultiplier": 1.5, "enemyHpMultiplier": 0.8, "enemyDamageMultiplier": 0.8, "startingResources": { "fish": 300, "timber": 225, "salvage": 112 } },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0, "enemyDamageMultiplier": 1.0, "startingResources": { "fish": 200, "timber": 150, "salvage": 75 } },
+    "elite":    { "resourceMultiplier": 0.75, "enemyHpMultiplier": 1.2, "enemyDamageMultiplier": 1.2, "startingResources": { "fish": 150, "timber": 100, "salvage": 50 } }
+  }
+}

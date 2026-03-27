@@ -1,4 +1,4 @@
-import { getDatabase, type DatabaseAdapter } from "@/persistence/database";
+import { type DatabaseAdapter, getDatabase } from "@/persistence/database";
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import type {
 	CampaignProgressRecord,

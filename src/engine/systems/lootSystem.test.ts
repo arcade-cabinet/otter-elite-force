@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { FACTION_IDS } from "@/engine/content/ids";
-import { Faction, Flags } from "@/engine/world/components";
+import { Flags } from "@/engine/world/components";
 import { createGameWorld, markForRemoval, spawnUnit } from "@/engine/world/gameWorld";
 import { DROP_TABLES, resetLootRng, rollLootFromTable, runLootSystem } from "./lootSystem";
 

@@ -1,13 +1,13 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { InMemoryDatabase } from "@/persistence/database";
 import { SqlitePersistenceStore } from "../persistence/sqlitePersistenceStore";
 import { createGameWorld } from "../world/gameWorld";
-import { createEmptyDiagnosticsSnapshot } from "./types";
 import {
 	persistDiagnosticSnapshot,
 	recordDiagnosticEvent,
 	syncGameWorldDiagnostics,
 } from "./runtimeDiagnostics";
+import { createEmptyDiagnosticsSnapshot } from "./types";
 
 describe("engine/diagnostics/runtimeDiagnostics", () => {
 	it("records diagnostic events into a snapshot", () => {
@@ -23,7 +23,9 @@ describe("engine/diagnostics/runtimeDiagnostics", () => {
 		world.time.tick = 18;
 		world.session.currentMissionId = "mission_7";
 		world.session.phase = "defeat";
-		world.session.objectives = [{ id: "escape", description: "Escape the marsh", status: "failed" }];
+		world.session.objectives = [
+			{ id: "escape", description: "Escape the marsh", status: "failed" },
+		];
 		world.runtime.diagnosticEvents.push({ tick: 18, type: "boundary-violation" });
 
 		const synced = syncGameWorldDiagnostics(world);

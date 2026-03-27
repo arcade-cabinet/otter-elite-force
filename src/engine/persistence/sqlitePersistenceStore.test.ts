@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { InMemoryDatabase, closeDatabase, setDatabase } from "@/persistence/database";
-import { createSeedBundle } from "../random/seed";
+import { closeDatabase, InMemoryDatabase, setDatabase } from "@/persistence/database";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
+import { createSeedBundle } from "../random/seed";
 import { SqlitePersistenceStore } from "./sqlitePersistenceStore";
 
 describe("engine/persistence/sqlitePersistenceStore", () => {
@@ -48,7 +48,7 @@ describe("engine/persistence/sqlitePersistenceStore", () => {
 			slot: 1,
 			missionId: "mission_4",
 			seed,
-			snapshot: "{\"phase\":\"playing\"}",
+			snapshot: '{"phase":"playing"}',
 			playTimeMs: 9876,
 			savedAt: 123456789,
 		});

@@ -25,7 +25,8 @@ export function runTerritorySystem(world: GameWorld): void {
 			else if (Faction.id[eid] === 2) scaleCount++;
 		}
 
-		const controller = uraCount > scaleCount ? "ura" : scaleCount > uraCount ? "scale_guard" : "contested";
+		const controller =
+			uraCount > scaleCount ? "ura" : scaleCount > uraCount ? "scale_guard" : "contested";
 		world.events.push({
 			type: "zone-control",
 			payload: { zoneId, controller, uraCount, scaleCount },

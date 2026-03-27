@@ -14,7 +14,6 @@ import {
 	getTotalStars,
 	isCampaignComplete,
 	startNewCampaign,
-	type CampaignProgress,
 } from "./campaignFlow";
 
 describe("US-E01: Campaign Flow", () => {

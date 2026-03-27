@@ -11,7 +11,7 @@
  */
 
 import { type Component, createSignal, type JSX, onCleanup, onMount, Show } from "solid-js";
-import { type FormFactor, DESKTOP_QUERY, resolveFormFactor, TABLET_QUERY } from "./formFactor";
+import { DESKTOP_QUERY, type FormFactor, resolveFormFactor, TABLET_QUERY } from "./formFactor";
 
 // Re-export type from the pure-TS module
 export type { FormFactor } from "./formFactor";

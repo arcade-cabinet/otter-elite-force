@@ -63,7 +63,8 @@ function xmur3(input: string): () => number {
 	return () => {
 		h = Math.imul(h ^ (h >>> 16), 2246822507);
 		h = Math.imul(h ^ (h >>> 13), 3266489909);
-		return (h ^= h >>> 16) >>> 0;
+		h ^= h >>> 16;
+		return h >>> 0;
 	};
 }
 
@@ -143,11 +144,9 @@ function pickWord(seed: number, words: readonly string[]): string {
 
 export function deriveMissionSeedPhrase(missionId: string): string {
 	const hash = xmur3(`mission:${missionId}`);
-	return [
-		pickWord(hash(), ADJECTIVES),
-		pickWord(hash(), ADJECTIVES),
-		pickWord(hash(), NOUNS),
-	].join("-");
+	return [pickWord(hash(), ADJECTIVES), pickWord(hash(), ADJECTIVES), pickWord(hash(), NOUNS)].join(
+		"-",
+	);
 }
 
 export function createMissionSeedBundle(missionId: string): SeedBundle {

@@ -7,7 +7,7 @@
  * Reads from solidBridge boss() signal.
  */
 
-import { Show, createMemo, type Component } from "solid-js";
+import { type Component, createMemo, Show } from "solid-js";
 import type { SolidBridgeAccessors } from "@/engine/bridge/solidBridge";
 
 export const BossHealthBar: Component<{ bridge: SolidBridgeAccessors }> = (props) => {

@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+	Armor,
+	Attack,
+	Faction,
+	Flags,
+	Health,
+	Selection,
+	Speed,
+	VisionRadius,
+} from "./components";
+import {
 	createGameWorld,
 	flushRemovals,
 	getOrderQueue,
@@ -15,7 +25,6 @@ import {
 	spawnResource,
 	spawnUnit,
 } from "./gameWorld";
-import { Armor, Attack, Flags, Health, Selection, Speed, VisionRadius, Faction } from "./components";
 
 describe("engine/world/gameWorld", () => {
 	it("creates a world with deterministic seed metadata", () => {

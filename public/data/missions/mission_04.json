@@ -1,0 +1,163 @@
+{
+  "id": "mission_04",
+  "title": "Prison Break",
+  "chapter": 1,
+  "mapWidth": 128,
+  "mapHeight": 96,
+  "parTimeMinutes": 18,
+  "missionType": "commando",
+  "availableBuildings": [],
+  "availableUnits": ["mudfoot", "sapper", "diver"],
+  "startingResources": { "fish": 0, "timber": 0, "salvage": 0 },
+
+  "terrainRegions": [
+    { "terrainId": "forest", "fill": true },
+    { "terrainId": "dirt", "rect": { "x": 12, "y": 16, "w": 104, "h": 20 } },
+    { "terrainId": "stone", "rect": { "x": 8, "y": 12, "w": 112, "h": 2 } },
+    { "terrainId": "stone", "rect": { "x": 8, "y": 36, "w": 112, "h": 2 } },
+    { "terrainId": "stone", "rect": { "x": 8, "y": 14, "w": 2, "h": 22 } },
+    { "terrainId": "stone", "rect": { "x": 118, "y": 14, "w": 2, "h": 22 } },
+    { "terrainId": "dirt", "rect": { "x": 56, "y": 36, "w": 8, "h": 2 } },
+    { "terrainId": "water", "rect": { "x": 96, "y": 36, "w": 6, "h": 2 } },
+    { "terrainId": "dirt", "rect": { "x": 14, "y": 16, "w": 40, "h": 6 } },
+    { "terrainId": "dirt", "rect": { "x": 68, "y": 16, "w": 48, "h": 6 } },
+    { "terrainId": "dirt", "rect": { "x": 14, "y": 26, "w": 40, "h": 8 } },
+    { "terrainId": "dirt", "rect": { "x": 68, "y": 26, "w": 48, "h": 8 } },
+    { "terrainId": "dirt", "rect": { "x": 16, "y": 74, "w": 32, "h": 12 } },
+    { "terrainId": "mud", "rect": { "x": 8, "y": 88, "w": 112, "h": 8 } }
+  ],
+
+  "zones": {
+    "exfil_zone":       { "x": 8,  "y": 88, "width": 112, "height": 8 },
+    "staging_area":     { "x": 8,  "y": 72, "width": 48,  "height": 16 },
+    "observation_post": { "x": 64, "y": 72, "width": 56,  "height": 16 },
+    "jungle_west":      { "x": 8,  "y": 56, "width": 48,  "height": 16 },
+    "jungle_east":      { "x": 64, "y": 56, "width": 56,  "height": 16 },
+    "jungle_approach":  { "x": 8,  "y": 40, "width": 48,  "height": 16 },
+    "drainage_canal":   { "x": 64, "y": 40, "width": 56,  "height": 16 },
+    "compound_wall_s":  { "x": 8,  "y": 36, "width": 112, "height": 4 },
+    "barracks_yard":    { "x": 8,  "y": 24, "width": 48,  "height": 12 },
+    "officer_quarters": { "x": 64, "y": 24, "width": 56,  "height": 12 },
+    "motor_pool":       { "x": 8,  "y": 16, "width": 48,  "height": 8 },
+    "prison_block":     { "x": 64, "y": 16, "width": 56,  "height": 8 },
+    "compound_wall_n":  { "x": 8,  "y": 12, "width": 112, "height": 4 },
+    "jungle_north":     { "x": 8,  "y": 0,  "width": 48,  "height": 12 },
+    "watchtower_ne":    { "x": 64, "y": 0,  "width": 56,  "height": 12 }
+  },
+
+  "placements": [
+    { "type": "mudfoot",       "faction": "ura",         "x": 24, "y": 76 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 28, "y": 78 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 32, "y": 76 },
+    { "type": "shellcracker",  "faction": "ura",         "x": 20, "y": 78 },
+
+    { "type": "skink",         "faction": "scale_guard", "x": 86, "y": 76 },
+    { "type": "skink",         "faction": "scale_guard", "x": 92, "y": 80 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 80, "y": 60 },
+    { "type": "gator",         "faction": "scale_guard", "x": 82, "y": 62 },
+    { "type": "skink",         "faction": "scale_guard", "x": 20, "y": 52 },
+    { "type": "gator",         "faction": "scale_guard", "x": 32, "y": 4 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 56, "y": 38 },
+    { "type": "gator",         "faction": "scale_guard", "x": 62, "y": 38 },
+    { "type": "skink",         "faction": "scale_guard", "x": 24, "y": 26 },
+    { "type": "skink",         "faction": "scale_guard", "x": 30, "y": 28 },
+    { "type": "skink",         "faction": "scale_guard", "x": 36, "y": 26 },
+    { "type": "gator",         "faction": "scale_guard", "x": 42, "y": 30 },
+    { "type": "gator",         "faction": "scale_guard", "x": 20, "y": 18 },
+    { "type": "gator",         "faction": "scale_guard", "x": 28, "y": 20 },
+    { "type": "skink",         "faction": "scale_guard", "x": 36, "y": 18 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 72, "y": 18 },
+    { "type": "gator",         "faction": "scale_guard", "x": 80, "y": 20 },
+    { "type": "skink",         "faction": "scale_guard", "x": 76, "y": 22 },
+    { "type": "gator",         "faction": "scale_guard", "x": 74, "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 80, "y": 26 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 72, "y": 4,  "scriptId": "watchtower_guard_1" },
+    { "type": "gator",         "faction": "scale_guard", "x": 80, "y": 6,  "scriptId": "watchtower_guard_2" },
+    { "type": "viper",         "faction": "scale_guard", "x": 76, "y": 2,  "scriptId": "watchtower_sniper" },
+
+    { "type": "mudfoot",       "faction": "neutral",     "x": 88, "y": 18, "scriptId": "prisoner_whiskers" }
+  ],
+
+  "objectives": [
+    { "id": "neutralize-lookout",  "description": "Neutralize the observation post",              "type": "primary" },
+    { "id": "infiltrate-compound", "description": "Infiltrate the compound",                      "type": "primary" },
+    { "id": "rescue-prisoner",     "description": "Rescue General Whiskers from the prison block", "type": "primary" },
+    { "id": "extract",             "description": "Extract to the southern exfil zone",            "type": "primary" },
+    { "id": "bonus-stealth",       "description": "Complete infiltration without triggering alarm", "type": "bonus" },
+    { "id": "bonus-intel",         "description": "Recover intel documents from officer quarters",  "type": "bonus" }
+  ],
+
+  "phases": [
+    {
+      "id": "approach",
+      "name": "Approach",
+      "activeObjectives": ["neutralize-lookout"],
+      "dialogue": [
+        { "trigger": "timer", "delayMs": 3000,  "speaker": "Col. Bubbles", "text": "Listen up, Captain. General Whiskers is being held in a Scale-Guard detention compound. This is a commando operation -- no base, no reinforcements." },
+        { "trigger": "timer", "delayMs": 12000, "speaker": "FOXHOUND",     "text": "Observation post on the east ridge. Two sentries. Take them out quietly and you'll have a clear approach to the compound." },
+        { "trigger": "timer", "delayMs": 20000, "speaker": "Col. Bubbles", "text": "Two entry points: main gate on the south wall, or the drainage canal on the east side. The canal is quieter." }
+      ]
+    },
+    {
+      "id": "infiltration",
+      "name": "Infiltration",
+      "activeObjectives": ["infiltrate-compound"],
+      "entryCondition": { "type": "objectiveComplete", "objectiveId": "neutralize-lookout" },
+      "dialogue": [
+        { "trigger": "phaseStart", "speaker": "FOXHOUND", "text": "Lookout neutralized. Move to the compound. Watch for roaming patrols in the jungle." },
+        { "trigger": "phaseStart", "speaker": "FOXHOUND", "text": "Main gate has two guards. Drainage canal on the east side is a stealth entry if you have a swimmer." }
+      ]
+    },
+    {
+      "id": "rescue",
+      "name": "Rescue",
+      "activeObjectives": ["rescue-prisoner"],
+      "entryCondition": { "type": "objectiveComplete", "objectiveId": "infiltrate-compound" },
+      "dialogue": [
+        { "trigger": "phaseStart", "speaker": "FOXHOUND",     "text": "You're inside. Prison block is northeast of your position. Guards heavy around the cells." },
+        { "trigger": "phaseStart", "speaker": "Col. Bubbles", "text": "Get the General out alive, Captain. Everything depends on this." }
+      ]
+    },
+    {
+      "id": "extraction",
+      "name": "Extraction",
+      "activeObjectives": ["extract"],
+      "entryCondition": { "type": "objectiveComplete", "objectiveId": "rescue-prisoner" },
+      "dialogue": [
+        { "trigger": "phaseStart", "speaker": "Gen. Whiskers", "text": "Captain... thank you. I have critical intelligence about Scale-Guard operations. We must get this to HQ." },
+        { "trigger": "phaseStart", "speaker": "Col. Bubbles",  "text": "Exfil zone is south, past the jungle. Move fast -- they'll have the whole compound after you." }
+      ],
+      "spawns": [
+        { "trigger": "phaseStart", "units": [{ "type": "gator", "faction": "scale_guard", "x": 40, "y": 30, "count": 4 }, { "type": "skink", "faction": "scale_guard", "x": 60, "y": 28, "count": 3 }], "dialogue": { "speaker": "FOXHOUND", "text": "Alarm triggered! Compound garrison mobilizing. Get out now!" } }
+      ]
+    }
+  ],
+
+  "victoryDialogue": [
+    { "speaker": "Gen. Whiskers", "text": "Outstanding work, Captain. Scale-Guard had plans for a major offensive. With this intelligence, we can prepare." },
+    { "speaker": "Col. Bubbles", "text": "General's safe. Chapter 1 complete. The real fight for the Copper-Silt Reach begins now." }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 2 }], "intervalMs": 30000, "variance": 0.2 },
+      { "composition": [{ "type": "gator", "count": 1 }], "intervalMs": 50000, "variance": 0.3 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":  { "drops": [{ "resource": "salvage", "amount": 5, "probability": 0.4 }] },
+    "gator":  { "drops": [{ "resource": "salvage", "amount": 10, "probability": 0.4 }] },
+    "viper":  { "drops": [{ "resource": "salvage", "amount": 15, "probability": 0.5 }] }
+  },
+
+  "difficulty": {
+    "support":  { "resourceMultiplier": 1.0, "enemyHpMultiplier": 0.7,  "enemyDamageMultiplier": 0.7 },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0,  "enemyDamageMultiplier": 1.0 },
+    "elite":    { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.3,  "enemyDamageMultiplier": 1.3 }
+  }
+}

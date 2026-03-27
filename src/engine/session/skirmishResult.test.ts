@@ -4,8 +4,8 @@
 
 import { describe, expect, it } from "vitest";
 import type { SkirmishSessionConfig } from "@/features/skirmish/types";
-import { runSkirmishSandbox } from "./skirmishSandbox";
 import { computeSkirmishResult } from "./skirmishResult";
+import { runSkirmishSandbox } from "./skirmishSandbox";
 
 function makeConfig(phrase = "silent-ember-heron"): SkirmishSessionConfig {
 	return {
@@ -36,7 +36,7 @@ describe("engine/session/skirmishResult", () => {
 
 		expect(stats.outcome).toBe("timeout"); // Still playing = timeout
 		expect(stats.ticksRun).toBe(60);
-		expect(stats.durationSeconds).toBe(Math.round(60 * 16 / 1000));
+		expect(stats.durationSeconds).toBe(Math.round((60 * 16) / 1000));
 		expect(stats.totalEntitiesAlive).toBeGreaterThan(0);
 		expect(stats.playerUnitsAlive).toBeGreaterThanOrEqual(0);
 		expect(stats.enemyUnitsAlive).toBeGreaterThanOrEqual(0);

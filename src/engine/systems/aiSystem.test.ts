@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Attack, Health, VisionRadius } from "@/engine/world/components";
-import {
-	createGameWorld,
-	getOrderQueue,
-	spawnUnit,
-} from "@/engine/world/gameWorld";
+import { Attack, VisionRadius } from "@/engine/world/components";
+import { createGameWorld, getOrderQueue, spawnUnit } from "@/engine/world/gameWorld";
 import { runAiSystem } from "./aiSystem";
 
 function makeWorld(deltaMs: number) {
@@ -18,7 +14,9 @@ describe("engine/systems/aiSystem", () => {
 		const world = makeWorld(16);
 
 		const enemy = spawnUnit(world, {
-			x: 100, y: 100, faction: "scale_guard",
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 10;
@@ -26,7 +24,9 @@ describe("engine/systems/aiSystem", () => {
 		VisionRadius.value[enemy] = 200;
 
 		spawnUnit(world, {
-			x: 200, y: 100, faction: "ura",
+			x: 200,
+			y: 100,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 
@@ -47,7 +47,9 @@ describe("engine/systems/aiSystem", () => {
 		const world = makeWorld(16);
 
 		const enemy = spawnUnit(world, {
-			x: 100, y: 100, faction: "scale_guard",
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 10;
@@ -58,7 +60,9 @@ describe("engine/systems/aiSystem", () => {
 		existingOrders.push({ type: "move", targetX: 0, targetY: 0 });
 
 		spawnUnit(world, {
-			x: 200, y: 100, faction: "ura",
+			x: 200,
+			y: 100,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 
@@ -74,14 +78,18 @@ describe("engine/systems/aiSystem", () => {
 		const world = makeWorld(16);
 
 		const playerUnit = spawnUnit(world, {
-			x: 100, y: 100, faction: "ura",
+			x: 100,
+			y: 100,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 		Attack.damage[playerUnit] = 10;
 		VisionRadius.value[playerUnit] = 200;
 
 		spawnUnit(world, {
-			x: 110, y: 100, faction: "scale_guard",
+			x: 110,
+			y: 100,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 
@@ -95,7 +103,9 @@ describe("engine/systems/aiSystem", () => {
 		const world = makeWorld(16);
 
 		const enemy = spawnUnit(world, {
-			x: 100, y: 100, faction: "scale_guard",
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 10;
@@ -104,13 +114,17 @@ describe("engine/systems/aiSystem", () => {
 
 		// Far player unit
 		spawnUnit(world, {
-			x: 250, y: 100, faction: "ura",
+			x: 250,
+			y: 100,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 
 		// Near player unit (but still beyond attack range)
 		spawnUnit(world, {
-			x: 160, y: 100, faction: "ura",
+			x: 160,
+			y: 100,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 
@@ -131,14 +145,18 @@ describe("engine/systems/aiSystem", () => {
 		const world = makeWorld(16);
 
 		const enemy = spawnUnit(world, {
-			x: 100, y: 100, faction: "scale_guard",
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 10;
 		VisionRadius.value[enemy] = 50; // small range
 
 		spawnUnit(world, {
-			x: 500, y: 500, faction: "ura",
+			x: 500,
+			y: 500,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 
@@ -152,14 +170,18 @@ describe("engine/systems/aiSystem", () => {
 		const world = makeWorld(16);
 
 		const enemy = spawnUnit(world, {
-			x: 100, y: 100, faction: "scale_guard",
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 0; // no attack
 		VisionRadius.value[enemy] = 200;
 
 		spawnUnit(world, {
-			x: 110, y: 100, faction: "ura",
+			x: 110,
+			y: 100,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 
@@ -173,7 +195,9 @@ describe("engine/systems/aiSystem", () => {
 		const world = makeWorld(16);
 
 		const enemy = spawnUnit(world, {
-			x: 100, y: 100, faction: "scale_guard",
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 10;
@@ -181,7 +205,9 @@ describe("engine/systems/aiSystem", () => {
 		// VisionRadius.value[enemy] is 0 (default) — uses DEFAULT_DETECTION_RANGE (128)
 
 		spawnUnit(world, {
-			x: 200, y: 100, faction: "ura",
+			x: 200,
+			y: 100,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 

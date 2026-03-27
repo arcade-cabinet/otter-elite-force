@@ -51,32 +51,28 @@ const entityTileMap = new Map<string, string>();
 
 // ─── Atlas manifest — lists every sprite sheet to load ───
 
-const ATLAS_MANIFEST: Array<{ name: string; png: string; json: string }> = [
-	{ name: "otter", png: BASE + "assets/sprites/otter.png", json: BASE + "assets/sprites/otter.json" },
-	{
-		name: "crocodile",
-		png: BASE + "assets/sprites/crocodile.png",
-		json: BASE + "assets/sprites/crocodile.json",
-	},
-	{ name: "boar", png: BASE + "assets/sprites/boar.png", json: BASE + "assets/sprites/boar.json" },
-	{ name: "cobra", png: BASE + "assets/sprites/cobra.png", json: BASE + "assets/sprites/cobra.json" },
-	{ name: "fox", png: BASE + "assets/sprites/fox.png", json: BASE + "assets/sprites/fox.json" },
-	{ name: "hedgehog", png: BASE + "assets/sprites/hedgehog.png", json: BASE + "assets/sprites/hedgehog.json" },
-	{
-		name: "naked_mole_rat",
-		png: BASE + "assets/sprites/naked_mole_rat.png",
-		json: BASE + "assets/sprites/naked_mole_rat.json",
-	},
-	{
-		name: "porcupine",
-		png: BASE + "assets/sprites/porcupine.png",
-		json: BASE + "assets/sprites/porcupine.json",
-	},
-	{ name: "skunk", png: BASE + "assets/sprites/skunk.png", json: BASE + "assets/sprites/skunk.json" },
-	{ name: "snake", png: BASE + "assets/sprites/snake.png", json: BASE + "assets/sprites/snake.json" },
-	{ name: "squirrel", png: BASE + "assets/sprites/squirrel.png", json: BASE + "assets/sprites/squirrel.json" },
-	{ name: "vulture", png: BASE + "assets/sprites/vulture.png", json: BASE + "assets/sprites/vulture.json" },
-];
+const ATLAS_NAMES = [
+	"otter",
+	"crocodile",
+	"boar",
+	"cobra",
+	"fox",
+	"hedgehog",
+	"naked_mole_rat",
+	"porcupine",
+	"skunk",
+	"snake",
+	"squirrel",
+	"vulture",
+] as const;
+
+const ATLAS_MANIFEST: Array<{ name: string; png: string; json: string }> = ATLAS_NAMES.map(
+	(name) => ({
+		name,
+		png: `${BASE}assets/sprites/${name}.png`,
+		json: `${BASE}assets/sprites/${name}.json`,
+	}),
+);
 
 // ─── Loading ───
 
@@ -179,7 +175,6 @@ async function loadAtlas(entry: { name: string; png: string; json: string }): Pr
 		frameH,
 		sliced,
 	});
-	console.log(`[spriteAtlas] Loaded atlas: ${entry.name} (${animations.size} animations)`);
 }
 
 /**
@@ -187,20 +182,13 @@ async function loadAtlas(entry: { name: string; png: string; json: string }): Pr
  * Call once at app boot.
  */
 export async function loadAllAtlases(): Promise<void> {
-	console.log(`[spriteAtlas] Loading ${ATLAS_MANIFEST.length} sprite atlases...`);
-
 	const atlasResults = await Promise.allSettled(ATLAS_MANIFEST.map(loadAtlas));
 	const tileResult = await Promise.allSettled([loadTileSprites()]);
 
 	// Report individual atlas failures
-	let loaded = 0;
-	let failed = 0;
 	for (let i = 0; i < atlasResults.length; i++) {
 		const result = atlasResults[i];
-		if (result.status === "fulfilled") {
-			loaded++;
-		} else {
-			failed++;
+		if (result.status === "rejected") {
 			console.error(
 				`[spriteAtlas] Failed to load atlas "${ATLAS_MANIFEST[i].name}":`,
 				result.reason,
@@ -212,17 +200,13 @@ export async function loadAllAtlases(): Promise<void> {
 		console.error("[spriteAtlas] Failed to load tile sprites:", tileResult[0].reason);
 	}
 
-	console.log(
-		`[spriteAtlas] Atlas loading complete: ${loaded}/${ATLAS_MANIFEST.length} loaded, ${failed} failed`,
-	);
-
 	buildEntitySpriteMap();
 	buildEntityTileMap();
 }
 
 /** Load building/resource tile sprites from the tile manifest. */
 async function loadTileSprites(): Promise<void> {
-	const manifestUrl = BASE + "assets/tiles/tile-manifest.json";
+	const manifestUrl = `${BASE}assets/tiles/tile-manifest.json`;
 	const response = await fetch(manifestUrl);
 	if (!response.ok) {
 		throw new Error(
@@ -235,8 +219,6 @@ async function loadTileSprites(): Promise<void> {
 	const toLoad = Object.entries(manifest).filter(
 		([, v]) => v.category === "buildings" || v.category === "resources" || v.category === "props",
 	);
-
-	console.log(`[spriteAtlas] Loading ${toLoad.length} tile sprites (buildings/resources/props)...`);
 
 	const results = await Promise.allSettled(
 		toLoad.map(async ([name, entry]) => {
@@ -255,18 +237,14 @@ async function loadTileSprites(): Promise<void> {
 		}),
 	);
 
-	let tileLoaded = 0;
 	for (let i = 0; i < results.length; i++) {
-		if (results[i].status === "fulfilled") {
-			tileLoaded++;
-		} else {
+		if (results[i].status === "rejected") {
 			console.error(
 				`[spriteAtlas] Failed to load tile sprite "${toLoad[i][0]}":`,
 				(results[i] as PromiseRejectedResult).reason,
 			);
 		}
 	}
-	console.log(`[spriteAtlas] Tile sprites loaded: ${tileLoaded}/${toLoad.length}`);
 }
 
 /** Map building/resource entity IDs to tile sprite names. */

@@ -18,6 +18,7 @@
  * Pure function on GameWorld.
  */
 
+import { FACTION_IDS } from "@/engine/content/ids";
 import {
 	DetectionCone,
 	Facing,
@@ -27,7 +28,6 @@ import {
 	Position,
 	VisionRadius,
 } from "@/engine/world/components";
-import { FACTION_IDS } from "@/engine/content/ids";
 import type { GameWorld } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
@@ -219,9 +219,11 @@ function runConeDetection(world: GameWorld): void {
 
 			if (
 				isInsideCone(
-					dx0, dy0,
+					dx0,
+					dy0,
 					facingAngle,
-					Position.x[candidateEid], Position.y[candidateEid],
+					Position.x[candidateEid],
+					Position.y[candidateEid],
 					coneRange,
 					halfAngle,
 				)
@@ -238,7 +240,9 @@ function runConeDetection(world: GameWorld): void {
 				DetectionCone.alertState[detectorEid] = ALERT_SUSPICIOUS;
 			}
 
-			if (DetectionCone.suspicionTimer[detectorEid] >= DetectionCone.suspicionThreshold[detectorEid]) {
+			if (
+				DetectionCone.suspicionTimer[detectorEid] >= DetectionCone.suspicionThreshold[detectorEid]
+			) {
 				DetectionCone.alertState[detectorEid] = ALERT_FULL;
 				alertedDetectors.push(detectorEid);
 			}
@@ -270,7 +274,12 @@ function runConeDetection(world: GameWorld): void {
 			if (DetectionCone.alertState[candidateEid] === ALERT_FULL) continue;
 			if (Faction.id[candidateEid] !== sourceFaction) continue;
 
-			const dist = distanceBetween(sourceX, sourceY, Position.x[candidateEid], Position.y[candidateEid]);
+			const dist = distanceBetween(
+				sourceX,
+				sourceY,
+				Position.x[candidateEid],
+				Position.y[candidateEid],
+			);
 			if (dist <= ALERT_PROPAGATION_RANGE) {
 				DetectionCone.alertState[candidateEid] = ALERT_FULL;
 				DetectionCone.suspicionTimer[candidateEid] = DetectionCone.suspicionThreshold[candidateEid];

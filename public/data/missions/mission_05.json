@@ -1,0 +1,146 @@
+{
+  "id": "mission_05",
+  "title": "Siphon Valley",
+  "chapter": 2,
+  "mapWidth": 160,
+  "mapHeight": 128,
+  "parTimeMinutes": 20,
+  "availableBuildings": ["burrow", "command_post", "barracks", "armory", "fish_trap", "watchtower", "sandbag_wall", "gun_tower", "stone_wall", "minefield"],
+  "availableUnits": ["river_rat", "mudfoot", "shellcracker", "mortar_otter", "sapper", "diver", "raftsman"],
+  "startingResources": { "fish": 150, "timber": 100, "salvage": 50 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "grass", "rect": { "x": 0, "y": 88, "w": 160, "h": 40 } },
+    { "terrainId": "dirt", "rect": { "x": 12, "y": 92, "w": 48, "h": 20 } },
+    { "terrainId": "mangrove", "rect": { "x": 100, "y": 90, "w": 40, "h": 18 } },
+    { "terrainId": "mud", "rect": { "x": 0, "y": 72, "w": 56, "h": 16 } },
+    { "terrainId": "toxic_sludge", "rect": { "x": 0, "y": 60, "w": 160, "h": 12 } },
+    { "terrainId": "mud", "rect": { "x": 20, "y": 62, "w": 8, "h": 8 } },
+    { "terrainId": "mud", "rect": { "x": 108, "y": 60, "w": 8, "h": 8 } },
+    { "terrainId": "dirt", "rect": { "x": 72, "y": 72, "w": 88, "h": 16 } },
+    { "terrainId": "dirt", "rect": { "x": 4, "y": 38, "w": 24, "h": 18 } },
+    { "terrainId": "dirt", "rect": { "x": 12, "y": 18, "w": 40, "h": 18 } },
+    { "terrainId": "dirt", "rect": { "x": 56, "y": 18, "w": 40, "h": 20 } },
+    { "terrainId": "toxic_sludge", "rect": { "x": 60, "y": 38, "w": 40, "h": 18 } },
+    { "terrainId": "stone", "rect": { "x": 124, "y": 20, "w": 28, "h": 36 } },
+    { "terrainId": "stone", "rect": { "x": 0, "y": 0, "w": 160, "h": 16 } },
+    { "terrainId": "dirt", "rect": { "x": 106, "y": 42, "w": 16, "h": 12 } }
+  ],
+
+  "zones": {
+    "forward_base":    { "x": 8,   "y": 88,  "width": 56,  "height": 28 },
+    "timber_grove":    { "x": 96,  "y": 88,  "width": 48,  "height": 24 },
+    "southern_bank":   { "x": 0,   "y": 112, "width": 160, "height": 16 },
+    "mud_flats":       { "x": 0,   "y": 72,  "width": 56,  "height": 16 },
+    "approach_east":   { "x": 72,  "y": 72,  "width": 88,  "height": 16 },
+    "toxic_river":     { "x": 0,   "y": 60,  "width": 160, "height": 12 },
+    "scrap_field":     { "x": 0,   "y": 36,  "width": 32,  "height": 24 },
+    "siphon_alpha":    { "x": 8,   "y": 16,  "width": 48,  "height": 24 },
+    "pipe_corridor":   { "x": 56,  "y": 16,  "width": 40,  "height": 24 },
+    "siphon_bravo":    { "x": 56,  "y": 36,  "width": 48,  "height": 24 },
+    "siphon_charlie":  { "x": 120, "y": 16,  "width": 36,  "height": 44 },
+    "supply_depot":    { "x": 104, "y": 40,  "width": 20,  "height": 16 },
+    "northern_ridge":  { "x": 0,   "y": 0,   "width": 160, "height": 16 }
+  },
+
+  "placements": [
+    { "type": "burrow",        "faction": "ura",         "x": 24,  "y": 100, "scriptId": "player_lodge" },
+    { "type": "river_rat",     "faction": "ura",         "x": 20,  "y": 102 },
+    { "type": "river_rat",     "faction": "ura",         "x": 28,  "y": 103 },
+    { "type": "river_rat",     "faction": "ura",         "x": 22,  "y": 105 },
+    { "type": "river_rat",     "faction": "ura",         "x": 30,  "y": 101 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 32,  "y": 98 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 36,  "y": 99 },
+    { "type": "mortar_otter",  "faction": "ura",         "x": 38,  "y": 102 },
+
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 102, "y": 92 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 108, "y": 94 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 114, "y": 91 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 120, "y": 95 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 106, "y": 98 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 116, "y": 100 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 126, "y": 93 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 132, "y": 96 },
+
+    { "type": "fish_spot",     "faction": "neutral",     "x": 60,  "y": 110 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 80,  "y": 114 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 140, "y": 112 },
+
+    { "type": "salvage_cache", "faction": "neutral",     "x": 10,  "y": 40 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 18,  "y": 44 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 14,  "y": 48 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 110, "y": 44 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 114, "y": 48 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 108, "y": 50 },
+
+    { "type": "fuel_tank",     "faction": "scale_guard", "x": 32,  "y": 26, "scriptId": "siphon_alpha_tank" },
+    { "type": "siphon_drone",  "faction": "scale_guard", "x": 28,  "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 24,  "y": 24 },
+    { "type": "gator",         "faction": "scale_guard", "x": 36,  "y": 24 },
+    { "type": "skink",         "faction": "scale_guard", "x": 30,  "y": 20 },
+
+    { "type": "fuel_tank",     "faction": "scale_guard", "x": 80,  "y": 44, "scriptId": "siphon_bravo_tank" },
+    { "type": "siphon_drone",  "faction": "scale_guard", "x": 76,  "y": 42 },
+    { "type": "siphon_drone",  "faction": "scale_guard", "x": 84,  "y": 46 },
+    { "type": "gator",         "faction": "scale_guard", "x": 72,  "y": 40 },
+    { "type": "gator",         "faction": "scale_guard", "x": 88,  "y": 40 },
+    { "type": "gator",         "faction": "scale_guard", "x": 76,  "y": 48 },
+    { "type": "gator",         "faction": "scale_guard", "x": 84,  "y": 50 },
+    { "type": "viper",         "faction": "scale_guard", "x": 80,  "y": 38 },
+
+    { "type": "fuel_tank",     "faction": "scale_guard", "x": 140, "y": 32, "scriptId": "siphon_charlie_tank" },
+    { "type": "siphon_drone",  "faction": "scale_guard", "x": 136, "y": 30 },
+    { "type": "siphon_drone",  "faction": "scale_guard", "x": 144, "y": 34 },
+    { "type": "watchtower",    "faction": "scale_guard", "x": 128, "y": 24 },
+    { "type": "watchtower",    "faction": "scale_guard", "x": 148, "y": 24 },
+    { "type": "sandbag_wall",  "faction": "scale_guard", "x": 124, "y": 36 },
+    { "type": "sandbag_wall",  "faction": "scale_guard", "x": 126, "y": 36 },
+    { "type": "sandbag_wall",  "faction": "scale_guard", "x": 128, "y": 36 },
+    { "type": "gator",         "faction": "scale_guard", "x": 132, "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 138, "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 144, "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 136, "y": 36 },
+    { "type": "gator",         "faction": "scale_guard", "x": 142, "y": 36 },
+    { "type": "gator",         "faction": "scale_guard", "x": 148, "y": 32 },
+    { "type": "viper",         "faction": "scale_guard", "x": 130, "y": 22 },
+    { "type": "viper",         "faction": "scale_guard", "x": 146, "y": 22 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 140, "y": 26 },
+
+    { "type": "skink",         "faction": "scale_guard", "x": 64,  "y": 24 },
+    { "type": "skink",         "faction": "scale_guard", "x": 76,  "y": 28 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 108, "y": 44 },
+    { "type": "gator",         "faction": "scale_guard", "x": 114, "y": 48 }
+  ],
+
+  "objectives": [
+    { "id": "destroy-siphon-alpha",   "description": "Destroy Siphon Alpha",                    "type": "primary" },
+    { "id": "destroy-siphon-bravo",   "description": "Destroy Siphon Bravo",                    "type": "primary" },
+    { "id": "destroy-siphon-charlie", "description": "Destroy Siphon Charlie",                  "type": "primary" },
+    { "id": "recover-supply-depot",   "description": "Recover the Supply Depot salvage caches",  "type": "bonus" },
+    { "id": "no-losses-alpha",        "description": "Destroy Siphon Alpha with zero casualties", "type": "bonus" }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 4 }, { "type": "siphon_drone", "count": 1 }], "intervalMs": 50000, "variance": 0.3 },
+      { "composition": [{ "type": "gator", "count": 3 }, { "type": "viper", "count": 1 }], "intervalMs": 70000, "variance": 0.3 },
+      { "composition": [{ "type": "croc_champion", "count": 1 }, { "type": "gator", "count": 2 }], "intervalMs": 100000, "variance": 0.35 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":          { "drops": [{ "resource": "fish", "amount": 5, "probability": 0.5 }] },
+    "gator":          { "drops": [{ "resource": "salvage", "amount": 10, "probability": 0.4 }] },
+    "viper":          { "drops": [{ "resource": "salvage", "amount": 12, "probability": 0.5 }] },
+    "siphon_drone":   { "drops": [{ "resource": "salvage", "amount": 15, "probability": 0.6 }] },
+    "croc_champion":  { "drops": [{ "resource": "salvage", "amount": 25, "probability": 0.6 }] }
+  },
+
+  "difficultyScaling": {
+    "support":  { "resourceMultiplier": 1.5, "enemyHpMultiplier": 0.8, "enemyDamageMultiplier": 0.8, "startingResources": { "fish": 225, "timber": 150, "salvage": 75 } },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0, "enemyDamageMultiplier": 1.0, "startingResources": { "fish": 150, "timber": 100, "salvage": 50 } },
+    "elite":    { "resourceMultiplier": 0.75, "enemyHpMultiplier": 1.2, "enemyDamageMultiplier": 1.2, "startingResources": { "fish": 100, "timber": 75, "salvage": 25 } }
+  }
+}

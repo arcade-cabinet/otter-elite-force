@@ -1,7 +1,7 @@
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
-import solid from "vite-plugin-solid";
 import { defineConfig } from "vite";
+import solid from "vite-plugin-solid";
 
 export default defineConfig(({ mode: _mode }) => ({
 	plugins: [

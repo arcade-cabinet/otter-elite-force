@@ -13,13 +13,10 @@ import type { SkirmishSessionConfig } from "@/features/skirmish/types";
 import { syncGameWorldDiagnostics } from "../diagnostics/runtimeDiagnostics";
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import { createFogGrid, type FogRuntime } from "../systems";
-import { createSystemPipeline, type SystemPipeline } from "./systemPipeline";
-import {
-	createSkirmishRuntimeSession,
-	seedGameWorldFromSkirmishSession,
-} from "./tacticalSession";
-import { createGameWorld, type GameWorld } from "../world/gameWorld";
 import { Health, Position } from "../world/components";
+import { createGameWorld, type GameWorld } from "../world/gameWorld";
+import { createSystemPipeline, type SystemPipeline } from "./systemPipeline";
+import { createSkirmishRuntimeSession, seedGameWorldFromSkirmishSession } from "./tacticalSession";
 
 export interface EntitySnapshot {
 	eid: number;

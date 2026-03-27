@@ -1,5 +1,5 @@
-import type { Objective, Scenario, ScenarioTrigger, TriggerCondition } from "@/scenarios/types";
 import { deriveMissionSeedPhrase } from "@/engine";
+import type { Objective, Scenario, ScenarioTrigger, TriggerCondition } from "@/scenarios/types";
 import type { MissionDef } from "../types";
 
 function compileCondition(

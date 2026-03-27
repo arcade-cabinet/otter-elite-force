@@ -2,11 +2,11 @@
  * Barrel file for SolidJS screen components.
  */
 
-export { MainMenu } from "./MainMenu";
-export { CampaignView } from "./CampaignView";
-export { SettingsPanel } from "./SettingsPanel";
-export { SkirmishSetup } from "./SkirmishSetup";
 export { BriefingOverlay } from "./BriefingOverlay";
-export { PauseOverlay } from "./PauseOverlay";
+export { CampaignView } from "./CampaignView";
+export { MainMenu } from "./MainMenu";
 export { MissionResult, type MissionResultData, type MissionResultStats } from "./MissionResult";
+export { PauseOverlay } from "./PauseOverlay";
+export { SettingsPanel } from "./SettingsPanel";
 export { SkirmishResult } from "./SkirmishResult";
+export { SkirmishSetup } from "./SkirmishSetup";

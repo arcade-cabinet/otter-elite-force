@@ -39,9 +39,7 @@ export function runBossSystem(world: GameWorld): void {
 		if (!world.runtime.alive.has(eid)) continue;
 
 		const config = rawConfig as BossConfig;
-		const hpPercent = Health.max[eid] > 0
-			? (Health.current[eid] / Health.max[eid]) * 100
-			: 0;
+		const hpPercent = Health.max[eid] > 0 ? (Health.current[eid] / Health.max[eid]) * 100 : 0;
 
 		// Find the active phase (highest threshold that HP is below)
 		let activePhase: BossPhase | null = null;

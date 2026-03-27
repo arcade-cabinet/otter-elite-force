@@ -6,7 +6,7 @@
  * Clicking an unlocked mission navigates to the briefing screen.
  */
 
-import { type Component, For, Show, createMemo } from "solid-js";
+import { type Component, createMemo, For, Show } from "solid-js";
 import { CAMPAIGN } from "@/entities/missions";
 import type { MissionDef } from "@/entities/types";
 import type { AppState } from "../appState";
@@ -119,11 +119,7 @@ const MissionCard: Component<{
 				</div>
 				<div class="flex shrink-0 flex-col items-end gap-1">
 					<Show when={isLocked()}>
-						<span
-							role="img"
-							class="font-mono text-sm text-slate-600"
-							aria-label="Locked"
-						>
+						<span role="img" class="font-mono text-sm text-slate-600" aria-label="Locked">
 							&#x1F512;
 						</span>
 					</Show>
@@ -161,9 +157,7 @@ export const CampaignView: Component<{ app: AppState }> = (props) => {
 					<div class="inline-block border border-accent/25 bg-accent/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.28em] text-accent">
 						Copper-Silt Reach
 					</div>
-					<h2 class="font-heading text-2xl uppercase tracking-[0.22em] text-primary">
-						Campaign
-					</h2>
+					<h2 class="font-heading text-2xl uppercase tracking-[0.22em] text-primary">Campaign</h2>
 					<p class="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-400">
 						{completedCount()} of {CAMPAIGN.length} missions completed
 					</p>
@@ -185,10 +179,7 @@ export const CampaignView: Component<{ app: AppState }> = (props) => {
 								<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
 									<For each={chapter.missions}>
 										{(slot) => (
-											<MissionCard
-												slot={slot}
-												onClick={() => handleMissionClick(slot.def.id)}
-											/>
+											<MissionCard slot={slot} onClick={() => handleMissionClick(slot.def.id)} />
 										)}
 									</For>
 								</div>

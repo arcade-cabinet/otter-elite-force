@@ -1,26 +1,15 @@
 import { describe, expect, it } from "vitest";
-import {
-	Attack,
-	Armor,
-	Facing,
-	Speed,
-	Velocity,
-	VisionRadius,
-} from "../world/components";
+import { createSeedBundle } from "../random/seed";
+import { Attack, Speed } from "../world/components";
 import {
 	createGameWorld,
 	getOrderQueue,
 	getProductionQueue,
-	setScriptTag,
 	spawnBuilding,
 	spawnResource,
 	spawnUnit,
 } from "../world/gameWorld";
-import { createSeedBundle } from "../random/seed";
-import {
-	serializeGameWorld,
-	deserializeGameWorld,
-} from "./gameWorldSaveLoad";
+import { deserializeGameWorld, serializeGameWorld } from "./gameWorldSaveLoad";
 
 function makeSeed() {
 	return createSeedBundle({ phrase: "test-save-heron", source: "manual" });

@@ -19,6 +19,7 @@
  * The save format is a JSON blob stored via SqlitePersistenceStore.saveMission().
  */
 
+import type { SeedBundle } from "../random/seed";
 import {
 	Armor,
 	Attack,
@@ -39,16 +40,15 @@ import {
 	VisionRadius,
 } from "../world/components";
 import {
+	createGameWorld,
 	type GameWorld,
 	type Order,
 	type ProductionEntry,
 	type SessionObjective,
-	createGameWorld,
-	spawnUnit,
 	spawnBuilding,
 	spawnResource,
+	spawnUnit,
 } from "../world/gameWorld";
-import type { SeedBundle } from "../random/seed";
 
 /** Serialized representation of a single entity. */
 interface SavedEntity {

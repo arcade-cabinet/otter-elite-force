@@ -45,9 +45,7 @@ export interface SkirmishResultStats {
 /**
  * Compute result stats from a completed skirmish sandbox run.
  */
-export function computeSkirmishResult(
-	sandboxResult: SkirmishSandboxResult,
-): SkirmishResultStats {
+export function computeSkirmishResult(sandboxResult: SkirmishSandboxResult): SkirmishResultStats {
 	const world = sandboxResult.world;
 
 	// Determine outcome

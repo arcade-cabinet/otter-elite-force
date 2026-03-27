@@ -1,9 +1,9 @@
 import { initDatabase } from "@/persistence/database";
-import type { PersistenceStore } from "../persistence/types";
 import { SqlitePersistenceStore } from "../persistence/sqlitePersistenceStore";
+import type { PersistenceStore } from "../persistence/types";
+import type { FogRuntime } from "../systems/fogSystem";
 import { Faction, Flags, Position, Speed } from "../world/components";
 import type { GameWorld } from "../world/gameWorld";
-import type { FogRuntime } from "../systems/fogSystem";
 import type { DiagnosticEvent, DiagnosticSnapshot } from "./types";
 
 export function recordDiagnosticEvent(

@@ -6,7 +6,7 @@
  * Uses mission definition data from CAMPAIGN.
  */
 
-import { type Component, For, Show, createMemo } from "solid-js";
+import { type Component, createMemo, For, Show } from "solid-js";
 import { getMissionById } from "@/entities/missions";
 import type { AppState } from "../appState";
 
@@ -116,9 +116,7 @@ export const BriefingOverlay: Component<{ app: AppState }> = (props) => {
 										<For each={m().objectives.primary}>
 											{(obj) => (
 												<li class="flex items-start gap-2">
-													<span class="mt-0.5 font-mono text-xs text-amber-700">
-														&#x25A0;
-													</span>
+													<span class="mt-0.5 font-mono text-xs text-amber-700">&#x25A0;</span>
 													<span class="font-body text-xs uppercase tracking-[0.1em] text-slate-800">
 														{obj.description}
 													</span>

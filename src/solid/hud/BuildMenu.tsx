@@ -7,7 +7,7 @@
  * Reads resources from solidBridge stores.
  */
 
-import { For, type Component } from "solid-js";
+import { type Component, For } from "solid-js";
 import type { SolidBridgeAccessors, SolidBridgeEmit } from "@/engine/bridge/solidBridge";
 
 export interface BuildOption {
@@ -18,14 +18,39 @@ export interface BuildOption {
 }
 
 const DEFAULT_BUILD_OPTIONS: BuildOption[] = [
-	{ id: "command_post", name: "Command Post", role: "Workers, resource depot", cost: { timber: 400, salvage: 200 } },
-	{ id: "barracks", name: "Barracks", role: "Trains Mudfoots, Shellcrackers", cost: { timber: 200 } },
+	{
+		id: "command_post",
+		name: "Command Post",
+		role: "Workers, resource depot",
+		cost: { timber: 400, salvage: 200 },
+	},
+	{
+		id: "barracks",
+		name: "Barracks",
+		role: "Trains Mudfoots, Shellcrackers",
+		cost: { timber: 200 },
+	},
 	{ id: "burrow", name: "Burrow", role: "Population housing", cost: { timber: 100 } },
 	{ id: "fish_trap", name: "Fish Trap", role: "Automated fish income", cost: { timber: 80 } },
-	{ id: "watchtower", name: "Watchtower", role: "Defensive tower", cost: { timber: 150, salvage: 50 } },
+	{
+		id: "watchtower",
+		name: "Watchtower",
+		role: "Defensive tower",
+		cost: { timber: 150, salvage: 50 },
+	},
 	{ id: "sandbag_wall", name: "Sandbag Wall", role: "Defensive barrier", cost: { timber: 50 } },
-	{ id: "armory", name: "Armory", role: "Upgrades and research", cost: { timber: 250, salvage: 150 } },
-	{ id: "field_hospital", name: "Field Hospital", role: "Heals nearby units", cost: { timber: 200, salvage: 100 } },
+	{
+		id: "armory",
+		name: "Armory",
+		role: "Upgrades and research",
+		cost: { timber: 250, salvage: 150 },
+	},
+	{
+		id: "field_hospital",
+		name: "Field Hospital",
+		role: "Heals nearby units",
+		cost: { timber: 200, salvage: 100 },
+	},
 	{ id: "dock", name: "Dock", role: "Naval units", cost: { timber: 300, salvage: 100 } },
 ];
 
@@ -86,9 +111,7 @@ export const BuildMenu: Component<{
 											{opt.role}
 										</span>
 									</div>
-									<span class="font-mono text-[9px] text-slate-500">
-										{formatCost(opt.cost)}
-									</span>
+									<span class="font-mono text-[9px] text-slate-500">{formatCost(opt.cost)}</span>
 								</button>
 							);
 						}}

@@ -37,16 +37,9 @@ export interface ScenarioWorldQuery {
 	/** Get current amount of a resource from the ResourcePool */
 	getResourceAmount(resource: "fish" | "timber" | "salvage"): number;
 	/** Optional count of enemy units in a zone. */
-	countEnemiesInZone?(
-		zoneId: string,
-		operatorContext?: { faction?: string },
-	): number;
+	countEnemiesInZone?(zoneId: string, operatorContext?: { faction?: string }): number;
 	/** Optional count of buildings in a zone. */
-	countBuildingsInZone?(
-		faction: string,
-		zoneId: string,
-		buildingType?: string,
-	): number;
+	countBuildingsInZone?(faction: string, zoneId: string, buildingType?: string): number;
 	/** Optional entity-destroyed check by tag identity. */
 	isEntityDestroyed?(entityTag: string, match?: "first" | "any" | "all"): boolean;
 	/** Optional entity destroyed counter. */

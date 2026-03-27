@@ -9,8 +9,8 @@
  * Pure function on GameWorld.
  */
 
-import { Faction, Flags } from "@/engine/world/components";
 import { FACTION_IDS } from "@/engine/content/ids";
+import { Faction, Flags } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
 
 export interface MissionScore {
@@ -48,9 +48,8 @@ export function calculateMissionScore(world: GameWorld): MissionScore {
 
 	// Check bonus objectives
 	const bonusObjectives = world.session.objectives.filter((o) => o.bonus);
-	const objectiveBonus = bonusObjectives.length > 0
-		? bonusObjectives.every((o) => o.status === "completed")
-		: false;
+	const objectiveBonus =
+		bonusObjectives.length > 0 ? bonusObjectives.every((o) => o.status === "completed") : false;
 
 	let stars: 1 | 2 | 3 = 1;
 	const bonusCount = [timeBonus, casualtyBonus, objectiveBonus].filter(Boolean).length;

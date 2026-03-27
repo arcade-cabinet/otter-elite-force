@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Flags, Health, Position } from "@/engine/world/components";
+import { Flags } from "@/engine/world/components";
 import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
 import { runWaterSystem } from "./waterSystem";
 

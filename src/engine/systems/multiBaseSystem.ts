@@ -4,8 +4,8 @@
  * Pure function on GameWorld.
  */
 
-import { Faction, Flags } from "@/engine/world/components";
 import { FACTION_IDS } from "@/engine/content/ids";
+import { Faction, Flags } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
 
 /**

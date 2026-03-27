@@ -3,9 +3,8 @@
  * Pure function on GameWorld.
  */
 
-import { Attack, Health, Speed } from "@/engine/world/components";
 import { FACTION_IDS } from "@/engine/content/ids";
-import { Faction } from "@/engine/world/components";
+import { Attack, Faction, Health, Speed } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
 
 /** Stat multipliers per difficulty tier. */

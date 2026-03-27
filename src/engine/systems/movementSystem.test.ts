@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Position, Speed } from "@/engine/world/components";
-import {
-	createGameWorld,
-	getOrderQueue,
-	spawnUnit,
-} from "@/engine/world/gameWorld";
+import { createGameWorld, getOrderQueue, spawnUnit } from "@/engine/world/gameWorld";
 import { runMovementSystem } from "./movementSystem";
 
 function makeWorld(deltaMs: number) {

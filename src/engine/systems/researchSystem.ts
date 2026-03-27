@@ -20,13 +20,8 @@
  *   - diving_gear: Unlocks Diver unit (passive check)
  */
 
-import {
-	Attack,
-	Flags,
-	Health,
-	Speed,
-} from "@/engine/world/components";
-import { getProductionQueue, type GameWorld, type ProductionEntry } from "@/engine/world/gameWorld";
+import { Attack, Flags, Health, Speed } from "@/engine/world/components";
+import { type GameWorld, getProductionQueue, type ProductionEntry } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
 // Research definitions
@@ -139,11 +134,7 @@ export function getResearchDef(id: string): ResearchDef | null {
  * Returns false if: unknown research, already completed, building already
  * researching, wrong building type, or insufficient resources.
  */
-export function queueResearch(
-	world: GameWorld,
-	buildingEid: number,
-	researchId: string,
-): boolean {
+export function queueResearch(world: GameWorld, buildingEid: number, researchId: string): boolean {
 	const def = RESEARCH[researchId];
 	if (!def) return false;
 
@@ -288,11 +279,7 @@ function applyResearchEffect(world: GameWorld, researchId: string): void {
 /**
  * Helper: iterate all non-building entities matching a unit type and apply fn.
  */
-function applyToUnitsOfType(
-	world: GameWorld,
-	unitType: string,
-	fn: (eid: number) => void,
-): void {
+function applyToUnitsOfType(world: GameWorld, unitType: string, fn: (eid: number) => void): void {
 	for (const eid of world.runtime.alive) {
 		if (Flags.isBuilding[eid] === 1) continue;
 		if (Flags.isResource[eid] === 1) continue;

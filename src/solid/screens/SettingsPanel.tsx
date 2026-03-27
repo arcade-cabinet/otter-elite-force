@@ -18,9 +18,7 @@ const SliderSetting: Component<{
 	return (
 		<div class="flex flex-col gap-1 rounded-[2px] border border-slate-700/70 bg-slate-900/20 p-3">
 			<div class="flex items-center justify-between">
-				<span class="font-body text-xs uppercase tracking-wider text-slate-400">
-					{props.label}
-				</span>
+				<span class="font-body text-xs uppercase tracking-wider text-slate-400">{props.label}</span>
 				<span class="font-mono text-xs tabular-nums text-slate-100">
 					{Math.round(props.value() * 100)}%
 				</span>
@@ -50,9 +48,7 @@ const ToggleSetting: Component<{
 			onClick={() => props.onChange(!props.value())}
 			class="flex items-center justify-between rounded-[2px] border border-slate-700/70 bg-slate-900/20 px-3 py-3"
 		>
-			<span class="font-body text-xs uppercase tracking-wider text-slate-400">
-				{props.label}
-			</span>
+			<span class="font-body text-xs uppercase tracking-wider text-slate-400">{props.label}</span>
 			<span
 				class={`font-mono text-xs uppercase ${props.value() ? "text-accent" : "text-slate-500"}`}
 			>
@@ -76,9 +72,7 @@ export const SettingsPanel: Component<{ app: AppState }> = (props) => {
 			<div class="relative z-10 flex w-full max-w-2xl flex-col gap-6 px-4 py-8">
 				{/* Header */}
 				<div class="flex flex-col items-center gap-2 text-center">
-					<h2 class="font-heading text-2xl uppercase tracking-[0.22em] text-primary">
-						Settings
-					</h2>
+					<h2 class="font-heading text-2xl uppercase tracking-[0.22em] text-primary">Settings</h2>
 					<p class="font-mono text-[10px] uppercase tracking-[0.14em] text-slate-400">
 						Field controls for audio, visuals, and readability
 					</p>
@@ -90,21 +84,9 @@ export const SettingsPanel: Component<{ app: AppState }> = (props) => {
 						Audio
 					</div>
 					<div class="flex flex-col gap-3">
-						<SliderSetting
-							label="Master Volume"
-							value={masterVolume}
-							onChange={setMasterVolume}
-						/>
-						<SliderSetting
-							label="Music Volume"
-							value={musicVolume}
-							onChange={setMusicVolume}
-						/>
-						<SliderSetting
-							label="SFX Volume"
-							value={sfxVolume}
-							onChange={setSfxVolume}
-						/>
+						<SliderSetting label="Master Volume" value={masterVolume} onChange={setMasterVolume} />
+						<SliderSetting label="Music Volume" value={musicVolume} onChange={setMusicVolume} />
+						<SliderSetting label="SFX Volume" value={sfxVolume} onChange={setSfxVolume} />
 					</div>
 				</section>
 
@@ -114,26 +96,10 @@ export const SettingsPanel: Component<{ app: AppState }> = (props) => {
 						Visual
 					</div>
 					<div class="flex flex-col gap-3">
-						<ToggleSetting
-							label="Subtitles"
-							value={subtitles}
-							onChange={setSubtitles}
-						/>
-						<ToggleSetting
-							label="Reduce Motion"
-							value={reduceMotion}
-							onChange={setReduceMotion}
-						/>
-						<ToggleSetting
-							label="Show Grid"
-							value={showGrid}
-							onChange={setShowGrid}
-						/>
-						<ToggleSetting
-							label="Reduce FX"
-							value={reduceFx}
-							onChange={setReduceFx}
-						/>
+						<ToggleSetting label="Subtitles" value={subtitles} onChange={setSubtitles} />
+						<ToggleSetting label="Reduce Motion" value={reduceMotion} onChange={setReduceMotion} />
+						<ToggleSetting label="Show Grid" value={showGrid} onChange={setShowGrid} />
+						<ToggleSetting label="Reduce FX" value={reduceFx} onChange={setReduceFx} />
 					</div>
 				</section>
 

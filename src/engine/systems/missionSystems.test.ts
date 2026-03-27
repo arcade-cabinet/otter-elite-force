@@ -1,17 +1,21 @@
-import { describe, expect, it, beforeEach } from "vitest";
-import { Attack, Faction, Flags, Health, Position, Speed } from "@/engine/world/components";
-import { createGameWorld, markForRemoval, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
-import { runTidalSystem, type TidalRuntime } from "./tidalSystem";
-import { runFireSystem } from "./fireSystem";
-import { runSiphonSystem } from "./siphonSystem";
-import { runMultiBaseSystem } from "./multiBaseSystem";
-import { runTerritorySystem } from "./territorySystem";
+import { beforeEach, describe, expect, it } from "vitest";
+import { Attack, Health, Speed } from "@/engine/world/components";
+import {
+	createGameWorld,
+	markForRemoval,
+	spawnBuilding,
+	spawnUnit,
+} from "@/engine/world/gameWorld";
 import { runDemolitionSystem } from "./demolitionSystem";
-import { runSiegeSystem } from "./siegeSystem";
+import { resetDifficultyScaling, runDifficultyScalingSystem } from "./difficultyScalingSystem";
+import { resetEncounterState, runEncounterSystem } from "./encounterSystemEngine";
+import { runFireSystem } from "./fireSystem";
 import { runLootSystem } from "./lootSystem";
-import { runEncounterSystem, resetEncounterState } from "./encounterSystemEngine";
-import { runDifficultyScalingSystem, resetDifficultyScaling } from "./difficultyScalingSystem";
+import { runMultiBaseSystem } from "./multiBaseSystem";
 import { calculateMissionScore } from "./scoringSystem";
+import { runSiphonSystem } from "./siphonSystem";
+import { runTerritorySystem } from "./territorySystem";
+import { runTidalSystem, type TidalRuntime } from "./tidalSystem";
 
 describe("engine/systems/tidalSystem", () => {
 	it("emits tidal-change events", () => {
@@ -30,7 +34,12 @@ describe("engine/systems/fireSystem", () => {
 		world.time.deltaMs = 1000;
 		world.runtime.zoneRects.set("fire_zone", { x: 0, y: 0, width: 200, height: 200 });
 
-		const eid = spawnUnit(world, { x: 50, y: 50, faction: "ura", health: { current: 20, max: 20 } });
+		const eid = spawnUnit(world, {
+			x: 50,
+			y: 50,
+			faction: "ura",
+			health: { current: 20, max: 20 },
+		});
 
 		runFireSystem(world);
 
@@ -44,8 +53,11 @@ describe("engine/systems/siphonSystem", () => {
 		world.time.deltaMs = 1000;
 		world.session.resources = { fish: 100, timber: 100, salvage: 50 };
 
-		const building = spawnBuilding(world, {
-			x: 100, y: 100, faction: "scale_guard", buildingType: "siphon_tower",
+		const _building = spawnBuilding(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			buildingType: "siphon_tower",
 			health: { current: 20, max: 20 },
 		});
 
@@ -71,7 +83,10 @@ describe("engine/systems/multiBaseSystem", () => {
 		world.session.phase = "playing";
 
 		spawnBuilding(world, {
-			x: 100, y: 100, faction: "ura", buildingType: "command_post",
+			x: 100,
+			y: 100,
+			faction: "ura",
+			buildingType: "command_post",
 			health: { current: 40, max: 40 },
 		});
 
@@ -102,7 +117,12 @@ describe("engine/systems/demolitionSystem", () => {
 		const world = createGameWorld();
 		world.events.push({ type: "detonate", payload: { x: 100, y: 100 } });
 
-		const eid = spawnUnit(world, { x: 100, y: 100, faction: "scale_guard", health: { current: 50, max: 50 } });
+		const eid = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 50, max: 50 },
+		});
 
 		runDemolitionSystem(world);
 
@@ -115,11 +135,15 @@ describe("engine/systems/lootSystem", () => {
 		const world = createGameWorld();
 		world.session.resources = { fish: 0, timber: 0, salvage: 0 };
 
-		const enemy = spawnUnit(world, { x: 100, y: 100, faction: "scale_guard", unitType: "gator", health: { current: 0, max: 10 } });
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			unitType: "gator",
+			health: { current: 0, max: 10 },
+		});
 		// Use runtime loot table with guaranteed drops (probability 1.0)
-		world.runtime.lootTables.set("gator", [
-			{ resource: "salvage", chance: 1.0, min: 5, max: 10 },
-		]);
+		world.runtime.lootTables.set("gator", [{ resource: "salvage", chance: 1.0, min: 5, max: 10 }]);
 		markForRemoval(world, enemy);
 
 		runLootSystem(world);
@@ -150,7 +174,10 @@ describe("engine/systems/difficultyScalingSystem", () => {
 		world.campaign.difficulty = "elite";
 
 		const enemy = spawnUnit(world, {
-			x: 100, y: 100, faction: "scale_guard", health: { current: 10, max: 10 },
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 10, max: 10 },
 		});
 		Attack.damage[enemy] = 4;
 		Speed.value[enemy] = 50;

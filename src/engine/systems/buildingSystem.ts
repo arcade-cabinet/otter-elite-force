@@ -16,6 +16,7 @@
  * Runs every game tick via `runBuildingSystem(world)`.
  */
 
+import { CATEGORY_IDS } from "@/engine/content/ids";
 import {
 	Attack,
 	Construction,
@@ -26,7 +27,6 @@ import {
 	Position,
 	VisionRadius,
 } from "@/engine/world/components";
-import { CATEGORY_IDS } from "@/engine/content/ids";
 import type { GameWorld } from "@/engine/world/gameWorld";
 import { spawnBuilding as spawnBuildingEntity } from "@/engine/world/gameWorld";
 

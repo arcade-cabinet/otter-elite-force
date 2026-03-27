@@ -7,12 +7,12 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { createFogGrid, type FogRuntime } from "@/engine/systems";
 import { Faction, Flags, Health, Position } from "@/engine/world/components";
-import { createGameWorld, flushRemovals, type GameWorld } from "@/engine/world/gameWorld";
+import { createGameWorld, type GameWorld } from "@/engine/world/gameWorld";
+import { CAMPAIGN } from "@/entities/missions";
 import { bootstrapMission } from "./missionBootstrap";
 import { createSystemPipeline } from "./systemPipeline";
-import { createFogGrid, type FogRuntime } from "@/engine/systems";
-import { CAMPAIGN } from "@/entities/missions";
 
 /**
  * Shared helper: bootstrap a mission and run the system pipeline for N ticks.

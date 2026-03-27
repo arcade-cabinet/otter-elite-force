@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Attack, Flags, Health, Position } from "@/engine/world/components";
+import { Attack, Flags, Health } from "@/engine/world/components";
 import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
 import {
 	ABILITY_CONFIG,

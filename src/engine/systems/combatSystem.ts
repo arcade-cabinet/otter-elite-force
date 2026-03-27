@@ -27,7 +27,12 @@ import {
 	Velocity,
 	VisionRadius,
 } from "@/engine/world/components";
-import { type GameWorld, markForRemoval, spawnProjectile } from "@/engine/world/gameWorld";
+import {
+	type GameWorld,
+	markForRemoval,
+	spawnFloatingText,
+	spawnProjectile,
+} from "@/engine/world/gameWorld";
 import { recordDamageAssist } from "./veterancySystem";
 
 // ---------------------------------------------------------------------------
@@ -205,6 +210,7 @@ export function runCombatSystem(world: GameWorld): void {
 			const armorVal = Armor.value[targetEid];
 			const dmg = calculateDamage(effectiveDmg, armorVal);
 			Health.current[targetEid] -= dmg;
+			spawnFloatingText(world, Position.x[targetEid], Position.y[targetEid], `-${dmg}`, "red");
 			playSfx("meleeHit");
 
 			// Track damage for veterancy assists
@@ -296,6 +302,7 @@ function processProjectiles(world: GameWorld, deltaSec: number): void {
 				const armorVal = Armor.value[tgt];
 				const dmg = calculateDamage(projDmg, armorVal);
 				Health.current[tgt] -= dmg;
+				spawnFloatingText(world, tx, ty, `-${dmg}`, "red");
 
 				if (Faction.id[tgt] === FACTION_IDS.ura) {
 					world.events.push({ type: "under-attack", payload: { x: tx, y: ty } });

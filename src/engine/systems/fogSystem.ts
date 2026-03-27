@@ -19,8 +19,8 @@
  * The grid is stored on world.runtime.fogGrid (added by this system).
  */
 
-import { Faction, Flags, Position, VisionRadius } from "@/engine/world/components";
 import { FACTION_IDS } from "@/engine/content/ids";
+import { Faction, Flags, Position, VisionRadius } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
 
 export const FOG_UNEXPLORED = 0;
@@ -132,11 +132,7 @@ function syncMinimapFog(
 /**
  * Read the fog state at a specific tile coordinate.
  */
-export function getFogState(
-	world: GameWorld,
-	tileX: number,
-	tileY: number,
-): number {
+export function getFogState(world: GameWorld, tileX: number, tileY: number): number {
 	const fogGrid = (world.runtime as FogRuntime).fogGrid;
 	if (!fogGrid) return FOG_UNEXPLORED;
 

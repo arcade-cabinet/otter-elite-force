@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createGameWorld } from "@/engine/world/gameWorld";
-import { runWaveSpawnerSystem, resetWaveTimers } from "./waveSpawnerSystem";
+import { resetWaveTimers, runWaveSpawnerSystem } from "./waveSpawnerSystem";
 
 describe("engine/systems/waveSpawnerSystem", () => {
 	beforeEach(() => {

@@ -19,7 +19,9 @@ describe("engine/systems/productionSystem", () => {
 		const world = makeWorld(1000);
 
 		const building = spawnBuilding(world, {
-			x: 50, y: 50, faction: "ura",
+			x: 50,
+			y: 50,
+			faction: "ura",
 		});
 
 		const queue = getProductionQueue(world, building);
@@ -40,7 +42,9 @@ describe("engine/systems/productionSystem", () => {
 		const world = makeWorld(5000);
 
 		const building = spawnBuilding(world, {
-			x: 50, y: 50, faction: "ura",
+			x: 50,
+			y: 50,
+			faction: "ura",
 		});
 
 		const queue = getProductionQueue(world, building);
@@ -65,7 +69,9 @@ describe("engine/systems/productionSystem", () => {
 
 		// Spawn a unit (not a building)
 		const unit = spawnBuilding(world, {
-			x: 50, y: 50, faction: "ura",
+			x: 50,
+			y: 50,
+			faction: "ura",
 		});
 		// Override to be non-building
 		Flags.isBuilding[unit] = 0;

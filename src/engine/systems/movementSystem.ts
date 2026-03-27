@@ -41,7 +41,7 @@ const MAX_SEPARATION_CHECKS = 16;
 // Helpers
 // ---------------------------------------------------------------------------
 
-// TODO: distanceBetween — uncomment when movement helpers use it
+// distanceBetween — uncomment when movement helpers use it
 // function distanceBetween(ax: number, ay: number, bx: number, by: number): number {
 // 	const dx = bx - ax;
 // 	const dy = by - ay;
@@ -69,7 +69,15 @@ export function runMovementSystem(world: GameWorld): void {
 		const currentOrder = orders[0];
 
 		// Determine if this order type implies movement
-		const moveTypes = new Set(["move", "attack", "gather", "follow", "garrison", "build", "patrol"]);
+		const moveTypes = new Set([
+			"move",
+			"attack",
+			"gather",
+			"follow",
+			"garrison",
+			"build",
+			"patrol",
+		]);
 		if (!moveTypes.has(currentOrder.type)) continue;
 
 		// For move orders: use targetX/targetY directly

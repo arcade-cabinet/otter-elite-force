@@ -1,9 +1,9 @@
-import { getHero, getUnit } from "@/entities/registry";
 import { compileMissionScenario } from "@/entities/missions/compileMissionScenario";
+import { getHero, getUnit } from "@/entities/registry";
 import type { MissionDef } from "@/entities/types";
-import { recordDiagnosticEvent } from "../diagnostics/runtimeDiagnostics";
 import { ScenarioEngine, type ScenarioWorldQuery } from "@/scenarios/engine";
 import type { TriggerAction } from "@/scenarios/types";
+import { recordDiagnosticEvent } from "../diagnostics/runtimeDiagnostics";
 import { Faction, Flags, Health, Position } from "../world/components";
 import type { GameWorld } from "../world/gameWorld";
 import { spawnUnit } from "../world/gameWorld";
@@ -75,7 +75,12 @@ function createRuntimeWorldQuery(world: GameWorld, mission: MissionDef): Scenari
 					(faction === "neutral" && Faction.id[eid] === 0);
 				if (!matchesFaction) return false;
 				if (unitType && world.runtime.entityTypeIndex.get(eid) !== unitType) return false;
-				return Position.x[eid] >= minX && Position.x[eid] <= maxX && Position.y[eid] >= minY && Position.y[eid] <= maxY;
+				return (
+					Position.x[eid] >= minX &&
+					Position.x[eid] <= maxX &&
+					Position.y[eid] >= minY &&
+					Position.y[eid] <= maxY
+				);
 			}).length;
 		},
 		isBuildingDestroyed: (buildingTag) => {
@@ -84,17 +89,24 @@ function createRuntimeWorldQuery(world: GameWorld, mission: MissionDef): Scenari
 				return !world.runtime.alive.has(taggedEid);
 			}
 			return ![...world.runtime.alive].some(
-				(eid) => Flags.isBuilding[eid] === 1 && world.runtime.entityTypeIndex.get(eid) === buildingTag,
+				(eid) =>
+					Flags.isBuilding[eid] === 1 && world.runtime.entityTypeIndex.get(eid) === buildingTag,
 			);
 		},
 		getEntityHealthPercent: (entityTag) => {
 			const taggedEid = world.runtime.scriptTagIndex.get(entityTag);
 			if (taggedEid != null && world.runtime.alive.has(taggedEid)) {
-				return Health.max[taggedEid] > 0 ? (Health.current[taggedEid] / Health.max[taggedEid]) * 100 : 100;
+				return Health.max[taggedEid] > 0
+					? (Health.current[taggedEid] / Health.max[taggedEid]) * 100
+					: 100;
 			}
-			const fallbackEid = [...world.runtime.alive].find((eid) => world.runtime.entityTypeIndex.get(eid) === entityTag);
+			const fallbackEid = [...world.runtime.alive].find(
+				(eid) => world.runtime.entityTypeIndex.get(eid) === entityTag,
+			);
 			if (fallbackEid == null) return null;
-			return Health.max[fallbackEid] > 0 ? (Health.current[fallbackEid] / Health.max[fallbackEid]) * 100 : 100;
+			return Health.max[fallbackEid] > 0
+				? (Health.current[fallbackEid] / Health.max[fallbackEid]) * 100
+				: 100;
 		},
 		getResourceAmount: (resource) => world.session.resources[resource],
 		countEnemiesInZone: (zoneId, operatorContext) => {
@@ -108,7 +120,12 @@ function createRuntimeWorldQuery(world: GameWorld, mission: MissionDef): Scenari
 			const maxY = (zone.y + zone.height) * 32;
 			return [...world.runtime.alive].filter((eid) => {
 				if (Faction.id[eid] !== enemyFaction) return false;
-				return Position.x[eid] >= minX && Position.x[eid] <= maxX && Position.y[eid] >= minY && Position.y[eid] <= maxY;
+				return (
+					Position.x[eid] >= minX &&
+					Position.x[eid] <= maxX &&
+					Position.y[eid] >= minY &&
+					Position.y[eid] <= maxY
+				);
 			}).length;
 		},
 		countBuildingsInZone: (faction, zoneId, buildingType) => {
@@ -122,17 +139,28 @@ function createRuntimeWorldQuery(world: GameWorld, mission: MissionDef): Scenari
 			return [...world.runtime.alive].filter((eid) => {
 				if (Flags.isBuilding[eid] !== 1 || Faction.id[eid] !== factionId) return false;
 				if (buildingType && world.runtime.entityTypeIndex.get(eid) !== buildingType) return false;
-				return Position.x[eid] >= minX && Position.x[eid] <= maxX && Position.y[eid] >= minY && Position.y[eid] <= maxY;
+				return (
+					Position.x[eid] >= minX &&
+					Position.x[eid] <= maxX &&
+					Position.y[eid] >= minY &&
+					Position.y[eid] <= maxY
+				);
 			}).length;
 		},
 		isEntityDestroyed: (entityTag) => {
 			const taggedEid = world.runtime.scriptTagIndex.get(entityTag);
 			if (taggedEid != null) return !world.runtime.alive.has(taggedEid);
-			return ![...world.runtime.alive].some((eid) => world.runtime.entityTypeIndex.get(eid) === entityTag);
+			return ![...world.runtime.alive].some(
+				(eid) => world.runtime.entityTypeIndex.get(eid) === entityTag,
+			);
 		},
 		getDestroyedEntityCount: (entityTag) => {
-			const aliveMatches = [...world.runtime.alive].filter((eid) => world.runtime.entityTypeIndex.get(eid) === entityTag).length;
-			const placedMatches = mission.placements.filter((placement) => placement.type === entityTag || placement.scriptId === entityTag).length;
+			const aliveMatches = [...world.runtime.alive].filter(
+				(eid) => world.runtime.entityTypeIndex.get(eid) === entityTag,
+			).length;
+			const placedMatches = mission.placements.filter(
+				(placement) => placement.type === entityTag || placement.scriptId === entityTag,
+			).length;
 			return Math.max(0, placedMatches - aliveMatches);
 		},
 		getWaveCounter: () => world.runtime.waveCounter,
@@ -147,7 +175,10 @@ function createRuntimeActionHandler(world: GameWorld): (action: TriggerAction) =
 		if (action.type === "showDialogue") {
 			world.session.dialogue = {
 				active: true,
-				expiresAtMs: action.duration != null && action.duration > 0 ? world.time.elapsedMs + action.duration * 1000 : null,
+				expiresAtMs:
+					action.duration != null && action.duration > 0
+						? world.time.elapsedMs + action.duration * 1000
+						: null,
 				lines: [{ speaker: action.speaker, text: action.text }],
 			};
 			return;
@@ -267,7 +298,7 @@ function createRuntimeActionHandler(world: GameWorld): (action: TriggerAction) =
 
 		if (action.type === "spawnBossUnit") {
 			const unitDef = getUnit(action.unitType) ?? getHero(action.unitType);
-			const health = action.hp > 0 ? action.hp : unitDef?.hp ?? 1;
+			const health = action.hp > 0 ? action.hp : (unitDef?.hp ?? 1);
 			const bossEid = spawnUnit(world, {
 				x: action.position.x * 32 + 16,
 				y: action.position.y * 32 + 16,

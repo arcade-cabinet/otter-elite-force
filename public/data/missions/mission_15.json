@@ -1,0 +1,138 @@
+{
+  "id": "mission_15",
+  "title": "Serpent Lair",
+  "chapter": 4,
+  "mapWidth": 128,
+  "mapHeight": 128,
+  "parTimeMinutes": 18,
+  "availableBuildings": ["burrow", "command_post", "barracks", "armory", "fish_trap", "watchtower", "sandbag_wall", "gun_tower", "stone_wall", "minefield", "field_hospital", "dock", "shield_generator"],
+  "availableUnits": ["river_rat", "mudfoot", "shellcracker", "mortar_otter", "sapper", "diver", "raftsman"],
+  "startingResources": { "fish": 500, "timber": 400, "salvage": 300 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "stone", "rect": { "x": 32, "y": 0, "w": 64, "h": 48 } },
+    { "terrainId": "dirt", "rect": { "x": 40, "y": 8, "w": 48, "h": 32 } },
+    { "terrainId": "toxic_sludge", "rect": { "x": 36, "y": 40, "w": 56, "h": 8 } },
+    { "terrainId": "mangrove", "rect": { "x": 0, "y": 0, "w": 32, "h": 32 } },
+    { "terrainId": "mangrove", "rect": { "x": 96, "y": 0, "w": 32, "h": 32 } },
+    { "terrainId": "dirt", "rect": { "x": 24, "y": 48, "w": 80, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 0, "y": 48, "w": 24, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 104, "y": 48, "w": 24, "h": 16 } },
+    { "terrainId": "mud", "rect": { "x": 0, "y": 64, "w": 128, "h": 8 } },
+    { "terrainId": "dirt", "rect": { "x": 16, "y": 72, "w": 96, "h": 16 } },
+    { "terrainId": "dirt", "rect": { "x": 24, "y": 88, "w": 80, "h": 16 } },
+    { "terrainId": "grass", "rect": { "x": 8, "y": 104, "w": 112, "h": 24 } }
+  ],
+
+  "zones": {
+    "serpent_throne":    { "x": 40, "y": 8,   "width": 48, "height": 32 },
+    "lair_outer":        { "x": 32, "y": 0,   "width": 64, "height": 48 },
+    "poison_moat":       { "x": 36, "y": 40,  "width": 56, "height": 8 },
+    "west_jungle":       { "x": 0,  "y": 0,   "width": 32, "height": 32 },
+    "east_jungle":       { "x": 96, "y": 0,   "width": 32, "height": 32 },
+    "approach_central":  { "x": 24, "y": 48,  "width": 80, "height": 16 },
+    "mud_crossing":      { "x": 0,  "y": 64,  "width": 128, "height": 8 },
+    "staging_area":      { "x": 16, "y": 72,  "width": 96, "height": 16 },
+    "ura_base":          { "x": 24, "y": 88,  "width": 80, "height": 16 },
+    "supply_south":      { "x": 8,  "y": 104, "width": 112, "height": 24 }
+  },
+
+  "placements": [
+    { "type": "burrow",        "faction": "ura",         "x": 64, "y": 96, "scriptId": "player_lodge" },
+    { "type": "command_post",  "faction": "ura",         "x": 56, "y": 92 },
+    { "type": "barracks",      "faction": "ura",         "x": 72, "y": 92 },
+    { "type": "armory",        "faction": "ura",         "x": 48, "y": 92 },
+    { "type": "field_hospital","faction": "ura",         "x": 80, "y": 92 },
+    { "type": "river_rat",     "faction": "ura",         "x": 60, "y": 98 },
+    { "type": "river_rat",     "faction": "ura",         "x": 68, "y": 98 },
+    { "type": "river_rat",     "faction": "ura",         "x": 64, "y": 100 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 52, "y": 94 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 76, "y": 94 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 60, "y": 90 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 68, "y": 90 },
+    { "type": "shellcracker",  "faction": "ura",         "x": 44, "y": 94 },
+    { "type": "shellcracker",  "faction": "ura",         "x": 84, "y": 94 },
+    { "type": "mortar_otter",  "faction": "ura",         "x": 64, "y": 94 },
+    { "type": "sapper",        "faction": "ura",         "x": 40, "y": 96 },
+
+    { "type": "fish_spot",     "faction": "neutral",     "x": 24, "y": 112 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 64, "y": 116 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 104, "y": 112 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 12, "y": 108 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 20, "y": 110 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 108, "y": 108 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 100, "y": 110 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 36, "y": 114 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 44, "y": 112 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 84, "y": 114 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 92, "y": 112 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 52, "y": 118 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 76, "y": 118 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 40, "y": 120 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 88, "y": 120 },
+
+    { "type": "serpent_king",  "faction": "scale_guard", "x": 64, "y": 20, "scriptId": "serpent_king" },
+    { "type": "gun_tower",     "faction": "scale_guard", "x": 36, "y": 4 },
+    { "type": "gun_tower",     "faction": "scale_guard", "x": 92, "y": 4 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 36, "y": 44 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 44, "y": 44 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 84, "y": 44 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 92, "y": 44 },
+    { "type": "gator",         "faction": "scale_guard", "x": 52, "y": 16 },
+    { "type": "gator",         "faction": "scale_guard", "x": 76, "y": 16 },
+    { "type": "gator",         "faction": "scale_guard", "x": 56, "y": 24 },
+    { "type": "gator",         "faction": "scale_guard", "x": 72, "y": 24 },
+    { "type": "gator",         "faction": "scale_guard", "x": 48, "y": 32 },
+    { "type": "gator",         "faction": "scale_guard", "x": 80, "y": 32 },
+    { "type": "viper",         "faction": "scale_guard", "x": 44, "y": 12 },
+    { "type": "viper",         "faction": "scale_guard", "x": 84, "y": 12 },
+    { "type": "viper",         "faction": "scale_guard", "x": 64, "y": 8 },
+    { "type": "snapper",       "faction": "scale_guard", "x": 56, "y": 36 },
+    { "type": "snapper",       "faction": "scale_guard", "x": 72, "y": 36 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 56, "y": 20 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 72, "y": 20 },
+    { "type": "gator",         "faction": "scale_guard", "x": 40, "y": 52 },
+    { "type": "gator",         "faction": "scale_guard", "x": 88, "y": 52 },
+    { "type": "gator",         "faction": "scale_guard", "x": 64, "y": 56 }
+  ],
+
+  "bossConfig": {
+    "entityScriptId": "serpent_king",
+    "name": "Serpent King",
+    "phases": [
+      { "hpThreshold": 1.0, "abilities": ["poison_aura"], "statModifiers": {} },
+      { "hpThreshold": 0.6, "abilities": ["poison_aura", "summon_skinks"], "statModifiers": { "damageMultiplier": 1.2 } },
+      { "hpThreshold": 0.3, "abilities": ["poison_aura", "summon_skinks", "enrage"], "statModifiers": { "damageMultiplier": 1.5, "speedMultiplier": 1.3 } }
+    ]
+  },
+
+  "objectives": [
+    { "id": "slay-serpent-king", "description": "Defeat the Serpent King",                    "type": "primary" },
+    { "id": "breach-lair",       "description": "Breach the Serpent Lair defenses",            "type": "primary" },
+    { "id": "no-phase3-losses",  "description": "Survive Phase 3 with no casualties",         "type": "bonus" },
+    { "id": "clear-flanks",      "description": "Clear both jungle flanks before the assault", "type": "bonus" }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 6 }, { "type": "viper", "count": 3 }], "intervalMs": 25000, "variance": 0.2 },
+      { "composition": [{ "type": "gator", "count": 5 }, { "type": "snapper", "count": 3 }], "intervalMs": 40000, "variance": 0.25 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":         { "drops": [{ "resource": "fish", "amount": 8, "probability": 0.5 }] },
+    "gator":         { "drops": [{ "resource": "salvage", "amount": 14, "probability": 0.4 }] },
+    "viper":         { "drops": [{ "resource": "salvage", "amount": 16, "probability": 0.5 }] },
+    "snapper":       { "drops": [{ "resource": "salvage", "amount": 24, "probability": 0.5 }] },
+    "croc_champion": { "drops": [{ "resource": "salvage", "amount": 30, "probability": 0.6 }] },
+    "serpent_king":  { "drops": [{ "resource": "salvage", "amount": 100, "probability": 1.0 }] }
+  },
+
+  "difficultyScaling": {
+    "support":  { "resourceMultiplier": 1.5, "enemyHpMultiplier": 0.8, "enemyDamageMultiplier": 0.8, "startingResources": { "fish": 750, "timber": 600, "salvage": 450 } },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0, "enemyDamageMultiplier": 1.0, "startingResources": { "fish": 500, "timber": 400, "salvage": 300 } },
+    "elite":    { "resourceMultiplier": 0.75, "enemyHpMultiplier": 1.3, "enemyDamageMultiplier": 1.3, "startingResources": { "fish": 375, "timber": 300, "salvage": 225 } }
+  }
+}

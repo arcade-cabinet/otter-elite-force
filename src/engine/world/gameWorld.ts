@@ -44,6 +44,16 @@ export interface SessionObjective {
 	bonus?: boolean;
 }
 
+/** Floating text for visual damage/heal/resource feedback. */
+export interface FloatingText {
+	text: string;
+	x: number;
+	y: number;
+	color: "red" | "green" | "yellow" | "white";
+	spawnedAtMs: number;
+	durationMs: number;
+}
+
 /** Stats that can be applied to a spawned unit from template data. */
 export interface UnitSpawnStats {
 	hp: number;
@@ -152,6 +162,8 @@ export interface GameWorld {
 		}>;
 		/** Per-encounter accumulated timer (ms) and spawn count. */
 		encounterState: Array<{ timerMs: number; spawnCount: number }>;
+		/** Floating text entries for damage/heal/resource feedback. */
+		floatingTexts: Array<FloatingText>;
 	};
 	session: {
 		currentMissionId: string | null;
@@ -233,6 +245,7 @@ export function createGameWorld(
 			activeEffects: [],
 			encounterEntries: [],
 			encounterState: [],
+			floatingTexts: [],
 		},
 		session: {
 			currentMissionId: null,
@@ -315,6 +328,7 @@ export function resetWorldSession(world: GameWorld): void {
 	world.runtime.activeEffects.length = 0;
 	world.runtime.encounterEntries.length = 0;
 	world.runtime.encounterState.length = 0;
+	world.runtime.floatingTexts.length = 0;
 }
 
 function spawnEntity(
@@ -402,7 +416,7 @@ export function spawnUnit(
 	},
 ): number {
 	const stats = options.stats;
-	const hp = stats ? stats.hp : options.health?.max ?? 1;
+	const hp = stats ? stats.hp : (options.health?.max ?? 1);
 	const hpCurrent = options.health?.current ?? hp;
 
 	const eid = spawnEntity(world, {
@@ -468,7 +482,7 @@ export function spawnBuilding(
 	},
 ): number {
 	const stats = options.stats;
-	const hp = stats ? stats.hp : options.health?.max ?? 1;
+	const hp = stats ? stats.hp : (options.health?.max ?? 1);
 	const hpCurrent = options.health?.current ?? hp;
 
 	const eid = spawnEntity(world, {
@@ -607,4 +621,41 @@ export function setFaction(_world: GameWorld, eid: number, faction: string): voi
 
 export function setScriptTag(world: GameWorld, eid: number, scriptId: string): void {
 	world.runtime.scriptTagIndex.set(scriptId, eid);
+}
+
+/**
+ * Spawn a floating text entry for visual feedback (damage, heal, resource deposit).
+ *
+ * The tactical runtime renders these as upward-drifting text that fades over time.
+ * Automatically removed when durationMs expires.
+ */
+export function spawnFloatingText(
+	world: GameWorld,
+	x: number,
+	y: number,
+	text: string,
+	color: FloatingText["color"] = "white",
+	durationMs = 900,
+): void {
+	world.runtime.floatingTexts.push({
+		text,
+		x,
+		y,
+		color,
+		spawnedAtMs: world.time.elapsedMs,
+		durationMs,
+	});
+}
+
+/**
+ * Tick floating texts: remove expired entries.
+ */
+export function tickFloatingTexts(world: GameWorld): void {
+	const now = world.time.elapsedMs;
+	const texts = world.runtime.floatingTexts;
+	for (let i = texts.length - 1; i >= 0; i--) {
+		if (now - texts[i].spawnedAtMs >= texts[i].durationMs) {
+			texts.splice(i, 1);
+		}
+	}
 }

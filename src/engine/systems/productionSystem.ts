@@ -59,7 +59,10 @@ function getBuildTimeMs(entry: ProductionEntry): number {
 	// ProductionEntry can carry buildTimeMs as an extended field.
 	// A value of 0 means "instant build". Fall back to 5000ms default
 	// only when the field is absent.
-	if ("buildTimeMs" in entry && typeof (entry as { buildTimeMs?: unknown }).buildTimeMs === "number") {
+	if (
+		"buildTimeMs" in entry &&
+		typeof (entry as { buildTimeMs?: unknown }).buildTimeMs === "number"
+	) {
 		return (entry as { buildTimeMs: number }).buildTimeMs;
 	}
 	return 5000;

@@ -5,9 +5,9 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { Position, Speed } from "@/engine/world/components";
-import { createGameWorld, spawnUnit, spawnBuilding, spawnResource } from "@/engine/world/gameWorld";
-import { createFogGrid, type FogRuntime, FOG_VISIBLE } from "@/engine/systems";
+import { createFogGrid, FOG_VISIBLE, type FogRuntime } from "@/engine/systems";
+import { Speed } from "@/engine/world/components";
+import { createGameWorld, spawnBuilding, spawnResource, spawnUnit } from "@/engine/world/gameWorld";
 import { syncGameWorldDiagnostics } from "./runtimeDiagnostics";
 
 describe("engine/diagnostics/enhanced", () => {
@@ -127,7 +127,7 @@ describe("engine/diagnostics/enhanced", () => {
 		spawnUnit(world, { x: 100, y: 100, faction: "ura" });
 
 		// Enemy in a visible tile
-		const enemyInLight = spawnUnit(world, { x: 64, y: 64, faction: "scale_guard" });
+		const _enemyInLight = spawnUnit(world, { x: 64, y: 64, faction: "scale_guard" });
 		// Mark the tile at (2, 2) as visible (64/32=2, 64/32=2 => index 2*64+2=130)
 		fogRuntime.fogGrid[2 * 64 + 2] = FOG_VISIBLE;
 

@@ -5,12 +5,12 @@
  * difficulty selector, and launch button. All form state uses createSignal.
  */
 
-import { type Component, For, Show, createSignal } from "solid-js";
+import { type Component, createSignal, For, Show } from "solid-js";
 import {
+	isMapUnlocked,
 	SKIRMISH_DIFFICULTIES,
 	SKIRMISH_MAPS,
 	SKIRMISH_PRESETS,
-	isMapUnlocked,
 	type SkirmishDifficultyOption,
 	type SkirmishMapDef,
 	type SkirmishPreset,
@@ -20,9 +20,26 @@ import type { AppState } from "../appState";
 /** Generate a random seed phrase from common word-like tokens. */
 function generateSeedPhrase(): string {
 	const words = [
-		"river", "mud", "otter", "delta", "creek", "marsh", "timber",
-		"scout", "dawn", "fog", "ridge", "stone", "drift", "iron",
-		"tide", "frost", "bark", "fern", "moss", "vale",
+		"river",
+		"mud",
+		"otter",
+		"delta",
+		"creek",
+		"marsh",
+		"timber",
+		"scout",
+		"dawn",
+		"fog",
+		"ridge",
+		"stone",
+		"drift",
+		"iron",
+		"tide",
+		"frost",
+		"bark",
+		"fern",
+		"moss",
+		"vale",
 	];
 	const pick = () => words[Math.floor(Math.random() * words.length)];
 	return `${pick()}-${pick()}-${pick()}`;
@@ -95,8 +112,7 @@ export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 	const totalStars = 0; // Will be wired to campaign persistence
 	const allUnlocked = false;
 
-	const selectedMap = () =>
-		SKIRMISH_MAPS.find((m) => m.id === selectedMapId()) ?? SKIRMISH_MAPS[0];
+	const selectedMap = () => SKIRMISH_MAPS.find((m) => m.id === selectedMapId()) ?? SKIRMISH_MAPS[0];
 
 	const canStart = () => allUnlocked || isMapUnlocked(selectedMap(), totalStars);
 
@@ -166,9 +182,7 @@ export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 													: "border-slate-700/70 bg-slate-900/40 text-slate-100 hover:border-accent/30 hover:bg-slate-900/55"
 											}`}
 										>
-											<div class="font-heading text-sm uppercase tracking-[0.16em]">
-												{d.label}
-											</div>
+											<div class="font-heading text-sm uppercase tracking-[0.16em]">{d.label}</div>
 											<div class="mt-1 font-body text-[10px] uppercase tracking-[0.1em] text-slate-500">
 												{d.note}
 											</div>

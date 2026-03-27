@@ -27,6 +27,7 @@
  *   any → idle (target dead)
  */
 
+import { FACTION_IDS } from "@/engine/content/ids";
 import {
 	Attack,
 	Faction,
@@ -36,7 +37,6 @@ import {
 	TargetRef,
 	VisionRadius,
 } from "@/engine/world/components";
-import { FACTION_IDS } from "@/engine/content/ids";
 import type { GameWorld } from "@/engine/world/gameWorld";
 import { getOrderQueue } from "@/engine/world/gameWorld";
 
@@ -56,7 +56,7 @@ const FLEE_HP_THRESHOLD = 0.2;
 /** Flee distance in pixels. */
 const FLEE_DISTANCE = 128;
 
-// TODO: Alert propagation range — uncomment when propagation system is wired in
+// Alert propagation range — uncomment when propagation system is wired in
 // const ALERT_PROPAGATION_RANGE = 256;
 
 /** Group behavior: allies within this range join a chase. */
@@ -178,12 +178,7 @@ function findVisibleEnemies(
 // FSM State handlers
 // ---------------------------------------------------------------------------
 
-function handleIdle(
-	world: GameWorld,
-	eid: number,
-	ai: AIState,
-	detectionRange: number,
-): void {
+function handleIdle(world: GameWorld, eid: number, ai: AIState, detectionRange: number): void {
 	ai.stateTimer += world.time.deltaMs / 1000;
 
 	// Check for enemies
@@ -210,12 +205,7 @@ function handleIdle(
 	}
 }
 
-function handlePatrol(
-	world: GameWorld,
-	eid: number,
-	ai: AIState,
-	detectionRange: number,
-): void {
+function handlePatrol(world: GameWorld, eid: number, ai: AIState, detectionRange: number): void {
 	// Check for enemies first — patrol is interrupted by detection
 	const { targetEid } = findNearestPlayerEntity(world, eid, detectionRange);
 	if (targetEid !== -1) {
@@ -235,12 +225,7 @@ function handlePatrol(
 	}
 }
 
-function handleChase(
-	world: GameWorld,
-	eid: number,
-	ai: AIState,
-	detectionRange: number,
-): void {
+function handleChase(world: GameWorld, eid: number, ai: AIState, detectionRange: number): void {
 	const targetEid = TargetRef.eid[eid];
 
 	// Target dead or gone — return to idle
@@ -256,8 +241,10 @@ function handleChase(
 	}
 
 	const dist = distanceBetween(
-		Position.x[eid], Position.y[eid],
-		Position.x[targetEid], Position.y[targetEid],
+		Position.x[eid],
+		Position.y[eid],
+		Position.x[targetEid],
+		Position.y[targetEid],
 	);
 
 	// De-aggro if target is too far
@@ -296,12 +283,7 @@ function handleChase(
 	}
 }
 
-function handleAttack(
-	world: GameWorld,
-	eid: number,
-	ai: AIState,
-	detectionRange: number,
-): void {
+function handleAttack(world: GameWorld, eid: number, ai: AIState, detectionRange: number): void {
 	const targetEid = TargetRef.eid[eid];
 
 	// Target dead or gone — return to idle
@@ -321,8 +303,10 @@ function handleAttack(
 	}
 
 	const dist = distanceBetween(
-		Position.x[eid], Position.y[eid],
-		Position.x[targetEid], Position.y[targetEid],
+		Position.x[eid],
+		Position.y[eid],
+		Position.x[targetEid],
+		Position.y[targetEid],
 	);
 
 	// Target moved out of attack range — chase
@@ -353,17 +337,15 @@ function handleAttack(
 	}
 }
 
-function handleFlee(
-	world: GameWorld,
-	eid: number,
-	ai: AIState,
-	detectionRange: number,
-): void {
+function handleFlee(world: GameWorld, eid: number, ai: AIState, detectionRange: number): void {
 	ai.stateTimer += world.time.deltaMs / 1000;
 
 	// Check if we can stop fleeing (no enemies nearby)
-	const { targetEid: nearestEnemy, dist: _nearestDist } =
-		findNearestPlayerEntity(world, eid, detectionRange);
+	const { targetEid: nearestEnemy, dist: _nearestDist } = findNearestPlayerEntity(
+		world,
+		eid,
+		detectionRange,
+	);
 
 	if (nearestEnemy === -1) {
 		// No enemies — recover to idle
@@ -463,9 +445,7 @@ export function runAiSystem(world: GameWorld): void {
 
 		// Determine detection range
 		const detectionRange =
-			VisionRadius.value[eid] > 0
-				? VisionRadius.value[eid]
-				: DEFAULT_DETECTION_RANGE;
+			VisionRadius.value[eid] > 0 ? VisionRadius.value[eid] : DEFAULT_DETECTION_RANGE;
 
 		// Run FSM for current state
 		switch (ai.state) {

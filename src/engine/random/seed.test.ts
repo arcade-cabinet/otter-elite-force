@@ -16,7 +16,9 @@ describe("engine/random/seed", () => {
 
 	it("derives stable numeric seeds from phrases", () => {
 		expect(seedPhraseToNumber("silent-ember-heron")).toBe(seedPhraseToNumber("silent-ember-heron"));
-		expect(seedPhraseToNumber("silent-ember-heron")).not.toBe(seedPhraseToNumber("rapid-ember-heron"));
+		expect(seedPhraseToNumber("silent-ember-heron")).not.toBe(
+			seedPhraseToNumber("rapid-ember-heron"),
+		);
 	});
 
 	it("derives stable buried mission phrases from mission ids", () => {

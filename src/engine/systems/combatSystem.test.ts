@@ -46,7 +46,9 @@ describe("engine/systems/combatSystem", () => {
 
 		// Use melee range (<=48) for direct damage
 		const attacker = spawnUnit(world, {
-			x: 0, y: 0, faction: "ura",
+			x: 0,
+			y: 0,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 		Attack.damage[attacker] = 10;
@@ -56,7 +58,9 @@ describe("engine/systems/combatSystem", () => {
 		VisionRadius.value[attacker] = 48;
 
 		const target = spawnUnit(world, {
-			x: 30, y: 0, faction: "scale_guard",
+			x: 30,
+			y: 0,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 
@@ -69,7 +73,9 @@ describe("engine/systems/combatSystem", () => {
 		const world = makeWorld(500); // 0.5s
 
 		const attacker = spawnUnit(world, {
-			x: 0, y: 0, faction: "ura",
+			x: 0,
+			y: 0,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 		Attack.damage[attacker] = 10;
@@ -79,7 +85,9 @@ describe("engine/systems/combatSystem", () => {
 		VisionRadius.value[attacker] = 48;
 
 		const target = spawnUnit(world, {
-			x: 30, y: 0, faction: "scale_guard",
+			x: 30,
+			y: 0,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 
@@ -93,7 +101,9 @@ describe("engine/systems/combatSystem", () => {
 		const world = makeWorld(1000);
 
 		const attacker = spawnUnit(world, {
-			x: 0, y: 0, faction: "ura",
+			x: 0,
+			y: 0,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 		Attack.damage[attacker] = 50;
@@ -103,7 +113,9 @@ describe("engine/systems/combatSystem", () => {
 		VisionRadius.value[attacker] = 48;
 
 		const target = spawnUnit(world, {
-			x: 10, y: 0, faction: "scale_guard",
+			x: 10,
+			y: 0,
+			faction: "scale_guard",
 			health: { current: 25, max: 25 },
 		});
 
@@ -121,7 +133,9 @@ describe("engine/systems/combatSystem", () => {
 		const world = makeWorld(1000);
 
 		const attacker = spawnUnit(world, {
-			x: 0, y: 0, faction: "ura",
+			x: 0,
+			y: 0,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 		Attack.damage[attacker] = 10;
@@ -133,7 +147,9 @@ describe("engine/systems/combatSystem", () => {
 		orders.push({ type: "move", targetX: 100, targetY: 0 });
 
 		const target = spawnUnit(world, {
-			x: 30, y: 0, faction: "scale_guard",
+			x: 30,
+			y: 0,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 
@@ -146,10 +162,12 @@ describe("engine/systems/combatSystem", () => {
 	it("does not attack same-faction entities", () => {
 		const world = makeWorld(1000);
 
-		const attacker = setupMeleeAttacker(world, { x: 0, y: 0, damage: 10, range: 48 });
+		const _attacker = setupMeleeAttacker(world, { x: 0, y: 0, damage: 10, range: 48 });
 
 		const ally = spawnUnit(world, {
-			x: 10, y: 0, faction: "ura",
+			x: 10,
+			y: 0,
+			faction: "ura",
 			health: { current: 50, max: 50 },
 		});
 		// Explicitly ensure ally has no stale attack/targeting data
@@ -165,7 +183,9 @@ describe("engine/systems/combatSystem", () => {
 		const world = makeWorld(1000);
 
 		const attacker = spawnUnit(world, {
-			x: 0, y: 0, faction: "ura",
+			x: 0,
+			y: 0,
+			faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 		Attack.damage[attacker] = 10;
@@ -174,7 +194,9 @@ describe("engine/systems/combatSystem", () => {
 		Attack.timer[attacker] = 1;
 
 		const target = spawnUnit(world, {
-			x: 100, y: 0, faction: "scale_guard",
+			x: 100,
+			y: 0,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 
@@ -186,17 +208,21 @@ describe("engine/systems/combatSystem", () => {
 	it("picks the nearest enemy when multiple are in melee range", () => {
 		const world = makeWorld(1000);
 
-		const attacker = setupMeleeAttacker(world, { x: 0, y: 0, damage: 10, range: 48 });
+		const _attacker = setupMeleeAttacker(world, { x: 0, y: 0, damage: 10, range: 48 });
 
 		const farTarget = spawnUnit(world, {
-			x: 40, y: 0, faction: "scale_guard",
+			x: 40,
+			y: 0,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[farTarget] = 0;
 		TargetRef.eid[farTarget] = 0;
 
 		const nearTarget = spawnUnit(world, {
-			x: 20, y: 0, faction: "scale_guard",
+			x: 20,
+			y: 0,
+			faction: "scale_guard",
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[nearTarget] = 0;

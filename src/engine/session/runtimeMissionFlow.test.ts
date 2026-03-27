@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createCampaignRuntimeSession, seedGameWorldFromCampaignSession } from "./tacticalSession";
+import type { MissionDef } from "@/entities/types";
 import { createGameWorld } from "../world/gameWorld";
 import { createRuntimeMissionFlow } from "./runtimeMissionFlow";
-import type { MissionDef } from "@/entities/types";
+import { createCampaignRuntimeSession, seedGameWorldFromCampaignSession } from "./tacticalSession";
 
 describe("engine/session/runtimeMissionFlow", () => {
 	it("fires authored timer dialogue triggers into the active runtime world", () => {
@@ -29,9 +29,9 @@ describe("engine/session/runtimeMissionFlow", () => {
 		world.session.resources.timber = 150;
 		flow.step();
 
-		expect(world.session.objectives.find((objective) => objective.id === "gather-timber")?.status).toBe(
-			"completed",
-		);
+		expect(
+			world.session.objectives.find((objective) => objective.id === "gather-timber")?.status,
+		).toBe("completed");
 		expect(world.runtime.scenarioPhase).toBe("base-building");
 
 		flow.dispose();
@@ -121,7 +121,10 @@ describe("engine/session/runtimeMissionFlow", () => {
 		expect(world.runtime.revealedZones.has("north_beach")).toBe(true);
 		expect(world.events.some((event) => event.type === "camera-focus")).toBe(true);
 		expect(world.session.dialogue?.lines[0]?.text).toBe("Reinforcements inbound.");
-		expect([...world.runtime.alive].filter((eid) => world.runtime.entityTypeIndex.get(eid) === "mudfoot").length).toBeGreaterThanOrEqual(2);
+		expect(
+			[...world.runtime.alive].filter((eid) => world.runtime.entityTypeIndex.get(eid) === "mudfoot")
+				.length,
+		).toBeGreaterThanOrEqual(2);
 		expect([...world.runtime.bossConfigs.values()].length).toBe(1);
 		expect(world.diagnostics.events.some((event) => event.type === "weather-changed")).toBe(true);
 

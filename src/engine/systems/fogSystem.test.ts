@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { Faction, VisionRadius } from "@/engine/world/components";
 import { FACTION_IDS } from "@/engine/content/ids";
+import { Faction, VisionRadius } from "@/engine/world/components";
 import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
 import type { FogRuntime } from "./fogSystem";
 import {
+	createFogGrid,
 	FOG_EXPLORED,
 	FOG_UNEXPLORED,
 	FOG_VISIBLE,
-	createFogGrid,
 	getFogState,
 	runFogSystem,
 } from "./fogSystem";

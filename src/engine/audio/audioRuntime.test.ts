@@ -4,7 +4,7 @@
  * Tests the non-React audio runtime wrapper.
  */
 
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createGameWorld } from "../world/gameWorld";
 
 // We need to mock the audio engine since Tone.js requires a browser audio context
@@ -98,9 +98,7 @@ describe("US-F08: Audio Runtime", () => {
 
 	it("initAudioRuntime attaches gesture listener that initializes audio on interaction", async () => {
 		// Fresh import to get clean module state
-		const { initAudioRuntime, isAudioReady, disposeAudioRuntime } = await import(
-			"./audioRuntime"
-		);
+		const { initAudioRuntime, isAudioReady, disposeAudioRuntime } = await import("./audioRuntime");
 		disposeAudioRuntime();
 
 		expect(isAudioReady()).toBe(false);
@@ -179,9 +177,7 @@ describe("US-F08: Audio Runtime", () => {
 	});
 
 	it("playMenuMusic delegates to engine with menuTrack", async () => {
-		const { initAudioRuntime, playMenuMusic, disposeAudioRuntime } = await import(
-			"./audioRuntime"
-		);
+		const { initAudioRuntime, playMenuMusic, disposeAudioRuntime } = await import("./audioRuntime");
 		disposeAudioRuntime();
 
 		initAudioRuntime();
@@ -238,8 +234,14 @@ describe("US-F08: Audio Runtime", () => {
 	});
 
 	it("does not crash if audio engine is not ready when calling playback functions", async () => {
-		const { playBattleMusic, playMenuMusic, stopMusic, playSfx, syncAudioFromWorld, disposeAudioRuntime } =
-			await import("./audioRuntime");
+		const {
+			playBattleMusic,
+			playMenuMusic,
+			stopMusic,
+			playSfx,
+			syncAudioFromWorld,
+			disposeAudioRuntime,
+		} = await import("./audioRuntime");
 		disposeAudioRuntime();
 
 		const world = createGameWorld();
@@ -253,9 +255,7 @@ describe("US-F08: Audio Runtime", () => {
 	});
 
 	it("disposeAudioRuntime resets all state", async () => {
-		const { initAudioRuntime, isAudioReady, disposeAudioRuntime } = await import(
-			"./audioRuntime"
-		);
+		const { initAudioRuntime, isAudioReady, disposeAudioRuntime } = await import("./audioRuntime");
 		disposeAudioRuntime();
 
 		initAudioRuntime();

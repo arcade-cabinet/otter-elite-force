@@ -91,7 +91,10 @@ export const on = {
 	): MissionTriggerCondition {
 		return { type: "resourceThreshold", resource, operator, amount };
 	},
-	entityDestroyed(entityTag: string, match: "first" | "any" | "all" = "first"): MissionTriggerCondition {
+	entityDestroyed(
+		entityTag: string,
+		match: "first" | "any" | "all" = "first",
+	): MissionTriggerCondition {
 		return { type: "entityDestroyed", entityTag, match };
 	},
 	entityDestroyedCount(

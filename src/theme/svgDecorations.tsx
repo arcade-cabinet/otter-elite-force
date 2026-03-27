@@ -204,13 +204,7 @@ export const SVGDecoration = (props: {
 	class?: string;
 	style?: import("solid-js/jsx-runtime").JSX.CSSProperties;
 }) => {
-	return (
-		<div
-			class={props.class}
-			style={props.style}
-			innerHTML={SVG_DECORATIONS[props.type]}
-		/>
-	);
+	return <div class={props.class} style={props.style} innerHTML={SVG_DECORATIONS[props.type]} />;
 };
 
 export default SVG_DECORATIONS;

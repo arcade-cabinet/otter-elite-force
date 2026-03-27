@@ -8,7 +8,24 @@
 // IDs — faction/category numeric IDs for bitECS components
 export type { CategoryId, CategoryName, FactionId, FactionName } from "./ids";
 export { CATEGORY_IDS, FACTION_IDS, resolveCategoryId, resolveFactionId } from "./ids";
-
+// Template loader — async load + synchronous accessors
+export {
+	_injectTemplatesForTest,
+	getAbilityDef,
+	getBalance,
+	getBuildingRegistry,
+	getBuildingTemplate,
+	getMissionData,
+	getResearchRegistry,
+	getResearchTemplate,
+	getTemplates,
+	getUnitRegistry,
+	getUnitTemplate,
+	loadMission,
+	loadTemplates,
+} from "./templateLoader";
+// Template resolver (mostly internal, but exported for tests)
+export { deepMerge, resolveAllTemplates, resolveTemplate } from "./templateResolver";
 // Template types
 export type {
 	AbilityDef,
@@ -29,23 +46,3 @@ export type {
 	UnitTemplate,
 	VisualConfig,
 } from "./templateTypes";
-
-// Template loader — async load + synchronous accessors
-export {
-	_injectTemplatesForTest,
-	getAbilityDef,
-	getBalance,
-	getBuildingRegistry,
-	getBuildingTemplate,
-	getMissionData,
-	getResearchRegistry,
-	getResearchTemplate,
-	getTemplates,
-	getUnitRegistry,
-	getUnitTemplate,
-	loadMission,
-	loadTemplates,
-} from "./templateLoader";
-
-// Template resolver (mostly internal, but exported for tests)
-export { deepMerge, resolveAllTemplates, resolveTemplate } from "./templateResolver";

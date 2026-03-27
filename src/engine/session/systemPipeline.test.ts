@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { Attack, Health, Position, Speed } from "../world/components";
+import { createGameWorld, getOrderQueue, isAlive, spawnUnit } from "../world/gameWorld";
 import { createSystemPipeline } from "./systemPipeline";
-import {
-	createGameWorld,
-	getOrderQueue,
-	isAlive,
-	spawnUnit,
-} from "../world/gameWorld";
-import { Position, Speed, Health, Attack } from "../world/components";
 
 describe("engine/session/systemPipeline", () => {
 	it("creates a pipeline with step and dispose methods", () => {

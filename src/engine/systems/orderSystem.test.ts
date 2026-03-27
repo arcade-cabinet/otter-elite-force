@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { Attack, Flags, Health, Position } from "@/engine/world/components";
+import { Attack, Health } from "@/engine/world/components";
 import {
 	createGameWorld,
+	flushRemovals,
 	getOrderQueue,
 	markForRemoval,
-	flushRemovals,
-	spawnUnit,
 	spawnResource,
+	spawnUnit,
 } from "@/engine/world/gameWorld";
 import { runOrderSystem } from "./orderSystem";
 

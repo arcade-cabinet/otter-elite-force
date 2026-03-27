@@ -1,3 +1,12 @@
+import { getMissionById } from "@/entities/missions";
+import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
+import type { MissionDef, Placement } from "@/entities/types";
+import type { SkirmishSessionConfig } from "@/features/skirmish/types";
+import {
+	generateSkirmishMap,
+	type SkirmishMapData,
+	type SkirmishTerrainType,
+} from "@/maps/skirmishMapGenerator";
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
 import { createMissionSeedBundle, type SeedBundle } from "../random/seed";
@@ -8,11 +17,6 @@ import {
 	spawnResource as spawnRuntimeResource,
 	spawnUnit as spawnRuntimeUnit,
 } from "../world/gameWorld";
-import type { SkirmishSessionConfig } from "@/features/skirmish/types";
-import { generateSkirmishMap, type SkirmishMapData, type SkirmishTerrainType } from "@/maps/skirmishMapGenerator";
-import { getMissionById } from "@/entities/missions";
-import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
-import type { MissionDef, Placement } from "@/entities/types";
 
 export interface CampaignRuntimeSession {
 	mode: "campaign";
@@ -127,7 +131,9 @@ export function createCampaignRuntimeSession(missionId: string): CampaignRuntime
 	};
 }
 
-export function createSkirmishRuntimeSession(config: SkirmishSessionConfig): SkirmishRuntimeSession {
+export function createSkirmishRuntimeSession(
+	config: SkirmishSessionConfig,
+): SkirmishRuntimeSession {
 	const map = generateSkirmishMap({
 		size: resolveMapSize(config.mapId),
 		terrainType: resolveTerrainType(config.mapId),
@@ -166,7 +172,9 @@ function resolveMissionFocusTile(mission: MissionDef): { x: number; y: number } 
 			placement.faction === "ura" &&
 			(placement.type === "burrow" || placement.type === "command_post"),
 	);
-	const uraUnit = mission.placements.find((placement) => placement.faction === "ura" && placement.x != null);
+	const uraUnit = mission.placements.find(
+		(placement) => placement.faction === "ura" && placement.x != null,
+	);
 	return {
 		x: uraBuilding?.x ?? uraUnit?.x ?? mission.zones.ura_start?.x ?? 0,
 		y: uraBuilding?.y ?? uraUnit?.y ?? mission.zones.ura_start?.y ?? 0,
@@ -200,7 +208,8 @@ export function describeCampaignRuntimeSession(
 		runId: session.diagnostics.runId,
 		mapSummary: {
 			size: `${session.mission.terrain.width}x${session.mission.terrain.height}`,
-			resourceNodes: session.mission.placements.filter((placement) => getResource(placement.type)).length,
+			resourceNodes: session.mission.placements.filter((placement) => getResource(placement.type))
+				.length,
 			chokepoints: Object.keys(session.mission.zones).length,
 			focusTile: `${session.focusTile.x},${session.focusTile.y}`,
 		},
@@ -239,7 +248,10 @@ export function describeSkirmishRuntimeSession(
 	};
 }
 
-export function seedGameWorldFromCampaignSession(world: GameWorld, session: CampaignRuntimeSession): void {
+export function seedGameWorldFromCampaignSession(
+	world: GameWorld,
+	session: CampaignRuntimeSession,
+): void {
 	world.session.currentMissionId = session.mission.id;
 	world.session.phase = "playing";
 	world.session.resources = {
@@ -322,7 +334,10 @@ export function seedGameWorldFromCampaignSession(world: GameWorld, session: Camp
 	}
 }
 
-export function seedGameWorldFromSkirmishSession(world: GameWorld, session: SkirmishRuntimeSession): void {
+export function seedGameWorldFromSkirmishSession(
+	world: GameWorld,
+	session: SkirmishRuntimeSession,
+): void {
 	world.session.currentMissionId = session.config.mapId;
 	world.session.phase = "playing";
 	world.session.resources = {

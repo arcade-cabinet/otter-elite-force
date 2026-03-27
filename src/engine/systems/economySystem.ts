@@ -14,6 +14,7 @@
  *   worker at resource → harvest timer → fill carry → walk to depot → deposit → auto-return
  */
 
+import { CATEGORY_IDS, FACTION_IDS } from "@/engine/content/ids";
 import {
 	Content,
 	Faction,
@@ -23,8 +24,7 @@ import {
 	Position,
 	ResourceNode,
 } from "@/engine/world/components";
-import { CATEGORY_IDS, FACTION_IDS } from "@/engine/content/ids";
-import type { GameWorld } from "@/engine/world/gameWorld";
+import { type GameWorld, spawnFloatingText } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -39,7 +39,7 @@ const DEPOSIT_RANGE = 48;
 /** Base seconds of gathering per 1 resource unit. */
 const GATHER_INTERVAL = 2;
 
-// TODO: Default carry capacity — uncomment when depot-return cycle is wired in
+// Default carry capacity — uncomment when depot-return cycle is wired in
 // const DEFAULT_CARRY_CAPACITY = 10;
 
 /** Fish generated per Fish Trap per passive income tick. */
@@ -71,9 +71,7 @@ function distanceBetween(ax: number, ay: number, bx: number, by: number): number
 }
 
 /** Determine the resource type from a resource entity's type string. */
-function resolveResourceType(
-	nodeType: string | undefined,
-): "fish" | "timber" | "salvage" | null {
+function resolveResourceType(nodeType: string | undefined): "fish" | "timber" | "salvage" | null {
 	if (!nodeType) return null;
 	if (nodeType.includes("fish")) return "fish";
 	if (nodeType.includes("timber")) return "timber";
@@ -210,8 +208,10 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 			if (depotEid === -1) continue; // No depot — can't deposit
 
 			const depotDist = distanceBetween(
-				Position.x[eid], Position.y[eid],
-				Position.x[depotEid], Position.y[depotEid],
+				Position.x[eid],
+				Position.y[eid],
+				Position.x[depotEid],
+				Position.y[depotEid],
 			);
 
 			if (depotDist <= DEPOSIT_RANGE) {
@@ -221,6 +221,21 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 					const amount = Math.floor(Gatherer.amount[eid]);
 					const scaledAmount = Math.round(amount * getDifficultyIncomeModifier(world));
 					world.session.resources[resourceType] += scaledAmount;
+					const depotX = Position.x[depotEid];
+					const depotY = Position.y[depotEid];
+					const ftColor =
+						resourceType === "fish"
+							? ("green" as const)
+							: resourceType === "timber"
+								? ("yellow" as const)
+								: ("white" as const);
+					spawnFloatingText(
+						world,
+						depotX,
+						depotY,
+						`+${scaledAmount} ${resourceType.toUpperCase()}`,
+						ftColor,
+					);
 					world.events.push({
 						type: "resource-deposited",
 						payload: { resourceType, amount: scaledAmount },

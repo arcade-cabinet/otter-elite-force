@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Faction, Flags, Position, Selection } from "@/engine/world/components";
+import { Position, Selection } from "@/engine/world/components";
 import {
 	createGameWorld,
 	getOrderQueue,

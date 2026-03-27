@@ -1,12 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { Content } from "@/engine/world/components";
 import { CATEGORY_IDS } from "@/engine/content/ids";
-import {
-	createGameWorld,
-	getOrderQueue,
-	spawnResource,
-	spawnUnit,
-} from "@/engine/world/gameWorld";
+import { Content } from "@/engine/world/components";
+import { createGameWorld, getOrderQueue, spawnResource, spawnUnit } from "@/engine/world/gameWorld";
 import { resetGatherTimers, runEconomySystem } from "./economySystem";
 
 function makeWorld(deltaMs: number) {
@@ -27,7 +22,9 @@ describe("engine/systems/economySystem", () => {
 		Content.categoryId[worker] = CATEGORY_IDS.worker;
 
 		const node = spawnResource(world, {
-			x: 10, y: 10, resourceType: "fish_node",
+			x: 10,
+			y: 10,
+			resourceType: "fish_node",
 		});
 
 		const orders = getOrderQueue(world, worker);
@@ -45,7 +42,9 @@ describe("engine/systems/economySystem", () => {
 		Content.categoryId[worker] = CATEGORY_IDS.worker;
 
 		const node = spawnResource(world, {
-			x: 10, y: 10, resourceType: "timber_node",
+			x: 10,
+			y: 10,
+			resourceType: "timber_node",
 		});
 
 		const orders = getOrderQueue(world, worker);
@@ -63,7 +62,9 @@ describe("engine/systems/economySystem", () => {
 		Content.categoryId[worker] = CATEGORY_IDS.worker;
 
 		const node = spawnResource(world, {
-			x: 10, y: 10, resourceType: "salvage_node",
+			x: 10,
+			y: 10,
+			resourceType: "salvage_node",
 		});
 
 		const orders = getOrderQueue(world, worker);
@@ -81,7 +82,9 @@ describe("engine/systems/economySystem", () => {
 		Content.categoryId[worker] = CATEGORY_IDS.worker;
 
 		const node = spawnResource(world, {
-			x: 500, y: 500, resourceType: "fish_node",
+			x: 500,
+			y: 500,
+			resourceType: "fish_node",
 		});
 
 		const orders = getOrderQueue(world, worker);
@@ -99,7 +102,9 @@ describe("engine/systems/economySystem", () => {
 		Content.categoryId[worker] = CATEGORY_IDS.worker;
 
 		const node = spawnResource(world, {
-			x: 10, y: 10, resourceType: "fish_node",
+			x: 10,
+			y: 10,
+			resourceType: "fish_node",
 		});
 
 		const orders = getOrderQueue(world, worker);
@@ -117,7 +122,9 @@ describe("engine/systems/economySystem", () => {
 		Content.categoryId[infantry] = CATEGORY_IDS.infantry;
 
 		const node = spawnResource(world, {
-			x: 10, y: 10, resourceType: "fish_node",
+			x: 10,
+			y: 10,
+			resourceType: "fish_node",
 		});
 
 		const orders = getOrderQueue(world, infantry);
@@ -151,7 +158,9 @@ describe("engine/systems/economySystem", () => {
 		Content.categoryId[worker] = CATEGORY_IDS.worker;
 
 		const node = spawnResource(world, {
-			x: 10, y: 10, resourceType: "fish_node",
+			x: 10,
+			y: 10,
+			resourceType: "fish_node",
 		});
 
 		const orders = getOrderQueue(world, worker);

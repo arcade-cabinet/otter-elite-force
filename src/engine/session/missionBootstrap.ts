@@ -57,7 +57,17 @@ function spawnPlacement(
 				popCost: unitDef.populationCost,
 			},
 			abilities: unitDef.tags.filter((t) =>
-				["gather", "build", "swim", "heal", "snipe", "demolition", "stealth", "rally", "shield_bash"].includes(t),
+				[
+					"gather",
+					"build",
+					"swim",
+					"heal",
+					"snipe",
+					"demolition",
+					"stealth",
+					"rally",
+					"shield_bash",
+				].includes(t),
 			),
 			flags: {
 				canSwim: unitDef.canSwim ?? false,

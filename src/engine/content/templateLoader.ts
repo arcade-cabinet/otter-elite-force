@@ -30,9 +30,7 @@ let loaded: GameTemplates | null = null;
 
 function ensureLoaded(): GameTemplates {
 	if (!loaded) {
-		throw new Error(
-			"Templates not loaded. Call loadTemplates() before accessing game data.",
-		);
+		throw new Error("Templates not loaded. Call loadTemplates() before accessing game data.");
 	}
 	return loaded;
 }
@@ -54,7 +52,9 @@ async function fetchJson<T>(path: string): Promise<T> {
 	const url = resolveDataUrl(path);
 	const response = await fetch(url);
 	if (!response.ok) {
-		throw new Error(`Failed to load template data from '${url}': ${response.status} ${response.statusText}`);
+		throw new Error(
+			`Failed to load template data from '${url}': ${response.status} ${response.statusText}`,
+		);
 	}
 	return response.json() as Promise<T>;
 }
@@ -64,7 +64,17 @@ async function fetchJson<T>(path: string): Promise<T> {
 // ---------------------------------------------------------------------------
 
 function validateUnitTemplate(id: string, t: Record<string, unknown>): void {
-	const required = ["base", "name", "faction", "category", "visual", "stats", "abilities", "flags", "training"];
+	const required = [
+		"base",
+		"name",
+		"faction",
+		"category",
+		"visual",
+		"stats",
+		"abilities",
+		"flags",
+		"training",
+	];
 	for (const field of required) {
 		if (t[field] === undefined) {
 			throw new Error(`Unit template '${id}' missing required field '${field}'`);
@@ -77,7 +87,16 @@ function validateUnitTemplate(id: string, t: Record<string, unknown>): void {
 }
 
 function validateBuildingTemplate(id: string, t: Record<string, unknown>): void {
-	const required = ["name", "faction", "category", "visual", "stats", "flags", "construction", "produces"];
+	const required = [
+		"name",
+		"faction",
+		"category",
+		"visual",
+		"stats",
+		"flags",
+		"construction",
+		"produces",
+	];
 	for (const field of required) {
 		if (t[field] === undefined) {
 			throw new Error(`Building template '${id}' missing required field '${field}'`);
@@ -107,8 +126,12 @@ export async function loadTemplates(): Promise<GameTemplates> {
 	]);
 
 	// Resolve extends chains
-	const resolvedUnits = resolveAllTemplates(rawUnits as Record<string, Record<string, unknown> & { extends?: string }>);
-	const resolvedBuildings = resolveAllTemplates(rawBuildings as Record<string, Record<string, unknown> & { extends?: string }>);
+	const resolvedUnits = resolveAllTemplates(
+		rawUnits as Record<string, Record<string, unknown> & { extends?: string }>,
+	);
+	const resolvedBuildings = resolveAllTemplates(
+		rawBuildings as Record<string, Record<string, unknown> & { extends?: string }>,
+	);
 
 	// Stamp IDs and validate units
 	const units = new Map<string, UnitTemplate>();
@@ -233,9 +256,7 @@ export function getMissionData(id: string): MissionData {
 	const templates = ensureLoaded();
 	const t = templates.missions.get(id);
 	if (!t) {
-		throw new Error(
-			`getMissionData: mission '${id}' not loaded. Call loadMission('${id}') first.`,
-		);
+		throw new Error(`getMissionData: mission '${id}' not loaded. Call loadMission('${id}') first.`);
 	}
 	return t;
 }

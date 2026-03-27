@@ -10,7 +10,7 @@
 
 import { Attack, Faction, Flags, Health, Position, Speed } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
-import { markForRemoval } from "@/engine/world/gameWorld";
+import { markForRemoval, spawnFloatingText } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
 // Ability definition interface
@@ -202,6 +202,13 @@ const healAbility: AbilityDef = {
 		if (healAmount <= 0) return;
 
 		Health.current[healTarget] += healAmount;
+		spawnFloatingText(
+			world,
+			Position.x[healTarget],
+			Position.y[healTarget],
+			`+${healAmount}`,
+			"green",
+		);
 
 		world.events.push({
 			type: "ability-used",

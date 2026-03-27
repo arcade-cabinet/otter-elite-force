@@ -25,4 +25,6 @@ export function runTidalSystem(world: GameWorld): void {
 	}
 }
 
-export interface TidalRuntime { lastTide?: string; }
+export interface TidalRuntime {
+	lastTide?: string;
+}

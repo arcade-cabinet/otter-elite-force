@@ -1,0 +1,164 @@
+{
+  "id": "mission_02",
+  "title": "The Causeway",
+  "chapter": 1,
+  "mapWidth": 128,
+  "mapHeight": 128,
+  "parTimeMinutes": 20,
+  "availableBuildings": ["burrow", "command_post", "barracks", "fish_trap", "watchtower", "sandbag_wall"],
+  "availableUnits": ["river_rat", "mudfoot", "shellcracker"],
+  "startingResources": { "fish": 200, "timber": 100, "salvage": 50 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "forest", "rect": { "x": 0, "y": 0, "w": 128, "h": 88 } },
+    { "terrainId": "dirt", "rect": { "x": 24, "y": 4, "w": 12, "h": 84 } },
+    { "terrainId": "dirt", "rect": { "x": 8, "y": 88, "w": 112, "h": 40 } },
+    { "terrainId": "dirt", "rect": { "x": 68, "y": 0, "w": 48, "h": 8 } },
+    { "terrainId": "mud", "rect": { "x": 0, "y": 56, "w": 24, "h": 16 } },
+    { "terrainId": "mud", "rect": { "x": 0, "y": 16, "w": 24, "h": 8 } },
+    { "terrainId": "mangrove", "rect": { "x": 8, "y": 58, "w": 16, "h": 10 } },
+    { "terrainId": "stone", "rect": { "x": 72, "y": 8, "w": 40, "h": 12 } },
+    { "terrainId": "dirt", "rect": { "x": 76, "y": 42, "w": 16, "h": 8 } },
+    { "terrainId": "water", "rect": { "x": 4, "y": 26, "w": 12, "h": 4 } }
+  ],
+
+  "zones": {
+    "depot_zone":       { "x": 8,  "y": 88, "width": 112, "height": 40 },
+    "causeway_south":   { "x": 8,  "y": 72, "width": 48,  "height": 16 },
+    "jungle_se":        { "x": 64, "y": 72, "width": 56,  "height": 16 },
+    "swamp_south":      { "x": 8,  "y": 56, "width": 48,  "height": 16 },
+    "ambush_1":         { "x": 64, "y": 56, "width": 56,  "height": 16 },
+    "causeway_mid":     { "x": 8,  "y": 40, "width": 48,  "height": 16 },
+    "supply_cache":     { "x": 64, "y": 40, "width": 56,  "height": 16 },
+    "ambush_2":         { "x": 8,  "y": 24, "width": 48,  "height": 16 },
+    "jungle_ne":        { "x": 64, "y": 24, "width": 56,  "height": 16 },
+    "swamp_north":      { "x": 8,  "y": 16, "width": 48,  "height": 8 },
+    "ambush_3":         { "x": 64, "y": 8,  "width": 56,  "height": 16 },
+    "jungle_nw":        { "x": 8,  "y": 0,  "width": 48,  "height": 16 },
+    "extraction_point": { "x": 64, "y": 0,  "width": 56,  "height": 8 }
+  },
+
+  "placements": [
+    { "type": "burrow",        "faction": "ura",         "x": 24, "y": 96, "scriptId": "player_lodge" },
+    { "type": "mudfoot",       "faction": "ura",         "x": 20, "y": 94 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 22, "y": 98 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 26, "y": 98 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 28, "y": 94 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 30, "y": 96 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 18, "y": 96 },
+    { "type": "river_rat",     "faction": "ura",         "x": 32, "y": 100 },
+    { "type": "river_rat",     "faction": "ura",         "x": 36, "y": 100 },
+    { "type": "barracks",      "faction": "ura",         "x": 40, "y": 96 },
+    { "type": "command_post",  "faction": "ura",         "x": 48, "y": 96 },
+
+    { "type": "jungle_tree",   "faction": "neutral",     "x": 70, "y": 74 },
+    { "type": "jungle_tree",   "faction": "neutral",     "x": 76, "y": 76 },
+    { "type": "jungle_tree",   "faction": "neutral",     "x": 82, "y": 78 },
+    { "type": "jungle_tree",   "faction": "neutral",     "x": 88, "y": 74 },
+    { "type": "jungle_tree",   "faction": "neutral",     "x": 74, "y": 80 },
+    { "type": "jungle_tree",   "faction": "neutral",     "x": 80, "y": 82 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 14, "y": 62 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 10, "y": 18 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 80, "y": 44 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 84, "y": 46 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 78, "y": 48 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 14, "y": 26 },
+    { "type": "gator",         "faction": "scale_guard", "x": 18, "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 22, "y": 26 },
+    { "type": "gator",         "faction": "scale_guard", "x": 26, "y": 30 },
+    { "type": "gator",         "faction": "scale_guard", "x": 30, "y": 28 },
+    { "type": "skink",         "faction": "scale_guard", "x": 12, "y": 30 },
+    { "type": "skink",         "faction": "scale_guard", "x": 34, "y": 30 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 76, "y": 10 },
+    { "type": "gator",         "faction": "scale_guard", "x": 80, "y": 12 },
+    { "type": "gator",         "faction": "scale_guard", "x": 84, "y": 10 },
+    { "type": "gator",         "faction": "scale_guard", "x": 88, "y": 14 },
+    { "type": "viper",         "faction": "scale_guard", "x": 92, "y": 10 },
+    { "type": "viper",         "faction": "scale_guard", "x": 96, "y": 12 },
+    { "type": "skink",         "faction": "scale_guard", "x": 100, "y": 8 },
+    { "type": "skink",         "faction": "scale_guard", "x": 104, "y": 10 },
+    { "type": "skink",         "faction": "scale_guard", "x": 80, "y": 28 },
+    { "type": "skink",         "faction": "scale_guard", "x": 82, "y": 30 }
+  ],
+
+  "objectives": [
+    { "id": "escort-convoy",      "description": "Escort all 3 convoy trucks to the extraction point",  "type": "primary" },
+    { "id": "clear-ambush-2",     "description": "Clear the roadblock at the ravine",                   "type": "primary" },
+    { "id": "clear-ambush-3",     "description": "Clear the ridge ambush position",                     "type": "primary" },
+    { "id": "bonus-supply-cache", "description": "Discover the hidden supply cache",                    "type": "bonus" },
+    { "id": "bonus-no-truck-lost","description": "Complete escort without losing any trucks",            "type": "bonus" }
+  ],
+
+  "phases": [
+    {
+      "id": "mustering",
+      "name": "Mustering",
+      "activeObjectives": ["escort-convoy"],
+      "dialogue": [
+        { "trigger": "timer", "delayMs": 5000,  "speaker": "Col. Bubbles", "text": "Captain, listen up. Three supply trucks need to reach Firebase Delta up north. The causeway is the only road, and Scale-Guard knows it." },
+        { "trigger": "timer", "delayMs": 20000, "speaker": "FOXHOUND",     "text": "Intel shows at least three prepared ambush positions along the causeway. They've had days to dig in." },
+        { "trigger": "timer", "delayMs": 45000, "speaker": "Col. Bubbles", "text": "When you're ready, move a unit north onto the causeway. The convoy will follow your lead." }
+      ]
+    },
+    {
+      "id": "first-contact",
+      "name": "First Contact",
+      "activeObjectives": ["escort-convoy"],
+      "entryCondition": { "type": "zoneEnter", "zone": "causeway_south", "faction": "ura" },
+      "dialogue": [
+        { "trigger": "phaseStart", "speaker": "FOXHOUND", "text": "Convoy is rolling. Watch the treeline on the right -- heat signatures ahead." }
+      ],
+      "spawns": [
+        { "trigger": "zoneEnter", "zone": "ambush_1", "units": [{ "type": "gator", "faction": "scale_guard", "x": 72, "y": 60, "count": 4 }, { "type": "skink", "faction": "scale_guard", "x": 80, "y": 58, "count": 2 }], "dialogue": { "speaker": "FOXHOUND", "text": "Ambush! Contacts from the treeline. Protect those trucks!" } }
+      ]
+    },
+    {
+      "id": "the-ravine",
+      "name": "The Ravine",
+      "activeObjectives": ["clear-ambush-2"],
+      "entryCondition": { "type": "zoneEnter", "zone": "causeway_mid", "faction": "ura" },
+      "dialogue": [
+        { "trigger": "phaseStart", "speaker": "FOXHOUND",     "text": "Roadblock ahead. Log barricade across the causeway with dug-in defenders. You'll need to clear it." },
+        { "trigger": "phaseStart", "speaker": "Col. Bubbles", "text": "Hit them hard, Captain. Every minute the convoy is stopped is a minute they can flank us." }
+      ]
+    },
+    {
+      "id": "the-ridge",
+      "name": "The Ridge",
+      "activeObjectives": ["clear-ambush-3"],
+      "entryCondition": { "type": "objectiveComplete", "objectiveId": "clear-ambush-2" },
+      "dialogue": [
+        { "trigger": "phaseStart", "speaker": "FOXHOUND",     "text": "Final ambush position ahead. Elevated ridge with ranged units and a mortar pit. This is the tough one." },
+        { "trigger": "phaseStart", "speaker": "Col. Bubbles", "text": "Use your Shellcrackers to soak fire. Get close and take that ridge." }
+      ]
+    }
+  ],
+
+  "victoryDialogue": [
+    { "speaker": "Col. Bubbles", "text": "All three trucks made it. Firebase Delta has its supplies. Outstanding escort work, Captain." },
+    { "speaker": "FOXHOUND", "text": "Scale-Guard lost a lot of soldiers on that causeway. They won't try that route again anytime soon." }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 3 }], "intervalMs": 45000, "variance": 0.3 },
+      { "composition": [{ "type": "gator", "count": 2 }], "intervalMs": 75000, "variance": 0.4 },
+      { "composition": [{ "type": "viper", "count": 1 }, { "type": "skink", "count": 2 }], "intervalMs": 90000, "variance": 0.3 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":  { "drops": [{ "resource": "fish",    "amount": 5,  "probability": 0.5 }] },
+    "gator":  { "drops": [{ "resource": "salvage", "amount": 10, "probability": 0.4 }, { "resource": "fish", "amount": 8, "probability": 0.3 }] },
+    "viper":  { "drops": [{ "resource": "salvage", "amount": 12, "probability": 0.5 }] }
+  },
+
+  "difficulty": {
+    "support":  { "resourceMultiplier": 1.5, "enemyHpMultiplier": 0.75, "enemyDamageMultiplier": 0.75 },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0,  "enemyDamageMultiplier": 1.0 },
+    "elite":    { "resourceMultiplier": 0.75, "enemyHpMultiplier": 1.25, "enemyDamageMultiplier": 1.25 }
+  }
+}

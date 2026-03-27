@@ -54,8 +54,7 @@ export const MainMenu: Component<{ app: AppState }> = (props) => {
 	});
 
 	return (
-		<div
-			role="main"
+		<main
 			aria-label="Main Menu"
 			class="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100"
 		>
@@ -120,6 +119,6 @@ export const MainMenu: Component<{ app: AppState }> = (props) => {
 					/>
 				</nav>
 			</div>
-		</div>
+		</main>
 	);
 };

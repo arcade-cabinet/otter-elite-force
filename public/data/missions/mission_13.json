@@ -1,0 +1,142 @@
+{
+  "id": "mission_13",
+  "title": "Great Siphon",
+  "chapter": 4,
+  "mapWidth": 192,
+  "mapHeight": 128,
+  "parTimeMinutes": 22,
+  "availableBuildings": ["burrow", "command_post", "barracks", "armory", "fish_trap", "watchtower", "sandbag_wall", "gun_tower", "stone_wall", "minefield", "field_hospital", "dock", "shield_generator"],
+  "availableUnits": ["river_rat", "mudfoot", "shellcracker", "mortar_otter", "sapper", "diver", "raftsman"],
+  "startingResources": { "fish": 400, "timber": 300, "salvage": 200 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "dirt", "rect": { "x": 16, "y": 96, "w": 48, "h": 24 } },
+    { "terrainId": "dirt", "rect": { "x": 80, "y": 96, "w": 40, "h": 24 } },
+    { "terrainId": "dirt", "rect": { "x": 144, "y": 96, "w": 40, "h": 24 } },
+    { "terrainId": "mangrove", "rect": { "x": 0, "y": 80, "w": 40, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 64, "y": 80, "w": 48, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 128, "y": 80, "w": 48, "h": 16 } },
+    { "terrainId": "water", "rect": { "x": 0, "y": 56, "w": 192, "h": 8 } },
+    { "terrainId": "mud", "rect": { "x": 0, "y": 64, "w": 192, "h": 16 } },
+    { "terrainId": "dirt", "rect": { "x": 8, "y": 20, "w": 48, "h": 36 } },
+    { "terrainId": "dirt", "rect": { "x": 72, "y": 16, "w": 48, "h": 40 } },
+    { "terrainId": "dirt", "rect": { "x": 140, "y": 12, "w": 44, "h": 44 } },
+    { "terrainId": "stone", "rect": { "x": 0, "y": 0, "w": 192, "h": 12 } },
+    { "terrainId": "bridge", "rect": { "x": 28, "y": 56, "w": 8, "h": 8 } },
+    { "terrainId": "bridge", "rect": { "x": 92, "y": 56, "w": 8, "h": 8 } },
+    { "terrainId": "bridge", "rect": { "x": 156, "y": 56, "w": 8, "h": 8 } }
+  ],
+
+  "zones": {
+    "base_west":        { "x": 16,  "y": 96,  "width": 48, "height": 24 },
+    "base_center":      { "x": 80,  "y": 96,  "width": 40, "height": 24 },
+    "base_east":        { "x": 144, "y": 96,  "width": 40, "height": 24 },
+    "jungle_sw":        { "x": 0,   "y": 80,  "width": 40, "height": 16 },
+    "jungle_center":    { "x": 64,  "y": 80,  "width": 48, "height": 16 },
+    "jungle_se":        { "x": 128, "y": 80,  "width": 48, "height": 16 },
+    "river":            { "x": 0,   "y": 56,  "width": 192, "height": 8 },
+    "mud_flats":        { "x": 0,   "y": 64,  "width": 192, "height": 16 },
+    "siphon_west":      { "x": 8,   "y": 20,  "width": 48, "height": 36 },
+    "siphon_center":    { "x": 72,  "y": 16,  "width": 48, "height": 40 },
+    "siphon_east":      { "x": 140, "y": 12,  "width": 44, "height": 44 },
+    "northern_ridge":   { "x": 0,   "y": 0,   "width": 192, "height": 12 }
+  },
+
+  "placements": [
+    { "type": "burrow",        "faction": "ura",         "x": 32,  "y": 104, "scriptId": "lodge_west" },
+    { "type": "burrow",        "faction": "ura",         "x": 96,  "y": 104, "scriptId": "lodge_center" },
+    { "type": "burrow",        "faction": "ura",         "x": 160, "y": 104, "scriptId": "lodge_east" },
+    { "type": "command_post",  "faction": "ura",         "x": 24,  "y": 100 },
+    { "type": "barracks",      "faction": "ura",         "x": 40,  "y": 100 },
+    { "type": "river_rat",     "faction": "ura",         "x": 28,  "y": 108 },
+    { "type": "river_rat",     "faction": "ura",         "x": 36,  "y": 108 },
+    { "type": "river_rat",     "faction": "ura",         "x": 92,  "y": 108 },
+    { "type": "river_rat",     "faction": "ura",         "x": 100, "y": 108 },
+    { "type": "river_rat",     "faction": "ura",         "x": 156, "y": 108 },
+    { "type": "river_rat",     "faction": "ura",         "x": 164, "y": 108 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 30,  "y": 102 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 94,  "y": 102 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 158, "y": 102 },
+    { "type": "shellcracker",  "faction": "ura",         "x": 38,  "y": 102 },
+    { "type": "mortar_otter",  "faction": "ura",         "x": 102, "y": 102 },
+
+    { "type": "fish_spot",     "faction": "neutral",     "x": 20,  "y": 112 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 88,  "y": 114 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 152, "y": 112 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 120, "y": 116 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 8,   "y": 84 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 16,  "y": 86 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 24,  "y": 82 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 72,  "y": 84 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 80,  "y": 86 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 88,  "y": 82 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 136, "y": 84 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 144, "y": 86 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 152, "y": 82 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 160, "y": 84 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 48,  "y": 114 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 64,  "y": 116 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 132, "y": 114 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 108, "y": 118 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 172, "y": 116 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 180, "y": 114 },
+
+    { "type": "fuel_tank",     "faction": "scale_guard", "x": 28,  "y": 32, "scriptId": "siphon_w" },
+    { "type": "fuel_tank",     "faction": "scale_guard", "x": 92,  "y": 28, "scriptId": "siphon_c" },
+    { "type": "fuel_tank",     "faction": "scale_guard", "x": 160, "y": 24, "scriptId": "siphon_e" },
+    { "type": "gator",         "faction": "scale_guard", "x": 20,  "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 36,  "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 24,  "y": 36 },
+    { "type": "gator",         "faction": "scale_guard", "x": 32,  "y": 40 },
+    { "type": "viper",         "faction": "scale_guard", "x": 28,  "y": 24 },
+    { "type": "gator",         "faction": "scale_guard", "x": 84,  "y": 24 },
+    { "type": "gator",         "faction": "scale_guard", "x": 100, "y": 24 },
+    { "type": "gator",         "faction": "scale_guard", "x": 88,  "y": 32 },
+    { "type": "gator",         "faction": "scale_guard", "x": 96,  "y": 36 },
+    { "type": "viper",         "faction": "scale_guard", "x": 92,  "y": 20 },
+    { "type": "viper",         "faction": "scale_guard", "x": 108, "y": 28 },
+    { "type": "snapper",       "faction": "scale_guard", "x": 96,  "y": 44 },
+    { "type": "gator",         "faction": "scale_guard", "x": 152, "y": 20 },
+    { "type": "gator",         "faction": "scale_guard", "x": 168, "y": 20 },
+    { "type": "gator",         "faction": "scale_guard", "x": 156, "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 164, "y": 32 },
+    { "type": "gator",         "faction": "scale_guard", "x": 148, "y": 36 },
+    { "type": "viper",         "faction": "scale_guard", "x": 160, "y": 16 },
+    { "type": "viper",         "faction": "scale_guard", "x": 172, "y": 24 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 160, "y": 28 },
+    { "type": "watchtower",    "faction": "scale_guard", "x": 148, "y": 16 },
+    { "type": "watchtower",    "faction": "scale_guard", "x": 172, "y": 16 }
+  ],
+
+  "objectives": [
+    { "id": "destroy-siphon-w", "description": "Destroy the western siphon",      "type": "primary" },
+    { "id": "destroy-siphon-c", "description": "Destroy the central siphon",      "type": "primary" },
+    { "id": "destroy-siphon-e", "description": "Destroy the eastern siphon",      "type": "primary" },
+    { "id": "all-bases-survive", "description": "All three lodges survive",        "type": "bonus" },
+    { "id": "simultaneous",      "description": "Assault all siphons simultaneously", "type": "bonus" }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 6 }, { "type": "scout_lizard", "count": 2 }], "intervalMs": 25000, "variance": 0.2 },
+      { "composition": [{ "type": "gator", "count": 5 }, { "type": "viper", "count": 3 }], "intervalMs": 40000, "variance": 0.25 },
+      { "composition": [{ "type": "croc_champion", "count": 3 }, { "type": "snapper", "count": 2 }], "intervalMs": 55000, "variance": 0.3 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":         { "drops": [{ "resource": "fish", "amount": 8, "probability": 0.5 }] },
+    "gator":         { "drops": [{ "resource": "salvage", "amount": 14, "probability": 0.4 }] },
+    "viper":         { "drops": [{ "resource": "salvage", "amount": 16, "probability": 0.5 }] },
+    "scout_lizard":  { "drops": [{ "resource": "salvage", "amount": 12, "probability": 0.5 }] },
+    "snapper":       { "drops": [{ "resource": "salvage", "amount": 24, "probability": 0.5 }] },
+    "croc_champion": { "drops": [{ "resource": "salvage", "amount": 30, "probability": 0.6 }] }
+  },
+
+  "difficultyScaling": {
+    "support":  { "resourceMultiplier": 1.5, "enemyHpMultiplier": 0.8, "enemyDamageMultiplier": 0.8, "startingResources": { "fish": 600, "timber": 450, "salvage": 300 } },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0, "enemyDamageMultiplier": 1.0, "startingResources": { "fish": 400, "timber": 300, "salvage": 200 } },
+    "elite":    { "resourceMultiplier": 0.75, "enemyHpMultiplier": 1.2, "enemyDamageMultiplier": 1.2, "startingResources": { "fish": 300, "timber": 225, "salvage": 150 } }
+  }
+}
