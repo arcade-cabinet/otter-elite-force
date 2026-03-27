@@ -1,6 +1,6 @@
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js";
-import { createSkirmishGameAdapter } from "@/ai/skirmishGameAdapter";
 import { SkirmishAI } from "@/ai/skirmishAI";
+import { createSkirmishGameAdapter } from "@/ai/skirmishGameAdapter";
 import type { SkirmishSessionConfig } from "@/features/skirmish/types";
 import { TutorialOverlay } from "@/solid/hud/TutorialOverlay";
 import { createGameBridge, type GameBridgeState } from "../bridge/gameBridge";
@@ -179,10 +179,7 @@ export function RuntimeHost(props: RuntimeHostProps) {
 		// Skirmish AI opponent: create and tick for enemy faction
 		const skirmishAI =
 			props.mode === "skirmish" && props.skirmish
-				? new SkirmishAI(
-						props.skirmish.difficulty,
-						createSkirmishGameAdapter(world),
-					)
+				? new SkirmishAI(props.skirmish.difficulty, createSkirmishGameAdapter(world))
 				: null;
 
 		void (async () => {

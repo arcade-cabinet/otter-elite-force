@@ -11,7 +11,10 @@
  * 6. Difficulty-scaled income for player faction.
  *
  * Gather cycle:
- *   worker at resource → harvest timer → fill carry → walk to depot → deposit → auto-return
+ *   worker at resource -> harvest timer -> fill carry -> walk to depot -> deposit -> auto-return
+ *
+ * Harvest amount per tick is determined by the resource node's harvestRate
+ * (from entity definitions), clamped to remaining carry capacity.
  */
 
 import { CATEGORY_IDS, FACTION_IDS } from "@/engine/content/ids";
@@ -25,6 +28,7 @@ import {
 	ResourceNode,
 } from "@/engine/world/components";
 import { type GameWorld, spawnFloatingText } from "@/engine/world/gameWorld";
+import { getResource } from "@/entities/registry";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -39,11 +43,11 @@ const GATHER_RANGE = 48;
 /** Distance (in pixels) at which a worker can deposit at a building. */
 const DEPOSIT_RANGE = 48;
 
-/** Base seconds of gathering per 1 resource unit. */
-const GATHER_INTERVAL = 2;
+/** Base seconds between harvest ticks. */
+const GATHER_INTERVAL = 1.5;
 
-// Default carry capacity — uncomment when depot-return cycle is wired in
-// const DEFAULT_CARRY_CAPACITY = 10;
+/** Default harvest amount when resource definition is unavailable. */
+const DEFAULT_HARVEST_AMOUNT = 2;
 
 /** Fish generated per Fish Trap per passive income tick. */
 const FISH_TRAP_INCOME = 3;
@@ -62,6 +66,9 @@ const carryingType = new Map<number, "fish" | "timber" | "salvage">();
 
 /** Accumulated time for Fish Trap passive income. */
 let fishTrapTimer = 0;
+
+/** Cache: resource type string -> harvestRate from ResourceDef. */
+const harvestRateCache = new Map<string, number>();
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -87,6 +94,19 @@ function resolveResourceType(nodeType: string | undefined): "fish" | "timber" | 
 	if (nodeType.includes("salvage") || nodeType.includes("supply") || nodeType.includes("crate"))
 		return "salvage";
 	return null;
+}
+
+/**
+ * Look up the harvestRate for a resource entity type from the entity registry.
+ * Results are cached for performance.
+ */
+function getHarvestRate(nodeType: string): number {
+	const cached = harvestRateCache.get(nodeType);
+	if (cached !== undefined) return cached;
+	const def = getResource(nodeType);
+	const rate = def?.harvestRate ?? DEFAULT_HARVEST_AMOUNT;
+	harvestRateCache.set(nodeType, rate);
+	return rate;
 }
 
 /**
@@ -322,6 +342,9 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 			carryingType.set(eid, resourceType);
 		}
 
+		// Look up the resource's harvestRate from the entity definition
+		const harvestAmount = nodeType ? getHarvestRate(nodeType) : DEFAULT_HARVEST_AMOUNT;
+
 		// Calculate gather rate with bonuses
 		let gatherRate = 1.0;
 		if (resourceType === "timber" && lumberMillActive) {
@@ -334,8 +357,8 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 
 		if (newTimer >= GATHER_INTERVAL) {
 			if (useCarryCycle) {
-				// Carry cycle: accumulate into carry buffer
-				const gatherAmount = Math.min(1, capacity - Gatherer.amount[eid]);
+				// Carry cycle: accumulate into carry buffer using resource's harvestRate
+				const gatherAmount = Math.min(harvestAmount, capacity - Gatherer.amount[eid]);
 				Gatherer.amount[eid] += gatherAmount;
 
 				// Show gather tick floating text at the resource node
@@ -370,8 +393,14 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 					}
 				}
 			} else {
-				// Simple mode: deposit 1 resource directly to session
-				world.session.resources[resourceType] += 1;
+				// Simple mode: deposit harvestAmount resources directly to session
+				const simpleAmount = Math.min(
+					harvestAmount,
+					ResourceNode.remaining[targetEid] > 0
+						? ResourceNode.remaining[targetEid]
+						: harvestAmount,
+				);
+				world.session.resources[resourceType] += simpleAmount;
 
 				// Show floating text at the resource node for visual feedback
 				const ftColor =
@@ -384,13 +413,13 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 					world,
 					Position.x[targetEid],
 					Position.y[targetEid],
-					`+1 ${resourceType.toUpperCase()}`,
+					`+${simpleAmount} ${resourceType.toUpperCase()}`,
 					ftColor,
 				);
 
 				// Deplete the resource node
 				if (ResourceNode.remaining[targetEid] > 0) {
-					ResourceNode.remaining[targetEid] -= 1;
+					ResourceNode.remaining[targetEid] -= simpleAmount;
 					if (ResourceNode.remaining[targetEid] <= 0) {
 						ResourceNode.remaining[targetEid] = -1;
 						world.events.push({

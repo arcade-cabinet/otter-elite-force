@@ -58,21 +58,19 @@ const BUILD_ORDER: string[] = [
 ];
 
 /** Build options derived from the canonical building entity definitions. */
-const DEFAULT_BUILD_OPTIONS: BuildOption[] = BUILD_ORDER
-	.map((id) => {
-		const def = URA_BUILDING_ENTITIES[id];
-		if (!def) return null;
-		return {
-			id: def.id,
-			name: def.name,
-			role: BUILD_ROLES[id] ?? def.category,
-			cost: { ...def.cost },
-			hp: def.hp,
-			armor: def.armor,
-			buildTime: def.buildTime,
-		};
-	})
-	.filter((opt): opt is BuildOption => opt !== null);
+const DEFAULT_BUILD_OPTIONS: BuildOption[] = BUILD_ORDER.map((id) => {
+	const def = URA_BUILDING_ENTITIES[id];
+	if (!def) return null;
+	return {
+		id: def.id,
+		name: def.name,
+		role: BUILD_ROLES[id] ?? def.category,
+		cost: { ...def.cost },
+		hp: def.hp,
+		armor: def.armor,
+		buildTime: def.buildTime,
+	};
+}).filter((opt): opt is BuildOption => opt !== null);
 
 function formatCost(cost: { fish?: number; timber?: number; salvage?: number }): string {
 	const parts: string[] = [];

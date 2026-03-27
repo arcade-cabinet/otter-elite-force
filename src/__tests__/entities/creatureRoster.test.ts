@@ -4,12 +4,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import {
-	ALL_UNIT_ENTITIES,
-	ALL_HERO_ENTITIES,
-	getUnit,
-	getHero,
-} from "@/entities/registry";
+import { ALL_HERO_ENTITIES, ALL_UNIT_ENTITIES, getHero, getUnit } from "@/entities/registry";
 
 // ─── Expected rosters ───
 
@@ -275,10 +270,7 @@ describe("Creature Roster", () => {
 				const unit = getUnit(id)!;
 				expect(unit, `Unit '${id}' not found`).toBeDefined();
 				for (const tag of expectedTags) {
-					expect(
-						unit.tags,
-						`Unit '${id}' missing ability tag '${tag}'`,
-					).toContain(tag);
+					expect(unit.tags, `Unit '${id}' missing ability tag '${tag}'`).toContain(tag);
 				}
 			}
 		});
@@ -288,10 +280,7 @@ describe("Creature Roster", () => {
 				const unit = getUnit(id)!;
 				expect(unit, `Boss '${id}' not found`).toBeDefined();
 				for (const tag of expectedTags) {
-					expect(
-						unit.tags,
-						`Boss '${id}' missing ability tag '${tag}'`,
-					).toContain(tag);
+					expect(unit.tags, `Boss '${id}' missing ability tag '${tag}'`).toContain(tag);
 				}
 			}
 		});

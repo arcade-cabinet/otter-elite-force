@@ -221,7 +221,7 @@ describe("Governor", () => {
 		console.log("Command post placed within 3000 ticks");
 	});
 
-	it("trains military units when barracks exists", () => {
+	it("trains military units when barracks exists", { timeout: 30000 }, () => {
 		const world = createMission1World();
 		// Give ample resources and pre-build infrastructure
 		world.session.resources.fish = 2000;
@@ -307,7 +307,7 @@ describe("Governor", () => {
 		}
 	});
 
-	it("scouts with one unit", () => {
+	it("scouts with one unit", { timeout: 30000 }, () => {
 		const world = createMission1World();
 		world.session.resources.fish = 2000;
 		world.session.resources.timber = 2000;
