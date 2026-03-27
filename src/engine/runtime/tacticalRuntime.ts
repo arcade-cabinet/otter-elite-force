@@ -15,7 +15,6 @@
 import { drawRankEmblem, hasEmblem } from "@/canvas/rankEmblems";
 import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import { loadTerrainTiles, paintTerrainChunked, type TerrainChunk } from "@/canvas/tilePainter";
-import { getMissionById } from "@/entities/missions";
 import {
 	initAudioRuntime,
 	notifyCombat,
@@ -31,17 +30,11 @@ import {
 	initAtlasAdapter,
 	isAtlasAdapterReady,
 } from "@/engine/rendering/atlasAdapter";
+import { getMissionById } from "@/entities/missions";
 import type { GameBridge, SelectionViewModel } from "../bridge/gameBridge";
 import { serializeGameWorld } from "../persistence/gameWorldSaveLoad";
 import { SqlitePersistenceStore } from "../persistence/sqlitePersistenceStore";
-import {
-	Construction,
-	Faction,
-	Flags,
-	Health,
-	Position,
-	Selection,
-} from "../world/components";
+import { Construction, Faction, Flags, Health, Position, Selection } from "../world/components";
 import type { GameWorld, Order } from "../world/gameWorld";
 import { getOrderQueue, tickFloatingTexts } from "../world/gameWorld";
 
@@ -196,6 +189,20 @@ export async function createTacticalRuntime(
 		"venom_spire",
 		"watchtower",
 	];
+
+	// Resource images — keyed by resource type (e.g. "mangrove_tree", "salvage_cache")
+	const resourceImages = new Map<string, HTMLImageElement>();
+	const RESOURCE_PNG_MAP: Record<string, string> = {
+		mangrove_tree: "props/forest_full.png",
+		mangrove_tree_alt: "props/forest_dense_1.png",
+		salvage_cache: "resources/salvage_cache.png",
+		supply_crate: "resources/supply_crate.png",
+		intel_marker: "resources/intel_marker.png",
+	};
+
+	// Input mode flags for hotkeys
+	let inputMode: "normal" | "attack-move" | "patrol" = "normal";
+	let lastAlertWorldPos: { x: number; y: number } | null = null;
 
 	// Selection box (screen-space during drag)
 	let selectionBoxScreen: {
@@ -372,6 +379,9 @@ export async function createTacticalRuntime(
 			...options.bridge.state.alerts,
 			{ id, message, severity, worldX, worldY },
 		].slice(-4);
+		if (worldX !== undefined && worldY !== undefined) {
+			lastAlertWorldPos = { x: worldX, y: worldY };
+		}
 	}
 
 	function syncBridgeState(): void {
@@ -729,6 +739,19 @@ export async function createTacticalRuntime(
 			img.src = `${buildingBase}${name}.png`;
 		}
 
+		// Load resource PNG images
+		const tileBase = `${import.meta.env.BASE_URL ?? "./"}assets/tiles/`;
+		for (const [key, relPath] of Object.entries(RESOURCE_PNG_MAP)) {
+			const img = new Image();
+			img.onload = () => {
+				resourceImages.set(key, img);
+			};
+			img.onerror = () => {
+				console.warn(`[tacticalRuntime] Failed to load resource image: ${relPath}`);
+			};
+			img.src = `${tileBase}${relPath}`;
+		}
+
 		// Initialize audio (real Tone.js engine + SFX bridge + music controller)
 		initAudioRuntime();
 		playAmbientMusic();
@@ -846,7 +869,23 @@ export async function createTacticalRuntime(
 			if (dragStartWorldPos && !isDragging) {
 				const mouseWorld = ljs.mousePos;
 				const mousePx = tileToPixel(mouseWorld.x, mouseWorld.y);
-				handlePrimaryAction(mousePx.x, mousePx.y);
+				if (inputMode === "attack-move") {
+					// Attack-move: issue attack order to destination
+					const selected = getSelectedEntityIds();
+					if (selected.length > 0) {
+						issueOrderToSelected({ type: "attack", targetX: mousePx.x, targetY: mousePx.y });
+					}
+					inputMode = "normal";
+				} else if (inputMode === "patrol") {
+					// Patrol: issue move order (patrol uses move with return logic)
+					const selected = getSelectedEntityIds();
+					if (selected.length > 0) {
+						issueOrderToSelected({ type: "move", targetX: mousePx.x, targetY: mousePx.y });
+					}
+					inputMode = "normal";
+				} else {
+					handlePrimaryAction(mousePx.x, mousePx.y);
+				}
 			}
 			dragStartWorldPos = null;
 			isDragging = false;
@@ -857,9 +896,10 @@ export async function createTacticalRuntime(
 		if (ljs.mouseWasPressed(2) && !isPanning) {
 			const mouseScreen = ljs.mousePosScreen;
 			if (screenPointInMinimap(mouseScreen.x, mouseScreen.y)) {
+				// Right-click on minimap: move selected units to that world position
 				const point = worldPointFromMinimap(mouseScreen.x, mouseScreen.y);
 				if (getSelectedEntityIds().length > 0) {
-					moveSelectedEntities(point.x, point.y);
+					issueOrderToSelected({ type: "move", targetX: point.x, targetY: point.y });
 				}
 			} else {
 				const mouseWorld = ljs.mousePos;
@@ -905,6 +945,65 @@ export async function createTacticalRuntime(
 		if (ljs.keyIsDown("ArrowUp")) ljs.setCameraPos(ljs.cameraPos.add(ljs.vec2(0, panSpeed)));
 		if (ljs.keyIsDown("ArrowDown")) ljs.setCameraPos(ljs.cameraPos.add(ljs.vec2(0, -panSpeed)));
 
+		// ── Keyboard hotkeys ──
+
+		// H — halt selected units (clear order queues)
+		if (ljs.keyWasPressed("KeyH")) {
+			const selected = getSelectedEntityIds();
+			for (const eid of selected) {
+				const queue = getOrderQueue(options.world, eid);
+				queue.length = 0;
+			}
+			if (selected.length > 0) {
+				pushAlert("Units halted", "info");
+			}
+		}
+
+		// A — enter attack-move mode
+		if (ljs.keyWasPressed("KeyA")) {
+			inputMode = inputMode === "attack-move" ? "normal" : "attack-move";
+			if (inputMode === "attack-move") {
+				pushAlert("Attack-move: click destination", "info");
+			}
+		}
+
+		// P — enter patrol mode
+		if (ljs.keyWasPressed("KeyP")) {
+			inputMode = inputMode === "patrol" ? "normal" : "patrol";
+			if (inputMode === "patrol") {
+				pushAlert("Patrol: click destination", "info");
+			}
+		}
+
+		// Escape — cancel current mode, deselect all
+		if (ljs.keyWasPressed("Escape")) {
+			if (inputMode !== "normal") {
+				inputMode = "normal";
+			} else {
+				clearSelectionState();
+			}
+		}
+
+		// Space — center camera on last alert position
+		if (ljs.keyWasPressed("Space")) {
+			if (lastAlertWorldPos) {
+				const tile = pixelToTile(lastAlertWorldPos.x, lastAlertWorldPos.y);
+				ljs.setCameraPos(ljs.vec2(tile.x, tile.y));
+			}
+		}
+
+		// Delete — delete selected player building
+		if (ljs.keyWasPressed("Delete")) {
+			const selected = getSelectedEntityIds();
+			for (const eid of selected) {
+				if (Flags.isBuilding[eid] === 1 && Faction.id[eid] === 1) {
+					options.world.runtime.alive.delete(eid);
+					Selection.selected[eid] = 0;
+					pushAlert("Building demolished", "warning");
+				}
+			}
+		}
+
 		// Clamp camera to world bounds
 		const worldSize = getWorldPixelSize();
 		const camSize = ljs.getCameraSize();
@@ -944,20 +1043,36 @@ export async function createTacticalRuntime(
 			const canvasW = ljs.mainCanvas.width;
 			const canvasH = ljs.mainCanvas.height;
 			// LittleJS camera: center of screen = cameraPos in world units
-			// World pixel = tile * TILE_SIZE
-			// Screen pixel = (worldPixel - cameraPixelX) * (scale / TILE_SIZE) + canvasW/2
+			// LittleJS worldToScreen: screenX = (wx - cx) * scale + W/2
+			//                         screenY = (wy - cy) * -scale + H/2  (Y-up)
+			// Canvas2D drawImage uses Y-down, so we flip the image vertically.
 			const camPixelX = camPos.x * TILE_SIZE;
 			const camPixelY = camPos.y * TILE_SIZE;
 			const screenScale = scale / TILE_SIZE;
 			for (const chunk of terrainChunks) {
-				// Chunk is in pixel coords (chunk.x, chunk.y)
+				// Chunk is in pixel coords (chunk.x, chunk.y) with Y-down convention.
+				// Apply LittleJS Y-flip: negate Y component.
 				const screenX = (chunk.x - camPixelX) * screenScale + canvasW / 2;
-				const screenY = (chunk.y - camPixelY) * screenScale + canvasH / 2;
+				const screenYGameTop = -(chunk.y - camPixelY) * screenScale + canvasH / 2;
 				const screenW = chunk.width * screenScale;
 				const screenH = chunk.height * screenScale;
+				// In LittleJS screen space, the chunk spans from
+				// screenYGameTop - screenH (screen top) to screenYGameTop (screen bottom)
+				const screenTop = screenYGameTop - screenH;
 				// Frustum cull
-				if (screenX + screenW < 0 || screenY + screenH < 0 || screenX > canvasW || screenY > canvasH) continue;
-				ctx.drawImage(chunk.canvas, screenX, screenY, screenW, screenH);
+				if (
+					screenX + screenW < 0 ||
+					screenTop + screenH < 0 ||
+					screenX > canvasW ||
+					screenTop > canvasH
+				)
+					continue;
+				// Draw chunk flipped vertically to match LittleJS Y-up convention
+				ctx.save();
+				ctx.translate(screenX, screenYGameTop);
+				ctx.scale(1, -1);
+				ctx.drawImage(chunk.canvas, 0, 0, screenW, screenH);
+				ctx.restore();
 			}
 		} else {
 			// Fallback: flat color terrain while tiles load
@@ -967,7 +1082,10 @@ export async function createTacticalRuntime(
 				const camPos = ljs.cameraPos;
 				const startTileX = Math.max(0, Math.floor(camPos.x - camSize.x / 2));
 				const startTileY = Math.max(0, Math.floor(camPos.y - camSize.y / 2));
-				const endTileX = Math.min(terrainGrid[0]?.length ?? 0, Math.ceil(camPos.x + camSize.x / 2) + 1);
+				const endTileX = Math.min(
+					terrainGrid[0]?.length ?? 0,
+					Math.ceil(camPos.x + camSize.x / 2) + 1,
+				);
 				const endTileY = Math.min(terrainGrid.length, Math.ceil(camPos.y + camSize.y / 2) + 1);
 				for (let ty = startTileY; ty < endTileY; ty++) {
 					const row = terrainGrid[ty];
@@ -975,7 +1093,11 @@ export async function createTacticalRuntime(
 					for (let tx = startTileX; tx < endTileX; tx++) {
 						const terrainId = row[tx];
 						const color = TERRAIN_COLORS[terrainId] ?? TERRAIN_COLORS[TerrainTypeId.grass];
-						ljs.drawRect(ljs.vec2(tx + 0.5, ty + 0.5), ljs.vec2(1, 1), new ljs.Color(color[0], color[1], color[2], color[3]));
+						ljs.drawRect(
+							ljs.vec2(tx + 0.5, ty + 0.5),
+							ljs.vec2(1, 1),
+							new ljs.Color(color[0], color[1], color[2], color[3]),
+						);
 					}
 				}
 			}
@@ -1044,9 +1166,11 @@ export async function createTacticalRuntime(
 					const screenScale = scale / TILE_SIZE;
 
 					// Building occupies 2x2 tiles (64x64 pixels at zoom 1)
+					// Apply LittleJS Y-flip for Canvas2D drawImage
 					const buildingSizePx = TILE_SIZE * 2;
 					const screenX = (px - buildingSizePx / 2 - camPixelX) * screenScale + canvasW / 2;
-					const screenY = (py - buildingSizePx / 2 - camPixelY) * screenScale + canvasH / 2;
+					const screenYGameTop =
+						-(py - buildingSizePx / 2 - camPixelY) * screenScale + canvasH / 2;
 					const screenW = buildingSizePx * screenScale;
 					const screenH = buildingSizePx * screenScale;
 
@@ -1054,7 +1178,10 @@ export async function createTacticalRuntime(
 					if (isUnderConstruction) {
 						ctx.globalAlpha = 0.4;
 					}
-					ctx.drawImage(buildingImg, screenX, screenY, screenW, screenH);
+					// Flip vertically to match LittleJS Y-up convention
+					ctx.translate(screenX, screenYGameTop);
+					ctx.scale(1, -1);
+					ctx.drawImage(buildingImg, 0, 0, screenW, screenH);
 					ctx.restore();
 				} else {
 					// Fallback: colored rectangle while image loads
@@ -1122,31 +1249,39 @@ export async function createTacticalRuntime(
 					);
 				}
 			} else if (isResource) {
-				// Resources: distinct shapes by type — larger for visibility
+				// Resources: try PNG image first, fall back to procedural shapes
 				const resType = entityType ?? "resource";
-				if (
-					resType.includes("tree") ||
-					resType.includes("mangrove") ||
-					resType.includes("lumber")
-				) {
-					// Trees: brown trunk line + large green canopy (0.6 radius)
-					ljs.drawRect(tilePos, ljs.vec2(0.12, 0.5), new ljs.Color(0.35, 0.22, 0.1, 1));
-					ljs.drawCircle(
-						ljs.vec2(tilePos.x, tilePos.y + 0.2),
-						0.6,
-						new ljs.Color(0.08, 0.42, 0.12, 1),
-					);
-					// Lighter highlight on canopy
-					ljs.drawCircle(
-						ljs.vec2(tilePos.x - 0.1, tilePos.y + 0.3),
-						0.25,
-						new ljs.Color(0.15, 0.6, 0.2, 0.7),
-					);
+				const resourceImg = entityType ? resourceImages.get(entityType) : undefined;
+
+				if (resourceImg) {
+					// Render resource PNG via Canvas2D (1x1 tile size)
+					const ctx = ljs.mainContext;
+					const scale = ljs.cameraScale;
+					const camPos = ljs.cameraPos;
+					const canvasW = ljs.mainCanvas.width;
+					const canvasH = ljs.mainCanvas.height;
+					const camPixelX = camPos.x * TILE_SIZE;
+					const camPixelY = camPos.y * TILE_SIZE;
+					const screenScale = scale / TILE_SIZE;
+
+					// Apply LittleJS Y-flip for Canvas2D drawImage
+					const resSizePx = TILE_SIZE;
+					const screenX = (px - resSizePx / 2 - camPixelX) * screenScale + canvasW / 2;
+					const screenYGameTop =
+						-(py - resSizePx / 2 - camPixelY) * screenScale + canvasH / 2;
+					const screenW = resSizePx * screenScale;
+					const screenH = resSizePx * screenScale;
+
+					// Flip vertically to match LittleJS Y-up convention
+					ctx.save();
+					ctx.translate(screenX, screenYGameTop);
+					ctx.scale(1, -1);
+					ctx.drawImage(resourceImg, 0, 0, screenW, screenH);
+					ctx.restore();
 				} else if (resType.includes("fish") || resType.includes("shellfish")) {
-					// Fish spots: larger blue circle with sparkle highlights
+					// Fish spots: larger blue circle with sparkle highlights (no specific PNG)
 					ljs.drawCircle(tilePos, 0.5, new ljs.Color(0.15, 0.4, 0.75, 0.8));
 					ljs.drawCircle(tilePos, 0.35, new ljs.Color(0.2, 0.55, 0.9, 1));
-					// Sparkle dots
 					const sparkleTime = worldElapsed * 0.003;
 					const sparkleOffset1 = Math.sin(sparkleTime) * 0.15;
 					const sparkleOffset2 = Math.cos(sparkleTime * 1.3) * 0.12;
@@ -1161,18 +1296,34 @@ export async function createTacticalRuntime(
 						new ljs.Color(0.85, 0.92, 1, 0.7),
 					);
 				} else if (
+					resType.includes("tree") ||
+					resType.includes("mangrove") ||
+					resType.includes("lumber")
+				) {
+					// Trees fallback while image loads
+					ljs.drawRect(tilePos, ljs.vec2(0.12, 0.5), new ljs.Color(0.35, 0.22, 0.1, 1));
+					ljs.drawCircle(
+						ljs.vec2(tilePos.x, tilePos.y + 0.2),
+						0.6,
+						new ljs.Color(0.08, 0.42, 0.12, 1),
+					);
+					ljs.drawCircle(
+						ljs.vec2(tilePos.x - 0.1, tilePos.y + 0.3),
+						0.25,
+						new ljs.Color(0.15, 0.6, 0.2, 0.7),
+					);
+				} else if (
 					resType.includes("salvage") ||
 					resType.includes("cache") ||
 					resType.includes("scrap")
 				) {
-					// Salvage: larger orange/brown box shape
+					// Salvage fallback while image loads
 					ljs.drawRect(tilePos, ljs.vec2(0.6, 0.5), new ljs.Color(0.55, 0.35, 0.1, 1));
 					ljs.drawRect(tilePos, ljs.vec2(0.5, 0.4), new ljs.Color(0.85, 0.6, 0.2, 1));
-					// Cross/strap detail on box
 					ljs.drawRect(tilePos, ljs.vec2(0.5, 0.06), new ljs.Color(0.45, 0.3, 0.08, 0.8));
 					ljs.drawRect(tilePos, ljs.vec2(0.06, 0.4), new ljs.Color(0.45, 0.3, 0.08, 0.8));
 				} else {
-					// Generic resource: yellow diamond
+					// Generic resource: yellow circle fallback
 					ljs.drawCircle(tilePos, 0.45, entityColor);
 				}
 				// Resource label — with dark shadow
@@ -1403,15 +1554,15 @@ export async function createTacticalRuntime(
 	}
 
 	function gameRenderPost(): void {
-		// ── Minimap (drawn in screen space via overlayCanvas) ──
+		// ── CRT-styled Minimap (drawn in screen space via overlayCanvas) ──
 		const ctx = ljs.drawContext;
 		if (!ctx) return;
 
 		const minimap = getMinimapLayout();
 		const worldSize = getWorldPixelSize();
 
-		// Background (lighter to let terrain colors show more clearly)
-		ctx.fillStyle = "rgba(10, 15, 30, 0.75)";
+		// CRT dark background with green tint
+		ctx.fillStyle = "#0a1a0f";
 		ctx.fillRect(minimap.x, minimap.y, minimap.width, minimap.height);
 
 		// Terrain colors
@@ -1425,7 +1576,7 @@ export async function createTacticalRuntime(
 				for (let ty = 0; ty < gridH; ty++) {
 					for (let tx = 0; tx < gridW; tx++) {
 						const tileType = tGrid[ty][tx];
-						ctx.fillStyle = MINIMAP_TERRAIN_COLORS[tileType] ?? "#1a3a1a";
+						ctx.fillStyle = MINIMAP_TERRAIN_COLORS[tileType] ?? "#0a1a0f";
 						ctx.fillRect(
 							minimap.x + tx * tileW,
 							minimap.y + ty * tileH,
@@ -1437,7 +1588,7 @@ export async function createTacticalRuntime(
 			}
 		}
 
-		// Fog overlay on minimap (reduced opacity for better contrast)
+		// Fog overlay on minimap
 		if (fogGrid && fogGridWidth > 0 && fogGridHeight > 0) {
 			const fTileW = minimap.width / fogGridWidth;
 			const fTileH = minimap.height / fogGridHeight;
@@ -1445,7 +1596,7 @@ export async function createTacticalRuntime(
 				for (let fx = 0; fx < fogGridWidth; fx++) {
 					const fogState = fogGrid[fy * fogGridWidth + fx];
 					if (fogState === 0) {
-						ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+						ctx.fillStyle = "rgba(10, 26, 15, 0.8)";
 						ctx.fillRect(
 							minimap.x + fx * fTileW,
 							minimap.y + fy * fTileH,
@@ -1453,7 +1604,7 @@ export async function createTacticalRuntime(
 							Math.ceil(fTileH),
 						);
 					} else if (fogState === 1) {
-						ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+						ctx.fillStyle = "rgba(10, 26, 15, 0.4)";
 						ctx.fillRect(
 							minimap.x + fx * fTileW,
 							minimap.y + fy * fTileH,
@@ -1465,15 +1616,21 @@ export async function createTacticalRuntime(
 			}
 		}
 
-		// Minimap border
-		ctx.strokeStyle = "rgba(200, 210, 220, 0.9)";
-		ctx.lineWidth = 1.5;
-		ctx.strokeRect(minimap.x, minimap.y, minimap.width, minimap.height);
+		// CRT scanline effect: thin horizontal lines every 2px at very low opacity
+		ctx.fillStyle = "rgba(0, 0, 0, 0.12)";
+		for (let sy = 0; sy < minimap.height; sy += 2) {
+			ctx.fillRect(minimap.x, minimap.y + sy, minimap.width, 1);
+		}
 
-		// Entity dots on minimap
+		// CRT green border (1px, #22c55e at 50% opacity)
+		ctx.strokeStyle = "rgba(34, 197, 94, 0.5)";
+		ctx.lineWidth = 1;
+		ctx.strokeRect(minimap.x + 0.5, minimap.y + 0.5, minimap.width - 1, minimap.height - 1);
+
+		// Entity dots on minimap — brighter CRT-styled colors
 		for (const eid of options.world.runtime.alive) {
-			const px = minimap.x + (Position.x[eid] / Math.max(1, worldSize.width)) * minimap.width;
-			const py = minimap.y + (Position.y[eid] / Math.max(1, worldSize.height)) * minimap.height;
+			const dotPx = minimap.x + (Position.x[eid] / Math.max(1, worldSize.width)) * minimap.width;
+			const dotPy = minimap.y + (Position.y[eid] / Math.max(1, worldSize.height)) * minimap.height;
 
 			if (fogGrid && fogGridWidth > 0 && Faction.id[eid] !== 1) {
 				const tileX = Math.floor(Position.x[eid] / TILE_SIZE);
@@ -1483,19 +1640,25 @@ export async function createTacticalRuntime(
 				}
 			}
 
+			// Bright CRT entity colors: player=#22c55e, enemy=#ef4444, resource=#facc15
 			ctx.fillStyle =
 				Flags.isResource[eid] === 1
-					? "#fde047"
+					? "#facc15"
 					: Faction.id[eid] === 1
-						? "#4ade80"
+						? "#22c55e"
 						: Faction.id[eid] === 2
-							? "#f87171"
-							: "#e2e8f0";
+							? "#ef4444"
+							: "#94a3b8";
 			const dotSize = Flags.isBuilding[eid] === 1 ? 5 : 3;
-			ctx.fillRect(px - Math.floor(dotSize / 2), py - Math.floor(dotSize / 2), dotSize, dotSize);
+			ctx.fillRect(
+				dotPx - Math.floor(dotSize / 2),
+				dotPy - Math.floor(dotSize / 2),
+				dotSize,
+				dotSize,
+			);
 		}
 
-		// Camera viewport rectangle on minimap
+		// Camera viewport rectangle in bright white (#f8fafc)
 		const camSize = ljs.getCameraSize();
 		const viewportRectW = Math.min(
 			minimap.width,
