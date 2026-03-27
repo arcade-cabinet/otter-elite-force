@@ -1,4 +1,4 @@
-import { type DatabaseAdapter, getDatabase } from "@/persistence/database";
+import { type DatabaseAdapter, getDatabase, initDatabase } from "@/persistence/database";
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import type {
 	CampaignProgressRecord,
@@ -18,13 +18,17 @@ function fromJson<T>(value: string | null | undefined): T | null {
 }
 
 export class SqlitePersistenceStore implements PersistenceStore {
-	readonly #db: DatabaseAdapter;
+	#db: DatabaseAdapter | null;
 
-	constructor(db: DatabaseAdapter = getDatabase()) {
-		this.#db = db;
+	constructor(db?: DatabaseAdapter) {
+		this.#db = db ?? null;
 	}
 
 	async initialize(): Promise<void> {
+		if (!this.#db) {
+			await initDatabase();
+			this.#db = getDatabase();
+		}
 		await this.#db.execute(`
 			CREATE TABLE IF NOT EXISTS app_state (
 				scope TEXT PRIMARY KEY,
@@ -75,8 +79,13 @@ export class SqlitePersistenceStore implements PersistenceStore {
 		return this.#readScope<SkirmishSetupRecord>("skirmish_setup");
 	}
 
+	#requireDb(): DatabaseAdapter {
+		if (!this.#db) throw new Error("SqlitePersistenceStore not initialized — call initialize() first");
+		return this.#db;
+	}
+
 	async saveMission(record: MissionSaveRecord): Promise<void> {
-		await this.#db.execute(
+		await this.#requireDb().execute(
 			`INSERT OR REPLACE INTO mission_save (
 				slot, mission_id, seed_json, snapshot_json, play_time_ms, saved_at
 			) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -92,7 +101,7 @@ export class SqlitePersistenceStore implements PersistenceStore {
 	}
 
 	async loadMission(slot: number): Promise<MissionSaveRecord | null> {
-		const rows = await this.#db.query<{
+		const rows = await this.#requireDb().query<{
 			slot: number;
 			mission_id: string;
 			seed_json: string;
@@ -124,14 +133,14 @@ export class SqlitePersistenceStore implements PersistenceStore {
 	}
 
 	async saveDiagnostics(snapshot: DiagnosticSnapshot): Promise<void> {
-		await this.#db.execute(
+		await this.#requireDb().execute(
 			"INSERT OR REPLACE INTO diagnostic_snapshot (run_id, payload_json, created_at) VALUES (?, ?, ?)",
 			[snapshot.runId, toJson(snapshot), Date.now()],
 		);
 	}
 
 	async listDiagnostics(): Promise<DiagnosticSnapshot[]> {
-		const rows = await this.#db.query<{ payload_json: string }>(
+		const rows = await this.#requireDb().query<{ payload_json: string }>(
 			"SELECT payload_json FROM diagnostic_snapshot ORDER BY created_at DESC",
 		);
 		return rows
@@ -140,14 +149,14 @@ export class SqlitePersistenceStore implements PersistenceStore {
 	}
 
 	async #writeScope(scope: string, payload: unknown): Promise<void> {
-		await this.#db.execute(
+		await this.#requireDb().execute(
 			"INSERT OR REPLACE INTO app_state (scope, payload_json, updated_at) VALUES (?, ?, ?)",
 			[scope, toJson(payload), Date.now()],
 		);
 	}
 
 	async #readScope<T>(scope: string): Promise<T | null> {
-		const rows = await this.#db.query<{ payload_json: string }>(
+		const rows = await this.#requireDb().query<{ payload_json: string }>(
 			"SELECT payload_json FROM app_state WHERE scope = ?",
 			[scope],
 		);

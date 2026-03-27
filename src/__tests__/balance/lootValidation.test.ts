@@ -77,13 +77,19 @@ function runLootSimulation(unitType: string, rolls: number, phrase: string): Loo
 		totalSalvage: 0,
 	};
 
+	// Use a single world and advance tick for each roll to get varied RNG
+	const world = createLootTestWorld(phrase);
+
 	for (let i = 0; i < rolls; i++) {
-		// Create fresh world each roll to get proper RNG advancement
-		const world = createLootTestWorld(`${phrase}-roll-${i}`);
-		world.time.tick = i; // Vary tick for different loot RNG
+		// Advance tick so loot RNG produces different values each roll
+		world.time.tick = i + 1;
 
 		const eid = spawnDummyEnemy(world, unitType);
 		const results = rollLootFromTable(world, unitType, eid);
+
+		// Remove the dummy after rolling
+		world.runtime.alive.delete(eid);
+		world.runtime.entityTypeIndex.delete(eid);
 
 		for (const result of results) {
 			switch (result.resource) {
@@ -101,6 +107,9 @@ function runLootSimulation(unitType: string, rolls: number, phrase: string): Loo
 					break;
 			}
 		}
+
+		// Reset session resources for next roll
+		world.session.resources = { fish: 0, timber: 0, salvage: 0 };
 	}
 
 	return stats;

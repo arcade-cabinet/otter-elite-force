@@ -187,33 +187,39 @@ export function runEncounterSystem(world: GameWorld): void {
 		// Advance timer
 		s.timerMs += deltaMs;
 
-		// Calculate actual interval with variance
-		const rng = getEncounterRng(world);
-		const varianceOffset =
-			entry.intervalVariance > 0
-				? rng.nextInt(entry.intervalVariance * 2) - entry.intervalVariance
-				: 0;
-		const actualInterval = entry.intervalMs + varianceOffset;
+		// Compute the next spawn interval with variance ONCE and cache it.
+		// Previously the variance was recomputed every tick with a different RNG
+		// seed, causing the effective interval to fluctuate randomly each frame.
+		if (s.nextIntervalMs === undefined || s.nextIntervalMs <= 0) {
+			const rng = getEncounterRng(world);
+			const varianceOffset =
+				entry.intervalVariance > 0
+					? rng.nextInt(entry.intervalVariance * 2) - entry.intervalVariance
+					: 0;
+			s.nextIntervalMs = Math.max(entry.intervalMs * 0.5, entry.intervalMs + varianceOffset);
+		}
 
-		if (s.timerMs < actualInterval) {
+		if (s.timerMs < s.nextIntervalMs) {
 			continue;
 		}
 
-		// Timer fired -- reset
-		s.timerMs -= actualInterval;
+		// Timer fired -- reset and clear cached interval for next spawn
+		s.timerMs -= s.nextIntervalMs;
+		s.nextIntervalMs = 0;
 
 		// Find spawn zone
 		const zone = findSpawnZone(world, entry.spawnZone);
 		if (!zone) continue;
 
 		// Roll composition with variance
+		const spawnRng = getEncounterRng(world);
 		let spawnedAny = false;
 		for (const comp of entry.composition) {
-			const variance = comp.variance > 0 ? rng.nextInt(comp.variance * 2 + 1) - comp.variance : 0;
+			const variance = comp.variance > 0 ? spawnRng.nextInt(comp.variance * 2 + 1) - comp.variance : 0;
 			const count = Math.max(0, comp.count + variance);
 
 			for (let j = 0; j < count; j++) {
-				const eid = spawnEncounterUnit(world, comp.unitType, zone.rect, rng);
+				const eid = spawnEncounterUnit(world, comp.unitType, zone.rect, spawnRng);
 				if (eid !== -1) {
 					spawnedAny = true;
 				}

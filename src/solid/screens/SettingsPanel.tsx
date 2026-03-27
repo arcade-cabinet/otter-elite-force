@@ -4,10 +4,23 @@
  * Military equipment panel aesthetic: grouped settings (Audio, Visual,
  * Accessibility), sliders styled as equipment dials with stencil/uppercase
  * labels, toggles with on/off indicator, back button at bottom.
+ *
+ * Settings are persisted to SQLite via SqlitePersistenceStore. They load
+ * on mount and save on every change so they survive across sessions.
  */
 
-import { type Component, createSignal, For } from "solid-js";
+import { type Component, createSignal, For, onMount } from "solid-js";
+import { SqlitePersistenceStore } from "@/engine/persistence/sqlitePersistenceStore";
+import type { UserSettingsRecord } from "@/engine/persistence/types";
 import type { AppState } from "../appState";
+
+const DEFAULT_SETTINGS: UserSettingsRecord = {
+	masterVolume: 1.0,
+	musicVolume: 0.7,
+	sfxVolume: 1.0,
+	showSubtitles: true,
+	reduceMotion: false,
+};
 
 const SliderSetting: Component<{
 	label: string;
@@ -91,13 +104,59 @@ const SectionHeader: Component<{ label: string }> = (props) => {
 };
 
 export const SettingsPanel: Component<{ app: AppState }> = (props) => {
-	const [masterVolume, setMasterVolume] = createSignal(1.0);
-	const [musicVolume, setMusicVolume] = createSignal(0.7);
-	const [sfxVolume, setSfxVolume] = createSignal(1.0);
-	const [subtitles, setSubtitles] = createSignal(true);
-	const [reduceMotion, setReduceMotion] = createSignal(false);
+	const [masterVolume, setMasterVolume] = createSignal(DEFAULT_SETTINGS.masterVolume);
+	const [musicVolume, setMusicVolume] = createSignal(DEFAULT_SETTINGS.musicVolume);
+	const [sfxVolume, setSfxVolume] = createSignal(DEFAULT_SETTINGS.sfxVolume);
+	const [subtitles, setSubtitles] = createSignal(DEFAULT_SETTINGS.showSubtitles);
+	const [reduceMotion, setReduceMotion] = createSignal(DEFAULT_SETTINGS.reduceMotion);
 	const [showGrid, setShowGrid] = createSignal(false);
 	const [reduceFx, setReduceFx] = createSignal(false);
+
+	/** Persist the current settings to SQLite. Fire-and-forget. */
+	function persistSettings(): void {
+		const store = new SqlitePersistenceStore();
+		void store
+			.initialize()
+			.then(() =>
+				store.saveSettings({
+					masterVolume: masterVolume(),
+					musicVolume: musicVolume(),
+					sfxVolume: sfxVolume(),
+					showSubtitles: subtitles(),
+					reduceMotion: reduceMotion(),
+				}),
+			)
+			.catch((err: unknown) => {
+				console.warn("[SettingsPanel] Failed to persist settings:", err);
+			});
+	}
+
+	/** Wrap a setter to also persist after changing. */
+	function withPersist<T>(setter: (v: T) => void): (v: T) => void {
+		return (v: T) => {
+			setter(v);
+			persistSettings();
+		};
+	}
+
+	onMount(() => {
+		const store = new SqlitePersistenceStore();
+		void store
+			.initialize()
+			.then(() => store.loadSettings())
+			.then((saved) => {
+				if (saved) {
+					setMasterVolume(saved.masterVolume);
+					setMusicVolume(saved.musicVolume);
+					setSfxVolume(saved.sfxVolume);
+					setSubtitles(saved.showSubtitles);
+					setReduceMotion(saved.reduceMotion);
+				}
+			})
+			.catch((err: unknown) => {
+				console.warn("[SettingsPanel] Failed to load settings:", err);
+			});
+	});
 
 	return (
 		<div class="canvas-grain relative min-h-screen w-screen overflow-hidden bg-background text-foreground">
@@ -116,23 +175,23 @@ export const SettingsPanel: Component<{ app: AppState }> = (props) => {
 				<section>
 					<SectionHeader label="Audio" />
 					<div class="flex flex-col gap-2">
-						<SliderSetting label="Master Volume" value={masterVolume} onChange={setMasterVolume} />
-						<SliderSetting label="Music Volume" value={musicVolume} onChange={setMusicVolume} />
-						<SliderSetting label="SFX Volume" value={sfxVolume} onChange={setSfxVolume} />
+						<SliderSetting label="Master Volume" value={masterVolume} onChange={withPersist(setMasterVolume)} />
+						<SliderSetting label="Music Volume" value={musicVolume} onChange={withPersist(setMusicVolume)} />
+						<SliderSetting label="SFX Volume" value={sfxVolume} onChange={withPersist(setSfxVolume)} />
 					</div>
 				</section>
 				<section>
 					<SectionHeader label="Visual" />
 					<div class="flex flex-col gap-2">
-						<ToggleSetting label="Show Grid Overlay" value={showGrid} onChange={setShowGrid} />
-						<ToggleSetting label="Reduce FX" value={reduceFx} onChange={setReduceFx} />
+						<ToggleSetting label="Show Grid Overlay" value={showGrid} onChange={withPersist(setShowGrid)} />
+						<ToggleSetting label="Reduce FX" value={reduceFx} onChange={withPersist(setReduceFx)} />
 					</div>
 				</section>
 				<section>
 					<SectionHeader label="Accessibility" />
 					<div class="flex flex-col gap-2">
-						<ToggleSetting label="Subtitles" value={subtitles} onChange={setSubtitles} />
-						<ToggleSetting label="Reduce Motion" value={reduceMotion} onChange={setReduceMotion} />
+						<ToggleSetting label="Subtitles" value={subtitles} onChange={withPersist(setSubtitles)} />
+						<ToggleSetting label="Reduce Motion" value={reduceMotion} onChange={withPersist(setReduceMotion)} />
 					</div>
 				</section>
 				<section class="border border-border/30 bg-card/20 p-4">

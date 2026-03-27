@@ -5,7 +5,8 @@
  * selector, test preset selector, faction swap checkbox, and launch button.
  */
 
-import { type Component, createSignal, For, Show } from "solid-js";
+import { type Component, createSignal, For, onMount, Show } from "solid-js";
+import { SqlitePersistenceStore } from "@/engine/persistence/sqlitePersistenceStore";
 import { createSeedBundle } from "@/engine/random/seed";
 import {
 	isMapUnlocked,
@@ -129,6 +130,24 @@ export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 	const allUnlocked = false;
 	const selectedMap = () => SKIRMISH_MAPS.find((m) => m.id === selectedMapId()) ?? SKIRMISH_MAPS[0];
 	const canStart = () => allUnlocked || isMapUnlocked(selectedMap(), totalStars);
+
+	/** Load persisted skirmish setup on mount for quick rematch. */
+	onMount(() => {
+		const store = new SqlitePersistenceStore();
+		void store
+			.initialize()
+			.then(() => store.loadSkirmishSetup())
+			.then((saved) => {
+				if (saved) {
+					setSeedPhrase(saved.seed.phrase);
+					const preset = SKIRMISH_PRESETS.find((p) => p.id === saved.mapPreset);
+					if (preset) setSelectedPreset(preset.id);
+				}
+			})
+			.catch((err: unknown) => {
+				console.warn("[SkirmishSetup] Failed to load skirmish setup:", err);
+			});
+	});
 
 	return (
 		<div class="canvas-grain relative min-h-screen overflow-hidden bg-background text-foreground">
@@ -293,6 +312,20 @@ export const SkirmishSetup: Component<{ app: AppState }> = (props) => {
 									props.app.setSkirmishConfig(config);
 									props.app.setSkirmishSeedPhrase(seedPhrase());
 									props.app.setIsSkirmish(true);
+									// Persist for quick rematch
+									const persistStore = new SqlitePersistenceStore();
+									void persistStore
+										.initialize()
+										.then(() =>
+											persistStore.saveSkirmishSetup({
+												mapPreset: selectedPreset(),
+												seed,
+												startingResources: config.startingResources,
+											}),
+										)
+										.catch((err: unknown) => {
+											console.warn("[SkirmishSetup] Failed to persist:", err);
+										});
 									props.app.setScreen("game");
 								}}
 								class="min-h-12 w-full border-2 border-accent/60 bg-accent/15 px-4 py-3 font-heading text-sm uppercase tracking-[0.2em] text-accent transition-all duration-200 hover:border-accent/80 hover:bg-accent/25 hover:shadow-[0_0_20px_rgba(255,226,138,0.1)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"

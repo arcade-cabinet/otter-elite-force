@@ -38,6 +38,13 @@ test.describe("Gameplay Verification: Mission 1", () => {
 			}
 		});
 
+		// Track page errors (uncaught exceptions)
+		const pageErrors: string[] = [];
+		page.on("pageerror", (error) => {
+			pageErrors.push(`${error.name}: ${error.message}`);
+			allConsole.push(`[pageerror] ${error.name}: ${error.message}`);
+		});
+
 		await page.goto("http://localhost:5173/");
 		await page.evaluate(() => localStorage.clear());
 		await page.reload();
@@ -383,10 +390,16 @@ test.describe("Gameplay Verification: Mission 1", () => {
 			console.log(`  WARN: ${w}`);
 		}
 
-		// Dump last 20 console messages for debugging if game ended early
+		// Dump page errors and console messages for debugging if game ended early
+		if (pageErrors.length > 0) {
+			console.log("\n=== PAGE ERRORS (uncaught exceptions) ===");
+			for (const err of pageErrors) {
+				console.log(`  ${err}`);
+			}
+		}
 		if (gameEndPhase && gameEndTime < 60) {
-			console.log("\n=== LAST 30 CONSOLE MESSAGES ===");
-			for (const msg of allConsole.slice(-30)) {
+			console.log("\n=== LAST 40 CONSOLE MESSAGES ===");
+			for (const msg of allConsole.slice(-40)) {
 				console.log(`  ${msg}`);
 			}
 		}

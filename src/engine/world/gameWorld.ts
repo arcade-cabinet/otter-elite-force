@@ -166,7 +166,7 @@ export interface GameWorld {
 			requiresPhase?: string;
 		}>;
 		/** Per-encounter accumulated timer (ms) and spawn count. */
-		encounterState: Array<{ timerMs: number; spawnCount: number }>;
+		encounterState: Array<{ timerMs: number; spawnCount: number; nextIntervalMs?: number }>;
 		/** Floating text entries for damage/heal/resource feedback. */
 		floatingTexts: Array<FloatingText>;
 		/** Cached A* path waypoints per entity. Cleared when order changes. */
