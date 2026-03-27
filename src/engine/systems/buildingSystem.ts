@@ -30,6 +30,18 @@ import {
 import type { GameWorld } from "@/engine/world/gameWorld";
 import { spawnBuilding as spawnBuildingEntity } from "@/engine/world/gameWorld";
 
+/** Worker unit types — fallback when categoryId is not set. */
+const WORKER_TYPE_NAMES = new Set(["river_rat"]);
+
+/** Check if an entity is a worker by categoryId, type name, or build ability. */
+function isWorkerEntity(world: GameWorld, eid: number): boolean {
+	return (
+		Content.categoryId[eid] === CATEGORY_IDS.worker ||
+		WORKER_TYPE_NAMES.has(world.runtime.entityTypeIndex.get(eid) ?? "") ||
+		(world.runtime.entityAbilities.get(eid)?.includes("build") ?? false)
+	);
+}
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -68,17 +80,17 @@ interface BuildingDef {
 const BUILDING_DEFS: Record<string, BuildingDef> = {
 	command_post: {
 		id: "command_post",
-		cost: { timber: 400, salvage: 200 },
+		cost: { fish: 200, timber: 100 },
 		hp: 600,
-		buildTime: 60,
+		buildTime: 45,
 		popCapBonus: 10,
 		trains: ["river_rat"],
 	},
 	barracks: {
 		id: "barracks",
-		cost: { timber: 200 },
+		cost: { fish: 100, timber: 150 },
 		hp: 350,
-		buildTime: 30,
+		buildTime: 25,
 		trains: ["mudfoot", "shellcracker"],
 	},
 	armory: {
@@ -275,7 +287,7 @@ export function runBuildingSystem(world: GameWorld): void {
 		const by = Position.y[buildingEid];
 
 		for (const workerEid of world.runtime.alive) {
-			if (Content.categoryId[workerEid] !== CATEGORY_IDS.worker) continue;
+			if (!isWorkerEntity(world, workerEid)) continue;
 			if (Faction.id[workerEid] !== Faction.id[buildingEid]) continue;
 
 			// Worker must have a build order targeting this building

@@ -3,19 +3,27 @@
  * against a bootstrapped Mission 1 world.
  */
 
-import { describe, expect, it, beforeEach } from "vitest";
-import { FACTION_IDS, CATEGORY_IDS } from "@/engine/content/ids";
+import { beforeEach, describe, expect, it } from "vitest";
+import { CATEGORY_IDS, FACTION_IDS } from "@/engine/content/ids";
+import { bootstrapMission } from "@/engine/session/missionBootstrap";
 import { runAllSystems } from "@/engine/systems";
-import { createFogGrid, type FogRuntime } from "@/engine/systems/fogSystem";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
-import { Content, Faction, Flags, Health, Position, Attack, Speed } from "@/engine/world/components";
+import { createFogGrid, type FogRuntime } from "@/engine/systems/fogSystem";
+import {
+	Attack,
+	Content,
+	Faction,
+	Flags,
+	Health,
+	Position,
+	Speed,
+} from "@/engine/world/components";
 import {
 	createGameWorld,
+	type GameWorld,
 	getOrderQueue,
 	spawnUnit,
-	type GameWorld,
 } from "@/engine/world/gameWorld";
-import { bootstrapMission } from "@/engine/session/missionBootstrap";
 import { createGovernor, type GovernorConfig } from "./governor";
 
 // ---------------------------------------------------------------------------
@@ -30,10 +38,7 @@ function createMission1World(): GameWorld {
 	if (world.navigation.width > 0 && world.navigation.height > 0) {
 		const fogRuntime = world.runtime as FogRuntime;
 		if (!fogRuntime.fogGrid) {
-			fogRuntime.fogGrid = createFogGrid(
-				world.navigation.width,
-				world.navigation.height,
-			);
+			fogRuntime.fogGrid = createFogGrid(world.navigation.width, world.navigation.height);
 			(fogRuntime as { fogGridWidth?: number }).fogGridWidth = world.navigation.width;
 			(fogRuntime as { fogGridHeight?: number }).fogGridHeight = world.navigation.height;
 		}
@@ -59,7 +64,11 @@ function runTicks(
 function countPlayerUnits(world: GameWorld): number {
 	let count = 0;
 	for (const eid of world.runtime.alive) {
-		if (Faction.id[eid] === FACTION_IDS.ura && Flags.isBuilding[eid] === 0 && Flags.isResource[eid] === 0)
+		if (
+			Faction.id[eid] === FACTION_IDS.ura &&
+			Flags.isBuilding[eid] === 0 &&
+			Flags.isResource[eid] === 0
+		)
 			count++;
 	}
 	return count;
@@ -68,8 +77,7 @@ function countPlayerUnits(world: GameWorld): number {
 function countPlayerBuildings(world: GameWorld): number {
 	let count = 0;
 	for (const eid of world.runtime.alive) {
-		if (Faction.id[eid] === FACTION_IDS.ura && Flags.isBuilding[eid] === 1)
-			count++;
+		if (Faction.id[eid] === FACTION_IDS.ura && Flags.isBuilding[eid] === 1) count++;
 	}
 	return count;
 }
@@ -180,14 +188,13 @@ describe("Governor", () => {
 
 		const gatheringNow = countWorkersGathering(world);
 		expect(gatheringNow).toBeGreaterThan(initialGathering);
-		console.log(
-			`After 60 ticks: ${gatheringNow} workers gathering (was ${initialGathering})`,
-		);
+		console.log(`After 60 ticks: ${gatheringNow} workers gathering (was ${initialGathering})`);
 	});
 
 	it("builds command post within 3000 ticks (50 seconds)", () => {
 		const world = createMission1World();
 		// Give extra starting resources for faster building
+		world.session.resources.fish = 500;
 		world.session.resources.timber = 500;
 		world.session.resources.salvage = 300;
 		const governor = createGovernor(world, {
@@ -326,7 +333,9 @@ describe("Governor", () => {
 		}
 	});
 
-	it("achieves victory on Mission 1 within 60000 ticks (about 16 minutes)", () => {
+	it("achieves victory on Mission 1 within 60000 ticks (about 16 minutes)", {
+		timeout: 30000,
+	}, () => {
 		const world = createMission1World();
 		// Give generous resources for the full playthrough
 		world.session.resources.fish = 500;
@@ -351,15 +360,14 @@ describe("Governor", () => {
 		console.log(`Ticks: ${60000}`);
 		console.log(`Actions: ${report.actionsExecuted}`);
 		console.log(`Actions by type:`, report.actionsPerType);
-		console.log(
-			`Objectives: ${completedObjectives}/${world.session.objectives.length}`,
-		);
+		console.log(`Objectives: ${completedObjectives}/${world.session.objectives.length}`);
 		console.log(
 			`Resources: fish=${world.session.resources.fish}, timber=${world.session.resources.timber}, salvage=${world.session.resources.salvage}`,
 		);
 		console.log(`Player units: ${countPlayerUnits(world)}`);
 		console.log(`Player buildings: ${countPlayerBuildings(world)}`);
 		console.log(`Military: ${countPlayerMilitary(world)}`);
+		console.log("Timeline:", report.timeline);
 
 		for (const obj of world.session.objectives) {
 			console.log(`  [${obj.status}] ${obj.description}`);

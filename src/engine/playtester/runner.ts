@@ -9,13 +9,13 @@
  */
 
 import { FACTION_IDS } from "@/engine/content/ids";
-import { runAllSystems } from "@/engine/systems";
-import { createFogGrid, type FogRuntime } from "@/engine/systems/fogSystem";
-import { resetGatherTimers } from "@/engine/systems/economySystem";
-import { Faction, Flags } from "@/engine/world/components";
-import { createGameWorld } from "@/engine/world/gameWorld";
 import { createSeedBundle } from "@/engine/random/seed";
 import { bootstrapMission } from "@/engine/session/missionBootstrap";
+import { runAllSystems } from "@/engine/systems";
+import { resetGatherTimers } from "@/engine/systems/economySystem";
+import { createFogGrid, type FogRuntime } from "@/engine/systems/fogSystem";
+import { Faction, Flags } from "@/engine/world/components";
+import { createGameWorld } from "@/engine/world/gameWorld";
 import { createGovernor, type GovernorConfig } from "./governor";
 
 // ---------------------------------------------------------------------------
@@ -76,10 +76,7 @@ export function runGovernorPlaytest(
 	if (world.navigation.width > 0 && world.navigation.height > 0) {
 		const fogRuntime = world.runtime as FogRuntime;
 		if (!fogRuntime.fogGrid) {
-			fogRuntime.fogGrid = createFogGrid(
-				world.navigation.width,
-				world.navigation.height,
-			);
+			fogRuntime.fogGrid = createFogGrid(world.navigation.width, world.navigation.height);
 			(fogRuntime as { fogGridWidth?: number }).fogGridWidth = world.navigation.width;
 			(fogRuntime as { fogGridHeight?: number }).fogGridHeight = world.navigation.height;
 		}
@@ -109,8 +106,7 @@ export function runGovernorPlaytest(
 	let buildingsPlaced = 0;
 	let lastBuildingCount = 0;
 	for (const eid of world.runtime.alive) {
-		if (Faction.id[eid] === FACTION_IDS.ura && Flags.isBuilding[eid] === 1)
-			lastBuildingCount++;
+		if (Faction.id[eid] === FACTION_IDS.ura && Flags.isBuilding[eid] === 1) lastBuildingCount++;
 	}
 
 	// Main loop
@@ -128,6 +124,19 @@ export function runGovernorPlaytest(
 
 		// Run all game systems
 		runAllSystems(world);
+
+		// Debug: log key milestones every 5000 ticks
+		if (tick % 5000 === 0) {
+			const perc = governor.getLastPerception();
+			if (perc) {
+				console.log(
+					`[tick ${tick}] fish=${perc.resources.fish} timber=${perc.resources.timber} salvage=${perc.resources.salvage} ` +
+						`workers=${perc.idleWorkers.length}idle/${perc.playerUnits.filter((u) => u.isWorker).length}total ` +
+						`buildings=${perc.playerBuildings.length} military=${perc.militaryUnits.length} ` +
+						`resourceNodes=${perc.resourceNodes.length}`,
+				);
+			}
+		}
 
 		// Track stats
 		let currentArmySize = 0;
@@ -159,8 +168,7 @@ export function runGovernorPlaytest(
 	for (const eid of world.runtime.alive) {
 		if (Flags.isResource[eid] === 1) continue;
 		if (Faction.id[eid] === FACTION_IDS.scale_guard) finalEnemyCount++;
-		if (Faction.id[eid] === FACTION_IDS.ura && Flags.isBuilding[eid] === 0)
-			finalPlayerUnitCount++;
+		if (Faction.id[eid] === FACTION_IDS.ura && Flags.isBuilding[eid] === 0) finalPlayerUnitCount++;
 	}
 
 	const completedObjectives = world.session.objectives.filter(
@@ -186,10 +194,7 @@ export function runGovernorPlaytest(
 		durationTicks: tick,
 		durationMinutes: Math.round(((tick * TICK_DELTA_MS) / 60000) * 100) / 100,
 		unitsTrainedCount: trainCount,
-		unitsLostCount: Math.max(
-			0,
-			initialPlayerUnitCount + trainCount - finalPlayerUnitCount,
-		),
+		unitsLostCount: Math.max(0, initialPlayerUnitCount + trainCount - finalPlayerUnitCount),
 		buildingsBuiltCount: buildingsPlaced,
 		resourcesGathered: {
 			fish: Math.max(0, world.session.resources.fish - startResources.fish),

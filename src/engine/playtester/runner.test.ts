@@ -5,15 +5,19 @@
 
 import { describe, expect, it } from "vitest";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
-import { runGovernorPlaytest, type PlaytestReport } from "./runner";
+import { type PlaytestReport, runGovernorPlaytest } from "./runner";
 
 describe("runGovernorPlaytest", () => {
 	it("full Mission 1 playtest with beginner governor produces a PlaytestReport", () => {
 		resetGatherTimers();
 
-		const report = runGovernorPlaytest("mission_1", {
-			difficulty: "beginner",
-		}, 18000); // ~5 minutes
+		const report = runGovernorPlaytest(
+			"mission_1",
+			{
+				difficulty: "beginner",
+			},
+			18000,
+		); // ~5 minutes
 
 		expect(report).toBeDefined();
 		expect(report.missionId).toBe("mission_1");
@@ -38,9 +42,13 @@ describe("runGovernorPlaytest", () => {
 	it("report shows units trained, buildings built, resources gathered", () => {
 		resetGatherTimers();
 
-		const report = runGovernorPlaytest("mission_1", {
-			difficulty: "optimal",
-		}, 30000); // ~8.3 minutes
+		const report = runGovernorPlaytest(
+			"mission_1",
+			{
+				difficulty: "optimal",
+			},
+			30000,
+		); // ~8.3 minutes
 
 		// Governor should have gathered some resources (workers auto-gather)
 		// Note: resourcesGathered is the delta from start, which may be negative
@@ -48,9 +56,7 @@ describe("runGovernorPlaytest", () => {
 		expect(report.timeline.length).toBeGreaterThan(0);
 
 		// Should have at least some actions recorded
-		const hasGatherActions = report.timeline.some((e) =>
-			e.event.includes("assign-gather"),
-		);
+		const hasGatherActions = report.timeline.some((e) => e.event.includes("assign-gather"));
 		expect(hasGatherActions).toBe(true);
 
 		console.log("=== OPTIMAL 8-MIN PLAYTEST REPORT ===");
@@ -64,15 +70,23 @@ describe("runGovernorPlaytest", () => {
 	it("optimal governor completes Mission 1 faster than beginner", { timeout: 30000 }, () => {
 		resetGatherTimers();
 
-		const beginnerReport = runGovernorPlaytest("mission_1", {
-			difficulty: "beginner",
-		}, 30000);
+		const beginnerReport = runGovernorPlaytest(
+			"mission_1",
+			{
+				difficulty: "beginner",
+			},
+			30000,
+		);
 
 		resetGatherTimers();
 
-		const optimalReport = runGovernorPlaytest("mission_1", {
-			difficulty: "optimal",
-		}, 30000);
+		const optimalReport = runGovernorPlaytest(
+			"mission_1",
+			{
+				difficulty: "optimal",
+			},
+			30000,
+		);
 
 		console.log("=== GOVERNOR COMPARISON ===");
 		console.log(

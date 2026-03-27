@@ -52,7 +52,7 @@ describe("engine/systems/buildingSystem", () => {
 			const def = getBuildingDef("barracks");
 			expect(def).not.toBeNull();
 			expect(def!.hp).toBe(350);
-			expect(def!.buildTime).toBe(30);
+			expect(def!.buildTime).toBe(25);
 		});
 
 		it("returns null for unknown building type", () => {
@@ -63,7 +63,7 @@ describe("engine/systems/buildingSystem", () => {
 	describe("canPlaceBuilding", () => {
 		it("allows placement on grass with sufficient resources", () => {
 			const world = makeWorld(0);
-			world.session.resources = { fish: 0, timber: 200, salvage: 0 };
+			world.session.resources = { fish: 100, timber: 150, salvage: 0 };
 			const tileMap = createMockTileMap();
 
 			const result = canPlaceBuilding(world, "barracks", 5, 5, tileMap);
@@ -145,7 +145,7 @@ describe("engine/systems/buildingSystem", () => {
 	describe("placeBuilding", () => {
 		it("spawns a building entity with correct initial state", () => {
 			const world = makeWorld(0);
-			world.session.resources = { fish: 0, timber: 500, salvage: 0 };
+			world.session.resources = { fish: 500, timber: 500, salvage: 0 };
 			const tileMap = createMockTileMap();
 
 			const eid = placeBuilding(world, "barracks", 100, 200, tileMap);
@@ -155,16 +155,17 @@ describe("engine/systems/buildingSystem", () => {
 			expect(Position.y[eid!]).toBe(200);
 			expect(Health.max[eid!]).toBe(350);
 			expect(Construction.progress[eid!]).toBe(0);
-			expect(Construction.buildTime[eid!]).toBe(30);
+			expect(Construction.buildTime[eid!]).toBe(25);
 		});
 
 		it("deducts resources on placement", () => {
 			const world = makeWorld(0);
-			world.session.resources = { fish: 0, timber: 500, salvage: 0 };
+			world.session.resources = { fish: 500, timber: 500, salvage: 0 };
 			const tileMap = createMockTileMap();
 
 			placeBuilding(world, "barracks", 5, 5, tileMap);
-			expect(world.session.resources.timber).toBe(300); // 500 - 200
+			expect(world.session.resources.fish).toBe(400); // 500 - 100
+			expect(world.session.resources.timber).toBe(350); // 500 - 150
 		});
 
 		it("returns null if placement is invalid", () => {
@@ -178,7 +179,7 @@ describe("engine/systems/buildingSystem", () => {
 
 		it("emits building-placed event", () => {
 			const world = makeWorld(0);
-			world.session.resources = { fish: 0, timber: 500, salvage: 0 };
+			world.session.resources = { fish: 500, timber: 500, salvage: 0 };
 			const tileMap = createMockTileMap();
 
 			placeBuilding(world, "barracks", 5, 5, tileMap);

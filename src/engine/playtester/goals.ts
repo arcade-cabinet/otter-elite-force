@@ -15,7 +15,7 @@
  * 7. Complete  — move toward mission objectives
  */
 
-import type { WorldPerception, PerceivedUnit, PerceivedResource } from "./perception";
+import type { PerceivedResource, PerceivedUnit, WorldPerception } from "./perception";
 
 // ---------------------------------------------------------------------------
 // Action plan types (returned by goals, executed by actions module)
@@ -77,8 +77,8 @@ interface BuildPriority {
 }
 
 const BUILD_ORDER: BuildPriority[] = [
-	{ type: "command_post", cost: { fish: 0, timber: 400, salvage: 200 } },
-	{ type: "barracks", cost: { fish: 0, timber: 200, salvage: 0 }, requires: ["command_post"] },
+	{ type: "command_post", cost: { fish: 200, timber: 100, salvage: 0 } },
+	{ type: "barracks", cost: { fish: 100, timber: 150, salvage: 0 }, requires: ["command_post"] },
 	{ type: "fish_trap", cost: { fish: 0, timber: 75, salvage: 0 } },
 	{ type: "watchtower", cost: { fish: 0, timber: 100, salvage: 50 }, requires: ["command_post"] },
 	{ type: "burrow", cost: { fish: 0, timber: 200, salvage: 100 } },
@@ -125,7 +125,7 @@ export function evaluateGoals(
 	plans.push(...gatherActions);
 
 	// 3. BUILD — construct next building in priority order
-	const buildActions = evaluateBuild(perception, state);
+	const buildActions = evaluateBuild(perception, state, profile);
 	plans.push(...buildActions);
 
 	// 4. TRAIN — train military units
@@ -147,14 +147,9 @@ export function evaluateGoals(
 // Goal: Survive
 // ---------------------------------------------------------------------------
 
-function evaluateSurvive(
-	perception: WorldPerception,
-	profile: GovernorProfile,
-): ActionPlan[] {
+function evaluateSurvive(perception: WorldPerception, profile: GovernorProfile): ActionPlan[] {
 	// Check if lodge/burrow is under threat
-	const lodge = perception.playerBuildings.find(
-		(b) => b.buildingType === "burrow" && b.isComplete,
-	);
+	const lodge = perception.playerBuildings.find((b) => b.buildingType === "burrow" && b.isComplete);
 
 	if (!lodge) return [];
 
@@ -167,9 +162,7 @@ function evaluateSurvive(
 	const militaryEids = perception.militaryUnits.map((u) => u.eid);
 	if (militaryEids.length === 0) return [];
 
-	return [
-		{ type: "defend-position", unitEids: militaryEids, x: lodge.x, y: lodge.y },
-	];
+	return [{ type: "defend-position", unitEids: militaryEids, x: lodge.x, y: lodge.y }];
 }
 
 // ---------------------------------------------------------------------------
@@ -178,8 +171,52 @@ function evaluateSurvive(
 
 function evaluateGather(perception: WorldPerception): ActionPlan[] {
 	const plans: ActionPlan[] = [];
+	if (perception.idleWorkers.length === 0) return plans;
 
-	for (const worker of perception.idleWorkers) {
+	// Determine what resource types are needed for the next build priority
+	const neededTypes = getNeededResourceTypes(perception);
+
+	// Categorize resource nodes by type
+	const nodesByType: Record<string, PerceivedResource[]> = {};
+	for (const node of perception.resourceNodes) {
+		if (node.remaining <= 0) continue;
+		const resType = resolveResourceTypeFromNode(node.resourceType);
+		if (resType) {
+			if (!nodesByType[resType]) nodesByType[resType] = [];
+			nodesByType[resType].push(node);
+		}
+	}
+
+	// Assign workers: prioritize needed resource types, then nearest
+	let workerIdx = 0;
+	const workers = [...perception.idleWorkers];
+
+	// First pass: assign one worker per needed resource type that we're short on
+	for (const needed of neededTypes) {
+		if (workerIdx >= workers.length) break;
+		const nodes = nodesByType[needed];
+		if (!nodes || nodes.length === 0) continue;
+
+		// Check if we actually need this resource
+		const currentAmount = perception.resources[needed as keyof typeof perception.resources] ?? 0;
+		const buildNeed = getNextBuildCostFor(perception, needed);
+		if (currentAmount >= buildNeed && buildNeed > 0) continue;
+
+		const worker = workers[workerIdx];
+		const nearest = findNearestInList(worker, nodes);
+		if (nearest) {
+			plans.push({
+				type: "assign-gather",
+				workerEid: worker.eid,
+				resourceEid: nearest.eid,
+			});
+			workerIdx++;
+		}
+	}
+
+	// Second pass: remaining workers go to nearest resource
+	for (; workerIdx < workers.length; workerIdx++) {
+		const worker = workers[workerIdx];
 		const nearest = findNearestResource(worker, perception.resourceNodes);
 		if (nearest) {
 			plans.push({
@@ -191,6 +228,95 @@ function evaluateGather(perception: WorldPerception): ActionPlan[] {
 	}
 
 	return plans;
+}
+
+/** Determine resource type from a node type string. */
+function resolveResourceTypeFromNode(nodeType: string): string | null {
+	if (nodeType.includes("fish")) return "fish";
+	if (
+		nodeType.includes("timber") ||
+		nodeType.includes("mangrove") ||
+		nodeType.includes("tree") ||
+		nodeType.includes("lumber")
+	)
+		return "timber";
+	if (nodeType.includes("salvage") || nodeType.includes("supply") || nodeType.includes("crate"))
+		return "salvage";
+	return null;
+}
+
+/** Get the resource types needed for the next building in priority order. */
+function getNeededResourceTypes(perception: WorldPerception): string[] {
+	const existingTypes = new Set(perception.playerBuildings.map((b) => b.buildingType));
+	const needed: string[] = [];
+
+	for (const priority of BUILD_ORDER) {
+		if (
+			existingTypes.has(priority.type) &&
+			priority.type !== "fish_trap" &&
+			priority.type !== "burrow"
+		)
+			continue;
+		if (priority.requires) {
+			const prereqsMet = priority.requires.every((req) =>
+				perception.playerBuildings.some((b) => b.buildingType === req && b.isComplete),
+			);
+			if (!prereqsMet) continue;
+		}
+
+		// This is the next building we want. Return its needed resource types.
+		const cost = priority.cost;
+		if (cost.fish > 0 && perception.resources.fish < cost.fish) needed.push("fish");
+		if (cost.timber > 0 && perception.resources.timber < cost.timber) needed.push("timber");
+		if (cost.salvage > 0 && perception.resources.salvage < cost.salvage) needed.push("salvage");
+		if (needed.length > 0) return needed;
+		break; // We can afford this one, check if build will handle it
+	}
+
+	return needed;
+}
+
+/** Get the cost of the next building for a specific resource type. */
+function getNextBuildCostFor(perception: WorldPerception, resourceType: string): number {
+	const existingTypes = new Set(perception.playerBuildings.map((b) => b.buildingType));
+
+	for (const priority of BUILD_ORDER) {
+		if (
+			existingTypes.has(priority.type) &&
+			priority.type !== "fish_trap" &&
+			priority.type !== "burrow"
+		)
+			continue;
+		if (priority.requires) {
+			const prereqsMet = priority.requires.every((req) =>
+				perception.playerBuildings.some((b) => b.buildingType === req && b.isComplete),
+			);
+			if (!prereqsMet) continue;
+		}
+		return priority.cost[resourceType as keyof typeof priority.cost] ?? 0;
+	}
+	return 0;
+}
+
+function findNearestInList(
+	unit: PerceivedUnit,
+	resources: PerceivedResource[],
+): PerceivedResource | null {
+	let best: PerceivedResource | null = null;
+	let bestDist = Infinity;
+
+	for (const res of resources) {
+		if (res.remaining <= 0) continue;
+		const dx = res.x - unit.x;
+		const dy = res.y - unit.y;
+		const dist = dx * dx + dy * dy;
+		if (dist < bestDist) {
+			bestDist = dist;
+			best = res;
+		}
+	}
+
+	return best;
 }
 
 function findNearestResource(
@@ -221,24 +347,26 @@ function findNearestResource(
 function evaluateBuild(
 	perception: WorldPerception,
 	state: GovernorState,
+	profile?: GovernorProfile,
 ): ActionPlan[] {
 	// Only build one building at a time; rate-limit to avoid spamming
-	if (state.lastBuildTick > 0 && perception.tick - state.lastBuildTick < 120) return [];
+	const cooldown = profile?.buildCooldownTicks ?? 60;
+	if (state.lastBuildTick > 0 && perception.tick - state.lastBuildTick < cooldown) return [];
 
-	const existingTypes = new Set(
-		perception.playerBuildings.map((b) => b.buildingType),
-	);
+	const existingTypes = new Set(perception.playerBuildings.map((b) => b.buildingType));
 
 	// Also track buildings under construction to avoid duplicates
 	const underConstruction = new Set(
-		perception.playerBuildings
-			.filter((b) => !b.isComplete)
-			.map((b) => b.buildingType),
+		perception.playerBuildings.filter((b) => !b.isComplete).map((b) => b.buildingType),
 	);
 
 	for (const priority of BUILD_ORDER) {
 		// Already have one or building one
-		if (existingTypes.has(priority.type) && priority.type !== "fish_trap" && priority.type !== "burrow")
+		if (
+			existingTypes.has(priority.type) &&
+			priority.type !== "fish_trap" &&
+			priority.type !== "burrow"
+		)
 			continue;
 		if (underConstruction.has(priority.type)) continue;
 
@@ -266,6 +394,12 @@ function evaluateBuild(
 			res.timber < priority.cost.timber ||
 			res.salvage < priority.cost.salvage
 		) {
+			// Can't afford this building. If it's a high-priority building
+			// (command_post or barracks), save resources instead of spending
+			// on lower-priority buildings like fish traps.
+			if (priority.type === "command_post" || priority.type === "barracks") {
+				return []; // Don't build anything — save resources
+			}
 			continue;
 		}
 
@@ -300,10 +434,7 @@ function evaluateBuild(
 // Goal: Train
 // ---------------------------------------------------------------------------
 
-function evaluateTrain(
-	perception: WorldPerception,
-	profile: GovernorProfile,
-): ActionPlan[] {
+function evaluateTrain(perception: WorldPerception, profile: GovernorProfile): ActionPlan[] {
 	const plans: ActionPlan[] = [];
 
 	// Check population room
@@ -334,10 +465,7 @@ function evaluateTrain(
 	// Train military units
 	for (const trainPrio of TRAIN_ORDER) {
 		const productionBuilding = perception.playerBuildings.find(
-			(b) =>
-				b.buildingType === trainPrio.trainedAt &&
-				b.isComplete &&
-				!b.isTraining,
+			(b) => b.buildingType === trainPrio.trainedAt && b.isComplete && !b.isTraining,
 		);
 		if (!productionBuilding) continue;
 
@@ -365,17 +493,12 @@ function evaluateTrain(
 // Goal: Scout
 // ---------------------------------------------------------------------------
 
-function evaluateScout(
-	perception: WorldPerception,
-	state: GovernorState,
-): ActionPlan[] {
+function evaluateScout(perception: WorldPerception, state: GovernorState): ActionPlan[] {
 	// Only scout every 300 ticks
 	if (state.lastScoutTick > 0 && perception.tick - state.lastScoutTick < 300) return [];
 
 	// Find an idle military unit to scout with
-	const idleMilitary = perception.militaryUnits.find(
-		(u) => u.isIdle,
-	);
+	const idleMilitary = perception.militaryUnits.find((u) => u.isIdle);
 	if (!idleMilitary) return [];
 
 	// Pick a target: try to find unexplored areas
@@ -385,10 +508,10 @@ function evaluateScout(
 	const cy = (perception.mapHeight * 32) / 2;
 
 	const targets: Array<{ x: number; y: number; quadrant: number }> = [
-		{ x: cx * 0.5, y: cy * 0.5, quadrant: 0 },    // NW
-		{ x: cx * 1.5, y: cy * 0.5, quadrant: 1 },    // NE
-		{ x: cx * 0.5, y: cy * 1.5, quadrant: 2 },    // SW
-		{ x: cx * 1.5, y: cy * 1.5, quadrant: 3 },    // SE
+		{ x: cx * 0.5, y: cy * 0.5, quadrant: 0 }, // NW
+		{ x: cx * 1.5, y: cy * 0.5, quadrant: 1 }, // NE
+		{ x: cx * 0.5, y: cy * 1.5, quadrant: 2 }, // SW
+		{ x: cx * 1.5, y: cy * 1.5, quadrant: 3 }, // SE
 	];
 
 	for (const target of targets) {
@@ -415,10 +538,7 @@ function evaluateScout(
 // Goal: Attack
 // ---------------------------------------------------------------------------
 
-function evaluateAttack(
-	perception: WorldPerception,
-	profile: GovernorProfile,
-): ActionPlan[] {
+function evaluateAttack(perception: WorldPerception, profile: GovernorProfile): ActionPlan[] {
 	if (perception.militaryUnits.length < profile.attackThreshold) return [];
 
 	// Find a target: visible enemy buildings, then visible enemy units
@@ -431,9 +551,7 @@ function evaluateAttack(
 		targetY = target.y;
 	} else if (perception.visibleEnemies.length > 0) {
 		// Pick weakest enemy
-		const weakest = perception.visibleEnemies.reduce((a, b) =>
-			a.hp < b.hp ? a : b,
-		);
+		const weakest = perception.visibleEnemies.reduce((a, b) => (a.hp < b.hp ? a : b));
 		targetX = weakest.x;
 		targetY = weakest.y;
 	} else {

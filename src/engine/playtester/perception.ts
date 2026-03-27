@@ -8,9 +8,11 @@
  */
 
 import { CATEGORY_IDS, FACTION_IDS } from "@/engine/content/ids";
+import type { FogRuntime } from "@/engine/systems/fogSystem";
+import { FOG_VISIBLE } from "@/engine/systems/fogSystem";
 import {
-	Attack,
 	Armor,
+	Attack,
 	Construction,
 	Content,
 	Faction,
@@ -21,8 +23,6 @@ import {
 	Speed,
 } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
-import type { FogRuntime } from "@/engine/systems/fogSystem";
-import { FOG_VISIBLE } from "@/engine/systems/fogSystem";
 
 // ---------------------------------------------------------------------------
 // Perceived entity types
@@ -165,7 +165,13 @@ export function perceiveWorld(world: GameWorld): WorldPerception {
 			// Resources with remaining == 0 may be uninitialized (treat as harvestable).
 			if (remaining < 0) continue;
 			const resType = world.runtime.entityTypeIndex.get(eid) ?? "unknown";
-			resourceNodes.push({ eid, resourceType: resType, x, y, remaining: remaining > 0 ? remaining : 9999 });
+			resourceNodes.push({
+				eid,
+				resourceType: resType,
+				x,
+				y,
+				remaining: remaining > 0 ? remaining : 9999,
+			});
 			continue;
 		}
 
@@ -207,9 +213,7 @@ export function perceiveWorld(world: GameWorld): WorldPerception {
 			catId === CATEGORY_IDS.worker ||
 			WORKER_TYPES.has(unitType) ||
 			(world.runtime.entityAbilities.get(eid)?.includes("gather") ?? false);
-		const isMilitary =
-			MILITARY_CATEGORIES.has(catId) ||
-			MILITARY_TYPES.has(unitType);
+		const isMilitary = MILITARY_CATEGORIES.has(catId) || MILITARY_TYPES.has(unitType);
 		const isGathering = hasOrders && orders[0].type === "gather";
 
 		const unit: PerceivedUnit = {

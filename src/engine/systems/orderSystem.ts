@@ -21,6 +21,9 @@ import { CATEGORY_IDS } from "@/engine/content/ids";
 import { Attack, Construction, Content, Flags, Health, Position } from "@/engine/world/components";
 import type { GameWorld, Order } from "@/engine/world/gameWorld";
 
+/** Worker unit types — fallback when categoryId is not set. */
+const WORKER_TYPE_NAMES = new Set(["river_rat"]);
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -62,8 +65,12 @@ function distanceBetween(ax: number, ay: number, bx: number, by: number): number
 // ---------------------------------------------------------------------------
 
 /** Validate that an entity can execute a gather order. */
-function canGather(_world: GameWorld, eid: number): boolean {
-	return Content.categoryId[eid] === CATEGORY_IDS.worker;
+function canGather(world: GameWorld, eid: number): boolean {
+	return (
+		Content.categoryId[eid] === CATEGORY_IDS.worker ||
+		WORKER_TYPE_NAMES.has(world.runtime.entityTypeIndex.get(eid) ?? "") ||
+		(world.runtime.entityAbilities.get(eid)?.includes("gather") ?? false)
+	);
 }
 
 /** Validate that an entity can attack. */
@@ -72,8 +79,12 @@ function canAttack(_world: GameWorld, eid: number): boolean {
 }
 
 /** Validate that an entity can build. */
-function canBuild(_world: GameWorld, eid: number): boolean {
-	return Content.categoryId[eid] === CATEGORY_IDS.worker;
+function canBuild(world: GameWorld, eid: number): boolean {
+	return (
+		Content.categoryId[eid] === CATEGORY_IDS.worker ||
+		WORKER_TYPE_NAMES.has(world.runtime.entityTypeIndex.get(eid) ?? "") ||
+		(world.runtime.entityAbilities.get(eid)?.includes("build") ?? false)
+	);
 }
 
 // ---------------------------------------------------------------------------

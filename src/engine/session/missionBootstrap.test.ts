@@ -44,12 +44,12 @@ describe("engine/session/missionBootstrap", () => {
 		expect(world.runtime.zoneRects.size).toBeGreaterThan(0);
 		const landingZone = world.runtime.zoneRects.get("landing_zone");
 		expect(landingZone).toBeDefined();
-		// landing_zone is at tile (16, 76) with size (96, 20)
-		// In pixels: x=16*32=512, y=76*32=2432, w=96*32=3072, h=20*32=640
+		// landing_zone is at tile (16, 84) with size (96, 12)
+		// In pixels: x=16*32=512, y=84*32=2688, w=96*32=3072, h=12*32=384
 		expect(landingZone?.x).toBe(16 * 32);
-		expect(landingZone?.y).toBe(76 * 32);
+		expect(landingZone?.y).toBe(84 * 32);
 		expect(landingZone?.width).toBe(96 * 32);
-		expect(landingZone?.height).toBe(20 * 32);
+		expect(landingZone?.height).toBe(12 * 32);
 	});
 
 	it("populates objectives from mission definition", () => {
@@ -130,22 +130,22 @@ describe("engine/session/missionBootstrap", () => {
 		bootstrapMission(world, "mission_1");
 
 		const resourceEids = [...world.runtime.alive].filter((eid) => Flags.isResource[eid] === 1);
-		// 8 mangrove_trees + 3 fish_spots + 3 salvage_caches = 14 resources
-		expect(resourceEids.length).toBe(14);
+		// 12 mangrove_trees + 4 fish_spots + 3 salvage_caches = 19 resources
+		expect(resourceEids.length).toBe(19);
 	});
 
 	it("places entities at correct pixel coordinates", () => {
 		const world = createGameWorld();
 		bootstrapMission(world, "mission_1");
 
-		// The burrow is placed at tile (40, 80) -> pixel (40*32+16, 80*32+16) = (1296, 2576)
+		// The burrow is placed at tile (40, 68) -> pixel (40*32+16, 68*32+16) = (1296, 2192)
 		const burrowEid = [...world.runtime.alive].find(
 			(eid) => world.runtime.entityTypeIndex.get(eid) === "burrow" && Flags.isBuilding[eid] === 1,
 		);
 		expect(burrowEid).toBeDefined();
 		if (burrowEid !== undefined) {
 			expect(Position.x[burrowEid]).toBe(40 * 32 + 16);
-			expect(Position.y[burrowEid]).toBe(80 * 32 + 16);
+			expect(Position.y[burrowEid]).toBe(68 * 32 + 16);
 		}
 	});
 
@@ -168,9 +168,9 @@ describe("engine/session/missionBootstrap", () => {
 		);
 		expect(bootstrapEvent).toBeDefined();
 		expect(bootstrapEvent?.payload?.missionId).toBe("mission_1");
-		// 1 burrow + 4 river_rats + 8 mangrove_trees + 3 fish_spots + 3 salvage_caches
-		// + 1 flag_post + 6 gators + 1 skink + 1 viper = 28
-		expect(bootstrapEvent?.payload?.placements).toBe(28);
+		// 1 burrow + 4 river_rats + 12 mangrove_trees + 4 fish_spots + 3 salvage_caches
+		// + 1 flag_post + 6 gators + 1 skink + 1 viper = 33
+		expect(bootstrapEvent?.payload?.placements).toBe(33);
 	});
 
 	it("sets scenario runtime state to initial", () => {

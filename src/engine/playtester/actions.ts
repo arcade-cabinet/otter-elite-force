@@ -7,10 +7,10 @@
  */
 
 import { CATEGORY_IDS, FACTION_IDS } from "@/engine/content/ids";
+import { getBuildingDef } from "@/engine/systems/buildingSystem";
 import { Content, Faction, Flags, Health, Position } from "@/engine/world/components";
 import type { GameWorld, ProductionEntry } from "@/engine/world/gameWorld";
 import { getOrderQueue, getProductionQueue, spawnBuilding } from "@/engine/world/gameWorld";
-import { getBuildingDef } from "@/engine/systems/buildingSystem";
 import type { ActionPlan } from "./goals";
 
 /**
@@ -104,8 +104,8 @@ export function startBuilding(
 		payload: { buildingId: buildingType, x, y, eid },
 	});
 
-	// Assign nearest idle worker to build
-	const builderEid = findNearestIdleWorker(world, x, y);
+	// Assign nearest worker to build (will reassign gathering workers if needed)
+	const builderEid = findNearestWorker(world, x, y);
 	if (builderEid !== -1) {
 		const orders = getOrderQueue(world, builderEid);
 		orders.length = 0;
@@ -124,16 +124,15 @@ export function startBuilding(
  * Queue a unit for training at a building.
  * Deducts resources and adds to the production queue.
  */
-export function trainUnit(
-	world: GameWorld,
-	buildingEid: number,
-	unitType: string,
-): boolean {
+export function trainUnit(world: GameWorld, buildingEid: number, unitType: string): boolean {
 	if (!world.runtime.alive.has(buildingEid)) return false;
 	if (Flags.isBuilding[buildingEid] !== 1) return false;
 
 	// Get unit cost from known unit costs
-	const unitCosts: Record<string, { fish: number; timber: number; salvage: number; buildTimeMs: number }> = {
+	const unitCosts: Record<
+		string,
+		{ fish: number; timber: number; salvage: number; buildTimeMs: number }
+	> = {
 		river_rat: { fish: 50, timber: 0, salvage: 0, buildTimeMs: 15000 },
 		mudfoot: { fish: 80, timber: 0, salvage: 20, buildTimeMs: 20000 },
 		shellcracker: { fish: 70, timber: 0, salvage: 30, buildTimeMs: 22000 },
@@ -146,11 +145,7 @@ export function trainUnit(
 
 	// Check resources
 	const res = world.session.resources;
-	if (
-		res.fish < costDef.fish ||
-		res.timber < costDef.timber ||
-		res.salvage < costDef.salvage
-	) {
+	if (res.fish < costDef.fish || res.timber < costDef.timber || res.salvage < costDef.salvage) {
 		return false;
 	}
 
@@ -318,12 +313,16 @@ export function scoutTo(
 const WORKER_TYPES = new Set(["river_rat"]);
 
 /**
- * Find the nearest idle URA worker to a world position.
+ * Find the nearest URA worker to a world position.
+ * Prefers idle workers, but will reassign gathering workers if none are idle.
+ * Workers already building are never reassigned.
  * Identifies workers by categoryId, unit type, or "gather" ability.
  */
-function findNearestIdleWorker(world: GameWorld, x: number, y: number): number {
-	let bestEid = -1;
-	let bestDist = Infinity;
+function findNearestWorker(world: GameWorld, x: number, y: number): number {
+	let bestIdleEid = -1;
+	let bestIdleDist = Infinity;
+	let bestBusyEid = -1;
+	let bestBusyDist = Infinity;
 
 	for (const eid of world.runtime.alive) {
 		if (Faction.id[eid] !== FACTION_IDS.ura) continue;
@@ -337,17 +336,29 @@ function findNearestIdleWorker(world: GameWorld, x: number, y: number): number {
 			(world.runtime.entityAbilities.get(eid)?.includes("gather") ?? false);
 		if (!isWorker) continue;
 
-		const orders = world.runtime.orderQueues.get(eid);
-		if (orders && orders.length > 0) continue;
-
 		const dx = Position.x[eid] - x;
 		const dy = Position.y[eid] - y;
 		const dist = dx * dx + dy * dy;
-		if (dist < bestDist) {
-			bestDist = dist;
-			bestEid = eid;
+
+		const orders = world.runtime.orderQueues.get(eid);
+		const isIdle = !orders || orders.length === 0;
+		const isBuilding = orders && orders.length > 0 && orders[0].type === "build";
+
+		if (isBuilding) continue; // Never reassign builders
+
+		if (isIdle) {
+			if (dist < bestIdleDist) {
+				bestIdleDist = dist;
+				bestIdleEid = eid;
+			}
+		} else {
+			if (dist < bestBusyDist) {
+				bestBusyDist = dist;
+				bestBusyEid = eid;
+			}
 		}
 	}
 
-	return bestEid;
+	// Prefer idle workers, fall back to busy (gathering) workers
+	return bestIdleEid !== -1 ? bestIdleEid : bestBusyEid;
 }

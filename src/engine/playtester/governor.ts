@@ -11,16 +11,16 @@
  */
 
 import type { GameWorld } from "@/engine/world/gameWorld";
-import { perceiveWorld, type WorldPerception } from "./perception";
+import { executeAction } from "./actions";
 import {
-	evaluateGoals,
+	type ActionPlan,
 	createGovernorState,
+	evaluateGoals,
 	GOVERNOR_PROFILES,
 	type GovernorProfile,
 	type GovernorState,
-	type ActionPlan,
 } from "./goals";
-import { executeAction } from "./actions";
+import { perceiveWorld, type WorldPerception } from "./perception";
 
 // ---------------------------------------------------------------------------
 // Public types

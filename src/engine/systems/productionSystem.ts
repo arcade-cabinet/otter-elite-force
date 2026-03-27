@@ -3,12 +3,14 @@
  *
  * Each frame:
  * 1. Advance production progress on buildings with active queues.
- * 2. When production completes, spawn the unit and dequeue.
+ * 2. When production completes, spawn the unit with full stats and dequeue.
  */
 
-import { Flags, Position } from "@/engine/world/components";
+import { resolveCategoryId } from "@/engine/content/ids";
+import { Faction, Flags, Position } from "@/engine/world/components";
 import type { GameWorld, ProductionEntry } from "@/engine/world/gameWorld";
 import { spawnUnit } from "@/engine/world/gameWorld";
+import { getHero, getUnit } from "@/entities/registry";
 
 /**
  * Run one tick of the production system.
@@ -39,15 +41,58 @@ export function runProductionSystem(world: GameWorld): void {
 		}
 
 		if (current.progress >= 100) {
-			// Spawn the unit near the building
+			// Spawn the unit near the building with full stats from registry
 			const spawnX = Position.x[eid] + 32;
 			const spawnY = Position.y[eid];
+			const faction =
+				Faction.id[eid] === 1 ? "ura" : Faction.id[eid] === 2 ? "scale_guard" : "neutral";
 
-			spawnUnit(world, {
-				x: spawnX,
-				y: spawnY,
-				unitType: current.contentId,
-			});
+			const unitDef = getUnit(current.contentId) ?? getHero(current.contentId);
+			if (unitDef) {
+				spawnUnit(world, {
+					x: spawnX,
+					y: spawnY,
+					faction,
+					unitType: current.contentId,
+					categoryId: resolveCategoryId(unitDef.category),
+					health: { current: unitDef.hp, max: unitDef.hp },
+					stats: {
+						hp: unitDef.hp,
+						armor: unitDef.armor,
+						speed: unitDef.speed,
+						attackDamage: unitDef.damage,
+						attackRange: unitDef.range,
+						attackCooldownMs: unitDef.attackCooldown,
+						visionRadius: unitDef.visionRadius,
+						popCost: unitDef.populationCost,
+					},
+					abilities: unitDef.tags.filter((t) =>
+						[
+							"gather",
+							"build",
+							"swim",
+							"heal",
+							"snipe",
+							"demolition",
+							"stealth",
+							"rally",
+							"shield_bash",
+						].includes(t),
+					),
+					flags: {
+						canSwim: unitDef.canSwim ?? false,
+						canStealth: unitDef.canCrouch ?? false,
+					},
+				});
+			} else {
+				// Fallback: spawn with just the type name (no stats)
+				spawnUnit(world, {
+					x: spawnX,
+					y: spawnY,
+					faction,
+					unitType: current.contentId,
+				});
+			}
 
 			queue.shift();
 		}

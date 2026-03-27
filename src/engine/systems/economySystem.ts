@@ -30,6 +30,9 @@ import { type GameWorld, spawnFloatingText } from "@/engine/world/gameWorld";
 // Constants
 // ---------------------------------------------------------------------------
 
+/** Worker unit types — fallback when categoryId is not set. */
+const WORKER_TYPE_NAMES = new Set(["river_rat"]);
+
 /** Distance (in pixels) at which a worker can gather from a resource node. */
 const GATHER_RANGE = 48;
 
@@ -74,8 +77,15 @@ function distanceBetween(ax: number, ay: number, bx: number, by: number): number
 function resolveResourceType(nodeType: string | undefined): "fish" | "timber" | "salvage" | null {
 	if (!nodeType) return null;
 	if (nodeType.includes("fish")) return "fish";
-	if (nodeType.includes("timber") || nodeType.includes("mangrove") || nodeType.includes("tree") || nodeType.includes("lumber")) return "timber";
-	if (nodeType.includes("salvage") || nodeType.includes("supply") || nodeType.includes("crate")) return "salvage";
+	if (
+		nodeType.includes("timber") ||
+		nodeType.includes("mangrove") ||
+		nodeType.includes("tree") ||
+		nodeType.includes("lumber")
+	)
+		return "timber";
+	if (nodeType.includes("salvage") || nodeType.includes("supply") || nodeType.includes("crate"))
+		return "salvage";
 	return null;
 }
 
@@ -165,8 +175,12 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 	const lumberMillActive = hasLumberMill(world);
 
 	for (const eid of world.runtime.alive) {
-		// Only process workers
-		if (Content.categoryId[eid] !== CATEGORY_IDS.worker) continue;
+		// Only process workers — check categoryId, type name, or gather ability
+		const isWorker =
+			Content.categoryId[eid] === CATEGORY_IDS.worker ||
+			WORKER_TYPE_NAMES.has(world.runtime.entityTypeIndex.get(eid) ?? "") ||
+			(world.runtime.entityAbilities.get(eid)?.includes("gather") ?? false);
+		if (!isWorker) continue;
 
 		const orders = world.runtime.orderQueues.get(eid);
 		if (!orders || orders.length === 0) continue;
