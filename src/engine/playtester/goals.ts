@@ -120,8 +120,8 @@ export function evaluateGoals(
 		return surviveActions; // Survival overrides everything
 	}
 
-	// 2. GATHER — assign idle workers to resources
-	const gatherActions = evaluateGather(perception);
+	// 2. GATHER — assign idle workers to resources, rebalance if needed
+	const gatherActions = evaluateGather(perception, state);
 	plans.push(...gatherActions);
 
 	// 3. BUILD — construct next building in priority order
@@ -169,11 +169,10 @@ function evaluateSurvive(perception: WorldPerception, profile: GovernorProfile):
 // Goal: Gather
 // ---------------------------------------------------------------------------
 
-function evaluateGather(perception: WorldPerception): ActionPlan[] {
+function evaluateGather(perception: WorldPerception, state: GovernorState): ActionPlan[] {
 	const plans: ActionPlan[] = [];
-	if (perception.idleWorkers.length === 0) return plans;
 
-	// Determine what resource types are needed for the next build priority
+	// Determine what resource types are needed for the next build/train priority
 	const neededTypes = getNeededResourceTypes(perception);
 
 	// Categorize resource nodes by type
@@ -186,6 +185,64 @@ function evaluateGather(perception: WorldPerception): ActionPlan[] {
 			nodesByType[resType].push(node);
 		}
 	}
+
+	// Rebalance: if we critically need a resource type (e.g. salvage for mudfoots)
+	// and no idle workers are available, reassign one gathering worker every 500 ticks.
+	if (
+		perception.idleWorkers.length === 0 &&
+		neededTypes.length > 0 &&
+		perception.tick - state.lastRebalanceTick >= 500
+	) {
+		const gatheringWorkers = perception.playerUnits.filter(
+			(u) => u.isWorker && u.isGathering && !state.rebalancedWorkers.has(u.eid),
+		);
+
+		for (const needed of neededTypes) {
+			const currentAmount =
+				perception.resources[needed as keyof typeof perception.resources] ?? 0;
+			const buildNeed = getNextBuildCostFor(perception, needed);
+			if (currentAmount >= buildNeed && buildNeed > 0) continue;
+
+			const nodes = nodesByType[needed];
+			if (!nodes || nodes.length === 0) continue;
+
+			// Check if any rebalanced worker is already heading to this type
+			let alreadyAssigned = false;
+			for (const wEid of state.rebalancedWorkers) {
+				const w = perception.playerUnits.find((u) => u.eid === wEid);
+				if (!w) continue;
+				// If the rebalanced worker is near (or heading toward) a node of this type
+				for (const node of nodes) {
+					const dx = w.x - node.x;
+					const dy = w.y - node.y;
+					if (dx * dx + dy * dy < 200 * 200) {
+						alreadyAssigned = true;
+						break;
+					}
+				}
+				if (alreadyAssigned) break;
+			}
+			if (alreadyAssigned) continue;
+
+			// Pick the worker furthest from its current gather location
+			if (gatheringWorkers.length > 1) {
+				const worker = gatheringWorkers[gatheringWorkers.length - 1];
+				const nearestNode = findNearestInList(worker, nodes);
+				if (nearestNode) {
+					plans.push({
+						type: "assign-gather",
+						workerEid: worker.eid,
+						resourceEid: nearestNode.eid,
+					});
+					state.rebalancedWorkers.add(worker.eid);
+					state.lastRebalanceTick = perception.tick;
+				}
+			}
+		}
+		return plans;
+	}
+
+	if (perception.idleWorkers.length === 0) return plans;
 
 	// Assign workers: prioritize needed resource types, then nearest
 	let workerIdx = 0;
@@ -245,12 +302,53 @@ function resolveResourceTypeFromNode(nodeType: string): string | null {
 	return null;
 }
 
-/** Get the resource types needed for the next building in priority order. */
+/** Core buildings that take priority over training. */
+const CORE_BUILDING_TYPES = new Set(["command_post", "barracks"]);
+
+/** Get the resource types needed for the next building or training in priority order. */
 function getNeededResourceTypes(perception: WorldPerception): string[] {
 	const existingTypes = new Set(perception.playerBuildings.map((b) => b.buildingType));
 	const needed: string[] = [];
 
+	// Check core building costs first (command_post, barracks take priority over training)
 	for (const priority of BUILD_ORDER) {
+		if (!CORE_BUILDING_TYPES.has(priority.type)) continue;
+		if (existingTypes.has(priority.type)) continue;
+		if (priority.requires) {
+			const prereqsMet = priority.requires.every((req) =>
+				perception.playerBuildings.some((b) => b.buildingType === req && b.isComplete),
+			);
+			if (!prereqsMet) continue;
+		}
+
+		const cost = priority.cost;
+		if (cost.fish > 0 && perception.resources.fish < cost.fish) needed.push("fish");
+		if (cost.timber > 0 && perception.resources.timber < cost.timber) needed.push("timber");
+		if (cost.salvage > 0 && perception.resources.salvage < cost.salvage) needed.push("salvage");
+		if (needed.length > 0) return needed;
+		break;
+	}
+
+	// Training costs take priority over non-core buildings (fish_trap, watchtower, etc.)
+	for (const trainPrio of TRAIN_ORDER) {
+		const hasTrainer = perception.playerBuildings.some(
+			(b) => b.buildingType === trainPrio.trainedAt && b.isComplete,
+		);
+		if (!hasTrainer) continue;
+
+		const cost = trainPrio.cost;
+		if (cost.fish > 0 && perception.resources.fish < cost.fish && !needed.includes("fish"))
+			needed.push("fish");
+		if (cost.timber > 0 && perception.resources.timber < cost.timber && !needed.includes("timber"))
+			needed.push("timber");
+		if (cost.salvage > 0 && perception.resources.salvage < cost.salvage && !needed.includes("salvage"))
+			needed.push("salvage");
+		if (needed.length > 0) return needed;
+	}
+
+	// Non-core buildings (fish_trap, watchtower, burrow)
+	for (const priority of BUILD_ORDER) {
+		if (CORE_BUILDING_TYPES.has(priority.type)) continue;
 		if (
 			existingTypes.has(priority.type) &&
 			priority.type !== "fish_trap" &&
@@ -264,19 +362,18 @@ function getNeededResourceTypes(perception: WorldPerception): string[] {
 			if (!prereqsMet) continue;
 		}
 
-		// This is the next building we want. Return its needed resource types.
 		const cost = priority.cost;
 		if (cost.fish > 0 && perception.resources.fish < cost.fish) needed.push("fish");
 		if (cost.timber > 0 && perception.resources.timber < cost.timber) needed.push("timber");
 		if (cost.salvage > 0 && perception.resources.salvage < cost.salvage) needed.push("salvage");
 		if (needed.length > 0) return needed;
-		break; // We can afford this one, check if build will handle it
+		break;
 	}
 
 	return needed;
 }
 
-/** Get the cost of the next building for a specific resource type. */
+/** Get the cost of the next building or training for a specific resource type. */
 function getNextBuildCostFor(perception: WorldPerception, resourceType: string): number {
 	const existingTypes = new Set(perception.playerBuildings.map((b) => b.buildingType));
 
@@ -293,8 +390,20 @@ function getNextBuildCostFor(perception: WorldPerception, resourceType: string):
 			);
 			if (!prereqsMet) continue;
 		}
-		return priority.cost[resourceType as keyof typeof priority.cost] ?? 0;
+		const cost = priority.cost[resourceType as keyof typeof priority.cost] ?? 0;
+		if (cost > 0) return cost;
 	}
+
+	// Check training costs too
+	for (const trainPrio of TRAIN_ORDER) {
+		const hasTrainer = perception.playerBuildings.some(
+			(b) => b.buildingType === trainPrio.trainedAt && b.isComplete,
+		);
+		if (!hasTrainer) continue;
+		const cost = trainPrio.cost[resourceType as keyof typeof trainPrio.cost] ?? 0;
+		if (cost > 0) return cost;
+	}
+
 	return 0;
 }
 
@@ -352,6 +461,22 @@ function evaluateBuild(
 	// Only build one building at a time; rate-limit to avoid spamming
 	const cooldown = profile?.buildCooldownTicks ?? 60;
 	if (state.lastBuildTick > 0 && perception.tick - state.lastBuildTick < cooldown) return [];
+
+	// Delay building if there are active resource-gathering objectives that should
+	// complete first (e.g. "Gather 150 timber" in Mission 1). This prevents the
+	// governor from spending resources on buildings before the scenario trigger fires.
+	for (const obj of perception.objectives) {
+		if (obj.status !== "active") continue;
+		const desc = obj.description.toLowerCase();
+		const gatherMatch = desc.match(/gather\s+(\d+)\s+(timber|fish|salvage)/);
+		if (gatherMatch) {
+			const threshold = Number.parseInt(gatherMatch[1], 10);
+			const resourceType = gatherMatch[2] as "timber" | "fish" | "salvage";
+			if (perception.resources[resourceType] < threshold) {
+				return []; // Don't build yet — complete the gather objective first
+			}
+		}
+	}
 
 	const existingTypes = new Set(perception.playerBuildings.map((b) => b.buildingType));
 
@@ -580,6 +705,9 @@ function evaluateAttack(perception: WorldPerception, profile: GovernorProfile): 
 export interface GovernorState {
 	lastBuildTick: number;
 	lastScoutTick: number;
+	lastRebalanceTick: number;
+	/** Worker eids that have been reassigned to gather a critical resource. */
+	rebalancedWorkers: Set<number>;
 	scoutedQuadrants: Set<number>;
 }
 
@@ -587,6 +715,8 @@ export function createGovernorState(): GovernorState {
 	return {
 		lastBuildTick: 0,
 		lastScoutTick: 0,
+		lastRebalanceTick: 0,
+		rebalancedWorkers: new Set(),
 		scoutedQuadrants: new Set(),
 	};
 }

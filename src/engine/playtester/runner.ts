@@ -9,8 +9,10 @@
  */
 
 import { FACTION_IDS } from "@/engine/content/ids";
+import { getMissionById } from "@/entities/missions";
 import { createSeedBundle } from "@/engine/random/seed";
 import { bootstrapMission } from "@/engine/session/missionBootstrap";
+import { createRuntimeMissionFlow } from "@/engine/session/runtimeMissionFlow";
 import { runAllSystems } from "@/engine/systems";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
 import { createFogGrid, type FogRuntime } from "@/engine/systems/fogSystem";
@@ -82,6 +84,12 @@ export function runGovernorPlaytest(
 		}
 	}
 
+	// Create mission flow (scenario trigger engine) so objectives can fire
+	const missionDef = getMissionById(missionId);
+	const missionFlow = missionDef
+		? createRuntimeMissionFlow({ world, mission: missionDef })
+		: null;
+
 	// Create governor
 	const governorConfig: GovernorConfig = {
 		difficulty: config?.difficulty ?? "optimal",
@@ -125,6 +133,11 @@ export function runGovernorPlaytest(
 		// Run all game systems
 		runAllSystems(world);
 
+		// Evaluate scenario triggers (objectives, phases, dialogue)
+		missionFlow?.step();
+
+
+
 		// Track stats
 		let currentArmySize = 0;
 		let currentBuildingCount = 0;
@@ -148,6 +161,9 @@ export function runGovernorPlaytest(
 			break;
 		}
 	}
+
+	// Clean up mission flow
+	missionFlow?.dispose();
 
 	// Count final state
 	let finalEnemyCount = 0;

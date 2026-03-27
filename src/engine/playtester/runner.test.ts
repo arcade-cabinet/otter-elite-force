@@ -67,7 +67,7 @@ describe("runGovernorPlaytest", () => {
 		console.log(`Timeline first 20:`, report.timeline.slice(0, 20));
 	});
 
-	it("optimal governor completes Mission 1 faster than beginner", { timeout: 30000 }, () => {
+	it("optimal governor completes Mission 1 faster than beginner", { timeout: 60000 }, () => {
 		resetGatherTimers();
 
 		const beginnerReport = runGovernorPlaytest(
@@ -75,7 +75,7 @@ describe("runGovernorPlaytest", () => {
 			{
 				difficulty: "beginner",
 			},
-			30000,
+			60000,
 		);
 
 		resetGatherTimers();
@@ -85,7 +85,7 @@ describe("runGovernorPlaytest", () => {
 			{
 				difficulty: "optimal",
 			},
-			30000,
+			60000,
 		);
 
 		console.log("=== GOVERNOR COMPARISON ===");
@@ -96,16 +96,11 @@ describe("runGovernorPlaytest", () => {
 			`Optimal: ${optimalReport.outcome} at ${optimalReport.durationTicks} ticks, ${optimalReport.objectivesCompleted}/${optimalReport.objectivesTotal} objectives`,
 		);
 
-		// The optimal governor should complete at least as many objectives
-		// or complete them faster (or both)
-		const optimalBetter =
-			optimalReport.objectivesCompleted >= beginnerReport.objectivesCompleted ||
-			optimalReport.unitsTrainedCount >= beginnerReport.unitsTrainedCount;
-
-		// This is a soft check — if both timeout with same objectives, that's OK
-		// The key assertion is that both ran without crashing
+		// Both governors should make steady progress — at least 3 objectives
+		// (gather-timber, build-command-post, build-barracks) in 60000 ticks
+		expect(beginnerReport.objectivesCompleted).toBeGreaterThanOrEqual(3);
+		expect(optimalReport.objectivesCompleted).toBeGreaterThanOrEqual(3);
 		expect(optimalReport.durationTicks).toBeGreaterThan(0);
 		expect(beginnerReport.durationTicks).toBeGreaterThan(0);
-		console.log(`Optimal performed at least as well as beginner: ${optimalBetter}`);
 	});
 });
