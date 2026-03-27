@@ -271,16 +271,49 @@ function evaluateGather(perception: WorldPerception, state: GovernorState): Acti
 		}
 	}
 
-	// Second pass: remaining workers go to nearest resource
-	for (; workerIdx < workers.length; workerIdx++) {
-		const worker = workers[workerIdx];
-		const nearest = findNearestResource(worker, perception.resourceNodes);
-		if (nearest) {
-			plans.push({
-				type: "assign-gather",
-				workerEid: worker.eid,
-				resourceEid: nearest.eid,
-			});
+	// Second pass: distribute remaining workers across needed resource types
+	// round-robin style to ensure balanced gathering (not all on nearest timber)
+	if (neededTypes.length > 0) {
+		let ntIdx = 0;
+		for (; workerIdx < workers.length; workerIdx++) {
+			const worker = workers[workerIdx];
+			const needed = neededTypes[ntIdx % neededTypes.length];
+			const nodes = nodesByType[needed];
+			if (nodes && nodes.length > 0) {
+				const nearest = findNearestInList(worker, nodes);
+				if (nearest) {
+					plans.push({
+						type: "assign-gather",
+						workerEid: worker.eid,
+						resourceEid: nearest.eid,
+					});
+					ntIdx++;
+					continue;
+				}
+			}
+			// Fallback: assign to nearest resource
+			const nearest = findNearestResource(worker, perception.resourceNodes);
+			if (nearest) {
+				plans.push({
+					type: "assign-gather",
+					workerEid: worker.eid,
+					resourceEid: nearest.eid,
+				});
+			}
+			ntIdx++;
+		}
+	} else {
+		// No shortfalls detected — go to nearest resource
+		for (; workerIdx < workers.length; workerIdx++) {
+			const worker = workers[workerIdx];
+			const nearest = findNearestResource(worker, perception.resourceNodes);
+			if (nearest) {
+				plans.push({
+					type: "assign-gather",
+					workerEid: worker.eid,
+					resourceEid: nearest.eid,
+				});
+			}
 		}
 	}
 
@@ -565,9 +598,14 @@ function evaluateTrain(perception: WorldPerception, profile: GovernorProfile): A
 	// Check population room
 	if (perception.population.current >= perception.population.max) return [];
 
+	// Don't train workers while saving for core buildings (command_post + barracks).
+	// Training a river_rat costs 50 fish which delays the command_post (200 fish).
+	const existingTypes = new Set(perception.playerBuildings.map((b) => b.buildingType));
+	const hasCoreBuildings = existingTypes.has("command_post") && existingTypes.has("barracks");
+
 	// First, train workers if below target count
 	const workerCount = perception.playerUnits.filter((u) => u.isWorker).length;
-	if (workerCount < profile.targetWorkerCount) {
+	if (workerCount < profile.targetWorkerCount && hasCoreBuildings) {
 		const commandPost = perception.playerBuildings.find(
 			(b) =>
 				(b.buildingType === "command_post" || b.buildingType === "burrow") &&
@@ -587,8 +625,35 @@ function evaluateTrain(perception: WorldPerception, profile: GovernorProfile): A
 		}
 	}
 
+	// Check if there's an active objective requiring a specific unit type
+	// (e.g. "Train 3 Mudfoots"). If so, prioritize that unit type and
+	// don't train anything else until the objective is met.
+	let requiredUnitType: string | null = null;
+	let requiredUnitCount = 0;
+	for (const obj of perception.objectives) {
+		if (obj.status !== "active") continue;
+		const desc = obj.description.toLowerCase();
+		const trainMatch = desc.match(/train\s+(\d+)\s+(\w+)/);
+		if (trainMatch) {
+			requiredUnitCount = Number.parseInt(trainMatch[1], 10);
+			requiredUnitType = trainMatch[2].replace(/s$/, ""); // "mudfoots" -> "mudfoot"
+			break;
+		}
+	}
+
 	// Train military units
 	for (const trainPrio of TRAIN_ORDER) {
+		// If there's a required unit objective, skip non-matching unit types
+		// until we've trained enough of the required type
+		if (requiredUnitType && trainPrio.unitType !== requiredUnitType) {
+			const currentCount = perception.playerUnits.filter(
+				(u) => u.unitType === requiredUnitType,
+			).length;
+			if (currentCount < requiredUnitCount) {
+				continue; // Skip — save resources for the required unit type
+			}
+		}
+
 		const productionBuilding = perception.playerBuildings.find(
 			(b) => b.buildingType === trainPrio.trainedAt && b.isComplete && !b.isTraining,
 		);
@@ -600,6 +665,10 @@ function evaluateTrain(perception: WorldPerception, profile: GovernorProfile): A
 			res.timber < trainPrio.cost.timber ||
 			res.salvage < trainPrio.cost.salvage
 		) {
+			// Can't afford this unit — if it's the required type, don't train anything else
+			if (requiredUnitType && trainPrio.unitType === requiredUnitType) {
+				return plans; // Wait for resources to accumulate
+			}
 			continue;
 		}
 

@@ -198,7 +198,7 @@ export const mission01Beachhead: MissionDef = {
 	// -----------------------------------------------------------------------
 	// Starting state
 	// -----------------------------------------------------------------------
-	startResources: { fish: 100, timber: 50, salvage: 0 },
+	startResources: { fish: 200, timber: 50, salvage: 75 },
 	startPopCap: 10,
 
 	// -----------------------------------------------------------------------

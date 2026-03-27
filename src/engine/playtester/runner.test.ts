@@ -96,10 +96,10 @@ describe("runGovernorPlaytest", () => {
 			`Optimal: ${optimalReport.outcome} at ${optimalReport.durationTicks} ticks, ${optimalReport.objectivesCompleted}/${optimalReport.objectivesTotal} objectives`,
 		);
 
-		// Both governors should make steady progress — at least 3 objectives
-		// (gather-timber, build-command-post, build-barracks) in 60000 ticks
-		expect(beginnerReport.objectivesCompleted).toBeGreaterThanOrEqual(3);
-		expect(optimalReport.objectivesCompleted).toBeGreaterThanOrEqual(3);
+		// Both governors should complete at least 4 objectives in 60000 ticks
+		// (gather-timber, build-command-post, build-barracks, train-mudfoots)
+		expect(beginnerReport.objectivesCompleted).toBeGreaterThanOrEqual(4);
+		expect(optimalReport.objectivesCompleted).toBeGreaterThanOrEqual(4);
 		expect(optimalReport.durationTicks).toBeGreaterThan(0);
 		expect(beginnerReport.durationTicks).toBeGreaterThan(0);
 	});

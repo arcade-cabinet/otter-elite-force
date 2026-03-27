@@ -22,10 +22,10 @@ describe("engine/session/missionBootstrap", () => {
 		const world = createGameWorld();
 		bootstrapMission(world, "mission_1");
 
-		// Mission 1 starts with fish: 100, timber: 50, salvage: 0
-		expect(world.session.resources.fish).toBe(100);
+		// Mission 1 starts with fish: 200, timber: 50, salvage: 75
+		expect(world.session.resources.fish).toBe(200);
 		expect(world.session.resources.timber).toBe(50);
-		expect(world.session.resources.salvage).toBe(0);
+		expect(world.session.resources.salvage).toBe(75);
 	});
 
 	it("sets terrain dimensions on navigation", () => {
