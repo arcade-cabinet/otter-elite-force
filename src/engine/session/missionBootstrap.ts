@@ -132,7 +132,7 @@ function resolveTerrainId(terrainId: string): number {
  * Processes regions in order (fill, rects, circles, rivers), then applies
  * tile overrides. Returns a grid[row][col] of numeric terrain type IDs.
  */
-function buildTerrainGrid(mission: MissionDef): number[][] {
+export function buildTerrainGrid(mission: MissionDef): number[][] {
 	const { width, height, regions, overrides } = mission.terrain;
 	const grid: number[][] = Array.from({ length: height }, () =>
 		Array.from({ length: width }, () => TerrainTypeId.grass),

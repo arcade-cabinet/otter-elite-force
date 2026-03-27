@@ -1,4 +1,5 @@
 import { resolveCategoryId } from "@/engine/content/ids";
+import { buildTerrainGrid } from "./missionBootstrap";
 import { getMissionById } from "@/entities/missions";
 import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
 import type { MissionDef, Placement } from "@/entities/types";
@@ -285,6 +286,7 @@ export function seedGameWorldFromCampaignSession(
 	world.campaign.currentMissionId = session.mission.id;
 	world.navigation.width = session.mission.terrain.width;
 	world.navigation.height = session.mission.terrain.height;
+	world.runtime.terrainGrid = buildTerrainGrid(session.mission);
 	world.runtime.scenarioPhase = "initial";
 	world.runtime.waveCounter = 0;
 	world.runtime.zoneRects = new Map(

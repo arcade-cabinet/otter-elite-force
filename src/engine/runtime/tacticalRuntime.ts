@@ -13,6 +13,8 @@
  */
 
 import { loadAllAtlases } from "@/canvas/spriteAtlas";
+import { loadTerrainTiles, paintTerrainChunked, type TerrainChunk } from "@/canvas/tilePainter";
+import { getMissionById } from "@/entities/missions";
 import {
 	initAudioRuntime,
 	playBattleMusic,
@@ -165,6 +167,7 @@ export async function createTacticalRuntime(
 	let fogGrid: Uint8Array | null = null;
 	let fogGridWidth = 0;
 	let fogGridHeight = 0;
+	let terrainChunks: TerrainChunk[] = [];
 
 	// Selection box (screen-space during drag)
 	let selectionBoxScreen: {
@@ -635,6 +638,21 @@ export async function createTacticalRuntime(
 	// ═══════════════════════════════════════════════════════
 
 	function gameInit(): void {
+		// Load terrain tile images and paint terrain chunks from mission definition
+		const missionId = options.world.session.currentMissionId;
+		if (missionId) {
+			const missionDef = getMissionById(missionId);
+			if (missionDef) {
+				loadTerrainTiles()
+					.then(() => {
+						terrainChunks = paintTerrainChunked(missionDef);
+					})
+					.catch((err: unknown) => {
+						console.error("[tacticalRuntime] Failed to paint terrain:", err);
+					});
+			}
+		}
+
 		// Start loading sprite atlases (async, renders use them as they become available)
 		loadAllAtlases().catch((err: unknown) => {
 			console.error("[tacticalRuntime] Failed to load sprite atlases:", err);
@@ -852,31 +870,47 @@ export async function createTacticalRuntime(
 	}
 
 	function gameRender(): void {
-		// ── Terrain ──
-		const terrainGrid = options.world.runtime.terrainGrid;
-		if (terrainGrid) {
-			const camSize = ljs.getCameraSize();
+		// ── Terrain (pre-rendered tile chunks from tilePainter) ──
+		if (terrainChunks.length > 0) {
+			const ctx = ljs.mainContext;
+			const scale = ljs.cameraScale;
 			const camPos = ljs.cameraPos;
-			// Only draw visible tiles
-			const startTileX = Math.max(0, Math.floor(camPos.x - camSize.x / 2));
-			const startTileY = Math.max(0, Math.floor(camPos.y - camSize.y / 2));
-			const endTileX = Math.min(
-				terrainGrid[0]?.length ?? 0,
-				Math.ceil(camPos.x + camSize.x / 2) + 1,
-			);
-			const endTileY = Math.min(terrainGrid.length, Math.ceil(camPos.y + camSize.y / 2) + 1);
-
-			for (let ty = startTileY; ty < endTileY; ty++) {
-				const row = terrainGrid[ty];
-				if (!row) continue;
-				for (let tx = startTileX; tx < endTileX; tx++) {
-					const terrainId = row[tx];
-					const color = TERRAIN_COLORS[terrainId] ?? TERRAIN_COLORS[TerrainTypeId.grass];
-					ljs.drawRect(
-						ljs.vec2(tx + 0.5, ty + 0.5),
-						ljs.vec2(1, 1),
-						new ljs.Color(color[0], color[1], color[2], color[3]),
-					);
+			const canvasW = ljs.mainCanvas.width;
+			const canvasH = ljs.mainCanvas.height;
+			// LittleJS camera: center of screen = cameraPos in world units
+			// World pixel = tile * TILE_SIZE
+			// Screen pixel = (worldPixel - cameraPixelX) * (scale / TILE_SIZE) + canvasW/2
+			const camPixelX = camPos.x * TILE_SIZE;
+			const camPixelY = camPos.y * TILE_SIZE;
+			const screenScale = scale / TILE_SIZE;
+			for (const chunk of terrainChunks) {
+				// Chunk is in pixel coords (chunk.x, chunk.y)
+				const screenX = (chunk.x - camPixelX) * screenScale + canvasW / 2;
+				const screenY = (chunk.y - camPixelY) * screenScale + canvasH / 2;
+				const screenW = chunk.width * screenScale;
+				const screenH = chunk.height * screenScale;
+				// Frustum cull
+				if (screenX + screenW < 0 || screenY + screenH < 0 || screenX > canvasW || screenY > canvasH) continue;
+				ctx.drawImage(chunk.canvas, screenX, screenY, screenW, screenH);
+			}
+		} else {
+			// Fallback: flat color terrain while tiles load
+			const terrainGrid = options.world.runtime.terrainGrid;
+			if (terrainGrid) {
+				const camSize = ljs.getCameraSize();
+				const camPos = ljs.cameraPos;
+				const startTileX = Math.max(0, Math.floor(camPos.x - camSize.x / 2));
+				const startTileY = Math.max(0, Math.floor(camPos.y - camSize.y / 2));
+				const endTileX = Math.min(terrainGrid[0]?.length ?? 0, Math.ceil(camPos.x + camSize.x / 2) + 1);
+				const endTileY = Math.min(terrainGrid.length, Math.ceil(camPos.y + camSize.y / 2) + 1);
+				for (let ty = startTileY; ty < endTileY; ty++) {
+					const row = terrainGrid[ty];
+					if (!row) continue;
+					for (let tx = startTileX; tx < endTileX; tx++) {
+						const terrainId = row[tx];
+						const color = TERRAIN_COLORS[terrainId] ?? TERRAIN_COLORS[TerrainTypeId.grass];
+						ljs.drawRect(ljs.vec2(tx + 0.5, ty + 0.5), ljs.vec2(1, 1), new ljs.Color(color[0], color[1], color[2], color[3]));
+					}
 				}
 			}
 		}

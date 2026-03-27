@@ -12,8 +12,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { CAMPAIGN } from "@/entities/missions";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
+import { CAMPAIGN } from "@/entities/missions";
 import { type PlaytestReport, runGovernorPlaytest } from "./runner";
 
 /** Missions that are commando-style (no base building, no economy). */
@@ -32,11 +32,7 @@ describe("All 16 Missions — Governor Playtest", () => {
 
 			let report: PlaytestReport;
 			try {
-				report = runGovernorPlaytest(
-					mission.id,
-					{ difficulty: "beginner" },
-					MAX_TICKS,
-				);
+				report = runGovernorPlaytest(mission.id, { difficulty: "beginner" }, MAX_TICKS);
 			} catch (err) {
 				// Re-throw with mission context for easier debugging
 				throw new Error(
