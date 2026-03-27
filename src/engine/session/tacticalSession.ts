@@ -1,3 +1,5 @@
+import { buildGraphFromTilemap } from "@/ai/graphBuilder";
+import { buildTerrainGridForPathfinding } from "@/canvas/tilePainter";
 import { resolveCategoryId } from "@/engine/content/ids";
 import { buildTerrainGrid } from "./missionBootstrap";
 import { getMissionById } from "@/entities/missions";
@@ -287,6 +289,13 @@ export function seedGameWorldFromCampaignSession(
 	world.navigation.width = session.mission.terrain.width;
 	world.navigation.height = session.mission.terrain.height;
 	world.runtime.terrainGrid = buildTerrainGrid(session.mission);
+
+	// Build Yuka nav graph for A* pathfinding
+	const pathfindingGrid = buildTerrainGridForPathfinding(session.mission);
+	const navGraph = buildGraphFromTilemap(pathfindingGrid, { eightWay: false });
+	world.runtime.navGraphs.set("main", navGraph);
+	world.navigation.activeGraphId = "main";
+
 	world.runtime.scenarioPhase = "initial";
 	world.runtime.waveCounter = 0;
 	world.runtime.zoneRects = new Map(
