@@ -15,6 +15,7 @@
 import { drawRankEmblem, hasEmblem } from "@/canvas/rankEmblems";
 import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import { loadTerrainTiles, paintTerrainChunked, type TerrainChunk } from "@/canvas/tilePainter";
+import { GestureDetector, GestureType, type GestureResult, type PointerState } from "@/input/gestureDetector";
 import {
 	initAudioRuntime,
 	notifyCombat,
@@ -217,6 +218,11 @@ export async function createTacticalRuntime(
 	let dragStartWorldPos: { x: number; y: number } | null = null;
 	let isDragging = false;
 	let isPanning = false;
+
+	// Touch gesture detector for mobile: two-finger pan, pinch zoom, long-press
+	const gestureDetector = new GestureDetector();
+	const activePointers = new Map<number, PointerState>();
+	let lastGesture: GestureResult | null = null;
 
 	// ═══════════════════════════════════════════════════════
 	// Fog of war
@@ -782,6 +788,63 @@ export async function createTacticalRuntime(
 		}
 		ljs.setCameraPos(ljs.vec2(centerTileX, centerTileY));
 		ljs.setCameraScale(TILE_SIZE * 2);
+
+		// Attach touch gesture listeners for mobile two-finger pan/pinch
+		setupTouchGestureListeners();
+	}
+
+	/** Wire pointer events from the LittleJS canvas to the gesture detector. */
+	function setupTouchGestureListeners(): void {
+		const canvas = ljs.mainCanvas;
+		if (!canvas || !("ontouchstart" in window || navigator.maxTouchPoints > 0)) return;
+
+		function makePointerState(e: PointerEvent): PointerState {
+			const rect = canvas.getBoundingClientRect();
+			const screenX = e.clientX - rect.left;
+			const screenY = e.clientY - rect.top;
+			const worldVec = ljs.screenToWorld(ljs.vec2(screenX, screenY));
+			return {
+				id: e.pointerId,
+				x: screenX,
+				y: screenY,
+				worldX: worldVec.x * TILE_SIZE,
+				worldY: worldVec.y * TILE_SIZE,
+				isDown: true,
+				time: performance.now(),
+			};
+		}
+
+		function allActivePointers(): PointerState[] {
+			return [...activePointers.values()];
+		}
+
+		canvas.addEventListener("pointerdown", (e: PointerEvent) => {
+			if (e.pointerType !== "touch") return;
+			const ps = makePointerState(e);
+			activePointers.set(e.pointerId, ps);
+			gestureDetector.onPointerDown(allActivePointers());
+		});
+
+		canvas.addEventListener("pointermove", (e: PointerEvent) => {
+			if (e.pointerType !== "touch") return;
+			const ps = makePointerState(e);
+			activePointers.set(e.pointerId, ps);
+			const gesture = gestureDetector.onPointerMove(allActivePointers());
+			if (gesture) lastGesture = gesture;
+		});
+
+		canvas.addEventListener("pointerup", (e: PointerEvent) => {
+			if (e.pointerType !== "touch") return;
+			const ps = makePointerState(e);
+			ps.isDown = false;
+			const gesture = gestureDetector.onPointerUp([ps]);
+			if (gesture) lastGesture = gesture;
+			activePointers.delete(e.pointerId);
+		});
+
+		canvas.addEventListener("pointercancel", (e: PointerEvent) => {
+			activePointers.delete(e.pointerId);
+		});
 	}
 
 	function gameUpdate(): void {
@@ -824,6 +887,43 @@ export async function createTacticalRuntime(
 				Math.min(TILE_SIZE * 5, ljs.cameraScale + ljs.mouseWheel * TILE_SIZE * 0.5),
 			);
 			ljs.setCameraScale(newScale);
+		}
+
+		// Touch gesture handling: two-finger pan and pinch zoom
+		if (lastGesture) {
+			const g = lastGesture;
+			lastGesture = null;
+			if (g.type === GestureType.TwoFingerDrag && g.deltaX != null && g.deltaY != null) {
+				// Two-finger drag = camera pan (convert screen delta to tile delta)
+				const tileDeltaX = g.deltaX / ljs.cameraScale;
+				const tileDeltaY = g.deltaY / ljs.cameraScale;
+				ljs.setCameraPos(ljs.cameraPos.subtract(ljs.vec2(tileDeltaX, -tileDeltaY)));
+				isPanning = true;
+			} else if (g.type === GestureType.Pinch && g.scale != null) {
+				// Pinch = camera zoom
+				const newScale = Math.max(
+					TILE_SIZE,
+					Math.min(TILE_SIZE * 5, ljs.cameraScale * g.scale),
+				);
+				ljs.setCameraScale(newScale);
+			}
+		}
+
+		// Long-press check for touch (radial menu or box select start)
+		if (activePointers.size === 1) {
+			const holdResult = gestureDetector.onHoldCheck(
+				[...activePointers.values()],
+				performance.now(),
+			);
+			if (holdResult && holdResult.type === GestureType.LongPress) {
+				// Long press starts a drag-select from the held position
+				if (holdResult.currentWorldX != null && holdResult.currentWorldY != null) {
+					dragStartWorldPos = {
+						x: holdResult.currentWorldX,
+						y: holdResult.currentWorldY,
+					};
+				}
+			}
 		}
 
 		// Left-click / drag-select

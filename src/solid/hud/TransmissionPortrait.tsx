@@ -159,7 +159,7 @@ export const TransmissionPortrait: Component<{
 						when={spriteStyle()}
 						fallback={
 							<Show
-								when={hasCanvasPortrait() && props.portraitId}
+								when={hasCanvasPortrait() ? props.portraitId : null}
 								fallback={
 									<div
 										role="img"
@@ -172,12 +172,14 @@ export const TransmissionPortrait: Component<{
 									</div>
 								}
 							>
-								<CanvasPortrait
-									portraitId={props.portraitId!}
-									speaker={props.speaker}
-									targetWidth={targetWidth()}
-									compact={props.compact}
-								/>
+								{(pid) => (
+									<CanvasPortrait
+										portraitId={pid()}
+										speaker={props.speaker}
+										targetWidth={targetWidth()}
+										compact={props.compact}
+									/>
+								)}
 							</Show>
 						}
 					>

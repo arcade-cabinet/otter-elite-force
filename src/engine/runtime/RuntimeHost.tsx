@@ -1,4 +1,6 @@
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-js";
+import { createSkirmishGameAdapter } from "@/ai/skirmishGameAdapter";
+import { SkirmishAI } from "@/ai/skirmishAI";
 import type { SkirmishSessionConfig } from "@/features/skirmish/types";
 import { createGameBridge, type GameBridgeState } from "../bridge/gameBridge";
 import {
@@ -173,6 +175,15 @@ export function RuntimeHost(props: RuntimeHostProps) {
 		// Create the system pipeline for gameplay systems
 		const pipeline = createSystemPipeline(world);
 
+		// Skirmish AI opponent: create and tick for enemy faction
+		const skirmishAI =
+			props.mode === "skirmish" && props.skirmish
+				? new SkirmishAI(
+						props.skirmish.difficulty,
+						createSkirmishGameAdapter(world),
+					)
+				: null;
+
 		void (async () => {
 			try {
 				const runtime = await createTacticalRuntime({
@@ -187,6 +198,10 @@ export function RuntimeHost(props: RuntimeHostProps) {
 						}
 						if (missionFlow) {
 							missionFlow.step();
+						}
+						// Tick skirmish AI each frame (AI gates internally via think interval)
+						if (skirmishAI && world.session.phase === "playing") {
+							skirmishAI.update(world.time.deltaMs / 1000);
 						}
 						pipeline.step();
 					},
