@@ -125,19 +125,6 @@ export function runGovernorPlaytest(
 		// Run all game systems
 		runAllSystems(world);
 
-		// Debug: log key milestones every 5000 ticks
-		if (tick % 5000 === 0) {
-			const perc = governor.getLastPerception();
-			if (perc) {
-				console.log(
-					`[tick ${tick}] fish=${perc.resources.fish} timber=${perc.resources.timber} salvage=${perc.resources.salvage} ` +
-						`workers=${perc.idleWorkers.length}idle/${perc.playerUnits.filter((u) => u.isWorker).length}total ` +
-						`buildings=${perc.playerBuildings.length} military=${perc.militaryUnits.length} ` +
-						`resourceNodes=${perc.resourceNodes.length}`,
-				);
-			}
-		}
-
 		// Track stats
 		let currentArmySize = 0;
 		let currentBuildingCount = 0;
