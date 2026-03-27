@@ -165,8 +165,9 @@ export async function createTacticalRuntime(
 	let fogGridHeight = 0;
 	let terrainChunks: TerrainChunk[] = [];
 
-	// Building images — keyed by building type (e.g. "barracks", "watchtower")
-	const buildingImages = new Map<string, HTMLImageElement>();
+	// Building tile infos — keyed by building type (e.g. "barracks", "watchtower")
+	// Uses LittleJS TileInfo so buildings render on the WebGL layer (same as units/shapes).
+	const buildingTileInfos = new Map<string, InstanceType<typeof ljs.TileInfo>>();
 	const BUILDING_PNG_NAMES = [
 		"armory",
 		"barracks",
@@ -191,8 +192,9 @@ export async function createTacticalRuntime(
 		"watchtower",
 	];
 
-	// Resource images — keyed by resource type (e.g. "mangrove_tree", "salvage_cache")
-	const resourceImages = new Map<string, HTMLImageElement>();
+	// Resource tile infos — keyed by resource type (e.g. "mangrove_tree", "salvage_cache")
+	// Uses LittleJS TileInfo so resources render on the WebGL layer (same as units/shapes).
+	const resourceTileInfos = new Map<string, InstanceType<typeof ljs.TileInfo>>();
 	const RESOURCE_PNG_MAP: Record<string, string> = {
 		mangrove_tree: "props/forest_full.png",
 		mangrove_tree_alt: "props/forest_dense_1.png",
@@ -200,6 +202,8 @@ export async function createTacticalRuntime(
 		supply_crate: "resources/supply_crate.png",
 		intel_marker: "resources/intel_marker.png",
 	};
+	// Debug: track which resource entity types have been logged as missing a tile
+	const loggedMissingResourceTypes = new Set<string>();
 
 	// Input mode flags for hotkeys
 	let inputMode: "normal" | "attack-move" | "patrol" = "normal";
@@ -732,28 +736,40 @@ export async function createTacticalRuntime(
 			console.error("[tacticalRuntime] Failed to init atlas adapter:", err);
 		});
 
-		// Load building PNG images
+		// Load building PNG images as LittleJS TileInfo objects
+		// (renders on the WebGL layer — avoids Canvas2D-behind-WebGL layering issues)
+		// crossOrigin must be set before src so WebGL texImage2D doesn't hit a CORS error
 		const buildingBase = `${import.meta.env.BASE_URL ?? "./"}assets/tiles/buildings/`;
 		for (const name of BUILDING_PNG_NAMES) {
 			const img = new Image();
+			img.crossOrigin = "anonymous";
 			img.onload = () => {
-				buildingImages.set(name, img);
+				const texInfo = new ljs.TextureInfo(img);
+				const tileInfo = new ljs.TileInfo().setFullImage(texInfo);
+				buildingTileInfos.set(name, tileInfo);
 			};
 			img.onerror = () => {
-				console.warn(`[tacticalRuntime] Failed to load building image: ${name}.png`);
+				console.error(`[tacticalRuntime] Failed to load building image: ${buildingBase}${name}.png`);
 			};
 			img.src = `${buildingBase}${name}.png`;
 		}
 
-		// Load resource PNG images
+		// Load resource PNG images as LittleJS TileInfo objects
+		// (renders on the WebGL layer — avoids Canvas2D-behind-WebGL layering issues)
+		// crossOrigin must be set before src so WebGL texImage2D doesn't hit a CORS error
 		const tileBase = `${import.meta.env.BASE_URL ?? "./"}assets/tiles/`;
 		for (const [key, relPath] of Object.entries(RESOURCE_PNG_MAP)) {
 			const img = new Image();
+			img.crossOrigin = "anonymous";
 			img.onload = () => {
-				resourceImages.set(key, img);
+				const texInfo = new ljs.TextureInfo(img);
+				const tileInfo = new ljs.TileInfo().setFullImage(texInfo);
+				resourceTileInfos.set(key, tileInfo);
 			};
 			img.onerror = () => {
-				console.warn(`[tacticalRuntime] Failed to load resource image: ${relPath}`);
+				console.error(
+					`[tacticalRuntime] Failed to load resource image: ${tileBase}${relPath} (key=${key})`,
+				);
 			};
 			img.src = `${tileBase}${relPath}`;
 		}
@@ -1253,36 +1269,14 @@ export async function createTacticalRuntime(
 				const constructionProg = rawProgress >= 0 ? rawProgress / 100 : -1;
 				const isUnderConstruction = constructionProg >= 0 && constructionProg < 1;
 
-				// Try PNG rendering via Canvas2D drawImage on ljs.mainContext
-				const buildingImg = entityType ? buildingImages.get(entityType) : undefined;
-				if (buildingImg) {
-					const ctx = ljs.mainContext;
-					const scale = ljs.cameraScale;
-					const camPos = ljs.cameraPos;
-					const canvasW = ljs.mainCanvas.width;
-					const canvasH = ljs.mainCanvas.height;
-					const camPixelX = camPos.x * TILE_SIZE;
-					const camPixelY = camPos.y * TILE_SIZE;
-					const screenScale = scale / TILE_SIZE;
-
-					// Building occupies 2x2 tiles (64x64 pixels at zoom 1)
-					// Apply LittleJS Y-flip for Canvas2D drawImage
-					const buildingSizePx = TILE_SIZE * 2;
-					const screenX = (px - buildingSizePx / 2 - camPixelX) * screenScale + canvasW / 2;
-					const screenYGameTop =
-						-(py - buildingSizePx / 2 - camPixelY) * screenScale + canvasH / 2;
-					const screenW = buildingSizePx * screenScale;
-					const screenH = buildingSizePx * screenScale;
-
-					ctx.save();
-					if (isUnderConstruction) {
-						ctx.globalAlpha = 0.4;
-					}
-					// Flip vertically to match LittleJS Y-up convention
-					ctx.translate(screenX, screenYGameTop);
-					ctx.scale(1, -1);
-					ctx.drawImage(buildingImg, 0, 0, screenW, screenH);
-					ctx.restore();
+				// Try PNG rendering via LittleJS drawTile (WebGL layer)
+				const buildingTile = entityType ? buildingTileInfos.get(entityType) : undefined;
+				if (buildingTile) {
+					// Building occupies 2x2 tiles
+					const buildColor = isUnderConstruction
+						? new ljs.Color(1, 1, 1, 0.4)
+						: ljs.WHITE;
+					ljs.drawTile(tilePos, ljs.vec2(2, 2), buildingTile, buildColor);
 				} else {
 					// Fallback: colored rectangle while image loads
 					const outlineColor =
@@ -1349,35 +1343,24 @@ export async function createTacticalRuntime(
 					);
 				}
 			} else if (isResource) {
-				// Resources: try PNG image first, fall back to procedural shapes
+				// Resources: try PNG tile first, fall back to procedural shapes
 				const resType = entityType ?? "resource";
-				const resourceImg = entityType ? resourceImages.get(entityType) : undefined;
+				const resTileInfo = entityType ? resourceTileInfos.get(entityType) : undefined;
 
-				if (resourceImg) {
-					// Render resource PNG via Canvas2D (1x1 tile size)
-					const ctx = ljs.mainContext;
-					const scale = ljs.cameraScale;
-					const camPos = ljs.cameraPos;
-					const canvasW = ljs.mainCanvas.width;
-					const canvasH = ljs.mainCanvas.height;
-					const camPixelX = camPos.x * TILE_SIZE;
-					const camPixelY = camPos.y * TILE_SIZE;
-					const screenScale = scale / TILE_SIZE;
+				// Log once per resource type when PNG tile is missing (debug aid)
+				if (!resTileInfo && entityType && !loggedMissingResourceTypes.has(entityType)) {
+					loggedMissingResourceTypes.add(entityType);
+					const hasPngEntry = entityType in RESOURCE_PNG_MAP;
+					console.warn(
+						`[tacticalRuntime] Resource eid=${eid} type="${entityType}" ` +
+							`has no loaded TileInfo (PNG mapped=${hasPngEntry}, ` +
+							`loaded=${resourceTileInfos.size}/${Object.keys(RESOURCE_PNG_MAP).length})`,
+					);
+				}
 
-					// Apply LittleJS Y-flip for Canvas2D drawImage
-					const resSizePx = TILE_SIZE;
-					const screenX = (px - resSizePx / 2 - camPixelX) * screenScale + canvasW / 2;
-					const screenYGameTop =
-						-(py - resSizePx / 2 - camPixelY) * screenScale + canvasH / 2;
-					const screenW = resSizePx * screenScale;
-					const screenH = resSizePx * screenScale;
-
-					// Flip vertically to match LittleJS Y-up convention
-					ctx.save();
-					ctx.translate(screenX, screenYGameTop);
-					ctx.scale(1, -1);
-					ctx.drawImage(resourceImg, 0, 0, screenW, screenH);
-					ctx.restore();
+				if (resTileInfo) {
+					// Render resource PNG via LittleJS drawTile (WebGL layer, no layering issues)
+					ljs.drawTile(tilePos, ljs.vec2(1, 1), resTileInfo);
 				} else if (resType.includes("fish") || resType.includes("shellfish")) {
 					// Fish spots: larger blue circle with sparkle highlights (no specific PNG)
 					ljs.drawCircle(tilePos, 0.5, new ljs.Color(0.15, 0.4, 0.75, 0.8));

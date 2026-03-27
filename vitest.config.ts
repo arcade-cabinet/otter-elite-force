@@ -70,6 +70,9 @@ export default defineConfig({
 			"src/__tests__/browser/gameplay-loops.test.ts",
 			"src/__tests__/browser/playtest-governor.test.ts",
 			"src/__tests__/browser/visual-baselines.test.ts",
+			// E2E visual playtest requires Playwright + running dev server.
+			// Run manually: pnpm test -- src/__tests__/e2e/visualPlaytest.test.ts
+			"src/__tests__/e2e/visualPlaytest.test.ts",
 		],
 		// Handle ESM packages with directory imports
 		server: {
