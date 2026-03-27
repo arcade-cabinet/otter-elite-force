@@ -15,12 +15,10 @@ import {
 	Content,
 	Faction,
 	Flags,
-	Gatherer,
 	Health,
 	Position,
 	ResourceNode,
 	Speed,
-	VisionRadius,
 } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
 import type { FogRuntime } from "@/engine/systems/fogSystem";
@@ -120,7 +118,7 @@ export interface WorldPerception {
 	phase: "loading" | "briefing" | "playing" | "paused" | "victory" | "defeat";
 }
 
-const MILITARY_CATEGORIES = new Set([
+const MILITARY_CATEGORIES = new Set<number>([
 	CATEGORY_IDS.infantry,
 	CATEGORY_IDS.ranged,
 	CATEGORY_IDS.siege,

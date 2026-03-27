@@ -15,7 +15,7 @@
  * 7. Complete  — move toward mission objectives
  */
 
-import type { WorldPerception, PerceivedUnit, PerceivedBuilding, PerceivedResource } from "./perception";
+import type { WorldPerception, PerceivedUnit, PerceivedResource } from "./perception";
 
 // ---------------------------------------------------------------------------
 // Action plan types (returned by goals, executed by actions module)
@@ -98,18 +98,6 @@ const TRAIN_ORDER: TrainPriority[] = [
 	{ unitType: "mudfoot", trainedAt: "barracks", cost: { fish: 80, timber: 0, salvage: 20 } },
 	{ unitType: "shellcracker", trainedAt: "barracks", cost: { fish: 70, timber: 0, salvage: 30 } },
 ];
-
-// ---------------------------------------------------------------------------
-// Resource type resolution
-// ---------------------------------------------------------------------------
-
-function resolveResourceType(nodeType: string): "fish" | "timber" | "salvage" | null {
-	if (nodeType.includes("fish")) return "fish";
-	if (nodeType.includes("timber") || nodeType.includes("mangrove") || nodeType.includes("tree"))
-		return "timber";
-	if (nodeType.includes("salvage")) return "salvage";
-	return null;
-}
 
 // ---------------------------------------------------------------------------
 // Goal evaluation

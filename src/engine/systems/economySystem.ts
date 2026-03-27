@@ -74,8 +74,8 @@ function distanceBetween(ax: number, ay: number, bx: number, by: number): number
 function resolveResourceType(nodeType: string | undefined): "fish" | "timber" | "salvage" | null {
 	if (!nodeType) return null;
 	if (nodeType.includes("fish")) return "fish";
-	if (nodeType.includes("timber")) return "timber";
-	if (nodeType.includes("salvage")) return "salvage";
+	if (nodeType.includes("timber") || nodeType.includes("mangrove") || nodeType.includes("tree") || nodeType.includes("lumber")) return "timber";
+	if (nodeType.includes("salvage") || nodeType.includes("supply") || nodeType.includes("crate")) return "salvage";
 	return null;
 }
 

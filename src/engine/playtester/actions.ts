@@ -8,7 +8,7 @@
 
 import { CATEGORY_IDS, FACTION_IDS } from "@/engine/content/ids";
 import { Content, Faction, Flags, Health, Position } from "@/engine/world/components";
-import type { GameWorld, Order, ProductionEntry } from "@/engine/world/gameWorld";
+import type { GameWorld, ProductionEntry } from "@/engine/world/gameWorld";
 import { getOrderQueue, getProductionQueue, spawnBuilding } from "@/engine/world/gameWorld";
 import { getBuildingDef } from "@/engine/systems/buildingSystem";
 import type { ActionPlan } from "./goals";
