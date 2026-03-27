@@ -5,38 +5,34 @@
  * them sorted by Y for depth, and draws selection circles, HP bars, and rank
  * emblems on top.
  *
- * When sprites are not available, renders high-quality shape fallbacks:
- *   - Player units: bright green circles with white border
- *   - Enemy units: red circles with dark border
- *   - Buildings: large squares with faction color and dark border
- *   - Resource trees: tall green triangles
- *   - Fish spots: blue circles
- *   - Salvage caches: yellow diamonds
- *   - HP bars: color-coded (green > 75%, yellow 25-75%, red < 25%)
- *   - Selected: pulsing white selection ring
- *   - Labels: entity type text below each entity
+ * For UNITS: if the sprite atlas is not yet loaded, the entity is skipped
+ * (not rendered). No shape fallback is drawn. A one-time warning is logged
+ * per missing sprite type so loading issues surface in the console.
+ *
+ * For BUILDINGS and RESOURCES: tile-based sprites are used. If the tile is
+ * not loaded yet, shape fallbacks are drawn (buildings as faction-colored
+ * squares, resources as type-specific shapes). This is acceptable since
+ * tile images load asynchronously.
  */
 
-import {
-	atlasesLoaded,
-	getEntityAnimFrame,
-	getEntityFrameSize,
-	getEntitySprite,
-} from "@/canvas/spriteAtlas";
+import { getEntityAnimFrame, getEntityFrameSize, getEntitySprite } from "@/canvas/spriteAtlas";
 import { Faction, Flags, Health, Position, Selection } from "../world/components";
 import type { GameWorld } from "../world/gameWorld";
+
+/** Track entity types that have been warned about missing sprites (one-time per type). */
+const warnedMissingSprites = new Set<string>();
 
 /** Frames between animation ticks. At 60fps, 6 frames = ~100ms per sprite frame. */
 const ANIM_FRAME_DURATION_MS = 100;
 
-/** Faction fill colors for units. */
+/** Faction fill colors for building shape fallback. */
 const FACTION_FILL: Record<number, string> = {
 	1: "#22c55e", // OEF (player) — green
 	2: "#ef4444", // Scale-Guard (enemy) — red
 	0: "#94a3b8", // neutral — slate
 };
 
-/** Faction border colors for units. */
+/** Faction border colors for building shape fallback. */
 const FACTION_STROKE: Record<number, string> = {
 	1: "#f8fafc", // player — white border
 	2: "#450a0a", // enemy — dark red border
@@ -49,8 +45,11 @@ const RESOURCE_VISUALS: Record<
 	{ shape: "triangle" | "circle" | "diamond"; fill: string; stroke: string; label: string }
 > = {
 	mangrove_tree: { shape: "triangle", fill: "#15803d", stroke: "#052e16", label: "Tree" },
+	jungle_tree: { shape: "triangle", fill: "#166534", stroke: "#052e16", label: "Tree" },
 	fish_spot: { shape: "circle", fill: "#0ea5e9", stroke: "#0c4a6e", label: "Fish" },
 	salvage_cache: { shape: "diamond", fill: "#eab308", stroke: "#713f12", label: "Salvage" },
+	supply_crate: { shape: "diamond", fill: "#f59e0b", stroke: "#78350f", label: "Crate" },
+	intel_marker: { shape: "diamond", fill: "#a78bfa", stroke: "#4c1d95", label: "Intel" },
 };
 
 /** Default resource visual for unknown resource types. */
@@ -66,10 +65,24 @@ const BUILDING_LABELS: Record<string, string> = {
 	burrow: "Lodge",
 	command_post: "Command Post",
 	barracks: "Barracks",
+	armory: "Armory",
 	watchtower: "Watchtower",
 	fish_trap: "Fish Trap",
+	dock: "Dock",
+	field_hospital: "Hospital",
 	sandbag_wall: "Wall",
+	stone_wall: "Wall",
+	gun_tower: "Gun Tower",
+	minefield: "Mines",
 	flag_post: "Flag Post",
+	spawning_pool: "Nest",
+	fuel_tank: "Fuel Tank",
+	venom_spire: "Spire",
+	scale_wall: "Wall",
+	siphon: "Siphon",
+	sludge_pit: "Pit",
+	great_siphon: "Siphon",
+	shield_generator: "Shield",
 };
 
 export interface SpriteRenderer {
@@ -111,8 +124,8 @@ function resolveAnimation(eid: number): string {
 /**
  * Create a sprite renderer.
  *
- * The renderer checks if atlases are loaded and falls back to shape rendering
- * for entities without loaded sprites.
+ * Units without loaded sprites are SKIPPED (no shape fallback).
+ * Buildings and resources use tile sprites with shape fallback while loading.
  */
 export function createSpriteRenderer(): SpriteRenderer {
 	function renderEntities(
@@ -122,7 +135,6 @@ export function createSpriteRenderer(): SpriteRenderer {
 		world: GameWorld,
 		tick: number,
 	): void {
-		const spritesAvailable = atlasesLoaded();
 		const elapsedMs = tick * 16.67; // approximate ms from tick count
 
 		// Collect visible entities
@@ -174,7 +186,10 @@ export function createSpriteRenderer(): SpriteRenderer {
 		for (const entity of renderables) {
 			let drewSprite = false;
 
-			if (spritesAvailable && entity.entityType) {
+			// Try sprite rendering for every entity with a type — no global gate.
+			// This way entities render as soon as their individual atlas loads,
+			// even if other atlases are still loading or failed.
+			if (entity.entityType) {
 				// Try animated frame first
 				const animName = resolveAnimation(entity.eid);
 				const animFrame = getEntityAnimFrame(
@@ -199,12 +214,26 @@ export function createSpriteRenderer(): SpriteRenderer {
 						frameH,
 					);
 					drewSprite = true;
+				} else if (!entity.isBuilding && !entity.isResource) {
+					// Unit sprite not loaded yet — log a one-time warning per type
+					// and SKIP rendering (no shape fallback for units)
+					if (!warnedMissingSprites.has(entity.entityType)) {
+						warnedMissingSprites.add(entity.entityType);
+						console.warn(
+							`[spriteRenderer] Sprite atlas not loaded for unit '${entity.entityType}'. ` +
+								"Entity will not render until atlas loads.",
+						);
+					}
 				}
 			}
 
-			// Fallback to colored shapes if no sprite available
-			if (!drewSprite) {
-				drawShapeFallback(ctx, entity, camera.zoom);
+			// Shape fallback ONLY for buildings and resources (tile-based, acceptable while loading)
+			if (!drewSprite && (entity.isBuilding || entity.isResource)) {
+				if (entity.isResource) {
+					drawResourceShape(ctx, entity, camera.zoom);
+				} else {
+					drawBuildingShape(ctx, entity, camera.zoom);
+				}
 			}
 
 			// Selection circle (pulsing)
@@ -223,35 +252,6 @@ export function createSpriteRenderer(): SpriteRenderer {
 	}
 
 	return { renderEntities };
-}
-
-function drawShapeFallback(
-	ctx: CanvasRenderingContext2D,
-	entity: RenderableEntity,
-	zoom: number,
-): void {
-	if (entity.isResource) {
-		drawResourceShape(ctx, entity, zoom);
-		return;
-	}
-
-	if (entity.isBuilding) {
-		drawBuildingShape(ctx, entity, zoom);
-		return;
-	}
-
-	// Unit circle with border
-	const radius = Math.max(5, 8 * zoom);
-	const fillColor = FACTION_FILL[entity.factionId] ?? FACTION_FILL[0];
-	const strokeColor = FACTION_STROKE[entity.factionId] ?? FACTION_STROKE[0];
-
-	ctx.beginPath();
-	ctx.arc(entity.screenX, entity.screenY, radius, 0, Math.PI * 2);
-	ctx.fillStyle = fillColor;
-	ctx.fill();
-	ctx.strokeStyle = strokeColor;
-	ctx.lineWidth = Math.max(1.5, 2 * zoom);
-	ctx.stroke();
 }
 
 function drawResourceShape(

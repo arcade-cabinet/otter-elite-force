@@ -38,12 +38,14 @@ function loadImage(src: string): Promise<HTMLImageElement> {
  * Load tile images for all terrain types.
  *
  * Returns a Map from terrain type ID to the loaded HTMLImageElement.
- * Tiles that fail to load are silently omitted (the renderer will use
- * solid color fallbacks).
+ * Logs errors for each tile that fails to load (the renderer will use
+ * solid color fallbacks for those).
  */
 export async function loadTileImages(): Promise<Map<number, HTMLImageElement>> {
 	const result = new Map<number, HTMLImageElement>();
 	const entries = Object.entries(TERRAIN_TILE_PATHS);
+
+	console.log(`[assetLoader] Loading ${entries.length} terrain tile images...`);
 
 	const results = await Promise.allSettled(
 		entries.map(async ([idStr, path]) => {
@@ -53,17 +55,21 @@ export async function loadTileImages(): Promise<Map<number, HTMLImageElement>> {
 		}),
 	);
 
-	for (const outcome of results) {
+	let loaded = 0;
+	for (let i = 0; i < results.length; i++) {
+		const outcome = results[i];
 		if (outcome.status === "fulfilled") {
 			result.set(outcome.value.id, outcome.value.img);
+			loaded++;
+		} else {
+			console.error(
+				`[assetLoader] Failed to load terrain tile for type ${entries[i][0]} at path "${entries[i][1]}":`,
+				outcome.reason,
+			);
 		}
 	}
 
-	const failed = results.filter((r) => r.status === "rejected").length;
-	if (failed > 0) {
-		console.warn(`[assetLoader] ${failed}/${entries.length} terrain tiles failed to load`);
-	}
-
+	console.log(`[assetLoader] Terrain tiles loaded: ${loaded}/${entries.length}`);
 	return result;
 }
 

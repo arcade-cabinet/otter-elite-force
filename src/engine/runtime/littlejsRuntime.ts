@@ -1,6 +1,7 @@
 import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import type { GameBridge, SelectionViewModel } from "../bridge/gameBridge";
 import { loadTileImages } from "../rendering/assetLoader";
+import { createCombatTextRenderer, type CombatTextRenderer } from "../rendering/combatText";
 import { renderFogOverlay } from "../rendering/fogRenderer";
 import { createSpriteRenderer, type SpriteRenderer } from "../rendering/spriteRenderer";
 import { createTerrainRenderer, type TerrainRenderer } from "../rendering/terrainRenderer";
@@ -179,6 +180,7 @@ export async function createLittleJsRuntime(
 	// ─── Rendering subsystems ───
 	let terrainRenderer: TerrainRenderer | null = null;
 	let spriteRenderer: SpriteRenderer | null = null;
+	const combatTextRenderer: CombatTextRenderer = createCombatTextRenderer();
 	let fogGrid: Uint8Array | null = null;
 	let fogGridWidth = 0;
 	let fogGridHeight = 0;
@@ -189,14 +191,24 @@ export async function createLittleJsRuntime(
 		if (renderingAssetsLoading) return;
 		renderingAssetsLoading = true;
 
-		// Load sprite atlases (fire-and-forget; renderer checks atlasesLoaded())
-		loadAllAtlases().catch((err: unknown) => {
-			console.warn("[littlejsRuntime] Failed to load sprite atlases:", err);
-		});
+		console.log("[littlejsRuntime] Initializing rendering assets...");
+
+		// Load sprite atlases — individual failures are logged by loadAllAtlases,
+		// successfully loaded atlases are available immediately for the renderer.
+		loadAllAtlases()
+			.then(() => {
+				console.log("[littlejsRuntime] Sprite atlas loading complete");
+			})
+			.catch((err: unknown) => {
+				console.error("[littlejsRuntime] Failed to load sprite atlases:", err);
+			});
 
 		// Load terrain tile images and build terrain renderer if navigation data exists
 		loadTileImages()
 			.then((tileImages) => {
+				console.log(
+					`[littlejsRuntime] Terrain tiles ready: ${tileImages.size} images loaded`,
+				);
 				const navW = options.world.navigation.width;
 				const navH = options.world.navigation.height;
 				if (navW > 0 && navH > 0) {
@@ -215,13 +227,21 @@ export async function createLittleJsRuntime(
 
 					// Reveal tiles around player entities at startup
 					revealFogAroundPlayerEntities();
+					console.log(
+						`[littlejsRuntime] Terrain renderer ready (${navW}x${navH} grid)`,
+					);
+				} else {
+					console.error(
+						`[littlejsRuntime] No navigation data — terrain renderer not created (navW=${navW}, navH=${navH})`,
+					);
 				}
 			})
 			.catch((err: unknown) => {
-				console.warn("[littlejsRuntime] Failed to load terrain tiles:", err);
+				console.error("[littlejsRuntime] Failed to load terrain tiles:", err);
 			});
 
-		// Create sprite renderer immediately (it checks atlasesLoaded() internally)
+		// Create sprite renderer immediately — it checks each entity's sprite
+		// individually on every frame, so sprites appear as soon as their atlas loads.
 		spriteRenderer = createSpriteRenderer();
 	}
 
@@ -338,8 +358,8 @@ export async function createLittleJsRuntime(
 	}
 
 	function getMinimapLayout(width: number, height: number): MinimapLayout {
-		const minimapWidth = Math.min(190, Math.max(132, Math.round(width * 0.24)));
-		const minimapHeight = Math.min(128, Math.max(88, Math.round(height * 0.22)));
+		const minimapWidth = Math.min(200, Math.max(160, Math.round(width * 0.26)));
+		const minimapHeight = Math.min(150, Math.max(110, Math.round(height * 0.24)));
 		return {
 			x: width - minimapWidth - MINIMAP_MARGIN,
 			y: height - minimapHeight - MINIMAP_MARGIN,
@@ -902,21 +922,98 @@ export async function createLittleJsRuntime(
 			}
 		}
 
+		// ── Combat text layer ──
+		combatTextRenderer.render(context, camera, { width, height }, options.world.time.elapsedMs);
+
 		// ── Fog of war layer ──
 		if (fogGrid && fogGridWidth > 0 && fogGridHeight > 0) {
 			renderFogOverlay(context, camera, { width, height }, fogGrid, fogGridWidth, fogGridHeight);
 		}
 
+		// ── Enhanced minimap (200x150, bottom-right) ──
 		const minimap = getMinimapLayout(width, height);
 		const worldSize = getWorldPixelSize();
-		context.fillStyle = "rgba(2, 6, 23, 0.8)";
+
+		// Background with terrain colors
+		context.fillStyle = "rgba(2, 6, 23, 0.85)";
 		context.fillRect(minimap.x, minimap.y, minimap.width, minimap.height);
+
+		// Draw terrain background colors if terrain grid available
+		if (options.world.runtime.terrainGrid) {
+			const tGrid = options.world.runtime.terrainGrid;
+			const gridH = tGrid.length;
+			const gridW = gridH > 0 ? tGrid[0].length : 0;
+			if (gridW > 0 && gridH > 0) {
+				const tileW = minimap.width / gridW;
+				const tileH = minimap.height / gridH;
+				for (let ty = 0; ty < gridH; ty++) {
+					for (let tx = 0; tx < gridW; tx++) {
+						const tileType = tGrid[ty][tx];
+						// Terrain colors: 0=grass, 1=dirt, 2=water, 3=mud, 4=mangrove
+						const terrainColors = ["#1a3a1a", "#3d2b1a", "#0a2a4a", "#2a2218", "#1a2a1a"];
+						context.fillStyle = terrainColors[tileType] ?? "#1a3a1a";
+						context.fillRect(
+							minimap.x + tx * tileW,
+							minimap.y + ty * tileH,
+							Math.ceil(tileW),
+							Math.ceil(tileH),
+						);
+					}
+				}
+			}
+		}
+
+		// Apply fog of war overlay to minimap
+		if (fogGrid && fogGridWidth > 0 && fogGridHeight > 0) {
+			const fTileW = minimap.width / fogGridWidth;
+			const fTileH = minimap.height / fogGridHeight;
+			for (let fy = 0; fy < fogGridHeight; fy++) {
+				for (let fx = 0; fx < fogGridWidth; fx++) {
+					const fogState = fogGrid[fy * fogGridWidth + fx];
+					if (fogState === 0) {
+						// Unexplored: dark
+						context.fillStyle = "rgba(0, 0, 0, 0.85)";
+						context.fillRect(
+							minimap.x + fx * fTileW,
+							minimap.y + fy * fTileH,
+							Math.ceil(fTileW),
+							Math.ceil(fTileH),
+						);
+					} else if (fogState === 1) {
+						// Explored but not visible: dim
+						context.fillStyle = "rgba(0, 0, 0, 0.5)";
+						context.fillRect(
+							minimap.x + fx * fTileW,
+							minimap.y + fy * fTileH,
+							Math.ceil(fTileW),
+							Math.ceil(fTileH),
+						);
+					}
+					// fogState === 2: visible — no overlay
+				}
+			}
+		}
+
+		// Minimap border
 		context.strokeStyle = "rgba(148, 163, 184, 0.8)";
 		context.lineWidth = 1;
 		context.strokeRect(minimap.x, minimap.y, minimap.width, minimap.height);
+
+		// Entity dots
 		for (const eid of options.world.runtime.alive) {
 			const px = minimap.x + (Position.x[eid] / Math.max(1, worldSize.width)) * minimap.width;
 			const py = minimap.y + (Position.y[eid] / Math.max(1, worldSize.height)) * minimap.height;
+
+			// Skip entities in fog (unexplored areas) unless they are player units
+			if (fogGrid && fogGridWidth > 0 && Faction.id[eid] !== 1) {
+				const tileX = Math.floor(Position.x[eid] / 32);
+				const tileY = Math.floor(Position.y[eid] / 32);
+				if (tileX >= 0 && tileY >= 0 && tileX < fogGridWidth && tileY < fogGridHeight) {
+					const fogState = fogGrid[tileY * fogGridWidth + tileX];
+					if (fogState < 2) continue; // Skip if not currently visible
+				}
+			}
+
 			context.fillStyle =
 				Flags.isResource[eid] === 1
 					? "#facc15"
@@ -932,6 +1029,8 @@ export async function createLittleJsRuntime(
 				Flags.isBuilding[eid] === 1 ? 4 : 3,
 			);
 		}
+
+		// Camera viewport rectangle
 		const viewportRectW = Math.min(
 			minimap.width,
 			(width / camera.zoom / Math.max(1, worldSize.width)) * minimap.width,
@@ -943,6 +1042,7 @@ export async function createLittleJsRuntime(
 		const viewportRectX = minimap.x + (camera.x / Math.max(1, worldSize.width)) * minimap.width;
 		const viewportRectY = minimap.y + (camera.y / Math.max(1, worldSize.height)) * minimap.height;
 		context.strokeStyle = "#f8fafc";
+		context.lineWidth = 1.5;
 		context.strokeRect(viewportRectX, viewportRectY, viewportRectW, viewportRectH);
 
 		if (selectionBox) {
@@ -1137,6 +1237,7 @@ export async function createLittleJsRuntime(
 		// Update fog of war every simulation tick
 		if (frame.shouldTickSystems) {
 			revealFogAroundPlayerEntities();
+			combatTextRenderer.update(options.world, frame.state.elapsedMs);
 		}
 		drawScene(
 			(canvas?.width ?? options.container.clientWidth) || 1,

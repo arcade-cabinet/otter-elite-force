@@ -62,6 +62,14 @@ export interface GameWorld {
 		alive: Set<number>;
 		/** Terrain grid populated by missionBootstrap from mission terrain regions. */
 		terrainGrid: number[][] | null;
+		/** Completed research IDs. */
+		completedResearch: Set<string>;
+		/** Population tracking: {current, max}. */
+		population: { current: number; max: number };
+		/** Loot tables keyed by unit type. */
+		lootTables: Map<string, Array<{ resource: "fish" | "timber" | "salvage"; chance: number; min: number; max: number }>>;
+		/** AI FSM state per entity. */
+		aiStates: Map<number, { state: string; alertLevel: number; stateTimer: number; homeX: number; homeY: number; patrolIndex: number }>;
 	};
 	session: {
 		currentMissionId: string | null;
@@ -129,6 +137,10 @@ export function createGameWorld(seed = createSeedBundle({ phrase: "silent-ember-
 			removals: new Set(),
 			alive: new Set(),
 			terrainGrid: null,
+			completedResearch: new Set(),
+			population: { current: 0, max: 10 },
+			lootTables: new Map(),
+			aiStates: new Map(),
 		},
 		session: {
 			currentMissionId: null,
@@ -199,6 +211,10 @@ export function resetWorldSession(world: GameWorld): void {
 	world.runtime.removals.clear();
 	world.runtime.alive.clear();
 	world.runtime.terrainGrid = null;
+	world.runtime.completedResearch.clear();
+	world.runtime.population = { current: 0, max: 10 };
+	world.runtime.lootTables.clear();
+	world.runtime.aiStates.clear();
 }
 
 function spawnEntity(world: GameWorld, options: {

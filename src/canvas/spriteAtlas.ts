@@ -157,6 +157,12 @@ function sliceFrames(
 async function loadAtlas(entry: { name: string; png: string; json: string }): Promise<void> {
 	const [image, response] = await Promise.all([loadImage(entry.png), fetch(entry.json)]);
 
+	if (!response.ok) {
+		throw new Error(
+			`[spriteAtlas] Failed to fetch atlas JSON: ${entry.json} (HTTP ${response.status})`,
+		);
+	}
+
 	const data: AsepriteAtlas = await response.json();
 	const animations = parseAtlas(data);
 	const sliced = sliceFrames(image, animations);
@@ -173,6 +179,7 @@ async function loadAtlas(entry: { name: string; png: string; json: string }): Pr
 		frameH,
 		sliced,
 	});
+	console.log(`[spriteAtlas] Loaded atlas: ${entry.name} (${animations.size} animations)`);
 }
 
 /**
@@ -180,38 +187,86 @@ async function loadAtlas(entry: { name: string; png: string; json: string }): Pr
  * Call once at app boot.
  */
 export async function loadAllAtlases(): Promise<void> {
-	await Promise.all([...ATLAS_MANIFEST.map(loadAtlas), loadTileSprites()]);
+	console.log(`[spriteAtlas] Loading ${ATLAS_MANIFEST.length} sprite atlases...`);
+
+	const atlasResults = await Promise.allSettled(ATLAS_MANIFEST.map(loadAtlas));
+	const tileResult = await Promise.allSettled([loadTileSprites()]);
+
+	// Report individual atlas failures
+	let loaded = 0;
+	let failed = 0;
+	for (let i = 0; i < atlasResults.length; i++) {
+		const result = atlasResults[i];
+		if (result.status === "fulfilled") {
+			loaded++;
+		} else {
+			failed++;
+			console.error(
+				`[spriteAtlas] Failed to load atlas "${ATLAS_MANIFEST[i].name}":`,
+				result.reason,
+			);
+		}
+	}
+
+	if (tileResult[0].status === "rejected") {
+		console.error("[spriteAtlas] Failed to load tile sprites:", tileResult[0].reason);
+	}
+
+	console.log(
+		`[spriteAtlas] Atlas loading complete: ${loaded}/${ATLAS_MANIFEST.length} loaded, ${failed} failed`,
+	);
+
 	buildEntitySpriteMap();
 	buildEntityTileMap();
 }
 
 /** Load building/resource tile sprites from the tile manifest. */
 async function loadTileSprites(): Promise<void> {
-	try {
-		const response = await fetch(BASE + "assets/tiles/tile-manifest.json");
-		const manifest: Record<string, { path: string; category: string }> = await response.json();
-
-		// Only load buildings and resources (terrain/props are used by the terrain painter)
-		const toLoad = Object.entries(manifest).filter(
-			([, v]) => v.category === "buildings" || v.category === "resources" || v.category === "props",
+	const manifestUrl = BASE + "assets/tiles/tile-manifest.json";
+	const response = await fetch(manifestUrl);
+	if (!response.ok) {
+		throw new Error(
+			`[spriteAtlas] Failed to fetch tile manifest: ${manifestUrl} (HTTP ${response.status})`,
 		);
-
-		await Promise.all(
-			toLoad.map(async ([name, entry]) => {
-				const assetPath = entry.path.startsWith("/") ? BASE + entry.path.slice(1) : entry.path;
-				const img = await loadImage(assetPath);
-				const canvas = document.createElement("canvas");
-				canvas.width = img.width;
-				canvas.height = img.height;
-				const ctx = canvas.getContext("2d")!;
-				ctx.imageSmoothingEnabled = false;
-				ctx.drawImage(img, 0, 0);
-				tileSprites.set(name, canvas);
-			}),
-		);
-	} catch (e) {
-		console.warn("[spriteAtlas] Failed to load tile manifest:", e);
 	}
+	const manifest: Record<string, { path: string; category: string }> = await response.json();
+
+	// Only load buildings and resources (terrain/props are used by the terrain painter)
+	const toLoad = Object.entries(manifest).filter(
+		([, v]) => v.category === "buildings" || v.category === "resources" || v.category === "props",
+	);
+
+	console.log(`[spriteAtlas] Loading ${toLoad.length} tile sprites (buildings/resources/props)...`);
+
+	const results = await Promise.allSettled(
+		toLoad.map(async ([name, entry]) => {
+			const assetPath = entry.path.startsWith("/") ? BASE + entry.path.slice(1) : entry.path;
+			const img = await loadImage(assetPath);
+			const canvas = document.createElement("canvas");
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) {
+				throw new Error(`[spriteAtlas] Failed to get 2D context for tile: ${name}`);
+			}
+			ctx.imageSmoothingEnabled = false;
+			ctx.drawImage(img, 0, 0);
+			tileSprites.set(name, canvas);
+		}),
+	);
+
+	let tileLoaded = 0;
+	for (let i = 0; i < results.length; i++) {
+		if (results[i].status === "fulfilled") {
+			tileLoaded++;
+		} else {
+			console.error(
+				`[spriteAtlas] Failed to load tile sprite "${toLoad[i][0]}":`,
+				(results[i] as PromiseRejectedResult).reason,
+			);
+		}
+	}
+	console.log(`[spriteAtlas] Tile sprites loaded: ${tileLoaded}/${toLoad.length}`);
 }
 
 /** Map building/resource entity IDs to tile sprite names. */

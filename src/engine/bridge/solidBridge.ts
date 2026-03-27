@@ -70,6 +70,10 @@ export interface SolidBridgeEmit {
 	startBuild(buildingId: string): void;
 	queueUnit(unitId: string): void;
 	issueResearch(researchId: string): void;
+	issueMove(targetX: number, targetY: number): void;
+	issueAttack(targetX: number, targetY: number, targetEid?: number): void;
+	issueStop(): void;
+	issuePatrol(targetX: number, targetY: number): void;
 	setScreen(screen: string): void;
 }
 
@@ -83,6 +87,8 @@ export interface SolidBridge {
 	readonly emit: SolidBridgeEmit;
 	/** Called from game loop at end of each tick to push world state into signals */
 	syncFromWorld(world: GameWorld): void;
+	/** Drain the command queue — returns all pending commands and clears the queue */
+	drainCommands(): Array<{ type: string; payload?: Record<string, unknown> }>;
 	/** Get the current non-reactive snapshot (for legacy compatibility) */
 	snapshot(): GameBridgeState;
 }
@@ -292,6 +298,10 @@ export function createSolidBridge(): SolidBridge {
 			weather,
 			boss,
 		},
+		drainCommands(): Array<{ type: string; payload?: Record<string, unknown> }> {
+			const commands = commandQueue.splice(0, commandQueue.length);
+			return commands;
+		},
 		emit: {
 			pause(): void {
 				enqueueCommand("pause");
@@ -310,6 +320,18 @@ export function createSolidBridge(): SolidBridge {
 			},
 			issueResearch(researchId: string): void {
 				enqueueCommand("issueResearch", { researchId });
+			},
+			issueMove(targetX: number, targetY: number): void {
+				enqueueCommand("move", { targetX, targetY });
+			},
+			issueAttack(targetX: number, targetY: number, targetEid?: number): void {
+				enqueueCommand("attack", { targetX, targetY, targetEid });
+			},
+			issueStop(): void {
+				enqueueCommand("stop");
+			},
+			issuePatrol(targetX: number, targetY: number): void {
+				enqueueCommand("patrol", { targetX, targetY });
 			},
 			setScreen(s: string): void {
 				setScreen(s);

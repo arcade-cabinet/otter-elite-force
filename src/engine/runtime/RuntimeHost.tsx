@@ -21,6 +21,7 @@ import {
 	seedGameWorldFromSkirmishSession,
 } from "../session/tacticalSession";
 import { createGameWorld } from "../world/gameWorld";
+import { processCommands } from "./commandProcessor";
 import { createLittleJsRuntime, type TacticalRuntime } from "./littlejsRuntime";
 
 export interface RuntimeHostProps {
@@ -171,6 +172,11 @@ export function RuntimeHost(props: RuntimeHostProps) {
 					world,
 					bridge,
 					onTick: () => {
+						// Drain and process UI commands before systems run
+						const commands = bridge.drainCommands();
+						if (commands.length > 0) {
+							processCommands(world, commands);
+						}
 						if (missionFlow) {
 							missionFlow.step();
 						}

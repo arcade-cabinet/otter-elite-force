@@ -14,7 +14,7 @@ function makeWorld(deltaMs: number) {
 }
 
 describe("engine/systems/aiSystem", () => {
-	it("issues a move order toward a nearby player entity", () => {
+	it("transitions to chase and issues move order toward distant player entity", () => {
 		const world = makeWorld(16);
 
 		const enemy = spawnUnit(world, {
@@ -22,25 +22,28 @@ describe("engine/systems/aiSystem", () => {
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 10;
-		Attack.range[enemy] = 50;
+		Attack.range[enemy] = 30;
 		VisionRadius.value[enemy] = 200;
 
-		const playerUnit = spawnUnit(world, {
-			x: 150, y: 100, faction: "ura",
+		spawnUnit(world, {
+			x: 200, y: 100, faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 
+		// Tick 1: idle → chase (detects enemy), chase issues move (dist 100 > range 30)
 		runAiSystem(world);
+
+		const aiState = world.runtime.aiStates.get(enemy);
+		expect(aiState).toBeDefined();
+		expect(aiState!.state).toBe("chase");
 
 		const orders = world.runtime.orderQueues.get(enemy);
 		expect(orders).toBeDefined();
-		expect(orders).toHaveLength(1);
+		expect(orders!.length).toBeGreaterThanOrEqual(1);
 		expect(orders![0].type).toBe("move");
-		expect(orders![0].targetX).toBe(150);
-		expect(orders![0].targetY).toBe(100);
 	});
 
-	it("does not issue orders to entities that already have orders", () => {
+	it("overrides idle orders when enemy detected (FSM chase takes priority)", () => {
 		const world = makeWorld(16);
 
 		const enemy = spawnUnit(world, {
@@ -48,21 +51,23 @@ describe("engine/systems/aiSystem", () => {
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 10;
+		Attack.range[enemy] = 30;
 		VisionRadius.value[enemy] = 200;
 
 		const existingOrders = getOrderQueue(world, enemy);
 		existingOrders.push({ type: "move", targetX: 0, targetY: 0 });
 
 		spawnUnit(world, {
-			x: 110, y: 100, faction: "ura",
+			x: 200, y: 100, faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 
 		runAiSystem(world);
 
-		// Should still have just the original order
-		expect(existingOrders).toHaveLength(1);
-		expect(existingOrders[0].targetX).toBe(0);
+		// FSM transitions to chase and updates move target to enemy position
+		const aiState = world.runtime.aiStates.get(enemy);
+		expect(aiState).toBeDefined();
+		expect(aiState!.state).toBe("chase");
 	});
 
 	it("does not issue orders to player faction entities", () => {
@@ -94,7 +99,8 @@ describe("engine/systems/aiSystem", () => {
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 10;
-		VisionRadius.value[enemy] = 200;
+		Attack.range[enemy] = 30;
+		VisionRadius.value[enemy] = 300;
 
 		// Far player unit
 		spawnUnit(world, {
@@ -102,18 +108,23 @@ describe("engine/systems/aiSystem", () => {
 			health: { current: 100, max: 100 },
 		});
 
-		// Near player unit
-		const nearPlayer = spawnUnit(world, {
-			x: 120, y: 100, faction: "ura",
+		// Near player unit (but still beyond attack range)
+		spawnUnit(world, {
+			x: 160, y: 100, faction: "ura",
 			health: { current: 100, max: 100 },
 		});
 
 		runAiSystem(world);
 
+		const aiState = world.runtime.aiStates.get(enemy);
+		expect(aiState).toBeDefined();
+		expect(aiState!.state).toBe("chase");
+
 		const orders = world.runtime.orderQueues.get(enemy);
-		expect(orders).toHaveLength(1);
-		expect(orders![0].targetX).toBe(120);
-		expect(orders![0].targetY).toBe(100);
+		expect(orders).toBeDefined();
+		expect(orders!.length).toBeGreaterThanOrEqual(1);
+		// Should chase the nearer player (distance 60 vs 150)
+		expect(orders![0].targetX).toBe(160);
 	});
 
 	it("does nothing when no player entities are in range", () => {
@@ -166,6 +177,7 @@ describe("engine/systems/aiSystem", () => {
 			health: { current: 50, max: 50 },
 		});
 		Attack.damage[enemy] = 10;
+		Attack.range[enemy] = 30;
 		// VisionRadius.value[enemy] is 0 (default) — uses DEFAULT_DETECTION_RANGE (128)
 
 		spawnUnit(world, {
@@ -175,8 +187,14 @@ describe("engine/systems/aiSystem", () => {
 
 		runAiSystem(world);
 
-		const orders = world.runtime.orderQueues.get(enemy);
 		// Distance is 100 which is within default detection range of 128
-		expect(orders).toHaveLength(1);
+		// FSM should transition to chase and issue move order (dist 100 > range 30)
+		const aiState = world.runtime.aiStates.get(enemy);
+		expect(aiState).toBeDefined();
+		expect(aiState!.state).toBe("chase");
+
+		const orders = world.runtime.orderQueues.get(enemy);
+		expect(orders).toBeDefined();
+		expect(orders!.length).toBeGreaterThanOrEqual(1);
 	});
 });

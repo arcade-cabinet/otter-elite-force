@@ -57,9 +57,15 @@ export interface GameBridge {
 	startBuild(buildingId: string): void;
 	queueUnit(unitId: string): void;
 	issueResearch(researchId: string): void;
+	issueMove(targetX: number, targetY: number): void;
+	issueAttack(targetX: number, targetY: number, targetEid?: number): void;
+	issueStop(): void;
+	issuePatrol(targetX: number, targetY: number): void;
 	startSkirmish(): void;
 	setSkirmishSeed(seedPhrase: string): void;
 	shuffleSkirmishSeed(): void;
+	/** Drain the command queue — returns all pending commands and clears the queue. */
+	drainCommands(): Array<{ type: string; payload?: Record<string, unknown> }>;
 }
 
 export function createGameBridge(initialState?: Partial<GameBridgeState>): GameBridge {
@@ -75,22 +81,51 @@ export function createGameBridge(initialState?: Partial<GameBridgeState>): GameB
 		boss: initialState?.boss ?? null,
 	};
 
+	const commandQueue: Array<{ type: string; payload?: Record<string, unknown> }> = [];
+
+	function enqueueCommand(type: string, payload?: Record<string, unknown>): void {
+		commandQueue.push({ type, payload });
+	}
+
 	return {
 		state,
 		pause(): void {
-			state.screen = "paused";
+			enqueueCommand("pause");
 		},
 		resume(): void {
-			state.screen = "game";
+			enqueueCommand("resume");
 		},
-		saveGame(): void {},
-		startBuild(_buildingId: string): void {},
-		queueUnit(_unitId: string): void {},
-		issueResearch(_researchId: string): void {},
+		saveGame(): void {
+			enqueueCommand("save");
+		},
+		startBuild(buildingId: string): void {
+			enqueueCommand("startBuild", { buildingId });
+		},
+		queueUnit(unitId: string): void {
+			enqueueCommand("queueUnit", { unitId });
+		},
+		issueResearch(researchId: string): void {
+			enqueueCommand("issueResearch", { researchId });
+		},
+		issueMove(targetX: number, targetY: number): void {
+			enqueueCommand("move", { targetX, targetY });
+		},
+		issueAttack(targetX: number, targetY: number, targetEid?: number): void {
+			enqueueCommand("attack", { targetX, targetY, targetEid });
+		},
+		issueStop(): void {
+			enqueueCommand("stop");
+		},
+		issuePatrol(targetX: number, targetY: number): void {
+			enqueueCommand("patrol", { targetX, targetY });
+		},
 		startSkirmish(): void {
 			state.screen = "skirmish";
 		},
 		setSkirmishSeed(_seedPhrase: string): void {},
 		shuffleSkirmishSeed(): void {},
+		drainCommands(): Array<{ type: string; payload?: Record<string, unknown> }> {
+			return commandQueue.splice(0, commandQueue.length);
+		},
 	};
 }

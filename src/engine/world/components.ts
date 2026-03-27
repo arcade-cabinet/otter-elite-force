@@ -98,3 +98,53 @@ export const ContainerRef = {
 export const SquadRef = {
 	id: createU16Store(),
 };
+
+/**
+ * Gatherer — worker carry state for resource gathering cycle.
+ * amount: current carried resource quantity
+ * capacity: max carry before returning to depot
+ */
+export const Gatherer = {
+	amount: createF32Store(),
+	capacity: createF32Store(),
+};
+
+/**
+ * ResourceNode — remaining resource on a harvestable node.
+ * remaining: how many gather ticks remain before depletion
+ */
+export const ResourceNode = {
+	remaining: createF32Store(),
+};
+
+/**
+ * DetectionCone — directional detection for stealth missions.
+ * range: detection cone length
+ * halfAngle: half-angle in degrees
+ * suspicionTimer: seconds of accumulated suspicion
+ * suspicionThreshold: seconds to reach alert
+ * alertState: 0=idle, 1=suspicious, 2=alert
+ */
+export const DetectionCone = {
+	range: createF32Store(),
+	halfAngle: createF32Store(),
+	suspicionTimer: createF32Store(),
+	suspicionThreshold: createF32Store(),
+	alertState: createU8Store(),
+};
+
+/**
+ * SplashRadius — area-of-effect radius for projectiles (e.g. mortar).
+ */
+export const SplashRadius = {
+	radius: createF32Store(),
+};
+
+/**
+ * PopulationState — population tracking for the player faction.
+ * Used on a singleton entity or tracked in session.
+ */
+export const PopulationState = {
+	current: createU16Store(),
+	max: createU16Store(),
+};
