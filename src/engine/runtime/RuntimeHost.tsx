@@ -2,6 +2,7 @@ import { createMemo, createSignal, For, onCleanup, onMount, Show } from "solid-j
 import { createSkirmishGameAdapter } from "@/ai/skirmishGameAdapter";
 import { SkirmishAI } from "@/ai/skirmishAI";
 import type { SkirmishSessionConfig } from "@/features/skirmish/types";
+import { TutorialOverlay } from "@/solid/hud/TutorialOverlay";
 import { createGameBridge, type GameBridgeState } from "../bridge/gameBridge";
 import {
 	persistDiagnosticSnapshot,
@@ -518,6 +519,9 @@ export function RuntimeHost(props: RuntimeHostProps) {
 					</button>
 				</div>
 			</Show>
+
+			{/* ═══ BOTTOM-CENTER: Tutorial overlay (missions 1-4) ═══ */}
+			{props.missionId && <TutorialOverlay missionId={props.missionId} />}
 		</div>
 	);
 }

@@ -220,5 +220,5 @@ export const riverRat: UnitDef = {
 	gatherRate: 1,
 	buildRate: 1,
 
-	tags: ["IsUnit", "IsWorker", "gather", "build"],
+	tags: ["IsUnit", "IsWorker", "gather", "build", "swim"],
 };

@@ -14,6 +14,7 @@ import { isFinalCampaignMission, resolveMissionVictory } from "@/app/missionResu
 import { SqlitePersistenceStore } from "@/engine/persistence/sqlitePersistenceStore";
 import { type PhaseChangeStats, RuntimeHost } from "@/engine/runtime/RuntimeHost";
 import { type AppState, createAppState, type ScreenId } from "./appState";
+import { createFormFactorSignal } from "./mobile/MobileLayout";
 import {
 	BriefingOverlay,
 	CampaignView,
@@ -34,8 +35,10 @@ export { type AppState, createAppState };
  * On victory/defeat, captures stats and navigates to result screen.
  */
 const GameScreen: Component<{ app: AppState }> = (props) => {
+	const formFactor = createFormFactorSignal();
+
 	return (
-		<div class="h-screen w-screen">
+		<div class="h-screen w-screen" data-form-factor={formFactor()}>
 			<RuntimeHost
 				mode={props.app.isSkirmish() ? "skirmish" : "campaign"}
 				missionId={props.app.currentMissionId() ?? undefined}

@@ -13,12 +13,16 @@
 import { type Component, For } from "solid-js";
 import type { SolidBridgeAccessors, SolidBridgeEmit } from "@/engine/bridge/solidBridge";
 import { URA_BUILDING_ENTITIES } from "@/entities/buildings/ura";
+import { MilitaryTooltip } from "./MilitaryTooltip";
 
 export interface BuildOption {
 	id: string;
 	name: string;
 	role: string;
 	cost: { fish?: number; timber?: number; salvage?: number };
+	hp?: number;
+	armor?: number;
+	buildTime?: number;
 }
 
 /** Role descriptions for each URA building in the build palette. */
@@ -63,6 +67,9 @@ const DEFAULT_BUILD_OPTIONS: BuildOption[] = BUILD_ORDER
 			name: def.name,
 			role: BUILD_ROLES[id] ?? def.category,
 			cost: { ...def.cost },
+			hp: def.hp,
+			armor: def.armor,
+			buildTime: def.buildTime,
 		};
 	})
 	.filter((opt): opt is BuildOption => opt !== null);
@@ -106,26 +113,38 @@ export const BuildMenu: Component<{
 						{(opt) => {
 							const affordable = () => canAfford(opt.cost);
 							return (
-								<button
-									type="button"
-									disabled={!affordable()}
-									onClick={() => props.emit.startBuild(opt.id)}
-									class={`flex h-auto min-h-24 flex-col items-start justify-between gap-2 rounded-none border px-2.5 py-2 text-left text-[10px] uppercase tracking-[0.18em] transition-colors ${
-										affordable()
-											? "border-green-500/20 bg-slate-900/35 text-slate-100 hover:border-green-500/50 hover:bg-slate-800/35"
-											: "border-slate-600/70 bg-slate-900/20 text-slate-500 opacity-60 cursor-not-allowed"
-									}`}
+								<MilitaryTooltip
+									data={{
+										name: opt.name,
+										cost: formatCost(opt.cost),
+										hp: opt.hp,
+										armor: opt.armor,
+										time: opt.buildTime,
+										description: opt.role,
+									}}
+									side="top"
 								>
-									<div class="grid gap-1">
-										<span class="font-mono text-[11px] uppercase tracking-[0.16em]">
-											{opt.name}
-										</span>
-										<span class="text-[9px] uppercase tracking-[0.14em] text-slate-500">
-											{opt.role}
-										</span>
-									</div>
-									<span class="font-mono text-[9px] text-slate-500">{formatCost(opt.cost)}</span>
-								</button>
+									<button
+										type="button"
+										disabled={!affordable()}
+										onClick={() => props.emit.startBuild(opt.id)}
+										class={`flex h-auto min-h-24 flex-col items-start justify-between gap-2 rounded-none border px-2.5 py-2 text-left text-[10px] uppercase tracking-[0.18em] transition-colors ${
+											affordable()
+												? "border-green-500/20 bg-slate-900/35 text-slate-100 hover:border-green-500/50 hover:bg-slate-800/35"
+												: "border-slate-600/70 bg-slate-900/20 text-slate-500 opacity-60 cursor-not-allowed"
+										}`}
+									>
+										<div class="grid gap-1">
+											<span class="font-mono text-[11px] uppercase tracking-[0.16em]">
+												{opt.name}
+											</span>
+											<span class="text-[9px] uppercase tracking-[0.14em] text-slate-500">
+												{opt.role}
+											</span>
+										</div>
+										<span class="font-mono text-[9px] text-slate-500">{formatCost(opt.cost)}</span>
+									</button>
+								</MilitaryTooltip>
 							);
 						}}
 					</For>

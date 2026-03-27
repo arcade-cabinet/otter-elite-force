@@ -110,6 +110,8 @@ function handleMoveCommand(world: GameWorld, command: BridgeCommand): void {
 		const order: Order = { type: "move", targetX, targetY };
 		queue.push(order);
 	}
+	const unitType = selected.length > 0 ? world.runtime.entityTypeIndex.get(selected[0]) : undefined;
+	world.events.push({ type: "move-command", payload: { unitType } });
 	playSfx("unitMove");
 }
 
@@ -126,6 +128,8 @@ function handleAttackCommand(world: GameWorld, command: BridgeCommand): void {
 		const order: Order = { type: "attack", targetEid, targetX, targetY };
 		queue.push(order);
 	}
+	const unitType = selected.length > 0 ? world.runtime.entityTypeIndex.get(selected[0]) : undefined;
+	world.events.push({ type: "attack-command", payload: { unitType } });
 	playSfx("unitAttack");
 }
 

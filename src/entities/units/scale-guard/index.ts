@@ -1,3 +1,5 @@
+export { broodmother } from "./broodmother";
+export { captainScalebreak } from "./captain-scalebreak";
 export { crocChampion } from "./croc-champion";
 export { gator } from "./gator";
 export { kommandantIronjaw } from "./kommandant-ironjaw";
@@ -6,4 +8,6 @@ export { serpentKing } from "./serpent-king";
 export { siphonDrone } from "./siphon-drone";
 export { skink } from "./skink";
 export { snapper } from "./snapper";
+export { venom } from "./venom";
 export { viper } from "./viper";
+export { wardenFangrot } from "./warden-fangrot";

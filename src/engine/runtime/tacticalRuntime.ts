@@ -390,6 +390,15 @@ export async function createTacticalRuntime(
 			queue.length = 0;
 			queue.push(order);
 		}
+		// Emit command events with unitType for voice barks
+		const unitType = selected.length > 0
+			? options.world.runtime.entityTypeIndex.get(selected[0])
+			: undefined;
+		if (order.type === "move") {
+			options.world.events.push({ type: "move-command", payload: { unitType } });
+		} else if (order.type === "attack") {
+			options.world.events.push({ type: "attack-command", payload: { unitType } });
+		}
 		if (order.type === "move" && order.targetX !== undefined && order.targetY !== undefined) {
 			moveSelectedEntities(order.targetX, order.targetY);
 		}
@@ -675,6 +684,14 @@ export async function createTacticalRuntime(
 			clearSelectionState();
 			return;
 		}
+		// Emit unit-selected event with unitType for voice barks
+		const firstSelected = [...options.world.runtime.alive].find(
+			(eid) => Selection.selected[eid] === 1,
+		);
+		const selectedUnitType = firstSelected != null
+			? options.world.runtime.entityTypeIndex.get(firstSelected)
+			: undefined;
+		options.world.events.push({ type: "unit-selected", payload: { unitType: selectedUnitType } });
 		playSfx("unitSelect");
 	}
 
@@ -684,6 +701,8 @@ export async function createTacticalRuntime(
 		if (targetEid != null && Faction.id[targetEid] === 1 && Flags.isResource[targetEid] === 0) {
 			clearSelectionState();
 			Selection.selected[targetEid] = 1;
+			const unitType = options.world.runtime.entityTypeIndex.get(targetEid);
+			options.world.events.push({ type: "unit-selected", payload: { unitType } });
 			return;
 		}
 		if (selected.length > 0) {
@@ -693,6 +712,8 @@ export async function createTacticalRuntime(
 		if (targetEid != null) {
 			clearSelectionState();
 			Selection.selected[targetEid] = 1;
+			const unitType = options.world.runtime.entityTypeIndex.get(targetEid);
+			options.world.events.push({ type: "unit-selected", payload: { unitType } });
 		}
 	}
 

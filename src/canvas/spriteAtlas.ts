@@ -334,6 +334,13 @@ function buildEntitySpriteMap(): void {
 	entitySpriteMap.set("scout_lizard", { animal: "cobra", defaultAnim: "Idle" });
 	entitySpriteMap.set("siphon_drone", { animal: "cobra", defaultAnim: "Idle" });
 	entitySpriteMap.set("serpent_king", { animal: "cobra", defaultAnim: "Idle" });
+	entitySpriteMap.set("kommandant_ironjaw", { animal: "crocodile", defaultAnim: "Idle" });
+
+	// ─── Scale-Guard Bosses ───
+	entitySpriteMap.set("captain_scalebreak", { animal: "crocodile", defaultAnim: "Idle" });
+	entitySpriteMap.set("warden_fangrot", { animal: "crocodile", defaultAnim: "Idle" });
+	entitySpriteMap.set("venom", { animal: "cobra", defaultAnim: "Idle" });
+	entitySpriteMap.set("broodmother", { animal: "crocodile", defaultAnim: "Idle" });
 
 	// ─── Resources — NOT mapped here, fall through to procedural sprites ───
 	// fish_spot, mangrove_tree, salvage_cache, supply_crate, intel_marker

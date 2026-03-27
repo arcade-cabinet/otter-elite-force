@@ -12,6 +12,7 @@
 
 import { type Component, createMemo, For, Show } from "solid-js";
 import type { SolidBridgeAccessors, SolidBridgeEmit } from "@/engine/bridge/solidBridge";
+import { SimpleTooltip } from "./MilitaryTooltip";
 import { PanelFrame } from "./PanelFrame";
 
 interface ActionDef {
@@ -215,16 +216,18 @@ export const SelectionPanel: Component<{
 								<div class="grid grid-cols-2 gap-2">
 									<For each={actions()}>
 										{(action) => (
-											<button
-												type="button"
-												class={ACTION_STYLE}
-												onClick={() => action.handler(props.emit)}
-											>
-												{action.label}
-												<span class="text-[9px] tracking-[0.2em] text-slate-500">
-													{action.hotkey}
-												</span>
-											</button>
+											<SimpleTooltip label={`${action.label} [${action.hotkey}]`} side="top">
+												<button
+													type="button"
+													class={ACTION_STYLE}
+													onClick={() => action.handler(props.emit)}
+												>
+													{action.label}
+													<span class="text-[9px] tracking-[0.2em] text-slate-500">
+														{action.hotkey}
+													</span>
+												</button>
+											</SimpleTooltip>
 										)}
 									</For>
 								</div>

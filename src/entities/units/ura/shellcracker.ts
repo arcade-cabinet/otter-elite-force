@@ -216,5 +216,5 @@ export const shellcracker: UnitDef = {
 
 	unlockedAt: "mission_3",
 
-	tags: ["IsUnit", "IsCombat", "IsRanged"],
+	tags: ["IsUnit", "IsCombat", "IsRanged", "ranged_attack"],
 };

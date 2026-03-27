@@ -76,8 +76,10 @@ const URA_UNIT_ENTITIES: Record<string, UnitDef> = {
 	diver,
 };
 
-// ─── Scale-Guard Units (COMPLETE: 9/9) ───
+// ─── Scale-Guard Units (COMPLETE: 13/13) ───
 
+import { broodmother } from "./units/scale-guard/broodmother";
+import { captainScalebreak } from "./units/scale-guard/captain-scalebreak";
 import { crocChampion } from "./units/scale-guard/croc-champion";
 import { gator } from "./units/scale-guard/gator";
 import { kommandantIronjaw } from "./units/scale-guard/kommandant-ironjaw";
@@ -86,7 +88,9 @@ import { serpentKing } from "./units/scale-guard/serpent-king";
 import { siphonDrone } from "./units/scale-guard/siphon-drone";
 import { skink } from "./units/scale-guard/skink";
 import { snapper } from "./units/scale-guard/snapper";
+import { venom } from "./units/scale-guard/venom";
 import { viper } from "./units/scale-guard/viper";
+import { wardenFangrot } from "./units/scale-guard/warden-fangrot";
 
 const SCALE_GUARD_UNIT_ENTITIES: Record<string, UnitDef> = {
 	skink,
@@ -98,9 +102,13 @@ const SCALE_GUARD_UNIT_ENTITIES: Record<string, UnitDef> = {
 	siphon_drone: siphonDrone,
 	serpent_king: serpentKing,
 	kommandant_ironjaw: kommandantIronjaw,
+	captain_scalebreak: captainScalebreak,
+	warden_fangrot: wardenFangrot,
+	venom,
+	broodmother,
 };
 
-/** All 16 unit definitions (7 URA + 9 Scale-Guard) keyed by id. */
+/** All 20 unit definitions (7 URA + 13 Scale-Guard) keyed by id. */
 export const ALL_UNIT_ENTITIES: Record<string, UnitDef> = {
 	...URA_UNIT_ENTITIES,
 	...SCALE_GUARD_UNIT_ENTITIES,

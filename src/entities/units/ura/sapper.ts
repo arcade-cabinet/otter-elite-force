@@ -236,5 +236,5 @@ export const sapper: UnitDef = {
 
 	unlockedAt: "mission_5",
 
-	tags: ["IsUnit", "IsCombat", "IsSiege"],
+	tags: ["IsUnit", "IsCombat", "IsSiege", "demolition_charge", "build"],
 };
