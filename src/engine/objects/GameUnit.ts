@@ -103,19 +103,31 @@ export function createGameUnitClass() {
 			}
 			// No fallback shapes — if atlas not loaded, skip rendering
 
-			// Selection ring — stroked circle
+			// Selection ring — bright white ring with green glow, pulsing
 			if (this.isSelected) {
+				const pulseAlpha = 0.6 + 0.4 * Math.sin(Date.now() * 0.005);
 				a.drawCircle(
 					this.pos,
 					0.5,
-					new a.Color(1, 1, 1, 0.12),  // subtle fill
-					0.04,                           // lineWidth
-					new a.Color(0, 1, 0, 0.85),   // green stroke
+					new a.Color(0.2, 0.9, 0.3, 0.15 * pulseAlpha),
+					0.06,
+					new a.Color(1, 1, 1, pulseAlpha),
+				);
+				a.drawCircle(
+					this.pos,
+					0.53,
+					new a.Color(0, 0, 0, 0),
+					0.03,
+					new a.Color(0.3, 1, 0.4, 0.5 * pulseAlpha),
 				);
 			}
 
 			// HP bar — shown for selected OR damaged entities
-			if (this.hpMax > 0 && this.hpCurrent > 0 && (this.hpCurrent < this.hpMax || this.isSelected)) {
+			if (
+				this.hpMax > 0 &&
+				this.hpCurrent > 0 &&
+				(this.hpCurrent < this.hpMax || this.isSelected)
+			) {
 				const barWidth = 0.5;
 				const barHeight = 0.06;
 				const barY = this.pos.y + 0.35;

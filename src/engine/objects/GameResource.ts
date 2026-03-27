@@ -61,33 +61,41 @@ export function createGameResourceClass() {
 
 			switch (this.resourceType) {
 				case "timber": {
-					// Tree: green triangle (drawn as circle + rect combo)
-					a.drawCircle(this.pos, 0.3 * scale, new a.Color(0.12, 0.5, 0.08, 1));
-					a.drawRect(
-						a.vec2(this.pos.x, this.pos.y - 0.15 * scale),
-						a.vec2(0.08, 0.2 * scale),
-						new a.Color(0.4, 0.25, 0.1, 1),
+					// Tree: brown trunk + large green canopy (0.6 radius)
+					a.drawRect(this.pos, a.vec2(0.12 * scale, 0.5 * scale), new a.Color(0.35, 0.22, 0.1, 1));
+					a.drawCircle(
+						a.vec2(this.pos.x, this.pos.y + 0.2 * scale),
+						0.6 * scale,
+						new a.Color(0.08, 0.42, 0.12, 1),
+					);
+					a.drawCircle(
+						a.vec2(this.pos.x - 0.1, this.pos.y + 0.3 * scale),
+						0.25 * scale,
+						new a.Color(0.15, 0.6, 0.2, 0.7),
 					);
 					break;
 				}
 				case "fish": {
-					// Fish: blue circle
-					a.drawCircle(this.pos, 0.25 * scale, new a.Color(0.2, 0.5, 0.85, 1));
+					// Fish: larger blue circle with sparkle
+					a.drawCircle(this.pos, 0.5 * scale, new a.Color(0.15, 0.4, 0.75, 0.8));
+					a.drawCircle(this.pos, 0.35 * scale, new a.Color(0.2, 0.55, 0.9, 1));
+					a.drawCircle(
+						a.vec2(this.pos.x + 0.1, this.pos.y + 0.1),
+						0.08 * scale,
+						new a.Color(0.9, 0.95, 1, 0.9),
+					);
 					break;
 				}
 				case "salvage": {
-					// Salvage: orange diamond (rotated rect)
-					a.drawRect(
-						this.pos,
-						a.vec2(0.35 * scale, 0.35 * scale),
-						new a.Color(0.9, 0.6, 0.1, 1),
-						Math.PI / 4,
-					);
+					// Salvage: larger orange/brown box shape
+					a.drawRect(this.pos, a.vec2(0.6 * scale, 0.5 * scale), new a.Color(0.55, 0.35, 0.1, 1));
+					a.drawRect(this.pos, a.vec2(0.5 * scale, 0.4 * scale), new a.Color(0.85, 0.6, 0.2, 1));
+					a.drawRect(this.pos, a.vec2(0.5 * scale, 0.06), new a.Color(0.45, 0.3, 0.08, 0.8));
 					break;
 				}
 				default: {
 					// Generic: yellow circle
-					a.drawCircle(this.pos, 0.3 * scale, new a.Color(0.98, 0.8, 0.08, 1));
+					a.drawCircle(this.pos, 0.45 * scale, new a.Color(0.98, 0.8, 0.08, 1));
 					break;
 				}
 			}

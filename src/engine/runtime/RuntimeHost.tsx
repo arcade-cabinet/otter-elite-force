@@ -8,7 +8,6 @@ import {
 } from "../diagnostics/runtimeDiagnostics";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
 import { createSeedBundle } from "../random/seed";
-import { bootstrapMission } from "../session/missionBootstrap";
 import { createRuntimeMissionFlow } from "../session/runtimeMissionFlow";
 import { createSystemPipeline } from "../session/systemPipeline";
 import {
@@ -149,10 +148,8 @@ export function RuntimeHost(props: RuntimeHostProps) {
 		bridgeInstance = bridge;
 		rs.seedWorld(world);
 
-		// Bootstrap mission entities into the world for campaign mode
-		if (props.mode === "campaign" && props.missionId) {
-			bootstrapMission(world, props.missionId);
-		}
+		// Note: seedWorld already populates the world from the mission definition.
+		// Do NOT also call bootstrapMission — that would duplicate all placements.
 
 		world.diagnostics = {
 			...world.diagnostics,
@@ -403,11 +400,11 @@ export function RuntimeHost(props: RuntimeHostProps) {
 				)}
 			</Show>
 
-			{/* ═══ ALERT BANNER (top-center, slides in/out) ═══ */}
+			{/* ═══ ALERT BANNER (top-center, slides in/out — always above objectives) ═══ */}
 			<Show when={hudState().alerts.length > 0}>
 				<div
 					data-testid="runtime-hud-alerts"
-					class="absolute left-1/2 z-10 -translate-x-1/2 transition-all duration-300"
+					class="absolute left-1/2 z-20 -translate-x-1/2 transition-all duration-300"
 					style={{ top: hudState().boss ? "7.5rem" : "3rem" }}
 				>
 					<div class="border border-warning-amber/30 bg-jungle-950/70 px-4 py-1.5 backdrop-blur-sm">
@@ -418,10 +415,10 @@ export function RuntimeHost(props: RuntimeHostProps) {
 				</div>
 			</Show>
 
-			{/* ═══ RIGHT SIDE: Objectives panel ═══ */}
+			{/* ═══ RIGHT SIDE: Objectives panel (hidden on mobile < 640px to avoid overlap) ═══ */}
 			<div
 				data-testid="runtime-hud-objectives"
-				class="absolute right-3 top-14 z-10 w-52 border border-khaki-700/20 bg-jungle-950/50 px-3 py-2 backdrop-blur-sm"
+				class="absolute right-3 top-14 z-10 hidden w-52 border border-khaki-700/20 bg-jungle-950/50 px-3 py-2 backdrop-blur-sm sm:block"
 			>
 				<div class="font-stencil text-[10px] uppercase tracking-widest text-khaki-400">
 					Objectives

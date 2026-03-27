@@ -101,30 +101,42 @@ export function createGameBuildingClass() {
 				Math.min(1, entityColor.b + 0.15),
 				alpha,
 			);
-			a.drawRect(
-				a.vec2(this.pos.x, this.pos.y + 0.25),
-				a.vec2(0.7, 0.2),
-				roofColor,
-			);
+			a.drawRect(a.vec2(this.pos.x, this.pos.y + 0.25), a.vec2(0.7, 0.2), roofColor);
 
-			// Building label
+			// Building label — white text with dark shadow for readability
 			if (this.label) {
+				// Shadow
+				a.drawText(
+					this.label,
+					a.vec2(this.pos.x + 0.02, this.pos.y - 0.57),
+					0.15,
+					new a.Color(0, 0, 0, 0.7 * alpha),
+				);
+				// Foreground
 				a.drawText(
 					this.label,
 					a.vec2(this.pos.x, this.pos.y - 0.55),
 					0.15,
-					new a.Color(1, 1, 1, 0.85 * alpha),
+					new a.Color(1, 1, 1, 0.95 * alpha),
 				);
 			}
 
-			// Selection ring — stroked circle
+			// Selection ring — bright white ring with green glow, pulsing
 			if (this.isSelected) {
+				const pulseAlpha = 0.6 + 0.4 * Math.sin(Date.now() * 0.005);
 				a.drawCircle(
 					this.pos,
 					0.6,
-					new a.Color(1, 1, 1, 0.12),  // subtle fill
-					0.04,                           // lineWidth
-					new a.Color(0, 1, 0, 0.85),   // green stroke
+					new a.Color(0.2, 0.9, 0.3, 0.15 * pulseAlpha),
+					0.06,
+					new a.Color(1, 1, 1, pulseAlpha),
+				);
+				a.drawCircle(
+					this.pos,
+					0.63,
+					new a.Color(0, 0, 0, 0),
+					0.03,
+					new a.Color(0.3, 1, 0.4, 0.5 * pulseAlpha),
 				);
 			}
 

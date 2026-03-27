@@ -29,7 +29,15 @@ import {
 import type { GameBridge, SelectionViewModel } from "../bridge/gameBridge";
 import { serializeGameWorld } from "../persistence/gameWorldSaveLoad";
 import { SqlitePersistenceStore } from "../persistence/sqlitePersistenceStore";
-import { Faction, Flags, Health, Position, Selection, Veterancy } from "../world/components";
+import {
+	Construction,
+	Faction,
+	Flags,
+	Health,
+	Position,
+	Selection,
+	Veterancy,
+} from "../world/components";
 import type { GameWorld, Order } from "../world/gameWorld";
 import { getOrderQueue, tickFloatingTexts } from "../world/gameWorld";
 
@@ -68,16 +76,16 @@ export interface TacticalRuntimeOptions {
  *   bridge=#8B6914 beach=#d9c893 toxic_sludge=#2d1b4e
  */
 const TERRAIN_COLORS: Record<number, [number, number, number, number]> = {
-	[TerrainTypeId.grass]: [0.078, 0.325, 0.176, 1],    // #14532d
-	[TerrainTypeId.water]: [0.118, 0.227, 0.373, 1],    // #1e3a5f
-	[TerrainTypeId.sand]: [0.831, 0.647, 0.455, 1],     // #d4a574
-	[TerrainTypeId.forest]: [0.059, 0.239, 0.059, 1],   // #0f3d0f
-	[TerrainTypeId.dirt]: [0.443, 0.247, 0.071, 1],     // #713f12
-	[TerrainTypeId.stone]: [0.369, 0.380, 0.400, 1],    // #5e6166
-	[TerrainTypeId.mud]: [0.361, 0.251, 0.200, 1],      // #5c4033
+	[TerrainTypeId.grass]: [0.078, 0.325, 0.176, 1], // #14532d
+	[TerrainTypeId.water]: [0.118, 0.227, 0.373, 1], // #1e3a5f
+	[TerrainTypeId.sand]: [0.831, 0.647, 0.455, 1], // #d4a574
+	[TerrainTypeId.forest]: [0.059, 0.239, 0.059, 1], // #0f3d0f
+	[TerrainTypeId.dirt]: [0.443, 0.247, 0.071, 1], // #713f12
+	[TerrainTypeId.stone]: [0.369, 0.38, 0.4, 1], // #5e6166
+	[TerrainTypeId.mud]: [0.361, 0.251, 0.2, 1], // #5c4033
 	[TerrainTypeId.mangrove]: [0.059, 0.239, 0.059, 1], // #0f3d0f
-	[TerrainTypeId.bridge]: [0.545, 0.412, 0.078, 1],   // #8B6914
-	[TerrainTypeId.beach]: [0.851, 0.784, 0.576, 1],    // #d9c893
+	[TerrainTypeId.bridge]: [0.545, 0.412, 0.078, 1], // #8B6914
+	[TerrainTypeId.beach]: [0.851, 0.784, 0.576, 1], // #d9c893
 	[TerrainTypeId.toxic_sludge]: [0.176, 0.106, 0.306, 1], // #2d1b4e
 };
 
@@ -936,47 +944,121 @@ export async function createTacticalRuntime(
 					Math.min(1, entityColor.b + 0.15),
 					1,
 				);
-				ljs.drawRect(
-					ljs.vec2(tilePos.x, tilePos.y + 0.25),
-					ljs.vec2(0.7, 0.2),
-					roofColor,
-				);
-				// Building label text below
+				ljs.drawRect(ljs.vec2(tilePos.x, tilePos.y + 0.25), ljs.vec2(0.7, 0.2), roofColor);
+				// Construction progress bar (when building is under construction)
+				// Construction.progress defaults to 0; buildTime > 0 indicates construction in progress
+				const constructionProg = Construction.buildTime[eid] > 0 ? Construction.progress[eid] : -1;
+				if (constructionProg >= 0 && constructionProg < 1) {
+					const buildAlpha = 0.4 + 0.6 * constructionProg;
+					// Redraw body with reduced opacity for under-construction appearance
+					ljs.drawRect(
+						tilePos,
+						ljs.vec2(0.8, 0.8),
+						new ljs.Color(entityColor.r, entityColor.g, entityColor.b, buildAlpha),
+					);
+					// Progress bar
+					const barWidth = 0.8;
+					const barHeight = 0.07;
+					const barY = tilePos.y + 0.55;
+					ljs.drawRect(
+						ljs.vec2(tilePos.x, barY),
+						ljs.vec2(barWidth, barHeight),
+						new ljs.Color(0.2, 0.2, 0.2, 0.8),
+					);
+					const fillWidth = barWidth * constructionProg;
+					ljs.drawRect(
+						ljs.vec2(tilePos.x - (barWidth - fillWidth) / 2, barY),
+						ljs.vec2(fillWidth, barHeight),
+						new ljs.Color(0.3, 0.6, 0.95, 0.9),
+					);
+				}
+
+				// Building label text below — white text with dark shadow for readability
 				if (entityType) {
 					const label = entityType.replace(/_/g, " ");
+					// Shadow (drawn slightly offset behind)
+					ljs.drawText(
+						label,
+						ljs.vec2(tilePos.x + 0.02, tilePos.y - 0.57),
+						0.15,
+						new ljs.Color(0, 0, 0, 0.7),
+					);
+					// Foreground text
 					ljs.drawText(
 						label,
 						ljs.vec2(tilePos.x, tilePos.y - 0.55),
 						0.15,
-						new ljs.Color(1, 1, 1, 0.85),
+						new ljs.Color(1, 1, 1, 0.95),
 					);
 				}
 			} else if (isResource) {
-				// Resources: distinct shapes by type
+				// Resources: distinct shapes by type — larger for visibility
 				const resType = entityType ?? "resource";
-				if (resType.includes("tree") || resType.includes("mangrove") || resType.includes("lumber")) {
-					// Trees: green circle with dark trunk
-					ljs.drawRect(tilePos, ljs.vec2(0.08, 0.25), new ljs.Color(0.35, 0.22, 0.1, 1));
-					ljs.drawCircle(ljs.vec2(tilePos.x, tilePos.y + 0.15), 0.3, new ljs.Color(0.1, 0.5, 0.15, 1));
+				if (
+					resType.includes("tree") ||
+					resType.includes("mangrove") ||
+					resType.includes("lumber")
+				) {
+					// Trees: brown trunk line + large green canopy (0.6 radius)
+					ljs.drawRect(tilePos, ljs.vec2(0.12, 0.5), new ljs.Color(0.35, 0.22, 0.1, 1));
+					ljs.drawCircle(
+						ljs.vec2(tilePos.x, tilePos.y + 0.2),
+						0.6,
+						new ljs.Color(0.08, 0.42, 0.12, 1),
+					);
+					// Lighter highlight on canopy
+					ljs.drawCircle(
+						ljs.vec2(tilePos.x - 0.1, tilePos.y + 0.3),
+						0.25,
+						new ljs.Color(0.15, 0.6, 0.2, 0.7),
+					);
 				} else if (resType.includes("fish") || resType.includes("shellfish")) {
-					// Fish: blue circle with sparkle
-					ljs.drawCircle(tilePos, 0.25, new ljs.Color(0.2, 0.5, 0.85, 1));
-					ljs.drawCircle(ljs.vec2(tilePos.x + 0.08, tilePos.y + 0.08), 0.06, new ljs.Color(0.8, 0.9, 1, 0.9));
-				} else if (resType.includes("salvage") || resType.includes("cache") || resType.includes("scrap")) {
-					// Salvage: orange/brown box
-					ljs.drawRect(tilePos, ljs.vec2(0.35, 0.3), new ljs.Color(0.7, 0.45, 0.15, 1));
-					ljs.drawRect(tilePos, ljs.vec2(0.25, 0.2), new ljs.Color(0.85, 0.6, 0.2, 1));
+					// Fish spots: larger blue circle with sparkle highlights
+					ljs.drawCircle(tilePos, 0.5, new ljs.Color(0.15, 0.4, 0.75, 0.8));
+					ljs.drawCircle(tilePos, 0.35, new ljs.Color(0.2, 0.55, 0.9, 1));
+					// Sparkle dots
+					const sparkleTime = worldElapsed * 0.003;
+					const sparkleOffset1 = Math.sin(sparkleTime) * 0.15;
+					const sparkleOffset2 = Math.cos(sparkleTime * 1.3) * 0.12;
+					ljs.drawCircle(
+						ljs.vec2(tilePos.x + sparkleOffset1, tilePos.y + 0.1),
+						0.08,
+						new ljs.Color(0.9, 0.95, 1, 0.9),
+					);
+					ljs.drawCircle(
+						ljs.vec2(tilePos.x - 0.1, tilePos.y + sparkleOffset2),
+						0.06,
+						new ljs.Color(0.85, 0.92, 1, 0.7),
+					);
+				} else if (
+					resType.includes("salvage") ||
+					resType.includes("cache") ||
+					resType.includes("scrap")
+				) {
+					// Salvage: larger orange/brown box shape
+					ljs.drawRect(tilePos, ljs.vec2(0.6, 0.5), new ljs.Color(0.55, 0.35, 0.1, 1));
+					ljs.drawRect(tilePos, ljs.vec2(0.5, 0.4), new ljs.Color(0.85, 0.6, 0.2, 1));
+					// Cross/strap detail on box
+					ljs.drawRect(tilePos, ljs.vec2(0.5, 0.06), new ljs.Color(0.45, 0.3, 0.08, 0.8));
+					ljs.drawRect(tilePos, ljs.vec2(0.06, 0.4), new ljs.Color(0.45, 0.3, 0.08, 0.8));
 				} else {
 					// Generic resource: yellow diamond
-					ljs.drawCircle(tilePos, 0.3, entityColor);
+					ljs.drawCircle(tilePos, 0.45, entityColor);
 				}
-				// Resource label
+				// Resource label — with dark shadow
 				if (entityType) {
+					const resLabel = entityType.replace(/_/g, " ");
 					ljs.drawText(
-						entityType.replace(/_/g, " "),
-						ljs.vec2(tilePos.x, tilePos.y - 0.45),
-						0.12,
-						new ljs.Color(1, 0.9, 0.5, 0.8),
+						resLabel,
+						ljs.vec2(tilePos.x + 0.02, tilePos.y - 0.62),
+						0.13,
+						new ljs.Color(0, 0, 0, 0.6),
+					);
+					ljs.drawText(
+						resLabel,
+						ljs.vec2(tilePos.x, tilePos.y - 0.6),
+						0.13,
+						new ljs.Color(1, 0.9, 0.5, 0.9),
 					);
 				}
 			} else {
@@ -986,14 +1068,24 @@ export async function createTacticalRuntime(
 					// Determine animation based on entity state
 					const orderQueue = options.world.runtime.orderQueues.get(eid);
 					const currentOrder = orderQueue?.[0]?.type;
-					const animName =
-						currentOrder === "move" ? "Run" : currentOrder === "attack" ? "Spin" : "Idle";
+					const isMoving = currentOrder === "move";
+					const animName = isMoving ? "Run" : currentOrder === "attack" ? "Spin" : "Idle";
 
 					const tileInfo = getEntityTileInfo(entityType, animName, worldElapsed);
 					if (tileInfo) {
 						const drawSize = getEntityDrawSize(entityType);
-						const size = drawSize ? ljs.vec2(drawSize.x, drawSize.y) : ljs.vec2(1.2, 1.2);
-						// Tint: white = no tint (show original sprite colors)
+						let size = drawSize ? ljs.vec2(drawSize.x, drawSize.y) : ljs.vec2(1.2, 1.2);
+
+						// Flip sprite horizontally when moving left
+						// Check target position vs current position for direction
+						if (isMoving && orderQueue?.[0]) {
+							const targetX = orderQueue[0].targetX;
+							if (targetX !== undefined && targetX < px) {
+								// Moving left: flip by making width negative
+								size = ljs.vec2(-Math.abs(size.x), size.y);
+							}
+						}
+
 						ljs.drawTile(tilePos, size, tileInfo);
 						rendered = true;
 					}
@@ -1004,22 +1096,34 @@ export async function createTacticalRuntime(
 				}
 			}
 
-			// Selection ring — stroked circle using lineWidth + lineColor
+			// Selection ring — bright white ring with green glow, pulsing opacity
 			if (isSelected) {
 				const ringRadius = isBuilding ? 0.6 : 0.5;
+				// Pulsing opacity: cycles between 0.6 and 1.0 based on world time
+				const pulseAlpha = 0.6 + 0.4 * Math.sin(worldElapsed * 0.005);
+				// Green glow fill
 				ljs.drawCircle(
 					tilePos,
 					ringRadius,
-					new ljs.Color(1, 1, 1, 0.12),  // subtle fill
-					0.04,                             // lineWidth
-					new ljs.Color(0, 1, 0, 0.85),   // green stroke
+					new ljs.Color(0.2, 0.9, 0.3, 0.15 * pulseAlpha), // green glow fill
+					0.06, // thicker lineWidth
+					new ljs.Color(1, 1, 1, pulseAlpha), // white stroke
+				);
+				// Second ring for green glow effect
+				ljs.drawCircle(
+					tilePos,
+					ringRadius + 0.03,
+					new ljs.Color(0, 0, 0, 0), // transparent fill
+					0.03, // lineWidth
+					new ljs.Color(0.3, 1, 0.4, 0.5 * pulseAlpha), // green outer glow
 				);
 			}
 
-			// HP bar — shown for ALL selected entities and damaged entities
+			// HP bar — shown for ALL units/buildings that are damaged OR selected
+			// Also always shown for non-resource entities so players can see health
 			const hpCurrent = Health.current[eid];
 			const hpMax = Health.max[eid];
-			if (hpMax > 0 && hpCurrent > 0 && (hpCurrent < hpMax || isSelected)) {
+			if (hpMax > 0 && hpCurrent > 0 && (hpCurrent < hpMax || isSelected) && !isResource) {
 				const barWidth = isBuilding ? 0.8 : 0.5;
 				const barHeight = 0.06;
 				const barY = tile.y + (isBuilding ? 0.5 : 0.35);
@@ -1260,12 +1364,7 @@ export async function createTacticalRuntime(
 							? "#f87171"
 							: "#e2e8f0";
 			const dotSize = Flags.isBuilding[eid] === 1 ? 5 : 3;
-			ctx.fillRect(
-				px - Math.floor(dotSize / 2),
-				py - Math.floor(dotSize / 2),
-				dotSize,
-				dotSize,
-			);
+			ctx.fillRect(px - Math.floor(dotSize / 2), py - Math.floor(dotSize / 2), dotSize, dotSize);
 		}
 
 		// Camera viewport rectangle on minimap

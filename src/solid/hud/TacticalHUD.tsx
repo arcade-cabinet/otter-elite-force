@@ -48,13 +48,13 @@ export const TacticalHUD: Component<{
 				<BossHealthBar bridge={props.bridge} />
 			</div>
 
-			{/* Top-right -- AlertBanner */}
-			<div class="pointer-events-auto absolute right-2 top-16 z-10 w-80 sm:right-4 sm:top-20">
+			{/* Top-right -- AlertBanner (always visible, higher z-index) */}
+			<div class="pointer-events-auto absolute left-1/2 top-16 z-20 w-80 -translate-x-1/2 sm:left-auto sm:right-4 sm:top-20 sm:translate-x-0">
 				<AlertBanner bridge={props.bridge} emit={props.emit} />
 			</div>
 
-			{/* Right -- ObjectivesPanel (below alerts) */}
-			<div class="pointer-events-auto absolute right-2 top-52 z-10 w-64 sm:right-4 sm:top-56 sm:w-72">
+			{/* Right -- ObjectivesPanel (hidden on mobile < 640px to avoid overlap) */}
+			<div class="pointer-events-auto absolute right-2 top-52 z-10 hidden w-64 sm:right-4 sm:top-56 sm:block sm:w-72">
 				<ObjectivesPanel bridge={props.bridge} />
 			</div>
 
