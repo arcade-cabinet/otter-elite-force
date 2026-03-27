@@ -11,7 +11,7 @@
  *   - Zone rectangles for scenario triggers
  */
 
-import { TerrainTypeId } from "@/engine/rendering/terrainRenderer";
+import { TerrainTypeId } from "@/engine/content/terrainTypes";
 import type { GameWorld } from "@/engine/world/gameWorld";
 import { setSelection, spawnBuilding, spawnResource, spawnUnit } from "@/engine/world/gameWorld";
 import { getMissionById } from "@/entities/missions";

@@ -22,7 +22,7 @@ import {
 } from "../session/tacticalSession";
 import { createGameWorld } from "../world/gameWorld";
 import { processCommands } from "./commandProcessor";
-import { createLittleJsRuntime, type TacticalRuntime } from "./littlejsRuntime";
+import { createTacticalRuntime, type TacticalRuntime } from "./tacticalRuntime";
 
 /** Stats snapshot passed on victory/defeat phase transitions. */
 export interface PhaseChangeStats {
@@ -178,7 +178,7 @@ export function RuntimeHost(props: RuntimeHostProps) {
 
 		void (async () => {
 			try {
-				const runtime = await createLittleJsRuntime({
+				const runtime = await createTacticalRuntime({
 					container,
 					world,
 					bridge,
