@@ -1,3 +1,9 @@
+import {
+	initAudioRuntime,
+	playBattleMusic,
+	playSfx,
+	syncAudioFromWorld,
+} from "@/engine/audio/audioRuntime";
 import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import type { GameBridge, SelectionViewModel } from "../bridge/gameBridge";
 import { loadTileImages } from "../rendering/assetLoader";
@@ -444,6 +450,16 @@ export async function createLittleJsRuntime(
 				pushAlert(`Boss engaged: ${String(event.payload?.name ?? "Unknown")}`, "critical");
 				continue;
 			}
+			if (event.type === "building-complete") {
+				pushAlert("Construction complete", "info");
+				playSfx("buildComplete");
+				continue;
+			}
+			if (event.type === "research-complete") {
+				pushAlert(`Research complete: ${String(event.payload?.researchId ?? "")}`, "info");
+				playSfx("researchComplete");
+				continue;
+			}
 			if (event.type === "reinforcements-arrived") {
 				pushAlert("Reinforcements have arrived", "info");
 			}
@@ -522,11 +538,15 @@ export async function createLittleJsRuntime(
 			pushAlert(`Phase: ${options.world.runtime.scenarioPhase}`, "info");
 			lastScenarioPhase = options.world.runtime.scenarioPhase;
 		}
+		// Sync audio volume from settings each frame
+		syncAudioFromWorld(options.world);
 		if (options.world.session.phase !== lastSessionPhase) {
 			if (options.world.session.phase === "victory") {
 				pushAlert("Mission complete", "info");
+				playSfx("buildComplete"); // victory fanfare
 			} else if (options.world.session.phase === "defeat") {
 				pushAlert("Mission failed", "critical");
+				playSfx("unitDeath"); // defeat sound
 			}
 			lastSessionPhase = options.world.session.phase;
 		}
@@ -574,6 +594,7 @@ export async function createLittleJsRuntime(
 			clearSelection();
 			return;
 		}
+		playSfx("unitSelect");
 		syncBridgeState();
 		renderCurrentFrame();
 	}
@@ -1170,7 +1191,18 @@ export async function createLittleJsRuntime(
 		const screenPoint = getScreenPoint(event.clientX, event.clientY);
 		if (screenPointInMinimap(screenPoint.x, screenPoint.y)) {
 			selectionBox = null;
-			recenterFromMinimap(screenPoint.x, screenPoint.y);
+			if (tracked.button === 2) {
+				// Right-click on minimap: move selected units to that world position
+				const worldPoint = worldPointFromMinimap(screenPoint.x, screenPoint.y);
+				if (getSelectedEntityIds().length > 0) {
+					moveSelectedEntities(worldPoint.x, worldPoint.y);
+					syncBridgeState();
+				}
+			} else {
+				// Left-click on minimap: recenter camera
+				recenterFromMinimap(screenPoint.x, screenPoint.y);
+			}
+			renderCurrentFrame();
 			return;
 		}
 
@@ -1254,6 +1286,10 @@ export async function createLittleJsRuntime(
 				options.world.session.phase = "playing";
 			}
 			initRenderingAssets();
+			// Initialize audio runtime (unlocks on first user gesture)
+			initAudioRuntime();
+			// Start battle music for gameplay
+			playBattleMusic();
 			syncBridgeState();
 			const targetCanvas = ensureCanvas();
 			applyWorldEvents();
