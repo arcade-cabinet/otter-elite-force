@@ -4,18 +4,32 @@
  * US-F08: Migrates audio initialization and control out of React hooks
  * so it can be driven by the pure engine runtime.
  *
+ * Wires the REAL audio subsystems from src/audio/:
+ * - AudioEngine (Tone.js procedural SFX + music)
+ * - SFX Bridge (EventBus gameplay events -> SFX calls)
+ * - MusicController (menu/combat/briefing music transitions)
+ * - Voice Barks (unit selection + command acknowledgment)
+ *
  * - initAudioRuntime() sets up audio context on first user interaction
  * - syncAudioFromWorld() reads world settings and applies volume levels
+ * - tickMusicController() drives combat music transitions each frame
  * - playBattleMusic(), playMenuMusic(), stopMusic() delegate to AudioEngine
  * - playSfx() delegates to AudioEngine
  */
 
 import type { AudioEngine } from "@/audio/engine";
+import type { MusicController, MusicState } from "@/audio/musicController";
 import type { GameWorld } from "../world/gameWorld";
 
 let engineRef: AudioEngine | null = null;
 let engineLoading = false;
 let unlockListenerAttached = false;
+
+/** SFX bridge teardown function (returned by installSFXBridge). */
+let sfxBridgeTeardown: (() => void) | null = null;
+
+/** Music controller instance. */
+let musicControllerRef: MusicController | null = null;
 
 /**
  * Lazily loads the audio engine module.
@@ -32,6 +46,33 @@ async function loadEngine(): Promise<AudioEngine | null> {
 	} catch {
 		engineLoading = false;
 		return null;
+	}
+}
+
+/**
+ * Install the SFX bridge and music controller after engine is ready.
+ * These wire EventBus gameplay events to SFX calls and manage music state.
+ */
+async function installAudioBridge(): Promise<void> {
+	if (!engineRef) return;
+
+	// Install SFX bridge (EventBus -> AudioEngine.playSFX)
+	// This connects unit-selected, move-command, melee-hit, building-complete, etc.
+	// to the Tone.js SFX player, including voice barks for unit selection/commands.
+	try {
+		const { installSFXBridge } = await import("@/audio/sfxBridge");
+		if (sfxBridgeTeardown) sfxBridgeTeardown();
+		sfxBridgeTeardown = installSFXBridge(engineRef);
+	} catch {
+		// sfxBridge not available (e.g., in test environment)
+	}
+
+	// Initialize music controller for state-driven transitions
+	try {
+		const { MusicController } = await import("@/audio/musicController");
+		musicControllerRef = new MusicController(engineRef);
+	} catch {
+		// musicController not available
 	}
 }
 
@@ -59,6 +100,8 @@ export function initAudioRuntime(): void {
 			const engine = await loadEngine();
 			if (engine) {
 				await engine.init();
+				// Engine is ready -- wire up SFX bridge and music controller
+				await installAudioBridge();
 			}
 		} catch {
 			initializing = false;
@@ -103,9 +146,43 @@ export function syncAudioFromWorld(world: GameWorld): void {
 }
 
 /**
+ * Tick the music controller for combat/ambient transitions.
+ * Call once per frame from the game loop.
+ */
+export function tickMusicController(): void {
+	if (musicControllerRef) {
+		musicControllerRef.tick();
+	}
+}
+
+/**
+ * Set the music controller's state for screen-based transitions.
+ * Maps game phases to music states.
+ */
+export function setMusicState(state: MusicState): void {
+	if (musicControllerRef) {
+		musicControllerRef.setState(state);
+	}
+}
+
+/**
+ * Notify the music controller that combat is happening.
+ * Triggers combat music crossfade from ambient.
+ */
+export function notifyCombat(): void {
+	if (musicControllerRef) {
+		musicControllerRef.notifyCombat();
+	}
+}
+
+/**
  * Play the battle/combat music track.
  */
 export function playBattleMusic(): void {
+	if (musicControllerRef) {
+		musicControllerRef.setState("combat");
+		return;
+	}
 	if (!engineRef?.isReady) return;
 	engineRef.playMusic("combatTrack");
 }
@@ -114,6 +191,10 @@ export function playBattleMusic(): void {
  * Play the menu music track.
  */
 export function playMenuMusic(): void {
+	if (musicControllerRef) {
+		musicControllerRef.setState("menu");
+		return;
+	}
 	if (!engineRef?.isReady) return;
 	engineRef.playMusic("menuTrack");
 }
@@ -122,6 +203,10 @@ export function playMenuMusic(): void {
  * Play the ambient (in-game non-combat) music track.
  */
 export function playAmbientMusic(): void {
+	if (musicControllerRef) {
+		musicControllerRef.setState("ambient");
+		return;
+	}
 	if (!engineRef?.isReady) return;
 	engineRef.playMusic("ambientTrack");
 }
@@ -130,6 +215,10 @@ export function playAmbientMusic(): void {
  * Play the briefing music track.
  */
 export function playBriefingMusic(): void {
+	if (musicControllerRef) {
+		musicControllerRef.setState("briefing");
+		return;
+	}
 	if (!engineRef?.isReady) return;
 	engineRef.playMusic("briefingTrack");
 }
@@ -138,6 +227,10 @@ export function playBriefingMusic(): void {
  * Stop all currently playing music.
  */
 export function stopMusic(): void {
+	if (musicControllerRef) {
+		musicControllerRef.setState("silent");
+		return;
+	}
 	if (!engineRef) return;
 	engineRef.stopMusic();
 }
@@ -148,7 +241,7 @@ export function stopMusic(): void {
 export function playSfx(name: string): void {
 	if (!engineRef?.isReady) return;
 	// The AudioEngine uses SFXType which is a string union.
-	// We pass the name through — if it doesn't match a known type,
+	// We pass the name through -- if it doesn't match a known type,
 	// the underlying Tone.js player will simply no-op.
 	engineRef.playSFX(name as Parameters<AudioEngine["playSFX"]>[0]);
 }
@@ -158,6 +251,14 @@ export function playSfx(name: string): void {
  * Call on app shutdown or test teardown.
  */
 export function disposeAudioRuntime(): void {
+	if (sfxBridgeTeardown) {
+		sfxBridgeTeardown();
+		sfxBridgeTeardown = null;
+	}
+	if (musicControllerRef) {
+		musicControllerRef.dispose();
+		musicControllerRef = null;
+	}
 	if (engineRef) {
 		engineRef.dispose();
 	}

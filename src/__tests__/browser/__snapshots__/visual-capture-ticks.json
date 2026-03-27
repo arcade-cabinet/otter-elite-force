@@ -7,70 +7,70 @@
         "eid": 1,
         "x": 144,
         "y": 1168,
-        "health": 40,
+        "health": 600,
         "type": "command_post"
       },
       {
         "eid": 2,
         "x": 1168,
         "y": 144,
-        "health": 40,
+        "health": 200,
         "type": "flag_post"
       },
       {
         "eid": 3,
         "x": 176,
         "y": 1200,
-        "health": 10,
+        "health": 40,
         "type": "river_rat"
       },
       {
         "eid": 4,
         "x": 1128,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
         "eid": 5,
         "x": 190,
         "y": 1200,
-        "health": 10,
+        "health": 80,
         "type": "mudfoot"
       },
       {
         "eid": 6,
         "x": 1114,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
         "eid": 7,
         "x": 204,
         "y": 1200,
-        "health": 10,
+        "health": 80,
         "type": "mudfoot"
       },
       {
         "eid": 8,
         "x": 1100,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
         "eid": 9,
         "x": 218,
         "y": 1200,
-        "health": 10,
+        "health": 80,
         "type": "mudfoot"
       },
       {
         "eid": 10,
         "x": 1086,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
@@ -147,70 +147,70 @@
         "eid": 1,
         "x": 144,
         "y": 1168,
-        "health": 40,
+        "health": 600,
         "type": "command_post"
       },
       {
         "eid": 2,
         "x": 1168,
         "y": 144,
-        "health": 40,
+        "health": 200,
         "type": "flag_post"
       },
       {
         "eid": 3,
         "x": 176,
         "y": 1200,
-        "health": 10,
+        "health": 40,
         "type": "river_rat"
       },
       {
         "eid": 4,
         "x": 1128,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
         "eid": 5,
         "x": 190,
         "y": 1200,
-        "health": 10,
+        "health": 80,
         "type": "mudfoot"
       },
       {
         "eid": 6,
         "x": 1114,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
         "eid": 7,
         "x": 204,
         "y": 1200,
-        "health": 10,
+        "health": 80,
         "type": "mudfoot"
       },
       {
         "eid": 8,
         "x": 1100,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
         "eid": 9,
         "x": 218,
         "y": 1200,
-        "health": 10,
+        "health": 80,
         "type": "mudfoot"
       },
       {
         "eid": 10,
         "x": 1086,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
@@ -287,70 +287,70 @@
         "eid": 1,
         "x": 144,
         "y": 1168,
-        "health": 40,
+        "health": 600,
         "type": "command_post"
       },
       {
         "eid": 2,
         "x": 1168,
         "y": 144,
-        "health": 40,
+        "health": 200,
         "type": "flag_post"
       },
       {
         "eid": 3,
         "x": 176,
         "y": 1200,
-        "health": 10,
+        "health": 40,
         "type": "river_rat"
       },
       {
         "eid": 4,
         "x": 1128,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
         "eid": 5,
         "x": 190,
         "y": 1200,
-        "health": 10,
+        "health": 80,
         "type": "mudfoot"
       },
       {
         "eid": 6,
         "x": 1114,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
         "eid": 7,
         "x": 204,
         "y": 1200,
-        "health": 10,
+        "health": 80,
         "type": "mudfoot"
       },
       {
         "eid": 8,
         "x": 1100,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {
         "eid": 9,
         "x": 218,
         "y": 1200,
-        "health": 10,
+        "health": 80,
         "type": "mudfoot"
       },
       {
         "eid": 10,
         "x": 1086,
         "y": 104,
-        "health": 10,
+        "health": 120,
         "type": "gator"
       },
       {

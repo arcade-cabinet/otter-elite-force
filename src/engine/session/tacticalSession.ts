@@ -507,41 +507,92 @@ export function seedGameWorldFromSkirmishSession(
 	const playerFaction = session.config.playAsScaleGuard ? "scale_guard" : "ura";
 	const enemyFaction = session.config.playAsScaleGuard ? "ura" : "scale_guard";
 
+	const commandPostDef = getBuilding("command_post");
 	const playerBase = spawnRuntimeBuilding(world, {
 		x: session.map.playerStart.tileX * 32 + 16,
 		y: session.map.playerStart.tileY * 32 + 16,
 		faction: playerFaction,
 		buildingType: "command_post",
-		health: { current: 40, max: 40 },
+		health: { current: commandPostDef?.hp ?? 40, max: commandPostDef?.hp ?? 40 },
 		scriptId: "player_base",
+		stats: commandPostDef
+			? {
+					hp: commandPostDef.hp,
+					armor: commandPostDef.armor ?? 0,
+					visionRadius: 5,
+					attackDamage: commandPostDef.attackDamage ?? 0,
+					attackRange: commandPostDef.attackRange ?? 0,
+					attackCooldownMs: commandPostDef.attackCooldown ?? 0,
+					populationCapacity: commandPostDef.populationCapacity ?? 0,
+				}
+			: undefined,
 	});
 	setSelection(world, playerBase, true);
 
+	const flagPostDef = getBuilding("flag_post");
 	spawnRuntimeBuilding(world, {
 		x: session.map.aiStart.tileX * 32 + 16,
 		y: session.map.aiStart.tileY * 32 + 16,
 		faction: enemyFaction,
 		buildingType: "flag_post",
-		health: { current: 40, max: 40 },
+		health: { current: flagPostDef?.hp ?? 40, max: flagPostDef?.hp ?? 40 },
 		scriptId: "enemy_base",
+		stats: flagPostDef
+			? {
+					hp: flagPostDef.hp,
+					armor: flagPostDef.armor ?? 0,
+					visionRadius: 5,
+					attackDamage: flagPostDef.attackDamage ?? 0,
+					attackRange: flagPostDef.attackRange ?? 0,
+					attackCooldownMs: flagPostDef.attackCooldown ?? 0,
+					populationCapacity: flagPostDef.populationCapacity ?? 0,
+				}
+			: undefined,
 	});
 
 	for (let i = 0; i < 4; i++) {
+		const playerUnitType = i === 0 ? "river_rat" : "mudfoot";
+		const playerUnitDef = getUnit(playerUnitType);
 		spawnRuntimeUnit(world, {
 			x: session.map.playerStart.tileX * 32 + 48 + i * 14,
 			y: session.map.playerStart.tileY * 32 + 48,
 			faction: playerFaction,
-			unitType: i === 0 ? "river_rat" : "mudfoot",
-			health: { current: 10, max: 10 },
+			unitType: playerUnitType,
+			health: { current: playerUnitDef?.hp ?? 10, max: playerUnitDef?.hp ?? 10 },
 			scriptId: `player_unit_${i}`,
+			stats: playerUnitDef
+				? {
+						hp: playerUnitDef.hp,
+						armor: playerUnitDef.armor,
+						speed: playerUnitDef.speed,
+						attackDamage: playerUnitDef.damage,
+						attackRange: playerUnitDef.range,
+						attackCooldownMs: playerUnitDef.attackCooldown,
+						visionRadius: playerUnitDef.visionRadius,
+						popCost: playerUnitDef.populationCost,
+					}
+				: undefined,
 		});
+		const enemyUnitDef = getUnit("gator");
 		spawnRuntimeUnit(world, {
 			x: session.map.aiStart.tileX * 32 - 24 - i * 14,
 			y: session.map.aiStart.tileY * 32 - 24,
 			faction: enemyFaction,
 			unitType: "gator",
-			health: { current: 10, max: 10 },
+			health: { current: enemyUnitDef?.hp ?? 10, max: enemyUnitDef?.hp ?? 10 },
 			scriptId: `enemy_unit_${i}`,
+			stats: enemyUnitDef
+				? {
+						hp: enemyUnitDef.hp,
+						armor: enemyUnitDef.armor,
+						speed: enemyUnitDef.speed,
+						attackDamage: enemyUnitDef.damage,
+						attackRange: enemyUnitDef.range,
+						attackCooldownMs: enemyUnitDef.attackCooldown,
+						visionRadius: enemyUnitDef.visionRadius,
+						popCost: enemyUnitDef.populationCost,
+					}
+				: undefined,
 		});
 	}
 

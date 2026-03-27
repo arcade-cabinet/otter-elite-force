@@ -18,9 +18,11 @@ import { loadTerrainTiles, paintTerrainChunked, type TerrainChunk } from "@/canv
 import { getMissionById } from "@/entities/missions";
 import {
 	initAudioRuntime,
-	playBattleMusic,
+	notifyCombat,
+	playAmbientMusic,
 	playSfx,
 	syncAudioFromWorld,
+	tickMusicController,
 } from "@/engine/audio/audioRuntime";
 import { TerrainTypeId } from "@/engine/content/terrainTypes";
 import {
@@ -436,6 +438,7 @@ export async function createTacticalRuntime(
 			lastScenarioPhase = options.world.runtime.scenarioPhase;
 		}
 		syncAudioFromWorld(options.world);
+		tickMusicController();
 		if (options.world.session.phase !== lastSessionPhase) {
 			if (options.world.session.phase === "victory") {
 				pushAlert("Mission complete", "info");
@@ -508,12 +511,36 @@ export async function createTacticalRuntime(
 				const ax = event.payload?.x as number | undefined;
 				const ay = event.payload?.y as number | undefined;
 				pushAlert("Under Attack!", "critical", ax, ay);
+				notifyCombat();
 				continue;
 			}
 			if (event.type === "enemy-spotted") {
 				const ex = event.payload?.x as number | undefined;
 				const ey = event.payload?.y as number | undefined;
 				pushAlert("Enemy Spotted", "warning", ex, ey);
+				notifyCombat();
+				continue;
+			}
+			if (event.type === "unit-died") {
+				const ux = event.payload?.x as number | undefined;
+				const uy = event.payload?.y as number | undefined;
+				playSfx("unitDeath");
+				pushAlert("Unit lost", "warning", ux, uy);
+				notifyCombat();
+				continue;
+			}
+			if (event.type === "training-complete") {
+				const unitType = String(event.payload?.unitType ?? "unit");
+				const tx = event.payload?.x as number | undefined;
+				const ty = event.payload?.y as number | undefined;
+				pushAlert(`Training complete: ${unitType.replace(/_/g, " ")}`, "info", tx, ty);
+				playSfx("trainingComplete");
+				continue;
+			}
+			if (event.type === "resource-depleted") {
+				const dx = event.payload?.x as number | undefined;
+				const dy = event.payload?.y as number | undefined;
+				pushAlert("Resource depleted", "warning", dx, dy);
 				continue;
 			}
 			if (event.type === "save-requested") {
@@ -702,9 +729,9 @@ export async function createTacticalRuntime(
 			img.src = `${buildingBase}${name}.png`;
 		}
 
-		// Initialize audio
+		// Initialize audio (real Tone.js engine + SFX bridge + music controller)
 		initAudioRuntime();
-		playBattleMusic();
+		playAmbientMusic();
 
 		// Initialize fog grid
 		initFog();
@@ -999,48 +1026,69 @@ export async function createTacticalRuntime(
 			const tilePos = ljs.vec2(tile.x, tile.y);
 
 			if (isBuilding) {
-				// Buildings: solid fill with darker outline and faction roof accent
-				const outlineColor =
-					factionId === 1
-						? new ljs.Color(0.05, 0.35, 0.15, 1)
-						: factionId === 2
-							? new ljs.Color(0.5, 0.1, 0.1, 1)
-							: new ljs.Color(0.4, 0.42, 0.44, 1);
-				// Outer outline
-				ljs.drawRect(tilePos, ljs.vec2(0.9, 0.9), outlineColor);
-				// Main body
-				ljs.drawRect(tilePos, ljs.vec2(0.8, 0.8), entityColor);
-				// Inner roof accent (lighter stripe at top)
-				const roofColor = new ljs.Color(
-					Math.min(1, entityColor.r + 0.15),
-					Math.min(1, entityColor.g + 0.15),
-					Math.min(1, entityColor.b + 0.15),
-					1,
-				);
-				ljs.drawRect(ljs.vec2(tilePos.x, tilePos.y + 0.25), ljs.vec2(0.7, 0.2), roofColor);
-				// Construction progress bar (when building is under construction)
-				// Construction.progress is 0-100; buildTime > 0 indicates construction in progress
+				// Construction progress (0-100 normalized to 0-1)
 				const rawProgress = Construction.buildTime[eid] > 0 ? Construction.progress[eid] : -1;
-				// Normalize to 0-1 range for rendering
 				const constructionProg = rawProgress >= 0 ? rawProgress / 100 : -1;
-				if (constructionProg >= 0 && constructionProg < 1) {
-					const buildAlpha = 0.4 + 0.6 * constructionProg;
-					// Redraw body with reduced opacity for under-construction appearance
-					ljs.drawRect(
-						tilePos,
-						ljs.vec2(0.8, 0.8),
-						new ljs.Color(entityColor.r, entityColor.g, entityColor.b, buildAlpha),
-					);
-					// Progress bar background
+				const isUnderConstruction = constructionProg >= 0 && constructionProg < 1;
+
+				// Try PNG rendering via Canvas2D drawImage on ljs.mainContext
+				const buildingImg = entityType ? buildingImages.get(entityType) : undefined;
+				if (buildingImg) {
+					const ctx = ljs.mainContext;
+					const scale = ljs.cameraScale;
+					const camPos = ljs.cameraPos;
+					const canvasW = ljs.mainCanvas.width;
+					const canvasH = ljs.mainCanvas.height;
+					const camPixelX = camPos.x * TILE_SIZE;
+					const camPixelY = camPos.y * TILE_SIZE;
+					const screenScale = scale / TILE_SIZE;
+
+					// Building occupies 2x2 tiles (64x64 pixels at zoom 1)
+					const buildingSizePx = TILE_SIZE * 2;
+					const screenX = (px - buildingSizePx / 2 - camPixelX) * screenScale + canvasW / 2;
+					const screenY = (py - buildingSizePx / 2 - camPixelY) * screenScale + canvasH / 2;
+					const screenW = buildingSizePx * screenScale;
+					const screenH = buildingSizePx * screenScale;
+
+					ctx.save();
+					if (isUnderConstruction) {
+						ctx.globalAlpha = 0.4;
+					}
+					ctx.drawImage(buildingImg, screenX, screenY, screenW, screenH);
+					ctx.restore();
+				} else {
+					// Fallback: colored rectangle while image loads
+					const outlineColor =
+						factionId === 1
+							? new ljs.Color(0.05, 0.35, 0.15, 1)
+							: factionId === 2
+								? new ljs.Color(0.5, 0.1, 0.1, 1)
+								: new ljs.Color(0.4, 0.42, 0.44, 1);
+					ljs.drawRect(tilePos, ljs.vec2(0.9, 0.9), outlineColor);
+					if (isUnderConstruction) {
+						const buildAlpha = 0.4 + 0.6 * constructionProg;
+						ljs.drawRect(
+							tilePos,
+							ljs.vec2(0.8, 0.8),
+							new ljs.Color(entityColor.r, entityColor.g, entityColor.b, buildAlpha),
+						);
+					} else {
+						ljs.drawRect(tilePos, ljs.vec2(0.8, 0.8), entityColor);
+					}
+				}
+
+				// Construction progress bar (under construction)
+				if (isUnderConstruction) {
 					const barWidth = 0.8;
 					const barHeight = 0.07;
 					const barY = tilePos.y + 0.55;
+					// Background
 					ljs.drawRect(
 						ljs.vec2(tilePos.x, barY),
 						ljs.vec2(barWidth, barHeight),
 						new ljs.Color(0.2, 0.2, 0.2, 0.8),
 					);
-					// Progress bar fill
+					// Fill
 					const fillWidth = barWidth * constructionProg;
 					ljs.drawRect(
 						ljs.vec2(tilePos.x - (barWidth - fillWidth) / 2, barY),
@@ -1060,14 +1108,12 @@ export async function createTacticalRuntime(
 				// Building label text below — white text with dark shadow for readability
 				if (entityType) {
 					const label = entityType.replace(/_/g, " ");
-					// Shadow (drawn slightly offset behind)
 					ljs.drawText(
 						label,
 						ljs.vec2(tilePos.x + 0.02, tilePos.y - 0.57),
 						0.15,
 						new ljs.Color(0, 0, 0, 0.7),
 					);
-					// Foreground text
 					ljs.drawText(
 						label,
 						ljs.vec2(tilePos.x, tilePos.y - 0.55),
