@@ -103,14 +103,19 @@ export function createGameUnitClass() {
 			}
 			// No fallback shapes — if atlas not loaded, skip rendering
 
-			// Selection ring
+			// Selection ring — stroked circle
 			if (this.isSelected) {
-				a.drawCircle(this.pos, 0.38, new a.Color(1, 1, 1, 0));
-				a.drawCircle(this.pos, 0.35, new a.Color(1, 1, 1, 0.6));
+				a.drawCircle(
+					this.pos,
+					0.5,
+					new a.Color(1, 1, 1, 0.12),  // subtle fill
+					0.04,                           // lineWidth
+					new a.Color(0, 1, 0, 0.85),   // green stroke
+				);
 			}
 
-			// HP bar for damaged entities
-			if (this.hpMax > 0 && this.hpCurrent < this.hpMax && this.hpCurrent > 0) {
+			// HP bar — shown for selected OR damaged entities
+			if (this.hpMax > 0 && this.hpCurrent > 0 && (this.hpCurrent < this.hpMax || this.isSelected)) {
 				const barWidth = 0.5;
 				const barHeight = 0.06;
 				const barY = this.pos.y + 0.35;

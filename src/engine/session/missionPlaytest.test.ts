@@ -62,6 +62,25 @@ function runTicks(world: ReturnType<typeof createGameWorld>, ticks: number, delt
 }
 
 describe("Mission 1 Playtest — Beachhead", () => {
+	it("terrain grid has varied terrain types", () => {
+		const world = createMission1World();
+		const grid = world.runtime.terrainGrid;
+		expect(grid).not.toBeNull();
+		if (!grid) return;
+		const counts: Record<number, number> = {};
+		for (const row of grid) {
+			for (const t of row) {
+				counts[t] = (counts[t] ?? 0) + 1;
+			}
+		}
+		console.log("Terrain grid:", grid.length, "x", grid[0]?.length);
+		console.log("Type distribution:", JSON.stringify(counts));
+		// Should have more than 1 terrain type
+		const uniqueTypes = Object.keys(counts).length;
+		console.log("Unique terrain types:", uniqueTypes);
+		expect(uniqueTypes).toBeGreaterThan(1);
+	});
+
 	it("bootstraps with correct starting state", () => {
 		const world = createMission1World();
 

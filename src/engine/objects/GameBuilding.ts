@@ -82,30 +82,50 @@ export function createGameBuildingClass() {
 			const alpha = this.constructionProgress >= 0 ? 0.4 + 0.6 * this.constructionProgress : 1;
 			const drawColor = new a.Color(entityColor.r, entityColor.g, entityColor.b, alpha);
 
-			// Building body
-			a.drawRect(this.pos, a.vec2(0.75, 0.75), drawColor);
-
-			// Outline
+			// Dark outline
 			const outlineColor =
 				this.factionId === 1
-					? new a.Color(0.97, 0.98, 0.99, alpha * 0.5)
-					: new a.Color(0.27, 0.04, 0.04, alpha * 0.5);
-			a.drawRect(this.pos, a.vec2(0.8, 0.8), outlineColor);
+					? new a.Color(0.05, 0.35, 0.15, alpha)
+					: this.factionId === 2
+						? new a.Color(0.5, 0.1, 0.1, alpha)
+						: new a.Color(0.4, 0.42, 0.44, alpha);
+			a.drawRect(this.pos, a.vec2(0.9, 0.9), outlineColor);
+
+			// Building body
+			a.drawRect(this.pos, a.vec2(0.8, 0.8), drawColor);
+
+			// Roof accent (lighter stripe at top)
+			const roofColor = new a.Color(
+				Math.min(1, entityColor.r + 0.15),
+				Math.min(1, entityColor.g + 0.15),
+				Math.min(1, entityColor.b + 0.15),
+				alpha,
+			);
+			a.drawRect(
+				a.vec2(this.pos.x, this.pos.y + 0.25),
+				a.vec2(0.7, 0.2),
+				roofColor,
+			);
 
 			// Building label
 			if (this.label) {
 				a.drawText(
 					this.label,
-					a.vec2(this.pos.x, this.pos.y - 0.5),
-					0.2,
-					new a.Color(1, 1, 1, 0.8),
+					a.vec2(this.pos.x, this.pos.y - 0.55),
+					0.15,
+					new a.Color(1, 1, 1, 0.85 * alpha),
 				);
 			}
 
-			// Selection ring
+			// Selection ring — stroked circle
 			if (this.isSelected) {
-				a.drawCircle(this.pos, 0.55, new a.Color(1, 1, 1, 0));
-				a.drawCircle(this.pos, 0.52, new a.Color(1, 1, 1, 0.6));
+				a.drawCircle(
+					this.pos,
+					0.6,
+					new a.Color(1, 1, 1, 0.12),  // subtle fill
+					0.04,                           // lineWidth
+					new a.Color(0, 1, 0, 0.85),   // green stroke
+				);
 			}
 
 			// Construction progress bar
@@ -128,11 +148,11 @@ export function createGameBuildingClass() {
 				);
 			}
 
-			// HP bar for damaged buildings
+			// HP bar for selected or damaged buildings
 			if (
 				this.hpMax > 0 &&
-				this.hpCurrent < this.hpMax &&
 				this.hpCurrent > 0 &&
+				(this.hpCurrent < this.hpMax || this.isSelected) &&
 				this.constructionProgress < 0
 			) {
 				const barWidth = 0.8;

@@ -61,34 +61,39 @@ export interface TacticalRuntimeOptions {
 	onTick?: (world: GameWorld) => void;
 }
 
-/** Terrain type → LittleJS Color (r, g, b, a scaled 0-1). */
+/** Terrain type → LittleJS Color (r, g, b, a scaled 0-1).
+ * Colors chosen for high contrast and readability:
+ *   grass=#14532d water=#1e3a5f sand=#d4a574 forest=#0f3d0f
+ *   dirt=#713f12  stone=#5e6166 mud=#5c4033  mangrove=#0f3d0f
+ *   bridge=#8B6914 beach=#d9c893 toxic_sludge=#2d1b4e
+ */
 const TERRAIN_COLORS: Record<number, [number, number, number, number]> = {
-	[TerrainTypeId.grass]: [0.08, 0.33, 0.08, 1],
-	[TerrainTypeId.water]: [0.06, 0.17, 0.25, 1],
-	[TerrainTypeId.sand]: [0.76, 0.7, 0.5, 1],
-	[TerrainTypeId.forest]: [0.04, 0.2, 0.04, 1],
-	[TerrainTypeId.dirt]: [0.38, 0.27, 0.13, 1],
-	[TerrainTypeId.stone]: [0.37, 0.38, 0.4, 1],
-	[TerrainTypeId.mud]: [0.25, 0.2, 0.1, 1],
-	[TerrainTypeId.mangrove]: [0.06, 0.22, 0.06, 1],
-	[TerrainTypeId.bridge]: [0.4, 0.3, 0.18, 1],
-	[TerrainTypeId.beach]: [0.85, 0.78, 0.58, 1],
-	[TerrainTypeId.toxic_sludge]: [0.3, 0.5, 0.1, 1],
+	[TerrainTypeId.grass]: [0.078, 0.325, 0.176, 1],    // #14532d
+	[TerrainTypeId.water]: [0.118, 0.227, 0.373, 1],    // #1e3a5f
+	[TerrainTypeId.sand]: [0.831, 0.647, 0.455, 1],     // #d4a574
+	[TerrainTypeId.forest]: [0.059, 0.239, 0.059, 1],   // #0f3d0f
+	[TerrainTypeId.dirt]: [0.443, 0.247, 0.071, 1],     // #713f12
+	[TerrainTypeId.stone]: [0.369, 0.380, 0.400, 1],    // #5e6166
+	[TerrainTypeId.mud]: [0.361, 0.251, 0.200, 1],      // #5c4033
+	[TerrainTypeId.mangrove]: [0.059, 0.239, 0.059, 1], // #0f3d0f
+	[TerrainTypeId.bridge]: [0.545, 0.412, 0.078, 1],   // #8B6914
+	[TerrainTypeId.beach]: [0.851, 0.784, 0.576, 1],    // #d9c893
+	[TerrainTypeId.toxic_sludge]: [0.176, 0.106, 0.306, 1], // #2d1b4e
 };
 
-/** Minimap colors as CSS strings (screen-space drawing uses overlayCanvas). */
+/** Minimap colors as CSS strings — brighter than world terrain for readability. */
 const MINIMAP_TERRAIN_COLORS: Record<number, string> = {
-	[TerrainTypeId.grass]: "#1a3a1a",
-	[TerrainTypeId.water]: "#0a2a4a",
-	[TerrainTypeId.sand]: "#c2b280",
-	[TerrainTypeId.forest]: "#0a330a",
-	[TerrainTypeId.dirt]: "#3d2b1a",
-	[TerrainTypeId.stone]: "#5e6166",
-	[TerrainTypeId.mud]: "#2a2218",
-	[TerrainTypeId.mangrove]: "#0f380f",
-	[TerrainTypeId.bridge]: "#664d2e",
-	[TerrainTypeId.beach]: "#d9c893",
-	[TerrainTypeId.toxic_sludge]: "#4d8019",
+	[TerrainTypeId.grass]: "#2d7a4a",
+	[TerrainTypeId.water]: "#2a5a8f",
+	[TerrainTypeId.sand]: "#d4b888",
+	[TerrainTypeId.forest]: "#1a5c1a",
+	[TerrainTypeId.dirt]: "#8b5e34",
+	[TerrainTypeId.stone]: "#7a7e85",
+	[TerrainTypeId.mud]: "#6b5040",
+	[TerrainTypeId.mangrove]: "#1a5c1a",
+	[TerrainTypeId.bridge]: "#a08030",
+	[TerrainTypeId.beach]: "#e8d8a8",
+	[TerrainTypeId.toxic_sludge]: "#5a3080",
 };
 
 const TILE_SIZE = 32;
@@ -913,14 +918,67 @@ export async function createTacticalRuntime(
 			const tilePos = ljs.vec2(tile.x, tile.y);
 
 			if (isBuilding) {
-				// Buildings: colored rect (tile sprites TBD)
-				ljs.drawRect(tilePos, ljs.vec2(0.75, 0.75), entityColor);
+				// Buildings: solid fill with darker outline and faction roof accent
 				const outlineColor =
-					factionId === 1 ? new ljs.Color(0.97, 0.98, 0.99, 1) : new ljs.Color(0.27, 0.04, 0.04, 1);
-				ljs.drawRect(tilePos, ljs.vec2(0.8, 0.8), outlineColor.lerp(ljs.CLEAR_WHITE, 0.5));
+					factionId === 1
+						? new ljs.Color(0.05, 0.35, 0.15, 1)
+						: factionId === 2
+							? new ljs.Color(0.5, 0.1, 0.1, 1)
+							: new ljs.Color(0.4, 0.42, 0.44, 1);
+				// Outer outline
+				ljs.drawRect(tilePos, ljs.vec2(0.9, 0.9), outlineColor);
+				// Main body
+				ljs.drawRect(tilePos, ljs.vec2(0.8, 0.8), entityColor);
+				// Inner roof accent (lighter stripe at top)
+				const roofColor = new ljs.Color(
+					Math.min(1, entityColor.r + 0.15),
+					Math.min(1, entityColor.g + 0.15),
+					Math.min(1, entityColor.b + 0.15),
+					1,
+				);
+				ljs.drawRect(
+					ljs.vec2(tilePos.x, tilePos.y + 0.25),
+					ljs.vec2(0.7, 0.2),
+					roofColor,
+				);
+				// Building label text below
+				if (entityType) {
+					const label = entityType.replace(/_/g, " ");
+					ljs.drawText(
+						label,
+						ljs.vec2(tilePos.x, tilePos.y - 0.55),
+						0.15,
+						new ljs.Color(1, 1, 1, 0.85),
+					);
+				}
 			} else if (isResource) {
-				// Resources: colored shapes
-				ljs.drawCircle(tilePos, 0.3, entityColor);
+				// Resources: distinct shapes by type
+				const resType = entityType ?? "resource";
+				if (resType.includes("tree") || resType.includes("mangrove") || resType.includes("lumber")) {
+					// Trees: green circle with dark trunk
+					ljs.drawRect(tilePos, ljs.vec2(0.08, 0.25), new ljs.Color(0.35, 0.22, 0.1, 1));
+					ljs.drawCircle(ljs.vec2(tilePos.x, tilePos.y + 0.15), 0.3, new ljs.Color(0.1, 0.5, 0.15, 1));
+				} else if (resType.includes("fish") || resType.includes("shellfish")) {
+					// Fish: blue circle with sparkle
+					ljs.drawCircle(tilePos, 0.25, new ljs.Color(0.2, 0.5, 0.85, 1));
+					ljs.drawCircle(ljs.vec2(tilePos.x + 0.08, tilePos.y + 0.08), 0.06, new ljs.Color(0.8, 0.9, 1, 0.9));
+				} else if (resType.includes("salvage") || resType.includes("cache") || resType.includes("scrap")) {
+					// Salvage: orange/brown box
+					ljs.drawRect(tilePos, ljs.vec2(0.35, 0.3), new ljs.Color(0.7, 0.45, 0.15, 1));
+					ljs.drawRect(tilePos, ljs.vec2(0.25, 0.2), new ljs.Color(0.85, 0.6, 0.2, 1));
+				} else {
+					// Generic resource: yellow diamond
+					ljs.drawCircle(tilePos, 0.3, entityColor);
+				}
+				// Resource label
+				if (entityType) {
+					ljs.drawText(
+						entityType.replace(/_/g, " "),
+						ljs.vec2(tilePos.x, tilePos.y - 0.45),
+						0.12,
+						new ljs.Color(1, 0.9, 0.5, 0.8),
+					);
+				}
 			} else {
 				// Units: try sprite rendering via atlas adapter, fall back to circles
 				let rendered = false;
@@ -946,16 +1004,22 @@ export async function createTacticalRuntime(
 				}
 			}
 
-			// Selection ring
+			// Selection ring — stroked circle using lineWidth + lineColor
 			if (isSelected) {
-				ljs.drawCircle(tilePos, isBuilding ? 0.55 : 0.38, ljs.CLEAR_WHITE);
-				ljs.drawCircle(tilePos, isBuilding ? 0.52 : 0.35, new ljs.Color(1, 1, 1, 0.6));
+				const ringRadius = isBuilding ? 0.6 : 0.5;
+				ljs.drawCircle(
+					tilePos,
+					ringRadius,
+					new ljs.Color(1, 1, 1, 0.12),  // subtle fill
+					0.04,                             // lineWidth
+					new ljs.Color(0, 1, 0, 0.85),   // green stroke
+				);
 			}
 
-			// HP bar for damaged entities
+			// HP bar — shown for ALL selected entities and damaged entities
 			const hpCurrent = Health.current[eid];
 			const hpMax = Health.max[eid];
-			if (hpMax > 0 && hpCurrent < hpMax && hpCurrent > 0) {
+			if (hpMax > 0 && hpCurrent > 0 && (hpCurrent < hpMax || isSelected)) {
 				const barWidth = isBuilding ? 0.8 : 0.5;
 				const barHeight = 0.06;
 				const barY = tile.y + (isBuilding ? 0.5 : 0.35);
@@ -1007,8 +1071,9 @@ export async function createTacticalRuntime(
 			}
 		}
 
-		// ── Fog of war overlay ──
+		// ── Fog of war overlay (smoothed edges) ──
 		if (fogGrid && fogGridWidth > 0 && fogGridHeight > 0) {
+			const fg = fogGrid; // capture for closure
 			const camSize = ljs.getCameraSize();
 			const camPos = ljs.cameraPos;
 			const startTileX = Math.max(0, Math.floor(camPos.x - camSize.x / 2));
@@ -1016,17 +1081,70 @@ export async function createTacticalRuntime(
 			const endTileX = Math.min(fogGridWidth, Math.ceil(camPos.x + camSize.x / 2) + 1);
 			const endTileY = Math.min(fogGridHeight, Math.ceil(camPos.y + camSize.y / 2) + 1);
 
+			// Helper: get fog state with bounds check (out of bounds = unexplored)
+			const getFog = (x: number, y: number): number => {
+				if (x < 0 || y < 0 || x >= fogGridWidth || y >= fogGridHeight) return 0;
+				return fg[y * fogGridWidth + x];
+			};
+
 			for (let ty = startTileY; ty < endTileY; ty++) {
 				for (let tx = startTileX; tx < endTileX; tx++) {
-					const fogState = fogGrid[ty * fogGridWidth + tx];
-					if (fogState === 0) {
+					const fogState = getFog(tx, ty);
+
+					if (fogState === 2) {
+						// Fully visible — check if any neighbor is less visible for soft edge
+						let minNeighbor = 2;
+						for (let dy = -1; dy <= 1; dy++) {
+							for (let dx = -1; dx <= 1; dx++) {
+								if (dx === 0 && dy === 0) continue;
+								minNeighbor = Math.min(minNeighbor, getFog(tx + dx, ty + dy));
+							}
+						}
+						// Draw a subtle darkening at edges where visibility drops
+						if (minNeighbor < 2) {
+							const edgeAlpha = minNeighbor === 0 ? 0.18 : 0.08;
+							ljs.drawRect(
+								ljs.vec2(tx + 0.5, ty + 0.5),
+								ljs.vec2(1, 1),
+								new ljs.Color(0, 0, 0, edgeAlpha),
+							);
+						}
+					} else if (fogState === 1) {
+						// Explored but not visible — check neighbor average for soft transition
+						let visibleNeighbors = 0;
+						let totalNeighbors = 0;
+						for (let dy = -1; dy <= 1; dy++) {
+							for (let dx = -1; dx <= 1; dx++) {
+								if (dx === 0 && dy === 0) continue;
+								totalNeighbors++;
+								if (getFog(tx + dx, ty + dy) === 2) visibleNeighbors++;
+							}
+						}
+						// Blend: more visible neighbors = less fog
+						const baseAlpha = 0.45;
+						const blend = totalNeighbors > 0 ? visibleNeighbors / totalNeighbors : 0;
+						const alpha = baseAlpha - blend * 0.2;
 						ljs.drawRect(
 							ljs.vec2(tx + 0.5, ty + 0.5),
 							ljs.vec2(1, 1),
-							new ljs.Color(0, 0, 0, 0.85),
+							new ljs.Color(0, 0, 0, alpha),
 						);
-					} else if (fogState === 1) {
-						ljs.drawRect(ljs.vec2(tx + 0.5, ty + 0.5), ljs.vec2(1, 1), new ljs.Color(0, 0, 0, 0.5));
+					} else {
+						// Unexplored — check if any neighbor is explored for soft edge
+						let maxNeighbor = 0;
+						for (let dy = -1; dy <= 1; dy++) {
+							for (let dx = -1; dx <= 1; dx++) {
+								if (dx === 0 && dy === 0) continue;
+								maxNeighbor = Math.max(maxNeighbor, getFog(tx + dx, ty + dy));
+							}
+						}
+						// Fully dark with slightly softer edge near explored areas
+						const alpha = maxNeighbor > 0 ? 0.72 : 0.88;
+						ljs.drawRect(
+							ljs.vec2(tx + 0.5, ty + 0.5),
+							ljs.vec2(1, 1),
+							new ljs.Color(0, 0, 0, alpha),
+						);
 					}
 				}
 			}
@@ -1060,8 +1178,8 @@ export async function createTacticalRuntime(
 		const minimap = getMinimapLayout();
 		const worldSize = getWorldPixelSize();
 
-		// Background
-		ctx.fillStyle = "rgba(2, 6, 23, 0.85)";
+		// Background (lighter to let terrain colors show more clearly)
+		ctx.fillStyle = "rgba(10, 15, 30, 0.75)";
 		ctx.fillRect(minimap.x, minimap.y, minimap.width, minimap.height);
 
 		// Terrain colors
@@ -1087,7 +1205,7 @@ export async function createTacticalRuntime(
 			}
 		}
 
-		// Fog overlay on minimap
+		// Fog overlay on minimap (reduced opacity for better contrast)
 		if (fogGrid && fogGridWidth > 0 && fogGridHeight > 0) {
 			const fTileW = minimap.width / fogGridWidth;
 			const fTileH = minimap.height / fogGridHeight;
@@ -1095,7 +1213,7 @@ export async function createTacticalRuntime(
 				for (let fx = 0; fx < fogGridWidth; fx++) {
 					const fogState = fogGrid[fy * fogGridWidth + fx];
 					if (fogState === 0) {
-						ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+						ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
 						ctx.fillRect(
 							minimap.x + fx * fTileW,
 							minimap.y + fy * fTileH,
@@ -1103,7 +1221,7 @@ export async function createTacticalRuntime(
 							Math.ceil(fTileH),
 						);
 					} else if (fogState === 1) {
-						ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+						ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
 						ctx.fillRect(
 							minimap.x + fx * fTileW,
 							minimap.y + fy * fTileH,
@@ -1116,8 +1234,8 @@ export async function createTacticalRuntime(
 		}
 
 		// Minimap border
-		ctx.strokeStyle = "rgba(148, 163, 184, 0.8)";
-		ctx.lineWidth = 1;
+		ctx.strokeStyle = "rgba(200, 210, 220, 0.9)";
+		ctx.lineWidth = 1.5;
 		ctx.strokeRect(minimap.x, minimap.y, minimap.width, minimap.height);
 
 		// Entity dots on minimap
@@ -1135,17 +1253,18 @@ export async function createTacticalRuntime(
 
 			ctx.fillStyle =
 				Flags.isResource[eid] === 1
-					? "#facc15"
+					? "#fde047"
 					: Faction.id[eid] === 1
-						? "#22c55e"
+						? "#4ade80"
 						: Faction.id[eid] === 2
-							? "#ef4444"
-							: "#cbd5e1";
+							? "#f87171"
+							: "#e2e8f0";
+			const dotSize = Flags.isBuilding[eid] === 1 ? 5 : 3;
 			ctx.fillRect(
-				px - 1,
-				py - 1,
-				Flags.isBuilding[eid] === 1 ? 4 : 3,
-				Flags.isBuilding[eid] === 1 ? 4 : 3,
+				px - Math.floor(dotSize / 2),
+				py - Math.floor(dotSize / 2),
+				dotSize,
+				dotSize,
 			);
 		}
 
@@ -1201,6 +1320,7 @@ export async function createTacticalRuntime(
 
 				// Configure LittleJS settings before engineInit
 				ljs.setShowSplashScreen(false);
+				ljs.setDebugWatermark(false);
 				ljs.setCanvasPixelated(true);
 				ljs.setTilesPixelated(true);
 

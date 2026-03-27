@@ -11,7 +11,9 @@
  *   - Zone rectangles for scenario triggers
  */
 
+import { resolveCategoryId } from "@/engine/content/ids";
 import { TerrainTypeId } from "@/engine/content/terrainTypes";
+import { Faction, Flags, ResourceNode } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
 import { setSelection, spawnBuilding, spawnResource, spawnUnit } from "@/engine/world/gameWorld";
 import { getMissionById } from "@/entities/missions";
@@ -44,6 +46,7 @@ function spawnPlacement(
 			y: worldY,
 			faction,
 			unitType: placement.type,
+			categoryId: resolveCategoryId(unitDef.category),
 			health: { current: unitDef.hp, max: unitDef.hp },
 			scriptId: placement.scriptId,
 			stats: {
@@ -99,13 +102,18 @@ function spawnPlacement(
 	}
 
 	// Try resource
-	if (getResource(placement.type)) {
-		return spawnResource(world, {
+	const resourceDef = getResource(placement.type);
+	if (resourceDef) {
+		const eid = spawnResource(world, {
 			x: worldX,
 			y: worldY,
 			resourceType: placement.type,
 			scriptId: placement.scriptId,
 		});
+		// Set resource yield — average of min/max
+		const avgYield = Math.round((resourceDef.yield.min + resourceDef.yield.max) / 2);
+		ResourceNode.remaining[eid] = avgYield;
+		return eid;
 	}
 
 	return null;
@@ -260,6 +268,18 @@ function seedWorldFromMission(world: GameWorld, mission: MissionDef): void {
 			}
 		}
 	}
+
+	// Set starting population cap from mission definition
+	world.runtime.population.max = mission.startPopCap ?? 10;
+
+	// Count initial player (URA) unit count for population tracking
+	let playerUnitCount = 0;
+	for (const eid of world.runtime.alive) {
+		if (Faction.id[eid] === 1 && Flags.isBuilding[eid] === 0 && Flags.isResource[eid] === 0) {
+			playerUnitCount++;
+		}
+	}
+	world.runtime.population.current = playerUnitCount;
 
 	world.campaign.currentMissionId = mission.id;
 }
