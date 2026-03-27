@@ -11,6 +11,7 @@
 
 import { Switch, Match, type Component } from "solid-js";
 import { createAppState, type AppState } from "./appState";
+import { RuntimeHost } from "@/engine/runtime/RuntimeHost";
 import {
 	MainMenu,
 	CampaignView,
@@ -26,22 +27,20 @@ export { createAppState, type AppState };
 export type { ScreenId } from "./appState";
 
 /**
- * Game screen — mounts the tactical runtime canvas.
- * During migration, this provides a container for the React RuntimeHost.
+ * Game screen — mounts the LittleJS tactical runtime via RuntimeHost.
  */
 const GameScreen: Component<{ app: AppState }> = (props) => {
 	return (
-		<div class="relative h-screen w-screen overflow-hidden bg-slate-950">
-			<div class="absolute inset-0" data-testid="solid-game-container" />
-			<div class="absolute right-4 top-4 z-10">
-				<button
-					type="button"
-					class="min-h-11 rounded border border-slate-600/70 bg-slate-950/85 px-3 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 backdrop-blur-sm"
-					onClick={() => props.app.setScreen("main-menu")}
-				>
-					Quit
-				</button>
-			</div>
+		<div class="h-screen w-screen">
+			<RuntimeHost
+				mode={props.app.isSkirmish() ? "skirmish" : "campaign"}
+				missionId={props.app.currentMissionId() ?? undefined}
+				onPhaseChange={(phase) => {
+					if (phase === "victory" || phase === "defeat") {
+						props.app.setScreen("result");
+					}
+				}}
+			/>
 		</div>
 	);
 };
