@@ -46,8 +46,6 @@ export {
 export { runCombatSystem } from "./combatSystem";
 export { runDetectionSystem } from "./detectionSystem";
 export { resetGatherTimers, runEconomySystem } from "./economySystem";
-export type { ActiveFire, FireRuntime } from "./fireSystem";
-export { igniteFireAt, resetFireState, runFireSystem } from "./fireSystem";
 export type { EncounterComposition, EncounterEntry } from "./encounterSystemEngine";
 export {
 	DEFAULT_ENCOUNTER_ENTRIES,
@@ -55,6 +53,8 @@ export {
 	resetEncounterState,
 	runEncounterSystem,
 } from "./encounterSystemEngine";
+export type { ActiveFire, FireRuntime } from "./fireSystem";
+export { igniteFireAt, resetFireState, runFireSystem } from "./fireSystem";
 export type { FogRuntime } from "./fogSystem";
 export {
 	createFogGrid,
@@ -70,7 +70,13 @@ export {
 export type { DropTable, DropTableEntry } from "./lootSystem";
 export { DROP_TABLES, resetLootRng, rollLootFromTable, runLootSystem } from "./lootSystem";
 export { runMovementSystem } from "./movementSystem";
-export type { CaravanCargo, CaravanEntry, CommandPostLocation, CPRadiusEntry, MultiBaseRuntime } from "./multiBaseSystem";
+export type {
+	CaravanCargo,
+	CaravanEntry,
+	CommandPostLocation,
+	CPRadiusEntry,
+	MultiBaseRuntime,
+} from "./multiBaseSystem";
 export {
 	canPlaceSecondaryCP,
 	createSupplyCaravan,

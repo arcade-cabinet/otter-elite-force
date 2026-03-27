@@ -1,14 +1,13 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { FACTION_IDS } from "@/engine/content/ids";
-import { Faction, Flags, Health, Position, Speed } from "@/engine/world/components";
-import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
+import { describe, expect, it } from "vitest";
+import { Health, Position } from "@/engine/world/components";
+import { createGameWorld, spawnBuilding } from "@/engine/world/gameWorld";
 import {
-	type MultiBaseRuntime,
 	canPlaceSecondaryCP,
 	createSupplyCaravan,
 	findNearestCPGlobal,
 	findNearestCPInRadius,
 	getCaravanCargo,
+	type MultiBaseRuntime,
 	registerCommandPost,
 	resetMultiBaseState,
 	runMultiBaseSystem,
@@ -81,7 +80,7 @@ describe("engine/systems/multiBaseSystem", () => {
 			const world = makeWorld(0);
 
 			const cp1 = createCP(world, 10, 10);
-			const cp2 = createCP(world, 50, 50);
+			const _cp2 = createCP(world, 50, 50);
 
 			const result = findNearestCPGlobal(world, 12, 10);
 			expect(result).toBe(cp1);
@@ -268,7 +267,7 @@ describe("engine/systems/multiBaseSystem", () => {
 			const cp2 = createCP(world, 50, 0);
 			const cp3 = createCP(world, 100, 0);
 
-			const caravanEid = createSupplyCaravan(world, [cp1, cp2, cp3], 5);
+			const _caravanEid = createSupplyCaravan(world, [cp1, cp2, cp3], 5);
 
 			// Destroy cp2
 			Health.current[cp2] = 0;

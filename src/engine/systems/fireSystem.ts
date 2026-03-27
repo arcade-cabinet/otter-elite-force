@@ -36,10 +36,7 @@ const SPREAD_FIRE_DURATION_MIN = 8;
 const SPREAD_FIRE_DURATION_MAX = 15;
 
 /** Terrain type IDs that can catch fire. */
-const FLAMMABLE_TERRAIN = new Set<number>([
-	TerrainTypeId.mangrove,
-	TerrainTypeId.toxic_sludge,
-]);
+const FLAMMABLE_TERRAIN = new Set<number>([TerrainTypeId.mangrove, TerrainTypeId.toxic_sludge]);
 
 // ---------------------------------------------------------------------------
 // Types & Runtime augmentation
@@ -167,12 +164,7 @@ export function runFireSystem(world: GameWorld): void {
  * Ignite a fire at a specific tile coordinate.
  * Initializes the activeFires array if needed.
  */
-export function igniteFireAt(
-	world: GameWorld,
-	x: number,
-	y: number,
-	duration: number,
-): void {
+export function igniteFireAt(world: GameWorld, x: number, y: number, duration: number): void {
 	const runtime = world.runtime as unknown as FireRuntime;
 	if (!runtime.activeFires) {
 		runtime.activeFires = [];

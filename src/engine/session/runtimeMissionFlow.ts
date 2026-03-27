@@ -147,12 +147,26 @@ function createRuntimeWorldQuery(world: GameWorld, mission: MissionDef): Scenari
 				);
 			}).length;
 		},
-		isEntityDestroyed: (entityTag) => {
+		isEntityDestroyed: (entityTag, match) => {
 			const taggedEid = world.runtime.scriptTagIndex.get(entityTag);
 			if (taggedEid != null) return !world.runtime.alive.has(taggedEid);
-			return ![...world.runtime.alive].some(
+			const matchMode = match ?? "first";
+			const aliveMatches = [...world.runtime.alive].filter(
 				(eid) => world.runtime.entityTypeIndex.get(eid) === entityTag,
 			);
+			const placedMatches = mission.placements.filter(
+				(p) => p.type === entityTag || p.scriptId === entityTag,
+			);
+			if (matchMode === "all") {
+				// All placed entities of this type must be dead
+				return placedMatches.length > 0 && aliveMatches.length === 0;
+			}
+			if (matchMode === "any") {
+				// At least one entity of this type was destroyed
+				return placedMatches.length > aliveMatches.length;
+			}
+			// "first" — no living entity of this type exists
+			return aliveMatches.length === 0;
 		},
 		getDestroyedEntityCount: (entityTag) => {
 			const aliveMatches = [...world.runtime.alive].filter(
@@ -164,7 +178,29 @@ function createRuntimeWorldQuery(world: GameWorld, mission: MissionDef): Scenari
 			return Math.max(0, placedMatches - aliveMatches);
 		},
 		getWaveCounter: () => world.runtime.waveCounter,
-		hasConvoyEnteredZone: () => false,
+		hasConvoyEnteredZone: (zoneId, convoyTag) => {
+			const zone = mission.zones[zoneId];
+			if (!zone) return false;
+			const minX = zone.x * 32;
+			const minY = zone.y * 32;
+			const maxX = (zone.x + zone.width) * 32;
+			const maxY = (zone.y + zone.height) * 32;
+			const tag = convoyTag ?? "convoy";
+			return [...world.runtime.alive].some((eid) => {
+				const entityType = world.runtime.entityTypeIndex.get(eid);
+				const scriptTag = world.runtime.scriptTagIndex.get(tag);
+				const matchesTag =
+					(scriptTag != null && scriptTag === eid) ||
+					(entityType != null && entityType.includes(tag));
+				if (!matchesTag) return false;
+				return (
+					Position.x[eid] >= minX &&
+					Position.x[eid] <= maxX &&
+					Position.y[eid] >= minY &&
+					Position.y[eid] <= maxY
+				);
+			});
+		},
 	};
 }
 

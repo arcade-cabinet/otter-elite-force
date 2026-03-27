@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { TerrainTypeId } from "@/engine/content/terrainTypes";
-import { Flags, Health, Position } from "@/engine/world/components";
+import { Health } from "@/engine/world/components";
 import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
 import {
 	type ActiveFire,

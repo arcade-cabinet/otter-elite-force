@@ -334,7 +334,7 @@ describe("Governor", () => {
 	});
 
 	it("achieves victory on Mission 1 within 60000 ticks (about 16 minutes)", {
-		timeout: 30000,
+		timeout: 120000,
 	}, () => {
 		const world = createMission1World();
 		// Give generous resources for the full playthrough

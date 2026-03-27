@@ -9,7 +9,7 @@ import {
 import { runDemolitionSystem } from "./demolitionSystem";
 import { resetDifficultyScaling, runDifficultyScalingSystem } from "./difficultyScalingSystem";
 import { resetEncounterState, runEncounterSystem } from "./encounterSystemEngine";
-import { runFireSystem } from "./fireSystem";
+import { type FireRuntime, runFireSystem } from "./fireSystem";
 import { runLootSystem } from "./lootSystem";
 import { runMultiBaseSystem } from "./multiBaseSystem";
 import { calculateMissionScore } from "./scoringSystem";
@@ -20,10 +20,21 @@ import { runTidalSystem, type TidalRuntime } from "./tidalSystem";
 describe("engine/systems/tidalSystem", () => {
 	it("emits tidal-change events", () => {
 		const world = createGameWorld();
-		world.time.elapsedMs = 0;
-		(world.runtime as TidalRuntime).lastTide = undefined;
+		world.time.deltaMs = 1;
 
+		// Configure tidal state
+		const runtime = world.runtime as unknown as TidalRuntime;
+		runtime.tidalCycleTime = 100;
+		runtime.tidalZones = [];
+
+		// First tick initializes (low)
 		runTidalSystem(world);
+
+		// Force phase transition past the low->rising boundary (35%)
+		runtime.tidalElapsed = 34;
+		world.time.deltaMs = 2000;
+		runTidalSystem(world);
+
 		expect(world.events.some((e) => e.type === "tidal-change")).toBe(true);
 	});
 });
@@ -32,11 +43,15 @@ describe("engine/systems/fireSystem", () => {
 	it("damages entities in fire zones", () => {
 		const world = createGameWorld();
 		world.time.deltaMs = 1000;
-		world.runtime.zoneRects.set("fire_zone", { x: 0, y: 0, width: 200, height: 200 });
+		world.time.elapsedMs = 5000;
+
+		// Use the active fires API
+		const fireRuntime = world.runtime as unknown as FireRuntime;
+		fireRuntime.activeFires = [{ x: 1, y: 1, startTime: 0, duration: 20 }];
 
 		const eid = spawnUnit(world, {
-			x: 50,
-			y: 50,
+			x: 1,
+			y: 1,
 			faction: "ura",
 			health: { current: 20, max: 20 },
 		});
@@ -70,6 +85,7 @@ describe("engine/systems/siphonSystem", () => {
 describe("engine/systems/multiBaseSystem", () => {
 	it("emits all-bases-lost when no player bases remain", () => {
 		const world = createGameWorld();
+		world.time.deltaMs = 100;
 		world.session.phase = "playing";
 		// No buildings at all
 
@@ -80,6 +96,7 @@ describe("engine/systems/multiBaseSystem", () => {
 
 	it("does not emit when player has bases", () => {
 		const world = createGameWorld();
+		world.time.deltaMs = 100;
 		world.session.phase = "playing";
 
 		spawnBuilding(world, {
@@ -99,6 +116,7 @@ describe("engine/systems/multiBaseSystem", () => {
 describe("engine/systems/territorySystem", () => {
 	it("reports zone control by unit count", () => {
 		const world = createGameWorld();
+		world.time.deltaMs = 100;
 		world.runtime.zoneRects.set("zone_a", { x: 0, y: 0, width: 200, height: 200 });
 
 		spawnUnit(world, { x: 50, y: 50, faction: "ura" });

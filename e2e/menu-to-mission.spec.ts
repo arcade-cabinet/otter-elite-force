@@ -39,9 +39,9 @@ test.describe("US-083: Menu to Mission E2E Flow", () => {
 
 		// Briefing should appear with mission details
 		await expect(page.getByText("Mission Briefing")).toBeVisible({ timeout: 10000 });
-		await expect(page.getByText("Beachhead")).toBeVisible();
+		await expect(page.getByRole("heading", { name: "Beachhead" })).toBeVisible();
 		await expect(page.getByText("CLASSIFIED")).toBeVisible();
-		await expect(page.getByText("FOXHOUND")).toBeVisible();
+		await expect(page.getByText("FOXHOUND").first()).toBeVisible();
 
 		// Deploy and Back buttons
 		await expect(page.getByRole("button", { name: /Deploy/i })).toBeVisible();
@@ -100,10 +100,10 @@ test.describe("US-083: Menu to Mission E2E Flow", () => {
 		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
 		await page.getByRole("button", { name: /Settings/i }).click();
 
-		// Settings heading should be visible
-		await expect(page.getByText("Settings").first()).toBeVisible({ timeout: 10000 });
+		// Settings heading should be visible (it's an h2, not h1)
+		await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible({ timeout: 10000 });
 
-		// Should not have the main menu title anymore
-		await expect(page.locator("h1")).not.toContainText("Otter Elite Force", { timeout: 5000 });
+		// Master Volume slider should be present
+		await expect(page.getByText("Master Volume")).toBeVisible();
 	});
 });

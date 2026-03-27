@@ -58,9 +58,9 @@ test.describe("Settings Screen", () => {
 
 	test("has audio, visual, and accessibility sections", async ({ page }) => {
 		await page.getByRole("button", { name: /Settings/i }).click();
-		await expect(page.getByText("Audio")).toBeVisible({ timeout: 5000 });
-		await expect(page.getByText("Visual")).toBeVisible();
-		await expect(page.getByText("Accessibility")).toBeVisible();
+		await expect(page.getByText("Master Volume")).toBeVisible({ timeout: 5000 });
+		await expect(page.getByText("Show Grid Overlay")).toBeVisible();
+		await expect(page.getByText("Subtitles")).toBeVisible();
 	});
 });
 
@@ -78,8 +78,8 @@ test.describe("Briefing Screen", () => {
 
 		// Briefing should show mission details
 		await expect(page.getByText("Mission Briefing")).toBeVisible({ timeout: 10000 });
-		await expect(page.getByText("Beachhead")).toBeVisible();
-		await expect(page.getByText("FOXHOUND")).toBeVisible();
+		await expect(page.getByRole("heading", { name: "Beachhead" })).toBeVisible();
+		await expect(page.getByText("FOXHOUND").first()).toBeVisible();
 	});
 
 	test("briefing has Deploy and Back buttons", async ({ page }) => {

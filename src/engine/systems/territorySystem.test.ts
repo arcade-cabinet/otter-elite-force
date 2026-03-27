@@ -1,14 +1,13 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { FACTION_IDS } from "@/engine/content/ids";
-import { Faction, Health, Position } from "@/engine/world/components";
+import { Faction, Health } from "@/engine/world/components";
 import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
-import { createFogGrid, type FogRuntime, FOG_EXPLORED, FOG_UNEXPLORED } from "./fogSystem";
+import { createFogGrid, FOG_EXPLORED, type FogRuntime } from "./fogSystem";
 import {
-	type TerritoryRuntime,
-	FOG_REVEAL_RADIUS,
 	registerVillage,
 	resetTerritoryState,
 	runTerritorySystem,
+	type TerritoryRuntime,
 } from "./territorySystem";
 
 function makeWorld(deltaMs: number) {

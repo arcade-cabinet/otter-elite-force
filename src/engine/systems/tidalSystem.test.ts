@@ -1,13 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { TerrainTypeId } from "@/engine/content/terrainTypes";
-import { Flags, Health, Position } from "@/engine/world/components";
+import { Flags, Health } from "@/engine/world/components";
 import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
-import {
-	type TidalRuntime,
-	phaseAtTime,
-	resetTidalState,
-	runTidalSystem,
-} from "./tidalSystem";
+import { phaseAtTime, resetTidalState, runTidalSystem, type TidalRuntime } from "./tidalSystem";
 
 function makeWorld(deltaMs: number) {
 	const world = createGameWorld();

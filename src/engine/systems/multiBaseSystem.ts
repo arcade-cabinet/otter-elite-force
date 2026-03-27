@@ -105,11 +105,7 @@ function tileDistance(ax: number, ay: number, bx: number, by: number): number {
  * Find the nearest Command Post whose collection radius covers the given position.
  * Returns the entity ID, or -1 if none found.
  */
-export function findNearestCPInRadius(
-	world: GameWorld,
-	workerX: number,
-	workerY: number,
-): number {
+export function findNearestCPInRadius(world: GameWorld, workerX: number, workerY: number): number {
 	const runtime = world.runtime as unknown as MultiBaseRuntime & GameWorld["runtime"];
 	const radii = runtime.cpRadii;
 	if (!radii || radii.length === 0) return -1;
@@ -139,11 +135,7 @@ export function findNearestCPInRadius(
  * Fallback when no CP's radius covers the worker.
  * Returns the entity ID, or -1 if none found.
  */
-export function findNearestCPGlobal(
-	world: GameWorld,
-	workerX: number,
-	workerY: number,
-): number {
+export function findNearestCPGlobal(world: GameWorld, workerX: number, workerY: number): number {
 	let nearest = -1;
 	let nearestDist = Number.POSITIVE_INFINITY;
 
@@ -174,10 +166,7 @@ export function findNearestCPGlobal(
  * - The location ID must exist in the scenario's allowed locations.
  * - No existing CP may be within PLACEMENT_SNAP tiles of that location.
  */
-export function canPlaceSecondaryCP(
-	world: GameWorld,
-	locationId: string,
-): boolean {
+export function canPlaceSecondaryCP(world: GameWorld, locationId: string): boolean {
 	const runtime = world.runtime as unknown as MultiBaseRuntime & GameWorld["runtime"];
 	const locations = runtime.cpLocations;
 	if (!locations) return false;

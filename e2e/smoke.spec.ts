@@ -74,7 +74,7 @@ test.describe("Smoke Tests", () => {
 
 		// New Campaign -> Briefing -> Deploy
 		await page.getByRole("button", { name: /New Campaign/i }).click();
-		await expect(page.getByText("FOXHOUND")).toBeVisible({ timeout: 10000 });
+		await expect(page.getByText("FOXHOUND").first()).toBeVisible({ timeout: 10000 });
 		await page.getByRole("button", { name: /Deploy/i }).click();
 		await page.waitForTimeout(3000);
 

@@ -93,11 +93,11 @@ export function runTidalSystem(world: GameWorld): void {
 
 	const runtime = world.runtime as unknown as TidalRuntime & GameWorld["runtime"];
 
-	// Initialize tidal state if not yet present
+	// Initialize tidal state if not yet present (preserve pre-configured values)
 	if (runtime.tidalPhase === undefined) {
 		runtime.tidalPhase = "low";
-		runtime.tidalElapsed = 0;
-		runtime.tidalCycleTime = DEFAULT_CYCLE_TIME;
+		runtime.tidalElapsed = runtime.tidalElapsed ?? 0;
+		runtime.tidalCycleTime = runtime.tidalCycleTime ?? DEFAULT_CYCLE_TIME;
 		runtime.tidalZones = runtime.tidalZones ?? [];
 	}
 

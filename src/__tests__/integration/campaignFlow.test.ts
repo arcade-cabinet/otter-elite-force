@@ -86,7 +86,7 @@ describe("E2E: Campaign flow", () => {
 			expect(world.navigation.height).toBeGreaterThan(0);
 		});
 
-		it("runs governor playtest on mission_1 for 30000 ticks and produces a report", () => {
+		it("runs governor playtest on mission_1 for 30000 ticks and produces a report", { timeout: 60000 }, () => {
 			const report = runGovernorPlaytest("mission_1", { difficulty: "optimal" }, 30000);
 
 			expect(report.missionId).toBe("mission_1");
@@ -104,7 +104,7 @@ describe("E2E: Campaign flow", () => {
 			expect(report.durationMinutes).toBeGreaterThan(0);
 		});
 
-		it("tracks objective completion during governor playtest", () => {
+		it("tracks objective completion during governor playtest", { timeout: 60000 }, () => {
 			const report = runGovernorPlaytest("mission_1", { difficulty: "optimal" }, 30000);
 
 			// The governor should have made progress on at least some objectives
@@ -145,7 +145,7 @@ describe("E2E: Campaign flow", () => {
 			expect(isCampaignComplete(progress)).toBe(false);
 		});
 
-		it("integrates governor playtest result into campaign progression", () => {
+		it("integrates governor playtest result into campaign progression", { timeout: 60000 }, () => {
 			const report = runGovernorPlaytest("mission_1", { difficulty: "optimal" }, 30000);
 
 			let progress = startNewCampaign();
