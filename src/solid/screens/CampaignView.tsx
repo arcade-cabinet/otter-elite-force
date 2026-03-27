@@ -6,8 +6,10 @@
  * Clicking an unlocked mission navigates to the briefing screen.
  */
 
-import { type Component, createMemo, For, Show } from "solid-js";
+import { type Component, createMemo, createSignal, For, onMount, Show } from "solid-js";
 import { CAMPAIGN } from "@/entities/missions";
+import type { CampaignProgressRecord } from "@/engine/persistence/types";
+import { SqlitePersistenceStore } from "@/engine/persistence/sqlitePersistenceStore";
 import type { MissionDef } from "@/entities/types";
 import type { AppState } from "../appState";
 
@@ -29,16 +31,32 @@ interface ChapterGroup {
 }
 
 /**
- * Determine mission status based on campaign progress.
- * For now, mission 1 is always available; subsequent missions are available
- * if the previous mission is completed. In the full version, this would
- * read from persisted campaign progress.
+ * Determine mission status based on persisted campaign progress.
+ * Mission 1 is always available. Subsequent missions unlock when the
+ * previous mission is completed. If no persisted progress exists,
+ * falls back to default (only mission 1 available).
  */
-function getMissionSlots(): MissionSlot[] {
+function getMissionSlots(progress: CampaignProgressRecord | null): MissionSlot[] {
 	return CAMPAIGN.map((def, index) => {
-		// First mission always available, rest locked until wired to persistence
-		const status: MissionStatus = index === 0 ? "available" : "locked";
-		return { def, status, stars: 0 };
+		const saved = progress?.missions[def.id];
+		if (saved) {
+			return {
+				def,
+				status: saved.status,
+				stars: saved.stars,
+			};
+		}
+		// No persisted data for this mission: mission 1 always available,
+		// subsequent missions available if the previous one is completed.
+		if (index === 0) {
+			return { def, status: "available" as MissionStatus, stars: 0 };
+		}
+		const prevId = CAMPAIGN[index - 1].id;
+		const prevSaved = progress?.missions[prevId];
+		if (prevSaved?.status === "completed") {
+			return { def, status: "available" as MissionStatus, stars: 0 };
+		}
+		return { def, status: "locked" as MissionStatus, stars: 0 };
 	});
 }
 
@@ -138,7 +156,24 @@ const MissionCard: Component<{
 };
 
 export const CampaignView: Component<{ app: AppState }> = (props) => {
-	const slots = createMemo(() => getMissionSlots());
+	const [campaignProgress, setCampaignProgress] = createSignal<CampaignProgressRecord | null>(null);
+
+	onMount(() => {
+		const store = new SqlitePersistenceStore();
+		void store
+			.initialize()
+			.then(() => store.loadCampaign())
+			.then((progress) => {
+				if (progress) {
+					setCampaignProgress(progress);
+				}
+			})
+			.catch((err: unknown) => {
+				console.warn("[CampaignView] Failed to load campaign progress:", err);
+			});
+	});
+
+	const slots = createMemo(() => getMissionSlots(campaignProgress()));
 	const chapters = createMemo(() => getChapters(slots()));
 	const completedCount = createMemo(() => slots().filter((s) => s.status === "completed").length);
 

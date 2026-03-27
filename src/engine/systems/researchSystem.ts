@@ -8,19 +8,24 @@
  * Research queue stored in world.runtime.productionQueues with type "research".
  * Progress stored in the ProductionEntry.progress field (0-100%).
  *
- * Research definitions:
- *   - hardshell_armor: +20 HP to all Mudfoots
- *   - fish_oil_arrows: +3 damage to all Shellcrackers
- *   - demolition_training: +50% Sapper damage
- *   - fortified_walls: Unlocks Stone Walls (passive check)
- *   - gun_emplacements: Unlocks Gun Towers (passive check)
- *   - advanced_rafts: +30% Raftsman speed, +2 carry capacity
+ * Research definitions (balance doc canonical list of 10):
+ *   - improved_armor: +2 armor to all URA units
+ *   - sharpened_claws: +3 melee damage to all melee units
+ *   - extended_range: +20% ranged range
+ *   - swift_current: +15% speed to all URA units
+ *   - fortified_walls: +200 HP to all buildings
+ *   - advanced_fishing: +50% fish gather rate
+ *   - salvage_expertise: +75% salvage gather rate
+ *   - night_vision: +2 vision radius to all URA units
  *   - mortar_precision: -30% Mortar Otter scatter (passive check)
- *   - combat_medics: Unlocks medic auto-heal (passive check)
- *   - diving_gear: Unlocks Diver unit (passive check)
+ *   - combat_medics: +1 hospital heal rate
+ *
+ * Legacy definitions kept for backward compat:
+ *   - hardshell_armor, fish_oil_arrows, demolition_training,
+ *     gun_emplacements, demolition_charges, advanced_rafts, diving_gear
  */
 
-import { Attack, Flags, Health, Speed } from "@/engine/world/components";
+import { Armor, Attack, Faction, Flags, Health, Speed, VisionRadius } from "@/engine/world/components";
 import { type GameWorld, getProductionQueue, type ProductionEntry } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
@@ -117,6 +122,63 @@ const RESEARCH: Record<string, ResearchDef> = {
 		cost: { salvage: 100 },
 		time: 15,
 		effect: "Unlocks Diver unit at Dock",
+		researchAt: "armory",
+	},
+	// ── Balance doc canonical research (10 items) ──
+	improved_armor: {
+		id: "improved_armor",
+		name: "Improved Armor",
+		cost: { fish: 100, salvage: 200 },
+		time: 30,
+		effect: "+2 armor to all friendly units",
+		researchAt: "armory",
+	},
+	sharpened_claws: {
+		id: "sharpened_claws",
+		name: "Sharpened Claws",
+		cost: { fish: 100, salvage: 150 },
+		time: 25,
+		effect: "+3 attack damage to all melee units",
+		researchAt: "armory",
+	},
+	extended_range: {
+		id: "extended_range",
+		name: "Extended Range",
+		cost: { fish: 150, salvage: 200 },
+		time: 30,
+		effect: "+20% attack range for all ranged units and buildings",
+		researchAt: "armory",
+	},
+	swift_current: {
+		id: "swift_current",
+		name: "Swift Current",
+		cost: { fish: 150, timber: 100, salvage: 150 },
+		time: 35,
+		effect: "+15% movement speed for all friendly units",
+		researchAt: "armory",
+	},
+	advanced_fishing: {
+		id: "advanced_fishing",
+		name: "Advanced Fishing",
+		cost: { fish: 200, timber: 100 },
+		time: 25,
+		effect: "+50% fish gathering rate",
+		researchAt: "armory",
+	},
+	salvage_expertise: {
+		id: "salvage_expertise",
+		name: "Salvage Expertise",
+		cost: { fish: 100, salvage: 100 },
+		time: 20,
+		effect: "+75% salvage gathering rate",
+		researchAt: "armory",
+	},
+	night_vision: {
+		id: "night_vision",
+		name: "Night Vision",
+		cost: { fish: 100, salvage: 250 },
+		time: 30,
+		effect: "+2 vision radius for all friendly units",
 		researchAt: "armory",
 	},
 };
@@ -267,9 +329,57 @@ function applyResearchEffect(world: GameWorld, researchId: string): void {
 			});
 			break;
 
-		// Research items that unlock buildings or are passive modifiers
-		// (fortified_walls, gun_emplacements, mortar_precision, combat_medics,
-		// diving_gear) — their effects are checked at build/use time via
+		case "improved_armor":
+			// +2 armor to all URA units
+			applyToAllPlayerUnits(world, (eid) => {
+				Armor.value[eid] += 2;
+			});
+			break;
+
+		case "sharpened_claws":
+			// +3 melee damage to all melee units (range <= 1)
+			applyToAllPlayerUnits(world, (eid) => {
+				if (Attack.range[eid] <= 1) {
+					Attack.damage[eid] += 3;
+				}
+			});
+			break;
+
+		case "extended_range":
+			// +20% attack range for all ranged units (range > 1)
+			applyToAllPlayerUnits(world, (eid) => {
+				if (Attack.range[eid] > 1) {
+					Attack.range[eid] = Math.round(Attack.range[eid] * 1.2);
+				}
+			});
+			break;
+
+		case "swift_current":
+			// +15% movement speed for all URA units
+			applyToAllPlayerUnits(world, (eid) => {
+				Speed.value[eid] = Math.round(Speed.value[eid] * 1.15);
+			});
+			break;
+
+		case "fortified_walls":
+			// +200 HP to all player buildings
+			applyToAllPlayerBuildings(world, (eid) => {
+				Health.current[eid] += 200;
+				Health.max[eid] += 200;
+			});
+			break;
+
+		case "night_vision":
+			// +2 vision radius to all URA units
+			applyToAllPlayerUnits(world, (eid) => {
+				VisionRadius.value[eid] += 2;
+			});
+			break;
+
+		// Passive modifiers checked at gather/use time:
+		// advanced_fishing, salvage_expertise — checked in economy system
+		// gun_emplacements, mortar_precision, combat_medics, diving_gear
+		// — their effects are checked at build/use time via
 		// world.runtime.completedResearch.has(). No immediate stat changes.
 		default:
 			break;
@@ -287,6 +397,33 @@ function applyToUnitsOfType(world: GameWorld, unitType: string, fn: (eid: number
 
 		const entityType = world.runtime.entityTypeIndex.get(eid);
 		if (entityType !== unitType) continue;
+
+		fn(eid);
+	}
+}
+
+/**
+ * Helper: iterate all player (faction 1 = URA) non-building, non-resource entities.
+ */
+function applyToAllPlayerUnits(world: GameWorld, fn: (eid: number) => void): void {
+	for (const eid of world.runtime.alive) {
+		if (Flags.isBuilding[eid] === 1) continue;
+		if (Flags.isResource[eid] === 1) continue;
+		if (Flags.isProjectile[eid] === 1) continue;
+		// Faction 1 = URA (player)
+		if (Faction.id[eid] !== 1) continue;
+
+		fn(eid);
+	}
+}
+
+/**
+ * Helper: iterate all player (faction 1 = URA) buildings.
+ */
+function applyToAllPlayerBuildings(world: GameWorld, fn: (eid: number) => void): void {
+	for (const eid of world.runtime.alive) {
+		if (Flags.isBuilding[eid] !== 1) continue;
+		if (Faction.id[eid] !== 1) continue;
 
 		fn(eid);
 	}

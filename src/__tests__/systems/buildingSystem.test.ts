@@ -345,8 +345,9 @@ describe("engine/systems/buildingSystem", () => {
 			runBuildingSystem(world);
 
 			expect(Attack.damage[building]).toBe(8);
+			// attackRange=6 tiles * 32 = 192px, visionBonus=8 tiles * 32 = 256px
 			expect(Attack.range[building]).toBe(192);
-			expect(VisionRadius.value[building]).toBe(8);
+			expect(VisionRadius.value[building]).toBe(256);
 		});
 	});
 

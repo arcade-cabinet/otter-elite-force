@@ -150,11 +150,125 @@ export const divingGear: ResearchDef = {
 	},
 };
 
+// ── Balance doc canonical research (10 items) ──
+
+export const improvedArmor: ResearchDef = {
+	id: "improved_armor",
+	name: "Improved Armor",
+	description: "+2 armor to all friendly units",
+	cost: { fish: 100, salvage: 200 },
+	researchTime: 30,
+	researchedAt: "armory",
+	unlockedAt: "mission_5",
+	effect: {
+		type: "stat_boost",
+		target: "all_ura_units",
+		stat: "armor",
+		value: 2,
+	},
+};
+
+export const sharpenedClaws: ResearchDef = {
+	id: "sharpened_claws",
+	name: "Sharpened Claws",
+	description: "+3 attack damage to all melee units",
+	cost: { fish: 100, salvage: 150 },
+	researchTime: 25,
+	researchedAt: "armory",
+	unlockedAt: "mission_5",
+	effect: {
+		type: "stat_boost",
+		target: "mudfoot,shellcracker,sapper,river_rat",
+		stat: "attackDamage",
+		value: 3,
+	},
+};
+
+export const extendedRange: ResearchDef = {
+	id: "extended_range",
+	name: "Extended Range",
+	description: "+20% attack range for all ranged units and buildings",
+	cost: { fish: 150, salvage: 200 },
+	researchTime: 30,
+	researchedAt: "armory",
+	unlockedAt: "mission_5",
+	effect: {
+		type: "stat_boost",
+		target: "mortar_otter,watchtower,gun_tower",
+		stat: "attackRange",
+		value: 20,
+	},
+};
+
+export const swiftCurrent: ResearchDef = {
+	id: "swift_current",
+	name: "Swift Current",
+	description: "+15% movement speed for all friendly units",
+	cost: { fish: 150, timber: 100, salvage: 150 },
+	researchTime: 35,
+	researchedAt: "armory",
+	unlockedAt: "mission_7",
+	effect: {
+		type: "stat_boost",
+		target: "all_ura_units",
+		stat: "speed",
+		value: 15,
+	},
+};
+
+export const advancedFishing: ResearchDef = {
+	id: "advanced_fishing",
+	name: "Advanced Fishing",
+	description: "+50% fish gathering rate",
+	cost: { fish: 200, timber: 100 },
+	researchTime: 25,
+	researchedAt: "armory",
+	unlockedAt: "mission_5",
+	effect: {
+		type: "stat_boost",
+		target: "river_rat",
+		stat: "gatherRate",
+		value: 50,
+	},
+};
+
+export const salvageExpertise: ResearchDef = {
+	id: "salvage_expertise",
+	name: "Salvage Expertise",
+	description: "+75% salvage gathering rate",
+	cost: { fish: 100, salvage: 100 },
+	researchTime: 20,
+	researchedAt: "armory",
+	unlockedAt: "mission_5",
+	effect: {
+		type: "stat_boost",
+		target: "river_rat",
+		stat: "salvageGather",
+		value: 75,
+	},
+};
+
+export const nightVision: ResearchDef = {
+	id: "night_vision",
+	name: "Night Vision",
+	description: "+2 vision radius for all friendly units",
+	cost: { fish: 100, salvage: 250 },
+	researchTime: 30,
+	researchedAt: "armory",
+	unlockedAt: "mission_9",
+	effect: {
+		type: "stat_boost",
+		target: "all_ura_units",
+		stat: "visionRadius",
+		value: 2,
+	},
+};
+
 // ---------------------------------------------------------------------------
 // Aggregate
 // ---------------------------------------------------------------------------
 
-/** All 9 research definitions keyed by id. */
+/** All 16 research definitions keyed by id (9 legacy + 7 balance doc additions). */
 export const ALL_RESEARCH_ENTITIES: Record<string, ResearchDef> = {
 	hardshell_armor: hardshellArmor,
 	fish_oil_arrows: fishOilArrows,
@@ -165,4 +279,11 @@ export const ALL_RESEARCH_ENTITIES: Record<string, ResearchDef> = {
 	mortar_precision: mortarPrecision,
 	combat_medics: combatMedics,
 	diving_gear: divingGear,
+	improved_armor: improvedArmor,
+	sharpened_claws: sharpenedClaws,
+	extended_range: extendedRange,
+	swift_current: swiftCurrent,
+	advanced_fishing: advancedFishing,
+	salvage_expertise: salvageExpertise,
+	night_vision: nightVision,
 };

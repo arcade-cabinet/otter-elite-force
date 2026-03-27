@@ -30,7 +30,7 @@ export { ALL_BUILDING_ENTITIES };
 /** Alias for tests. */
 export const ALL_BUILDINGS = ALL_BUILDING_ENTITIES;
 
-// ─── Research (COMPLETE: 9/9) ───
+// ─── Research (COMPLETE: 16/16) ───
 
 import { ALL_RESEARCH_ENTITIES } from "./research";
 
@@ -76,10 +76,11 @@ const URA_UNIT_ENTITIES: Record<string, UnitDef> = {
 	diver,
 };
 
-// ─── Scale-Guard Units (COMPLETE: 8/8) ───
+// ─── Scale-Guard Units (COMPLETE: 9/9) ───
 
 import { crocChampion } from "./units/scale-guard/croc-champion";
 import { gator } from "./units/scale-guard/gator";
+import { kommandantIronjaw } from "./units/scale-guard/kommandant-ironjaw";
 import { scoutLizard } from "./units/scale-guard/scout-lizard";
 import { serpentKing } from "./units/scale-guard/serpent-king";
 import { siphonDrone } from "./units/scale-guard/siphon-drone";
@@ -96,9 +97,10 @@ const SCALE_GUARD_UNIT_ENTITIES: Record<string, UnitDef> = {
 	croc_champion: crocChampion,
 	siphon_drone: siphonDrone,
 	serpent_king: serpentKing,
+	kommandant_ironjaw: kommandantIronjaw,
 };
 
-/** All 15 unit definitions (7 URA + 8 Scale-Guard) keyed by id. */
+/** All 16 unit definitions (7 URA + 9 Scale-Guard) keyed by id. */
 export const ALL_UNIT_ENTITIES: Record<string, UnitDef> = {
 	...URA_UNIT_ENTITIES,
 	...SCALE_GUARD_UNIT_ENTITIES,

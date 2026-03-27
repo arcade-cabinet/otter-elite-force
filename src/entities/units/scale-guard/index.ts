@@ -1,5 +1,6 @@
 export { crocChampion } from "./croc-champion";
 export { gator } from "./gator";
+export { kommandantIronjaw } from "./kommandant-ironjaw";
 export { scoutLizard } from "./scout-lizard";
 export { serpentKing } from "./serpent-king";
 export { siphonDrone } from "./siphon-drone";

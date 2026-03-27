@@ -79,6 +79,7 @@ describe("Entity spawner", () => {
 
 		it("wires template stats when stats option is provided", () => {
 			const world = createGameWorld();
+			// Stats use tile-based units: speed=2 tiles/s, range=1 tile, visionRadius=5 tiles
 			const eid = spawnUnit(world, {
 				x: 0,
 				y: 0,
@@ -86,10 +87,10 @@ describe("Entity spawner", () => {
 				stats: {
 					hp: 80,
 					armor: 2,
-					speed: 64,
+					speed: 2,
 					attackDamage: 12,
-					attackRange: 32,
-					attackCooldownMs: 1200,
+					attackRange: 1,
+					attackCooldownMs: 1.2,
 					visionRadius: 5,
 					popCost: 1,
 				},
@@ -97,11 +98,12 @@ describe("Entity spawner", () => {
 
 			expect(Health.max[eid]).toBe(80);
 			expect(Armor.value[eid]).toBe(2);
+			// Speed, range, visionRadius are converted from tiles to pixels (* 32)
 			expect(Speed.value[eid]).toBe(64);
 			expect(Attack.damage[eid]).toBe(12);
 			expect(Attack.range[eid]).toBe(32);
-			expect(Attack.cooldown[eid]).toBe(1200);
-			expect(VisionRadius.value[eid]).toBe(5);
+			expect(Attack.cooldown[eid]).toBeCloseTo(1.2, 5);
+			expect(VisionRadius.value[eid]).toBe(160);
 		});
 
 		it("grants gather capacity for worker-like units", () => {
@@ -210,6 +212,7 @@ describe("Entity spawner", () => {
 
 		it("wires template stats when stats option is provided", () => {
 			const world = createGameWorld();
+			// Stats use tile-based units: visionRadius=8 tiles, attackRange=6 tiles
 			const eid = spawnBuilding(world, {
 				x: 0,
 				y: 0,
@@ -220,15 +223,16 @@ describe("Entity spawner", () => {
 					armor: 1,
 					visionRadius: 8,
 					attackDamage: 8,
-					attackRange: 192,
-					attackCooldownMs: 2000,
+					attackRange: 6,
+					attackCooldownMs: 2,
 					populationCapacity: 0,
 				},
 			});
 
 			expect(Health.max[eid]).toBe(200);
 			expect(Armor.value[eid]).toBe(1);
-			expect(VisionRadius.value[eid]).toBe(8);
+			// Range and visionRadius converted from tiles to pixels (* 32)
+			expect(VisionRadius.value[eid]).toBe(256);
 			expect(Attack.damage[eid]).toBe(8);
 			expect(Attack.range[eid]).toBe(192);
 		});

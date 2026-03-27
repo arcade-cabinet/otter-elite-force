@@ -13,6 +13,7 @@
  * Each system receives the GameWorld and operates on its ECS data directly.
  */
 
+import { EventBus } from "@/game/EventBus";
 import { runAllSystems } from "@/engine/systems";
 import type { GameWorld } from "@/engine/world/gameWorld";
 
@@ -37,6 +38,14 @@ export function createSystemPipeline(world: GameWorld): SystemPipeline {
 			if (world.time.deltaMs <= 0) return;
 
 			runAllSystems(world);
+
+			// Forward world events to the legacy EventBus so the SFX bridge
+			// (src/audio/sfxBridge.ts) can play audio for gameplay actions.
+			// Events stay in world.events for tacticalRuntime's applyWorldEvents
+			// to consume; we just duplicate them onto EventBus.
+			for (const event of world.events) {
+				EventBus.emit(event.type, event.payload);
+			}
 		},
 		dispose(): void {
 			disposed = true;

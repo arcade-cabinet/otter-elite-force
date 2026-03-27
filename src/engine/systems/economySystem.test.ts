@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { TILE_SIZE } from "@/config/constants";
 import { CATEGORY_IDS } from "@/engine/content/ids";
-import { Content } from "@/engine/world/components";
+import { Content, ResourceNode, Speed } from "@/engine/world/components";
 import { createGameWorld, getOrderQueue, spawnResource, spawnUnit } from "@/engine/world/gameWorld";
 import { resetGatherTimers, runEconomySystem } from "./economySystem";
+import { runMovementSystem } from "./movementSystem";
 
 function makeWorld(deltaMs: number) {
 	const world = createGameWorld();
@@ -173,5 +175,46 @@ describe("engine/systems/economySystem", () => {
 		// Tick 2: 2 seconds accumulated (gather 1)
 		runEconomySystem(world);
 		expect(world.session.resources.fish).toBe(1);
+	});
+
+	it("worker moves to nearby resource and gathers within 200 ticks (16ms each)", () => {
+		resetGatherTimers();
+		const TICK_MS = 16; // ~60fps
+		const world = createGameWorld();
+		world.time.deltaMs = TICK_MS;
+		world.session.resources = { fish: 0, timber: 0, salvage: 0 };
+
+		// Worker at tile (3,3), resource at tile (4,3) — 1 tile apart (32px)
+		const workerX = 3 * TILE_SIZE + 16;
+		const workerY = 3 * TILE_SIZE + 16;
+		const resourceX = 4 * TILE_SIZE + 16;
+		const resourceY = 3 * TILE_SIZE + 16;
+
+		const worker = spawnUnit(world, { x: workerX, y: workerY, faction: "ura" });
+		Content.categoryId[worker] = CATEGORY_IDS.worker;
+		// River Rat speed: 10 tiles/sec = 320 px/sec
+		Speed.value[worker] = 10 * TILE_SIZE;
+
+		const node = spawnResource(world, { x: resourceX, y: resourceY, resourceType: "fish_node" });
+		ResourceNode.remaining[node] = 100;
+
+		const orders = getOrderQueue(world, worker);
+		orders.push({
+			type: "gather",
+			targetEid: node,
+			targetX: resourceX,
+			targetY: resourceY,
+		});
+
+		// Run 200 ticks of movement + economy (total ~3.2 seconds)
+		for (let tick = 0; tick < 200; tick++) {
+			world.time.tick = tick;
+			runMovementSystem(world);
+			runEconomySystem(world);
+		}
+
+		// Worker should have reached the resource (32px at 320px/s < 1 tick)
+		// and gathered at least 1 fish (2s per fish, 3.2s total)
+		expect(world.session.resources.fish).toBeGreaterThanOrEqual(1);
 	});
 });

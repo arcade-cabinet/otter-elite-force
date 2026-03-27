@@ -14,7 +14,7 @@
         "eid": 2,
         "x": 1168,
         "y": 144,
-        "health": 200,
+        "health": 150,
         "type": "flag_post"
       },
       {
@@ -28,7 +28,7 @@
         "eid": 4,
         "x": 1128,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -42,7 +42,7 @@
         "eid": 6,
         "x": 1114,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -56,7 +56,7 @@
         "eid": 8,
         "x": 1100,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -70,7 +70,7 @@
         "eid": 10,
         "x": 1086,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -154,7 +154,7 @@
         "eid": 2,
         "x": 1168,
         "y": 144,
-        "health": 200,
+        "health": 150,
         "type": "flag_post"
       },
       {
@@ -168,7 +168,7 @@
         "eid": 4,
         "x": 1128,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -182,7 +182,7 @@
         "eid": 6,
         "x": 1114,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -196,7 +196,7 @@
         "eid": 8,
         "x": 1100,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -210,7 +210,7 @@
         "eid": 10,
         "x": 1086,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -294,7 +294,7 @@
         "eid": 2,
         "x": 1168,
         "y": 144,
-        "health": 200,
+        "health": 150,
         "type": "flag_post"
       },
       {
@@ -308,7 +308,7 @@
         "eid": 4,
         "x": 1128,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -322,7 +322,7 @@
         "eid": 6,
         "x": 1114,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -336,7 +336,7 @@
         "eid": 8,
         "x": 1100,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {
@@ -350,7 +350,7 @@
         "eid": 10,
         "x": 1086,
         "y": 104,
-        "health": 120,
+        "health": 90,
         "type": "gator"
       },
       {

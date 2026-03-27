@@ -205,6 +205,28 @@ describe("engine/systems/difficultyScalingSystem", () => {
 		expect(Health.max[enemy]).toBe(15); // 1.5x
 		expect(Attack.damage[enemy]).toBe(5); // 1.25x
 	});
+
+	it("applies support difficulty multipliers: reduced enemy HP/damage/speed", () => {
+		const world = createGameWorld();
+		world.campaign.difficulty = "support";
+
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 100, max: 100 },
+		});
+		Attack.damage[enemy] = 10;
+		Speed.value[enemy] = 160; // 5 tiles/s in pixels
+
+		runDifficultyScalingSystem(world);
+
+		// Support: HP*0.75, damage*0.75, speed*0.9
+		expect(Health.max[enemy]).toBe(75);
+		expect(Health.current[enemy]).toBe(75); // capped to max
+		expect(Attack.damage[enemy]).toBeCloseTo(7.5, 1);
+		expect(Speed.value[enemy]).toBeCloseTo(144, 0); // 160*0.9
+	});
 });
 
 describe("engine/systems/scoringSystem", () => {
