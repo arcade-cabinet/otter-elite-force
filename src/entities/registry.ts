@@ -155,10 +155,17 @@ export const ALL_PORTRAITS = ALL_PORTRAIT_ENTITIES;
 
 // ─── Lookup Helpers ───
 
+/** Unit aliases for mission-specific entity types that share definitions. */
+const UNIT_ALIASES: Record<string, string> = {
+	scout_otter: "diver",
+	convoy_truck: "raftsman",
+	supply_barge: "raftsman",
+};
+
 /** Get a unit definition by id. Returns undefined if not found. */
 export function getUnit(id: string): UnitDef | undefined {
-	if (id === "scout_otter") return ALL_UNIT_ENTITIES.diver;
-	return ALL_UNIT_ENTITIES[id];
+	const resolved = UNIT_ALIASES[id] ?? id;
+	return ALL_UNIT_ENTITIES[resolved];
 }
 
 /** Get a hero definition by id. Returns undefined if not found. */
@@ -166,9 +173,15 @@ export function getHero(id: string): HeroDef | undefined {
 	return ALL_HERO_ENTITIES[id];
 }
 
+/** Building aliases for mission-specific building types. */
+const BUILDING_ALIASES: Record<string, string> = {
+	lodge: "burrow",
+};
+
 /** Get a building definition by id. Returns undefined if not found. */
 export function getBuilding(id: string): BuildingDef | undefined {
-	return ALL_BUILDING_ENTITIES[id];
+	const resolved = BUILDING_ALIASES[id] ?? id;
+	return ALL_BUILDING_ENTITIES[resolved];
 }
 
 /** Get a resource definition by id. Returns undefined if not found. */

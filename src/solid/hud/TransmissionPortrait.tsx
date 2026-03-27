@@ -1,15 +1,16 @@
 /**
- * TransmissionPortrait -- Character portrait from sprite atlas.
+ * TransmissionPortrait -- Character portrait from sprite atlas or canvas renderer.
  *
  * Renders the portrait for Col. Bubbles, FOXHOUND, or Gen. Whiskers
- * in the command transmission panel. Loads portrait atlas JSON,
- * resolves frame coordinates, and displays from the sprite sheet
- * with pixelated rendering for the pixel art aesthetic.
+ * in the command transmission panel. Tries loading portrait atlas JSON first,
+ * then falls back to the procedural canvas portrait renderer, and finally
+ * to speaker initials if neither is available.
  *
- * Falls back to speaker initials if the atlas or frame is unavailable.
+ * Reads from solidBridge dialogue() signal.
  */
 
-import { type Component, createMemo, createSignal, type JSX, onMount, Show } from "solid-js";
+import { type Component, createEffect, createMemo, createSignal, type JSX, onMount, Show } from "solid-js";
+import { getPortraitCanvas } from "@/canvas/portraitRenderer";
 
 interface AtlasFrame {
 	frame: { x: number; y: number; w: number; h: number };
@@ -45,6 +46,41 @@ function toInitials(label: string): string {
 		.join("")
 		.slice(0, 3);
 }
+
+/**
+ * CanvasPortrait -- renders a procedural portrait canvas into the DOM.
+ * Uses getPortraitCanvas() from the portrait renderer module.
+ */
+const CanvasPortrait: Component<{
+	portraitId: string;
+	speaker: string;
+	targetWidth: number;
+	compact?: boolean;
+}> = (props) => {
+	let containerRef: HTMLDivElement | undefined;
+
+	createEffect(() => {
+		if (!containerRef) return;
+		const canvas = getPortraitCanvas(props.portraitId);
+		if (!canvas) return;
+		// Remove all existing children safely
+		while (containerRef.firstChild) {
+			containerRef.removeChild(containerRef.firstChild);
+		}
+		// Clone the cached canvas to avoid removing it from the cache
+		const clone = canvas.cloneNode(true) as HTMLCanvasElement;
+		clone.style.width = `${props.targetWidth}px`;
+		clone.style.height = `${props.targetWidth}px`;
+		clone.style.imageRendering = "pixelated";
+		clone.style.display = "block";
+		clone.style.margin = "0 auto";
+		clone.setAttribute("role", "img");
+		clone.setAttribute("aria-label", `${props.speaker} portrait`);
+		containerRef.appendChild(clone);
+	});
+
+	return <div ref={containerRef} />;
+};
 
 export const TransmissionPortrait: Component<{
 	/** Portrait frame ID in the atlas (e.g. "col_bubbles") */
@@ -94,6 +130,14 @@ export const TransmissionPortrait: Component<{
 		};
 	});
 
+	/** Whether the canvas-based portrait renderer has this portrait. */
+	const hasCanvasPortrait = createMemo(() => {
+		const pid = props.portraitId;
+		if (!pid) return false;
+		if (typeof document === "undefined") return false;
+		return getPortraitCanvas(pid) !== null;
+	});
+
 	return (
 		<div
 			data-testid="transmission-portrait"
@@ -114,15 +158,27 @@ export const TransmissionPortrait: Component<{
 					<Show
 						when={spriteStyle()}
 						fallback={
-							<div
-								role="img"
-								aria-label={`${props.speaker} portrait`}
-								class={`flex items-center justify-center font-heading uppercase tracking-[0.24em] text-slate-600 ${
-									props.compact ? "h-[108px] text-lg" : "h-[136px] text-xl"
-								}`}
+							<Show
+								when={hasCanvasPortrait() && props.portraitId}
+								fallback={
+									<div
+										role="img"
+										aria-label={`${props.speaker} portrait`}
+										class={`flex items-center justify-center font-heading uppercase tracking-[0.24em] text-slate-600 ${
+											props.compact ? "h-[108px] text-lg" : "h-[136px] text-xl"
+										}`}
+									>
+										{toInitials(label())}
+									</div>
+								}
 							>
-								{toInitials(label())}
-							</div>
+								<CanvasPortrait
+									portraitId={props.portraitId!}
+									speaker={props.speaker}
+									targetWidth={targetWidth()}
+									compact={props.compact}
+								/>
+							</Show>
 						}
 					>
 						{(style) => (

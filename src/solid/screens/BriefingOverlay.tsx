@@ -7,9 +7,44 @@
  * button, and pawprint seal at bottom.
  */
 
-import { type Component, createMemo, For, Show } from "solid-js";
+import { type Component, createEffect, createMemo, For, Show } from "solid-js";
+import { getPortraitCanvas } from "@/canvas/portraitRenderer";
 import { getMissionById } from "@/entities/missions";
 import type { AppState } from "../appState";
+
+/** Commander portrait rendered from the canvas portrait renderer. */
+const BriefingPortrait: Component<{ portraitId: string | null }> = (props) => {
+	let containerRef: HTMLDivElement | undefined;
+
+	createEffect(() => {
+		if (!containerRef || !props.portraitId) return;
+		if (typeof document === "undefined") return;
+		const canvas = getPortraitCanvas(props.portraitId);
+		if (!canvas) return;
+		while (containerRef.firstChild) {
+			containerRef.removeChild(containerRef.firstChild);
+		}
+		const clone = canvas.cloneNode(true) as HTMLCanvasElement;
+		clone.style.width = "64px";
+		clone.style.height = "64px";
+		clone.style.imageRendering = "pixelated";
+		clone.style.display = "block";
+		clone.setAttribute("role", "img");
+		clone.setAttribute("aria-label", `Commander portrait`);
+		containerRef.appendChild(clone);
+	});
+
+	return (
+		<div
+			ref={containerRef}
+			class="hidden h-20 w-16 shrink-0 items-center justify-center border border-rust-600/30 bg-rust-800/10 sm:flex"
+		>
+			<Show when={!props.portraitId}>
+				<span class="font-mono text-[8px] uppercase tracking-[0.2em] text-rust-700/50">CDR</span>
+			</Show>
+		</div>
+	);
+};
 
 /** Decorative pawprint SVG (otter paw "stamp" signature / seal). */
 const PawprintSeal: Component = () => {
@@ -93,11 +128,7 @@ export const BriefingOverlay: Component<{ app: AppState }> = (props) => {
 					</div>
 
 					<div class="relative mb-5 flex items-start gap-4">
-						<div class="hidden h-20 w-16 shrink-0 items-center justify-center border border-rust-600/30 bg-rust-800/10 sm:flex">
-							<span class="font-mono text-[8px] uppercase tracking-[0.2em] text-rust-700/50">
-								CDR
-							</span>
-						</div>
+						<BriefingPortrait portraitId={mission()?.briefing.portraitId ?? null} />
 						<div class="flex-1">
 							<Show when={mission()}>
 								{(m) => (
