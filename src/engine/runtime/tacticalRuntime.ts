@@ -33,6 +33,7 @@ import {
 } from "@/engine/rendering/atlasAdapter";
 import { getMissionById } from "@/entities/missions";
 import type { GameBridge, SelectionViewModel } from "../bridge/gameBridge";
+import { canPlaceBuilding, placeBuilding, type TileMap } from "../systems/buildingSystem";
 import { serializeGameWorld } from "../persistence/gameWorldSaveLoad";
 import { SqlitePersistenceStore } from "../persistence/sqlitePersistenceStore";
 import { Construction, Faction, Flags, Health, Position, Selection } from "../world/components";
@@ -209,6 +210,10 @@ export async function createTacticalRuntime(
 	let inputMode: "normal" | "attack-move" | "patrol" = "normal";
 	let lastAlertWorldPos: { x: number; y: number } | null = null;
 
+	// Build placement mode: when true, mouse shows a ghost building and click places it
+	let buildPlacementMode = false;
+	let pendingBuildType: string | null = null;
+
 	// Selection box (screen-space during drag)
 	let selectionBoxScreen: {
 		startX: number;
@@ -288,6 +293,38 @@ export async function createTacticalRuntime(
 		return {
 			width: Math.max(1, options.world.navigation.width * TILE_SIZE),
 			height: Math.max(1, options.world.navigation.height * TILE_SIZE),
+		};
+	}
+
+	/** Create a TileMap adapter from the runtime world's terrain grid for build placement. */
+	function createRuntimeTileMap(world: GameWorld): TileMap {
+		const terrainGrid = world.runtime.terrainGrid;
+		const terrainIdToType: Record<number, "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge"> = {
+			[TerrainTypeId.grass]: "grass",
+			[TerrainTypeId.dirt]: "dirt",
+			[TerrainTypeId.mud]: "mud",
+			[TerrainTypeId.water]: "water",
+			[TerrainTypeId.mangrove]: "mangrove",
+			[TerrainTypeId.bridge]: "bridge",
+		};
+		return {
+			getTerrain(x: number, y: number) {
+				if (!terrainGrid) return "grass";
+				const row = terrainGrid[y];
+				if (!row || x < 0 || x >= row.length) return null;
+				return terrainIdToType[row[x]] ?? "grass";
+			},
+			isOccupied(x: number, y: number) {
+				const px = x * TILE_SIZE + TILE_SIZE / 2;
+				const py = y * TILE_SIZE + TILE_SIZE / 2;
+				for (const eid of world.runtime.alive) {
+					if (Flags.isBuilding[eid] !== 1) continue;
+					const dx = Math.abs(Position.x[eid] - px);
+					const dy = Math.abs(Position.y[eid] - py);
+					if (dx < TILE_SIZE && dy < TILE_SIZE) return true;
+				}
+				return false;
+			},
 		};
 	}
 
@@ -476,6 +513,16 @@ export async function createTacticalRuntime(
 		while (options.world.events.length > 0) {
 			const event = options.world.events.shift();
 			if (!event) break;
+			if (event.type === "enter-build-mode") {
+				const buildingId = String(event.payload?.buildingId ?? "");
+				if (buildingId) {
+					buildPlacementMode = true;
+					pendingBuildType = buildingId;
+					inputMode = "normal";
+					pushAlert(`Place building: ${buildingId.replace(/_/g, " ")}`, "info");
+				}
+				continue;
+			}
 			if (event.type === "camera-focus") {
 				const x = Number(event.payload?.x ?? 0);
 				const y = Number(event.payload?.y ?? 0);
@@ -992,7 +1039,27 @@ export async function createTacticalRuntime(
 		}
 
 		if (ljs.mouseWasReleased(0)) {
-			if (dragStartWorldPos && !isDragging) {
+			if (buildPlacementMode && pendingBuildType && dragStartWorldPos && !isDragging) {
+				// Build placement: place building at mouse tile position
+				const mouseWorld = ljs.mousePos;
+				const tileX = Math.floor(mouseWorld.x);
+				const tileY = Math.floor(mouseWorld.y);
+				const tileMap = createRuntimeTileMap(options.world);
+				const validation = canPlaceBuilding(options.world, pendingBuildType, tileX, tileY, tileMap);
+				if (validation.valid) {
+					const eid = placeBuilding(options.world, pendingBuildType, tileX, tileY, tileMap);
+					if (eid !== null) {
+						pushAlert("Construction started", "info", tileX * TILE_SIZE, tileY * TILE_SIZE);
+						playSfx("buildStart");
+					} else {
+						pushAlert("Build failed", "warning");
+					}
+				} else {
+					pushAlert(validation.reason ?? "Cannot build here", "warning");
+				}
+				buildPlacementMode = false;
+				pendingBuildType = null;
+			} else if (dragStartWorldPos && !isDragging) {
 				const mouseWorld = ljs.mousePos;
 				const mousePx = tileToPixel(mouseWorld.x, mouseWorld.y);
 				if (inputMode === "attack-move") {
@@ -1018,8 +1085,13 @@ export async function createTacticalRuntime(
 			selectionBoxScreen = null;
 		}
 
-		// Right-click: contextual order or minimap move
+		// Right-click: cancel build mode or contextual order
 		if (ljs.mouseWasPressed(2) && !isPanning) {
+			if (buildPlacementMode) {
+				buildPlacementMode = false;
+				pendingBuildType = null;
+				pushAlert("Build cancelled", "info");
+			} else {
 			const mouseScreen = ljs.mousePosScreen;
 			if (screenPointInMinimap(mouseScreen.x, mouseScreen.y)) {
 				// Right-click on minimap: move selected units to that world position
@@ -1031,6 +1103,7 @@ export async function createTacticalRuntime(
 				const mouseWorld = ljs.mousePos;
 				const mousePx = tileToPixel(mouseWorld.x, mouseWorld.y);
 				handleSecondaryAction(mousePx.x, mousePx.y);
+			}
 			}
 		}
 
@@ -1101,9 +1174,13 @@ export async function createTacticalRuntime(
 			}
 		}
 
-		// Escape — cancel current mode, deselect all
+		// Escape — cancel build mode, cancel current mode, or deselect all
 		if (ljs.keyWasPressed("Escape")) {
-			if (inputMode !== "normal") {
+			if (buildPlacementMode) {
+				buildPlacementMode = false;
+				pendingBuildType = null;
+				pushAlert("Build cancelled", "info");
+			} else if (inputMode !== "normal") {
 				inputMode = "normal";
 			} else {
 				clearSelectionState();
@@ -1543,6 +1620,34 @@ export async function createTacticalRuntime(
 				drawRankEmblem(ctx, entityType, spriteScreenW);
 				ctx.restore();
 			}
+		}
+
+		// ── Build placement ghost ──
+		if (buildPlacementMode && pendingBuildType) {
+			const mouseWorld = ljs.mousePos;
+			const ghostTileX = Math.floor(mouseWorld.x);
+			const ghostTileY = Math.floor(mouseWorld.y);
+			const tileMap = createRuntimeTileMap(options.world);
+			const validation = canPlaceBuilding(options.world, pendingBuildType, ghostTileX, ghostTileY, tileMap);
+			const ghostColor = validation.valid
+				? new ljs.Color(0.2, 0.9, 0.3, 0.4) // green translucent
+				: new ljs.Color(0.9, 0.2, 0.2, 0.4); // red translucent
+			const ghostPos = ljs.vec2(ghostTileX + 0.5, ghostTileY + 0.5);
+			// Try building tile image
+			const ghostTile = buildingTileInfos.get(pendingBuildType);
+			if (ghostTile) {
+				ljs.drawTile(ghostPos, ljs.vec2(2, 2), ghostTile, ghostColor);
+			} else {
+				ljs.drawRect(ghostPos, ljs.vec2(0.9, 0.9), ghostColor);
+			}
+			// Draw label
+			const ghostLabel = pendingBuildType.replace(/_/g, " ");
+			ljs.drawText(
+				ghostLabel,
+				ljs.vec2(ghostPos.x, ghostPos.y - 0.6),
+				0.15,
+				validation.valid ? new ljs.Color(0.2, 1, 0.3, 0.9) : new ljs.Color(1, 0.3, 0.3, 0.9),
+			);
 		}
 
 		// ── Fog of war overlay (smoothed edges) ──

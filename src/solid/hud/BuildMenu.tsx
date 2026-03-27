@@ -4,11 +4,15 @@
  * Shows available URA structures. Unaffordable buildings are greyed out
  * and disabled. Clicking an affordable building emits startBuild via bridge.
  *
+ * Costs are pulled from the canonical building entity definitions so they
+ * stay in sync with the balance data.
+ *
  * Reads resources from solidBridge stores.
  */
 
 import { type Component, For } from "solid-js";
 import type { SolidBridgeAccessors, SolidBridgeEmit } from "@/engine/bridge/solidBridge";
+import { URA_BUILDING_ENTITIES } from "@/entities/buildings/ura";
 
 export interface BuildOption {
 	id: string;
@@ -17,42 +21,51 @@ export interface BuildOption {
 	cost: { fish?: number; timber?: number; salvage?: number };
 }
 
-const DEFAULT_BUILD_OPTIONS: BuildOption[] = [
-	{
-		id: "command_post",
-		name: "Command Post",
-		role: "Workers, resource depot",
-		cost: { timber: 400, salvage: 200 },
-	},
-	{
-		id: "barracks",
-		name: "Barracks",
-		role: "Trains Mudfoots, Shellcrackers",
-		cost: { timber: 200 },
-	},
-	{ id: "burrow", name: "Burrow", role: "Population housing", cost: { timber: 100 } },
-	{ id: "fish_trap", name: "Fish Trap", role: "Automated fish income", cost: { timber: 80 } },
-	{
-		id: "watchtower",
-		name: "Watchtower",
-		role: "Defensive tower",
-		cost: { timber: 150, salvage: 50 },
-	},
-	{ id: "sandbag_wall", name: "Sandbag Wall", role: "Defensive barrier", cost: { timber: 50 } },
-	{
-		id: "armory",
-		name: "Armory",
-		role: "Upgrades and research",
-		cost: { timber: 250, salvage: 150 },
-	},
-	{
-		id: "field_hospital",
-		name: "Field Hospital",
-		role: "Heals nearby units",
-		cost: { timber: 200, salvage: 100 },
-	},
-	{ id: "dock", name: "Dock", role: "Naval units", cost: { timber: 300, salvage: 100 } },
+/** Role descriptions for each URA building in the build palette. */
+const BUILD_ROLES: Record<string, string> = {
+	command_post: "Workers, resource depot",
+	barracks: "Trains Mudfoots, Shellcrackers",
+	burrow: "Population housing",
+	fish_trap: "Automated fish income",
+	watchtower: "Defensive tower",
+	sandbag_wall: "Defensive barrier",
+	stone_wall: "Fortified barrier",
+	armory: "Upgrades and research",
+	field_hospital: "Heals nearby units",
+	dock: "Naval units",
+	gun_tower: "Heavy defensive tower",
+	minefield: "Hidden explosive trap",
+};
+
+/** Ordered list of URA building IDs for the build palette. */
+const BUILD_ORDER: string[] = [
+	"command_post",
+	"barracks",
+	"burrow",
+	"fish_trap",
+	"watchtower",
+	"sandbag_wall",
+	"stone_wall",
+	"armory",
+	"field_hospital",
+	"dock",
+	"gun_tower",
+	"minefield",
 ];
+
+/** Build options derived from the canonical building entity definitions. */
+const DEFAULT_BUILD_OPTIONS: BuildOption[] = BUILD_ORDER
+	.map((id) => {
+		const def = URA_BUILDING_ENTITIES[id];
+		if (!def) return null;
+		return {
+			id: def.id,
+			name: def.name,
+			role: BUILD_ROLES[id] ?? def.category,
+			cost: { ...def.cost },
+		};
+	})
+	.filter((opt): opt is BuildOption => opt !== null);
 
 function formatCost(cost: { fish?: number; timber?: number; salvage?: number }): string {
 	const parts: string[] = [];

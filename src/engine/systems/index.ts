@@ -6,9 +6,13 @@ import type { GameWorld } from "@/engine/world/gameWorld";
 import { flushRemovals, tickFloatingTexts } from "@/engine/world/gameWorld";
 import { runAbilitySystem } from "./abilitySystem";
 import { runAiSystem } from "./aiSystem";
+import { runBossSystem } from "./bossSystem";
 import { runBuildingSystem } from "./buildingSystem";
 import { runCombatSystem } from "./combatSystem";
+import { runConvoySystem } from "./convoySystem";
+import { runDemolitionSystem } from "./demolitionSystem";
 import { runDetectionSystem } from "./detectionSystem";
+import { runDifficultyScalingSystem } from "./difficultyScalingSystem";
 import { runEconomySystem } from "./economySystem";
 import { runEncounterSystem } from "./encounterSystemEngine";
 import { runFireSystem } from "./fireSystem";
@@ -19,9 +23,15 @@ import { runMultiBaseSystem } from "./multiBaseSystem";
 import { runOrderSystem } from "./orderSystem";
 import { runProductionSystem } from "./productionSystem";
 import { runResearchSystem } from "./researchSystem";
+import { runSiegeSystem } from "./siegeSystem";
+import { runSiphonSystem } from "./siphonSystem";
+import { runStealthSystem } from "./stealthSystem";
 import { runTerritorySystem } from "./territorySystem";
 import { runTidalSystem } from "./tidalSystem";
 import { runVeterancySystem } from "./veterancySystem";
+import { runWaterSystem } from "./waterSystem";
+import { runWaveSpawnerSystem } from "./waveSpawnerSystem";
+import { runWeatherSystem } from "./weatherSystem";
 
 export type { AbilityDef } from "./abilitySystem";
 export {
@@ -124,29 +134,49 @@ export {
 	veterancyMultiplier,
 	XP_CONFIG,
 } from "./veterancySystem";
+export { runBossSystem } from "./bossSystem";
+export { runConvoySystem } from "./convoySystem";
+export { runDemolitionSystem } from "./demolitionSystem";
+export { runDifficultyScalingSystem } from "./difficultyScalingSystem";
+export { runSiegeSystem } from "./siegeSystem";
+export { runSiphonSystem } from "./siphonSystem";
+export { runStealthSystem } from "./stealthSystem";
+export { runWaterSystem } from "./waterSystem";
+export { runWaveSpawnerSystem } from "./waveSpawnerSystem";
+export { runWeatherSystem } from "./weatherSystem";
 
 /**
  * Run all game systems in the canonical tick order:
- * 1. Orders (validate/resolve order queues)
- * 2. AI (FSM decisions for enemy entities)
- * 3. Movement
- * 4. Combat (attacks, projectiles, death cleanup)
- * 5. Veterancy (XP awards and promotions from combat events)
- * 6. Loot (resource drops from dead enemies)
- * 7. Economy (gathering, passive income)
- * 8. Production (unit training queues)
- * 9. Building (construction progress)
+ * 1.  Orders (validate/resolve order queues)
+ * 2.  AI (FSM decisions for enemy entities)
+ * 3.  Movement
+ * 4.  Combat (attacks, projectiles, death cleanup)
+ * 5.  Veterancy (XP awards and promotions from combat events)
+ * 6.  Loot (resource drops from dead enemies)
+ * 7.  Economy (gathering, passive income)
+ * 8.  Production (unit training queues)
+ * 9.  Building (construction progress)
  * 10. Research (tech progress)
  * 11. Abilities (cooldowns, activations, timed effects)
  * 12. Detection (stealth/cone detection)
- * 13. Encounters (PRNG-driven random spawns)
- * 14. Territory (village liberation, zone control)
- * 15. Multi-base (caravans, base loss detection)
- * 16. Tidal (terrain phase transitions)
- * 17. Fire (spread, damage, scorch)
- * 18. Fog (visibility grid)
- * 19. Floating text cleanup
- * 20. Flush removals
+ * 13. Stealth (cloak timers, reveal on attack)
+ * 14. Encounters (PRNG-driven random spawns)
+ * 15. Territory (village liberation, zone control)
+ * 16. Multi-base (caravans, base loss detection)
+ * 17. Convoy (escort waypoints, convoy movement)
+ * 18. Water (naval movement, depth, amphibious)
+ * 19. Weather (rain/monsoon progression, stat modifiers)
+ * 20. WaveSpawner (timed enemy waves)
+ * 21. Boss (phase transitions, boss abilities)
+ * 22. Siphon (destructible siphons, toxic terrain)
+ * 23. Demolition (breach charges, explosives)
+ * 24. Siege (multi-section mega-structure attacks)
+ * 25. Tidal (terrain phase transitions)
+ * 26. Fire (spread, damage, scorch)
+ * 27. Difficulty scaling (adaptive enemy strength)
+ * 28. Fog (visibility grid)
+ * 29. Floating text cleanup
+ * 30. Flush removals
  */
 export function runAllSystems(world: GameWorld): void {
 	runOrderSystem(world);
@@ -161,11 +191,21 @@ export function runAllSystems(world: GameWorld): void {
 	runResearchSystem(world);
 	runAbilitySystem(world);
 	runDetectionSystem(world);
+	runStealthSystem(world);
 	runEncounterSystem(world);
 	runTerritorySystem(world);
 	runMultiBaseSystem(world);
+	runConvoySystem(world);
+	runWaterSystem(world);
+	runWeatherSystem(world);
+	runWaveSpawnerSystem(world);
+	runBossSystem(world);
+	runSiphonSystem(world);
+	runDemolitionSystem(world);
+	runSiegeSystem(world);
 	runTidalSystem(world);
 	runFireSystem(world);
+	runDifficultyScalingSystem(world);
 	runFogSystem(world);
 	tickFloatingTexts(world);
 	flushRemovals(world);
