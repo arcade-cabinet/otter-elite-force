@@ -176,9 +176,10 @@ describe("Combat outcome specifications", () => {
 			expect(dps(UNITS.mudfoot, { ...UNITS.mudfoot, armor: 0 })).toBeCloseTo(10, 0);
 		});
 
-		it("Gator DPS vs Mudfoot is ~7.7", () => {
+		it("Gator DPS vs Mudfoot is ~9.2", () => {
+			// damage = max(1, 14 - 2) = 12, DPS = 12 / (1300/1000) = 9.23
 			const gatorDps = dps(UNITS.gator, UNITS.mudfoot);
-			expect(gatorDps).toBeCloseTo(7.7, 0);
+			expect(gatorDps).toBeCloseTo(9.2, 0);
 		});
 	});
 

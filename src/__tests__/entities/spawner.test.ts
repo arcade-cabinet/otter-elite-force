@@ -16,6 +16,7 @@ import {
 	Health,
 	Position,
 	Speed,
+	TargetRef,
 	VisionRadius,
 } from "@/engine/world/components";
 import {
@@ -271,7 +272,6 @@ describe("Entity spawner", () => {
 			const target = spawnUnit(world, { x: 50, y: 50, faction: "scale_guard" });
 			const proj = spawnProjectile(world, { x: 0, y: 0, faction: "ura", damage: 10, targetEid: target });
 
-			const { TargetRef } = await import("@/engine/world/components");
 			expect(TargetRef.eid[proj]).toBe(target);
 		});
 	});

@@ -24,17 +24,17 @@ describe("Mission scoring specifications", () => {
 			expect(score.stars).toBe(1);
 		});
 
-		it("2 stars: one bonus criterion met", () => {
+		it("2 stars: one bonus criterion met (time only)", () => {
 			const world = createGameWorld();
 			world.time.elapsedMs = 300_000; // under threshold
 			world.session.objectives = [
 				{ id: "primary", description: "Win", status: "completed", bonus: false },
 			];
 
-			// Enough survivors for casualty bonus
-			for (let i = 0; i < 8; i++) {
-				spawnUnit(world, { x: i * 10, y: 0, faction: "ura" });
-			}
+			// Only 1 survivor -> many casualties -> no casualty bonus
+			// No bonus objectives -> no objective bonus
+			// Only time bonus -> 1 criterion -> 2 stars
+			spawnUnit(world, { x: 0, y: 0, faction: "ura" });
 
 			const score = calculateMissionScore(world);
 			expect(score.stars).toBe(2);

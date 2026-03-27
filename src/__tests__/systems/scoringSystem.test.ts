@@ -36,7 +36,7 @@ describe("engine/systems/scoringSystem", () => {
 		expect(score.objectiveBonus).toBe(true);
 	});
 
-	it("awards 2 stars with time bonus but no objective bonus", () => {
+	it("awards 2 stars with only time bonus (many casualties, no objective bonus)", () => {
 		const world = makeWorld();
 		world.time.elapsedMs = 300_000; // under threshold
 		world.session.objectives = [
@@ -44,14 +44,14 @@ describe("engine/systems/scoringSystem", () => {
 			{ id: "bonus", description: "No losses", status: "incomplete", bonus: true },
 		];
 
-		for (let i = 0; i < 8; i++) {
-			spawnUnit(world, { x: i * 20, y: 0, faction: "ura" });
-		}
+		// Only 1 survivor out of at least 8 estimated initial -> 7 casualties > 5 threshold
+		spawnUnit(world, { x: 0, y: 0, faction: "ura" });
 
 		const score = calculateMissionScore(world);
 
 		expect(score.stars).toBe(2);
 		expect(score.timeBonus).toBe(true);
+		expect(score.casualtyBonus).toBe(false);
 		expect(score.objectiveBonus).toBe(false);
 	});
 
