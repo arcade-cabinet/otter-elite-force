@@ -744,12 +744,18 @@ export async function createTacticalRuntime(
 			const img = new Image();
 			img.crossOrigin = "anonymous";
 			img.onload = () => {
-				const texInfo = new ljs.TextureInfo(img);
-				const tileInfo = new ljs.TileInfo().setFullImage(texInfo);
-				buildingTileInfos.set(name, tileInfo);
+				try {
+					const texInfo = new ljs.TextureInfo(img);
+					const tileInfo = new ljs.TileInfo().setFullImage(texInfo);
+					buildingTileInfos.set(name, tileInfo);
+				} catch (err) {
+					console.error(`[tacticalRuntime] Failed to create TileInfo for building "${name}":`, err);
+				}
 			};
 			img.onerror = () => {
-				console.error(`[tacticalRuntime] Failed to load building image: ${buildingBase}${name}.png`);
+				console.error(
+					`[tacticalRuntime] Failed to load building image: ${buildingBase}${name}.png`,
+				);
 			};
 			img.src = `${buildingBase}${name}.png`;
 		}
@@ -762,9 +768,13 @@ export async function createTacticalRuntime(
 			const img = new Image();
 			img.crossOrigin = "anonymous";
 			img.onload = () => {
-				const texInfo = new ljs.TextureInfo(img);
-				const tileInfo = new ljs.TileInfo().setFullImage(texInfo);
-				resourceTileInfos.set(key, tileInfo);
+				try {
+					const texInfo = new ljs.TextureInfo(img);
+					const tileInfo = new ljs.TileInfo().setFullImage(texInfo);
+					resourceTileInfos.set(key, tileInfo);
+				} catch (err) {
+					console.error(`[tacticalRuntime] Failed to create TileInfo for resource "${key}":`, err);
+				}
 			};
 			img.onerror = () => {
 				console.error(
@@ -1273,9 +1283,7 @@ export async function createTacticalRuntime(
 				const buildingTile = entityType ? buildingTileInfos.get(entityType) : undefined;
 				if (buildingTile) {
 					// Building occupies 2x2 tiles
-					const buildColor = isUnderConstruction
-						? new ljs.Color(1, 1, 1, 0.4)
-						: ljs.WHITE;
+					const buildColor = isUnderConstruction ? new ljs.Color(1, 1, 1, 0.4) : ljs.WHITE;
 					ljs.drawTile(tilePos, ljs.vec2(2, 2), buildingTile, buildColor);
 				} else {
 					// Fallback: colored rectangle while image loads

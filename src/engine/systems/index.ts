@@ -11,12 +11,16 @@ import { runCombatSystem } from "./combatSystem";
 import { runDetectionSystem } from "./detectionSystem";
 import { runEconomySystem } from "./economySystem";
 import { runEncounterSystem } from "./encounterSystemEngine";
+import { runFireSystem } from "./fireSystem";
 import { runFogSystem } from "./fogSystem";
 import { runLootSystem } from "./lootSystem";
 import { runMovementSystem } from "./movementSystem";
+import { runMultiBaseSystem } from "./multiBaseSystem";
 import { runOrderSystem } from "./orderSystem";
 import { runProductionSystem } from "./productionSystem";
 import { runResearchSystem } from "./researchSystem";
+import { runTerritorySystem } from "./territorySystem";
+import { runTidalSystem } from "./tidalSystem";
 import { runVeterancySystem } from "./veterancySystem";
 
 export type { AbilityDef } from "./abilitySystem";
@@ -42,6 +46,8 @@ export {
 export { runCombatSystem } from "./combatSystem";
 export { runDetectionSystem } from "./detectionSystem";
 export { resetGatherTimers, runEconomySystem } from "./economySystem";
+export type { ActiveFire, FireRuntime } from "./fireSystem";
+export { igniteFireAt, resetFireState, runFireSystem } from "./fireSystem";
 export type { EncounterComposition, EncounterEntry } from "./encounterSystemEngine";
 export {
 	DEFAULT_ENCOUNTER_ENTRIES,
@@ -64,6 +70,17 @@ export {
 export type { DropTable, DropTableEntry } from "./lootSystem";
 export { DROP_TABLES, resetLootRng, rollLootFromTable, runLootSystem } from "./lootSystem";
 export { runMovementSystem } from "./movementSystem";
+export type { CaravanCargo, CaravanEntry, CommandPostLocation, CPRadiusEntry, MultiBaseRuntime } from "./multiBaseSystem";
+export {
+	canPlaceSecondaryCP,
+	createSupplyCaravan,
+	findNearestCPGlobal,
+	findNearestCPInRadius,
+	getCaravanCargo,
+	registerCommandPost,
+	resetMultiBaseState,
+	runMultiBaseSystem,
+} from "./multiBaseSystem";
 export { runOrderSystem } from "./orderSystem";
 export { runProductionSystem } from "./productionSystem";
 export type { ResearchDef } from "./researchSystem";
@@ -73,6 +90,19 @@ export {
 	queueResearch,
 	runResearchSystem,
 } from "./researchSystem";
+export type { TerritoryRuntime, VillageEntry } from "./territorySystem";
+export {
+	FOG_REVEAL_RADIUS,
+	registerVillage,
+	resetTerritoryState,
+	runTerritorySystem,
+} from "./territorySystem";
+export type { TidalPhase, TidalRuntime, TidalZoneRect } from "./tidalSystem";
+export {
+	phaseAtTime,
+	resetTidalState,
+	runTidalSystem,
+} from "./tidalSystem";
 export {
 	awardXp,
 	PROMOTION_THRESHOLDS,
@@ -104,9 +134,13 @@ export {
  * 11. Abilities (cooldowns, activations, timed effects)
  * 12. Detection (stealth/cone detection)
  * 13. Encounters (PRNG-driven random spawns)
- * 14. Fog (visibility grid)
- * 15. Floating text cleanup
- * 16. Flush removals
+ * 14. Territory (village liberation, zone control)
+ * 15. Multi-base (caravans, base loss detection)
+ * 16. Tidal (terrain phase transitions)
+ * 17. Fire (spread, damage, scorch)
+ * 18. Fog (visibility grid)
+ * 19. Floating text cleanup
+ * 20. Flush removals
  */
 export function runAllSystems(world: GameWorld): void {
 	runOrderSystem(world);
@@ -122,6 +156,10 @@ export function runAllSystems(world: GameWorld): void {
 	runAbilitySystem(world);
 	runDetectionSystem(world);
 	runEncounterSystem(world);
+	runTerritorySystem(world);
+	runMultiBaseSystem(world);
+	runTidalSystem(world);
+	runFireSystem(world);
 	runFogSystem(world);
 	tickFloatingTexts(world);
 	flushRemovals(world);

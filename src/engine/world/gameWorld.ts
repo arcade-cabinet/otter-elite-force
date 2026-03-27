@@ -99,6 +99,10 @@ export interface GameWorld {
 		navGraphs: Map<string, unknown>;
 		bossConfigs: Map<number, unknown>;
 		convoyRoutes: Map<number, Array<{ x: number; y: number }>>;
+		/** Per-convoy stopped state (true when enemies detected in range). */
+		convoyStopped: Map<number, boolean>;
+		/** Per-convoy detection radius for enemy stop/resume. */
+		convoyDetectionRadius: Map<number, number>;
 		diagnosticEvents: DiagnosticSnapshot["events"];
 		removals: Set<number>;
 		alive: Set<number>;
@@ -231,6 +235,8 @@ export function createGameWorld(
 			navGraphs: new Map(),
 			bossConfigs: new Map(),
 			convoyRoutes: new Map(),
+			convoyStopped: new Map(),
+			convoyDetectionRadius: new Map(),
 			diagnosticEvents: [],
 			removals: new Set(),
 			alive: new Set(),
@@ -315,6 +321,8 @@ export function resetWorldSession(world: GameWorld): void {
 	world.runtime.navGraphs.clear();
 	world.runtime.bossConfigs.clear();
 	world.runtime.convoyRoutes.clear();
+	world.runtime.convoyStopped.clear();
+	world.runtime.convoyDetectionRadius.clear();
 	world.runtime.diagnosticEvents.length = 0;
 	world.runtime.removals.clear();
 	world.runtime.alive.clear();
@@ -582,6 +590,8 @@ export function flushRemovals(world: GameWorld): void {
 		world.runtime.steeringAgents.delete(eid);
 		world.runtime.bossConfigs.delete(eid);
 		world.runtime.convoyRoutes.delete(eid);
+		world.runtime.convoyStopped.delete(eid);
+		world.runtime.convoyDetectionRadius.delete(eid);
 		world.runtime.killCounts.delete(eid);
 		world.runtime.damageAssists.delete(eid);
 		world.runtime.entityAbilities.delete(eid);

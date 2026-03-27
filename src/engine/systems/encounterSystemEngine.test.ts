@@ -12,19 +12,27 @@ vi.mock("@/engine/audio/audioRuntime", () => ({
 	playSfx: vi.fn(),
 }));
 
-// Mock template loader since encounter system uses it
-vi.mock("@/engine/content/templateLoader", () => ({
-	getUnitTemplate: vi.fn((id: string) => ({
+// Mock entity registry since encounter system uses it
+vi.mock("@/entities/registry", () => ({
+	getUnit: vi.fn((id: string) => ({
 		id,
+		name: id.charAt(0).toUpperCase() + id.slice(1),
 		faction: "scale_guard",
-		stats: {
-			hp: 50,
-			attackDamage: 8,
-			attackRange: 48,
-			attackCooldownMs: 1500,
-			speed: 48,
-			visionRadius: 80,
-		},
+		category: "infantry",
+		hp: 50,
+		armor: 0,
+		damage: 8,
+		range: 48,
+		attackCooldown: 1500,
+		speed: 48,
+		visionRadius: 80,
+		cost: { fish: 0, timber: 0, salvage: 0 },
+		populationCost: 1,
+		trainTime: 5000,
+		trainedAt: "barracks",
+		unlockedAt: "mission_1",
+		tags: [],
+		sprite: { atlas: "", row: 0, col: 0 },
 	})),
 }));
 

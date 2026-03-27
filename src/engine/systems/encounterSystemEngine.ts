@@ -8,11 +8,12 @@
  * Pure function on GameWorld.
  */
 
-import { getUnitTemplate } from "@/engine/content/templateLoader";
+import { resolveCategoryId } from "@/engine/content/ids";
 import { createRng, deriveGameplaySeed, type Rng } from "@/engine/random/seed";
 import { Attack, Speed, VisionRadius } from "@/engine/world/components";
 import type { GameWorld } from "@/engine/world/gameWorld";
 import { spawnUnit } from "@/engine/world/gameWorld";
+import { getUnit } from "@/entities/registry";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -105,7 +106,11 @@ function spawnEncounterUnit(
 	rect: { x: number; y: number; width: number; height: number },
 	rng: Rng,
 ): number {
-	const unitDef = getUnitTemplate(unitType);
+	const unitDef = getUnit(unitType);
+	if (!unitDef) {
+		console.warn(`[encounterSystem] Unknown unit type '${unitType}', skipping spawn`);
+		return -1;
+	}
 
 	// Randomize position within zone
 	const x = rect.x + rng.nextInt(Math.max(1, Math.floor(rect.width)));
@@ -116,13 +121,14 @@ function spawnEncounterUnit(
 		y,
 		faction: unitDef.faction,
 		unitType: unitDef.id,
-		health: { current: unitDef.stats.hp, max: unitDef.stats.hp },
+		categoryId: resolveCategoryId(unitDef.category),
+		health: { current: unitDef.hp, max: unitDef.hp },
 	});
-	Attack.damage[eid] = unitDef.stats.attackDamage;
-	Attack.range[eid] = unitDef.stats.attackRange;
-	Attack.cooldown[eid] = unitDef.stats.attackCooldownMs / 1000;
-	Speed.value[eid] = unitDef.stats.speed;
-	VisionRadius.value[eid] = unitDef.stats.visionRadius;
+	Attack.damage[eid] = unitDef.damage;
+	Attack.range[eid] = unitDef.range;
+	Attack.cooldown[eid] = unitDef.attackCooldown / 1000;
+	Speed.value[eid] = unitDef.speed;
+	VisionRadius.value[eid] = unitDef.visionRadius;
 	return eid;
 }
 
@@ -206,8 +212,10 @@ export function runEncounterSystem(world: GameWorld): void {
 			const count = Math.max(0, comp.count + variance);
 
 			for (let j = 0; j < count; j++) {
-				spawnEncounterUnit(world, comp.unitType, zone.rect, rng);
-				spawnedAny = true;
+				const eid = spawnEncounterUnit(world, comp.unitType, zone.rect, rng);
+				if (eid !== -1) {
+					spawnedAny = true;
+				}
 			}
 		}
 

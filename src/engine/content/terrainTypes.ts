@@ -18,6 +18,7 @@ export const TerrainTypeId = {
 	bridge: 8,
 	beach: 9,
 	toxic_sludge: 10,
+	scorched: 11,
 } as const;
 
 export type TerrainTypeIdValue = (typeof TerrainTypeId)[keyof typeof TerrainTypeId];
