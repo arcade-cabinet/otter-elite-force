@@ -14,8 +14,13 @@ import { createSeedBundle } from "@/engine/random/seed";
 import { bootstrapMission } from "@/engine/session/missionBootstrap";
 import { createRuntimeMissionFlow } from "@/engine/session/runtimeMissionFlow";
 import { runAllSystems } from "@/engine/systems";
+import { resetDifficultyScaling } from "@/engine/systems/difficultyScalingSystem";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
+import { resetEncounterState } from "@/engine/systems/encounterSystemEngine";
 import { createFogGrid, type FogRuntime } from "@/engine/systems/fogSystem";
+import { resetLootRng } from "@/engine/systems/lootSystem";
+import { resetWaveTimers } from "@/engine/systems/waveSpawnerSystem";
+import { resetWeatherSystem } from "@/engine/systems/weatherSystem";
 import { Faction, Flags } from "@/engine/world/components";
 import { createGameWorld } from "@/engine/world/gameWorld";
 import { createGovernor, type GovernorConfig } from "./governor";
@@ -61,8 +66,15 @@ export function runGovernorPlaytest(
 	config?: Partial<GovernorConfig>,
 	maxTicks = DEFAULT_MAX_TICKS,
 ): PlaytestReport {
-	// Reset module-level state to ensure determinism
+	// Reset all module-level system state to ensure determinism across test runs.
+	// Each system may cache per-entity data in module-scope Maps/variables that
+	// leak between separate GameWorld instances (same entity IDs, different worlds).
 	resetGatherTimers();
+	resetLootRng();
+	resetWeatherSystem();
+	resetWaveTimers();
+	resetDifficultyScaling();
+	resetEncounterState();
 
 	// Create world with deterministic seed
 	const seed = createSeedBundle({

@@ -73,6 +73,13 @@ export default defineConfig({
 			// E2E visual playtest requires Playwright + running dev server.
 			// Run manually: pnpm test -- src/__tests__/e2e/visualPlaytest.test.ts
 			"src/__tests__/e2e/visualPlaytest.test.ts",
+			// Slow governor/playtest tests (60000+ ticks, 2-4 minutes each).
+			// Run manually: npx vitest run src/engine/playtester/allMissions.test.ts --timeout 300000
+			"src/engine/playtester/allMissions.test.ts",
+			"src/engine/playtester/runner.test.ts",
+			"src/engine/session/missionPlaytest.test.ts",
+			"src/__tests__/balance/economyTimeline.test.ts",
+			"src/__tests__/balance/missionPacing.test.ts",
 		],
 		// Handle ESM packages with directory imports
 		server: {
