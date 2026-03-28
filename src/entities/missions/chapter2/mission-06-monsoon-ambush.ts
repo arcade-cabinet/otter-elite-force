@@ -141,8 +141,8 @@ export const mission06MonsoonAmbush: MissionDef = {
 		// No enemies on map at start — all spawned by wave triggers
 	],
 
-	startResources: { fish: 200, timber: 150, salvage: 75 },
-	startPopCap: 20,
+	startResources: { fish: 400, timber: 300, salvage: 150 },
+	startPopCap: 25,
 
 	// ─── Weather schedule (supplementary — main transitions via triggers) ───
 

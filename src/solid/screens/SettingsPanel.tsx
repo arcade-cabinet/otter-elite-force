@@ -175,23 +175,47 @@ export const SettingsPanel: Component<{ app: AppState }> = (props) => {
 				<section>
 					<SectionHeader label="Audio" />
 					<div class="flex flex-col gap-2">
-						<SliderSetting label="Master Volume" value={masterVolume} onChange={withPersist(setMasterVolume)} />
-						<SliderSetting label="Music Volume" value={musicVolume} onChange={withPersist(setMusicVolume)} />
-						<SliderSetting label="SFX Volume" value={sfxVolume} onChange={withPersist(setSfxVolume)} />
+						<SliderSetting
+							label="Master Volume"
+							value={masterVolume}
+							onChange={withPersist(setMasterVolume)}
+						/>
+						<SliderSetting
+							label="Music Volume"
+							value={musicVolume}
+							onChange={withPersist(setMusicVolume)}
+						/>
+						<SliderSetting
+							label="SFX Volume"
+							value={sfxVolume}
+							onChange={withPersist(setSfxVolume)}
+						/>
 					</div>
 				</section>
 				<section>
 					<SectionHeader label="Visual" />
 					<div class="flex flex-col gap-2">
-						<ToggleSetting label="Show Grid Overlay" value={showGrid} onChange={withPersist(setShowGrid)} />
+						<ToggleSetting
+							label="Show Grid Overlay"
+							value={showGrid}
+							onChange={withPersist(setShowGrid)}
+						/>
 						<ToggleSetting label="Reduce FX" value={reduceFx} onChange={withPersist(setReduceFx)} />
 					</div>
 				</section>
 				<section>
 					<SectionHeader label="Accessibility" />
 					<div class="flex flex-col gap-2">
-						<ToggleSetting label="Subtitles" value={subtitles} onChange={withPersist(setSubtitles)} />
-						<ToggleSetting label="Reduce Motion" value={reduceMotion} onChange={withPersist(setReduceMotion)} />
+						<ToggleSetting
+							label="Subtitles"
+							value={subtitles}
+							onChange={withPersist(setSubtitles)}
+						/>
+						<ToggleSetting
+							label="Reduce Motion"
+							value={reduceMotion}
+							onChange={withPersist(setReduceMotion)}
+						/>
 					</div>
 				</section>
 				<section class="border border-border/30 bg-card/20 p-4">

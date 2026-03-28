@@ -225,8 +225,8 @@ export const mission05SiphonValley: MissionDef = {
 		{ type: "gator", faction: "scale_guard", x: 114, y: 48 },
 	],
 
-	startResources: { fish: 150, timber: 100, salvage: 50 },
-	startPopCap: 20,
+	startResources: { fish: 400, timber: 250, salvage: 100 },
+	startPopCap: 25,
 
 	// ── Objectives ────────────────────────────────────────────────────────
 	objectives: {

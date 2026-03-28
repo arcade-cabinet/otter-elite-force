@@ -7,13 +7,6 @@
 
 import { describe, expect, it } from "vitest";
 import { CATEGORY_IDS } from "@/engine/content/ids";
-import { Attack, Construction, Content, Faction, Flags, Health, Position, VisionRadius } from "@/engine/world/components";
-import {
-	createGameWorld,
-	getOrderQueue,
-	spawnBuilding,
-	spawnUnit,
-} from "@/engine/world/gameWorld";
 import {
 	canPlaceBuilding,
 	canTrainUnit,
@@ -22,6 +15,17 @@ import {
 	runBuildingSystem,
 	type TileMap,
 } from "@/engine/systems/buildingSystem";
+import {
+	Attack,
+	Construction,
+	Content,
+	Faction,
+	Flags,
+	Health,
+	Position,
+	VisionRadius,
+} from "@/engine/world/components";
+import { createGameWorld, getOrderQueue, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 
 function makeWorld(deltaMs: number) {
 	const world = createGameWorld();
@@ -33,12 +37,20 @@ function createMockTileMap(overrides?: {
 	terrain?: Map<string, "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge">;
 	occupied?: Set<string>;
 }): TileMap {
-	const terrain = overrides?.terrain ?? new Map<string, "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge">();
+	const terrain =
+		overrides?.terrain ??
+		new Map<string, "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge">();
 	const occupied = overrides?.occupied ?? new Set<string>();
 	return {
 		getTerrain(x: number, y: number) {
 			const key = `${x},${y}`;
-			return (terrain.get(key) ?? "grass") as "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge";
+			return (terrain.get(key) ?? "grass") as
+				| "grass"
+				| "dirt"
+				| "mud"
+				| "water"
+				| "mangrove"
+				| "bridge";
 		},
 		isOccupied(x: number, y: number) {
 			return occupied.has(`${x},${y}`);

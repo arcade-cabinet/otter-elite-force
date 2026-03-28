@@ -7,14 +7,9 @@
 
 import { describe, expect, it } from "vitest";
 import { CATEGORY_IDS } from "@/engine/content/ids";
-import { Construction, Content, Health } from "@/engine/world/components";
-import {
-	createGameWorld,
-	getOrderQueue,
-	spawnBuilding,
-	spawnUnit,
-} from "@/engine/world/gameWorld";
 import { canTrainUnit, runBuildingSystem } from "@/engine/systems/buildingSystem";
+import { Construction, Content, Health } from "@/engine/world/components";
+import { createGameWorld, getOrderQueue, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 
 function makeWorld(deltaMs: number) {
 	const world = createGameWorld();

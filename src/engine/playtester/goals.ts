@@ -11,8 +11,8 @@
  * 3. Build     — construct buildings in priority order
  * 4. Train     — train military units when resources allow
  * 5. Scout     — send 1 unit to explore fog
- * 6. Attack    — when army is 5+ military, push toward enemies
- * 7. Complete  — move toward mission objectives
+ * 6. Attack    — when army is 5+ military, push toward enemies (prioritizes building destruction objectives)
+ * 7. Capture   — move military units into zones required by capture/zone objectives
  */
 
 import type { PerceivedResource, PerceivedUnit, WorldPerception } from "./perception";
@@ -136,9 +136,13 @@ export function evaluateGoals(
 	const scoutActions = evaluateScout(perception, state);
 	plans.push(...scoutActions);
 
-	// 6. ATTACK — push military when army is strong enough
+	// 6. ATTACK — push military when army is strong enough (prioritizes destruction objectives)
 	const attackActions = evaluateAttack(perception, profile);
 	plans.push(...attackActions);
+
+	// 7. CAPTURE — move military to zone-based objectives
+	const captureActions = evaluateCapture(perception, profile);
+	plans.push(...captureActions);
 
 	return plans;
 }
@@ -198,8 +202,7 @@ function evaluateGather(perception: WorldPerception, state: GovernorState): Acti
 		);
 
 		for (const needed of neededTypes) {
-			const currentAmount =
-				perception.resources[needed as keyof typeof perception.resources] ?? 0;
+			const currentAmount = perception.resources[needed as keyof typeof perception.resources] ?? 0;
 			const buildNeed = getNextBuildCostFor(perception, needed);
 			if (currentAmount >= buildNeed && buildNeed > 0) continue;
 
@@ -374,7 +377,11 @@ function getNeededResourceTypes(perception: WorldPerception): string[] {
 			needed.push("fish");
 		if (cost.timber > 0 && perception.resources.timber < cost.timber && !needed.includes("timber"))
 			needed.push("timber");
-		if (cost.salvage > 0 && perception.resources.salvage < cost.salvage && !needed.includes("salvage"))
+		if (
+			cost.salvage > 0 &&
+			perception.resources.salvage < cost.salvage &&
+			!needed.includes("salvage")
+		)
 			needed.push("salvage");
 		if (needed.length > 0) return needed;
 	}
@@ -732,26 +739,89 @@ function evaluateScout(perception: WorldPerception, state: GovernorState): Actio
 // Goal: Attack
 // ---------------------------------------------------------------------------
 
+/** Building types that objectives may reference for destruction. */
+const DESTRUCTION_KEYWORDS: Record<string, string[]> = {
+	flag_post: ["flag", "flag_post", "hilltop"],
+	fuel_tank: ["fuel", "fuel_tank", "siphon", "tank", "depot"],
+	radio_tower: ["radio", "radio_tower"],
+	watchtower: ["watchtower", "watch_tower"],
+	venom_spire: ["venom", "venom_spire", "spire"],
+};
+
+/**
+ * Check active objectives for destruction targets and return the building type
+ * the governor should prioritize attacking.
+ */
+function getDestructionTargetType(objectives: WorldPerception["objectives"]): string | null {
+	for (const obj of objectives) {
+		if (obj.status !== "active") continue;
+		const desc = obj.description.toLowerCase();
+		// Check for "destroy" keyword in objective description
+		if (!desc.includes("destroy")) continue;
+		for (const [buildingType, keywords] of Object.entries(DESTRUCTION_KEYWORDS)) {
+			for (const kw of keywords) {
+				if (desc.includes(kw)) return buildingType;
+			}
+		}
+	}
+	return null;
+}
+
 function evaluateAttack(perception: WorldPerception, profile: GovernorProfile): ActionPlan[] {
 	if (perception.militaryUnits.length < profile.attackThreshold) return [];
 
-	// Find a target: visible enemy buildings, then visible enemy units
-	let targetX: number;
-	let targetY: number;
+	// Find a target: check destruction objectives first, then visible enemy buildings, then units
+	// Default to map center if no targets found
+	let targetX: number = perception.mapWidth * 16;
+	let targetY: number = perception.mapHeight * 16;
 
-	if (perception.enemyBuildings.length > 0) {
-		const target = perception.enemyBuildings[0];
-		targetX = target.x;
-		targetY = target.y;
-	} else if (perception.visibleEnemies.length > 0) {
-		// Pick weakest enemy
-		const weakest = perception.visibleEnemies.reduce((a, b) => (a.hp < b.hp ? a : b));
-		targetX = weakest.x;
-		targetY = weakest.y;
-	} else {
-		// No visible targets — move toward map center (or known enemy area)
-		targetX = perception.mapWidth * 16;
-		targetY = perception.mapHeight * 16;
+	// Task 3: Check if any active objective requires destroying a specific building type
+	const destructionTarget = getDestructionTargetType(perception.objectives);
+	let foundPriorityTarget = false;
+
+	if (destructionTarget && perception.enemyBuildings.length > 0) {
+		// Find the nearest enemy building of the target type
+		const targetBuildings = perception.enemyBuildings.filter(
+			(b) => b.buildingType === destructionTarget,
+		);
+		if (targetBuildings.length > 0) {
+			// Pick the nearest one to our army centroid
+			const armyCx =
+				perception.militaryUnits.reduce((sum, u) => sum + u.x, 0) / perception.militaryUnits.length;
+			const armyCy =
+				perception.militaryUnits.reduce((sum, u) => sum + u.y, 0) / perception.militaryUnits.length;
+			let bestDist = Infinity;
+			let bestTarget = targetBuildings[0];
+			for (const b of targetBuildings) {
+				const dx = b.x - armyCx;
+				const dy = b.y - armyCy;
+				const dist = dx * dx + dy * dy;
+				if (dist < bestDist) {
+					bestDist = dist;
+					bestTarget = b;
+				}
+			}
+			targetX = bestTarget.x;
+			targetY = bestTarget.y;
+			foundPriorityTarget = true;
+		}
+	}
+
+	if (!foundPriorityTarget) {
+		if (perception.enemyBuildings.length > 0) {
+			const target = perception.enemyBuildings[0];
+			targetX = target.x;
+			targetY = target.y;
+		} else if (perception.visibleEnemies.length > 0) {
+			// Pick weakest enemy
+			const weakest = perception.visibleEnemies.reduce((a, b) => (a.hp < b.hp ? a : b));
+			targetX = weakest.x;
+			targetY = weakest.y;
+		} else {
+			// No visible targets — move toward map center (or known enemy area)
+			targetX = perception.mapWidth * 16;
+			targetY = perception.mapHeight * 16;
+		}
 	}
 
 	const idleMilitary = perception.militaryUnits.filter((u) => u.isIdle);
@@ -765,6 +835,74 @@ function evaluateAttack(perception: WorldPerception, profile: GovernorProfile): 
 			targetY,
 		},
 	];
+}
+
+// ---------------------------------------------------------------------------
+// Goal: Capture — move military units into zones required by objectives
+// ---------------------------------------------------------------------------
+
+/** Keywords in objective descriptions that indicate a zone-capture objective. */
+const CAPTURE_KEYWORDS = ["capture", "zone", "area", "enter", "hold", "move into", "secure"];
+
+function evaluateCapture(perception: WorldPerception, profile: GovernorProfile): ActionPlan[] {
+	if (perception.militaryUnits.length < profile.attackThreshold) return [];
+
+	const idleMilitary = perception.militaryUnits.filter((u) => u.isIdle);
+	if (idleMilitary.length === 0) return [];
+
+	// Scan active objectives for capture/zone keywords
+	for (const obj of perception.objectives) {
+		if (obj.status !== "active") continue;
+		const desc = obj.description.toLowerCase();
+
+		const isCaptureObjective = CAPTURE_KEYWORDS.some((kw) => desc.includes(kw));
+		if (!isCaptureObjective) continue;
+
+		// Try to match the objective to a zone by checking if any zone name
+		// appears in the objective ID or description
+		for (const zone of perception.zones) {
+			const zoneNameNormalized = zone.id.replace(/_/g, " ").toLowerCase();
+			const objIdNormalized = obj.id.replace(/-/g, " ").toLowerCase();
+
+			if (desc.includes(zoneNameNormalized) || objIdNormalized.includes(zoneNameNormalized)) {
+				// Found a matching zone — move idle military to its center
+				const centerX = zone.x + zone.width / 2;
+				const centerY = zone.y + zone.height / 2;
+
+				return [
+					{
+						type: "attack-move",
+						unitEids: idleMilitary.map((u) => u.eid),
+						targetX: centerX,
+						targetY: centerY,
+					},
+				];
+			}
+		}
+
+		// If no zone name match, try matching common zone keywords in the description
+		// (e.g. "Capture Hilltop Charlie" -> look for zone containing "charlie")
+		const words = desc.split(/\s+/);
+		for (const zone of perception.zones) {
+			const zoneWords = zone.id.split("_");
+			const matched = zoneWords.some((zw) => zw.length > 3 && words.some((dw) => dw.includes(zw)));
+			if (matched) {
+				const centerX = zone.x + zone.width / 2;
+				const centerY = zone.y + zone.height / 2;
+
+				return [
+					{
+						type: "attack-move",
+						unitEids: idleMilitary.map((u) => u.eid),
+						targetX: centerX,
+						targetY: centerY,
+					},
+				];
+			}
+		}
+	}
+
+	return [];
 }
 
 // ---------------------------------------------------------------------------

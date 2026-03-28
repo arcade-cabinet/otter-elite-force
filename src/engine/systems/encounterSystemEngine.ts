@@ -215,7 +215,8 @@ export function runEncounterSystem(world: GameWorld): void {
 		const spawnRng = getEncounterRng(world);
 		let spawnedAny = false;
 		for (const comp of entry.composition) {
-			const variance = comp.variance > 0 ? spawnRng.nextInt(comp.variance * 2 + 1) - comp.variance : 0;
+			const variance =
+				comp.variance > 0 ? spawnRng.nextInt(comp.variance * 2 + 1) - comp.variance : 0;
 			const count = Math.max(0, comp.count + variance);
 
 			for (let j = 0; j < count; j++) {

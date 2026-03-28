@@ -5,18 +5,14 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { Attack, Flags, Health, Speed } from "@/engine/world/components";
-import {
-	createGameWorld,
-	spawnBuilding,
-	spawnUnit,
-} from "@/engine/world/gameWorld";
 import {
 	getResearchDef,
 	isResearchCompleted,
 	queueResearch,
 	runResearchSystem,
 } from "@/engine/systems/researchSystem";
+import { Attack, Flags, Health, Speed } from "@/engine/world/components";
+import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 
 function makeWorld(deltaMs: number) {
 	const world = createGameWorld();
@@ -62,7 +58,9 @@ describe("engine/systems/researchSystem", () => {
 
 			const queue = world.runtime.productionQueues.get(armory);
 			expect(queue).toBeDefined();
-			expect(queue!.some((e) => e.type === "research" && e.contentId === "hardshell_armor")).toBe(true);
+			expect(queue!.some((e) => e.type === "research" && e.contentId === "hardshell_armor")).toBe(
+				true,
+			);
 		});
 
 		it("rejects research if insufficient resources", () => {

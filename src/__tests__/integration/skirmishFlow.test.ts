@@ -9,10 +9,10 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { SkirmishSessionConfig } from "@/features/skirmish/types";
-import { runSkirmishSandbox, type EntitySnapshot } from "@/engine/session/skirmishSandbox";
 import { createSeedBundle, type SeedBundle } from "@/engine/random/seed";
+import { type EntitySnapshot, runSkirmishSandbox } from "@/engine/session/skirmishSandbox";
 import { Position } from "@/engine/world/components";
+import type { SkirmishSessionConfig } from "@/features/skirmish/types";
 
 // ---------------------------------------------------------------------------
 // Helpers

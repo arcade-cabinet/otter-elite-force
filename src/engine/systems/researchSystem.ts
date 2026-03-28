@@ -25,7 +25,15 @@
  *     gun_emplacements, demolition_charges, advanced_rafts, diving_gear
  */
 
-import { Armor, Attack, Faction, Flags, Health, Speed, VisionRadius } from "@/engine/world/components";
+import {
+	Armor,
+	Attack,
+	Faction,
+	Flags,
+	Health,
+	Speed,
+	VisionRadius,
+} from "@/engine/world/components";
 import { type GameWorld, getProductionQueue, type ProductionEntry } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------

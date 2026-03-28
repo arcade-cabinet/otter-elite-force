@@ -9,7 +9,15 @@
  * Reads from solidBridge dialogue() signal.
  */
 
-import { type Component, createEffect, createMemo, createSignal, type JSX, onMount, Show } from "solid-js";
+import {
+	type Component,
+	createEffect,
+	createMemo,
+	createSignal,
+	type JSX,
+	onMount,
+	Show,
+} from "solid-js";
 import { getPortraitCanvas } from "@/canvas/portraitRenderer";
 
 interface AtlasFrame {

@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { Armor, Flags, Health, Position } from "@/engine/world/components";
 import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 import {
+	applyExplosion,
+	CHAIN_EXPLOSION_RADIUS,
 	CHARGE_COUNTDOWN,
 	CHARGE_DAMAGE,
 	CHARGE_RADIUS,
-	CHAIN_EXPLOSION_RADIUS,
-	applyExplosion,
 	placeCharge,
 	runChargeTickSystem,
 	runDemolitionSystem,
@@ -54,8 +54,18 @@ describe("engine/systems/demolitionSystem", () => {
 		it("damages all entities within blast radius", () => {
 			const world = createGameWorld();
 
-			const unit1 = spawnUnit(world, { x: 100, y: 100, faction: "ura", health: { current: 100, max: 100 } });
-			const unit2 = spawnUnit(world, { x: 130, y: 100, faction: "scale_guard", health: { current: 80, max: 80 } });
+			const unit1 = spawnUnit(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				health: { current: 100, max: 100 },
+			});
+			const unit2 = spawnUnit(world, {
+				x: 130,
+				y: 100,
+				faction: "scale_guard",
+				health: { current: 80, max: 80 },
+			});
 			Armor.value[unit2] = 5;
 
 			// Explosion at (100, 100) with radius 96
@@ -106,7 +116,12 @@ describe("engine/systems/demolitionSystem", () => {
 		it("does not hit entities outside radius", () => {
 			const world = createGameWorld();
 
-			const farUnit = spawnUnit(world, { x: 500, y: 500, faction: "ura", health: { current: 100, max: 100 } });
+			const farUnit = spawnUnit(world, {
+				x: 500,
+				y: 500,
+				faction: "ura",
+				health: { current: 100, max: 100 },
+			});
 
 			applyExplosion(world, 100, 100, 96, 50);
 
@@ -116,7 +131,12 @@ describe("engine/systems/demolitionSystem", () => {
 		it("does not damage projectiles or resources", () => {
 			const world = createGameWorld();
 
-			const unit = spawnUnit(world, { x: 100, y: 100, faction: "ura", health: { current: 100, max: 100 } });
+			const unit = spawnUnit(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				health: { current: 100, max: 100 },
+			});
 			Flags.isProjectile[unit] = 1;
 
 			const result = applyExplosion(world, 100, 100, 96, 50);
@@ -148,7 +168,12 @@ describe("engine/systems/demolitionSystem", () => {
 			world.events.length = 0;
 
 			// Place a unit near the charge
-			const target = spawnUnit(world, { x: 210, y: 200, faction: "scale_guard", health: { current: 200, max: 200 } });
+			const target = spawnUnit(world, {
+				x: 210,
+				y: 200,
+				faction: "scale_guard",
+				health: { current: 200, max: 200 },
+			});
 
 			const result = runChargeTickSystem(world);
 
@@ -246,7 +271,12 @@ describe("engine/systems/demolitionSystem", () => {
 			const world = createGameWorld();
 			world.time.deltaMs = 100;
 
-			const unit = spawnUnit(world, { x: 100, y: 100, faction: "ura", health: { current: 100, max: 100 } });
+			const unit = spawnUnit(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				health: { current: 100, max: 100 },
+			});
 
 			world.events.push({
 				type: "detonate",

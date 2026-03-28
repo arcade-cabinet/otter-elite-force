@@ -9,7 +9,6 @@
  */
 
 import { FACTION_IDS } from "@/engine/content/ids";
-import { getMissionById } from "@/entities/missions";
 import { createSeedBundle } from "@/engine/random/seed";
 import { bootstrapMission } from "@/engine/session/missionBootstrap";
 import { createRuntimeMissionFlow } from "@/engine/session/runtimeMissionFlow";
@@ -23,6 +22,7 @@ import { resetWaveTimers } from "@/engine/systems/waveSpawnerSystem";
 import { resetWeatherSystem } from "@/engine/systems/weatherSystem";
 import { Faction, Flags } from "@/engine/world/components";
 import { createGameWorld } from "@/engine/world/gameWorld";
+import { getMissionById } from "@/entities/missions";
 import { createGovernor, type GovernorConfig } from "./governor";
 
 // ---------------------------------------------------------------------------
@@ -98,9 +98,7 @@ export function runGovernorPlaytest(
 
 	// Create mission flow (scenario trigger engine) so objectives can fire
 	const missionDef = getMissionById(missionId);
-	const missionFlow = missionDef
-		? createRuntimeMissionFlow({ world, mission: missionDef })
-		: null;
+	const missionFlow = missionDef ? createRuntimeMissionFlow({ world, mission: missionDef }) : null;
 
 	// Create governor
 	const governorConfig: GovernorConfig = {
@@ -147,8 +145,6 @@ export function runGovernorPlaytest(
 
 		// Evaluate scenario triggers (objectives, phases, dialogue)
 		missionFlow?.step();
-
-
 
 		// Track stats
 		let currentArmySize = 0;

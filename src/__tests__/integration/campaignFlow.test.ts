@@ -11,19 +11,19 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createAppState } from "@/solid/appState";
+import { isFinalCampaignMission, resolveMissionVictory } from "@/app/missionResult";
 import { runGovernorPlaytest } from "@/engine/playtester/runner";
+import { createSeedBundle } from "@/engine/random/seed";
 import {
 	advanceCampaign,
 	getCampaignNextMission,
 	isCampaignComplete,
 	startNewCampaign,
 } from "@/engine/session/campaignFlow";
-import { resolveMissionVictory, isFinalCampaignMission } from "@/app/missionResult";
-import { calculateMissionScore } from "@/engine/systems/scoringSystem";
 import { bootstrapMission } from "@/engine/session/missionBootstrap";
+import { calculateMissionScore } from "@/engine/systems/scoringSystem";
 import { createGameWorld } from "@/engine/world/gameWorld";
-import { createSeedBundle } from "@/engine/random/seed";
+import { createAppState } from "@/solid/appState";
 
 // ---------------------------------------------------------------------------
 // Task 1: Full campaign flow E2E
@@ -86,7 +86,9 @@ describe("E2E: Campaign flow", () => {
 			expect(world.navigation.height).toBeGreaterThan(0);
 		});
 
-		it("runs governor playtest on mission_1 for 30000 ticks and produces a report", { timeout: 60000 }, () => {
+		it("runs governor playtest on mission_1 for 30000 ticks and produces a report", {
+			timeout: 60000,
+		}, () => {
 			const report = runGovernorPlaytest("mission_1", { difficulty: "optimal" }, 30000);
 
 			expect(report.missionId).toBe("mission_1");

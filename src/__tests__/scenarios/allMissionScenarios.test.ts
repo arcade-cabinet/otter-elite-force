@@ -14,7 +14,14 @@
  */
 
 import { describe, expect, it } from "vitest";
+import type { RuntimeMissionFlow } from "@/engine/session/runtimeMissionFlow";
+import { createRuntimeMissionFlow } from "@/engine/session/runtimeMissionFlow";
+import {
+	createCampaignRuntimeSession,
+	seedGameWorldFromCampaignSession,
+} from "@/engine/session/tacticalSession";
 import { Faction, Flags, Health, Position } from "@/engine/world/components";
+import type { GameWorld } from "@/engine/world/gameWorld";
 import {
 	createGameWorld,
 	flushRemovals,
@@ -22,15 +29,8 @@ import {
 	spawnBuilding,
 	spawnUnit,
 } from "@/engine/world/gameWorld";
-import type { GameWorld } from "@/engine/world/gameWorld";
-import { createRuntimeMissionFlow } from "@/engine/session/runtimeMissionFlow";
-import type { RuntimeMissionFlow } from "@/engine/session/runtimeMissionFlow";
-import {
-	createCampaignRuntimeSession,
-	seedGameWorldFromCampaignSession,
-} from "@/engine/session/tacticalSession";
-import type { MissionDef } from "@/entities/types";
 import { compileMissionScenario } from "@/entities/missions/compileMissionScenario";
+import type { MissionDef } from "@/entities/types";
 import { ScenarioEngine, type ScenarioWorldQuery } from "@/scenarios/engine";
 
 // ---------------------------------------------------------------------------
@@ -376,7 +376,7 @@ describe("Mission 4: Prison Break", () => {
 		// doesn't exist as a recognized building (buildingDestroyed returns true)
 		expect(
 			world.runtime.scenarioPhase === "inside-the-wire" ||
-			world.runtime.scenarioPhase === "exfiltration",
+				world.runtime.scenarioPhase === "exfiltration",
 		).toBe(true);
 		flow.dispose();
 	});
@@ -389,7 +389,7 @@ describe("Mission 4: Prison Break", () => {
 		// Chains immediately to exfiltration
 		expect(
 			world.runtime.scenarioPhase === "exfiltration" ||
-			world.runtime.scenarioPhase === "inside-the-wire",
+				world.runtime.scenarioPhase === "inside-the-wire",
 		).toBe(true);
 		flow.dispose();
 	});
@@ -491,15 +491,11 @@ describe("Mission 6: Monsoon Ambush", () => {
 	it("spawns wave 1 skinks at 180s", () => {
 		const { world, flow } = setupMission("mission_6");
 		const initialSkinks = [...world.runtime.alive].filter(
-			(eid) =>
-				Faction.id[eid] === 2 &&
-				world.runtime.entityTypeIndex.get(eid) === "skink",
+			(eid) => Faction.id[eid] === 2 && world.runtime.entityTypeIndex.get(eid) === "skink",
 		).length;
 		stepAt(world, flow, 181_000);
 		const postWaveSkinks = [...world.runtime.alive].filter(
-			(eid) =>
-				Faction.id[eid] === 2 &&
-				world.runtime.entityTypeIndex.get(eid) === "skink",
+			(eid) => Faction.id[eid] === 2 && world.runtime.entityTypeIndex.get(eid) === "skink",
 		).length;
 		expect(postWaveSkinks).toBeGreaterThan(initialSkinks);
 		flow.dispose();
@@ -767,7 +763,7 @@ describe("Mission 12: The Stronghold", () => {
 		// because the lockdown trigger fires on objectiveComplete("rescue-fang")
 		expect(
 			world.runtime.scenarioPhase === "rescue" ||
-			world.runtime.scenarioPhase === "fighting_retreat",
+				world.runtime.scenarioPhase === "fighting_retreat",
 		).toBe(true);
 		flow.dispose();
 	});

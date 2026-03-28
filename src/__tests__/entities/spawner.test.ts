@@ -22,10 +22,10 @@ import {
 import {
 	createGameWorld,
 	isAlive,
-	spawnUnit,
 	spawnBuilding,
-	spawnResource,
 	spawnProjectile,
+	spawnResource,
+	spawnUnit,
 } from "@/engine/world/gameWorld";
 
 describe("Entity spawner", () => {
@@ -47,7 +47,12 @@ describe("Entity spawner", () => {
 
 		it("sets health from options", () => {
 			const world = createGameWorld();
-			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", health: { current: 80, max: 100 } });
+			const eid = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				health: { current: 80, max: 100 },
+			});
 			expect(Health.current[eid]).toBe(80);
 			expect(Health.max[eid]).toBe(100);
 		});
@@ -253,7 +258,12 @@ describe("Entity spawner", () => {
 
 		it("supports scriptId", () => {
 			const world = createGameWorld();
-			const eid = spawnResource(world, { x: 0, y: 0, resourceType: "fish_node", scriptId: "bonus_fish" });
+			const eid = spawnResource(world, {
+				x: 0,
+				y: 0,
+				resourceType: "fish_node",
+				scriptId: "bonus_fish",
+			});
 			expect(world.runtime.scriptTagIndex.get("bonus_fish")).toBe(eid);
 		});
 	});
@@ -274,7 +284,13 @@ describe("Entity spawner", () => {
 		it("sets target entity reference", () => {
 			const world = createGameWorld();
 			const target = spawnUnit(world, { x: 50, y: 50, faction: "scale_guard" });
-			const proj = spawnProjectile(world, { x: 0, y: 0, faction: "ura", damage: 10, targetEid: target });
+			const proj = spawnProjectile(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				damage: 10,
+				targetEid: target,
+			});
 
 			expect(TargetRef.eid[proj]).toBe(target);
 		});

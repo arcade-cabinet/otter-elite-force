@@ -6,8 +6,7 @@
  * AI opponent access to the game state.
  */
 
-import { CATEGORY_IDS, FACTION_IDS } from "@/engine/content/ids";
-import { resolveCategoryId } from "@/engine/content/ids";
+import { CATEGORY_IDS, FACTION_IDS, resolveCategoryId } from "@/engine/content/ids";
 import { Content, Faction, Flags, Position } from "@/engine/world/components";
 import { type GameWorld, getOrderQueue, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 import { getBuilding, getUnit } from "@/entities/registry";
@@ -93,7 +92,9 @@ export function createSkirmishGameAdapter(world: GameWorld): GameAdapter {
 		getResources(): { fish: number; timber: number; salvage: number } {
 			// AI uses a separate resource pool from the player. For the skirmish AI,
 			// we track resources on world.runtime. If not available, assume infinite.
-			const aiRes = (world.runtime as { aiResources?: { fish: number; timber: number; salvage: number } }).aiResources;
+			const aiRes = (
+				world.runtime as { aiResources?: { fish: number; timber: number; salvage: number } }
+			).aiResources;
 			return aiRes ?? { fish: 9999, timber: 9999, salvage: 9999 };
 		},
 

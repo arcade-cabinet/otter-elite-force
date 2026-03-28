@@ -15,10 +15,10 @@
  * Uses actual GameWorld + combat system, not mock data.
  */
 
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { FACTION_IDS } from "@/engine/content/ids";
 import { createSeedBundle } from "@/engine/random/seed";
-import { runCombatSystem, calculateDamage } from "@/engine/systems/combatSystem";
+import { calculateDamage, runCombatSystem } from "@/engine/systems/combatSystem";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
 import { resetLootRng } from "@/engine/systems/lootSystem";
 import {
@@ -36,9 +36,9 @@ import {
 import {
 	createGameWorld,
 	flushRemovals,
+	type GameWorld,
 	spawnBuilding,
 	spawnUnit,
-	type GameWorld,
 } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
@@ -333,9 +333,7 @@ describe("Combat Matchup Validation (Task 2)", () => {
 			console.log("\n=== Mortar vs 5 Clustered Gators (30s) ===");
 			console.log(`  Gators alive: ${sgState.count}/5`);
 			console.log(`  Total Gator HP remaining: ${totalGatorHp.toFixed(0)}`);
-			console.log(
-				`  HP dealt: ${(600 - totalGatorHp).toFixed(0)} of 600 total`,
-			);
+			console.log(`  HP dealt: ${(600 - totalGatorHp).toFixed(0)} of 600 total`);
 
 			// Balance doc: Mortar should kill at least 3 of 5 clustered Gators
 			// 20 damage per shot, 3s cooldown = 6.67 DPS
@@ -396,9 +394,7 @@ describe("Combat Matchup Validation (Task 2)", () => {
 
 			console.log("\n=== Sapper vs Barracks (350 HP) ===");
 			console.log(`  Attacks: ${attackCount}`);
-			console.log(
-				`  Destroyed at tick ${destroyTick}, time: ${destroySeconds.toFixed(1)}s`,
-			);
+			console.log(`  Destroyed at tick ${destroyTick}, time: ${destroySeconds.toFixed(1)}s`);
 
 			// Balance doc says Sapper does 30 damage to buildings
 			// 350 HP barracks / 30 damage = ~12 attacks

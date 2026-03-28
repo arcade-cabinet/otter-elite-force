@@ -80,7 +80,8 @@ export class SqlitePersistenceStore implements PersistenceStore {
 	}
 
 	#requireDb(): DatabaseAdapter {
-		if (!this.#db) throw new Error("SqlitePersistenceStore not initialized — call initialize() first");
+		if (!this.#db)
+			throw new Error("SqlitePersistenceStore not initialized — call initialize() first");
 		return this.#db;
 	}
 

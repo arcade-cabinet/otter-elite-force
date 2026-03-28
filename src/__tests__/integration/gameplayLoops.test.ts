@@ -11,6 +11,13 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CATEGORY_IDS } from "@/engine/content/ids";
+import { runAiSystem } from "@/engine/systems/aiSystem";
+import { runBuildingSystem } from "@/engine/systems/buildingSystem";
+import { runCombatSystem } from "@/engine/systems/combatSystem";
+import { resetGatherTimers, runEconomySystem } from "@/engine/systems/economySystem";
+import { runMovementSystem } from "@/engine/systems/movementSystem";
+import { runOrderSystem } from "@/engine/systems/orderSystem";
+import { runProductionSystem } from "@/engine/systems/productionSystem";
 import { Attack, Content, Health, Speed, VisionRadius } from "@/engine/world/components";
 import {
 	createGameWorld,
@@ -22,13 +29,6 @@ import {
 	spawnResource,
 	spawnUnit,
 } from "@/engine/world/gameWorld";
-import { runCombatSystem } from "@/engine/systems/combatSystem";
-import { resetGatherTimers, runEconomySystem } from "@/engine/systems/economySystem";
-import { runMovementSystem } from "@/engine/systems/movementSystem";
-import { runOrderSystem } from "@/engine/systems/orderSystem";
-import { runProductionSystem } from "@/engine/systems/productionSystem";
-import { runBuildingSystem } from "@/engine/systems/buildingSystem";
-import { runAiSystem } from "@/engine/systems/aiSystem";
 
 // Mock audio to avoid Tone.js in tests
 vi.mock("@/engine/audio/audioRuntime", () => ({

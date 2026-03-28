@@ -15,7 +15,6 @@
 import { drawRankEmblem, hasEmblem } from "@/canvas/rankEmblems";
 import { loadAllAtlases } from "@/canvas/spriteAtlas";
 import { loadTerrainTiles, paintTerrainChunked, type TerrainChunk } from "@/canvas/tilePainter";
-import { GestureDetector, GestureType, type GestureResult, type PointerState } from "@/input/gestureDetector";
 import {
 	initAudioRuntime,
 	notifyCombat,
@@ -32,10 +31,16 @@ import {
 	isAtlasAdapterReady,
 } from "@/engine/rendering/atlasAdapter";
 import { getMissionById } from "@/entities/missions";
+import {
+	GestureDetector,
+	type GestureResult,
+	GestureType,
+	type PointerState,
+} from "@/input/gestureDetector";
 import type { GameBridge, SelectionViewModel } from "../bridge/gameBridge";
-import { canPlaceBuilding, placeBuilding, type TileMap } from "../systems/buildingSystem";
 import { serializeGameWorld } from "../persistence/gameWorldSaveLoad";
 import { SqlitePersistenceStore } from "../persistence/sqlitePersistenceStore";
+import { canPlaceBuilding, placeBuilding, type TileMap } from "../systems/buildingSystem";
 import { Construction, Faction, Flags, Health, Position, Selection } from "../world/components";
 import type { GameWorld, Order } from "../world/gameWorld";
 import { getOrderQueue, tickFloatingTexts } from "../world/gameWorld";
@@ -312,7 +317,10 @@ export async function createTacticalRuntime(
 	/** Create a TileMap adapter from the runtime world's terrain grid for build placement. */
 	function createRuntimeTileMap(world: GameWorld): TileMap {
 		const terrainGrid = world.runtime.terrainGrid;
-		const terrainIdToType: Record<number, "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge"> = {
+		const terrainIdToType: Record<
+			number,
+			"grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge"
+		> = {
 			[TerrainTypeId.grass]: "grass",
 			[TerrainTypeId.dirt]: "dirt",
 			[TerrainTypeId.mud]: "mud",
@@ -404,9 +412,8 @@ export async function createTacticalRuntime(
 			queue.push(order);
 		}
 		// Emit command events with unitType for voice barks
-		const unitType = selected.length > 0
-			? options.world.runtime.entityTypeIndex.get(selected[0])
-			: undefined;
+		const unitType =
+			selected.length > 0 ? options.world.runtime.entityTypeIndex.get(selected[0]) : undefined;
 		if (order.type === "move") {
 			options.world.events.push({ type: "move-command", payload: { unitType } });
 		} else if (order.type === "attack") {
@@ -719,9 +726,8 @@ export async function createTacticalRuntime(
 		const firstSelected = [...options.world.runtime.alive].find(
 			(eid) => Selection.selected[eid] === 1,
 		);
-		const selectedUnitType = firstSelected != null
-			? options.world.runtime.entityTypeIndex.get(firstSelected)
-			: undefined;
+		const selectedUnitType =
+			firstSelected != null ? options.world.runtime.entityTypeIndex.get(firstSelected) : undefined;
 		options.world.events.push({ type: "unit-selected", payload: { unitType: selectedUnitType } });
 		playSfx("unitSelect");
 	}
@@ -1026,10 +1032,7 @@ export async function createTacticalRuntime(
 				isPanning = true;
 			} else if (g.type === GestureType.Pinch && g.scale != null) {
 				// Pinch = camera zoom
-				const newScale = Math.max(
-					TILE_SIZE,
-					Math.min(TILE_SIZE * 5, ljs.cameraScale * g.scale),
-				);
+				const newScale = Math.max(TILE_SIZE, Math.min(TILE_SIZE * 5, ljs.cameraScale * g.scale));
 				ljs.setCameraScale(newScale);
 			}
 		}
@@ -1146,18 +1149,18 @@ export async function createTacticalRuntime(
 				buildMenuCycleActive = false;
 				pushAlert("Build cancelled", "info");
 			} else {
-			const mouseScreen = ljs.mousePosScreen;
-			if (screenPointInMinimap(mouseScreen.x, mouseScreen.y)) {
-				// Right-click on minimap: move selected units to that world position
-				const point = worldPointFromMinimap(mouseScreen.x, mouseScreen.y);
-				if (getSelectedEntityIds().length > 0) {
-					issueOrderToSelected({ type: "move", targetX: point.x, targetY: point.y });
+				const mouseScreen = ljs.mousePosScreen;
+				if (screenPointInMinimap(mouseScreen.x, mouseScreen.y)) {
+					// Right-click on minimap: move selected units to that world position
+					const point = worldPointFromMinimap(mouseScreen.x, mouseScreen.y);
+					if (getSelectedEntityIds().length > 0) {
+						issueOrderToSelected({ type: "move", targetX: point.x, targetY: point.y });
+					}
+				} else {
+					const mouseWorld = ljs.mousePos;
+					const mousePx = tileToPixel(mouseWorld.x, mouseWorld.y);
+					handleSecondaryAction(mousePx.x, mousePx.y);
 				}
-			} else {
-				const mouseWorld = ljs.mousePos;
-				const mousePx = tileToPixel(mouseWorld.x, mouseWorld.y);
-				handleSecondaryAction(mousePx.x, mousePx.y);
-			}
 			}
 		}
 
@@ -1234,10 +1237,7 @@ export async function createTacticalRuntime(
 				// Cycle to next building type
 				buildCycleIndex = (buildCycleIndex + 1) % BUILD_CYCLE.length;
 				pendingBuildType = BUILD_CYCLE[buildCycleIndex];
-				pushAlert(
-					`Build: ${pendingBuildType.replace(/_/g, " ")} (B to cycle)`,
-					"info",
-				);
+				pushAlert(`Build: ${pendingBuildType.replace(/_/g, " ")} (B to cycle)`, "info");
 			} else {
 				buildPlacementMode = true;
 				buildCycleIndex = 0;
@@ -1706,7 +1706,13 @@ export async function createTacticalRuntime(
 			const ghostTileX = Math.floor(mouseWorld.x);
 			const ghostTileY = Math.floor(mouseWorld.y);
 			const tileMap = createRuntimeTileMap(options.world);
-			const validation = canPlaceBuilding(options.world, pendingBuildType, ghostTileX, ghostTileY, tileMap);
+			const validation = canPlaceBuilding(
+				options.world,
+				pendingBuildType,
+				ghostTileX,
+				ghostTileY,
+				tileMap,
+			);
 			const ghostColor = validation.valid
 				? new ljs.Color(0.2, 0.9, 0.3, 0.4) // green translucent
 				: new ljs.Color(0.9, 0.2, 0.2, 0.4); // red translucent

@@ -5,8 +5,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
 import { runTerritorySystem } from "@/engine/systems/territorySystem";
+import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
 
 function makeWorld() {
 	const world = createGameWorld();

@@ -72,6 +72,14 @@ export interface PerceivedResource {
 // World Perception
 // ---------------------------------------------------------------------------
 
+export interface PerceivedZone {
+	id: string;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
 export interface WorldPerception {
 	/** Game time in ms. */
 	elapsedMs: number;
@@ -116,6 +124,9 @@ export interface WorldPerception {
 
 	/** Session phase. */
 	phase: "loading" | "briefing" | "playing" | "paused" | "victory" | "defeat";
+
+	/** Named zones from mission definition (in pixel coords). */
+	zones: PerceivedZone[];
 }
 
 const MILITARY_CATEGORIES = new Set<number>([
@@ -258,6 +269,20 @@ export function perceiveWorld(world: GameWorld): WorldPerception {
 		}
 	}
 
+	// Build zone list from runtime zone rects
+	const zones: PerceivedZone[] = [];
+	if (world.runtime.zoneRects) {
+		for (const [zoneId, rect] of world.runtime.zoneRects) {
+			zones.push({
+				id: zoneId,
+				x: rect.x,
+				y: rect.y,
+				width: rect.width,
+				height: rect.height,
+			});
+		}
+	}
+
 	return {
 		elapsedMs: world.time.elapsedMs,
 		tick: world.time.tick,
@@ -275,6 +300,7 @@ export function perceiveWorld(world: GameWorld): WorldPerception {
 		threats,
 		objectives: world.session.objectives.map((o) => ({ ...o })),
 		phase: world.session.phase,
+		zones,
 	};
 }
 

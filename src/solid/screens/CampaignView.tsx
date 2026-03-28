@@ -7,9 +7,9 @@
  */
 
 import { type Component, createMemo, createSignal, For, onMount, Show } from "solid-js";
-import { CAMPAIGN } from "@/entities/missions";
-import type { CampaignProgressRecord } from "@/engine/persistence/types";
 import { SqlitePersistenceStore } from "@/engine/persistence/sqlitePersistenceStore";
+import type { CampaignProgressRecord } from "@/engine/persistence/types";
+import { CAMPAIGN } from "@/entities/missions";
 import type { MissionDef } from "@/entities/types";
 import type { AppState } from "../appState";
 

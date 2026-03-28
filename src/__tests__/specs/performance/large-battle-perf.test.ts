@@ -6,11 +6,11 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { Attack, Health, Speed, VisionRadius } from "@/engine/world/components";
-import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
+import { runAiSystem } from "@/engine/systems/aiSystem";
 import { runCombatSystem } from "@/engine/systems/combatSystem";
 import { runMovementSystem } from "@/engine/systems/movementSystem";
-import { runAiSystem } from "@/engine/systems/aiSystem";
+import { Attack, Health, Speed, VisionRadius } from "@/engine/world/components";
+import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
 
 // Mock audio to avoid Tone.js in tests
 vi.mock("@/engine/audio/audioRuntime", () => ({
@@ -94,9 +94,7 @@ describe("Large battle performance", () => {
 				faction: i < 100 ? "ura" : "scale_guard",
 			});
 			Speed.value[eid] = 64;
-			world.runtime.orderQueues.set(eid, [
-				{ type: "move", targetX: 1000, targetY: 1000 },
-			]);
+			world.runtime.orderQueues.set(eid, [{ type: "move", targetX: 1000, targetY: 1000 }]);
 		}
 
 		const start = performance.now();

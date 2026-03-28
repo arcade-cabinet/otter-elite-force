@@ -5,8 +5,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 import { runSiphonSystem } from "@/engine/systems/siphonSystem";
+import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 
 function makeWorld(deltaMs: number) {
 	const world = createGameWorld();

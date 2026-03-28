@@ -11,18 +11,18 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createSeedBundle } from "@/engine/random/seed";
-import { bootstrapMission } from "@/engine/session/missionBootstrap";
 import {
-	serializeGameWorld,
 	deserializeGameWorld,
 	type GameWorldSnapshot,
+	serializeGameWorld,
 } from "@/engine/persistence/gameWorldSaveLoad";
-import { createGameWorld, type GameWorld } from "@/engine/world/gameWorld";
+import { createSeedBundle } from "@/engine/random/seed";
+import { bootstrapMission } from "@/engine/session/missionBootstrap";
 import { runAllSystems } from "@/engine/systems";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
 import { createFogGrid, type FogRuntime } from "@/engine/systems/fogSystem";
-import { Position, Health, Faction, Flags } from "@/engine/world/components";
+import { Faction, Flags, Health, Position } from "@/engine/world/components";
+import { createGameWorld, type GameWorld } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -281,10 +281,7 @@ describe("E2E: Save/Load roundtrip", () => {
 			if (restored.navigation.width > 0 && restored.navigation.height > 0) {
 				const fogRuntime = restored.runtime as FogRuntime;
 				if (!fogRuntime.fogGrid) {
-					fogRuntime.fogGrid = createFogGrid(
-						restored.navigation.width,
-						restored.navigation.height,
-					);
+					fogRuntime.fogGrid = createFogGrid(restored.navigation.width, restored.navigation.height);
 					(fogRuntime as { fogGridWidth?: number }).fogGridWidth = restored.navigation.width;
 					(fogRuntime as { fogGridHeight?: number }).fogGridHeight = restored.navigation.height;
 				}
@@ -315,10 +312,7 @@ describe("E2E: Save/Load roundtrip", () => {
 			if (restored.navigation.width > 0 && restored.navigation.height > 0) {
 				const fogRuntime = restored.runtime as FogRuntime;
 				if (!fogRuntime.fogGrid) {
-					fogRuntime.fogGrid = createFogGrid(
-						restored.navigation.width,
-						restored.navigation.height,
-					);
+					fogRuntime.fogGrid = createFogGrid(restored.navigation.width, restored.navigation.height);
 					(fogRuntime as { fogGridWidth?: number }).fogGridWidth = restored.navigation.width;
 					(fogRuntime as { fogGridHeight?: number }).fogGridHeight = restored.navigation.height;
 				}
