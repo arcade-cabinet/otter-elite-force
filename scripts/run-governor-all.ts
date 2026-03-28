@@ -3,8 +3,8 @@
  * Usage: npx tsx scripts/run-governor-all.ts
  */
 
-import { CAMPAIGN } from "../src/entities/missions/index.ts";
 import { runGovernorPlaytest } from "../src/engine/playtester/runner.ts";
+import { CAMPAIGN } from "../src/entities/missions/index.ts";
 
 const MAX_TICKS = 30000;
 
@@ -47,7 +47,9 @@ for (const mission of CAMPAIGN) {
 			`  ${r.id} (${r.name}): ${r.outcome} @ ${r.ticks} ticks | obj=${r.objectives} army=${r.army} trained=${r.trained} buildings=${r.buildings} fish=${r.fish} timber=${r.timber} salvage=${r.salvage} actions=${r.actions}`,
 		);
 	} catch (err) {
-		console.error(`  ${mission.id} (${mission.name}): CRASH - ${err instanceof Error ? err.message : err}`);
+		console.error(
+			`  ${mission.id} (${mission.name}): CRASH - ${err instanceof Error ? err.message : err}`,
+		);
 		results.push({
 			id: mission.id,
 			name: mission.name,
@@ -78,4 +80,6 @@ const victories = results.filter((r) => r.outcome === "victory").length;
 const defeats = results.filter((r) => r.outcome === "defeat").length;
 const timeouts = results.filter((r) => r.outcome === "timeout").length;
 const crashes = results.filter((r) => r.outcome === "crash").length;
-console.log(`\nVictories: ${victories}, Defeats: ${defeats}, Timeouts: ${timeouts}, Crashes: ${crashes}`);
+console.log(
+	`\nVictories: ${victories}, Defeats: ${defeats}, Timeouts: ${timeouts}, Crashes: ${crashes}`,
+);
