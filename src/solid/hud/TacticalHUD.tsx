@@ -1,81 +1,87 @@
 /**
- * TacticalHUD -- Composes all HUD components into a single overlay layout.
+ * TacticalHUD — POC-faithful sidebar layout.
  *
- * Positions components absolutely over the tactical canvas:
- * - ResourceBar at top (with PanelFrame + canvas-grain)
- * - SelectionPanel + BuildMenu at bottom-left (with PanelFrame)
- * - AlertBanner at top-right
- * - ObjectivesPanel at right
- * - BossHealthBar at top-center (when boss present)
- * - CommandTransmission at bottom-center (when dialogue active)
- * - ErrorFeedback at top-right (below alerts)
- * - TutorialOverlay at bottom-center (missions 1-4)
+ * Desktop: Left sidebar (w-64) with Minimap | Selection Info | Action Panel
+ * Mobile: Bottom bar (h-48) with 3 columns
+ *
+ * Matches the original poc_final.html layout:
+ *   body flex-col-reverse md:flex-row
+ *   sidebar: w-full md:w-64 h-48 md:h-full
+ *     - Minimap (w-1/3 md:w-full md:h-64)
+ *     - Selection Info (w-1/3 md:w-full flex-1)
+ *     - Action Panel (w-1/3 md:w-full md:h-64)
  */
 
-import type { Component } from "solid-js";
+import { type Component, createMemo, Show } from "solid-js";
 import type { SolidBridgeAccessors, SolidBridgeEmit } from "@/engine/bridge/solidBridge";
-import { AlertBanner } from "./AlertBanner";
-import { BossHealthBar } from "./BossHealthBar";
 import { BuildMenu } from "./BuildMenu";
-import { CommandTransmission } from "./CommandTransmission";
 import { ErrorFeedback } from "./ErrorFeedback";
 import { createErrorFeedback } from "./errorState";
-import { ObjectivesPanel } from "./ObjectivesPanel";
-import { ResourceBar } from "./ResourceBar";
 import { SelectionPanel } from "./SelectionPanel";
-import { TutorialOverlay } from "./TutorialOverlay";
 
 export const TacticalHUD: Component<{
 	bridge: SolidBridgeAccessors;
 	emit: SolidBridgeEmit;
-	/** Current mission ID for tutorial prompts */
 	missionId?: string;
 }> = (props) => {
-	const { errors, pushError: _pushError } = createErrorFeedback();
+	const { errors } = createErrorFeedback();
+
+	const selection = () => props.bridge.selection();
+	const hasSelection = createMemo(() => {
+		const sel = selection();
+		return sel && sel.entityIds.length > 0;
+	});
 
 	return (
 		<div
 			data-testid="tactical-hud"
-			class="pointer-events-none absolute inset-0 z-20 overflow-hidden"
+			class="ui-panel z-20 flex h-48 w-full flex-shrink-0 flex-row border-t-4 border-slate-600 shadow-2xl md:h-full md:w-64 md:flex-col md:border-r-4 md:border-t-0"
 		>
-			{/* Top bar -- ResourceBar */}
-			<div class="pointer-events-auto absolute inset-x-0 top-0 z-10 px-2 pt-2 sm:px-4 sm:pt-3">
-				<ResourceBar bridge={props.bridge} />
+			{/* ── Minimap ── */}
+			<div class="flex w-1/3 items-center justify-center border-r-2 border-slate-700 bg-black p-1 md:h-64 md:w-full md:border-b-4 md:border-r-0 md:p-2">
+				<div class="relative h-full w-full max-h-[200px] max-w-[200px] cursor-crosshair border-2 border-slate-600">
+					{/* Minimap canvas — rendered by tacticalRuntime into this element */}
+					<canvas
+						data-testid="minimap-canvas"
+						width="200"
+						height="200"
+						class="block h-full w-full"
+						style={{ "image-rendering": "pixelated" }}
+					/>
+				</div>
 			</div>
 
-			{/* Top-center -- BossHealthBar (when boss present) */}
-			<div class="absolute left-1/2 top-14 z-30 flex -translate-x-1/2 justify-center md:top-16">
-				<BossHealthBar bridge={props.bridge} />
+			{/* ── Selection Info ── */}
+			<div class="flex w-1/3 flex-1 flex-col gap-1 overflow-y-auto border-r-2 border-slate-700 bg-slate-900 p-2 md:w-full md:gap-2 md:border-b-4 md:border-r-0 md:p-4">
+				<Show
+					when={hasSelection()}
+					fallback={
+						<h2 class="text-base font-bold leading-tight text-sky-300 md:text-xl">No Selection</h2>
+					}
+				>
+					<SelectionPanel bridge={props.bridge} emit={props.emit} />
+				</Show>
 			</div>
 
-			{/* Top-right -- AlertBanner (always visible, higher z-index) */}
-			<div class="pointer-events-auto absolute left-1/2 top-16 z-20 w-80 -translate-x-1/2 sm:left-auto sm:right-4 sm:top-20 sm:translate-x-0">
-				<AlertBanner bridge={props.bridge} emit={props.emit} />
-			</div>
-
-			{/* Right -- ObjectivesPanel (hidden on mobile < 640px to avoid overlap) */}
-			<div class="pointer-events-auto absolute right-2 top-52 z-10 hidden w-64 sm:right-4 sm:top-56 sm:block sm:w-72">
-				<ObjectivesPanel bridge={props.bridge} />
-			</div>
-
-			{/* Top-right -- ErrorFeedback (below alerts) */}
-			<div class="absolute right-2 top-36 z-30 sm:right-4">
-				<ErrorFeedback errors={errors} />
-			</div>
-
-			{/* Bottom-left -- SelectionPanel + BuildMenu */}
-			<div class="pointer-events-auto absolute bottom-2 left-2 z-10 flex flex-col gap-2 sm:bottom-4 sm:left-4">
-				<SelectionPanel bridge={props.bridge} emit={props.emit} />
+			{/* ── Action Panel ── */}
+			<div class="grid h-full w-1/3 content-start gap-1 overflow-y-auto bg-slate-800 p-1 sm:grid-cols-2 md:h-64 md:w-full md:gap-2 md:p-3">
 				<BuildMenu bridge={props.bridge} emit={props.emit} />
 			</div>
 
-			{/* Bottom-center -- CommandTransmission (when dialogue active) */}
-			<div class="pointer-events-auto absolute inset-x-0 bottom-4 z-20 flex justify-center px-4">
-				<CommandTransmission bridge={props.bridge} />
+			{/* Error feedback (absolute, floats above sidebar) */}
+			<div class="absolute right-2 top-2 z-30 md:left-2 md:right-auto md:top-auto md:bottom-2">
+				<ErrorFeedback errors={errors} />
 			</div>
 
-			{/* Bottom-center -- TutorialOverlay (missions 1-4, below transmission) */}
-			{props.missionId && <TutorialOverlay missionId={props.missionId} />}
+			{/* POC-style panel CSS */}
+			<style>{`
+				.ui-panel {
+					background-color: #1e293b;
+					color: #e2e8f0;
+					font-family: 'Courier New', Courier, monospace;
+					text-shadow: 1px 1px 0 #000;
+				}
+			`}</style>
 		</div>
 	);
 };
