@@ -281,9 +281,35 @@ export interface MissionAreaEnteredCondition {
 	minUnits?: number;
 }
 
+export interface MissionEnemyCountInZoneCondition {
+	type: "enemyCountInZone";
+	zoneId: string;
+	operator: "gte" | "lte" | "eq";
+	count: number;
+	faction?: string;
+}
+
+export interface MissionBuildingCountInZoneCondition {
+	type: "buildingCountInZone";
+	faction: string;
+	zoneId: string;
+	operator: "gte" | "lte" | "eq";
+	count: number;
+	buildingType?: string;
+}
+
+export interface MissionConvoyEntersZoneCondition {
+	type: "convoyEntersZone";
+	zoneId: string;
+	convoyTag?: string;
+}
+
 export type MissionTriggerCondition =
 	| Exclude<TriggerCondition, { type: "areaEntered" }>
-	| MissionAreaEnteredCondition;
+	| MissionAreaEnteredCondition
+	| MissionEnemyCountInZoneCondition
+	| MissionBuildingCountInZoneCondition
+	| MissionConvoyEntersZoneCondition;
 
 export interface MissionScenarioTrigger {
 	id: string;
@@ -324,6 +350,10 @@ export interface Placement {
 	count?: number;
 	hp?: number;
 	patrol?: [number, number][];
+	scriptId?: string;
+	active?: boolean;
+	metadata?: Record<string, string | number | boolean>;
+	mechanic?: string;
 }
 
 export interface DifficultyModifier {
@@ -347,6 +377,7 @@ export interface MissionDef {
 			text: string;
 		}[];
 	};
+	seedPhrase?: string;
 
 	terrain: {
 		width: number;

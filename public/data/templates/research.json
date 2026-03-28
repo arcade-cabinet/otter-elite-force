@@ -1,0 +1,122 @@
+{
+  "improved_armor": {
+    "name": "Improved Armor",
+    "description": "+2 armor to all friendly units. Hardened shell plating from salvaged Scale-Guard materials.",
+    "cost": { "fish": 100, "timber": 0, "salvage": 200 },
+    "timeMs": 30000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "all_ura_units", "stat": "armor", "modifier": "+2" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 5
+  },
+  "sharpened_claws": {
+    "name": "Sharpened Claws",
+    "description": "+3 attack damage to all melee units. Bone-tipped gauntlets for close combat.",
+    "cost": { "fish": 100, "timber": 0, "salvage": 150 },
+    "timeMs": 25000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "mudfoot,shellcracker,sapper,river_rat", "stat": "attackDamage", "modifier": "+3" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 5
+  },
+  "extended_range": {
+    "name": "Extended Range",
+    "description": "+20% attack range for all ranged units and buildings. Improved optics and sighting.",
+    "cost": { "fish": 150, "timber": 0, "salvage": 200 },
+    "timeMs": 30000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "mortar_otter,watchtower,gun_tower", "stat": "attackRange", "modifier": "+20%" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 5
+  },
+  "swift_current": {
+    "name": "Swift Current",
+    "description": "+15% movement speed for all friendly units. Streamlined equipment and river boots.",
+    "cost": { "fish": 150, "timber": 100, "salvage": 150 },
+    "timeMs": 35000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "all_ura_units", "stat": "speed", "modifier": "+15%" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 7
+  },
+  "fortified_walls": {
+    "name": "Fortified Walls",
+    "description": "+200 HP to all buildings. Reinforced construction techniques from captured Scale-Guard blueprints.",
+    "cost": { "fish": 100, "timber": 200, "salvage": 150 },
+    "timeMs": 40000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "all_ura_buildings", "stat": "hp", "modifier": "+200" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 9
+  },
+  "advanced_fishing": {
+    "name": "Advanced Fishing",
+    "description": "+50% fish gathering rate. Improved nets and trapping techniques.",
+    "cost": { "fish": 200, "timber": 100, "salvage": 0 },
+    "timeMs": 25000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "river_rat", "stat": "gatherRate", "modifier": "+50%" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 5
+  },
+  "salvage_expertise": {
+    "name": "Salvage Expertise",
+    "description": "+75% salvage gathering rate and +2 salvage per trip. Master scrounging techniques.",
+    "cost": { "fish": 100, "timber": 0, "salvage": 100 },
+    "timeMs": 20000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "river_rat", "stat": "salvageGather", "modifier": "+75%" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 5
+  },
+  "night_vision": {
+    "name": "Night Vision",
+    "description": "+2 vision radius for all friendly units. Bioluminescent goggles adapted from cave fungi.",
+    "cost": { "fish": 100, "timber": 0, "salvage": 250 },
+    "timeMs": 30000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "all_ura_units", "stat": "visionRadius", "modifier": "+2" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 9
+  },
+  "mortar_precision": {
+    "name": "Mortar Precision",
+    "description": "-30% mortar scatter radius. Stabilized firing platform and improved shell aerodynamics.",
+    "cost": { "fish": 100, "timber": 50, "salvage": 200 },
+    "timeMs": 25000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "mortar_otter", "stat": "scatter", "modifier": "-30%" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 11
+  },
+  "combat_medics": {
+    "name": "Combat Medics",
+    "description": "Field Hospital heal rate +50%. Advanced battlefield triage.",
+    "cost": { "fish": 150, "timber": 0, "salvage": 150 },
+    "timeMs": 20000,
+    "researchedAt": "armory",
+    "effects": [
+      { "target": "field_hospital", "stat": "healRate", "modifier": "+1" }
+    ],
+    "prerequisite": null,
+    "unlocksAtMission": 10
+  }
+}

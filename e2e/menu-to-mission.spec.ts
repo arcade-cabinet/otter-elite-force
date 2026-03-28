@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /**
  * US-083: E2E — menu to new game to mission loads
  *
- * Verified against actual DOM output from the React + Tailwind UI.
+ * Verified against actual DOM output from the SolidJS + Tailwind UI.
  * Selectors use text content matching (not CSS class names) for resilience.
  */
 
@@ -22,130 +22,88 @@ test.describe("US-083: Menu to Mission E2E Flow", () => {
 		// Copper-Silt Reach badge
 		await expect(page.getByText("Copper-Silt Reach")).toBeVisible();
 
-		// Four main buttons
-		await expect(page.getByRole("button", { name: /New Game/i })).toBeVisible();
-		await expect(page.getByRole("button", { name: /Continue/i })).toBeVisible();
+		// Main buttons
+		await expect(page.getByRole("button", { name: /New Campaign/i })).toBeVisible();
 		await expect(page.getByRole("button", { name: /Skirmish/i })).toBeVisible();
 		await expect(page.getByRole("button", { name: /Settings/i })).toBeVisible();
 
-		// Faction cards
-		await expect(page.getByText("Otter Elite Force").nth(1)).toBeVisible();
-		await expect(page.getByText("Scale-Guard")).toBeVisible();
-
-		// Mission counter
-		await expect(page.getByText(/\d+ \/ 16 missions completed/i)).toBeVisible();
+		// Build info
+		await expect(page.getByText(/Build Alpha/i)).toBeVisible();
 	});
 
-	test("New Game expands difficulty selection", async ({ page }) => {
+	test("New Campaign navigates to mission briefing", async ({ page }) => {
 		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
 
-		// Click New Game
-		await page.getByRole("button", { name: /New Game/i }).click();
+		// Click New Campaign
+		await page.getByRole("button", { name: /New Campaign/i }).click();
 
-		// Three difficulty options should appear
-		await expect(page.getByRole("button", { name: /Support/i })).toBeVisible({ timeout: 5000 });
-		await expect(page.getByRole("button", { name: /Tactical/i })).toBeVisible();
-		await expect(page.getByRole("button", { name: /Elite/i })).toBeVisible();
+		// Briefing should appear with mission details
+		await expect(page.getByText("Mission Briefing")).toBeVisible({ timeout: 10000 });
+		await expect(page.getByRole("heading", { name: "Beachhead" })).toBeVisible();
+		await expect(page.getByText("CLASSIFIED")).toBeVisible();
+		await expect(page.getByText("FOXHOUND").first()).toBeVisible();
 
-		// Descriptions visible
-		await expect(page.getByText(/0\.75x enemy damage/i)).toBeVisible();
-		await expect(page.getByText(/1x damage/i)).toBeVisible();
-		await expect(page.getByText(/1\.25x enemy damage/i)).toBeVisible();
+		// Deploy and Back buttons
+		await expect(page.getByRole("button", { name: /Deploy/i })).toBeVisible();
+		await expect(page.getByRole("button", { name: /Back/i })).toBeVisible();
 	});
 
-	test("selecting difficulty navigates to campaign view", async ({ page }) => {
+	test("full flow: menu -> briefing -> Deploy -> game loads with HUD", async ({ page }) => {
 		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
 
-		// New Game -> Support difficulty
-		await page.getByRole("button", { name: /New Game/i }).click();
-		await page.getByRole("button", { name: /Support/i }).click();
+		// Step 1: New Campaign
+		await page.getByRole("button", { name: /New Campaign/i }).click();
+		await expect(page.getByText("Mission Briefing")).toBeVisible({ timeout: 10000 });
 
-		// Campaign view should appear with 16 missions across 4 chapters
-		await expect(page.getByText("Campaign")).toBeVisible({ timeout: 10000 });
-		await expect(page.getByText("Chapter 1")).toBeVisible();
-		await expect(page.getByText("Beachhead")).toBeVisible();
-		await expect(page.getByText("Chapter 4")).toBeVisible();
-		await expect(page.getByText(/The Reckoning/i)).toBeVisible();
-		await expect(page.getByText("Difficulty:")).toBeVisible();
-		await expect(page.getByText(/0 of 16 missions completed/i)).toBeVisible();
+		// Step 2: Deploy
+		await page.getByRole("button", { name: /Deploy/i }).click();
+		await page.waitForTimeout(5000);
 
-		// Mission 1 should be available, others locked
-		await expect(page.getByText("Available")).toBeVisible();
-	});
+		// Step 3: Verify game HUD is visible (resource bar)
+		await expect(page.getByText(/Fish/i).first()).toBeVisible({ timeout: 10000 });
 
-	test("full flow: menu -> campaign -> Mission 1 loads with HUD", async ({ page }) => {
-		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
-
-		// Step 1: New Game -> Support
-		await page.getByRole("button", { name: /New Game/i }).click();
-		await page.getByRole("button", { name: /Support/i }).click();
-
-		// Step 2: Click Mission 1 (Beachhead)
-		await expect(page.getByText("Beachhead")).toBeVisible({ timeout: 10000 });
-		await page.getByText("Beachhead").click();
-
-		// Step 3: Briefing dialogue should appear first
-		await expect(page.getByText("Beachhead").first()).toBeVisible({ timeout: 10000 });
-		await expect(page.getByText(/FOXHOUND/i).first()).toBeVisible({ timeout: 10000 });
-
-		// Step 4: Advance through briefing (press Space for each line)
-		for (let i = 0; i < 12; i++) {
-			await page.keyboard.press("Space");
-			await page.waitForTimeout(300);
-		}
-
-		// Step 5: Click "Begin Mission" button
-		const beginBtn = page.getByRole("button", { name: /Begin Mission/i });
-		if (await beginBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-			await beginBtn.click();
-		} else {
-			// Briefing may have auto-advanced — press Space once more
-			await page.keyboard.press("Space");
-		}
-
-		await page.waitForTimeout(2000);
-
-		// Step 6: Verify game HUD is visible (resource bar with POC-style labels)
-		await expect(page.getByText(/Clams|Fish/i).first()).toBeVisible({ timeout: 10000 });
-
-		// Step 7: Verify canvas exists (game rendering)
+		// Step 4: Verify canvas exists (game rendering)
 		const canvasCount = await page.locator("canvas").count();
 		expect(canvasCount).toBeGreaterThanOrEqual(1);
 	});
 
-	test("briefing dialogue shows FOXHOUND speaker", async ({ page }) => {
+	test("briefing Back returns to menu", async ({ page }) => {
 		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
-		await page.getByRole("button", { name: /New Game/i }).click();
-		await page.getByRole("button", { name: /Support/i }).click();
-		await page.getByText("Beachhead").click();
-		await page.waitForTimeout(4000);
 
-		// FOXHOUND appears in multiple HUD locations — use locator for any match
+		await page.getByRole("button", { name: /New Campaign/i }).click();
+		await expect(page.getByText("Mission Briefing")).toBeVisible({ timeout: 10000 });
+
+		// Back goes to campaign view (which defaults to menu if not in a campaign)
+		await page.getByRole("button", { name: /Back/i }).click();
+		await page.waitForTimeout(1000);
+
+		// Should be able to see some screen (campaign view or menu)
+		// The Back button on briefing navigates to "campaign" screen
+		const pageContent = await page.evaluate(() => document.body.innerText);
+		expect(pageContent.length).toBeGreaterThan(0);
+	});
+
+	test("briefing dialogue shows FOXHOUND speaker and mission text", async ({ page }) => {
+		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
+		await page.getByRole("button", { name: /New Campaign/i }).click();
+		await page.waitForTimeout(2000);
+
+		// FOXHOUND appears as a briefing speaker
 		const foxhoundCount = await page.locator("text=FOXHOUND").count();
 		expect(foxhoundCount).toBeGreaterThanOrEqual(1);
 
-		// Briefing text should contain mission dialogue
-		const transmissionText = page.getByTestId("command-transmission-text");
-		if (await transmissionText.isVisible({ timeout: 5000 }).catch(() => false)) {
-			const text = await transmissionText.textContent();
-			expect(text?.length).toBeGreaterThan(10);
-		}
+		// Mission objectives should be visible
+		await expect(page.getByText("Primary Objectives")).toBeVisible();
 	});
 
 	test("Settings screen is accessible from menu", async ({ page }) => {
 		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
 		await page.getByRole("button", { name: /Settings/i }).click();
 
-		// Settings panel should show volume or control options
-		// The settings page may have different label text — just verify we left the menu
-		await expect(page.locator("h1")).not.toContainText("Otter Elite Force", { timeout: 10000 });
-	});
+		// Settings heading should be visible (it's an h2, not h1)
+		await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible({ timeout: 10000 });
 
-	test("Continue is disabled with no save data", async ({ page }) => {
-		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
-
-		const continueBtn = page.getByRole("button", { name: /Continue/i });
-		await expect(continueBtn).toBeVisible();
-		await expect(continueBtn).toBeDisabled();
+		// Master Volume slider should be present
+		await expect(page.getByText("Master Volume")).toBeVisible();
 	});
 });

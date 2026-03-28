@@ -1,93 +1,149 @@
-import { createWorld } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ConstructingAt } from "../../ecs/relations";
-import { initSingletons } from "../../ecs/singletons";
-import { ConstructionProgress } from "../../ecs/traits/economy";
-import { Faction } from "../../ecs/traits/identity";
-import { Position } from "../../ecs/traits/spatial";
-import { PopulationState, ResourcePool } from "../../ecs/traits/state";
-import { buildingSystem, placeBuilding, type TileMap } from "../../systems/buildingSystem";
+/**
+ * Building System Pop Cap Tests — ported from old Koota codebase.
+ *
+ * Tests pop cap enforcement through the building system lifecycle:
+ * placement, construction, and destruction affecting pop cap.
+ */
 
-function createMockTileMap(): TileMap {
-	return {
-		getTerrain() {
-			return "grass";
-		},
-		isOccupied() {
-			return false;
-		},
-	};
+import { describe, expect, it } from "vitest";
+import { CATEGORY_IDS } from "@/engine/content/ids";
+import { Construction, Content, Health } from "@/engine/world/components";
+import {
+	createGameWorld,
+	getOrderQueue,
+	spawnBuilding,
+	spawnUnit,
+} from "@/engine/world/gameWorld";
+import { canTrainUnit, runBuildingSystem } from "@/engine/systems/buildingSystem";
+
+function makeWorld(deltaMs: number) {
+	const world = createGameWorld();
+	world.time.deltaMs = deltaMs;
+	return world;
 }
 
-describe("buildingSystem — population cap (P0 fix)", () => {
-	let world: ReturnType<typeof createWorld>;
-	let uraFaction: ReturnType<ReturnType<typeof createWorld>["spawn"]>;
-
-	beforeEach(() => {
-		world = createWorld();
-		initSingletons(world);
-		uraFaction = world.spawn(Faction({ id: "ura" }));
+describe("engine/systems/buildingSystem popCap enforcement", () => {
+	it("starts with default max of 10", () => {
+		const world = makeWorld(0);
+		expect(world.runtime.population.max).toBe(10);
 	});
 
-	afterEach(() => {
-		world.destroy();
+	it("increases pop cap when command_post construction completes", () => {
+		const world = makeWorld(60000);
+		const initialMax = world.runtime.population.max;
+
+		const building = spawnBuilding(world, {
+			x: 100,
+			y: 100,
+			faction: "ura",
+			buildingType: "command_post",
+			health: { current: 600, max: 600 },
+			construction: { progress: 0, buildTime: 60 },
+		});
+
+		const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+		Content.categoryId[worker] = CATEGORY_IDS.worker;
+		const orders = getOrderQueue(world, worker);
+		orders.push({ type: "build", targetEid: building });
+
+		runBuildingSystem(world);
+
+		expect(world.runtime.population.max).toBe(initialMax + 10);
 	});
 
-	it("increases PopulationState.max by 6 when a Burrow completes construction", () => {
-		world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
-		world.set(PopulationState, { current: 0, max: 4 });
-		const tileMap = createMockTileMap();
+	it("increases pop cap when burrow construction completes", () => {
+		const world = makeWorld(45000);
+		const initialMax = world.runtime.population.max;
 
-		const building = placeBuilding(world, "burrow", 5, 5, tileMap, uraFaction)!;
-		expect(building).not.toBeNull();
+		const building = spawnBuilding(world, {
+			x: 100,
+			y: 100,
+			faction: "ura",
+			buildingType: "burrow",
+			health: { current: 400, max: 400 },
+			construction: { progress: 0, buildTime: 45 },
+		});
 
-		// Spawn builder next to the building
-		world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
+		const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+		Content.categoryId[worker] = CATEGORY_IDS.worker;
+		const orders = getOrderQueue(world, worker);
+		orders.push({ type: "build", targetEid: building });
 
-		// Tick enough to complete (burrow has 10s build time)
-		buildingSystem(world, 10);
+		runBuildingSystem(world);
 
-		// ConstructionProgress should be removed (building complete)
-		expect(building.has(ConstructionProgress)).toBe(false);
-
-		// Population cap should have increased from 4 to 10
-		const pop = world.get(PopulationState);
-		expect(pop?.max).toBe(10);
+		expect(world.runtime.population.max).toBe(initialMax + 5);
 	});
 
-	it("does not increase pop cap for buildings without populationCapacity", () => {
-		world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
-		world.set(PopulationState, { current: 0, max: 4 });
-		const tileMap = createMockTileMap();
+	it("decreases pop cap when command_post is destroyed", () => {
+		const world = makeWorld(16);
+		world.runtime.population.max = 20;
 
-		const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
-		expect(building).not.toBeNull();
+		spawnBuilding(world, {
+			x: 100,
+			y: 100,
+			faction: "ura",
+			buildingType: "command_post",
+			health: { current: 0, max: 600 },
+		});
 
-		world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
-		buildingSystem(world, 30); // barracks has 30s build time
+		runBuildingSystem(world);
 
-		expect(building.has(ConstructionProgress)).toBe(false);
-
-		// Population cap should remain unchanged
-		const pop = world.get(PopulationState);
-		expect(pop?.max).toBe(4);
+		expect(world.runtime.population.max).toBe(10); // 20 - 10
 	});
 
-	it("accumulates pop cap from multiple Burrows", () => {
-		world.set(ResourcePool, { fish: 0, timber: 500, salvage: 0 });
-		world.set(PopulationState, { current: 0, max: 4 });
-		const tileMap = createMockTileMap();
+	it("pop cap cannot go below 0", () => {
+		const world = makeWorld(16);
+		world.runtime.population.max = 5;
 
-		// Build first burrow
-		const b1 = placeBuilding(world, "burrow", 3, 3, tileMap, uraFaction)!;
-		const _builder1 = world.spawn(Position({ x: 3, y: 3 }), ConstructingAt(b1));
-		buildingSystem(world, 10);
-		expect(world.get(PopulationState)?.max).toBe(10);
+		spawnBuilding(world, {
+			x: 100,
+			y: 100,
+			faction: "ura",
+			buildingType: "command_post",
+			health: { current: 0, max: 600 },
+		});
 
-		// Build second burrow
-		const b2 = placeBuilding(world, "burrow", 7, 7, tileMap, uraFaction)!;
-		world.spawn(Position({ x: 7, y: 7 }), ConstructingAt(b2));
-		buildingSystem(world, 10);
-		expect(world.get(PopulationState)?.max).toBe(16);
+		runBuildingSystem(world);
+
+		expect(world.runtime.population.max).toBe(0);
+	});
+
+	it("canTrainUnit returns false when at exact cap", () => {
+		const world = makeWorld(0);
+		world.runtime.population.current = 10;
+		world.runtime.population.max = 10;
+
+		expect(canTrainUnit(world, 1)).toBe(false);
+	});
+
+	it("canTrainUnit allows exactly filling cap", () => {
+		const world = makeWorld(0);
+		world.runtime.population.current = 9;
+		world.runtime.population.max = 10;
+
+		expect(canTrainUnit(world, 1)).toBe(true);
+	});
+
+	it("barracks construction does not affect pop cap (no popCapBonus)", () => {
+		const world = makeWorld(30000);
+		const initialMax = world.runtime.population.max;
+
+		const building = spawnBuilding(world, {
+			x: 100,
+			y: 100,
+			faction: "ura",
+			buildingType: "barracks",
+			health: { current: 350, max: 350 },
+			construction: { progress: 0, buildTime: 30 },
+		});
+
+		const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+		Content.categoryId[worker] = CATEGORY_IDS.worker;
+		const orders = getOrderQueue(world, worker);
+		orders.push({ type: "build", targetEid: building });
+
+		runBuildingSystem(world);
+
+		expect(world.runtime.population.max).toBe(initialMax);
 	});
 });

@@ -1,188 +1,196 @@
 /**
- * Tests for US-069: AI difficulty scaling per mode.
+ * Difficulty Scaling Tests — ported from old Koota codebase.
  *
- * - Support: enemy damage x0.75, player income x1.25
- * - Tactical: 1.0x baseline
- * - Elite: enemy damage x1.25, player income x0.75
- * - Read from CampaignProgress singleton
- * - Apply in combatSystem and economySystem
+ * Tests that enemy stats are scaled by difficulty multipliers.
  */
 
-import { createWorld } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { CampaignProgress } from "@/ecs/traits/state";
-import {
-	applyEnemyDamageModifier,
-	applyPlayerIncomeModifier,
-	getDifficultyModifiers,
-	getModifiersForDifficulty,
-} from "@/systems/difficultyScaling";
+import { beforeEach, describe, expect, it } from "vitest";
+import { Attack, Health, Speed } from "@/engine/world/components";
+import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
+import { resetDifficultyScaling, runDifficultyScalingSystem } from "@/engine/systems/difficultyScalingSystem";
 
-describe("US-069: Difficulty Scaling", () => {
-	describe("modifier tables", () => {
-		it("Support: enemy damage x0.75, player income x1.25", () => {
-			const mods = getModifiersForDifficulty("support");
-			expect(mods.enemyDamageMultiplier).toBe(0.75);
-			expect(mods.playerIncomeMultiplier).toBe(1.25);
-			expect(mods.level).toBe("support");
-		});
+function makeWorld() {
+	const world = createGameWorld();
+	world.time.deltaMs = 16;
+	return world;
+}
 
-		it("Tactical: 1.0x baseline for all modifiers", () => {
-			const mods = getModifiersForDifficulty("tactical");
-			expect(mods.enemyDamageMultiplier).toBe(1.0);
-			expect(mods.playerIncomeMultiplier).toBe(1.0);
-			expect(mods.level).toBe("tactical");
-		});
-
-		it("Elite: enemy damage x1.25, player income x0.75", () => {
-			const mods = getModifiersForDifficulty("elite");
-			expect(mods.enemyDamageMultiplier).toBe(1.25);
-			expect(mods.playerIncomeMultiplier).toBe(0.75);
-			expect(mods.level).toBe("elite");
-		});
-
-		it("unknown difficulty falls back to tactical baseline", () => {
-			const mods = getModifiersForDifficulty("nightmare");
-			expect(mods.enemyDamageMultiplier).toBe(1.0);
-			expect(mods.playerIncomeMultiplier).toBe(1.0);
-		});
+describe("engine/systems/difficultyScalingSystem", () => {
+	beforeEach(() => {
+		resetDifficultyScaling();
 	});
 
-	describe("applyEnemyDamageModifier", () => {
-		it("Support: 10 damage becomes 8 (rounded)", () => {
-			const mods = getModifiersForDifficulty("support");
-			expect(applyEnemyDamageModifier(10, mods)).toBe(8);
+	it("support difficulty reduces enemy HP to 75%", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "support";
+
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 100, max: 100 },
 		});
 
-		it("Tactical: 10 damage stays 10", () => {
-			const mods = getModifiersForDifficulty("tactical");
-			expect(applyEnemyDamageModifier(10, mods)).toBe(10);
-		});
+		runDifficultyScalingSystem(world);
 
-		it("Elite: 10 damage becomes 13 (rounded)", () => {
-			const mods = getModifiersForDifficulty("elite");
-			expect(applyEnemyDamageModifier(10, mods)).toBe(13);
-		});
-
-		it("always deals minimum 1 damage", () => {
-			const mods = getModifiersForDifficulty("support");
-			expect(applyEnemyDamageModifier(0, mods)).toBe(1);
-		});
-
-		it("Gator damage (18) on Support = 14", () => {
-			const mods = getModifiersForDifficulty("support");
-			expect(applyEnemyDamageModifier(18, mods)).toBe(14);
-		});
-
-		it("Gator damage (18) on Elite = 23", () => {
-			const mods = getModifiersForDifficulty("elite");
-			expect(applyEnemyDamageModifier(18, mods)).toBe(23);
-		});
+		expect(Health.max[enemy]).toBe(75);
 	});
 
-	describe("applyPlayerIncomeModifier", () => {
-		it("Support: 10 income becomes 13 (rounded)", () => {
-			const mods = getModifiersForDifficulty("support");
-			expect(applyPlayerIncomeModifier(10, mods)).toBe(13);
-		});
+	it("support difficulty reduces enemy damage to 75%", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "support";
 
-		it("Tactical: 10 income stays 10", () => {
-			const mods = getModifiersForDifficulty("tactical");
-			expect(applyPlayerIncomeModifier(10, mods)).toBe(10);
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 10, max: 10 },
 		});
+		Attack.damage[enemy] = 20;
 
-		it("Elite: 10 income becomes 8 (rounded)", () => {
-			const mods = getModifiersForDifficulty("elite");
-			expect(applyPlayerIncomeModifier(10, mods)).toBe(8);
-		});
+		runDifficultyScalingSystem(world);
 
-		it("never goes below 0", () => {
-			const mods = getModifiersForDifficulty("elite");
-			expect(applyPlayerIncomeModifier(0, mods)).toBe(0);
-		});
+		expect(Attack.damage[enemy]).toBeCloseTo(15, 0);
 	});
 
-	describe("getDifficultyModifiers from CampaignProgress singleton", () => {
-		let world: ReturnType<typeof createWorld>;
+	it("support difficulty reduces enemy speed to 90%", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "support";
 
-		beforeEach(() => {
-			world = createWorld();
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 10, max: 10 },
 		});
+		Speed.value[enemy] = 100;
 
-		afterEach(() => {
-			world.destroy();
-		});
+		runDifficultyScalingSystem(world);
 
-		it("should read difficulty from CampaignProgress world trait", () => {
-			world.add(CampaignProgress);
-			world.set(CampaignProgress, {
-				missions: {},
-				currentMission: null,
-				difficulty: "elite",
-			});
-
-			const mods = getDifficultyModifiers(world);
-			expect(mods.enemyDamageMultiplier).toBe(1.25);
-			expect(mods.playerIncomeMultiplier).toBe(0.75);
-			expect(mods.level).toBe("elite");
-		});
-
-		it("should default to tactical when CampaignProgress has default difficulty", () => {
-			world.add(CampaignProgress);
-
-			const mods = getDifficultyModifiers(world);
-			// Default CampaignProgress.difficulty is "support"
-			expect(mods.enemyDamageMultiplier).toBe(0.75);
-			expect(mods.level).toBe("support");
-		});
-
-		it("should return tactical baseline when CampaignProgress not added", () => {
-			const mods = getDifficultyModifiers(world);
-			expect(mods.enemyDamageMultiplier).toBe(1.0);
-			expect(mods.playerIncomeMultiplier).toBe(1.0);
-		});
-
-		it("should update when difficulty changes mid-session", () => {
-			world.add(CampaignProgress);
-			world.set(CampaignProgress, {
-				missions: {},
-				currentMission: null,
-				difficulty: "support",
-			});
-
-			let mods = getDifficultyModifiers(world);
-			expect(mods.level).toBe("support");
-
-			world.set(CampaignProgress, {
-				missions: {},
-				currentMission: null,
-				difficulty: "elite",
-			});
-
-			mods = getDifficultyModifiers(world);
-			expect(mods.level).toBe("elite");
-		});
+		expect(Speed.value[enemy]).toBeCloseTo(90, 0);
 	});
 
-	describe("integration: modifiers with actual unit stats", () => {
-		it("Croc Champion (25 dmg) on Support deals 19 base damage", () => {
-			const mods = getModifiersForDifficulty("support");
-			expect(applyEnemyDamageModifier(25, mods)).toBe(19);
+	it("tactical difficulty does not modify stats (1.0x)", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "tactical";
+
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 100, max: 100 },
+		});
+		Attack.damage[enemy] = 10;
+		Speed.value[enemy] = 50;
+
+		runDifficultyScalingSystem(world);
+
+		expect(Health.max[enemy]).toBe(100);
+		expect(Attack.damage[enemy]).toBe(10);
+		expect(Speed.value[enemy]).toBe(50);
+	});
+
+	it("elite difficulty increases enemy HP to 150%", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "elite";
+
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 10, max: 10 },
 		});
 
-		it("Croc Champion (25 dmg) on Elite deals 31 base damage", () => {
-			const mods = getModifiersForDifficulty("elite");
-			expect(applyEnemyDamageModifier(25, mods)).toBe(31);
+		runDifficultyScalingSystem(world);
+
+		expect(Health.max[enemy]).toBe(15);
+	});
+
+	it("elite difficulty increases enemy damage to 125%", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "elite";
+
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 10, max: 10 },
+		});
+		Attack.damage[enemy] = 4;
+
+		runDifficultyScalingSystem(world);
+
+		expect(Attack.damage[enemy]).toBe(5);
+	});
+
+	it("elite difficulty increases enemy speed to 110%", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "elite";
+
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 10, max: 10 },
+		});
+		Speed.value[enemy] = 50;
+
+		runDifficultyScalingSystem(world);
+
+		expect(Speed.value[enemy]).toBeCloseTo(55, 0);
+	});
+
+	it("does not modify player (ura) entity stats", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "elite";
+
+		const player = spawnUnit(world, {
+			x: 0,
+			y: 0,
+			faction: "ura",
+			health: { current: 100, max: 100 },
+		});
+		Attack.damage[player] = 10;
+
+		runDifficultyScalingSystem(world);
+
+		expect(Health.max[player]).toBe(100);
+		expect(Attack.damage[player]).toBe(10);
+	});
+
+	it("does not re-apply scaling when difficulty hasn't changed", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "elite";
+
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 10, max: 10 },
 		});
 
-		it("Fish trap income (3 per trap, 4 traps = 12) on Support = 15", () => {
-			const mods = getModifiersForDifficulty("support");
-			expect(applyPlayerIncomeModifier(12, mods)).toBe(15);
+		runDifficultyScalingSystem(world);
+		expect(Health.max[enemy]).toBe(15);
+
+		// Second call should not re-apply
+		runDifficultyScalingSystem(world);
+		expect(Health.max[enemy]).toBe(15); // Not 22 (15 * 1.5)
+	});
+
+	it("clamps current health to max when scaling down", () => {
+		const world = makeWorld();
+		world.campaign.difficulty = "support";
+
+		const enemy = spawnUnit(world, {
+			x: 100,
+			y: 100,
+			faction: "scale_guard",
+			health: { current: 100, max: 100 },
 		});
 
-		it("Fish trap income (3 per trap, 4 traps = 12) on Elite = 9", () => {
-			const mods = getModifiersForDifficulty("elite");
-			expect(applyPlayerIncomeModifier(12, mods)).toBe(9);
-		});
+		runDifficultyScalingSystem(world);
+
+		// Current should not exceed new max
+		expect(Health.current[enemy]).toBeLessThanOrEqual(Health.max[enemy]);
 	});
 });

@@ -30,7 +30,7 @@ export { ALL_BUILDING_ENTITIES };
 /** Alias for tests. */
 export const ALL_BUILDINGS = ALL_BUILDING_ENTITIES;
 
-// ─── Research (COMPLETE: 9/9) ───
+// ─── Research (COMPLETE: 16/16) ───
 
 import { ALL_RESEARCH_ENTITIES } from "./research";
 
@@ -76,16 +76,21 @@ const URA_UNIT_ENTITIES: Record<string, UnitDef> = {
 	diver,
 };
 
-// ─── Scale-Guard Units (COMPLETE: 8/8) ───
+// ─── Scale-Guard Units (COMPLETE: 13/13) ───
 
+import { broodmother } from "./units/scale-guard/broodmother";
+import { captainScalebreak } from "./units/scale-guard/captain-scalebreak";
 import { crocChampion } from "./units/scale-guard/croc-champion";
 import { gator } from "./units/scale-guard/gator";
+import { kommandantIronjaw } from "./units/scale-guard/kommandant-ironjaw";
 import { scoutLizard } from "./units/scale-guard/scout-lizard";
 import { serpentKing } from "./units/scale-guard/serpent-king";
 import { siphonDrone } from "./units/scale-guard/siphon-drone";
 import { skink } from "./units/scale-guard/skink";
 import { snapper } from "./units/scale-guard/snapper";
+import { venom } from "./units/scale-guard/venom";
 import { viper } from "./units/scale-guard/viper";
+import { wardenFangrot } from "./units/scale-guard/warden-fangrot";
 
 const SCALE_GUARD_UNIT_ENTITIES: Record<string, UnitDef> = {
 	skink,
@@ -96,9 +101,14 @@ const SCALE_GUARD_UNIT_ENTITIES: Record<string, UnitDef> = {
 	croc_champion: crocChampion,
 	siphon_drone: siphonDrone,
 	serpent_king: serpentKing,
+	kommandant_ironjaw: kommandantIronjaw,
+	captain_scalebreak: captainScalebreak,
+	warden_fangrot: wardenFangrot,
+	venom,
+	broodmother,
 };
 
-/** All 15 unit definitions (7 URA + 8 Scale-Guard) keyed by id. */
+/** All 20 unit definitions (7 URA + 13 Scale-Guard) keyed by id. */
 export const ALL_UNIT_ENTITIES: Record<string, UnitDef> = {
 	...URA_UNIT_ENTITIES,
 	...SCALE_GUARD_UNIT_ENTITIES,
@@ -155,10 +165,17 @@ export const ALL_PORTRAITS = ALL_PORTRAIT_ENTITIES;
 
 // ─── Lookup Helpers ───
 
+/** Unit aliases for mission-specific entity types that share definitions. */
+const UNIT_ALIASES: Record<string, string> = {
+	scout_otter: "diver",
+	convoy_truck: "raftsman",
+	supply_barge: "raftsman",
+};
+
 /** Get a unit definition by id. Returns undefined if not found. */
 export function getUnit(id: string): UnitDef | undefined {
-	if (id === "scout_otter") return ALL_UNIT_ENTITIES.diver;
-	return ALL_UNIT_ENTITIES[id];
+	const resolved = UNIT_ALIASES[id] ?? id;
+	return ALL_UNIT_ENTITIES[resolved];
 }
 
 /** Get a hero definition by id. Returns undefined if not found. */
@@ -166,9 +183,15 @@ export function getHero(id: string): HeroDef | undefined {
 	return ALL_HERO_ENTITIES[id];
 }
 
+/** Building aliases for mission-specific building types. */
+const BUILDING_ALIASES: Record<string, string> = {
+	lodge: "burrow",
+};
+
 /** Get a building definition by id. Returns undefined if not found. */
 export function getBuilding(id: string): BuildingDef | undefined {
-	return ALL_BUILDING_ENTITIES[id];
+	const resolved = BUILDING_ALIASES[id] ?? id;
+	return ALL_BUILDING_ENTITIES[resolved];
 }
 
 /** Get a resource definition by id. Returns undefined if not found. */

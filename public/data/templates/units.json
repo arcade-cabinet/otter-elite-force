@@ -1,0 +1,651 @@
+{
+  "river_rat": {
+    "base": "otter",
+    "name": "River Rat",
+    "faction": "ura",
+    "category": "worker",
+    "visual": {
+      "sprite": "otter",
+      "tint": null,
+      "emblem": "none",
+      "scale": 1.0,
+      "defaultAnim": "Otter Idle"
+    },
+    "stats": {
+      "hp": 40,
+      "armor": 0,
+      "speed": 80,
+      "attackDamage": 5,
+      "attackRange": 32,
+      "attackCooldownMs": 1500,
+      "visionRadius": 6,
+      "popCost": 1
+    },
+    "abilities": ["gather", "build", "swim"],
+    "flags": { "canSwim": true, "canStealth": false },
+    "training": {
+      "building": "command_post",
+      "cost": { "fish": 50, "timber": 0, "salvage": 0 },
+      "timeMs": 15000
+    },
+    "unlocksAtMission": 1,
+    "description": "OEF workhorse. Harvests fish, timber, and salvage. Builds structures. Weak combatant."
+  },
+  "mudfoot": {
+    "extends": "river_rat",
+    "name": "Mudfoot",
+    "category": "infantry",
+    "visual": { "emblem": "chevron_1" },
+    "stats": {
+      "hp": 80,
+      "armor": 2,
+      "speed": 64,
+      "attackDamage": 12,
+      "attackRange": 32,
+      "attackCooldownMs": 1200,
+      "visionRadius": 5,
+      "popCost": 1
+    },
+    "abilities": [],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "barracks",
+      "cost": { "fish": 80, "timber": 0, "salvage": 20 },
+      "timeMs": 20000
+    },
+    "unlocksAtMission": 1,
+    "description": "Standard OEF infantry. Reliable in melee, decent HP. The backbone of any assault force."
+  },
+  "shellcracker": {
+    "extends": "river_rat",
+    "name": "Shellcracker",
+    "category": "heavy",
+    "visual": { "emblem": "chevron_2" },
+    "stats": {
+      "hp": 150,
+      "armor": 5,
+      "speed": 48,
+      "attackDamage": 18,
+      "attackRange": 32,
+      "attackCooldownMs": 1800,
+      "visionRadius": 4,
+      "popCost": 2
+    },
+    "abilities": [],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "barracks",
+      "cost": { "fish": 120, "timber": 0, "salvage": 60 },
+      "timeMs": 30000
+    },
+    "unlocksAtMission": 2,
+    "description": "Heavy infantry. High HP and armor, devastating melee. Slow but nearly unstoppable in close quarters."
+  },
+  "sapper": {
+    "extends": "river_rat",
+    "name": "Sapper",
+    "category": "engineer",
+    "visual": { "emblem": "chevron_1" },
+    "stats": {
+      "hp": 50,
+      "armor": 1,
+      "speed": 64,
+      "attackDamage": 8,
+      "attackRange": 32,
+      "attackCooldownMs": 1400,
+      "visionRadius": 5,
+      "popCost": 1
+    },
+    "abilities": ["demolition_charge"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "armory",
+      "cost": { "fish": 75, "timber": 0, "salvage": 50 },
+      "timeMs": 25000
+    },
+    "unlocksAtMission": 4,
+    "description": "Demolitions specialist. +200% damage to buildings. Can lay explosive charges and clear obstacles."
+  },
+  "raftsman": {
+    "extends": "river_rat",
+    "name": "Raftsman",
+    "category": "transport",
+    "visual": { "emblem": "none" },
+    "stats": {
+      "hp": 60,
+      "armor": 0,
+      "speed": 72,
+      "attackDamage": 4,
+      "attackRange": 32,
+      "attackCooldownMs": 2000,
+      "visionRadius": 6,
+      "popCost": 1
+    },
+    "abilities": ["swim", "raft_build"],
+    "flags": { "canSwim": true, "canStealth": false },
+    "training": {
+      "building": "dock",
+      "cost": { "fish": 100, "timber": 0, "salvage": 50 },
+      "timeMs": 20000
+    },
+    "unlocksAtMission": 5,
+    "description": "Water transport specialist. Builds rafts that carry up to 4 units across water. Can board enemy barges."
+  },
+  "mortar_otter": {
+    "extends": "river_rat",
+    "name": "Mortar Otter",
+    "category": "siege",
+    "visual": { "emblem": "chevron_2" },
+    "stats": {
+      "hp": 45,
+      "armor": 0,
+      "speed": 48,
+      "attackDamage": 25,
+      "attackRange": 192,
+      "attackCooldownMs": 3000,
+      "visionRadius": 7,
+      "popCost": 2
+    },
+    "abilities": ["ranged_attack"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "armory",
+      "cost": { "fish": 100, "timber": 50, "salvage": 80 },
+      "timeMs": 35000
+    },
+    "unlocksAtMission": 3,
+    "description": "Long-range artillery. Lobs mortar shells that deal splash damage. Fragile in close combat."
+  },
+  "diver": {
+    "extends": "river_rat",
+    "name": "Diver",
+    "category": "scout",
+    "visual": { "emblem": "chevron_1" },
+    "stats": {
+      "hp": 50,
+      "armor": 0,
+      "speed": 72,
+      "attackDamage": 10,
+      "attackRange": 32,
+      "attackCooldownMs": 1300,
+      "visionRadius": 6,
+      "popCost": 1
+    },
+    "abilities": ["swim", "stealth"],
+    "flags": { "canSwim": true, "canStealth": true },
+    "training": {
+      "building": "dock",
+      "cost": { "fish": 75, "timber": 0, "salvage": 75 },
+      "timeMs": 25000
+    },
+    "unlocksAtMission": 4,
+    "description": "Stealth water operative. Invisible while submerged. Fast in water, can ambush from below."
+  },
+  "col_bubbles": {
+    "extends": "river_rat",
+    "name": "Col. Bubbles",
+    "category": "hero",
+    "visual": { "emblem": "star_3" },
+    "stats": {
+      "hp": 200,
+      "armor": 4,
+      "speed": 64,
+      "attackDamage": 20,
+      "attackRange": 32,
+      "attackCooldownMs": 1000,
+      "visionRadius": 8,
+      "popCost": 0
+    },
+    "abilities": ["command_aura"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 12,
+    "description": "HQ tactical officer. Strong melee fighter with command aura that boosts nearby unit morale."
+  },
+  "gen_whiskers": {
+    "extends": "river_rat",
+    "name": "Gen. Whiskers",
+    "category": "hero",
+    "visual": { "emblem": "star_3" },
+    "stats": {
+      "hp": 120,
+      "armor": 2,
+      "speed": 56,
+      "attackDamage": 10,
+      "attackRange": 32,
+      "attackCooldownMs": 1500,
+      "visionRadius": 10,
+      "popCost": 0
+    },
+    "abilities": ["reveal_hidden"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 4,
+    "description": "Strategic command. Extended vision range and reveals hidden enemies. Rescued in Mission 4."
+  },
+  "cpl_splash": {
+    "extends": "river_rat",
+    "name": "Cpl. Splash",
+    "category": "hero",
+    "visual": { "emblem": "star_2" },
+    "stats": {
+      "hp": 100,
+      "armor": 1,
+      "speed": 80,
+      "attackDamage": 14,
+      "attackRange": 32,
+      "attackCooldownMs": 1100,
+      "visionRadius": 8,
+      "popCost": 0
+    },
+    "abilities": ["swim", "stealth", "reveal_submerged"],
+    "flags": { "canSwim": true, "canStealth": true },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 8,
+    "description": "Water specialist hero. Invisible while submerged, +50% swim speed, reveals submerged objects."
+  },
+  "sgt_fang": {
+    "extends": "river_rat",
+    "name": "Sgt. Fang",
+    "category": "hero",
+    "visual": { "emblem": "star_2" },
+    "stats": {
+      "hp": 250,
+      "armor": 6,
+      "speed": 48,
+      "attackDamage": 30,
+      "attackRange": 32,
+      "attackCooldownMs": 1600,
+      "visionRadius": 5,
+      "popCost": 0
+    },
+    "abilities": ["breach_charge"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 12,
+    "description": "Heavy melee siege specialist. Breach Charge ability destroys walls. Rescued in Mission 12."
+  },
+  "medic_marina": {
+    "extends": "river_rat",
+    "name": "Medic Marina",
+    "category": "hero",
+    "visual": { "emblem": "star_2" },
+    "stats": {
+      "hp": 80,
+      "armor": 1,
+      "speed": 64,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "visionRadius": 6,
+      "popCost": 0
+    },
+    "abilities": ["heal"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 6,
+    "description": "Field medic hero. Heals nearby units for 3 HP/second. Cannot attack. Invaluable in sustained fights."
+  },
+  "pvt_muskrat": {
+    "extends": "river_rat",
+    "name": "Pvt. Muskrat",
+    "category": "hero",
+    "visual": { "emblem": "star_1" },
+    "stats": {
+      "hp": 60,
+      "armor": 0,
+      "speed": 72,
+      "attackDamage": 35,
+      "attackRange": 48,
+      "attackCooldownMs": 2500,
+      "visionRadius": 5,
+      "popCost": 0
+    },
+    "abilities": ["demolition_charge"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 9,
+    "description": "Demolitions hero. Throws explosive charges at range. Massive damage to buildings and groups."
+  },
+  "skink": {
+    "base": "snake",
+    "name": "Skink",
+    "faction": "scale_guard",
+    "category": "scout",
+    "visual": {
+      "sprite": "snake",
+      "tint": null,
+      "emblem": "none",
+      "scale": 1.0,
+      "defaultAnim": "Snake Idle"
+    },
+    "stats": {
+      "hp": 30,
+      "armor": 0,
+      "speed": 88,
+      "attackDamage": 6,
+      "attackRange": 32,
+      "attackCooldownMs": 1200,
+      "visionRadius": 7,
+      "popCost": 1
+    },
+    "abilities": [],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "spawning_pool",
+      "cost": { "fish": 30, "timber": 0, "salvage": 0 },
+      "timeMs": 10000
+    },
+    "unlocksAtMission": 1,
+    "description": "Scale-Guard scout. Fast and fragile. Reports OEF positions to Scale-Guard command."
+  },
+  "gator": {
+    "base": "crocodile",
+    "name": "Gator",
+    "faction": "scale_guard",
+    "category": "infantry",
+    "visual": {
+      "sprite": "crocodile",
+      "tint": null,
+      "emblem": "none",
+      "scale": 1.0,
+      "defaultAnim": "Crocodile Sprite Sheet Idle"
+    },
+    "stats": {
+      "hp": 90,
+      "armor": 2,
+      "speed": 56,
+      "attackDamage": 14,
+      "attackRange": 32,
+      "attackCooldownMs": 1300,
+      "visionRadius": 5,
+      "popCost": 1
+    },
+    "abilities": ["swim"],
+    "flags": { "canSwim": true, "canStealth": false },
+    "training": {
+      "building": "spawning_pool",
+      "cost": { "fish": 70, "timber": 0, "salvage": 0 },
+      "timeMs": 18000
+    },
+    "unlocksAtMission": 1,
+    "description": "Standard Scale-Guard infantry. Tough, hits hard, swims naturally. The backbone of enemy forces."
+  },
+  "viper": {
+    "extends": "skink",
+    "name": "Viper",
+    "category": "ranged",
+    "visual": { "emblem": "chevron_1" },
+    "stats": {
+      "hp": 50,
+      "armor": 0,
+      "speed": 64,
+      "attackDamage": 16,
+      "attackRange": 128,
+      "attackCooldownMs": 2000,
+      "visionRadius": 7,
+      "popCost": 1
+    },
+    "abilities": ["ranged_attack"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "spawning_pool",
+      "cost": { "fish": 60, "timber": 0, "salvage": 30 },
+      "timeMs": 22000
+    },
+    "unlocksAtMission": 1,
+    "description": "Scale-Guard ranged striker. Venomous spit at range. Low HP but deadly if uncontested."
+  },
+  "snapper": {
+    "extends": "gator",
+    "name": "Snapper",
+    "category": "heavy",
+    "visual": { "emblem": "chevron_2" },
+    "stats": {
+      "hp": 200,
+      "armor": 6,
+      "speed": 40,
+      "attackDamage": 22,
+      "attackRange": 32,
+      "attackCooldownMs": 2000,
+      "visionRadius": 4,
+      "popCost": 2
+    },
+    "abilities": ["swim"],
+    "flags": { "canSwim": true, "canStealth": false },
+    "training": {
+      "building": "spawning_pool",
+      "cost": { "fish": 150, "timber": 0, "salvage": 80 },
+      "timeMs": 35000
+    },
+    "unlocksAtMission": 6,
+    "description": "Scale-Guard heavy. Massive HP and armor. Slow but devastating in melee. Requires focused fire to stop."
+  },
+  "scout_lizard": {
+    "base": "cobra",
+    "name": "Scout Lizard",
+    "faction": "scale_guard",
+    "category": "scout",
+    "visual": {
+      "sprite": "cobra",
+      "tint": null,
+      "emblem": "none",
+      "scale": 1.0,
+      "defaultAnim": "Cobra Idle"
+    },
+    "stats": {
+      "hp": 35,
+      "armor": 0,
+      "speed": 96,
+      "attackDamage": 4,
+      "attackRange": 32,
+      "attackCooldownMs": 1500,
+      "visionRadius": 9,
+      "popCost": 1
+    },
+    "abilities": ["stealth"],
+    "flags": { "canSwim": false, "canStealth": true },
+    "training": {
+      "building": "spawning_pool",
+      "cost": { "fish": 40, "timber": 0, "salvage": 20 },
+      "timeMs": 12000
+    },
+    "unlocksAtMission": 3,
+    "description": "Scale-Guard recon. Fastest enemy unit with extended vision. Can stealth in tall grass."
+  },
+  "croc_champion": {
+    "extends": "gator",
+    "name": "Croc Champion",
+    "category": "heavy",
+    "visual": { "emblem": "star_3" },
+    "stats": {
+      "hp": 300,
+      "armor": 8,
+      "speed": 48,
+      "attackDamage": 28,
+      "attackRange": 32,
+      "attackCooldownMs": 1800,
+      "visionRadius": 5,
+      "popCost": 3
+    },
+    "abilities": ["command_aura", "swim"],
+    "flags": { "canSwim": true, "canStealth": false },
+    "training": {
+      "building": "spawning_pool",
+      "cost": { "fish": 200, "timber": 0, "salvage": 120 },
+      "timeMs": 45000
+    },
+    "unlocksAtMission": 5,
+    "description": "Scale-Guard elite. Extremely dangerous in melee with heavy armor. Commands nearby units."
+  },
+  "siphon_drone": {
+    "extends": "scout_lizard",
+    "name": "Siphon Drone",
+    "category": "support",
+    "visual": { "emblem": "none" },
+    "stats": {
+      "hp": 60,
+      "armor": 1,
+      "speed": 56,
+      "attackDamage": 8,
+      "attackRange": 64,
+      "attackCooldownMs": 2500,
+      "visionRadius": 5,
+      "popCost": 1
+    },
+    "abilities": ["resource_drain"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "siphon",
+      "cost": { "fish": 80, "timber": 0, "salvage": 40 },
+      "timeMs": 20000
+    },
+    "unlocksAtMission": 5,
+    "description": "Scale-Guard tech unit. Drains resources from nearby nodes. Moderate combat ability."
+  },
+  "serpent_king": {
+    "extends": "scout_lizard",
+    "name": "Serpent King",
+    "category": "hero",
+    "visual": { "emblem": "star_3" },
+    "stats": {
+      "hp": 500,
+      "armor": 10,
+      "speed": 40,
+      "attackDamage": 40,
+      "attackRange": 64,
+      "attackCooldownMs": 2000,
+      "visionRadius": 8,
+      "popCost": 0
+    },
+    "abilities": ["poison_aura"],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 6,
+    "description": "Scale-Guard boss unit. Massive HP, devastating attacks, poison aura. Appears in late-game missions."
+  },
+  "civilian_otter": {
+    "base": "otter",
+    "name": "Civilian Otter",
+    "faction": "neutral",
+    "category": "worker",
+    "visual": {
+      "sprite": "otter",
+      "tint": null,
+      "emblem": "none",
+      "scale": 1.0,
+      "defaultAnim": "Otter Idle"
+    },
+    "stats": {
+      "hp": 20,
+      "armor": 0,
+      "speed": 64,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "visionRadius": 4,
+      "popCost": 0
+    },
+    "abilities": ["swim"],
+    "flags": { "canSwim": true, "canStealth": false },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 1,
+    "description": "Non-combatant otter. Flees from danger. Rescue for bonus objectives."
+  },
+  "wild_boar": {
+    "base": "boar",
+    "name": "Wild Boar",
+    "faction": "neutral",
+    "category": "infantry",
+    "visual": {
+      "sprite": "boar",
+      "tint": null,
+      "emblem": "none",
+      "scale": 1.0,
+      "defaultAnim": "Boar Idle"
+    },
+    "stats": {
+      "hp": 60,
+      "armor": 3,
+      "speed": 72,
+      "attackDamage": 8,
+      "attackRange": 32,
+      "attackCooldownMs": 1500,
+      "visionRadius": 4,
+      "popCost": 0
+    },
+    "abilities": [],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 1,
+    "description": "Territorial wildlife. Charges at any unit that enters its territory. Drops food on death."
+  },
+  "scavenger_vulture": {
+    "base": "vulture",
+    "name": "Scavenger Vulture",
+    "faction": "neutral",
+    "category": "scout",
+    "visual": {
+      "sprite": "vulture",
+      "tint": null,
+      "emblem": "none",
+      "scale": 1.0,
+      "defaultAnim": "Vulture Perch"
+    },
+    "stats": {
+      "hp": 25,
+      "armor": 0,
+      "speed": 96,
+      "attackDamage": 3,
+      "attackRange": 32,
+      "attackCooldownMs": 2000,
+      "visionRadius": 10,
+      "popCost": 0
+    },
+    "abilities": [],
+    "flags": { "canSwim": false, "canStealth": false },
+    "training": {
+      "building": "none",
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "unlocksAtMission": 1,
+    "description": "Airborne scavenger. Circles battlefields. Reveals corpse locations. Harmless but annoying."
+  }
+}

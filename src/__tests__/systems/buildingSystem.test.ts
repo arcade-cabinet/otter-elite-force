@@ -1,260 +1,418 @@
-import { createWorld } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ConstructingAt } from "../../ecs/relations";
-import { initSingletons } from "../../ecs/singletons";
-import { AIState } from "../../ecs/traits/ai";
-import { Health } from "../../ecs/traits/combat";
-import { ConstructionProgress, ProductionQueue } from "../../ecs/traits/economy";
-import { Faction, IsBuilding, UnitType } from "../../ecs/traits/identity";
-import { OrderQueue, RallyPoint } from "../../ecs/traits/orders";
-import { Position } from "../../ecs/traits/spatial";
-import { ResourcePool } from "../../ecs/traits/state";
-import {
-	buildingSystem,
-	canPlaceBuilding,
-	placeBuilding,
-	type TileMap,
-} from "../../systems/buildingSystem";
+/**
+ * Building System Tests — ported from old Koota codebase.
+ *
+ * Tests construction progress, placement validation, pop cap,
+ * building activation, and building destruction.
+ */
 
-/** Simple mock tile map for testing. */
+import { describe, expect, it } from "vitest";
+import { CATEGORY_IDS } from "@/engine/content/ids";
+import { Attack, Construction, Content, Faction, Flags, Health, Position, VisionRadius } from "@/engine/world/components";
+import {
+	createGameWorld,
+	getOrderQueue,
+	spawnBuilding,
+	spawnUnit,
+} from "@/engine/world/gameWorld";
+import {
+	canPlaceBuilding,
+	canTrainUnit,
+	getBuildingDef,
+	placeBuilding,
+	runBuildingSystem,
+	type TileMap,
+} from "@/engine/systems/buildingSystem";
+
+function makeWorld(deltaMs: number) {
+	const world = createGameWorld();
+	world.time.deltaMs = deltaMs;
+	return world;
+}
+
 function createMockTileMap(overrides?: {
 	terrain?: Map<string, "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge">;
 	occupied?: Set<string>;
 }): TileMap {
-	const terrain = overrides?.terrain ?? new Map();
-	const occupied = overrides?.occupied ?? new Set();
-
+	const terrain = overrides?.terrain ?? new Map<string, "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge">();
+	const occupied = overrides?.occupied ?? new Set<string>();
 	return {
-		getTerrain(x, y) {
+		getTerrain(x: number, y: number) {
 			const key = `${x},${y}`;
-			return terrain.get(key) ?? "grass";
+			return (terrain.get(key) ?? "grass") as "grass" | "dirt" | "mud" | "water" | "mangrove" | "bridge";
 		},
-		isOccupied(x, y) {
+		isOccupied(x: number, y: number) {
 			return occupied.has(`${x},${y}`);
 		},
 	};
 }
 
-describe("buildingSystem", () => {
-	let world: ReturnType<typeof createWorld>;
-	let uraFaction: ReturnType<ReturnType<typeof createWorld>["spawn"]>;
+describe("engine/systems/buildingSystem", () => {
+	describe("getBuildingDef", () => {
+		it("returns barracks definition", () => {
+			const def = getBuildingDef("barracks");
+			expect(def).not.toBeNull();
+			expect(def!.hp).toBe(350);
+			expect(def!.buildTime).toBe(25);
+		});
 
-	beforeEach(() => {
-		world = createWorld();
-		initSingletons(world);
-		uraFaction = world.spawn();
-	});
-
-	afterEach(() => {
-		world.destroy();
+		it("returns null for unknown building type", () => {
+			expect(getBuildingDef("nonexistent")).toBeNull();
+		});
 	});
 
 	describe("canPlaceBuilding", () => {
-		it("should allow placement on grass with sufficient resources", () => {
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
+		it("allows placement on grass with sufficient resources", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 100, timber: 150, salvage: 0 };
 			const tileMap = createMockTileMap();
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
+			const result = canPlaceBuilding(world, "barracks", 5, 5, tileMap);
 			expect(result.valid).toBe(true);
 		});
 
-		it("should reject placement with insufficient resources", () => {
+		it("rejects placement with insufficient resources", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 0, timber: 0, salvage: 0 };
 			const tileMap = createMockTileMap();
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
+			const result = canPlaceBuilding(world, "barracks", 5, 5, tileMap);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Insufficient resources");
 		});
 
-		it("should reject placement on occupied tile", () => {
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
+		it("rejects placement on occupied tile", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 0, timber: 200, salvage: 0 };
 			const tileMap = createMockTileMap({ occupied: new Set(["5,5"]) });
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
+			const result = canPlaceBuilding(world, "barracks", 5, 5, tileMap);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Tile occupied");
 		});
 
-		it("should reject placement on water for non-water buildings", () => {
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
+		it("rejects non-water buildings on water tiles", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 0, timber: 200, salvage: 0 };
 			const terrain = new Map([["5,5", "water" as const]]);
 			const tileMap = createMockTileMap({ terrain });
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
+			const result = canPlaceBuilding(world, "barracks", 5, 5, tileMap);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Cannot build on water");
 		});
 
-		it("should allow dock placement on water", () => {
-			world.set(ResourcePool, { fish: 0, timber: 250, salvage: 50 });
+		it("allows dock placement on water", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 0, timber: 200, salvage: 75 };
 			const terrain = new Map([["5,5", "water" as const]]);
 			const tileMap = createMockTileMap({ terrain });
 
-			const result = canPlaceBuilding("dock", 5, 5, tileMap, world);
+			const result = canPlaceBuilding(world, "dock", 5, 5, tileMap);
 			expect(result.valid).toBe(true);
 		});
 
-		it("should reject dock placement on non-water", () => {
-			world.set(ResourcePool, { fish: 0, timber: 250, salvage: 50 });
+		it("rejects dock on non-water tile", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 0, timber: 200, salvage: 75 };
 			const tileMap = createMockTileMap();
 
-			const result = canPlaceBuilding("dock", 5, 5, tileMap, world);
+			const result = canPlaceBuilding(world, "dock", 5, 5, tileMap);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Must be placed on water edge");
 		});
 
-		it("should reject placement on mangrove", () => {
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
+		it("rejects placement on mangrove", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 0, timber: 200, salvage: 0 };
 			const terrain = new Map([["5,5", "mangrove" as const]]);
 			const tileMap = createMockTileMap({ terrain });
 
-			const result = canPlaceBuilding("barracks", 5, 5, tileMap, world);
+			const result = canPlaceBuilding(world, "barracks", 5, 5, tileMap);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Cannot build on mangrove");
 		});
 
-		it("should reject unknown building type", () => {
+		it("rejects unknown building type", () => {
+			const world = makeWorld(0);
 			const tileMap = createMockTileMap();
 
-			const result = canPlaceBuilding("nonexistent", 5, 5, tileMap, world);
+			const result = canPlaceBuilding(world, "nonexistent", 5, 5, tileMap);
 			expect(result.valid).toBe(false);
 			expect(result.reason).toBe("Unknown building type");
 		});
 	});
 
 	describe("placeBuilding", () => {
-		it("should spawn a building entity with correct traits", () => {
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
+		it("spawns a building entity with correct initial state", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 500, timber: 500, salvage: 0 };
 			const tileMap = createMockTileMap();
 
-			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction);
-
-			expect(building).not.toBeNull();
-			expect(building?.has(IsBuilding)).toBe(true);
-			expect(building?.has(Position)).toBe(true);
-			expect(building?.has(Health)).toBe(true);
-			expect(building?.has(ConstructionProgress)).toBe(true);
-
-			const pos = building?.get(Position);
-			expect(pos.x).toBe(5);
-			expect(pos.y).toBe(5);
-
-			const unitType = building?.get(UnitType);
-			expect(unitType.type).toBe("barracks");
-
-			const hp = building?.get(Health);
-			expect(hp.max).toBe(350); // Barracks HP from spec
-
-			const cp = building?.get(ConstructionProgress);
-			expect(cp.progress).toBe(0);
-			expect(cp.buildTime).toBe(30); // Barracks build time from spec
-			expect(building?.get(Faction).id).toBe("ura");
+			const eid = placeBuilding(world, "barracks", 100, 200, tileMap);
+			expect(eid).not.toBeNull();
+			expect(Flags.isBuilding[eid!]).toBe(1);
+			expect(Position.x[eid!]).toBe(100);
+			expect(Position.y[eid!]).toBe(200);
+			expect(Health.max[eid!]).toBe(350);
+			expect(Construction.progress[eid!]).toBe(0);
+			expect(Construction.buildTime[eid!]).toBe(25);
 		});
 
-		it("should deduct resources on placement", () => {
-			world.set(ResourcePool, { fish: 0, timber: 500, salvage: 0 });
+		it("deducts resources on placement", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 500, timber: 500, salvage: 0 };
 			const tileMap = createMockTileMap();
 
-			placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction);
-
-			const pool = world.get(ResourcePool)!;
-			expect(pool.timber).toBe(300); // 500 - 200
+			placeBuilding(world, "barracks", 5, 5, tileMap);
+			expect(world.session.resources.fish).toBe(400); // 500 - 100
+			expect(world.session.resources.timber).toBe(350); // 500 - 150
 		});
 
-		it("should return null if placement is invalid", () => {
-			// No resources
+		it("returns null if placement is invalid", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 0, timber: 0, salvage: 0 };
 			const tileMap = createMockTileMap();
 
-			const result = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction);
+			const result = placeBuilding(world, "barracks", 5, 5, tileMap);
 			expect(result).toBeNull();
+		});
+
+		it("emits building-placed event", () => {
+			const world = makeWorld(0);
+			world.session.resources = { fish: 500, timber: 500, salvage: 0 };
+			const tileMap = createMockTileMap();
+
+			placeBuilding(world, "barracks", 5, 5, tileMap);
+			expect(world.events.some((e) => e.type === "building-placed")).toBe(true);
 		});
 	});
 
 	describe("construction progress", () => {
-		it("should advance construction when builder is near an incomplete building", () => {
-			// Place a building (30s build time for barracks)
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
-			const tileMap = createMockTileMap();
-			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
+		it("advances construction when builder is near an incomplete building", () => {
+			const world = makeWorld(10000); // 10 seconds
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "barracks",
+				health: { current: 350, max: 350 },
+				construction: { progress: 0, buildTime: 30 },
+			});
 
-			// Spawn a builder next to the building
-			const _builder = world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
+			// Spawn a worker near the building with a build order
+			const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "build", targetEid: building });
 
-			// Tick 10 seconds
-			buildingSystem(world, 10);
+			runBuildingSystem(world);
 
 			// Progress should be ~33.3% (100/30 * 10)
-			const cp = building.get(ConstructionProgress);
-			expect(cp.progress).toBeCloseTo(33.33, 0);
+			expect(Construction.progress[building]).toBeCloseTo(33.33, 0);
 		});
 
-		it("should complete construction at 100% and remove ConstructionProgress", () => {
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
-			const tileMap = createMockTileMap();
-			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
+		it("completes construction at 100% and emits building-complete event", () => {
+			const world = makeWorld(30000); // 30 seconds (barracks build time)
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "barracks",
+				health: { current: 350, max: 350 },
+				construction: { progress: 0, buildTime: 30 },
+			});
 
-			const builder = world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
+			const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "build", targetEid: building });
 
-			// Tick enough time to complete (30s build time)
-			buildingSystem(world, 30);
+			runBuildingSystem(world);
 
-			// ConstructionProgress should be removed
-			expect(building.has(ConstructionProgress)).toBe(false);
-			expect(building.has(ProductionQueue)).toBe(true);
-			expect(building.has(RallyPoint)).toBe(true);
-			// Builder should be released
-			expect(builder.has(ConstructingAt(building))).toBe(false);
+			expect(Construction.progress[building]).toBeGreaterThanOrEqual(100);
+			expect(world.events.some((e) => e.type === "building-complete")).toBe(true);
 		});
 
-		it("clears the builder build order when construction completes", () => {
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
-			const tileMap = createMockTileMap();
-			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
-
-			const builder = world.spawn(
-				Position({ x: 5, y: 5 }),
-				OrderQueue,
-				AIState,
-				ConstructingAt(building),
-			);
-			builder
-				.get(OrderQueue)
-				.push({ type: "build", targetX: 5, targetY: 5, targetEntity: building.id() });
-
-			buildingSystem(world, 30);
-
-			expect(builder.get(OrderQueue).length).toBe(0);
-			expect(builder.get(AIState).state).toBe("idle");
-		});
-
-		it("should not advance construction when builder is out of range", () => {
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
-			const tileMap = createMockTileMap();
-			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
+		it("does not advance when builder is out of range", () => {
+			const world = makeWorld(10000);
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "barracks",
+				health: { current: 350, max: 350 },
+				construction: { progress: 0, buildTime: 30 },
+			});
 
 			// Builder is far away
-			const _builder = world.spawn(Position({ x: 20, y: 20 }), ConstructingAt(building));
+			const worker = spawnUnit(world, { x: 500, y: 500, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "build", targetEid: building });
 
-			buildingSystem(world, 10);
+			runBuildingSystem(world);
 
-			const cp = building.get(ConstructionProgress);
-			expect(cp.progress).toBe(0);
+			expect(Construction.progress[building]).toBe(0);
 		});
 
-		it("should handle multiple builders on the same building", () => {
-			world.set(ResourcePool, { fish: 0, timber: 200, salvage: 0 });
-			const tileMap = createMockTileMap();
-			const building = placeBuilding(world, "barracks", 5, 5, tileMap, uraFaction)!;
+		it("handles multiple builders on the same building (faster construction)", () => {
+			const world = makeWorld(10000); // 10 seconds
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "barracks",
+				health: { current: 350, max: 350 },
+				construction: { progress: 0, buildTime: 30 },
+			});
 
 			// Two builders next to the building
-			world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
-			world.spawn(Position({ x: 5, y: 6 }), ConstructingAt(building));
+			for (let i = 0; i < 2; i++) {
+				const worker = spawnUnit(world, { x: 100, y: 100 + i, faction: "ura" });
+				Content.categoryId[worker] = CATEGORY_IDS.worker;
+				const orders = getOrderQueue(world, worker);
+				orders.push({ type: "build", targetEid: building });
+			}
 
-			// Tick 10 seconds — each builder contributes 33.3%, so total ~66.6%
-			buildingSystem(world, 10);
+			runBuildingSystem(world);
 
-			const cp = building.get(ConstructionProgress);
-			expect(cp.progress).toBeCloseTo(66.67, 0);
+			// 2 builders: 2 * (100/30) * 10 = 66.67%
+			expect(Construction.progress[building]).toBeCloseTo(66.67, 0);
+		});
+
+		it("releases builders when construction completes", () => {
+			const world = makeWorld(30000);
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "barracks",
+				health: { current: 350, max: 350 },
+				construction: { progress: 0, buildTime: 30 },
+			});
+
+			const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "build", targetEid: building });
+
+			runBuildingSystem(world);
+
+			expect(orders).toHaveLength(0);
+		});
+	});
+
+	describe("building activation", () => {
+		it("applies pop cap bonus on completion (command_post)", () => {
+			const world = makeWorld(60000);
+			const initialMax = world.runtime.population.max;
+
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "command_post",
+				health: { current: 600, max: 600 },
+				construction: { progress: 0, buildTime: 60 },
+			});
+
+			const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "build", targetEid: building });
+
+			runBuildingSystem(world);
+
+			expect(world.runtime.population.max).toBe(initialMax + 10);
+		});
+
+		it("applies defensive attack stats on completion (watchtower)", () => {
+			const world = makeWorld(20000);
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "watchtower",
+				health: { current: 200, max: 200 },
+				construction: { progress: 0, buildTime: 20 },
+			});
+
+			const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "build", targetEid: building });
+
+			runBuildingSystem(world);
+
+			expect(Attack.damage[building]).toBe(8);
+			// attackRange=6 tiles * 32 = 192px, visionBonus=8 tiles * 32 = 256px
+			expect(Attack.range[building]).toBe(192);
+			expect(VisionRadius.value[building]).toBe(256);
+		});
+	});
+
+	describe("building destruction", () => {
+		it("reduces pop cap when building with popCapBonus is destroyed", () => {
+			const world = makeWorld(16);
+			world.runtime.population.max = 20;
+
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "command_post",
+				health: { current: 0, max: 600 },
+			});
+
+			runBuildingSystem(world);
+
+			expect(world.runtime.population.max).toBe(10); // 20 - 10
+			expect(world.events.some((e) => e.type === "building-destroyed")).toBe(true);
+		});
+
+		it("clears production queue when building is destroyed", () => {
+			const world = makeWorld(16);
+
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "barracks",
+				health: { current: 0, max: 350 },
+			});
+			world.runtime.productionQueues.set(building, [
+				{ type: "unit", contentId: "mudfoot", progress: 50 },
+			]);
+
+			runBuildingSystem(world);
+
+			expect(world.runtime.productionQueues.has(building)).toBe(false);
+		});
+	});
+
+	describe("canTrainUnit", () => {
+		it("allows training when under pop cap", () => {
+			const world = makeWorld(0);
+			world.runtime.population.current = 5;
+			world.runtime.population.max = 10;
+
+			expect(canTrainUnit(world, 1)).toBe(true);
+		});
+
+		it("rejects training when at pop cap", () => {
+			const world = makeWorld(0);
+			world.runtime.population.current = 10;
+			world.runtime.population.max = 10;
+
+			expect(canTrainUnit(world, 1)).toBe(false);
+		});
+
+		it("rejects training when unit would exceed pop cap", () => {
+			const world = makeWorld(0);
+			world.runtime.population.current = 9;
+			world.runtime.population.max = 10;
+
+			expect(canTrainUnit(world, 2)).toBe(false);
 		});
 	});
 });

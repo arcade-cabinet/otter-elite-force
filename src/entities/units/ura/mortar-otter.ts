@@ -217,5 +217,5 @@ export const mortarOtter: UnitDef = {
 
 	unlockedAt: "mission_9",
 
-	tags: ["IsUnit", "IsCombat", "IsSiege", "IsRanged"],
+	tags: ["IsUnit", "IsCombat", "IsSiege", "IsRanged", "ranged_attack"],
 };

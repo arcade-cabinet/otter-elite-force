@@ -213,5 +213,5 @@ export const mudfoot: UnitDef = {
 
 	unlockedAt: "mission_1",
 
-	tags: ["IsUnit", "IsCombat"],
+	tags: ["IsUnit", "IsCombat", "swim", "shield_bash"],
 };

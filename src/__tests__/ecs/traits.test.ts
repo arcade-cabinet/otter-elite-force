@@ -1,239 +1,312 @@
-import { createWorld } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { AIState, SteeringAgent } from "@/ecs/traits/ai";
-import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
-import { Gatherer, PopulationCost, ProductionQueue, ResourceNode } from "@/ecs/traits/economy";
+/**
+ * ECS Component/Trait Tests — ported from old Koota codebase.
+ *
+ * Tests the bitECS SoA component stores that replaced Koota traits.
+ */
+
+import { describe, expect, it } from "vitest";
 import {
+	Armor,
+	Attack,
+	Construction,
+	Content,
+	DetectionCone,
+	Facing,
 	Faction,
-	IsBuilding,
-	IsHero,
-	IsProjectile,
-	IsResource,
-	UnitType,
-} from "@/ecs/traits/identity";
-import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
-import { FacingDirection, Position, Velocity } from "@/ecs/traits/spatial";
-import { Concealed, Crouching, DetectionRadius } from "@/ecs/traits/stealth";
-import { CanSwim, Submerged } from "@/ecs/traits/water";
+	Flags,
+	Gatherer,
+	Health,
+	Position,
+	PopulationState,
+	ResourceNode,
+	ResourceRef,
+	Selection,
+	Speed,
+	SplashRadius,
+	SquadRef,
+	TargetRef,
+	Velocity,
+	Veterancy,
+	VisionRadius,
+} from "@/engine/world/components";
+import {
+	createGameWorld,
+	isAlive,
+	markForRemoval,
+	flushRemovals,
+	spawnUnit,
+	spawnBuilding,
+	spawnResource,
+	spawnProjectile,
+} from "@/engine/world/gameWorld";
 
-describe("Koota ECS Traits", () => {
-	let world: ReturnType<typeof createWorld>;
-
-	beforeEach(() => {
-		world = createWorld();
-	});
-
-	afterEach(() => {
-		world.destroy();
-	});
-
-	describe("Identity traits", () => {
-		it("should spawn entity with UnitType and read it back", () => {
-			const entity = world.spawn(UnitType);
-			expect(entity.has(UnitType)).toBe(true);
-
-			const unitType = entity.get(UnitType);
-			expect(unitType.type).toBe("");
+describe("ECS components (bitECS SoA stores)", () => {
+	describe("Position", () => {
+		it("stores x and y coordinates", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 42, y: 99, faction: "ura" });
+			expect(Position.x[eid]).toBe(42);
+			expect(Position.y[eid]).toBe(99);
 		});
 
-		it("should set UnitType value", () => {
-			const entity = world.spawn(UnitType);
-			entity.set(UnitType, { type: "mudfoot" });
-
-			const unitType = entity.get(UnitType);
-			expect(unitType.type).toBe("mudfoot");
-		});
-
-		it("should spawn entity with Faction", () => {
-			const entity = world.spawn(Faction);
-			entity.set(Faction, { id: "ura" });
-			expect(entity.get(Faction).id).toBe("ura");
-		});
-
-		it("should use tag traits without data", () => {
-			const entity = world.spawn(IsHero, IsBuilding);
-			expect(entity.has(IsHero)).toBe(true);
-			expect(entity.has(IsBuilding)).toBe(true);
-			expect(entity.has(IsProjectile)).toBe(false);
-			expect(entity.has(IsResource)).toBe(false);
+		it("supports negative coordinates", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: -10, y: -20, faction: "ura" });
+			expect(Position.x[eid]).toBeCloseTo(-10);
+			expect(Position.y[eid]).toBeCloseTo(-20);
 		});
 	});
 
-	describe("Spatial traits", () => {
-		it("should spawn with Position defaults", () => {
-			const entity = world.spawn(Position);
-			const pos = entity.get(Position);
-			expect(pos.x).toBe(0);
-			expect(pos.y).toBe(0);
+	describe("Health", () => {
+		it("stores current and max HP", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", health: { current: 80, max: 100 } });
+			expect(Health.current[eid]).toBe(80);
+			expect(Health.max[eid]).toBe(100);
 		});
 
-		it("should update Position", () => {
-			const entity = world.spawn(Position);
-			entity.set(Position, { x: 5, y: 10 });
-			const pos = entity.get(Position);
-			expect(pos.x).toBe(5);
-			expect(pos.y).toBe(10);
-		});
-
-		it("should spawn with Velocity and FacingDirection", () => {
-			const entity = world.spawn(Velocity, FacingDirection);
-			expect(entity.has(Velocity)).toBe(true);
-			expect(entity.has(FacingDirection)).toBe(true);
-			expect(entity.get(FacingDirection).angle).toBe(0);
+		it("current can go below zero (death detection)", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", health: { current: 5, max: 100 } });
+			Health.current[eid] -= 10;
+			expect(Health.current[eid]).toBe(-5);
 		});
 	});
 
-	describe("Combat traits", () => {
-		it("should spawn with Health defaults", () => {
-			const entity = world.spawn(Health);
-			const health = entity.get(Health);
-			expect(health.current).toBe(100);
-			expect(health.max).toBe(100);
-		});
+	describe("Attack", () => {
+		it("stores damage, range, cooldown, timer", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			Attack.damage[eid] = 12;
+			Attack.range[eid] = 48;
+			Attack.cooldown[eid] = 1.5;
+			Attack.timer[eid] = 0;
 
-		it("should reduce health", () => {
-			const entity = world.spawn(Health);
-			entity.set(Health, { current: 50 });
-			expect(entity.get(Health).current).toBe(50);
-			expect(entity.get(Health).max).toBe(100);
-		});
-
-		it("should spawn with Attack defaults", () => {
-			const entity = world.spawn(Attack);
-			const atk = entity.get(Attack);
-			expect(atk.damage).toBe(10);
-			expect(atk.range).toBe(1);
-			expect(atk.cooldown).toBe(1.0);
-			expect(atk.timer).toBe(0);
-		});
-
-		it("should spawn with Armor and VisionRadius", () => {
-			const entity = world.spawn(Armor, VisionRadius);
-			expect(entity.get(Armor).value).toBe(0);
-			expect(entity.get(VisionRadius).radius).toBe(5);
+			expect(Attack.damage[eid]).toBe(12);
+			expect(Attack.range[eid]).toBe(48);
+			expect(Attack.cooldown[eid]).toBeCloseTo(1.5);
+			expect(Attack.timer[eid]).toBe(0);
 		});
 	});
 
-	describe("AI traits", () => {
-		it("should spawn AIState with AoS defaults", () => {
-			const entity = world.spawn(AIState);
-			const ai = entity.get(AIState);
-			expect(ai.state).toBe("idle");
-			expect(ai.target).toBeNull();
-			expect(ai.alertLevel).toBe(0);
-		});
-
-		it("should mutate AIState object directly", () => {
-			const entity = world.spawn(AIState);
-			const ai = entity.get(AIState);
-			ai.state = "alert";
-			ai.alertLevel = 2;
-			// AoS traits return a ref so mutations persist
-			expect(entity.get(AIState).state).toBe("alert");
-			expect(entity.get(AIState).alertLevel).toBe(2);
-		});
-
-		it("should spawn SteeringAgent as null", () => {
-			const entity = world.spawn(SteeringAgent);
-			expect(entity.get(SteeringAgent)).toBeNull();
+	describe("Armor", () => {
+		it("stores armor value", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			Armor.value[eid] = 5;
+			expect(Armor.value[eid]).toBe(5);
 		});
 	});
 
-	describe("Order traits", () => {
-		it("should spawn OrderQueue as empty array", () => {
-			const entity = world.spawn(OrderQueue);
-			const queue = entity.get(OrderQueue);
-			expect(Array.isArray(queue)).toBe(true);
-			expect(queue).toHaveLength(0);
-		});
-
-		it("should push orders to queue", () => {
-			const entity = world.spawn(OrderQueue);
-			const queue = entity.get(OrderQueue);
-			queue.push({ type: "move", targetX: 5, targetY: 10 });
-			expect(entity.get(OrderQueue)).toHaveLength(1);
-			expect(entity.get(OrderQueue)[0].type).toBe("move");
-		});
-
-		it("should spawn RallyPoint with defaults", () => {
-			const entity = world.spawn(RallyPoint);
-			const rp = entity.get(RallyPoint);
-			expect(rp.x).toBe(0);
-			expect(rp.y).toBe(0);
+	describe("Speed", () => {
+		it("stores speed value", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			Speed.value[eid] = 64;
+			expect(Speed.value[eid]).toBe(64);
 		});
 	});
 
-	describe("Economy traits", () => {
-		it("should spawn Gatherer with defaults", () => {
-			const entity = world.spawn(Gatherer);
-			const g = entity.get(Gatherer);
-			expect(g.carrying).toBe("");
-			expect(g.amount).toBe(0);
-			expect(g.capacity).toBe(10);
-		});
+	describe("Faction", () => {
+		it("assigns numeric faction IDs", () => {
+			const world = createGameWorld();
+			const ura = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			const sg = spawnUnit(world, { x: 10, y: 0, faction: "scale_guard" });
+			const neutral = spawnUnit(world, { x: 20, y: 0, faction: "neutral" });
 
-		it("should spawn ResourceNode with defaults", () => {
-			const entity = world.spawn(ResourceNode);
-			const rn = entity.get(ResourceNode);
-			expect(rn.type).toBe("");
-			expect(rn.remaining).toBe(100);
-		});
-
-		it("should spawn ProductionQueue as empty array", () => {
-			const entity = world.spawn(ProductionQueue);
-			expect(entity.get(ProductionQueue)).toHaveLength(0);
-		});
-
-		it("should spawn PopulationCost with default", () => {
-			const entity = world.spawn(PopulationCost);
-			expect(entity.get(PopulationCost).cost).toBe(1);
+			expect(Faction.id[ura]).toBe(1);
+			expect(Faction.id[sg]).toBe(2);
+			expect(Faction.id[neutral]).toBe(0);
 		});
 	});
 
-	describe("Stealth traits", () => {
-		it("should use Concealed and Crouching as tags", () => {
-			const entity = world.spawn(Concealed, Crouching);
-			expect(entity.has(Concealed)).toBe(true);
-			expect(entity.has(Crouching)).toBe(true);
+	describe("Flags", () => {
+		it("supports isBuilding flag", () => {
+			const world = createGameWorld();
+			const building = spawnBuilding(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				buildingType: "barracks",
+			});
+			expect(Flags.isBuilding[building]).toBe(1);
 		});
 
-		it("should spawn DetectionRadius with default", () => {
-			const entity = world.spawn(DetectionRadius);
-			expect(entity.get(DetectionRadius).radius).toBe(6);
+		it("supports isResource flag", () => {
+			const world = createGameWorld();
+			const resource = spawnResource(world, { x: 0, y: 0, resourceType: "fish_node" });
+			expect(Flags.isResource[resource]).toBe(1);
+		});
+
+		it("supports isProjectile flag", () => {
+			const world = createGameWorld();
+			const proj = spawnProjectile(world, { x: 0, y: 0, faction: "ura", damage: 10 });
+			expect(Flags.isProjectile[proj]).toBe(1);
+		});
+
+		it("supports stealthed flag", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			Flags.stealthed[eid] = 1;
+			expect(Flags.stealthed[eid]).toBe(1);
+		});
+
+		it("supports canSwim and submerged flags", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			Flags.canSwim[eid] = 1;
+			Flags.submerged[eid] = 1;
+			expect(Flags.canSwim[eid]).toBe(1);
+			expect(Flags.submerged[eid]).toBe(1);
 		});
 	});
 
-	describe("Water traits", () => {
-		it("should use CanSwim and Submerged as tags", () => {
-			const entity = world.spawn(CanSwim);
-			expect(entity.has(CanSwim)).toBe(true);
-			expect(entity.has(Submerged)).toBe(false);
-
-			entity.add(Submerged);
-			expect(entity.has(Submerged)).toBe(true);
+	describe("Construction", () => {
+		it("stores progress and buildTime", () => {
+			const world = createGameWorld();
+			const building = spawnBuilding(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				buildingType: "barracks",
+				construction: { progress: 50, buildTime: 30 },
+			});
+			expect(Construction.progress[building]).toBe(50);
+			expect(Construction.buildTime[building]).toBe(30);
 		});
 	});
 
-	describe("Query: spawn entity with Position+UnitType, query it back", () => {
-		it("should find entity via world.query", () => {
-			const entity = world.spawn(Position, UnitType);
-			entity.set(UnitType, { type: "mudfoot" });
-			entity.set(Position, { x: 3, y: 7 });
-
-			const results = world.query(Position, UnitType);
-			expect(results.length).toBe(1);
-
-			const found = results[0];
-			expect(found.get(UnitType).type).toBe("mudfoot");
-			expect(found.get(Position).x).toBe(3);
-			expect(found.get(Position).y).toBe(7);
+	describe("VisionRadius", () => {
+		it("stores vision radius value", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			VisionRadius.value[eid] = 128;
+			expect(VisionRadius.value[eid]).toBe(128);
 		});
+	});
 
-		it("should not find entity missing required trait", () => {
-			world.spawn(Position); // no UnitType
-
-			const results = world.query(Position, UnitType);
-			expect(results.length).toBe(0);
+	describe("Selection", () => {
+		it("stores selection state", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			Selection.selected[eid] = 1;
+			expect(Selection.selected[eid]).toBe(1);
+			Selection.selected[eid] = 0;
+			expect(Selection.selected[eid]).toBe(0);
 		});
+	});
+
+	describe("Gatherer", () => {
+		it("stores amount and capacity", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			Gatherer.amount[eid] = 5;
+			Gatherer.capacity[eid] = 10;
+			expect(Gatherer.amount[eid]).toBe(5);
+			expect(Gatherer.capacity[eid]).toBe(10);
+		});
+	});
+
+	describe("ResourceNode", () => {
+		it("stores remaining amount", () => {
+			const world = createGameWorld();
+			const eid = spawnResource(world, { x: 0, y: 0, resourceType: "fish_node" });
+			ResourceNode.remaining[eid] = 100;
+			expect(ResourceNode.remaining[eid]).toBe(100);
+		});
+	});
+
+	describe("Veterancy", () => {
+		it("stores xp and rank", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			Veterancy.xp[eid] = 150;
+			Veterancy.rank[eid] = 2;
+			expect(Veterancy.xp[eid]).toBe(150);
+			expect(Veterancy.rank[eid]).toBe(2);
+		});
+	});
+
+	describe("DetectionCone", () => {
+		it("stores range, half angle, suspicion state", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "scale_guard" });
+			DetectionCone.range[eid] = 200;
+			DetectionCone.halfAngle[eid] = 45;
+			DetectionCone.suspicionTimer[eid] = 0;
+			DetectionCone.suspicionThreshold[eid] = 3;
+			DetectionCone.alertState[eid] = 0;
+
+			expect(DetectionCone.range[eid]).toBe(200);
+			expect(DetectionCone.halfAngle[eid]).toBe(45);
+			expect(DetectionCone.alertState[eid]).toBe(0);
+		});
+	});
+
+	describe("SplashRadius", () => {
+		it("stores radius", () => {
+			const world = createGameWorld();
+			const eid = spawnProjectile(world, { x: 0, y: 0, faction: "ura", damage: 25 });
+			SplashRadius.radius[eid] = 96;
+			expect(SplashRadius.radius[eid]).toBe(96);
+		});
+	});
+});
+
+describe("Entity lifecycle (spawn, alive, remove, flush)", () => {
+	it("spawned entity is alive", () => {
+		const world = createGameWorld();
+		const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+		expect(isAlive(world, eid)).toBe(true);
+	});
+
+	it("entity marked for removal is still alive until flush", () => {
+		const world = createGameWorld();
+		const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+		markForRemoval(world, eid);
+		expect(isAlive(world, eid)).toBe(true);
+	});
+
+	it("entity is dead after flush", () => {
+		const world = createGameWorld();
+		const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+		markForRemoval(world, eid);
+		flushRemovals(world);
+		expect(isAlive(world, eid)).toBe(false);
+	});
+
+	it("flush clears runtime maps for removed entities", () => {
+		const world = createGameWorld();
+		const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", unitType: "mudfoot" });
+		world.runtime.orderQueues.set(eid, [{ type: "move", targetX: 100, targetY: 0 }]);
+
+		markForRemoval(world, eid);
+		flushRemovals(world);
+
+		expect(world.runtime.orderQueues.has(eid)).toBe(false);
+		expect(world.runtime.entityTypeIndex.has(eid)).toBe(false);
+	});
+
+	it("multiple entities can be spawned and tracked", () => {
+		const world = createGameWorld();
+		const ids: number[] = [];
+		for (let i = 0; i < 10; i++) {
+			ids.push(spawnUnit(world, { x: i * 10, y: 0, faction: "ura" }));
+		}
+		expect(world.runtime.alive.size).toBe(10);
+
+		// Remove half
+		for (let i = 0; i < 5; i++) {
+			markForRemoval(world, ids[i]);
+		}
+		flushRemovals(world);
+
+		expect(world.runtime.alive.size).toBe(5);
+		for (let i = 0; i < 5; i++) {
+			expect(isAlive(world, ids[i])).toBe(false);
+		}
+		for (let i = 5; i < 10; i++) {
+			expect(isAlive(world, ids[i])).toBe(true);
+		}
 	});
 });

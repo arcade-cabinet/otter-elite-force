@@ -1,3 +1,4 @@
+import { deriveMissionSeedPhrase } from "@/engine";
 import type { Objective, Scenario, ScenarioTrigger, TriggerCondition } from "@/scenarios/types";
 import type { MissionDef } from "../types";
 
@@ -70,6 +71,7 @@ export function compileMissionScenario(mission: MissionDef): Scenario {
 		},
 		objectives,
 		triggers,
+		seedPhrase: mission.seedPhrase ?? deriveMissionSeedPhrase(mission.id),
 		unitUnlocks: mission.unlocks?.units,
 		buildingUnlocks: mission.unlocks?.buildings,
 	};

@@ -79,10 +79,10 @@ export const mission01Beachhead: MissionDef = {
 			// Base layer — lush jungle grass
 			{ terrainId: "grass", fill: true },
 
-			// Beach (southern coast)
-			{ terrainId: "beach", rect: { x: 0, y: 76, w: 128, h: 20 } },
+			// Beach (southern coast — narrow strip)
+			{ terrainId: "beach", rect: { x: 0, y: 84, w: 128, h: 12 } },
 
-			// River (east-west, sinuous)
+			// River (east-west, sinuous — visible from start area)
 			{
 				terrainId: "water",
 				river: {
@@ -105,18 +105,19 @@ export const mission01Beachhead: MissionDef = {
 			{ terrainId: "mud", circle: { cx: 20, cy: 36, r: 4 } },
 			{ terrainId: "mud", circle: { cx: 100, cy: 42, r: 3 } },
 
-			// Mangrove groves
+			// Mangrove groves (timber sources)
 			{ terrainId: "mangrove", rect: { x: 8, y: 52, w: 48, h: 12 } },
 			{ terrainId: "mangrove", rect: { x: 8, y: 4, w: 48, h: 16 } },
 			{ terrainId: "mangrove", circle: { cx: 100, cy: 24, r: 8 } },
 
-			// Dirt clearing for player base
-			{ terrainId: "dirt", rect: { x: 24, y: 64, w: 40, h: 12 } },
-			// Dirt path leading to bridge
-			{ terrainId: "dirt", rect: { x: 56, y: 46, w: 6, h: 18 } },
+			// Dirt PATHS (not clearings) — roads between areas
+			{ terrainId: "dirt", rect: { x: 38, y: 64, w: 4, h: 20 } }, // Path from base to beach
+			{ terrainId: "dirt", rect: { x: 30, y: 68, w: 20, h: 3 } }, // Crossroad at base
+			{ terrainId: "dirt", rect: { x: 56, y: 46, w: 4, h: 24 } }, // Path from base to bridge
+			{ terrainId: "dirt", rect: { x: 42, y: 68, w: 18, h: 3 } }, // Path east from base
 
-			// Salvage wreckage area
-			{ terrainId: "dirt", rect: { x: 84, y: 56, w: 20, h: 8 } },
+			// Salvage wreckage area — small dirt patch
+			{ terrainId: "dirt", rect: { x: 86, y: 58, w: 14, h: 6 } },
 
 			// Enemy outpost clearing
 			{ terrainId: "dirt", rect: { x: 68, y: 6, w: 40, h: 12 } },
@@ -131,8 +132,8 @@ export const mission01Beachhead: MissionDef = {
 	// Zones (tile coordinates)
 	// -----------------------------------------------------------------------
 	zones: {
-		landing_zone: { x: 16, y: 76, width: 96, height: 20 },
-		dirt_clearing: { x: 24, y: 64, width: 40, height: 12 },
+		landing_zone: { x: 16, y: 84, width: 96, height: 12 },
+		player_base: { x: 24, y: 64, width: 40, height: 16 },
 		jungle_south: { x: 8, y: 52, width: 48, height: 12 },
 		salvage_field: { x: 80, y: 52, width: 40, height: 16 },
 		mud_banks: { x: 0, y: 44, width: 128, height: 8 },
@@ -147,17 +148,21 @@ export const mission01Beachhead: MissionDef = {
 	// Placements
 	// -----------------------------------------------------------------------
 	placements: [
-		// --- Player (landing_zone) ---
-		// Lodge (Captain's field HQ)
-		{ type: "burrow", faction: "ura", x: 40, y: 80 },
-		// Starting workers
-		{ type: "river_rat", faction: "ura", x: 36, y: 82 },
-		{ type: "river_rat", faction: "ura", x: 42, y: 83 },
-		{ type: "river_rat", faction: "ura", x: 38, y: 85 },
-		{ type: "river_rat", faction: "ura", x: 44, y: 81 },
+		// --- Player (grass clearing, north of beach) ---
+		// Lodge (Captain's field HQ) — on grass, beach visible to the south
+		{ type: "burrow", faction: "ura", x: 40, y: 68 },
+		// Starting workers — around the lodge
+		{ type: "river_rat", faction: "ura", x: 36, y: 70 },
+		{ type: "river_rat", faction: "ura", x: 42, y: 71 },
+		{ type: "river_rat", faction: "ura", x: 38, y: 72 },
+		{ type: "river_rat", faction: "ura", x: 44, y: 69 },
 
 		// --- Resources ---
-		// Timber (mangrove grove south)
+		// Timber (mangrove grove — some close to base, rest in grove)
+		{ type: "mangrove_tree", faction: "neutral", x: 32, y: 66 },
+		{ type: "mangrove_tree", faction: "neutral", x: 34, y: 64 },
+		{ type: "mangrove_tree", faction: "neutral", x: 48, y: 66 },
+		{ type: "mangrove_tree", faction: "neutral", x: 46, y: 64 },
 		{ type: "mangrove_tree", faction: "neutral", x: 12, y: 54 },
 		{ type: "mangrove_tree", faction: "neutral", x: 18, y: 56 },
 		{ type: "mangrove_tree", faction: "neutral", x: 24, y: 55 },
@@ -167,7 +172,8 @@ export const mission01Beachhead: MissionDef = {
 		{ type: "mangrove_tree", faction: "neutral", x: 36, y: 57 },
 		{ type: "mangrove_tree", faction: "neutral", x: 42, y: 59 },
 
-		// Fish (river bank)
+		// Fish (river bank — and one closer to base for visibility)
+		{ type: "fish_spot", faction: "neutral", x: 36, y: 74 },
 		{ type: "fish_spot", faction: "neutral", x: 30, y: 44 },
 		{ type: "fish_spot", faction: "neutral", x: 50, y: 46 },
 		{ type: "fish_spot", faction: "neutral", x: 75, y: 44 },
@@ -192,7 +198,7 @@ export const mission01Beachhead: MissionDef = {
 	// -----------------------------------------------------------------------
 	// Starting state
 	// -----------------------------------------------------------------------
-	startResources: { fish: 100, timber: 50, salvage: 0 },
+	startResources: { fish: 200, timber: 50, salvage: 75 },
 	startPopCap: 10,
 
 	// -----------------------------------------------------------------------

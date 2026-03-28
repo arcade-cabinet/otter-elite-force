@@ -1,0 +1,351 @@
+{
+	"name": "FINISH THE GAME — Every missing port, every broken feature, everything",
+	"description": "Comprehensive list of EVERYTHING still wrong, missing, or unported. Built from old codebase catalog, gap analysis, visual playtesting, and governor testing. No new features — just faithfully finishing what should have been done during the rewrite.",
+	"branchName": "engine-rewrite",
+	"userStories": [
+		{
+			"id": "PORT-01",
+			"title": "Movement system uses A* pathfinding instead of direct teleportation",
+			"description": "The old movementSystem used Yuka steering + A* pathfinding via graphBuilder.ts and pathfinder.ts. The new one does direct line-to-target. The nav graph is now built (ba83797) but movementSystem.ts doesn't use findPath(). Port the old movement logic.",
+			"acceptanceCriteria": [
+				"movementSystem reads nav graph from world.runtime.navGraphs.get('main')",
+				"When a move order is issued, compute A* path via findPath() from ai/pathfinder.ts",
+				"Store waypoints on the entity and follow them sequentially",
+				"Units walk AROUND water/impassable tiles instead of through them",
+				"Arrival at each waypoint advances to next waypoint",
+				"Final waypoint arrival pops the order",
+				"Units with canSwim can path through water tiles (cost 2)",
+				"Test: unit paths around a water obstacle instead of walking through it",
+				"pnpm test passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["port", "movement"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-02",
+			"title": "Wire existing audio engine (src/audio/) into gameplay — not the stub audioRuntime",
+			"description": "1064 lines of Tone.js audio code exist at src/audio/ (engine.ts, music.ts, musicController.ts, sfx.ts, sfxBridge.ts, voiceBarks.ts). The new engine has a stub audioRuntime.ts that doesn't use any of it. Wire the REAL audio.",
+			"acceptanceCriteria": [
+				"src/audio/engine.ts AudioEngine is initialized on first user interaction",
+				"src/audio/sfx.ts SFX definitions used for all game sounds (not zzfx stubs)",
+				"src/audio/music.ts procedural music plays during gameplay",
+				"src/audio/musicController.ts manages music state (menu/combat/briefing)",
+				"src/audio/sfxBridge.ts bridges game events to SFX playback",
+				"src/audio/voiceBarks.ts unit voice responses play on selection/command",
+				"Delete or replace src/engine/audio/audioRuntime.ts and sounds.ts stubs",
+				"Audio actually plays in the browser when you click units and issue commands",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["port", "audio"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-03",
+			"title": "Wire existing rank emblems (src/canvas/rankEmblems.ts) into entity rendering",
+			"description": "306 lines of rank emblem rendering code exists. Draws faction badges + 14 unit-type symbols (chevron, star, cross, diamond, etc.). Not used by LittleJS renderer.",
+			"acceptanceCriteria": [
+				"Import drawRankEmblem from src/canvas/rankEmblems.ts",
+				"Call it during entity rendering for units with veterancy rank > 0",
+				"Faction outline drawn in correct color (green OEF, red Scale Guard)",
+				"Unit type symbol drawn at top-right of entity",
+				"Visible in game when units promote",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["port", "rendering"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-04",
+			"title": "Wire existing portrait renderer (src/canvas/portraitRenderer.ts) into dialogue/briefing",
+			"description": "816 lines of portrait rendering. Renders hero portraits for briefings and command transmissions. 8 portrait definitions exist at src/entities/portraits/. Not used.",
+			"acceptanceCriteria": [
+				"Briefing overlay shows commander portrait from portraitRenderer",
+				"Command transmission panel shows speaker portrait",
+				"All 8 portraits render correctly (Bubbles, FOXHOUND, Whiskers, Splash, Fang, Marina, Muskrat)",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["port", "rendering"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-05",
+			"title": "Wire existing gesture detector (src/input/gestureDetector.ts) into LittleJS input",
+			"description": "289 lines of multi-touch gesture classification. Tap, long-press (500ms), 1-finger drag (selection), 2-finger drag (camera pan), pinch (zoom). LittleJS handles basic mouse→touch but not RTS-specific gestures.",
+			"acceptanceCriteria": [
+				"GestureDetector classifies touch input into tap/long-press/drag/pan/pinch",
+				"Touch tap = select unit (same as mouse click)",
+				"Touch long-press + drag = box select",
+				"Two-finger drag = camera pan",
+				"Pinch = zoom",
+				"These work on actual mobile device (test with Chrome DevTools mobile emulation)",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["port", "input"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-06",
+			"title": "Use building tile PNGs for building rendering instead of colored rectangles",
+			"description": "21 building tile PNGs exist at public/assets/tiles/buildings/ (burrow.png, barracks.png, command_post.png, etc). Buildings render as flat green/red rectangles.",
+			"acceptanceCriteria": [
+				"Load building PNGs during gameInit",
+				"Each building type renders with its actual tile image",
+				"Building images scale with camera zoom",
+				"Construction progress shows as partial opacity of the building image",
+				"Building labels still visible below the image",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["port", "rendering"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-07",
+			"title": "Use resource/prop tile PNGs instead of colored circles for resources",
+			"description": "Resource PNGs (salvage_cache.png, intel_marker.png, supply_crate.png) and prop PNGs (forest tiles, campfires, etc) exist but aren't used. Resources render as colored circles.",
+			"acceptanceCriteria": [
+				"Load resource and prop PNGs during gameInit",
+				"Mangrove trees render with forest tile images, not green circles",
+				"Fish spots render with appropriate water/fish imagery",
+				"Salvage caches render with salvage_cache.png",
+				"Props (bushes, rocks) from tilePainter scatter are already rendering via terrain chunks",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["port", "rendering"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-08",
+			"title": "Old FSM AI states (src/ai/fsm/) wired into enemy behavior",
+			"description": "433 lines of FSM states exist at src/ai/fsm/states.ts with context.ts (104 lines), profiles.ts (163 lines), runner.ts (96 lines). The new aiSystem has its own FSM but doesn't use the Yuka-backed FSM runner.",
+			"acceptanceCriteria": [
+				"Review src/ai/fsm/states.ts — determine if its logic is already in the new aiSystem or adds new behavior",
+				"If the old FSM has states/transitions the new aiSystem lacks, port them",
+				"If the new aiSystem already covers everything, document why the old files aren't needed",
+				"Enemy units behave correctly: patrol, detect, chase, attack, flee, group assist",
+				"pnpm test passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["port", "ai"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-09",
+			"title": "Skirmish AI opponent (src/ai/skirmishAI.ts) wired into skirmish mode",
+			"description": "skirmishAI.ts implements a difficulty-based AI opponent that builds workers, barracks, army, and attacks. Not used in new engine.",
+			"acceptanceCriteria": [
+				"Skirmish mode creates an AI opponent using skirmishAI logic",
+				"AI builds economy (workers, resource gathering)",
+				"AI builds military (barracks, army composition 60% melee / 40% ranged)",
+				"AI attacks when army threshold reached",
+				"Difficulty setting (Easy/Normal/Hard/Brutal) affects AI timing and resources",
+				"pnpm test passes"
+			],
+			"priority": 3,
+			"passes": false,
+			"labels": ["port", "ai"],
+			"dependsOn": ["PORT-01"]
+		},
+		{
+			"id": "PORT-10",
+			"title": "EventBus game events wired to HUD alerts, audio, and visual feedback",
+			"description": "The old game used EventBus for 18+ event types (under-attack, building-complete, training-complete, enemy-spotted, etc). The new engine uses world.events but many events are never generated or consumed.",
+			"acceptanceCriteria": [
+				"Systems emit events to world.events for: unit-death, building-complete, training-complete, research-complete, under-attack, enemy-spotted, resource-depleted, objective-complete, objective-failed",
+				"HUD AlertBanner consumes these events and shows alerts with world position",
+				"Audio sfxBridge plays appropriate SFX for each event type",
+				"Clicking an alert snaps camera to event location",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["port", "events"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-11",
+			"title": "Old keyboard hotkeys (src/input/keyboardHotkeys.ts) fully wired",
+			"description": "Hotkey bindings exist: H=halt, A=attack-move, P=patrol, Esc=cancel, Ctrl+1..9=control groups, 1..9=recall, Space=center on alert. Some are partially wired in tacticalRuntime but not all.",
+			"acceptanceCriteria": [
+				"H key halts selected units (clear order queue)",
+				"A key enters attack-move mode (next click issues attack-move order)",
+				"P key enters patrol mode",
+				"Escape cancels current mode / deselects",
+				"Ctrl+1..9 assigns selected units to control group",
+				"1..9 recalls control group",
+				"Space centers camera on last alert",
+				"All hotkeys visible in ActionBar button labels",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["port", "input"],
+			"dependsOn": []
+		},
+		{
+			"id": "PORT-12",
+			"title": "Minimap input (src/input/minimapInput.ts) fully functional",
+			"description": "minimapInput.ts converts minimap canvas clicks to world coordinates. Partially working but right-click-to-move-units on minimap may not work.",
+			"acceptanceCriteria": [
+				"Left-click on minimap jumps camera to that world position",
+				"Right-click on minimap moves selected units to that world position",
+				"Drag on minimap pans camera continuously",
+				"Minimap shows correct entity positions, fog state, camera rect",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["port", "input"],
+			"dependsOn": []
+		},
+		{
+			"id": "FIX-01",
+			"title": "Terrain Y-axis: LittleJS Y-up vs game Y-down coordinate mismatch",
+			"description": "LittleJS uses Y-up (positive Y is up) but the terrain grid and entity positions use Y-down (row 0 = top). This may cause terrain chunks to render in wrong position or entities to appear flipped.",
+			"acceptanceCriteria": [
+				"Terrain chunks render at correct screen positions matching entity positions",
+				"Entities appear at correct positions relative to terrain features",
+				"Camera panning moves in intuitive directions (drag up = scroll up on map)",
+				"Minimap orientation matches the main viewport",
+				"Test: entity at tile (40,68) appears on the correct terrain tile visually"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["fix", "rendering"],
+			"dependsOn": []
+		},
+		{
+			"id": "FIX-02",
+			"title": "Building tile images loaded and used for all 21 building types",
+			"description": "Building PNGs exist but buildings render as colored rectangles. Load the images and use them.",
+			"acceptanceCriteria": [
+				"All 21 building PNGs loaded: burrow, barracks, command_post, dock, field_hospital, fish_trap, watchtower, armory, gun_tower, minefield, sandbag_wall, stone_wall, flag_post, spawning_pool, fuel_tank, venom_spire, scale_wall, siphon, sludge_pit, great_siphon, shield_generator",
+				"Each building entity type maps to correct PNG",
+				"Building image rendered at entity position with correct size",
+				"Under-construction buildings show at reduced opacity with progress bar",
+				"pnpm build passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["fix", "rendering"],
+			"dependsOn": []
+		},
+		{
+			"id": "FIX-03",
+			"title": "Governor actually completes Mission 1 — economy, buildings, training, combat",
+			"description": "The headless governor currently gathers resources and places some buildings but doesn't complete objectives or win. It needs to train military, attack enemies, and complete all 4 objectives.",
+			"acceptanceCriteria": [
+				"Governor gathers enough timber (150) to complete objective 1",
+				"Governor builds Command Post (objective 2)",
+				"Governor builds Barracks (objective 3)",
+				"Governor trains 3 Mudfoots (objective 4)",
+				"Governor achieves victory on Mission 1 within 60000 ticks",
+				"PlaytestReport shows victory outcome, resources gathered > 200, buildings built >= 3, units trained >= 3",
+				"pnpm test passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["fix", "governor"],
+			"dependsOn": ["PORT-01"]
+		},
+		{
+			"id": "FIX-04",
+			"title": "All entity stats come from existing entity definitions — not hardcoded",
+			"description": "Entity definitions exist at src/entities/units/, src/entities/buildings/, src/entities/heroes/, src/entities/resources/. These have HP, armor, speed, attack, vision, cost, etc. The spawn pipeline must read from these, not hardcoded values.",
+			"acceptanceCriteria": [
+				"spawnUnit reads HP, armor, speed, attack, vision, popCost from src/entities/units/ura/river-rat.ts etc",
+				"spawnBuilding reads HP, armor, buildTime, popCapacity from src/entities/buildings/ura/burrow.ts etc",
+				"spawnResource reads yield, resourceType from src/entities/resources/mangrove-tree.ts etc",
+				"No hardcoded stat values in missionBootstrap or tacticalSession — all from entity defs",
+				"Test: spawned river_rat has stats matching the river-rat.ts definition",
+				"pnpm test passes"
+			],
+			"priority": 1,
+			"passes": false,
+			"labels": ["fix", "data"],
+			"dependsOn": []
+		},
+		{
+			"id": "FIX-05",
+			"title": "Database initialization doesn't error on page load",
+			"description": "initDatabase() is called in main.tsx but still errors sometimes. Ensure it's called before any persistence operation and handles failure gracefully.",
+			"acceptanceCriteria": [
+				"No 'Database not initialized' errors in browser console",
+				"Campaign progress loads correctly on app start",
+				"Settings persist between sessions",
+				"Save/load works from pause menu",
+				"pnpm build passes"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["fix", "persistence"],
+			"dependsOn": []
+		},
+		{
+			"id": "POLISH-01",
+			"title": "CRT-styled phosphor-green minimap matching old Minimap.tsx",
+			"description": "Old minimap had CRT styling: dark bg, green border glow, scanlines, grid overlay, radar sweep animation. New minimap is basic.",
+			"acceptanceCriteria": [
+				"Minimap has dark background with slight green tint",
+				"Green border glow effect",
+				"Scanline overlay",
+				"Entity pips are bright colored dots (green player, red enemy, yellow resource)",
+				"Camera viewport rect in white",
+				"Click to jump camera works",
+				"pnpm build passes"
+			],
+			"priority": 3,
+			"passes": false,
+			"labels": ["polish", "rendering"],
+			"dependsOn": []
+		},
+		{
+			"id": "POLISH-02",
+			"title": "All 16 missions pass governor playtest with correct mechanics",
+			"description": "Governor should play all 16 missions without crashing and make meaningful progress. Mission-specific mechanics (convoy, stealth, waves, boss) should activate.",
+			"acceptanceCriteria": [
+				"All 16 missions boot without errors",
+				"Standard missions: governor gathers, builds, trains, fights",
+				"Commando missions (4, 8, 9, 12): governor uses military units only",
+				"Wave defense missions (6, 11): waves spawn correctly",
+				"Boss missions (15, 16): boss entity spawns with phase config",
+				"No mission softlocks or infinite loops",
+				"pnpm test passes (allMissions.test.ts)"
+			],
+			"priority": 2,
+			"passes": false,
+			"labels": ["polish", "missions"],
+			"dependsOn": ["FIX-03"]
+		},
+		{
+			"id": "POLISH-03",
+			"title": "Zero console.log in production, zero TODO comments, zero fallback rendering",
+			"description": "Final cleanup pass.",
+			"acceptanceCriteria": [
+				"grep -r 'console.log' src/ --include='*.ts' --include='*.tsx' returns 0 results (only console.error for actual errors)",
+				"grep -r 'TODO\\|FIXME\\|HACK' src/ --include='*.ts' --include='*.tsx' returns 0 results",
+				"No shape/color fallback rendering — if sprite/tile not loaded, entity is invisible until it loads",
+				"No debug text on canvas",
+				"pnpm build passes with zero warnings"
+			],
+			"priority": 3,
+			"passes": false,
+			"labels": ["polish", "cleanup"],
+			"dependsOn": []
+		}
+	]
+}

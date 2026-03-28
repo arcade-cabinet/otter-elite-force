@@ -11,18 +11,21 @@ Authoritative context for AI coding agents (Claude, Codex, Gemini, etc.) working
 
 **Otter: Elite Force** — campaign-first 2D RTS. 16 missions across 4 chapters. Player is the Captain commanding from a lodge. Otters vs Scale-Guard reptilian occupiers in the Copper-Silt Reach.
 
-## Architecture (Target)
+The design target is not a literal 1990s RTS replica. It is a modern game that is emblematic of 1990s RTS ideas. Nostalgic strategy, pacing, readability, and fantasy are desired. Outdated ergonomics are not.
 
-Engine rewrite in progress. See [docs/engine-rewrite-plan.md](docs/engine-rewrite-plan.md).
+## Architecture
 
-| Layer | Current | Target |
-|-------|---------|--------|
-| Rendering | react-konva (Konva.js) | **LittleJS** |
-| ECS | Koota | **bitECS** |
-| UI | React 19 | **SolidJS** |
-| AI | Yuka | Yuka (unchanged) |
-| Audio | Tone.js | Tone.js (unchanged) |
-| Build | Vite 8 | Vite (unchanged) |
+| Layer | Stack |
+|-------|-------|
+| Rendering | **LittleJS** (Canvas2D tactical runtime) |
+| ECS | **bitECS** (scalar stores) + world-owned maps |
+| UI Shell | **SolidJS** (screens, HUD, mobile) |
+| AI | Yuka |
+| Audio | Tone.js |
+| Persistence | **@capacitor-community/sqlite** |
+| Build | Vite 8 |
+
+See [docs/engine-rewrite-plan.md](docs/engine-rewrite-plan.md) for full architecture details.
 
 ## Reference Codebases
 
@@ -43,6 +46,15 @@ Available at `~/src/reference-codebases/`:
 4. **Verify before merging.** Run locally, check deployed site, wait for feedback.
 5. **Play the game.** TypeScript compiling does not mean it works.
 6. **Conventional commits.** `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`, `ci:`
+
+## Interaction Contract
+
+1. **Mouse/touch parity is mandatory.** If a core gameplay action cannot be performed with mouse/tap/drag, the interaction model has failed and must be redesigned.
+2. **Do not make keyboard-only gameplay primary.** Keyboard shortcuts may accelerate existing actions, but they cannot be the only sane path for tactical play.
+3. **Camera movement must be pointer-first.** Drag, minimap, tap, and gesture controls are the source of truth. Do not add or preserve arrow-key / WASD camera pan as a primary interaction.
+4. **Escape may exist only as an accelerator.** If `Escape` deselects or closes something, the same action must also be available as an on-screen control.
+5. **Prefer direct cuts over compatibility shims.** For the rewrite branch, deleting or temporarily excluding unfinished code is better than preserving legacy wrappers that slow the cutover.
+6. **Adaptive UX is mandatory.** The UI must rearrange and re-prioritize itself so the same game works well on phones, tablets, and desktop monitors. If an interface only makes sense on desktop, it is not finished.
 
 ## Command Structure (Lore)
 

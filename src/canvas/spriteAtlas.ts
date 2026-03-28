@@ -51,32 +51,28 @@ const entityTileMap = new Map<string, string>();
 
 // ─── Atlas manifest — lists every sprite sheet to load ───
 
-const ATLAS_MANIFEST: Array<{ name: string; png: string; json: string }> = [
-	{ name: "otter", png: BASE + "assets/sprites/otter.png", json: BASE + "assets/sprites/otter.json" },
-	{
-		name: "crocodile",
-		png: BASE + "assets/sprites/crocodile.png",
-		json: BASE + "assets/sprites/crocodile.json",
-	},
-	{ name: "boar", png: BASE + "assets/sprites/boar.png", json: BASE + "assets/sprites/boar.json" },
-	{ name: "cobra", png: BASE + "assets/sprites/cobra.png", json: BASE + "assets/sprites/cobra.json" },
-	{ name: "fox", png: BASE + "assets/sprites/fox.png", json: BASE + "assets/sprites/fox.json" },
-	{ name: "hedgehog", png: BASE + "assets/sprites/hedgehog.png", json: BASE + "assets/sprites/hedgehog.json" },
-	{
-		name: "naked_mole_rat",
-		png: BASE + "assets/sprites/naked_mole_rat.png",
-		json: BASE + "assets/sprites/naked_mole_rat.json",
-	},
-	{
-		name: "porcupine",
-		png: BASE + "assets/sprites/porcupine.png",
-		json: BASE + "assets/sprites/porcupine.json",
-	},
-	{ name: "skunk", png: BASE + "assets/sprites/skunk.png", json: BASE + "assets/sprites/skunk.json" },
-	{ name: "snake", png: BASE + "assets/sprites/snake.png", json: BASE + "assets/sprites/snake.json" },
-	{ name: "squirrel", png: BASE + "assets/sprites/squirrel.png", json: BASE + "assets/sprites/squirrel.json" },
-	{ name: "vulture", png: BASE + "assets/sprites/vulture.png", json: BASE + "assets/sprites/vulture.json" },
-];
+const ATLAS_NAMES = [
+	"otter",
+	"crocodile",
+	"boar",
+	"cobra",
+	"fox",
+	"hedgehog",
+	"naked_mole_rat",
+	"porcupine",
+	"skunk",
+	"snake",
+	"squirrel",
+	"vulture",
+] as const;
+
+const ATLAS_MANIFEST: Array<{ name: string; png: string; json: string }> = ATLAS_NAMES.map(
+	(name) => ({
+		name,
+		png: `${BASE}assets/sprites/${name}.png`,
+		json: `${BASE}assets/sprites/${name}.json`,
+	}),
+);
 
 // ─── Loading ───
 
@@ -157,6 +153,12 @@ function sliceFrames(
 async function loadAtlas(entry: { name: string; png: string; json: string }): Promise<void> {
 	const [image, response] = await Promise.all([loadImage(entry.png), fetch(entry.json)]);
 
+	if (!response.ok) {
+		throw new Error(
+			`[spriteAtlas] Failed to fetch atlas JSON: ${entry.json} (HTTP ${response.status})`,
+		);
+	}
+
 	const data: AsepriteAtlas = await response.json();
 	const animations = parseAtlas(data);
 	const sliced = sliceFrames(image, animations);
@@ -180,37 +182,68 @@ async function loadAtlas(entry: { name: string; png: string; json: string }): Pr
  * Call once at app boot.
  */
 export async function loadAllAtlases(): Promise<void> {
-	await Promise.all([...ATLAS_MANIFEST.map(loadAtlas), loadTileSprites()]);
+	const atlasResults = await Promise.allSettled(ATLAS_MANIFEST.map(loadAtlas));
+	const tileResult = await Promise.allSettled([loadTileSprites()]);
+
+	// Report individual atlas failures
+	for (let i = 0; i < atlasResults.length; i++) {
+		const result = atlasResults[i];
+		if (result.status === "rejected") {
+			console.error(
+				`[spriteAtlas] Failed to load atlas "${ATLAS_MANIFEST[i].name}":`,
+				result.reason,
+			);
+		}
+	}
+
+	if (tileResult[0].status === "rejected") {
+		console.error("[spriteAtlas] Failed to load tile sprites:", tileResult[0].reason);
+	}
+
 	buildEntitySpriteMap();
 	buildEntityTileMap();
 }
 
 /** Load building/resource tile sprites from the tile manifest. */
 async function loadTileSprites(): Promise<void> {
-	try {
-		const response = await fetch(BASE + "assets/tiles/tile-manifest.json");
-		const manifest: Record<string, { path: string; category: string }> = await response.json();
-
-		// Only load buildings and resources (terrain/props are used by the terrain painter)
-		const toLoad = Object.entries(manifest).filter(
-			([, v]) => v.category === "buildings" || v.category === "resources" || v.category === "props",
+	const manifestUrl = `${BASE}assets/tiles/tile-manifest.json`;
+	const response = await fetch(manifestUrl);
+	if (!response.ok) {
+		throw new Error(
+			`[spriteAtlas] Failed to fetch tile manifest: ${manifestUrl} (HTTP ${response.status})`,
 		);
+	}
+	const manifest: Record<string, { path: string; category: string }> = await response.json();
 
-		await Promise.all(
-			toLoad.map(async ([name, entry]) => {
-				const assetPath = entry.path.startsWith("/") ? BASE + entry.path.slice(1) : entry.path;
-				const img = await loadImage(assetPath);
-				const canvas = document.createElement("canvas");
-				canvas.width = img.width;
-				canvas.height = img.height;
-				const ctx = canvas.getContext("2d")!;
-				ctx.imageSmoothingEnabled = false;
-				ctx.drawImage(img, 0, 0);
-				tileSprites.set(name, canvas);
-			}),
-		);
-	} catch (e) {
-		console.warn("[spriteAtlas] Failed to load tile manifest:", e);
+	// Only load buildings and resources (terrain/props are used by the terrain painter)
+	const toLoad = Object.entries(manifest).filter(
+		([, v]) => v.category === "buildings" || v.category === "resources" || v.category === "props",
+	);
+
+	const results = await Promise.allSettled(
+		toLoad.map(async ([name, entry]) => {
+			const assetPath = entry.path.startsWith("/") ? BASE + entry.path.slice(1) : entry.path;
+			const img = await loadImage(assetPath);
+			const canvas = document.createElement("canvas");
+			canvas.width = img.width;
+			canvas.height = img.height;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) {
+				throw new Error(`[spriteAtlas] Failed to get 2D context for tile: ${name}`);
+			}
+			ctx.imageSmoothingEnabled = false;
+			ctx.drawImage(img, 0, 0);
+			tileSprites.set(name, canvas);
+		}),
+	);
+
+	for (let i = 0; i < results.length; i++) {
+		if (results[i].status === "rejected") {
+			console.error(
+				`[spriteAtlas] Failed to load tile sprite "${toLoad[i][0]}":`,
+				(results[i] as PromiseRejectedResult).reason,
+			);
+		}
 	}
 }
 
@@ -301,6 +334,13 @@ function buildEntitySpriteMap(): void {
 	entitySpriteMap.set("scout_lizard", { animal: "cobra", defaultAnim: "Idle" });
 	entitySpriteMap.set("siphon_drone", { animal: "cobra", defaultAnim: "Idle" });
 	entitySpriteMap.set("serpent_king", { animal: "cobra", defaultAnim: "Idle" });
+	entitySpriteMap.set("kommandant_ironjaw", { animal: "crocodile", defaultAnim: "Idle" });
+
+	// ─── Scale-Guard Bosses ───
+	entitySpriteMap.set("captain_scalebreak", { animal: "crocodile", defaultAnim: "Idle" });
+	entitySpriteMap.set("warden_fangrot", { animal: "crocodile", defaultAnim: "Idle" });
+	entitySpriteMap.set("venom", { animal: "cobra", defaultAnim: "Idle" });
+	entitySpriteMap.set("broodmother", { animal: "crocodile", defaultAnim: "Idle" });
 
 	// ─── Resources — NOT mapped here, fall through to procedural sprites ───
 	// fish_spot, mangrove_tree, salvage_cache, supply_crate, intel_marker
@@ -329,7 +369,7 @@ export function getSpriteFrame(
 
 /**
  * Get the idle frame (frame 0) for a game entity type.
- * This is the main entry point for EntityLayer rendering.
+ * This is the main entry point for tactical entity sprite rendering.
  *
  * Falls back through: tile sprite → atlas sprite → undefined (procedural fallback).
  */

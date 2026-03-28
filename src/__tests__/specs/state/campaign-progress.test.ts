@@ -1,287 +1,158 @@
 /**
- * CampaignProgress Serialization Specification Tests
+ * Campaign Progress State Tests — ported from old Koota codebase.
  *
- * Defines the behavioral contract for CampaignProgress trait and
- * its serialization/deserialization lifecycle (Koota <-> persistence).
- *
- * Sources:
- *   - docs/superpowers/specs/2026-03-24-ui-spdsl-architecture-design.md SS7
- *   - src/ecs/traits/state.ts (CampaignProgress, UserSettings, TerritoryState)
- *   - docs/architecture/testing-strategy.md (Layer 1: spec tests)
+ * Tests campaign state tracking through the GameWorld.
  */
 
-import { createWorld, type World } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { initSingletons, resetSessionState } from "@/ecs/singletons";
-import {
-	CampaignProgress,
-	TerritoryState,
-	UserSettings,
-	WeatherCondition,
-} from "@/ecs/traits/state";
+import { describe, expect, it } from "vitest";
+import { createGameWorld, resetWorldSession } from "@/engine/world/gameWorld";
 
-let world: World;
-
-beforeEach(() => {
-	world = createWorld();
-	initSingletons(world);
-});
-
-afterEach(() => {
-	world.destroy();
-});
-
-// ===========================================================================
-// SPECIFICATION
-// ===========================================================================
-
-describe("CampaignProgress trait", () => {
+describe("Campaign progress state", () => {
 	describe("initialization", () => {
-		it("is added to the world by initSingletons", () => {
-			expect(world.has(CampaignProgress)).toBe(true);
+		it("starts with null currentMissionId", () => {
+			const world = createGameWorld();
+			expect(world.campaign.currentMissionId).toBeNull();
 		});
 
-		it("starts with empty missions, null currentMission, support difficulty", () => {
-			const progress = world.get(CampaignProgress)!;
-			expect(progress.missions).toEqual({});
-			expect(progress.currentMission).toBeNull();
-			expect(progress.difficulty).toBe("support");
+		it("starts with support difficulty", () => {
+			const world = createGameWorld();
+			expect(world.campaign.difficulty).toBe("support");
 		});
 	});
 
-	describe("mission completion", () => {
-		it("can record a completed mission with stars and time", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.missions.mission_1 = {
+	describe("mission tracking", () => {
+		it("can set current mission", () => {
+			const world = createGameWorld();
+			world.campaign.currentMissionId = "mission-01";
+			expect(world.campaign.currentMissionId).toBe("mission-01");
+		});
+
+		it("can change difficulty to tactical", () => {
+			const world = createGameWorld();
+			world.campaign.difficulty = "tactical";
+			expect(world.campaign.difficulty).toBe("tactical");
+		});
+
+		it("can change difficulty to elite", () => {
+			const world = createGameWorld();
+			world.campaign.difficulty = "elite";
+			expect(world.campaign.difficulty).toBe("elite");
+		});
+	});
+
+	describe("session management", () => {
+		it("session starts in loading phase", () => {
+			const world = createGameWorld();
+			expect(world.session.phase).toBe("loading");
+		});
+
+		it("session tracks current mission ID", () => {
+			const world = createGameWorld();
+			world.session.currentMissionId = "mission-05";
+			expect(world.session.currentMissionId).toBe("mission-05");
+		});
+
+		it("session tracks objectives", () => {
+			const world = createGameWorld();
+			world.session.objectives.push({
+				id: "obj-1",
+				description: "Destroy enemy base",
+				status: "incomplete",
+			});
+			world.session.objectives.push({
+				id: "obj-2",
+				description: "Find intel",
 				status: "completed",
-				stars: 3,
-				bestTime: 420000,
+				bonus: true,
+			});
+
+			expect(world.session.objectives).toHaveLength(2);
+			expect(world.session.objectives[0].status).toBe("incomplete");
+			expect(world.session.objectives[1].bonus).toBe(true);
+		});
+
+		it("resetWorldSession clears session state", () => {
+			const world = createGameWorld();
+			world.session.currentMissionId = "mission-05";
+			world.session.phase = "playing";
+			world.session.objectives.push({ id: "obj-1", description: "Win", status: "completed" });
+			world.session.resources = { fish: 100, timber: 200, salvage: 50 };
+
+			resetWorldSession(world);
+
+			expect(world.session.currentMissionId).toBeNull();
+			expect(world.session.phase).toBe("loading");
+			expect(world.session.objectives).toHaveLength(0);
+			expect(world.session.resources.fish).toBe(0);
+		});
+
+		it("resetWorldSession preserves campaign state", () => {
+			const world = createGameWorld();
+			world.campaign.currentMissionId = "mission-10";
+			world.campaign.difficulty = "elite";
+
+			resetWorldSession(world);
+
+			// Campaign state should NOT be reset
+			expect(world.campaign.currentMissionId).toBe("mission-10");
+			expect(world.campaign.difficulty).toBe("elite");
+		});
+	});
+
+	describe("dialogue state", () => {
+		it("starts with null dialogue", () => {
+			const world = createGameWorld();
+			expect(world.session.dialogue).toBeNull();
+		});
+
+		it("can set active dialogue", () => {
+			const world = createGameWorld();
+			world.session.dialogue = {
+				active: true,
+				lines: [
+					{ speaker: "Col. Bubbles", text: "Move to the objective!" },
+					{ speaker: "FOXHOUND", text: "Enemy positions detected." },
+				],
 			};
-			expect(world.get(CampaignProgress)?.missions.mission_1).toEqual({
-				status: "completed",
-				stars: 3,
-				bestTime: 420000,
-			});
+
+			expect(world.session.dialogue?.active).toBe(true);
+			expect(world.session.dialogue?.lines).toHaveLength(2);
+			expect(world.session.dialogue?.lines[0].speaker).toBe("Col. Bubbles");
 		});
 
-		it("can track multiple missions", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.missions.mission_1 = { status: "completed", stars: 3, bestTime: 420000 };
-			progress.missions.mission_2 = { status: "completed", stars: 2, bestTime: 600000 };
-			progress.missions.mission_3 = { status: "unlocked", stars: 0, bestTime: 0 };
-			expect(Object.keys(world.get(CampaignProgress)?.missions)).toHaveLength(3);
-		});
+		it("resetWorldSession clears dialogue", () => {
+			const world = createGameWorld();
+			world.session.dialogue = {
+				active: true,
+				lines: [{ speaker: "Test", text: "Testing" }],
+			};
 
-		it("updates bestTime only when new time is better", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.missions.mission_1 = { status: "completed", stars: 2, bestTime: 600000 };
-			// Replay with better time
-			const existing = progress.missions.mission_1;
-			const newTime = 420000;
-			if (newTime < existing.bestTime) {
-				existing.bestTime = newTime;
-			}
-			expect(progress.missions.mission_1.bestTime).toBe(420000);
-		});
+			resetWorldSession(world);
 
-		it("updates stars when new stars are higher", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.missions.mission_1 = { status: "completed", stars: 1, bestTime: 600000 };
-			// Replay with better score
-			const existing = progress.missions.mission_1;
-			const newStars = 3;
-			if (newStars > existing.stars) {
-				existing.stars = newStars;
-			}
-			expect(progress.missions.mission_1.stars).toBe(3);
+			expect(world.session.dialogue).toBeNull();
 		});
 	});
 
-	describe("difficulty", () => {
-		it("can set difficulty to tactical", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.difficulty = "tactical";
-			expect(world.get(CampaignProgress)?.difficulty).toBe("tactical");
+	describe("settings persistence", () => {
+		it("starts with default settings", () => {
+			const world = createGameWorld();
+			expect(world.settings.masterVolume).toBe(1);
+			expect(world.settings.musicVolume).toBe(0.8);
+			expect(world.settings.sfxVolume).toBe(0.9);
+			expect(world.settings.showSubtitles).toBe(true);
+			expect(world.settings.reduceMotion).toBe(false);
 		});
 
-		it("can set difficulty to elite", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.difficulty = "elite";
-			expect(world.get(CampaignProgress)?.difficulty).toBe("elite");
-		});
+		it("settings are preserved across session reset", () => {
+			const world = createGameWorld();
+			world.settings.masterVolume = 0.5;
+			world.settings.musicVolume = 0.3;
 
-		it("difficulty is escalation-only (design constraint, not code enforcement here)", () => {
-			// This is a design constraint: once you pick a higher difficulty, no going back
-			// The spec says to enforce this at the UI level
-			const progress = world.get(CampaignProgress)!;
-			progress.difficulty = "tactical";
-			expect(progress.difficulty).toBe("tactical");
-		});
-	});
+			resetWorldSession(world);
 
-	describe("currentMission tracking", () => {
-		it("can set currentMission to a mission ID", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.currentMission = "mission_5";
-			expect(world.get(CampaignProgress)?.currentMission).toBe("mission_5");
-		});
-
-		it("can clear currentMission back to null", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.currentMission = "mission_5";
-			progress.currentMission = null;
-			expect(world.get(CampaignProgress)?.currentMission).toBeNull();
-		});
-	});
-
-	describe("persistence across session reset", () => {
-		it("resetSessionState does NOT clear campaign progress", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.missions.mission_1 = { status: "completed", stars: 3, bestTime: 420000 };
-			progress.difficulty = "tactical";
-			resetSessionState(world);
-			// Campaign progress persists across sessions
-			const after = world.get(CampaignProgress)!;
-			expect(after.missions.mission_1).toBeDefined();
-			expect(after.difficulty).toBe("tactical");
-		});
-	});
-
-	describe("serialization shape", () => {
-		it("missions record is plain JSON-serializable", () => {
-			const progress = world.get(CampaignProgress)!;
-			progress.missions.mission_1 = { status: "completed", stars: 3, bestTime: 420000 };
-			progress.missions.mission_2 = { status: "unlocked", stars: 0, bestTime: 0 };
-			progress.currentMission = "mission_2";
-			progress.difficulty = "tactical";
-
-			const json = JSON.stringify({
-				missions: progress.missions,
-				currentMission: progress.currentMission,
-				difficulty: progress.difficulty,
-			});
-			const parsed = JSON.parse(json);
-			expect(parsed.missions.mission_1.stars).toBe(3);
-			expect(parsed.currentMission).toBe("mission_2");
-			expect(parsed.difficulty).toBe("tactical");
-		});
-	});
-});
-
-describe("UserSettings trait", () => {
-	describe("initialization", () => {
-		it("has sensible defaults", () => {
-			const settings = world.get(UserSettings)!;
-			expect(settings.masterVolume).toBe(1.0);
-			expect(settings.musicVolume).toBe(0.7);
-			expect(settings.sfxVolume).toBe(1.0);
-			expect(settings.hapticsEnabled).toBe(true);
-			expect(settings.cameraSpeed).toBe(1.0);
-			expect(settings.uiScale).toBe(1.0);
-			expect(settings.touchMode).toBe("auto");
-			expect(settings.showGrid).toBe(false);
-		});
-	});
-
-	describe("mutations", () => {
-		it("can update volume settings", () => {
-			const settings = world.get(UserSettings)!;
-			settings.musicVolume = 0.3;
-			settings.sfxVolume = 0.8;
-			expect(world.get(UserSettings)?.musicVolume).toBe(0.3);
-			expect(world.get(UserSettings)?.sfxVolume).toBe(0.8);
-		});
-
-		it("can toggle haptics", () => {
-			const settings = world.get(UserSettings)!;
-			settings.hapticsEnabled = false;
-			expect(world.get(UserSettings)?.hapticsEnabled).toBe(false);
-		});
-
-		it("can update masterVolume and uiScale", () => {
-			const settings = world.get(UserSettings)!;
-			settings.masterVolume = 0.5;
-			settings.uiScale = 1.5;
-			expect(world.get(UserSettings)?.masterVolume).toBe(0.5);
-			expect(world.get(UserSettings)?.uiScale).toBe(1.5);
-		});
-	});
-
-	describe("persistence across session reset", () => {
-		it("resetSessionState does NOT clear user settings", () => {
-			const settings = world.get(UserSettings)!;
-			settings.musicVolume = 0.1;
-			resetSessionState(world);
-			expect(world.get(UserSettings)?.musicVolume).toBe(0.1);
-		});
-	});
-});
-
-describe("TerritoryState trait", () => {
-	describe("initialization", () => {
-		it("starts with zero villages", () => {
-			const territory = world.get(TerritoryState)!;
-			expect(territory.totalVillages).toBe(0);
-			expect(territory.liberatedCount).toBe(0);
-			expect(territory.occupiedCount).toBe(0);
-		});
-	});
-
-	describe("mutations", () => {
-		it("can update village counts", () => {
-			world.set(TerritoryState, {
-				totalVillages: 5,
-				liberatedCount: 2,
-				occupiedCount: 3,
-			});
-			const territory = world.get(TerritoryState)!;
-			expect(territory.totalVillages).toBe(5);
-			expect(territory.liberatedCount).toBe(2);
-			expect(territory.occupiedCount).toBe(3);
-		});
-	});
-
-	describe("reset", () => {
-		it("resetSessionState resets territory to zeros", () => {
-			world.set(TerritoryState, {
-				totalVillages: 5,
-				liberatedCount: 3,
-				occupiedCount: 2,
-			});
-			resetSessionState(world);
-			const territory = world.get(TerritoryState)!;
-			expect(territory.totalVillages).toBe(0);
-			expect(territory.liberatedCount).toBe(0);
-			expect(territory.occupiedCount).toBe(0);
-		});
-	});
-});
-
-describe("WeatherCondition trait", () => {
-	describe("initialization", () => {
-		it("defaults to clear", () => {
-			const weather = world.get(WeatherCondition)!;
-			expect(weather.state).toBe("clear");
-		});
-	});
-
-	describe("mutations", () => {
-		it("can set weather to rain", () => {
-			world.set(WeatherCondition, { state: "rain" });
-			expect(world.get(WeatherCondition)?.state).toBe("rain");
-		});
-
-		it("can set weather to monsoon", () => {
-			world.set(WeatherCondition, { state: "monsoon" });
-			expect(world.get(WeatherCondition)?.state).toBe("monsoon");
-		});
-	});
-
-	describe("reset", () => {
-		it("resetSessionState resets weather to clear", () => {
-			world.set(WeatherCondition, { state: "monsoon" });
-			resetSessionState(world);
-			expect(world.get(WeatherCondition)?.state).toBe("clear");
+			// Settings should NOT be affected by session reset
+			expect(world.settings.masterVolume).toBe(0.5);
+			expect(world.settings.musicVolume).toBe(0.3);
 		});
 	});
 });

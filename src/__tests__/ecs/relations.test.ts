@@ -1,168 +1,221 @@
-import { createWorld, Not } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+/**
+ * ECS Relations Tests — ported from old Koota codebase.
+ *
+ * Tests entity relationships: order queues, production queues,
+ * script tags, entity type index, and AI state maps.
+ */
+
+import { describe, expect, it } from "vitest";
 import {
-	BelongsToSquad,
-	GarrisonedIn,
-	GatheringFrom,
-	OwnedBy,
-	Targeting,
-	TrainingAt,
-} from "@/ecs/relations";
-import { Health } from "@/ecs/traits/combat";
-import { Gatherer } from "@/ecs/traits/economy";
-import { Faction, IsBuilding, UnitType } from "@/ecs/traits/identity";
-import { Position } from "@/ecs/traits/spatial";
+	createGameWorld,
+	getOrderQueue,
+	getProductionQueue,
+	setScriptTag,
+	setSelection,
+	setFaction,
+	spawnUnit,
+	spawnBuilding,
+	markForRemoval,
+	flushRemovals,
+} from "@/engine/world/gameWorld";
+import { Faction, Selection } from "@/engine/world/components";
 
-describe("Koota ECS Relations", () => {
-	let world: ReturnType<typeof createWorld>;
+describe("ECS entity relations", () => {
+	describe("Order queues", () => {
+		it("creates an order queue on first access", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
 
-	beforeEach(() => {
-		world = createWorld();
-	});
-
-	afterEach(() => {
-		world.destroy();
-	});
-
-	describe("BelongsToSquad", () => {
-		it("should link unit to squad", () => {
-			const squad = world.spawn();
-			const unit = world.spawn(BelongsToSquad(squad));
-
-			expect(unit.has(BelongsToSquad(squad))).toBe(true);
-
-			const results = world.query(BelongsToSquad(squad));
-			expect(results.length).toBe(1);
-			expect(results[0]).toBe(unit);
+			const queue = getOrderQueue(world, eid);
+			expect(queue).toEqual([]);
+			expect(world.runtime.orderQueues.has(eid)).toBe(true);
 		});
 
-		it("should query all squad members with wildcard", () => {
-			const squad = world.spawn();
-			const _unit1 = world.spawn(BelongsToSquad(squad));
-			const _unit2 = world.spawn(BelongsToSquad(squad));
+		it("returns the same queue on subsequent access", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
 
-			const results = world.query(BelongsToSquad(squad));
-			expect(results.length).toBe(2);
-		});
-	});
+			const q1 = getOrderQueue(world, eid);
+			q1.push({ type: "move", targetX: 100, targetY: 0 });
 
-	describe("OwnedBy", () => {
-		it("should link entity to faction", () => {
-			const uraFaction = world.spawn(Faction);
-			uraFaction.set(Faction, { id: "ura" });
-
-			const unit = world.spawn(UnitType, Position, OwnedBy(uraFaction));
-			unit.set(UnitType, { type: "mudfoot" });
-
-			expect(unit.has(OwnedBy(uraFaction))).toBe(true);
-
-			const owned = world.query(OwnedBy(uraFaction));
-			expect(owned.length).toBe(1);
-		});
-	});
-
-	describe("Targeting (exclusive)", () => {
-		it("should only keep latest target", () => {
-			const hero = world.spawn(UnitType, Position, Health);
-			const enemy1 = world.spawn(UnitType, Position, Health);
-			const enemy2 = world.spawn(UnitType, Position, Health);
-
-			hero.add(Targeting(enemy1));
-			expect(hero.has(Targeting(enemy1))).toBe(true);
-
-			// Adding a new target should replace the old one (exclusive)
-			hero.add(Targeting(enemy2));
-			expect(hero.has(Targeting(enemy2))).toBe(true);
-			expect(hero.has(Targeting(enemy1))).toBe(false);
+			const q2 = getOrderQueue(world, eid);
+			expect(q2).toBe(q1);
+			expect(q2).toHaveLength(1);
 		});
 
-		it("should query entities targeting a specific enemy", () => {
-			const attacker = world.spawn(UnitType);
-			const target = world.spawn(UnitType);
+		it("supports multiple order types", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			const queue = getOrderQueue(world, eid);
 
-			attacker.add(Targeting(target));
+			queue.push({ type: "move", targetX: 100, targetY: 0 });
+			queue.push({ type: "attack", targetEid: 42 });
+			queue.push({ type: "gather", targetEid: 99 });
 
-			const results = world.query(Targeting(target));
-			expect(results.length).toBe(1);
-			expect(results[0]).toBe(attacker);
+			expect(queue).toHaveLength(3);
+			expect(queue[0].type).toBe("move");
+			expect(queue[1].type).toBe("attack");
+			expect(queue[2].type).toBe("gather");
+		});
+
+		it("is cleaned up on entity removal", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			getOrderQueue(world, eid).push({ type: "move", targetX: 50, targetY: 50 });
+
+			markForRemoval(world, eid);
+			flushRemovals(world);
+
+			expect(world.runtime.orderQueues.has(eid)).toBe(false);
 		});
 	});
 
-	describe("GatheringFrom", () => {
-		it("should link worker to resource node", () => {
-			const tree = world.spawn(Position);
-			const worker = world.spawn(Gatherer, Position, GatheringFrom(tree));
+	describe("Production queues", () => {
+		it("creates a production queue on first access", () => {
+			const world = createGameWorld();
+			const building = spawnBuilding(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				buildingType: "barracks",
+			});
 
-			expect(worker.has(GatheringFrom(tree))).toBe(true);
-
-			const gathering = world.query(GatheringFrom(tree));
-			expect(gathering.length).toBe(1);
+			const queue = getProductionQueue(world, building);
+			expect(queue).toEqual([]);
 		});
 
-		it("should find idle workers (not gathering)", () => {
-			const tree = world.spawn(Position);
-			const _busyWorker = world.spawn(Gatherer, GatheringFrom(tree));
-			const idleWorker = world.spawn(Gatherer);
+		it("can store production entries", () => {
+			const world = createGameWorld();
+			const building = spawnBuilding(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				buildingType: "barracks",
+			});
 
-			const idle = world.query(Gatherer, Not(GatheringFrom("*")));
-			expect(idle.length).toBe(1);
-			expect(idle[0]).toBe(idleWorker);
-		});
-	});
+			const queue = getProductionQueue(world, building);
+			queue.push({ type: "unit", contentId: "mudfoot", progress: 0 });
+			queue.push({ type: "unit", contentId: "shellcracker", progress: 50 });
 
-	describe("TrainingAt (with store)", () => {
-		it("should store training progress data", () => {
-			const barracks = world.spawn(IsBuilding, Position);
-			const unitBeingTrained = world.spawn();
-
-			barracks.add(TrainingAt(unitBeingTrained));
-			barracks.set(TrainingAt(unitBeingTrained), { progress: 0.5, unitType: "mudfoot" });
-
-			const data = barracks.get(TrainingAt(unitBeingTrained));
-			expect(data.progress).toBe(0.5);
-			expect(data.unitType).toBe("mudfoot");
-		});
-
-		it("should update training progress", () => {
-			const barracks = world.spawn(IsBuilding);
-			const unit = world.spawn();
-
-			barracks.add(TrainingAt(unit, { progress: 0, unitType: "shellcracker" }));
-			barracks.set(TrainingAt(unit), { progress: 0.75 });
-
-			expect(barracks.get(TrainingAt(unit)).progress).toBe(0.75);
+			expect(queue).toHaveLength(2);
+			expect(queue[0].contentId).toBe("mudfoot");
+			expect(queue[1].progress).toBe(50);
 		});
 	});
 
-	describe("GarrisonedIn", () => {
-		it("should link unit to building", () => {
-			const tower = world.spawn(IsBuilding, Position);
-			const unit = world.spawn(UnitType, GarrisonedIn(tower));
+	describe("Script tag index", () => {
+		it("sets and retrieves script tags", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			setScriptTag(world, eid, "player_base");
 
-			expect(unit.has(GarrisonedIn(tower))).toBe(true);
-
-			const garrisoned = world.query(GarrisonedIn(tower));
-			expect(garrisoned.length).toBe(1);
+			expect(world.runtime.scriptTagIndex.get("player_base")).toBe(eid);
 		});
 
-		it("should remove garrison relation", () => {
-			const tower = world.spawn(IsBuilding);
-			const unit = world.spawn(GarrisonedIn(tower));
+		it("allows multiple entities with different script tags", () => {
+			const world = createGameWorld();
+			const eid1 = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			const eid2 = spawnUnit(world, { x: 10, y: 0, faction: "ura" });
 
-			unit.remove(GarrisonedIn(tower));
-			expect(unit.has(GarrisonedIn(tower))).toBe(false);
+			setScriptTag(world, eid1, "base_1");
+			setScriptTag(world, eid2, "base_2");
+
+			expect(world.runtime.scriptTagIndex.get("base_1")).toBe(eid1);
+			expect(world.runtime.scriptTagIndex.get("base_2")).toBe(eid2);
+		});
+
+		it("is cleaned up on entity removal", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			setScriptTag(world, eid, "commander");
+
+			markForRemoval(world, eid);
+			flushRemovals(world);
+
+			expect(world.runtime.scriptTagIndex.has("commander")).toBe(false);
 		});
 	});
 
-	describe("targetsFor", () => {
-		it("should return all targets for a relation", () => {
-			const squad1 = world.spawn();
-			const _squad2 = world.spawn();
-			const unit = world.spawn(BelongsToSquad(squad1));
+	describe("Entity type index", () => {
+		it("stores entity type on spawn", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", unitType: "mudfoot" });
+			expect(world.runtime.entityTypeIndex.get(eid)).toBe("mudfoot");
+		});
 
-			const targets = unit.targetsFor(BelongsToSquad);
-			expect(targets.length).toBe(1);
-			expect(targets[0]).toBe(squad1);
+		it("is cleaned up on entity removal", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", unitType: "mudfoot" });
+
+			markForRemoval(world, eid);
+			flushRemovals(world);
+
+			expect(world.runtime.entityTypeIndex.has(eid)).toBe(false);
+		});
+	});
+
+	describe("Selection", () => {
+		it("setSelection toggles selection state", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+
+			setSelection(world, eid, true);
+			expect(Selection.selected[eid]).toBe(1);
+
+			setSelection(world, eid, false);
+			expect(Selection.selected[eid]).toBe(0);
+		});
+	});
+
+	describe("Faction", () => {
+		it("setFaction changes faction", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			expect(Faction.id[eid]).toBe(1);
+
+			setFaction(world, eid, "scale_guard");
+			expect(Faction.id[eid]).toBe(2);
+		});
+	});
+
+	describe("AI state map", () => {
+		it("stores FSM state per entity", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "scale_guard" });
+
+			world.runtime.aiStates.set(eid, {
+				state: "idle",
+				alertLevel: 0,
+				stateTimer: 0,
+				homeX: 100,
+				homeY: 100,
+				patrolIndex: 0,
+			});
+
+			const state = world.runtime.aiStates.get(eid);
+			expect(state?.state).toBe("idle");
+			expect(state?.homeX).toBe(100);
+		});
+
+		it("can transition states", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "scale_guard" });
+
+			world.runtime.aiStates.set(eid, {
+				state: "idle",
+				alertLevel: 0,
+				stateTimer: 0,
+				homeX: 100,
+				homeY: 100,
+				patrolIndex: 0,
+			});
+
+			const state = world.runtime.aiStates.get(eid)!;
+			state.state = "chase";
+			state.alertLevel = 1;
+
+			expect(world.runtime.aiStates.get(eid)?.state).toBe("chase");
+			expect(world.runtime.aiStates.get(eid)?.alertLevel).toBe(1);
 		});
 	});
 });

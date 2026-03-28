@@ -1,0 +1,158 @@
+{
+  "id": "mission_01",
+  "title": "Beachhead",
+  "chapter": 1,
+  "mapWidth": 128,
+  "mapHeight": 96,
+  "parTimeMinutes": 15,
+  "availableBuildings": ["burrow", "command_post", "barracks", "fish_trap", "watchtower", "sandbag_wall"],
+  "availableUnits": ["river_rat", "mudfoot"],
+  "startingResources": { "fish": 100, "timber": 50, "salvage": 0 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "beach", "rect": { "x": 0, "y": 76, "w": 128, "h": 20 } },
+    { "terrainId": "water", "rect": { "x": 0, "y": 36, "w": 128, "h": 8 } },
+    { "terrainId": "mud", "rect": { "x": 0, "y": 32, "w": 128, "h": 4 } },
+    { "terrainId": "mud", "rect": { "x": 0, "y": 44, "w": 128, "h": 4 } },
+    { "terrainId": "mangrove", "rect": { "x": 8, "y": 52, "w": 48, "h": 12 } },
+    { "terrainId": "mangrove", "rect": { "x": 8, "y": 4, "w": 48, "h": 16 } },
+    { "terrainId": "dirt", "rect": { "x": 24, "y": 64, "w": 40, "h": 12 } },
+    { "terrainId": "dirt", "rect": { "x": 56, "y": 46, "w": 6, "h": 18 } },
+    { "terrainId": "dirt", "rect": { "x": 84, "y": 56, "w": 20, "h": 8 } },
+    { "terrainId": "dirt", "rect": { "x": 68, "y": 6, "w": 40, "h": 12 } },
+    { "terrainId": "bridge", "rect": { "x": 56, "y": 34, "w": 4, "h": 12 } }
+  ],
+
+  "zones": {
+    "landing_zone":    { "x": 16, "y": 76, "width": 96, "height": 20 },
+    "dirt_clearing":   { "x": 24, "y": 64, "width": 40, "height": 12 },
+    "jungle_south":    { "x": 8,  "y": 52, "width": 48, "height": 12 },
+    "salvage_field":   { "x": 80, "y": 52, "width": 40, "height": 16 },
+    "mud_banks":       { "x": 0,  "y": 44, "width": 128, "height": 8 },
+    "river":           { "x": 0,  "y": 36, "width": 128, "height": 8 },
+    "bridge_crossing": { "x": 56, "y": 34, "width": 16, "height": 12 },
+    "jungle_north":    { "x": 8,  "y": 20, "width": 112, "height": 14 },
+    "enemy_outpost":   { "x": 64, "y": 4,  "width": 48, "height": 16 },
+    "jungle_nw":       { "x": 8,  "y": 4,  "width": 48, "height": 16 }
+  },
+
+  "placements": [
+    { "type": "burrow",        "faction": "ura",         "x": 40, "y": 80, "scriptId": "player_lodge" },
+    { "type": "river_rat",     "faction": "ura",         "x": 36, "y": 82 },
+    { "type": "river_rat",     "faction": "ura",         "x": 42, "y": 83 },
+    { "type": "river_rat",     "faction": "ura",         "x": 38, "y": 85 },
+    { "type": "river_rat",     "faction": "ura",         "x": 44, "y": 81 },
+
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 12, "y": 54 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 18, "y": 56 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 24, "y": 55 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 30, "y": 58 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 15, "y": 60 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 22, "y": 62 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 36, "y": 57 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 42, "y": 59 },
+
+    { "type": "fish_spot",     "faction": "neutral",     "x": 30, "y": 44 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 50, "y": 46 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 75, "y": 44 },
+
+    { "type": "salvage_cache", "faction": "neutral",     "x": 88, "y": 58 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 94, "y": 60 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 90, "y": 56 },
+
+    { "type": "flag_post",     "faction": "scale_guard", "x": 80, "y": 10, "scriptId": "enemy_flag_post" },
+    { "type": "gator",         "faction": "scale_guard", "x": 76, "y": 8 },
+    { "type": "gator",         "faction": "scale_guard", "x": 82, "y": 8 },
+    { "type": "gator",         "faction": "scale_guard", "x": 78, "y": 12 },
+    { "type": "gator",         "faction": "scale_guard", "x": 84, "y": 12 },
+    { "type": "gator",         "faction": "scale_guard", "x": 80, "y": 14 },
+    { "type": "gator",         "faction": "scale_guard", "x": 86, "y": 10 },
+    { "type": "skink",         "faction": "scale_guard", "x": 74, "y": 6 },
+    { "type": "viper",         "faction": "scale_guard", "x": 88, "y": 6 }
+  ],
+
+  "objectives": [
+    { "id": "gather-timber",       "description": "Gather 150 timber from the mangrove grove",  "type": "primary" },
+    { "id": "build-command-post",  "description": "Build a Command Post",                       "type": "primary" },
+    { "id": "build-barracks",      "description": "Build a Barracks",                            "type": "primary" },
+    { "id": "train-mudfoots",      "description": "Train 3 Mudfoots",                            "type": "primary" },
+    { "id": "repair-bridge",       "description": "Repair the bridge",                           "type": "primary" },
+    { "id": "cross-river",         "description": "Cross the river",                             "type": "primary" },
+    { "id": "destroy-outpost",     "description": "Destroy the enemy Flag Post",                 "type": "primary" },
+    { "id": "bonus-salvage",       "description": "Collect 50 salvage from the wreckage field",  "type": "bonus" }
+  ],
+
+  "phases": [
+    {
+      "id": "landfall",
+      "name": "Landfall",
+      "activeObjectives": ["gather-timber"],
+      "dialogue": [
+        { "trigger": "timer", "delayMs": 15000, "speaker": "FOXHOUND", "text": "Captain, you're on the ground. Mangrove grove to the northwest -- timber for construction. Get your workers moving." },
+        { "trigger": "timer", "delayMs": 45000, "speaker": "Col. Bubbles", "text": "Priority one: establish resource flow. Harvest timber, haul it back to the lodge. We need materials before we can build anything." }
+      ]
+    },
+    {
+      "id": "base-building",
+      "name": "Base Building",
+      "activeObjectives": ["build-command-post", "build-barracks"],
+      "entryCondition": { "type": "objectiveComplete", "objectiveId": "gather-timber" },
+      "dialogue": [
+        { "trigger": "phaseStart", "speaker": "Col. Bubbles", "text": "Good work, Captain. You've got materials. Build a Command Post for logistics -- that's your upgrade path. Then a Barracks for infantry." },
+        { "trigger": "phaseStart", "speaker": "FOXHOUND", "text": "Command Post also unlocks Watchtowers and Fish Traps. You'll want both." }
+      ],
+      "spawns": [
+        { "trigger": "timer", "delayMs": 300000, "units": [{ "type": "skink", "faction": "scale_guard", "x": 52, "y": 30, "count": 2 }], "dialogue": { "speaker": "FOXHOUND", "text": "Movement near the river, Captain. Scale-Guard scouts. They're not aggressive yet -- but they know this area." } }
+      ]
+    },
+    {
+      "id": "the-crossing",
+      "name": "The Crossing",
+      "activeObjectives": ["train-mudfoots", "repair-bridge", "cross-river"],
+      "entryCondition": { "type": "allObjectivesComplete", "objectiveIds": ["build-command-post", "build-barracks"] },
+      "dialogue": [
+        { "trigger": "phaseStart", "speaker": "Col. Bubbles", "text": "Captain, we need to push north. The bridge crossing is our only path -- it's damaged but repairable." },
+        { "trigger": "phaseStart", "speaker": "FOXHOUND", "text": "Send a worker to the bridge. They can patch it. But expect Scale-Guard resistance once you start work." },
+        { "trigger": "phaseStart", "speaker": "Col. Bubbles", "text": "Train up some Mudfoots first. You'll want fighters before you start hammering." }
+      ],
+      "spawns": [
+        { "trigger": "zoneEnter", "zone": "bridge_crossing", "unitType": "river_rat", "units": [{ "type": "gator", "faction": "scale_guard", "x": 60, "y": 28, "count": 4 }, { "type": "skink", "faction": "scale_guard", "x": 64, "y": 26, "count": 2 }], "dialogue": { "speaker": "Col. Bubbles", "text": "Contacts north of the bridge! Defend the workers!" } }
+      ]
+    },
+    {
+      "id": "clear-outpost",
+      "name": "Clear the Outpost",
+      "activeObjectives": ["destroy-outpost"],
+      "entryCondition": { "type": "objectiveComplete", "objectiveId": "cross-river" },
+      "dialogue": [
+        { "trigger": "phaseStart", "speaker": "FOXHOUND", "text": "Enemy outpost ahead, northeast. Flag Post is their command structure -- destroy it and they'll scatter." },
+        { "trigger": "phaseStart", "speaker": "Col. Bubbles", "text": "Take it out, Captain. That outpost is the last obstacle to securing this beachhead." }
+      ]
+    }
+  ],
+
+  "victoryDialogue": [
+    { "speaker": "Gen. Whiskers", "text": "Outstanding work, Captain. Beachhead is secured. The Copper-Silt Reach campaign has begun." },
+    { "speaker": "Col. Bubbles", "text": "Reinforcements and supplies inbound. Rest your troops -- the next push won't be this easy. HQ out." }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 2 }], "intervalMs": 60000, "variance": 0.3 },
+      { "composition": [{ "type": "gator", "count": 1 }], "intervalMs": 90000, "variance": 0.4 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":  { "drops": [{ "resource": "fish",    "amount": 5,  "probability": 0.5 }] },
+    "gator":  { "drops": [{ "resource": "salvage", "amount": 8,  "probability": 0.4 }] },
+    "viper":  { "drops": [{ "resource": "salvage", "amount": 12, "probability": 0.5 }] }
+  },
+
+  "difficulty": {
+    "support":  { "resourceMultiplier": 1.5, "enemyHpMultiplier": 0.75, "enemyDamageMultiplier": 0.75 },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0,  "enemyDamageMultiplier": 1.0 },
+    "elite":    { "resourceMultiplier": 0.75, "enemyHpMultiplier": 1.25, "enemyDamageMultiplier": 1.25 }
+  }
+}

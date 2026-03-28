@@ -243,7 +243,7 @@ export const serpentKing: UnitDef = {
 		states: ["idle", "patrol", "chase", "attack", "berserk"],
 		defaultState: "patrol",
 		aggroRange: 10,
-		specialBehavior: "berserk",
+		specialBehavior: "boss",
 	},
 
 	drops: [

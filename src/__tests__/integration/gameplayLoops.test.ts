@@ -1,466 +1,341 @@
 /**
- * Integration Tests — End-to-end gameplay loops (US-002, US-003, US-004, US-005).
+ * Integration Tests — End-to-end gameplay loops.
+ * Ported from old Koota codebase.
  *
- * These tests validate that multiple ECS systems work together correctly
- * when ticked in sequence, proving the core gameplay loops function end-to-end.
+ * Tests that multiple engine systems work together correctly:
+ * - Gather loop: worker gathers resources
+ * - Build loop: worker constructs buildings
+ * - Train loop: building produces units
+ * - Combat loop: units fight enemies
  */
-import { createWorld, type World } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ConstructingAt, GatheringFrom, OwnedBy, Targeting } from "../../ecs/relations";
-import { initSingletons } from "../../ecs/singletons";
-import { AIState } from "../../ecs/traits/ai";
-import { Armor, Attack, Health, VisionRadius } from "../../ecs/traits/combat";
-import {
-	ConstructionProgress,
-	Gatherer,
-	ProductionQueue,
-	ResourceNode,
-} from "../../ecs/traits/economy";
-import { Faction, IsBuilding, IsResource, UnitType } from "../../ecs/traits/identity";
-import { OrderQueue, RallyPoint } from "../../ecs/traits/orders";
-import { Position } from "../../ecs/traits/spatial";
-import { CampaignProgress, PopulationState, ResourcePool } from "../../ecs/traits/state";
-import { buildingSystem } from "../../systems/buildingSystem";
-import {
-	aggroSystem,
-	combatSystem,
-	deathSystem,
-	projectileSystem,
-} from "../../systems/combatSystem";
-import { economySystem, resetFishTrapTimer } from "../../systems/economySystem";
-import { productionSystem } from "../../systems/productionSystem";
 
-// ---------------------------------------------------------------------------
-// Test world setup
-// ---------------------------------------------------------------------------
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { CATEGORY_IDS } from "@/engine/content/ids";
+import { Attack, Content, Health, Speed, VisionRadius } from "@/engine/world/components";
+import {
+	createGameWorld,
+	flushRemovals,
+	getOrderQueue,
+	getProductionQueue,
+	isAlive,
+	spawnBuilding,
+	spawnResource,
+	spawnUnit,
+} from "@/engine/world/gameWorld";
+import { runCombatSystem } from "@/engine/systems/combatSystem";
+import { resetGatherTimers, runEconomySystem } from "@/engine/systems/economySystem";
+import { runMovementSystem } from "@/engine/systems/movementSystem";
+import { runOrderSystem } from "@/engine/systems/orderSystem";
+import { runProductionSystem } from "@/engine/systems/productionSystem";
+import { runBuildingSystem } from "@/engine/systems/buildingSystem";
+import { runAiSystem } from "@/engine/systems/aiSystem";
 
-let world: World;
-let uraFaction: ReturnType<World["spawn"]>;
+// Mock audio to avoid Tone.js in tests
+vi.mock("@/engine/audio/audioRuntime", () => ({
+	playSfx: vi.fn(),
+}));
 
 beforeEach(() => {
-	world = createWorld();
-	initSingletons(world);
-	// Set starting resources for building/training
-	world.set(ResourcePool, { fish: 200, timber: 200, salvage: 200 });
-	world.set(PopulationState, { current: 0, max: 30 });
-	// Set tactical difficulty (1.0x baseline) so tests are unaffected by scaling
-	world.set(CampaignProgress, { missions: {}, currentMission: null, difficulty: "tactical" });
-	uraFaction = world.spawn(Faction({ id: "ura" }));
-	resetFishTrapTimer();
+	resetGatherTimers();
 });
 
-afterEach(() => {
-	world.reset();
-});
+describe("Gameplay loops integration", () => {
+	describe("Gather loop", () => {
+		it("worker gathers fish when near a fish node with gather order", () => {
+			const world = createGameWorld();
+			world.time.deltaMs = 2000;
 
-// ---------------------------------------------------------------------------
-// US-002: End-to-end gather loop
-// ---------------------------------------------------------------------------
+			const worker = spawnUnit(world, { x: 10, y: 10, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
 
-describe("US-002: Gather loop integration", () => {
-	it("should complete a full gather cycle: approach → harvest → deposit", () => {
-		// Command Post at origin
-		world.spawn(
-			IsBuilding,
-			UnitType({ type: "command_post" }),
-			Position({ x: 0, y: 0 }),
-			Faction({ id: "ura" }),
-			OwnedBy(uraFaction),
-		);
+			const node = spawnResource(world, {
+				x: 10,
+				y: 10,
+				resourceType: "fish_node",
+			});
 
-		// Resource node very close to worker
-		const fishSpot = world.spawn(
-			IsResource,
-			Position({ x: 3, y: 0 }),
-			ResourceNode({ type: "fish", remaining: 100 }),
-		);
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "gather", targetEid: node });
 
-		// Worker at the resource node (within gather range)
-		const worker = world.spawn(
-			Position({ x: 3, y: 0 }),
-			Gatherer({ carrying: "", amount: 0, capacity: 10 }),
-			GatheringFrom(fishSpot),
-			Faction({ id: "ura" }),
-			OwnedBy(uraFaction),
-		);
+			runEconomySystem(world);
 
-		// Phase 1: Gather until full (rate = delta * 5, so 0.5s * 5 = 2.5 per tick)
-		for (let i = 0; i < 10; i++) {
-			economySystem(world, 0.5);
-		}
+			expect(world.session.resources.fish).toBeGreaterThanOrEqual(1);
+		});
 
-		const gatherer = worker.get(Gatherer);
-		expect(gatherer.carrying).toBe("fish");
-		// Worker should be full (10 capacity) or heading to deposit
-		expect(gatherer.amount).toBeLessThanOrEqual(10);
+		it("worker accumulates resources over multiple ticks", () => {
+			const world = createGameWorld();
+			world.time.deltaMs = 1000;
 
-		// Phase 2: Worker walks to Command Post and deposits
-		// Simulate many ticks for movement + deposit
-		for (let i = 0; i < 200; i++) {
-			economySystem(world, 0.1);
-		}
+			const worker = spawnUnit(world, { x: 10, y: 10, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
 
-		const pool = world.get(ResourcePool)!;
-		expect(pool.fish).toBeGreaterThan(200); // Starting 200 + deposited
+			const node = spawnResource(world, {
+				x: 10,
+				y: 10,
+				resourceType: "fish_node",
+			});
+
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "gather", targetEid: node });
+
+			// Tick 1: may or may not have gathered yet depending on timing
+			runEconomySystem(world);
+			const afterTick1 = world.session.resources.fish;
+
+			// Tick 2: accumulates 2s (gathers 1)
+			runEconomySystem(world);
+			expect(world.session.resources.fish).toBeGreaterThanOrEqual(1);
+
+			// Tick 3: accumulates 3s (not yet another 2s)
+			runEconomySystem(world);
+			expect(world.session.resources.fish).toBeGreaterThanOrEqual(1);
+
+			// Tick 4: should have gathered multiple resources by now
+			runEconomySystem(world);
+			expect(world.session.resources.fish).toBeGreaterThanOrEqual(2);
+		});
 	});
 
-	it("should deplete resource nodes over time", () => {
-		const node = world.spawn(
-			IsResource,
-			Position({ x: 5, y: 5 }),
-			ResourceNode({ type: "timber", remaining: 15 }),
-		);
+	describe("Build loop", () => {
+		it("worker near building with build order advances construction", () => {
+			const world = createGameWorld();
+			world.time.deltaMs = 15000; // 15 seconds
 
-		world.spawn(
-			Position({ x: 5, y: 5 }),
-			Gatherer({ carrying: "", amount: 0, capacity: 10 }),
-			GatheringFrom(node),
-		);
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "barracks",
+				health: { current: 350, max: 350 },
+				construction: { progress: 0, buildTime: 30 },
+			});
 
-		// Gather for several seconds
-		for (let i = 0; i < 20; i++) {
-			economySystem(world, 0.5);
-		}
+			const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "build", targetEid: building });
 
-		const nodeData = node.get(ResourceNode);
-		expect(nodeData.remaining).toBeLessThan(15);
+			runBuildingSystem(world);
+
+			// After 15s with 30s build time: 50%
+			expect(world.events.some((e) => e.type === "building-complete")).toBe(false);
+		});
+
+		it("building completes when workers spend enough time", () => {
+			const world = createGameWorld();
+			world.time.deltaMs = 30000; // 30 seconds
+
+			const building = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "barracks",
+				health: { current: 350, max: 350 },
+				construction: { progress: 0, buildTime: 30 },
+			});
+
+			const worker = spawnUnit(world, { x: 100, y: 100, faction: "ura" });
+			Content.categoryId[worker] = CATEGORY_IDS.worker;
+			const orders = getOrderQueue(world, worker);
+			orders.push({ type: "build", targetEid: building });
+
+			runBuildingSystem(world);
+
+			expect(world.events.some((e) => e.type === "building-complete")).toBe(true);
+		});
 	});
 
-	it("should generate passive income from Fish Traps concurrently", () => {
-		world.spawn(IsBuilding, UnitType({ type: "fish_trap" }), OwnedBy(uraFaction));
-		world.spawn(IsBuilding, UnitType({ type: "fish_trap" }), OwnedBy(uraFaction));
+	describe("Train loop", () => {
+		it("building produces a unit after build time elapses", () => {
+			const world = createGameWorld();
+			world.time.deltaMs = 5000;
 
-		// Tick 10+ seconds for passive income
-		for (let i = 0; i < 20; i++) {
-			economySystem(world, 0.5);
-		}
+			const barracks = spawnBuilding(world, {
+				x: 50,
+				y: 50,
+				faction: "ura",
+			});
 
-		// 2 traps × 3 fish per 10s = 6 fish
-		expect(world.get(ResourcePool)?.fish).toBe(200 + 6);
-	});
-});
+			const queue = getProductionQueue(world, barracks);
+			queue.push({
+				type: "unit",
+				contentId: "mudfoot",
+				progress: 0,
+				buildTimeMs: 5000,
+			} as never);
 
-// ---------------------------------------------------------------------------
-// US-003: End-to-end build loop
-// ---------------------------------------------------------------------------
+			const aliveBefore = world.runtime.alive.size;
+			runProductionSystem(world);
 
-describe("US-003: Build loop integration", () => {
-	it("should complete construction when worker is near an incomplete building", () => {
-		// Spawn an incomplete building
-		const building = world.spawn(
-			IsBuilding,
-			UnitType({ type: "barracks" }),
-			Position({ x: 5, y: 5 }),
-			Health({ current: 500, max: 500 }),
-			Armor({ value: 2 }),
-			Faction({ id: "ura" }),
-			ConstructionProgress({ progress: 0, buildTime: 10 }),
-			OwnedBy(uraFaction),
-		);
-
-		// Worker right next to the building with ConstructingAt relation
-		const _worker = world.spawn(
-			Position({ x: 5, y: 5 }),
-			Faction({ id: "ura" }),
-			OrderQueue,
-			AIState({ state: "building", target: null, alertLevel: 0 }),
-			ConstructingAt(building),
-		);
-
-		// Tick buildingSystem for 10 seconds (should reach 100%)
-		for (let i = 0; i < 100; i++) {
-			buildingSystem(world, 0.1);
-		}
-
-		// Building should be complete (ConstructionProgress removed)
-		expect(building.has(ConstructionProgress)).toBe(false);
+			expect(queue).toHaveLength(0);
+			expect(world.runtime.alive.size).toBe(aliveBefore + 1);
+		});
 	});
 
-	it("should activate building on completion (add ProductionQueue for training buildings)", () => {
-		const building = world.spawn(
-			IsBuilding,
-			UnitType({ type: "barracks" }),
-			Position({ x: 5, y: 5 }),
-			Health({ current: 500, max: 500 }),
-			Armor({ value: 2 }),
-			Faction({ id: "ura" }),
-			ConstructionProgress({ progress: 95, buildTime: 10 }),
-			OwnedBy(uraFaction),
-		);
+	describe("Combat loop", () => {
+		it("melee attacker deals damage to nearby enemy", () => {
+			const world = createGameWorld();
+			world.time.deltaMs = 1000;
 
-		world.spawn(Position({ x: 5, y: 5 }), ConstructingAt(building));
+			const attacker = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				health: { current: 100, max: 100 },
+			});
+			Attack.damage[attacker] = 10;
+			Attack.range[attacker] = 48;
+			Attack.cooldown[attacker] = 1;
+			Attack.timer[attacker] = 1;
+			VisionRadius.value[attacker] = 48;
 
-		// One tick should push past 100%
-		buildingSystem(world, 1);
+			const enemy = spawnUnit(world, {
+				x: 30,
+				y: 0,
+				faction: "scale_guard",
+				health: { current: 50, max: 50 },
+			});
 
-		// Barracks should now have a production queue
-		expect(building.has(ProductionQueue)).toBe(true);
-		expect(building.has(RallyPoint)).toBe(true);
+			runCombatSystem(world);
+
+			expect(Health.current[enemy]).toBe(40);
+		});
+
+		it("full combat cycle: aggro + attack + death", () => {
+			const world = createGameWorld();
+			world.time.deltaMs = 1000;
+
+			const attacker = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				health: { current: 100, max: 100 },
+			});
+			Attack.damage[attacker] = 100;
+			Attack.range[attacker] = 48;
+			Attack.cooldown[attacker] = 1;
+			Attack.timer[attacker] = 1;
+			VisionRadius.value[attacker] = 48;
+
+			const enemy = spawnUnit(world, {
+				x: 30,
+				y: 0,
+				faction: "scale_guard",
+				health: { current: 20, max: 20 },
+			});
+
+			runCombatSystem(world);
+
+			expect(Health.current[enemy]).toBeLessThanOrEqual(0);
+			expect(world.runtime.removals.has(enemy)).toBe(true);
+
+			flushRemovals(world);
+			expect(isAlive(world, enemy)).toBe(false);
+		});
+
+		it("AI automatically chases player units", () => {
+			const world = createGameWorld();
+			world.time.deltaMs = 16;
+
+			const enemy = spawnUnit(world, {
+				x: 100,
+				y: 100,
+				faction: "scale_guard",
+				health: { current: 50, max: 50 },
+			});
+			Attack.damage[enemy] = 10;
+			Attack.range[enemy] = 30;
+			VisionRadius.value[enemy] = 200;
+
+			spawnUnit(world, {
+				x: 200,
+				y: 100,
+				faction: "ura",
+				health: { current: 100, max: 100 },
+			});
+
+			runAiSystem(world);
+
+			const aiState = world.runtime.aiStates.get(enemy);
+			expect(aiState?.state).toBe("chase");
+		});
 	});
 
-	it("should complete full build cycle: placement → construction → activation", () => {
-		// Spawn an incomplete building at (5,5)
-		const building = world.spawn(
-			IsBuilding,
-			UnitType({ type: "barracks" }),
-			Position({ x: 5, y: 5 }),
-			Health({ current: 500, max: 500 }),
-			Armor({ value: 2 }),
-			Faction({ id: "ura" }),
-			ConstructionProgress({ progress: 0, buildTime: 5 }),
-			OwnedBy(uraFaction),
-		);
+	describe("Multi-system coordination", () => {
+		it("order system clears orders when target dies", () => {
+			const world = createGameWorld();
+			world.time.deltaMs = 1000;
 
-		// Worker at the build site with ConstructingAt already set
-		world.spawn(Position({ x: 5, y: 5 }), Faction({ id: "ura" }), ConstructingAt(building));
+			const attacker = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				health: { current: 100, max: 100 },
+			});
+			Attack.damage[attacker] = 100;
+			Attack.range[attacker] = 48;
+			Attack.cooldown[attacker] = 1;
+			Attack.timer[attacker] = 1;
+			VisionRadius.value[attacker] = 48;
 
-		// Tick buildingSystem until complete
-		for (let i = 0; i < 60; i++) {
-			buildingSystem(world, 0.1);
-		}
+			const enemy = spawnUnit(world, {
+				x: 30,
+				y: 0,
+				faction: "scale_guard",
+				health: { current: 10, max: 10 },
+			});
 
-		// Building should be complete and activated
-		expect(building.has(ConstructionProgress)).toBe(false);
-		expect(building.has(ProductionQueue)).toBe(true);
-		expect(building.has(RallyPoint)).toBe(true);
-	});
-});
+			const orders = getOrderQueue(world, attacker);
+			orders.push({ type: "attack", targetEid: enemy });
 
-// ---------------------------------------------------------------------------
-// US-004: End-to-end train loop
-// ---------------------------------------------------------------------------
+			// Kill the enemy
+			runCombatSystem(world);
+			flushRemovals(world);
 
-describe("US-004: Train loop integration", () => {
-	it("should train a unit and spawn it at the building", () => {
-		// Complete barracks with production queue
-		const barracks = world.spawn(
-			IsBuilding,
-			UnitType({ type: "barracks" }),
-			Position({ x: 5, y: 5 }),
-			Health({ current: 500, max: 500 }),
-			Faction({ id: "ura" }),
-			ProductionQueue,
-			RallyPoint({ x: 7, y: 5 }),
-			OwnedBy(uraFaction),
-		);
+			// Order system should clear stale orders
+			runOrderSystem(world);
+			expect(orders).toHaveLength(0);
+		});
 
-		// Manually queue a unit (mimicking what queueUnit() does)
-		const queue = barracks.get(ProductionQueue)!;
-		queue.push({ unitType: "mudfoot", progress: 0, buildTime: 5 });
+		it("movement system moves unit toward target then combat system deals damage", () => {
+			const world = createGameWorld();
 
-		// Count entities before training
-		const unitsBefore = world.query(Position, Faction).length;
+			const attacker = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				health: { current: 100, max: 100 },
+			});
+			Speed.value[attacker] = 100;
+			Attack.damage[attacker] = 10;
+			Attack.range[attacker] = 48;
+			Attack.cooldown[attacker] = 1;
+			Attack.timer[attacker] = 0;
+			VisionRadius.value[attacker] = 200;
 
-		// Tick production for 5+ seconds
-		for (let i = 0; i < 60; i++) {
-			productionSystem(world, 0.1);
-		}
+			const enemy = spawnUnit(world, {
+				x: 200,
+				y: 0,
+				faction: "scale_guard",
+				health: { current: 50, max: 50 },
+			});
 
-		// Queue should be empty (unit trained)
-		expect(barracks.get(ProductionQueue)?.length).toBe(0);
+			// Move toward enemy
+			const orders = getOrderQueue(world, attacker);
+			orders.push({ type: "move", targetX: 200, targetY: 0 });
 
-		// New entity should have been spawned
-		const unitsAfter = world.query(Position, Faction).length;
-		expect(unitsAfter).toBeGreaterThan(unitsBefore);
-	});
+			// Run movement for 2 seconds (move 200px)
+			world.time.deltaMs = 2000;
+			runMovementSystem(world);
 
-	it("should respect population cap when queueing units", async () => {
-		world.set(PopulationState, { current: 29, max: 30 });
+			// Now clear the move order and let combat happen
+			orders.length = 0;
+			Attack.timer[attacker] = 1; // ready to fire
 
-		const barracks = world.spawn(
-			IsBuilding,
-			UnitType({ type: "barracks" }),
-			Position({ x: 5, y: 5 }),
-			Health({ current: 500, max: 500 }),
-			Faction({ id: "ura" }),
-			ProductionQueue,
-			RallyPoint({ x: 7, y: 5 }),
-			OwnedBy(uraFaction),
-		);
+			world.time.deltaMs = 1000;
+			runCombatSystem(world);
 
-		const { queueUnit } = await import("../../systems/productionSystem");
-		const result1 = queueUnit(barracks, "mudfoot", world);
-		expect(result1).toBe(true); // Should succeed (29 + 1 = 30)
-
-		const result2 = queueUnit(barracks, "mudfoot", world);
-		expect(result2).toBe(false); // Should fail (30 + 1 > 30)
-	});
-
-	it("should deduct resources when queueing a unit", async () => {
-		// Mudfoot costs 80 fish + 20 salvage
-		world.set(ResourcePool, { fish: 100, timber: 50, salvage: 50 });
-
-		const barracks = world.spawn(
-			IsBuilding,
-			UnitType({ type: "barracks" }),
-			Position({ x: 5, y: 5 }),
-			Health({ current: 500, max: 500 }),
-			Faction({ id: "ura" }),
-			ProductionQueue,
-			RallyPoint({ x: 7, y: 5 }),
-			OwnedBy(uraFaction),
-		);
-
-		const { queueUnit } = await import("../../systems/productionSystem");
-		const result = queueUnit(barracks, "mudfoot", world);
-		expect(result).toBe(true);
-
-		const pool = world.get(ResourcePool)!;
-		// Fish should be 100 - 80 = 20, salvage should be 50 - 20 = 30
-		expect(pool.fish).toBe(20);
-		expect(pool.salvage).toBe(30);
-	});
-});
-
-// ---------------------------------------------------------------------------
-// US-005: End-to-end combat loop
-// ---------------------------------------------------------------------------
-
-describe("US-005: Combat loop integration", () => {
-	it("should deal melee damage when attacker is in range of target", () => {
-		const attacker = world.spawn(
-			Position({ x: 0, y: 0 }),
-			Faction({ id: "ura" }),
-			Attack({ damage: 10, range: 1, cooldown: 0.5, timer: 0 }),
-			Health({ current: 100, max: 100 }),
-		);
-
-		const target = world.spawn(
-			Position({ x: 0.5, y: 0 }),
-			Faction({ id: "scale_guard" }),
-			Health({ current: 50, max: 50 }),
-			Armor({ value: 2 }),
-		);
-
-		// Set targeting relation
-		attacker.add(Targeting(target));
-
-		// Tick combat — should apply damage on first tick (timer starts at 0)
-		combatSystem(world, 0.5);
-
-		const targetHealth = target.get(Health)!;
-		// Damage = max(1, 10 - 2) = 8
-		expect(targetHealth.current).toBe(42);
-	});
-
-	it("should spawn projectiles for ranged attacks", () => {
-		world.spawn(
-			Position({ x: 0, y: 0 }),
-			Faction({ id: "ura" }),
-			Attack({ damage: 15, range: 5, cooldown: 1, timer: 0 }),
-			Health({ current: 100, max: 100 }),
-			Targeting(
-				world.spawn(
-					Position({ x: 3, y: 0 }),
-					Faction({ id: "scale_guard" }),
-					Health({ current: 80, max: 80 }),
-				),
-			),
-		);
-
-		const projectilesBefore = world.query(Position).length;
-
-		combatSystem(world, 1);
-
-		// A projectile should have been spawned
-		const projectilesAfter = world.query(Position).length;
-		expect(projectilesAfter).toBeGreaterThan(projectilesBefore);
-	});
-
-	it("should auto-acquire targets via aggroSystem", () => {
-		const uraUnit = world.spawn(
-			Position({ x: 0, y: 0 }),
-			Faction({ id: "ura" }),
-			Attack({ damage: 10, range: 1, cooldown: 1, timer: 0 }),
-			Health({ current: 100, max: 100 }),
-			VisionRadius({ radius: 5 }),
-		);
-
-		world.spawn(
-			Position({ x: 3, y: 0 }),
-			Faction({ id: "scale_guard" }),
-			Health({ current: 50, max: 50 }),
-		);
-
-		// Run aggro system — should auto-target the nearby enemy
-		aggroSystem(world);
-
-		expect(uraUnit.has(Targeting("*"))).toBe(true);
-	});
-
-	it("should destroy dead entities via deathSystem", () => {
-		const deadUnit = world.spawn(
-			Position({ x: 0, y: 0 }),
-			Health({ current: 0, max: 50 }),
-			Faction({ id: "scale_guard" }),
-		);
-
-		const attacker = world.spawn(
-			Position({ x: 1, y: 0 }),
-			Attack({ damage: 10, range: 1, cooldown: 1, timer: 0 }),
-			Targeting(deadUnit),
-		);
-
-		const dead = deathSystem(world);
-
-		expect(dead.length).toBe(1);
-		// Targeting should be cleared
-		expect(attacker.has(Targeting("*"))).toBe(false);
-	});
-
-	it("should complete a full combat cycle: aggro → attack → death", () => {
-		const uraUnit = world.spawn(
-			Position({ x: 0, y: 0 }),
-			Faction({ id: "ura" }),
-			Attack({ damage: 50, range: 1, cooldown: 0.1, timer: 0 }),
-			Health({ current: 100, max: 100 }),
-			VisionRadius({ radius: 5 }),
-		);
-
-		const enemy = world.spawn(
-			Position({ x: 0.5, y: 0 }),
-			Faction({ id: "scale_guard" }),
-			Health({ current: 20, max: 20 }),
-		);
-
-		// Tick the combat pipeline: aggro → combat → projectile → death
-		aggroSystem(world);
-		combatSystem(world, 0.1);
-		projectileSystem(world, 0.1);
-		deathSystem(world);
-
-		// Enemy should be dead (50 damage > 20 HP)
-		expect(enemy.isAlive()).toBe(false);
-
-		// Targeting should be cleared
-		expect(uraUnit.has(Targeting("*"))).toBe(false);
-	});
-
-	it("should move projectiles toward target and deal damage on arrival", () => {
-		const target = world.spawn(
-			Position({ x: 10, y: 0 }),
-			Faction({ id: "scale_guard" }),
-			Health({ current: 80, max: 80 }),
-		);
-
-		const _ranged = world.spawn(
-			Position({ x: 0, y: 0 }),
-			Faction({ id: "ura" }),
-			Attack({ damage: 20, range: 12, cooldown: 1, timer: 0 }),
-			Health({ current: 100, max: 100 }),
-			Targeting(target),
-		);
-
-		// Spawn projectile via combat tick
-		combatSystem(world, 1);
-
-		// Advance projectile over several ticks
-		for (let i = 0; i < 50; i++) {
-			projectileSystem(world, 0.1);
-		}
-
-		// Target should have taken damage (projectile arrived)
-		const hp = target.get(Health)!;
-		expect(hp.current).toBeLessThan(80);
+			expect(Health.current[enemy]).toBe(40);
+		});
 	});
 });

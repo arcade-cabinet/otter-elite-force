@@ -36,6 +36,18 @@ export interface ScenarioWorldQuery {
 	getEntityHealthPercent(entityTag: string): number | null;
 	/** Get current amount of a resource from the ResourcePool */
 	getResourceAmount(resource: "fish" | "timber" | "salvage"): number;
+	/** Optional count of enemy units in a zone. */
+	countEnemiesInZone?(zoneId: string, operatorContext?: { faction?: string }): number;
+	/** Optional count of buildings in a zone. */
+	countBuildingsInZone?(faction: string, zoneId: string, buildingType?: string): number;
+	/** Optional entity-destroyed check by tag identity. */
+	isEntityDestroyed?(entityTag: string, match?: "first" | "any" | "all"): boolean;
+	/** Optional entity destroyed counter. */
+	getDestroyedEntityCount?(entityTag: string): number;
+	/** Optional wave counter. */
+	getWaveCounter?(): number;
+	/** Optional convoy-zone entry check. */
+	hasConvoyEnteredZone?(zoneId: string, convoyTag?: string): boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -186,6 +198,72 @@ export class ScenarioEngine {
 				}
 				return false;
 			}
+
+			case "entityDestroyed":
+				return world.isEntityDestroyed?.(condition.entityTag, condition.match) ?? false;
+
+			case "entityDestroyedCount": {
+				const count = world.getDestroyedEntityCount?.(condition.entityTag) ?? 0;
+				switch (condition.operator) {
+					case "gte":
+						return count >= condition.count;
+					case "lte":
+						return count <= condition.count;
+					case "eq":
+						return count === condition.count;
+				}
+				return false;
+			}
+
+			case "enemyCountInZone": {
+				const count =
+					world.countEnemiesInZone?.(condition.zoneId, {
+						faction: condition.faction,
+					}) ?? 0;
+				switch (condition.operator) {
+					case "gte":
+						return count >= condition.count;
+					case "lte":
+						return count <= condition.count;
+					case "eq":
+						return count === condition.count;
+				}
+				return false;
+			}
+
+			case "buildingCountInZone": {
+				const count =
+					world.countBuildingsInZone?.(
+						condition.faction,
+						condition.zoneId,
+						condition.buildingType,
+					) ?? 0;
+				switch (condition.operator) {
+					case "gte":
+						return count >= condition.count;
+					case "lte":
+						return count <= condition.count;
+					case "eq":
+						return count === condition.count;
+				}
+				return false;
+			}
+
+			case "waveCounter": {
+				const wave = world.getWaveCounter?.() ?? 0;
+				switch (condition.operator) {
+					case "gte":
+						return wave >= condition.wave;
+					case "lte":
+						return wave <= condition.wave;
+					case "eq":
+						return wave === condition.wave;
+				}
+				return false;
+			}
+
+			case "convoyEntersZone":
+				return world.hasConvoyEnteredZone?.(condition.zoneId, condition.convoyTag) ?? false;
 		}
 	}
 

@@ -166,5 +166,5 @@ export const raftsman: UnitDef = {
 	canSwim: true,
 	carryCapacity: 4,
 
-	tags: ["IsUnit", "IsTransport"],
+	tags: ["IsUnit", "IsTransport", "swim", "raft_build"],
 };

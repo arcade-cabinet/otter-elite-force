@@ -46,8 +46,7 @@ test.describe("Smoke Tests", () => {
 		await page.goto("/");
 		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
 
-		await expect(page.getByRole("button", { name: /New Game/i })).toBeVisible();
-		await expect(page.getByRole("button", { name: /Continue/i })).toBeVisible();
+		await expect(page.getByRole("button", { name: /New Campaign/i })).toBeVisible();
 		await expect(page.getByRole("button", { name: /Skirmish/i })).toBeVisible();
 		await expect(page.getByRole("button", { name: /Settings/i })).toBeVisible();
 	});
@@ -69,17 +68,17 @@ test.describe("Smoke Tests", () => {
 		expect(works).toBe(true);
 	});
 
-	test("game loads with Phaser canvas after entering mission", async ({ page }) => {
+	test("game loads with canvas after deploying mission", async ({ page }) => {
 		await page.goto("/");
 		await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
 
-		// New Game -> Support difficulty -> Beachhead
-		await page.getByRole("button", { name: /New Game/i }).click();
-		await page.getByRole("button", { name: /Support/i }).click({ timeout: 5000 });
-		await page.getByText("Beachhead").click({ timeout: 5000 });
+		// New Campaign -> Briefing -> Deploy
+		await page.getByRole("button", { name: /New Campaign/i }).click();
+		await expect(page.getByText("FOXHOUND").first()).toBeVisible({ timeout: 10000 });
+		await page.getByRole("button", { name: /Deploy/i }).click();
 		await page.waitForTimeout(3000);
 
-		// Phaser creates a canvas for the minimap at minimum
+		// LittleJS creates a canvas
 		const canvasCount = await page.locator("canvas").count();
 		expect(canvasCount).toBeGreaterThanOrEqual(1);
 	});

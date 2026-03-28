@@ -1,0 +1,76 @@
+{
+  "gather": {
+    "type": "active",
+    "description": "Harvest resources from nodes",
+    "params": { "carryCapacity": 8, "gatherTimeMs": 4000 }
+  },
+  "build": {
+    "type": "active",
+    "description": "Construct buildings on valid terrain",
+    "params": { "buildSpeedMultiplier": 1.0 }
+  },
+  "swim": {
+    "type": "passive",
+    "description": "Can traverse water terrain",
+    "params": { "speedInWater": 1.0 }
+  },
+  "stealth": {
+    "type": "passive",
+    "description": "Invisible when stationary in forest terrain or submerged",
+    "params": { "breakOnAttack": true, "breakOnMove": false }
+  },
+  "demolition_charge": {
+    "type": "active",
+    "cooldownMs": 30000,
+    "description": "Plant explosive charge on building",
+    "params": { "damage": 200, "radius": 48, "fuseMs": 3000 }
+  },
+  "raft_build": {
+    "type": "active",
+    "cooldownMs": 45000,
+    "description": "Build a raft that carries up to 4 units across water",
+    "params": { "capacity": 4, "buildTimeMs": 5000 }
+  },
+  "ranged_attack": {
+    "type": "passive",
+    "description": "Attacks from range with projectile",
+    "params": { "projectileSpeed": 200, "arc": true }
+  },
+  "command_aura": {
+    "type": "passive",
+    "description": "Boosts morale and damage of nearby friendly units",
+    "params": { "radius": 96, "damageBonus": 2, "speedBonus": 5 }
+  },
+  "reveal_hidden": {
+    "type": "passive",
+    "description": "Reveals hidden and stealthed enemies within vision range",
+    "params": {}
+  },
+  "reveal_submerged": {
+    "type": "passive",
+    "description": "Reveals submerged objects and enemies",
+    "params": {}
+  },
+  "breach_charge": {
+    "type": "active",
+    "cooldownMs": 20000,
+    "description": "Devastating charge that destroys walls and fortifications",
+    "params": { "damage": 400, "radius": 32 }
+  },
+  "heal": {
+    "type": "active",
+    "cooldownMs": 5000,
+    "description": "Heal nearby friendly unit",
+    "params": { "amount": 20, "range": 48 }
+  },
+  "poison_aura": {
+    "type": "passive",
+    "description": "Damages nearby enemies with poison over time",
+    "params": { "radius": 64, "damagePerSecond": 3, "duration": 5000 }
+  },
+  "resource_drain": {
+    "type": "passive",
+    "description": "Drains resources from nearby resource nodes",
+    "params": { "drainRate": 2, "radius": 64 }
+  }
+}

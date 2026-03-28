@@ -1,0 +1,137 @@
+{
+  "id": "mission_08",
+  "title": "Underwater Cache",
+  "chapter": 2,
+  "mapWidth": 128,
+  "mapHeight": 128,
+  "parTimeMinutes": 16,
+  "availableBuildings": [],
+  "availableUnits": ["mudfoot", "diver", "raftsman"],
+  "startingResources": { "fish": 0, "timber": 0, "salvage": 0 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "dirt", "rect": { "x": 20, "y": 104, "w": 88, "h": 8 } },
+    { "terrainId": "mangrove", "rect": { "x": 8, "y": 100, "w": 16, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 104, "y": 100, "w": 20, "h": 12 } },
+    { "terrainId": "water", "rect": { "x": 0, "y": 116, "w": 128, "h": 12 } },
+    { "terrainId": "dirt", "rect": { "x": 20, "y": 86, "w": 24, "h": 12 } },
+    { "terrainId": "mangrove", "rect": { "x": 8, "y": 84, "w": 12, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 44, "y": 88, "w": 12, "h": 8 } },
+    { "terrainId": "water", "rect": { "x": 68, "y": 86, "w": 48, "h": 12 } },
+    { "terrainId": "stone", "rect": { "x": 12, "y": 70, "w": 40, "h": 12 } },
+    { "terrainId": "water", "rect": { "x": 12, "y": 76, "w": 40, "h": 6 } },
+    { "terrainId": "stone", "rect": { "x": 68, "y": 70, "w": 44, "h": 12 } },
+    { "terrainId": "water", "rect": { "x": 76, "y": 74, "w": 32, "h": 8 } },
+    { "terrainId": "water", "rect": { "x": 0, "y": 56, "w": 128, "h": 12 } },
+    { "terrainId": "stone", "rect": { "x": 16, "y": 58, "w": 8, "h": 8 } },
+    { "terrainId": "stone", "rect": { "x": 56, "y": 60, "w": 8, "h": 6 } },
+    { "terrainId": "stone", "rect": { "x": 96, "y": 58, "w": 8, "h": 8 } },
+    { "terrainId": "water", "rect": { "x": 12, "y": 42, "w": 32, "h": 12 } },
+    { "terrainId": "stone", "rect": { "x": 8, "y": 40, "w": 4, "h": 16 } },
+    { "terrainId": "stone", "rect": { "x": 44, "y": 40, "w": 4, "h": 16 } },
+    { "terrainId": "water", "rect": { "x": 60, "y": 42, "w": 40, "h": 12 } },
+    { "terrainId": "stone", "rect": { "x": 56, "y": 40, "w": 4, "h": 16 } },
+    { "terrainId": "stone", "rect": { "x": 100, "y": 40, "w": 4, "h": 16 } },
+    { "terrainId": "water", "rect": { "x": 12, "y": 22, "w": 32, "h": 16 } },
+    { "terrainId": "stone", "rect": { "x": 8, "y": 20, "w": 4, "h": 20 } },
+    { "terrainId": "stone", "rect": { "x": 44, "y": 20, "w": 4, "h": 20 } },
+    { "terrainId": "water", "rect": { "x": 60, "y": 22, "w": 56, "h": 16 } },
+    { "terrainId": "water", "rect": { "x": 4, "y": 2, "w": 120, "h": 16 } },
+    { "terrainId": "stone", "rect": { "x": 24, "y": 4, "w": 8, "h": 8 } },
+    { "terrainId": "stone", "rect": { "x": 64, "y": 6, "w": 12, "h": 6 } },
+    { "terrainId": "stone", "rect": { "x": 96, "y": 4, "w": 8, "h": 8 } }
+  ],
+
+  "zones": {
+    "insertion_point":    { "x": 16, "y": 100, "width": 96,  "height": 16 },
+    "river_south":        { "x": 0,  "y": 116, "width": 128, "height": 12 },
+    "approach_trail":     { "x": 8,  "y": 84,  "width": 48,  "height": 16 },
+    "marshland":          { "x": 64, "y": 84,  "width": 56,  "height": 16 },
+    "ruin_entrance":      { "x": 8,  "y": 68,  "width": 48,  "height": 16 },
+    "ruin_east":          { "x": 64, "y": 68,  "width": 52,  "height": 16 },
+    "flooded_corridor":   { "x": 0,  "y": 56,  "width": 128, "height": 12 },
+    "underwater_passage": { "x": 8,  "y": 40,  "width": 40,  "height": 16 },
+    "cache_vault":        { "x": 56, "y": 40,  "width": 48,  "height": 16 },
+    "detention_block":    { "x": 8,  "y": 20,  "width": 40,  "height": 20 },
+    "submerged_plaza":    { "x": 56, "y": 20,  "width": 64,  "height": 20 },
+    "deep_ruins_north":   { "x": 0,  "y": 0,   "width": 128, "height": 20 }
+  },
+
+  "placements": [
+    { "type": "mudfoot",       "faction": "ura",         "x": 40, "y": 106 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 44, "y": 108 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 48, "y": 106 },
+    { "type": "diver",         "faction": "ura",         "x": 56, "y": 108 },
+    { "type": "diver",         "faction": "ura",         "x": 60, "y": 106 },
+    { "type": "diver",         "faction": "ura",         "x": 64, "y": 108 },
+    { "type": "raftsman",      "faction": "ura",         "x": 72, "y": 106 },
+
+    { "type": "salvage_cache", "faction": "neutral",     "x": 20, "y": 72 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 36, "y": 74 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 76, "y": 72 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 92, "y": 70 },
+
+    { "type": "munitions_cache", "faction": "neutral",   "x": 80, "y": 48, "scriptId": "munitions_cache" },
+
+    { "type": "skink",         "faction": "scale_guard", "x": 32, "y": 88 },
+    { "type": "skink",         "faction": "scale_guard", "x": 40, "y": 86 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 84, "y": 88 },
+    { "type": "skink",         "faction": "scale_guard", "x": 96, "y": 86 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 24, "y": 72 },
+    { "type": "gator",         "faction": "scale_guard", "x": 32, "y": 74 },
+    { "type": "gator",         "faction": "scale_guard", "x": 40, "y": 72 },
+    { "type": "watchtower",    "faction": "scale_guard", "x": 36, "y": 68 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 76, "y": 74 },
+    { "type": "gator",         "faction": "scale_guard", "x": 88, "y": 72 },
+    { "type": "viper",         "faction": "scale_guard", "x": 100, "y": 70 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 28, "y": 60 },
+    { "type": "gator",         "faction": "scale_guard", "x": 64, "y": 62 },
+    { "type": "skink",         "faction": "scale_guard", "x": 100, "y": 58 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 80, "y": 24 },
+    { "type": "gator",         "faction": "scale_guard", "x": 96, "y": 26 },
+    { "type": "viper",         "faction": "scale_guard", "x": 88, "y": 22 },
+
+    { "type": "detention_cage", "faction": "scale_guard", "x": 28, "y": 28, "scriptId": "splash_cage" },
+    { "type": "gator",         "faction": "scale_guard", "x": 20, "y": 26 },
+    { "type": "gator",         "faction": "scale_guard", "x": 36, "y": 26 },
+    { "type": "gator",         "faction": "scale_guard", "x": 28, "y": 34 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 32, "y": 8 },
+    { "type": "gator",         "faction": "scale_guard", "x": 56, "y": 10 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 80, "y": 8 },
+    { "type": "viper",         "faction": "scale_guard", "x": 108, "y": 6 }
+  ],
+
+  "objectives": [
+    { "id": "rescue-splash",     "description": "Locate and rescue Cpl. Splash",          "type": "primary" },
+    { "id": "recover-cache",     "description": "Recover the underwater munitions cache",   "type": "primary" },
+    { "id": "no-losses",         "description": "Complete mission with zero casualties",    "type": "bonus" },
+    { "id": "clear-deep-ruins",  "description": "Clear all enemies from the deep ruins",   "type": "bonus" }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 2 }], "intervalMs": 40000, "variance": 0.25 },
+      { "composition": [{ "type": "gator", "count": 2 }], "intervalMs": 60000, "variance": 0.3 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":         { "drops": [{ "resource": "salvage", "amount": 5, "probability": 0.4 }] },
+    "gator":         { "drops": [{ "resource": "salvage", "amount": 8, "probability": 0.4 }] },
+    "viper":         { "drops": [{ "resource": "salvage", "amount": 12, "probability": 0.5 }] },
+    "croc_champion": { "drops": [{ "resource": "salvage", "amount": 25, "probability": 0.6 }] }
+  },
+
+  "difficultyScaling": {
+    "support":  { "resourceMultiplier": 1.0, "enemyHpMultiplier": 0.75, "enemyDamageMultiplier": 0.75, "startingResources": { "fish": 0, "timber": 0, "salvage": 0 } },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0, "enemyDamageMultiplier": 1.0, "startingResources": { "fish": 0, "timber": 0, "salvage": 0 } },
+    "elite":    { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.3, "enemyDamageMultiplier": 1.3, "startingResources": { "fish": 0, "timber": 0, "salvage": 0 } }
+  }
+}

@@ -1,0 +1,598 @@
+{
+  "burrow": {
+    "name": "Lodge",
+    "faction": "ura",
+    "category": "production",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 1000,
+      "armor": 2,
+      "visionRadius": 8,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 10
+    },
+    "flags": { "isHQ": true },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": ["river_rat"],
+    "passiveIncome": null,
+    "unlocksAtMission": 1,
+    "description": "The Captain's field HQ. Trains River Rats. Provides 10 population capacity. If destroyed, the mission fails."
+  },
+  "command_post": {
+    "extends": "burrow",
+    "name": "Command Post",
+    "stats": {
+      "hp": 800,
+      "armor": 1,
+      "visionRadius": 8,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 20
+    },
+    "construction": {
+      "cost": { "fish": 200, "timber": 100, "salvage": 0 },
+      "timeMs": 30000
+    },
+    "produces": ["river_rat"],
+    "unlocksAtMission": 1,
+    "description": "Upgraded logistics hub. Trains River Rats. Provides 20 population capacity. Upgrade path for tech."
+  },
+  "barracks": {
+    "name": "Barracks",
+    "faction": "ura",
+    "category": "production",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 600,
+      "armor": 1,
+      "visionRadius": 5,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 150, "timber": 200, "salvage": 0 },
+      "timeMs": 25000
+    },
+    "produces": ["mudfoot", "shellcracker"],
+    "passiveIncome": null,
+    "unlocksAtMission": 1,
+    "description": "Military training facility. Trains Mudfoots and Shellcrackers."
+  },
+  "armory": {
+    "extends": "barracks",
+    "name": "Armory",
+    "stats": {
+      "hp": 600,
+      "armor": 2,
+      "visionRadius": 5,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "construction": {
+      "cost": { "fish": 200, "timber": 150, "salvage": 100 },
+      "timeMs": 35000
+    },
+    "produces": ["sapper", "mortar_otter"],
+    "unlocksAtMission": 3,
+    "description": "Advanced military production. Trains Sappers and Mortar Otters. Researches upgrades."
+  },
+  "watchtower": {
+    "name": "Watchtower",
+    "faction": "ura",
+    "category": "defense",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 400,
+      "armor": 1,
+      "visionRadius": 10,
+      "attackDamage": 6,
+      "attackRange": 128,
+      "attackCooldownMs": 2000,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 50, "timber": 100, "salvage": 0 },
+      "timeMs": 15000
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 1,
+    "description": "Defensive observation tower. Extended vision range. Fires arrows at nearby enemies."
+  },
+  "fish_trap": {
+    "name": "Fish Trap",
+    "faction": "ura",
+    "category": "economy",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 200,
+      "armor": 0,
+      "visionRadius": 3,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 75, "timber": 50, "salvage": 0 },
+      "timeMs": 15000
+    },
+    "produces": [],
+    "passiveIncome": { "resource": "fish", "amount": 3, "intervalMs": 10000 },
+    "unlocksAtMission": 1,
+    "description": "Passive economy. Generates +3 fish every 10 seconds without worker attention."
+  },
+  "dock": {
+    "name": "Dock",
+    "faction": "ura",
+    "category": "production",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 400,
+      "armor": 1,
+      "visionRadius": 6,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 200, "timber": 150, "salvage": 50 },
+      "timeMs": 30000
+    },
+    "produces": ["raftsman", "diver"],
+    "passiveIncome": null,
+    "unlocksAtMission": 6,
+    "description": "Naval production facility. Trains Raftsmen and Divers. Must be placed near water."
+  },
+  "field_hospital": {
+    "name": "Field Hospital",
+    "faction": "ura",
+    "category": "support",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 400,
+      "armor": 0,
+      "visionRadius": 5,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 2,
+      "healRadius": 128,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 250, "timber": 100, "salvage": 0 },
+      "timeMs": 25000
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 6,
+    "description": "Heals nearby friendly units for 2 HP per second within a 128px radius."
+  },
+  "sandbag_wall": {
+    "name": "Sandbag Wall",
+    "faction": "ura",
+    "category": "wall",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 300,
+      "armor": 2,
+      "visionRadius": 0,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 0, "timber": 25, "salvage": 0 },
+      "timeMs": 8000
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 1,
+    "description": "Basic defensive barrier. Blocks movement. Cheap and fast to build."
+  },
+  "stone_wall": {
+    "extends": "sandbag_wall",
+    "name": "Stone Wall",
+    "stats": {
+      "hp": 500,
+      "armor": 4,
+      "visionRadius": 0,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "construction": {
+      "cost": { "fish": 0, "timber": 50, "salvage": 25 },
+      "timeMs": 12000
+    },
+    "unlocksAtMission": 3,
+    "description": "Reinforced defensive wall. Higher HP and armor than sandbags. Requires Fortified Walls research."
+  },
+  "gun_tower": {
+    "extends": "watchtower",
+    "name": "Gun Tower",
+    "stats": {
+      "hp": 500,
+      "armor": 3,
+      "visionRadius": 8,
+      "attackDamage": 12,
+      "attackRange": 160,
+      "attackCooldownMs": 1500,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "construction": {
+      "cost": { "fish": 150, "timber": 100, "salvage": 75 },
+      "timeMs": 25000
+    },
+    "unlocksAtMission": 3,
+    "description": "Heavy defensive emplacement. High damage at range. Requires Gun Emplacements research."
+  },
+  "minefield": {
+    "name": "Minefield",
+    "faction": "ura",
+    "category": "defense",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 50,
+      "armor": 0,
+      "visionRadius": 0,
+      "attackDamage": 80,
+      "attackRange": 48,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 50, "timber": 0, "salvage": 50 },
+      "timeMs": 10000
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 4,
+    "description": "Hidden explosive trap. Detonates when an enemy unit walks over it. Single-use."
+  },
+  "flag_post": {
+    "name": "Flag Post",
+    "faction": "scale_guard",
+    "category": "production",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 500,
+      "armor": 1,
+      "visionRadius": 6,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": true },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 1,
+    "description": "Scale-Guard command structure. Destroy it to neutralize the outpost."
+  },
+  "spawning_pool": {
+    "name": "Spawning Pool",
+    "faction": "scale_guard",
+    "category": "production",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 600,
+      "armor": 2,
+      "visionRadius": 5,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": ["skink", "gator", "viper", "snapper", "scout_lizard", "croc_champion"],
+    "passiveIncome": null,
+    "unlocksAtMission": 1,
+    "description": "Scale-Guard unit production. Spawns all reptilian combat units."
+  },
+  "fuel_tank": {
+    "name": "Fuel Tank",
+    "faction": "scale_guard",
+    "category": "special",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 400,
+      "armor": 1,
+      "visionRadius": 3,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 5,
+    "description": "Scale-Guard siphon core. Destroy it to shut down the siphon installation. Explodes on destruction."
+  },
+  "venom_spire": {
+    "name": "Venom Spire",
+    "faction": "scale_guard",
+    "category": "defense",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 350,
+      "armor": 2,
+      "visionRadius": 8,
+      "attackDamage": 10,
+      "attackRange": 144,
+      "attackCooldownMs": 2500,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 5,
+    "description": "Scale-Guard defensive tower. Fires poison projectiles at range. Slows targets hit."
+  },
+  "scale_wall": {
+    "name": "Scale Wall",
+    "faction": "scale_guard",
+    "category": "wall",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 600,
+      "armor": 5,
+      "visionRadius": 0,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 1,
+    "description": "Scale-Guard fortification. Heavy stone wall segment. Blocks movement."
+  },
+  "siphon": {
+    "name": "Siphon",
+    "faction": "scale_guard",
+    "category": "production",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 300,
+      "armor": 1,
+      "visionRadius": 4,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": ["siphon_drone"],
+    "passiveIncome": null,
+    "unlocksAtMission": 5,
+    "description": "Scale-Guard resource extraction. Drains nearby water resources. Produces Siphon Drones."
+  },
+  "sludge_pit": {
+    "name": "Sludge Pit",
+    "faction": "scale_guard",
+    "category": "defense",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 250,
+      "armor": 0,
+      "visionRadius": 3,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 5,
+    "description": "Scale-Guard area denial. Creates toxic sludge zone that damages all non-reptilian units."
+  },
+  "great_siphon": {
+    "name": "Great Siphon",
+    "faction": "scale_guard",
+    "category": "special",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 1500,
+      "armor": 5,
+      "visionRadius": 8,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": true },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 13,
+    "description": "Scale-Guard mega-structure. Multi-section boss building. Must destroy all 3 sections to win."
+  },
+  "shield_generator": {
+    "name": "Shield Generator",
+    "faction": "scale_guard",
+    "category": "defense",
+    "visual": {
+      "sprite": null,
+      "tint": null,
+      "scale": 1.0
+    },
+    "stats": {
+      "hp": 500,
+      "armor": 3,
+      "visionRadius": 5,
+      "attackDamage": 0,
+      "attackRange": 0,
+      "attackCooldownMs": 0,
+      "healRate": 0,
+      "healRadius": 0,
+      "populationCapacity": 0
+    },
+    "flags": { "isHQ": false },
+    "construction": {
+      "cost": { "fish": 0, "timber": 0, "salvage": 0 },
+      "timeMs": 0
+    },
+    "produces": [],
+    "passiveIncome": null,
+    "unlocksAtMission": 13,
+    "description": "Scale-Guard defensive tech. Projects a damage-absorbing shield over nearby buildings."
+  }
+}

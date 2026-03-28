@@ -195,5 +195,5 @@ export const diver: UnitDef = {
 	canSwim: true,
 	canSubmerge: true,
 
-	tags: ["IsUnit", "IsCombat", "IsScout"],
+	tags: ["IsUnit", "IsCombat", "IsScout", "swim", "stealth", "underwater_strike"],
 };

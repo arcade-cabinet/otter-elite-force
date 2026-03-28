@@ -1,250 +1,301 @@
-import { createWorld } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { OwnedBy } from "@/ecs/relations";
-import { AIState, SteeringAgent } from "@/ecs/traits/ai";
-import { Armor, Attack, Health, VisionRadius } from "@/ecs/traits/combat";
-import { Gatherer, PopulationCost, ProductionQueue, ResourceNode } from "@/ecs/traits/economy";
-import { Category, Faction, IsBuilding, IsHero, IsResource, UnitType } from "@/ecs/traits/identity";
-import { OrderQueue, RallyPoint } from "@/ecs/traits/orders";
-import { Position } from "@/ecs/traits/spatial";
-import { DetectionRadius } from "@/ecs/traits/stealth";
-import { CanSwim } from "@/ecs/traits/water";
-import { spawnBuilding, spawnResource, spawnUnit } from "@/entities/spawner";
-import type { BuildingDef, HeroDef, ResourceDef, SpriteDef, UnitDef } from "@/entities/types";
+/**
+ * Entity Spawner Tests — ported from old Koota codebase.
+ *
+ * Tests entity spawning functions (spawnUnit, spawnBuilding, spawnResource, spawnProjectile).
+ */
 
-const STUB_SPRITE: SpriteDef = {
-	size: 16,
-	frames: { idle: [["."]] },
-};
+import { describe, expect, it } from "vitest";
+import {
+	Armor,
+	Attack,
+	Construction,
+	Content,
+	Faction,
+	Flags,
+	Gatherer,
+	Health,
+	Position,
+	Speed,
+	TargetRef,
+	VisionRadius,
+} from "@/engine/world/components";
+import {
+	createGameWorld,
+	isAlive,
+	spawnUnit,
+	spawnBuilding,
+	spawnResource,
+	spawnProjectile,
+} from "@/engine/world/gameWorld";
 
-const MUDFOOT_DEF: UnitDef = {
-	id: "mudfoot",
-	name: "MUDFOOT",
-	faction: "ura",
-	category: "infantry",
-	sprite: STUB_SPRITE,
-	hp: 80,
-	armor: 2,
-	damage: 12,
-	range: 1,
-	attackCooldown: 1.2,
-	speed: 8,
-	visionRadius: 6,
-	cost: { fish: 80, salvage: 20 },
-	populationCost: 1,
-	trainTime: 15,
-	trainedAt: "barracks",
-	unlockedAt: "start",
-	tags: ["IsUnit"],
-};
+describe("Entity spawner", () => {
+	describe("spawnUnit", () => {
+		it("creates a unit at the specified position", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 100, y: 200, faction: "ura" });
+			expect(Position.x[eid]).toBe(100);
+			expect(Position.y[eid]).toBe(200);
+		});
 
-const HERO_DEF: HeroDef = {
-	...MUDFOOT_DEF,
-	id: "sgt_bubbles",
-	name: "SGT. BUBBLES",
-	portraitId: "portrait_bubbles",
-	unlockMission: "mission_1",
-	unlockDescription: "Starting hero",
-	abilities: [{ id: "rally", name: "Rally", description: "Boosts morale", cooldown: 30 }],
-};
+		it("assigns faction correctly", () => {
+			const world = createGameWorld();
+			const ura = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			const sg = spawnUnit(world, { x: 10, y: 0, faction: "scale_guard" });
+			expect(Faction.id[ura]).toBe(1);
+			expect(Faction.id[sg]).toBe(2);
+		});
 
-const WORKER_DEF: UnitDef = {
-	...MUDFOOT_DEF,
-	id: "river_rat",
-	name: "RIVER RAT",
-	category: "worker",
-	gatherCapacity: 10,
-	gatherRate: 2,
-	buildRate: 1,
-};
+		it("sets health from options", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", health: { current: 80, max: 100 } });
+			expect(Health.current[eid]).toBe(80);
+			expect(Health.max[eid]).toBe(100);
+		});
 
-const SWIMMER_DEF: UnitDef = {
-	...MUDFOOT_DEF,
-	id: "diver",
-	name: "DIVER",
-	canSwim: true,
-	canSubmerge: true,
-};
+		it("defaults health to 1/1 if not specified", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			expect(Health.current[eid]).toBe(1);
+			expect(Health.max[eid]).toBe(1);
+		});
 
-const ENEMY_DEF: UnitDef = {
-	...MUDFOOT_DEF,
-	id: "gator",
-	name: "GATOR",
-	faction: "scale_guard",
-	detectionRadius: 8,
-	aiProfile: {
-		states: ["patrol", "chase", "attack"],
-		defaultState: "patrol",
-		aggroRange: 10,
-		fleeThreshold: 0.2,
-	},
-};
+		it("is alive after spawning", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			expect(isAlive(world, eid)).toBe(true);
+		});
 
-const BUILDING_DEF: BuildingDef = {
-	id: "barracks",
-	name: "BARRACKS",
-	faction: "ura",
-	category: "production",
-	sprite: { size: 32, frames: { idle: [["."]] } },
-	hp: 350,
-	armor: 1,
-	buildTime: 30,
-	cost: { timber: 200 },
-	unlockedAt: "start",
-	trains: ["mudfoot", "shellcracker"],
-	tags: ["IsBuilding"],
-};
+		it("stores unitType in entity type index", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", unitType: "mudfoot" });
+			expect(world.runtime.entityTypeIndex.get(eid)).toBe("mudfoot");
+		});
 
-const TOWER_DEF: BuildingDef = {
-	...BUILDING_DEF,
-	id: "watchtower",
-	name: "WATCHTOWER",
-	category: "defense",
-	attackDamage: 6,
-	attackRange: 8,
-	attackCooldown: 2,
-};
+		it("stores scriptId in script tag index", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", scriptId: "commander" });
+			expect(world.runtime.scriptTagIndex.get("commander")).toBe(eid);
+		});
 
-const RESOURCE_DEF: ResourceDef = {
-	id: "fish_spot",
-	name: "Fish Spot",
-	resourceType: "fish",
-	sprite: STUB_SPRITE,
-	yield: { min: 80, max: 120 },
-	harvestRate: 5,
-	tags: ["IsResource"],
-};
+		it("wires template stats when stats option is provided", () => {
+			const world = createGameWorld();
+			// Stats use tile-based units: speed=2 tiles/s, range=1 tile, visionRadius=5 tiles
+			const eid = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				stats: {
+					hp: 80,
+					armor: 2,
+					speed: 2,
+					attackDamage: 12,
+					attackRange: 1,
+					attackCooldownMs: 1.2,
+					visionRadius: 5,
+					popCost: 1,
+				},
+			});
 
-let world: ReturnType<typeof createWorld>;
+			expect(Health.max[eid]).toBe(80);
+			expect(Armor.value[eid]).toBe(2);
+			// Speed, range, visionRadius are converted from tiles to pixels (* 32)
+			expect(Speed.value[eid]).toBe(64);
+			expect(Attack.damage[eid]).toBe(12);
+			expect(Attack.range[eid]).toBe(32);
+			expect(Attack.cooldown[eid]).toBeCloseTo(1.2, 5);
+			expect(VisionRadius.value[eid]).toBe(160);
+		});
 
-beforeEach(() => {
-	world = createWorld();
-});
-afterEach(() => {
-	world.destroy();
-});
+		it("grants gather capacity for worker-like units", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				stats: {
+					hp: 40,
+					armor: 0,
+					speed: 80,
+					attackDamage: 5,
+					attackRange: 32,
+					attackCooldownMs: 1500,
+					visionRadius: 6,
+					popCost: 1,
+				},
+				abilities: ["gather", "build"],
+			});
 
-describe("spawnUnit", () => {
-	it("creates entity with position, identity, and combat stats", () => {
-		const e = spawnUnit(world, MUDFOOT_DEF, 10, 20);
+			expect(Gatherer.capacity[eid]).toBe(10);
+		});
 
-		expect(e.has(Position)).toBe(true);
-		expect(e.get(Position)).toEqual({ x: 10, y: 20 });
+		it("registers abilities in entityAbilities map", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				abilities: ["heal", "snipe"],
+			});
 
-		expect(e.get(UnitType).type).toBe("mudfoot");
-		expect(e.get(Category).category).toBe("infantry");
-		expect(e.get(Faction).id).toBe("ura");
+			const abilities = world.runtime.entityAbilities.get(eid);
+			expect(abilities).toContain("heal");
+			expect(abilities).toContain("snipe");
+		});
 
-		expect(e.get(Health)).toEqual({ current: 80, max: 80 });
-		expect(e.get(Attack).damage).toBe(12);
-		expect(e.get(Attack).range).toBe(1);
-		expect(e.get(Armor).value).toBe(2);
-		expect(e.get(VisionRadius).radius).toBe(6);
-		expect(e.get(PopulationCost).cost).toBe(1);
+		it("sets canSwim flag from flags option", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				flags: { canSwim: true },
+			});
+			expect(Flags.canSwim[eid]).toBe(1);
+		});
+
+		it("zeroes out stale SoA fields on fresh spawn", () => {
+			const world = createGameWorld();
+			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			expect(Attack.damage[eid]).toBe(0);
+			expect(Attack.range[eid]).toBe(0);
+			expect(Armor.value[eid]).toBe(0);
+			expect(Speed.value[eid]).toBe(0);
+		});
 	});
 
-	it("allows faction override", () => {
-		const e = spawnUnit(world, MUDFOOT_DEF, 0, 0, "neutral");
-		expect(e.get(Faction).id).toBe("neutral");
+	describe("spawnBuilding", () => {
+		it("creates a building with isBuilding flag set", () => {
+			const world = createGameWorld();
+			const eid = spawnBuilding(world, {
+				x: 100,
+				y: 200,
+				faction: "ura",
+				buildingType: "barracks",
+			});
+			expect(Flags.isBuilding[eid]).toBe(1);
+		});
+
+		it("sets construction progress and build time", () => {
+			const world = createGameWorld();
+			const eid = spawnBuilding(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				buildingType: "barracks",
+				construction: { progress: 50, buildTime: 30 },
+			});
+			expect(Construction.progress[eid]).toBe(50);
+			expect(Construction.buildTime[eid]).toBe(30);
+		});
+
+		it("defaults construction to complete (progress=100)", () => {
+			const world = createGameWorld();
+			const eid = spawnBuilding(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				buildingType: "barracks",
+			});
+			expect(Construction.progress[eid]).toBe(100);
+		});
+
+		it("stores buildingType in entity type index", () => {
+			const world = createGameWorld();
+			const eid = spawnBuilding(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				buildingType: "watchtower",
+			});
+			expect(world.runtime.entityTypeIndex.get(eid)).toBe("watchtower");
+		});
+
+		it("wires template stats when stats option is provided", () => {
+			const world = createGameWorld();
+			// Stats use tile-based units: visionRadius=8 tiles, attackRange=6 tiles
+			const eid = spawnBuilding(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				buildingType: "watchtower",
+				stats: {
+					hp: 200,
+					armor: 1,
+					visionRadius: 8,
+					attackDamage: 8,
+					attackRange: 6,
+					attackCooldownMs: 2,
+					populationCapacity: 0,
+				},
+			});
+
+			expect(Health.max[eid]).toBe(200);
+			expect(Armor.value[eid]).toBe(1);
+			// Range and visionRadius converted from tiles to pixels (* 32)
+			expect(VisionRadius.value[eid]).toBe(256);
+			expect(Attack.damage[eid]).toBe(8);
+			expect(Attack.range[eid]).toBe(192);
+		});
 	});
 
-	it("adds command, ownership, and steering traits to basic infantry", () => {
-		const e = spawnUnit(world, MUDFOOT_DEF, 0, 0);
-		expect(e.has(OrderQueue)).toBe(true);
-		expect(e.has(AIState)).toBe(true);
-		expect(e.has(SteeringAgent)).toBe(true);
-		expect(e.has(OwnedBy("*"))).toBe(true);
-		expect(e.has(Gatherer)).toBe(false);
-		expect(e.has(CanSwim)).toBe(false);
-		expect(e.has(DetectionRadius)).toBe(false);
-		expect(e.has(IsHero)).toBe(false);
-	});
-});
+	describe("spawnResource", () => {
+		it("creates a resource with isResource flag set", () => {
+			const world = createGameWorld();
+			const eid = spawnResource(world, { x: 50, y: 75, resourceType: "fish_node" });
+			expect(Flags.isResource[eid]).toBe(1);
+		});
 
-describe("spawnUnit — worker", () => {
-	it("adds Gatherer trait with capacity from definition", () => {
-		const e = spawnUnit(world, WORKER_DEF, 5, 5);
-		expect(e.has(Gatherer)).toBe(true);
-		expect(e.get(Gatherer).capacity).toBe(10);
-	});
-});
+		it("stores resourceType in entity type index", () => {
+			const world = createGameWorld();
+			const eid = spawnResource(world, { x: 0, y: 0, resourceType: "timber_node" });
+			expect(world.runtime.entityTypeIndex.get(eid)).toBe("timber_node");
+		});
 
-describe("spawnUnit — swimmer", () => {
-	it("adds CanSwim tag", () => {
-		const e = spawnUnit(world, SWIMMER_DEF, 0, 0);
-		expect(e.has(CanSwim)).toBe(true);
-	});
-});
-
-describe("spawnUnit — enemy with AI", () => {
-	it("adds AIState with default state from profile", () => {
-		const e = spawnUnit(world, ENEMY_DEF, 0, 0);
-		expect(e.has(AIState)).toBe(true);
-		expect(e.get(AIState).state).toBe("patrol");
+		it("supports scriptId", () => {
+			const world = createGameWorld();
+			const eid = spawnResource(world, { x: 0, y: 0, resourceType: "fish_node", scriptId: "bonus_fish" });
+			expect(world.runtime.scriptTagIndex.get("bonus_fish")).toBe(eid);
+		});
 	});
 
-	it("adds SteeringAgent", () => {
-		const e = spawnUnit(world, ENEMY_DEF, 0, 0);
-		expect(e.has(SteeringAgent)).toBe(true);
+	describe("spawnProjectile", () => {
+		it("creates a projectile with isProjectile flag set", () => {
+			const world = createGameWorld();
+			const eid = spawnProjectile(world, { x: 10, y: 20, faction: "ura", damage: 15 });
+			expect(Flags.isProjectile[eid]).toBe(1);
+		});
+
+		it("sets attack damage on projectile", () => {
+			const world = createGameWorld();
+			const eid = spawnProjectile(world, { x: 0, y: 0, faction: "ura", damage: 25 });
+			expect(Attack.damage[eid]).toBe(25);
+		});
+
+		it("sets target entity reference", () => {
+			const world = createGameWorld();
+			const target = spawnUnit(world, { x: 50, y: 50, faction: "scale_guard" });
+			const proj = spawnProjectile(world, { x: 0, y: 0, faction: "ura", damage: 10, targetEid: target });
+
+			expect(TargetRef.eid[proj]).toBe(target);
+		});
 	});
 
-	it("adds DetectionRadius", () => {
-		const e = spawnUnit(world, ENEMY_DEF, 0, 0);
-		expect(e.has(DetectionRadius)).toBe(true);
-		expect(e.get(DetectionRadius).radius).toBe(8);
-	});
-});
+	describe("spawn counts", () => {
+		it("increments alive count for each spawn", () => {
+			const world = createGameWorld();
+			expect(world.runtime.alive.size).toBe(0);
 
-describe("spawnUnit — hero", () => {
-	it("adds IsHero tag", () => {
-		const e = spawnUnit(world, HERO_DEF, 0, 0);
-		expect(e.has(IsHero)).toBe(true);
-	});
-});
+			spawnUnit(world, { x: 0, y: 0, faction: "ura" });
+			expect(world.runtime.alive.size).toBe(1);
 
-describe("spawnBuilding", () => {
-	it("creates building with position, identity, and health", () => {
-		const e = spawnBuilding(world, BUILDING_DEF, 15, 25);
+			spawnBuilding(world, { x: 10, y: 0, faction: "ura", buildingType: "barracks" });
+			expect(world.runtime.alive.size).toBe(2);
 
-		expect(e.get(Position)).toEqual({ x: 15, y: 25 });
-		expect(e.get(UnitType).type).toBe("barracks");
-		expect(e.get(Health)).toEqual({ current: 350, max: 350 });
-		expect(e.get(Armor).value).toBe(1);
-		expect(e.has(IsBuilding)).toBe(true);
-		expect(e.has(ProductionQueue)).toBe(true);
-		expect(e.has(RallyPoint)).toBe(true);
-		expect(e.has(OwnedBy("*"))).toBe(true);
-	});
+			spawnResource(world, { x: 20, y: 0, resourceType: "fish_node" });
+			expect(world.runtime.alive.size).toBe(3);
 
-	it("does not add Attack trait to non-defensive buildings", () => {
-		const e = spawnBuilding(world, BUILDING_DEF, 0, 0);
-		expect(e.has(Attack)).toBe(false);
-	});
-
-	it("adds Attack trait to defensive buildings", () => {
-		const e = spawnBuilding(world, TOWER_DEF, 0, 0);
-		expect(e.has(Attack)).toBe(true);
-		expect(e.get(Attack).damage).toBe(6);
-		expect(e.get(Attack).range).toBe(8);
-	});
-});
-
-describe("spawnResource", () => {
-	it("creates resource node with IsResource tag", () => {
-		const e = spawnResource(world, RESOURCE_DEF, 30, 40);
-
-		expect(e.get(Position)).toEqual({ x: 30, y: 40 });
-		expect(e.get(UnitType).type).toBe("fish_spot");
-		expect(e.get(Faction).id).toBe("neutral");
-		expect(e.has(IsResource)).toBe(true);
-		expect(e.has(ResourceNode)).toBe(true);
-		expect(e.get(ResourceNode).type).toBe("fish");
-	});
-
-	it("sets remaining between yield min and max", () => {
-		const e = spawnResource(world, RESOURCE_DEF, 0, 0);
-		const remaining = e.get(ResourceNode).remaining;
-		expect(remaining).toBeGreaterThanOrEqual(80);
-		expect(remaining).toBeLessThanOrEqual(120);
+			spawnProjectile(world, { x: 30, y: 0, faction: "ura", damage: 5 });
+			expect(world.runtime.alive.size).toBe(4);
+		});
 	});
 });

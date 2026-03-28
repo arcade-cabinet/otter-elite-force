@@ -1,0 +1,122 @@
+{
+  "id": "mission_12",
+  "title": "Fang Rescue",
+  "chapter": 3,
+  "mapWidth": 128,
+  "mapHeight": 128,
+  "parTimeMinutes": 14,
+  "availableBuildings": [],
+  "availableUnits": ["mudfoot", "shellcracker", "sapper", "diver"],
+  "startingResources": { "fish": 0, "timber": 0, "salvage": 0 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "stone", "rect": { "x": 0, "y": 0, "w": 128, "h": 8 } },
+    { "terrainId": "stone", "rect": { "x": 20, "y": 8, "w": 88, "h": 12 } },
+    { "terrainId": "stone", "rect": { "x": 16, "y": 20, "w": 96, "h": 4 } },
+    { "terrainId": "dirt", "rect": { "x": 24, "y": 24, "w": 80, "h": 16 } },
+    { "terrainId": "stone", "rect": { "x": 16, "y": 40, "w": 96, "h": 4 } },
+    { "terrainId": "dirt", "rect": { "x": 20, "y": 44, "w": 88, "h": 16 } },
+    { "terrainId": "stone", "rect": { "x": 16, "y": 60, "w": 96, "h": 4 } },
+    { "terrainId": "stone", "rect": { "x": 48, "y": 64, "w": 32, "h": 12 } },
+    { "terrainId": "dirt", "rect": { "x": 44, "y": 76, "w": 40, "h": 12 } },
+    { "terrainId": "mangrove", "rect": { "x": 0, "y": 88, "w": 40, "h": 12 } },
+    { "terrainId": "mangrove", "rect": { "x": 88, "y": 88, "w": 40, "h": 12 } },
+    { "terrainId": "dirt", "rect": { "x": 32, "y": 100, "w": 64, "h": 12 } },
+    { "terrainId": "dirt", "rect": { "x": 24, "y": 112, "w": 80, "h": 16 } }
+  ],
+
+  "zones": {
+    "cliff_face":        { "x": 0,  "y": 0,   "width": 128, "height": 8 },
+    "detention_block":   { "x": 40, "y": 8,   "width": 48,  "height": 12 },
+    "wall_north":        { "x": 16, "y": 20,  "width": 96,  "height": 4 },
+    "inner_courtyard":   { "x": 24, "y": 24,  "width": 80,  "height": 16 },
+    "wall_mid":          { "x": 16, "y": 40,  "width": 96,  "height": 4 },
+    "outer_compound":    { "x": 20, "y": 44,  "width": 88,  "height": 16 },
+    "wall_south":        { "x": 16, "y": 60,  "width": 96,  "height": 4 },
+    "ravine_upper":      { "x": 48, "y": 64,  "width": 32,  "height": 12 },
+    "ravine_lower":      { "x": 44, "y": 76,  "width": 40,  "height": 12 },
+    "west_flank":        { "x": 0,  "y": 88,  "width": 40,  "height": 12 },
+    "east_flank":        { "x": 88, "y": 88,  "width": 40,  "height": 12 },
+    "staging_area":      { "x": 32, "y": 100, "width": 64,  "height": 12 },
+    "extraction_lz":     { "x": 24, "y": 112, "width": 80,  "height": 16 }
+  },
+
+  "placements": [
+    { "type": "col_bubbles",   "faction": "ura",         "x": 56, "y": 114, "scriptId": "col_bubbles" },
+    { "type": "mudfoot",       "faction": "ura",         "x": 52, "y": 116 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 60, "y": 116 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 64, "y": 118 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 48, "y": 118 },
+    { "type": "shellcracker",  "faction": "ura",         "x": 68, "y": 116 },
+    { "type": "shellcracker",  "faction": "ura",         "x": 44, "y": 116 },
+    { "type": "sapper",        "faction": "ura",         "x": 56, "y": 120 },
+    { "type": "sapper",        "faction": "ura",         "x": 60, "y": 120 },
+    { "type": "diver",         "faction": "ura",         "x": 72, "y": 118 },
+    { "type": "diver",         "faction": "ura",         "x": 40, "y": 118 },
+
+    { "type": "detention_cage", "faction": "scale_guard", "x": 64, "y": 12, "scriptId": "fang_cage" },
+    { "type": "gator",         "faction": "scale_guard", "x": 56, "y": 10 },
+    { "type": "gator",         "faction": "scale_guard", "x": 72, "y": 10 },
+    { "type": "gator",         "faction": "scale_guard", "x": 64, "y": 16 },
+    { "type": "viper",         "faction": "scale_guard", "x": 52, "y": 14 },
+    { "type": "viper",         "faction": "scale_guard", "x": 76, "y": 14 },
+
+    { "type": "gun_tower",     "faction": "scale_guard", "x": 32, "y": 28 },
+    { "type": "gun_tower",     "faction": "scale_guard", "x": 96, "y": 28 },
+    { "type": "gator",         "faction": "scale_guard", "x": 48, "y": 30 },
+    { "type": "gator",         "faction": "scale_guard", "x": 56, "y": 32 },
+    { "type": "gator",         "faction": "scale_guard", "x": 72, "y": 30 },
+    { "type": "gator",         "faction": "scale_guard", "x": 80, "y": 32 },
+    { "type": "viper",         "faction": "scale_guard", "x": 64, "y": 26 },
+    { "type": "snapper",       "faction": "scale_guard", "x": 64, "y": 34 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 64, "y": 28 },
+
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 40, "y": 60 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 44, "y": 60 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 84, "y": 60 },
+    { "type": "stone_wall",    "faction": "scale_guard", "x": 88, "y": 60 },
+    { "type": "gator",         "faction": "scale_guard", "x": 36, "y": 48 },
+    { "type": "gator",         "faction": "scale_guard", "x": 44, "y": 50 },
+    { "type": "gator",         "faction": "scale_guard", "x": 84, "y": 48 },
+    { "type": "gator",         "faction": "scale_guard", "x": 92, "y": 50 },
+    { "type": "viper",         "faction": "scale_guard", "x": 64, "y": 52 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 56, "y": 68 },
+    { "type": "gator",         "faction": "scale_guard", "x": 72, "y": 68 },
+    { "type": "skink",         "faction": "scale_guard", "x": 60, "y": 72 },
+    { "type": "skink",         "faction": "scale_guard", "x": 68, "y": 72 },
+
+    { "type": "salvage_cache", "faction": "neutral",     "x": 36, "y": 50 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 92, "y": 50 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 64, "y": 46 }
+  ],
+
+  "objectives": [
+    { "id": "rescue-fang",       "description": "Rescue Sgt. Fang from the detention block", "type": "primary" },
+    { "id": "extract-heroes",    "description": "Extract all heroes to the southern LZ",       "type": "primary" },
+    { "id": "bubbles-survives",  "description": "Col. Bubbles survives the mission",           "type": "bonus" },
+    { "id": "clear-courtyard",   "description": "Clear all enemies from the inner courtyard",  "type": "bonus" }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 3 }], "intervalMs": 30000, "variance": 0.25 },
+      { "composition": [{ "type": "gator", "count": 3 }, { "type": "viper", "count": 1 }], "intervalMs": 45000, "variance": 0.3 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":         { "drops": [{ "resource": "salvage", "amount": 6, "probability": 0.4 }] },
+    "gator":         { "drops": [{ "resource": "salvage", "amount": 12, "probability": 0.4 }] },
+    "viper":         { "drops": [{ "resource": "salvage", "amount": 14, "probability": 0.5 }] },
+    "snapper":       { "drops": [{ "resource": "salvage", "amount": 22, "probability": 0.5 }] },
+    "croc_champion": { "drops": [{ "resource": "salvage", "amount": 28, "probability": 0.6 }] }
+  },
+
+  "difficultyScaling": {
+    "support":  { "resourceMultiplier": 1.0, "enemyHpMultiplier": 0.75, "enemyDamageMultiplier": 0.75, "startingResources": { "fish": 0, "timber": 0, "salvage": 0 } },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0, "enemyDamageMultiplier": 1.0, "startingResources": { "fish": 0, "timber": 0, "salvage": 0 } },
+    "elite":    { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.3, "enemyDamageMultiplier": 1.3, "startingResources": { "fish": 0, "timber": 0, "salvage": 0 } }
+  }
+}

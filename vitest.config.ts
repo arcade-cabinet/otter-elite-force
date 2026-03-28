@@ -1,4 +1,5 @@
 import path from "node:path";
+import solid from "vite-plugin-solid";
 import { defineConfig } from "vitest/config";
 
 /**
@@ -11,6 +12,11 @@ import { defineConfig } from "vitest/config";
  * - Separate test patterns for unit and integration tests
  */
 export default defineConfig({
+	plugins: [
+		solid({
+			extensions: [".tsx"],
+		}),
+	],
 	test: {
 		globals: true,
 		environment: "happy-dom",
@@ -55,7 +61,19 @@ export default defineConfig({
 			},
 		},
 		include: ["src/**/*.{test,spec}.{ts,tsx}"],
-		exclude: ["node_modules", "dist", "e2e", "src/__tests__/browser/**"],
+		exclude: [
+			"node_modules",
+			"dist",
+			"e2e",
+			// Exclude browser-dependent tests (run via pnpm test:browser with Chromium).
+			// visualCapture.test.ts runs in Node mode and is included here.
+			"src/__tests__/browser/gameplay-loops.test.ts",
+			"src/__tests__/browser/playtest-governor.test.ts",
+			"src/__tests__/browser/visual-baselines.test.ts",
+			// E2E visual playtest requires Playwright + running dev server.
+			// Run manually: pnpm test -- src/__tests__/e2e/visualPlaytest.test.ts
+			"src/__tests__/e2e/visualPlaytest.test.ts",
+		],
 		// Handle ESM packages with directory imports
 		server: {
 			deps: {

@@ -1,159 +1,171 @@
 /**
- * Integration Test — Victory and Defeat detection (US-006).
+ * Victory/Defeat Integration Tests — ported from old Koota codebase.
  *
- * Verifies that the ScenarioEngine fires victory/defeat events
- * when objectives are completed or failed, and that GamePhase
- * transitions correctly.
+ * Tests victory and defeat detection through session phase changes,
+ * objective completion, and multi-base tracking.
  */
-import { createWorld, type World } from "koota";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { initSingletons } from "../../ecs/singletons";
-import { GamePhase } from "../../ecs/traits/state";
-import { ScenarioEngine } from "../../scenarios/engine";
-import type { Scenario, ScenarioWorldQuery, TriggerAction } from "../../scenarios/types";
 
-let world: World;
+import { describe, expect, it } from "vitest";
+import { Health } from "@/engine/world/components";
+import {
+	createGameWorld,
+	markForRemoval,
+	flushRemovals,
+	spawnBuilding,
+	spawnUnit,
+} from "@/engine/world/gameWorld";
+import { runMultiBaseSystem } from "@/engine/systems/multiBaseSystem";
+import { calculateMissionScore } from "@/engine/systems/scoringSystem";
 
-beforeEach(() => {
-	world = createWorld();
-	initSingletons(world);
-});
-
-afterEach(() => {
-	world.reset();
-});
-
-function createMockWorldQuery(overrides: Partial<ScenarioWorldQuery> = {}): ScenarioWorldQuery {
-	return {
-		elapsedTime: 0,
-		countUnits: () => 0,
-		countBuildings: () => 0,
-		countUnitsInArea: () => 0,
-		isBuildingDestroyed: () => false,
-		getEntityHealthPercent: () => null,
-		...overrides,
-	};
+function makeWorld() {
+	const world = createGameWorld();
+	world.time.deltaMs = 16;
+	return world;
 }
 
-describe("US-006: Victory and defeat detection", () => {
-	it("should fire allObjectivesCompleted when all primary objectives are done", () => {
-		const scenario: Scenario = {
-			objectives: [
-				{ id: "obj-1", description: "Destroy enemy base", type: "primary", status: "incomplete" },
-				{ id: "obj-2", description: "Rescue hostages", type: "primary", status: "incomplete" },
-				{ id: "obj-bonus", description: "No losses", type: "bonus", status: "incomplete" },
-			],
-			triggers: [],
-		};
+describe("Victory and defeat detection", () => {
+	describe("Victory conditions", () => {
+		it("mission completes when all primary objectives are completed", () => {
+			const world = makeWorld();
+			world.session.objectives = [
+				{ id: "obj-1", description: "Destroy enemy base", status: "completed", bonus: false },
+				{ id: "obj-2", description: "Rescue hostages", status: "completed", bonus: false },
+				{ id: "obj-bonus", description: "No losses", status: "incomplete", bonus: true },
+			];
 
-		const actions: TriggerAction[] = [];
-		const engine = new ScenarioEngine(scenario, (a) => actions.push(a));
+			const allPrimary = world.session.objectives
+				.filter((o) => !o.bonus)
+				.every((o) => o.status === "completed");
+			expect(allPrimary).toBe(true);
+		});
 
-		const events: string[] = [];
-		engine.on((event) => events.push(event.type));
+		it("bonus objectives do not block completion", () => {
+			const world = makeWorld();
+			world.session.objectives = [
+				{ id: "obj-1", description: "Win", status: "completed", bonus: false },
+				{ id: "obj-bonus", description: "Speed run", status: "incomplete", bonus: true },
+			];
 
-		engine.completeObjective("obj-1");
-		expect(events).toContain("objectiveCompleted");
-		expect(events).not.toContain("allObjectivesCompleted");
+			const allPrimary = world.session.objectives
+				.filter((o) => !o.bonus)
+				.every((o) => o.status === "completed");
+			expect(allPrimary).toBe(true);
+		});
 
-		engine.completeObjective("obj-2");
-		expect(events).toContain("allObjectivesCompleted");
+		it("calculates score on victory", () => {
+			const world = makeWorld();
+			world.time.elapsedMs = 300_000; // 5 minutes
+			world.session.phase = "victory";
+			world.session.objectives = [
+				{ id: "primary", description: "Win", status: "completed", bonus: false },
+				{ id: "bonus", description: "No losses", status: "completed", bonus: true },
+			];
 
-		// Bonus objectives don't block completion
-		expect(engine.areAllPrimaryObjectivesComplete()).toBe(true);
+			for (let i = 0; i < 8; i++) {
+				spawnUnit(world, { x: i * 20, y: 0, faction: "ura" });
+			}
+
+			const score = calculateMissionScore(world);
+			expect(score.stars).toBeGreaterThanOrEqual(2);
+		});
 	});
 
-	it("should fire missionFailed when failMission trigger activates", () => {
-		const scenario: Scenario = {
-			objectives: [{ id: "obj-1", description: "Survive", type: "primary", status: "incomplete" }],
-			triggers: [
-				{
-					id: "defeat-timer",
-					condition: { type: "timer", time: 600 },
-					action: { type: "failMission", reason: "Time expired" },
-					once: true,
-				},
-			],
-		};
+	describe("Defeat conditions", () => {
+		it("all-bases-lost triggers when all command posts and burrows are destroyed", () => {
+			const world = makeWorld();
+			world.session.phase = "playing";
 
-		const actions: TriggerAction[] = [];
-		const engine = new ScenarioEngine(scenario, (a) => actions.push(a));
+			const base = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "command_post",
+				health: { current: 600, max: 600 },
+			});
 
-		const events: string[] = [];
-		engine.on((event) => events.push(event.type));
+			// Destroy the base
+			markForRemoval(world, base);
+			flushRemovals(world);
 
-		// Before time expires
-		engine.evaluate(createMockWorldQuery({ elapsedTime: 500 }));
-		expect(events).not.toContain("missionFailed");
+			runMultiBaseSystem(world);
 
-		// After time expires
-		engine.evaluate(createMockWorldQuery({ elapsedTime: 601 }));
-		expect(events).toContain("missionFailed");
-		expect(engine.isMissionFailed).toBe(true);
-		expect(engine.missionFailReason).toBe("Time expired");
+			expect(world.events.some((e) => e.type === "all-bases-lost")).toBe(true);
+		});
+
+		it("game is not lost while any base survives", () => {
+			const world = makeWorld();
+			world.session.phase = "playing";
+
+			// Destroy first base
+			const base1 = spawnBuilding(world, {
+				x: 100,
+				y: 100,
+				faction: "ura",
+				buildingType: "command_post",
+				health: { current: 600, max: 600 },
+			});
+			markForRemoval(world, base1);
+			flushRemovals(world);
+
+			// Second base still alive
+			spawnBuilding(world, {
+				x: 300,
+				y: 300,
+				faction: "ura",
+				buildingType: "burrow",
+				health: { current: 400, max: 400 },
+			});
+
+			runMultiBaseSystem(world);
+
+			expect(world.events.some((e) => e.type === "all-bases-lost")).toBe(false);
+		});
+
+		it("having units but no bases is still a loss", () => {
+			const world = makeWorld();
+			world.session.phase = "playing";
+
+			// Has units but no bases
+			spawnUnit(world, { x: 50, y: 50, faction: "ura" });
+			spawnUnit(world, { x: 60, y: 60, faction: "ura" });
+
+			runMultiBaseSystem(world);
+
+			expect(world.events.some((e) => e.type === "all-bases-lost")).toBe(true);
+		});
 	});
 
-	it("should trigger victory action when all objectives complete condition is met", () => {
-		const scenario: Scenario = {
-			objectives: [
-				{ id: "obj-1", description: "Build barracks", type: "primary", status: "incomplete" },
-			],
-			triggers: [
-				{
-					id: "victory-trigger",
-					condition: { type: "allObjectivesComplete" },
-					action: { type: "victory" },
-					once: true,
-				},
-			],
-		};
+	describe("Game phase transitions", () => {
+		it("session starts in loading phase", () => {
+			const world = makeWorld();
+			expect(world.session.phase).toBe("loading");
+		});
 
-		const actions: TriggerAction[] = [];
-		const engine = new ScenarioEngine(scenario, (a) => actions.push(a));
+		it("can transition to playing phase", () => {
+			const world = makeWorld();
+			world.session.phase = "playing";
+			expect(world.session.phase).toBe("playing");
+		});
 
-		engine.completeObjective("obj-1");
-		engine.evaluate(createMockWorldQuery());
+		it("can transition to victory phase", () => {
+			const world = makeWorld();
+			world.session.phase = "victory";
+			expect(world.session.phase).toBe("victory");
+		});
 
-		expect(actions).toContainEqual({ type: "victory" });
-	});
+		it("can transition to defeat phase", () => {
+			const world = makeWorld();
+			world.session.phase = "defeat";
+			expect(world.session.phase).toBe("defeat");
+		});
 
-	it("should stop evaluating triggers after mission failure", () => {
-		const scenario: Scenario = {
-			objectives: [{ id: "obj-1", description: "Survive", type: "primary", status: "incomplete" }],
-			triggers: [
-				{
-					id: "fail-trigger",
-					condition: { type: "timer", time: 0 },
-					action: { type: "failMission", reason: "Instant fail" },
-					once: true,
-				},
-				{
-					id: "spawner",
-					condition: { type: "timer", time: 0 },
-					action: { type: "spawnWave", wave: 1 } as TriggerAction,
-					once: true,
-				},
-			],
-		};
-
-		const actions: TriggerAction[] = [];
-		const engine = new ScenarioEngine(scenario, (a) => actions.push(a));
-
-		engine.evaluate(createMockWorldQuery({ elapsedTime: 1 }));
-
-		// After failure, no more triggers should fire
-		engine.evaluate(createMockWorldQuery({ elapsedTime: 2 }));
-		const spawnActions = actions.filter((a) => a.type === "spawnWave");
-		expect(spawnActions.length).toBeLessThanOrEqual(1);
-	});
-
-	it("should integrate with GamePhase for UI transitions", () => {
-		// Simulate what GameScene does on victory
-		world.set(GamePhase, { phase: "victory" });
-		expect(world.get(GamePhase)?.phase).toBe("victory");
-
-		// Simulate what GameScene does on defeat
-		world.set(GamePhase, { phase: "defeat" });
-		expect(world.get(GamePhase)?.phase).toBe("defeat");
+		it("can pause and unpause", () => {
+			const world = makeWorld();
+			world.session.phase = "playing";
+			world.session.phase = "paused";
+			expect(world.session.phase).toBe("paused");
+			world.session.phase = "playing";
+			expect(world.session.phase).toBe("playing");
+		});
 	});
 });

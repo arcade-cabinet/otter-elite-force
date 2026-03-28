@@ -1,0 +1,134 @@
+{
+  "id": "mission_07",
+  "title": "River Rats",
+  "chapter": 2,
+  "mapWidth": 128,
+  "mapHeight": 128,
+  "parTimeMinutes": 18,
+  "availableBuildings": ["burrow", "command_post", "barracks", "armory", "fish_trap", "watchtower", "sandbag_wall", "gun_tower", "stone_wall", "minefield", "field_hospital", "dock"],
+  "availableUnits": ["river_rat", "mudfoot", "shellcracker", "mortar_otter", "sapper", "diver", "raftsman"],
+  "startingResources": { "fish": 150, "timber": 100, "salvage": 50 },
+
+  "terrainRegions": [
+    { "terrainId": "grass", "fill": true },
+    { "terrainId": "dirt", "rect": { "x": 20, "y": 96, "w": 88, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 0, "y": 112, "w": 128, "h": 16 } },
+    { "terrainId": "mangrove", "rect": { "x": 0, "y": 78, "w": 60, "h": 12 } },
+    { "terrainId": "grass", "rect": { "x": 64, "y": 78, "w": 64, "h": 12 } },
+    { "terrainId": "water", "rect": { "x": 0, "y": 68, "w": 128, "h": 8 } },
+    { "terrainId": "mangrove", "rect": { "x": 12, "y": 58, "w": 32, "h": 8 } },
+    { "terrainId": "beach", "rect": { "x": 76, "y": 58, "w": 32, "h": 8 } },
+    { "terrainId": "water", "rect": { "x": 0, "y": 48, "w": 128, "h": 8 } },
+    { "terrainId": "mangrove", "rect": { "x": 12, "y": 34, "w": 40, "h": 12 } },
+    { "terrainId": "dirt", "rect": { "x": 24, "y": 38, "w": 12, "h": 6 } },
+    { "terrainId": "dirt", "rect": { "x": 68, "y": 36, "w": 40, "h": 8 } },
+    { "terrainId": "water", "rect": { "x": 0, "y": 24, "w": 128, "h": 8 } },
+    { "terrainId": "mangrove", "rect": { "x": 0, "y": 12, "w": 128, "h": 12 } },
+    { "terrainId": "stone", "rect": { "x": 40, "y": 2, "w": 48, "h": 8 } },
+    { "terrainId": "dirt", "rect": { "x": 4, "y": 4, "w": 32, "h": 6 } },
+    { "terrainId": "dirt", "rect": { "x": 92, "y": 4, "w": 32, "h": 6 } }
+  ],
+
+  "zones": {
+    "forward_base":   { "x": 16, "y": 92,  "width": 96, "height": 24 },
+    "swamp_south":    { "x": 0,  "y": 112, "width": 128, "height": 16 },
+    "south_bank":     { "x": 0,  "y": 76,  "width": 128, "height": 16 },
+    "south_bend":     { "x": 0,  "y": 68,  "width": 128, "height": 8 },
+    "south_island":   { "x": 8,  "y": 56,  "width": 40, "height": 12 },
+    "sandbar":        { "x": 72, "y": 56,  "width": 40, "height": 12 },
+    "main_channel":   { "x": 0,  "y": 48,  "width": 128, "height": 8 },
+    "mid_island_w":   { "x": 8,  "y": 32,  "width": 48, "height": 16 },
+    "mid_island_e":   { "x": 64, "y": 32,  "width": 48, "height": 16 },
+    "north_fork":     { "x": 0,  "y": 24,  "width": 128, "height": 8 },
+    "north_bank":     { "x": 0,  "y": 12,  "width": 128, "height": 12 },
+    "sg_depot":       { "x": 0,  "y": 0,   "width": 128, "height": 12 }
+  },
+
+  "placements": [
+    { "type": "burrow",        "faction": "ura",         "x": 56,  "y": 100, "scriptId": "player_lodge" },
+    { "type": "dock",          "faction": "ura",         "x": 64,  "y": 92 },
+    { "type": "river_rat",     "faction": "ura",         "x": 52,  "y": 102 },
+    { "type": "river_rat",     "faction": "ura",         "x": 60,  "y": 104 },
+    { "type": "river_rat",     "faction": "ura",         "x": 48,  "y": 106 },
+    { "type": "raftsman",      "faction": "ura",         "x": 68,  "y": 96 },
+    { "type": "raftsman",      "faction": "ura",         "x": 72,  "y": 98 },
+    { "type": "raftsman",      "faction": "ura",         "x": 76,  "y": 96 },
+    { "type": "diver",         "faction": "ura",         "x": 80,  "y": 100 },
+    { "type": "diver",         "faction": "ura",         "x": 84,  "y": 102 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 44,  "y": 98 },
+    { "type": "mudfoot",       "faction": "ura",         "x": 40,  "y": 100 },
+
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 16,  "y": 60 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 22,  "y": 58 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 28,  "y": 62 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 34,  "y": 59 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 40,  "y": 61 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 16,  "y": 36 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 24,  "y": 38 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 32,  "y": 34 },
+    { "type": "mangrove_tree", "faction": "neutral",     "x": 44,  "y": 40 },
+
+    { "type": "fish_spot",     "faction": "neutral",     "x": 20,  "y": 80 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 48,  "y": 82 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 96,  "y": 78 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 32,  "y": 116 },
+    { "type": "fish_spot",     "faction": "neutral",     "x": 100, "y": 120 },
+
+    { "type": "salvage_cache", "faction": "neutral",     "x": 80,  "y": 60 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 88,  "y": 58 },
+    { "type": "salvage_cache", "faction": "neutral",     "x": 96,  "y": 62 },
+
+    { "type": "watchtower",    "faction": "scale_guard", "x": 80,  "y": 36 },
+    { "type": "gator",         "faction": "scale_guard", "x": 76,  "y": 38 },
+    { "type": "gator",         "faction": "scale_guard", "x": 84,  "y": 38 },
+    { "type": "skink",         "faction": "scale_guard", "x": 88,  "y": 34 },
+
+    { "type": "gator",         "faction": "scale_guard", "x": 20,  "y": 16 },
+    { "type": "gator",         "faction": "scale_guard", "x": 36,  "y": 14 },
+    { "type": "skink",         "faction": "scale_guard", "x": 56,  "y": 16 },
+    { "type": "gator",         "faction": "scale_guard", "x": 80,  "y": 14 },
+    { "type": "gator",         "faction": "scale_guard", "x": 100, "y": 16 },
+    { "type": "viper",         "faction": "scale_guard", "x": 112, "y": 14 },
+
+    { "type": "flag_post",     "faction": "scale_guard", "x": 64,  "y": 6,  "scriptId": "sg_depot_flag" },
+    { "type": "watchtower",    "faction": "scale_guard", "x": 44,  "y": 4 },
+    { "type": "watchtower",    "faction": "scale_guard", "x": 84,  "y": 4 },
+    { "type": "gator",         "faction": "scale_guard", "x": 52,  "y": 4 },
+    { "type": "gator",         "faction": "scale_guard", "x": 60,  "y": 8 },
+    { "type": "gator",         "faction": "scale_guard", "x": 68,  "y": 8 },
+    { "type": "gator",         "faction": "scale_guard", "x": 76,  "y": 4 },
+    { "type": "viper",         "faction": "scale_guard", "x": 56,  "y": 2 },
+    { "type": "viper",         "faction": "scale_guard", "x": 72,  "y": 2 },
+    { "type": "croc_champion", "faction": "scale_guard", "x": 64,  "y": 4 },
+
+    { "type": "skink",         "faction": "scale_guard", "x": 24,  "y": 82 },
+    { "type": "gator",         "faction": "scale_guard", "x": 92,  "y": 80 }
+  ],
+
+  "objectives": [
+    { "id": "capture-crates",     "description": "Capture 5 enemy supply crates",      "type": "primary" },
+    { "id": "no-barges-escape",   "description": "No barge reaches the SG depot",       "type": "bonus" },
+    { "id": "destroy-watchtower", "description": "Destroy the mid-island watchtower",   "type": "bonus" }
+  ],
+
+  "encounterTable": {
+    "patrols": [
+      { "composition": [{ "type": "skink", "count": 4 }, { "type": "viper", "count": 2 }], "intervalMs": 40000, "variance": 0.3 },
+      { "composition": [{ "type": "gator", "count": 3 }, { "type": "snapper", "count": 1 }], "intervalMs": 60000, "variance": 0.3 }
+    ]
+  },
+
+  "lootTable": {
+    "skink":         { "drops": [{ "resource": "fish", "amount": 6, "probability": 0.5 }] },
+    "gator":         { "drops": [{ "resource": "salvage", "amount": 10, "probability": 0.4 }] },
+    "viper":         { "drops": [{ "resource": "salvage", "amount": 12, "probability": 0.5 }] },
+    "snapper":       { "drops": [{ "resource": "salvage", "amount": 20, "probability": 0.5 }] },
+    "croc_champion": { "drops": [{ "resource": "salvage", "amount": 25, "probability": 0.6 }] }
+  },
+
+  "difficultyScaling": {
+    "support":  { "resourceMultiplier": 1.5, "enemyHpMultiplier": 0.8, "enemyDamageMultiplier": 0.8, "startingResources": { "fish": 225, "timber": 150, "salvage": 75 } },
+    "tactical": { "resourceMultiplier": 1.0, "enemyHpMultiplier": 1.0, "enemyDamageMultiplier": 1.0, "startingResources": { "fish": 150, "timber": 100, "salvage": 50 } },
+    "elite":    { "resourceMultiplier": 0.75, "enemyHpMultiplier": 1.2, "enemyDamageMultiplier": 1.2, "startingResources": { "fish": 100, "timber": 75, "salvage": 25 } }
+  }
+}

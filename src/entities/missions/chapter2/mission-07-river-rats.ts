@@ -284,6 +284,7 @@ export const mission07RiverRats: MissionDef = {
 		// --- Barge 1 (1:00) — South Bend, slow, unescorted ---
 		trigger("phase:intercepts:barge-1-spawn", on.timer(60), [
 			act.spawn("supply_barge", "scale_guard", 0, 72, 1),
+			act.enableTrigger("phase:complete:five-crates-captured"),
 			act.dialogue(
 				"foxhound",
 				"Barge One is in the South Bend. Moving slow — easy target. Get a Raftsman or Diver into position.",
@@ -463,7 +464,7 @@ export const mission07RiverRats: MissionDef = {
 			"phase:complete:five-crates-captured",
 			on.unitCount("scale_guard", "supply_barge", "eq", 0),
 			act.completeObjective("capture-crates"),
-			{ once: true },
+			{ once: true, enabled: false },
 		),
 
 		// Victory sequence
