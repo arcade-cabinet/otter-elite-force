@@ -1687,17 +1687,8 @@ export async function createTacticalRuntime(
 				);
 			}
 
-			// Rank emblem using the full emblem system from rankEmblems.ts
-			// This draws faction badges + unit-type symbols (chevron, star, etc.)
-			if (!isBuilding && !isResource && entityType && hasEmblem(entityType)) {
-				const screenPos = ljs.worldToScreen(ljs.vec2(tile.x, tile.y));
-				const spriteScreenW = ljs.cameraScale * 0.6;
-				const ctx = ljs.mainContext;
-				ctx.save();
-				ctx.translate(screenPos.x - spriteScreenW / 2, screenPos.y - spriteScreenW);
-				drawRankEmblem(ctx, entityType, spriteScreenW);
-				ctx.restore();
-			}
+			// Rank emblems drawn in gameRenderPost (overlay canvas, on top of WebGL)
+			// — see the "Rank emblems" section in gameRenderPost below.
 		}
 
 		// ── Build placement ghost ──
@@ -1960,6 +1951,38 @@ export async function createTacticalRuntime(
 		ctx.strokeStyle = "#f8fafc";
 		ctx.lineWidth = 1.5;
 		ctx.strokeRect(viewportRectX, viewportRectY, viewportRectW, viewportRectH);
+
+		// ── Rank emblems (overlay canvas — drawn ON TOP of WebGL) ──
+		// Rank emblems use Canvas2D path drawing (arc, lineTo, etc.) so they must
+		// render on the overlay canvas (drawContext), NOT mainContext which sits
+		// behind the WebGL layer and would be invisible.
+		for (const eid of options.world.runtime.alive) {
+			const isBuilding = Flags.isBuilding[eid] === 1;
+			const isResource = Flags.isResource[eid] === 1;
+			if (isBuilding || isResource) continue;
+
+			const entityType = options.world.runtime.entityTypeIndex.get(eid);
+			if (!entityType || !hasEmblem(entityType)) continue;
+
+			// Fog culling: skip entities in unexplored tiles (unless player)
+			if (fogGrid && fogGridWidth > 0 && Faction.id[eid] !== 1) {
+				const tileX = Math.floor(Position.x[eid] / TILE_SIZE);
+				const tileY = Math.floor(Position.y[eid] / TILE_SIZE);
+				if (tileX >= 0 && tileY >= 0 && tileX < fogGridWidth && tileY < fogGridHeight) {
+					if (fogGrid[tileY * fogGridWidth + tileX] < 2) continue;
+				}
+			}
+
+			const px = Position.x[eid];
+			const py = Position.y[eid];
+			const tile = pixelToTile(px, py);
+			const screenPos = ljs.worldToScreen(ljs.vec2(tile.x, tile.y));
+			const spriteScreenW = ljs.cameraScale * 0.6;
+			ctx.save();
+			ctx.translate(screenPos.x - spriteScreenW / 2, screenPos.y - spriteScreenW);
+			drawRankEmblem(ctx, entityType, spriteScreenW);
+			ctx.restore();
+		}
 
 		// ── Selection box overlay ──
 		if (selectionBoxScreen) {
