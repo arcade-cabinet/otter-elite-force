@@ -44,7 +44,7 @@ This document defines the target runtime architecture for the rewrite branch.
 - Runtime-only objects never live in persistence DTOs.
 - Script identity comes from authored `scriptId`, not inferred content strings.
 - Session descriptors define world size, camera focus, seed metadata, and run summary for both campaign and skirmish.
-- App routing mounts tactical play through `RuntimeHost`; campaign and skirmish share the same LittleJS-first tactical entry path with no live Konva bridge.
+- App routing mounts tactical play through `RuntimeHost`; campaign and skirmish share the same LittleJS-first tactical entry path via the LittleJS runtime.
 - Scenario actions that affect presentation or tactical state, such as weather shifts, zone reveals, camera focus, reinforcements, and boss spawns, update `GameWorld` directly and are consumed by the active runtime from the event queue.
 - Campaign result resolution is runtime-driven and stored separately from campaign progression so result overlays and replay flows refer to the mission that just ended, not the mission that was already advanced.
 - Locked authored zones are gameplay constraints in the active runtime, not just HUD notices.

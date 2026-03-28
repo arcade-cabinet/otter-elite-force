@@ -88,9 +88,9 @@ screenshots/
 ## What We're Testing
 
 ### 1. Responsive Scaling
-- Layouts adapt to viewport size
-- NativeWind Tailwind classes work across devices
-- Expo responsive utilities function correctly
+- SolidJS shell layouts adapt to viewport size
+- HUD density adapts by form factor (phone/tablet/desktop)
+- Canvas rendering scales correctly
 
 ### 2. Touch Targets
 - Minimum 44x44 pixels on iOS
@@ -108,10 +108,10 @@ screenshots/
 - SVG decorations visible
 - Immersive atmosphere maintained
 
-### 5. 3D Rendering
-- Babylon.js canvas appears
-- WebGL works across devices
-- Reactylon components render
+### 5. Canvas Rendering
+- LittleJS canvas renders correctly
+- Tile terrain displays on all devices
+- Sprite atlases load and animate
 
 ### 6. Typography
 - Military fonts readable at all sizes
@@ -128,8 +128,8 @@ screenshots/
 ### Difficulty Selection Tests
 - `difficulty-*.png` - Difficulty selector (if implemented)
 
-### 3D Canvas Tests
-- `3d-canvas-*.png` - Babylon.js rendering
+### Canvas Tests
+- `canvas-*.png` - LittleJS tactical rendering
 
 ### Orientation Tests
 - `orientation-portrait-*.png` - Portrait layouts
@@ -188,7 +188,7 @@ pnpm test:e2e --debug
 **All tests should pass with:**
 - ✅ Main menu visible on all devices
 - ✅ Buttons accessible (proper size)
-- ✅ 3D canvas renders (where applicable)
+- Canvas renders correctly (where applicable)
 - ✅ Design tokens applied
 - ✅ No layout overflow
 - ✅ No text truncation
@@ -198,22 +198,22 @@ pnpm test:e2e --debug
 - Immersive Vietnam-era aesthetic
 - Responsive layouts
 - Clear typography
-- Visible decorations (helicopter, insignia, etc.)
-- Working 3D scenes
+- Visible HUD elements and overlays
+- Working tactical canvas
 
 ## Troubleshooting
 
-### Metro server not starting
+### Dev server not starting
 ```bash
-# Start Metro manually first
-pnpm web
+# Start dev server manually first
+pnpm dev
 
 # Then run tests in another terminal
 pnpm test:e2e
 ```
 
-### WebGL not rendering
-- Check `screenshots/3d-canvas-*.png` for black canvas
+### Canvas not rendering
+- Check `screenshots/canvas-*.png` for blank canvas
 - Verify GPU flags in playwright.config.ts
 - Try with MCP mode: `PLAYWRIGHT_MCP=true`
 

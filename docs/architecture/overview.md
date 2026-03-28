@@ -1,17 +1,17 @@
 ---
 title: Architecture Overview
 description: System architecture, data flow, technology decisions
-version: 1.0.0
-updated: 2026-03-26
+version: 2.0.0
+updated: 2026-03-27
 tags: [architecture, systems, dataflow]
 status: active
 ---
 
 # Architecture Overview
 
-## Target Stack
+## Stack
 
-See [Engine Rewrite Plan](../engine-rewrite-plan.md) for full migration details.
+The engine rewrite is complete. See [Engine Rewrite Plan](../engine-rewrite-plan.md) for historical migration context.
 
 ```
 SolidJS → UI overlay (sidebar, menus, briefing)
@@ -37,9 +37,9 @@ Yuka → AI (steering, pathfinding, FSM)
 
 | Decision | Rationale |
 |----------|-----------|
-| LittleJS over Konva | Built-in input, camera, tiles, animations. Wendol proves it works for RTS. |
-| bitECS over Koota | SoA storage, no framework bindings needed, faster queries. |
-| SolidJS over React | Fine-grained reactivity, no virtual DOM overhead for game UI. |
+| LittleJS | Built-in input, camera, tiles, animations. Wendol proves it works for RTS. |
+| bitECS | SoA storage, no framework bindings needed, faster queries. |
+| SolidJS | Fine-grained reactivity, no virtual DOM overhead for game UI. |
 | Purchased sprites over procedural | Visual quality. 12 animal atlases with 465 animation frames. |
 | Kenney tiles over procedural terrain | Consistent art style, proper edge transitions, CC0 licensed. |
 | POC input pattern | 100 lines, proven on mobile+desktop, no gesture detector needed. |

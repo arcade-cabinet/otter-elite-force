@@ -1,8 +1,8 @@
 ---
 title: Documentation Index
 description: Map of all active documentation for Otter Elite Force
-version: 1.0.0
-updated: 2026-03-26
+version: 2.0.0
+updated: 2026-03-27
 tags: [index, docs, navigation]
 status: active
 ---
@@ -13,7 +13,6 @@ status: active
 
 | File | Purpose |
 |------|---------|
-| [README.md](../README.md) | Project overview, stack, setup |
 | [CLAUDE.md](../CLAUDE.md) | Claude Code specific instructions |
 | [AGENTS.md](../AGENTS.md) | Authoritative agentic context (AI agents start here) |
 | [CHANGELOG.md](../CHANGELOG.md) | Version history (managed by release-please) |
@@ -25,7 +24,13 @@ status: active
 | Document | Tags | Description |
 |----------|------|-------------|
 | [architecture/overview.md](architecture/overview.md) | `architecture` `systems` | Stack, data flow, tech decisions |
-| [engine-rewrite-plan.md](engine-rewrite-plan.md) | `architecture` `migration` | LittleJS + bitECS + SolidJS migration plan |
+| [architecture/runtime-architecture.md](architecture/runtime-architecture.md) | `architecture` `runtime` | Runtime layers, data ownership, removal policy |
+| [architecture/deterministic-seeding.md](architecture/deterministic-seeding.md) | `architecture` `determinism` | Dual-layer PRNG seed model |
+| [architecture/persistence-and-capacitor.md](architecture/persistence-and-capacitor.md) | `architecture` `persistence` | Capacitor SQLite storage contract |
+| [architecture/skirmish-harness.md](architecture/skirmish-harness.md) | `architecture` `testing` | Skirmish as player mode and test harness |
+| [architecture/visual-and-device-testing.md](architecture/visual-and-device-testing.md) | `architecture` `testing` | Browser, E2E, and device testing strategy |
+| [architecture/diagnostics-gap-analysis.md](architecture/diagnostics-gap-analysis.md) | `architecture` `diagnostics` | JSON diagnostics and GAP review levels |
+| [engine-rewrite-plan.md](engine-rewrite-plan.md) | `architecture` `migration` | LittleJS + bitECS + SolidJS migration (complete) |
 
 ## Design
 

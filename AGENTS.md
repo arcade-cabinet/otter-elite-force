@@ -33,10 +33,7 @@ Available at `~/src/reference-codebases/`:
 - `LittleJS/` — game engine (rendering, input, tiles, audio)
 - `wendol-village/` — Warcraft-style RTS built on LittleJS
 - `bitECS/` — data-oriented ECS library
-- `koota/` — current ECS (being replaced)
-- `konva/` — current renderer (being replaced)
 - `phaser/` — game framework reference
-- `template-react-ts/` — Phaser + React integration template
 
 ## Code Principles
 
@@ -76,6 +73,16 @@ All radio contacts are HIGHER rank or orthogonal to Captain. Ground units (River
 - **Atlas generator:** `scripts/generate-atlases.py`
 - **Tile curation:** `scripts/curate-tiles.py`
 - **Blend tile generator:** `scripts/generate-blend-tiles.py`
+
+## Playtester
+
+`src/engine/playtester/` contains a headless AI governor that plays every mission:
+- `governor.ts` -- perceive-decide-act loop
+- `goals.ts` -- priority-ordered goal hierarchy (survive > gather > build > train > scout > attack)
+- `actions.ts` -- execute decisions against GameWorld
+- `perception.ts` -- read world state into structured snapshot
+- `runner.ts` -- run a full mission headless and produce a PlaytestReport
+- `allMissions.test.ts` -- validate all 16 missions boot and run
 
 ## Mission System
 
