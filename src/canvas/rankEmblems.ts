@@ -91,7 +91,7 @@ const BADGE_OFFSET_Y = -2;
  * Call this after drawing the base sprite frame.
  */
 export function drawRankEmblem(
-	ctx: CanvasRenderingContext2D,
+	ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
 	entityType: string,
 	spriteW: number,
 ): void {
@@ -248,7 +248,7 @@ export function drawRankEmblem(
 }
 
 function drawStar(
-	ctx: CanvasRenderingContext2D,
+	ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
 	cx: number,
 	cy: number,
 	outerR: number,
@@ -273,7 +273,7 @@ function drawStar(
  * Drawn BEFORE the sprite to appear as a background glow.
  */
 export function drawFactionOutline(
-	ctx: CanvasRenderingContext2D,
+	ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
 	entityType: string,
 	spriteW: number,
 	spriteH: number,
