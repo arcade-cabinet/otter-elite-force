@@ -48,7 +48,9 @@ function createRuntimeWorldQuery(world: GameWorld, mission: MissionDef): Scenari
 					(faction === "neutral" && Faction.id[eid] === 0);
 				if (!matchesFaction) return false;
 				if (Flags.isBuilding[eid] === 1 || Flags.isResource[eid] === 1) return false;
-				if (unitType && world.runtime.entityTypeIndex.get(eid) !== unitType) return false;
+				// "all" means count all units of this faction (no type filter)
+				if (unitType && unitType !== "all" && world.runtime.entityTypeIndex.get(eid) !== unitType)
+					return false;
 				return true;
 			}).length,
 		countBuildings: (faction, buildingType) =>

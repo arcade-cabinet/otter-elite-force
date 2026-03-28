@@ -24,7 +24,7 @@ feat: add new game system
 fix: resolve click detection on units
 chore: update dependencies
 docs: rewrite architecture overview
-refactor: port ECS from Koota to bitECS
+refactor: extract combat resolution into separate system
 test: add mission validation tests
 ci: fix Android build pipeline
 ```

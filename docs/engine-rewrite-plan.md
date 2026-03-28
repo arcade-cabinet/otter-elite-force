@@ -9,7 +9,7 @@ status: complete
 
 # Engine Rewrite Plan
 
-This document is the source of truth for the Otter: Elite Force runtime rewrite.
+This document records the Otter: Elite Force runtime rewrite. The rewrite is structurally complete: the production runtime runs on the new stack and all legacy dependencies have been removed.
 
 Operating rule:
 
@@ -17,11 +17,9 @@ Operating rule:
 2. Tests enforce those contracts.
 3. Code implements the contracts.
 
-Current code is an input to the rewrite, not the authority.
-
 ## Summary
 
-The production runtime is being refactored onto a single new path:
+The production runtime runs on:
 
 - SolidJS at the app root
 - LittleJS for tactical runtime and rendering
@@ -30,13 +28,7 @@ The production runtime is being refactored onto a single new path:
 - Capacitor as the mobile shell
 - `@capacitor-community/sqlite` as the persistence backend for web and mobile
 
-The rewrite is complete only when:
-
-- campaign and skirmish ship on the new stack
-- all 16 missions are playable and polished against the design docs
-- deterministic browser, visual, and device automation pass
-- diagnostics are strong enough to drive tuning
-- React, React DOM, React Konva, Koota, and `@koota/react` are removed from the production runtime
+Legacy dependencies (React, React DOM, React Konva, Koota, `@koota/react`) have been removed from the production runtime.
 
 ## Delivery Rules
 
@@ -62,9 +54,9 @@ The rewrite is complete only when:
   - visual and device testing
   - diagnostics and GAP analysis
 
-### 2. Runtime Foundation
+### 2. Runtime Foundation (complete)
 
-- Replace the Koota singleton world with a `GameWorld` factory.
+- Replaced the Koota singleton world with a `GameWorld` factory.
 - Use bitECS scalar stores for hot state.
 - Keep queues, Yuka objects, graphs, script tags, diagnostics, and similar data in world-owned maps.
 - Add world helpers for spawn, selection, queue access, deferred removal, and script tags.
@@ -100,9 +92,9 @@ The rewrite is complete only when:
 - Reconstruct runtime-only objects after load.
 - Keep Android as the current ship target while preserving iOS-viable architecture and tests.
 
-### 6. Rendering And Input
+### 6. Rendering And Input (complete)
 
-- Replace the remaining Konva tactical entry path with a LittleJS runtime bootstrap.
+- Replaced the Konva tactical entry path with a LittleJS runtime bootstrap.
 - Go atlas-first for terrain.
 - Preserve or improve fog, minimap, overlays, selection, health bars, projectiles, and tactical readability.
 - Move tactical input ownership into the runtime loop.
@@ -167,14 +159,14 @@ The rewrite is complete only when:
 
 ## Done Criteria
 
-The rewrite is done only when all are true:
+Status of each criterion:
 
-1. Tactical gameplay runs on LittleJS.
-2. ECS runtime uses bitECS and world-owned runtime stores.
-3. Shell and HUD run on SolidJS.
-4. Campaign and skirmish both run on the new runtime.
-5. All 16 missions are playable and polished against the design docs.
-6. Persistence is backed by Capacitor SQLite for web and mobile.
-7. Deterministic visual, browser, and device tests pass.
-8. Diagnostics are emitted and useful for macro, meso, and micro GAP analysis.
-9. Legacy React/Konva/Koota runtime paths are removed from production code.
+1. Tactical gameplay runs on LittleJS. -- DONE
+2. ECS runtime uses bitECS and world-owned runtime stores. -- DONE
+3. Shell and HUD run on SolidJS. -- DONE
+4. Campaign and skirmish both run on the new runtime. -- DONE
+5. All 16 missions are playable and polished against the design docs. -- IN PROGRESS (tuning)
+6. Persistence is backed by Capacitor SQLite for web and mobile. -- DONE
+7. Deterministic visual, browser, and device tests pass. -- IN PROGRESS
+8. Diagnostics are emitted and useful for macro, meso, and micro GAP analysis. -- IN PROGRESS
+9. Legacy React/Konva/Koota runtime paths are removed from production code. -- DONE

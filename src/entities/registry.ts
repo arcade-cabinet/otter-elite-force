@@ -178,9 +178,15 @@ export function getUnit(id: string): UnitDef | undefined {
 	return ALL_UNIT_ENTITIES[resolved];
 }
 
+/** Hero aliases for mission-specific names that map to canonical hero IDs. */
+const HERO_ALIASES: Record<string, string> = {
+	sgt_bubbles: "col_bubbles",
+};
+
 /** Get a hero definition by id. Returns undefined if not found. */
 export function getHero(id: string): HeroDef | undefined {
-	return ALL_HERO_ENTITIES[id];
+	const resolved = HERO_ALIASES[id] ?? id;
+	return ALL_HERO_ENTITIES[resolved];
 }
 
 /** Building aliases for mission-specific building types. */
