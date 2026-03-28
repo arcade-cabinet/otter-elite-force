@@ -193,7 +193,7 @@ describe("Loot Table Validation (Task 3)", () => {
 	});
 
 	describe("Boss guaranteed drops", () => {
-		it("serpent_king should always drop all resources (probability 1.0)", () => {
+		it("serpent_king should always drop fish and salvage (probability 1.0)", () => {
 			const stats = runLootSimulation("serpent_king", 100, "serpent-king-loot");
 
 			console.log("\n=== Serpent King Boss Drops (100 rolls) ===");
@@ -204,20 +204,23 @@ describe("Loot Table Validation (Task 3)", () => {
 			console.log(`  Avg timber: ${(stats.totalTimber / 100).toFixed(1)}`);
 			console.log(`  Avg salvage: ${(stats.totalSalvage / 100).toFixed(1)}`);
 
-			// serpent_king has probability 1.0 for all three resources
+			// serpent_king has probability 1.0 for fish and salvage, 0.5 for timber
 			expect(stats.fishDropCount).toBe(100);
-			expect(stats.timberDropCount).toBe(100);
 			expect(stats.salvageDropCount).toBe(100);
+			// Timber at 50% should be roughly 40-60 drops out of 100
+			expect(stats.timberDropCount).toBeGreaterThan(30);
+			expect(stats.timberDropCount).toBeLessThan(70);
 		});
 
-		it("siphon_drone should always drop salvage (probability 1.0)", () => {
+		it("siphon_drone should drop salvage at 80% rate", () => {
 			const stats = runLootSimulation("siphon_drone", 100, "siphon-drone-loot");
 
 			console.log("\n=== Siphon Drone Drops (100 rolls) ===");
 			console.log(`  Salvage drops: ${stats.salvageDropCount}/100`);
 			console.log(`  Avg salvage: ${(stats.totalSalvage / 100).toFixed(1)}`);
 
-			expect(stats.salvageDropCount).toBe(100);
+			// 80% probability: expect 60-100 drops out of 100
+			expect(stats.salvageDropCount).toBeGreaterThan(60);
 		});
 	});
 

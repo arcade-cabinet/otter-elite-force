@@ -77,39 +77,50 @@ export const DROP_TABLES: Record<string, DropTable> = {
 		],
 	},
 	siphon_drone: {
-		entries: [{ resource: "salvage", amount: 5, maxAmount: 5, probability: 1.0 }],
+		entries: [{ resource: "salvage", amount: 10, maxAmount: 20, probability: 0.8 }],
 	},
 	// Legacy unit types mapped to new drop tables
 	skink: {
-		entries: [{ resource: "fish", amount: 5, maxAmount: 10, probability: 0.5 }],
+		entries: [
+			{ resource: "fish", amount: 3, maxAmount: 8, probability: 0.3 },
+			{ resource: "salvage", amount: 2, maxAmount: 5, probability: 0.05 },
+		],
 	},
 	gator: {
 		entries: [
-			{ resource: "fish", amount: 5, maxAmount: 15, probability: 0.5 },
-			{ resource: "salvage", amount: 10, maxAmount: 20, probability: 0.3 },
+			{ resource: "fish", amount: 5, maxAmount: 12, probability: 0.4 },
+			{ resource: "salvage", amount: 3, maxAmount: 8, probability: 0.15 },
+			{ resource: "timber", amount: 3, maxAmount: 6, probability: 0.1 },
 		],
 	},
 	viper: {
-		entries: [{ resource: "salvage", amount: 8, maxAmount: 15, probability: 0.4 }],
+		entries: [
+			{ resource: "fish", amount: 5, maxAmount: 10, probability: 0.35 },
+			{ resource: "salvage", amount: 5, maxAmount: 12, probability: 0.2 },
+		],
 	},
 	scout_lizard: {
 		entries: [{ resource: "timber", amount: 5, maxAmount: 10, probability: 0.2 }],
 	},
 	snapper: {
-		entries: [{ resource: "salvage", amount: 15, maxAmount: 30, probability: 0.6 }],
+		entries: [
+			{ resource: "fish", amount: 8, maxAmount: 15, probability: 0.5 },
+			{ resource: "salvage", amount: 8, maxAmount: 15, probability: 0.3 },
+			{ resource: "timber", amount: 5, maxAmount: 10, probability: 0.2 },
+		],
 	},
 	croc_champion: {
 		entries: [
-			{ resource: "salvage", amount: 25, maxAmount: 50, probability: 0.9 },
-			{ resource: "fish", amount: 15, maxAmount: 30, probability: 0.6 },
-			{ resource: "timber", amount: 10, maxAmount: 20, probability: 0.4 },
+			{ resource: "fish", amount: 15, maxAmount: 25, probability: 0.8 },
+			{ resource: "salvage", amount: 10, maxAmount: 20, probability: 0.6 },
+			{ resource: "timber", amount: 5, maxAmount: 15, probability: 0.3 },
 		],
 	},
 	serpent_king: {
 		entries: [
-			{ resource: "salvage", amount: 100, maxAmount: 200, probability: 1.0 },
-			{ resource: "fish", amount: 50, maxAmount: 100, probability: 1.0 },
-			{ resource: "timber", amount: 50, maxAmount: 100, probability: 1.0 },
+			{ resource: "fish", amount: 25, maxAmount: 40, probability: 1.0 },
+			{ resource: "salvage", amount: 20, maxAmount: 35, probability: 1.0 },
+			{ resource: "timber", amount: 10, maxAmount: 20, probability: 0.5 },
 		],
 	},
 };
