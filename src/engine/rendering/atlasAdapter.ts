@@ -117,6 +117,11 @@ const ENTITY_ANIMAL_MAP: Record<string, { animal: AnimalName; defaultAnim: strin
 	siphon_drone: { animal: "cobra", defaultAnim: "Idle" },
 	serpent_king: { animal: "cobra", defaultAnim: "Idle" },
 	kommandant_ironjaw: { animal: "crocodile", defaultAnim: "Idle" },
+	// Scale-Guard bosses
+	captain_scalebreak: { animal: "crocodile", defaultAnim: "Idle" },
+	warden_fangrot: { animal: "crocodile", defaultAnim: "Idle" },
+	venom: { animal: "cobra", defaultAnim: "Idle" },
+	broodmother: { animal: "crocodile", defaultAnim: "Idle" },
 	// Neutrals
 	bandit_boar: { animal: "boar", defaultAnim: "Idle" },
 	wild_fox: { animal: "fox", defaultAnim: "Idle" },

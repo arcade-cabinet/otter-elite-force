@@ -71,6 +71,8 @@ export interface TacticalRuntimeOptions {
 	world: GameWorld;
 	bridge: GameBridge;
 	onTick?: (world: GameWorld) => void;
+	/** External minimap canvas in the sidebar HUD. If provided, minimap renders here instead of the overlay canvas. */
+	minimapCanvas?: HTMLCanvasElement;
 }
 
 /** Terrain type → LittleJS Color (r, g, b, a scaled 0-1).
@@ -170,6 +172,18 @@ export async function createTacticalRuntime(
 	let fogGridWidth = 0;
 	let fogGridHeight = 0;
 	let terrainChunks: TerrainChunk[] = [];
+
+	// Terrain chunk WebGL textures — each chunk canvas becomes a TextureInfo+TileInfo
+	// for rendering on the WebGL layer (same as entities) instead of Canvas2D mainContext.
+	// This ensures sprites drawn via drawTile are visible above terrain.
+	const terrainChunkGLInfos: Array<{
+		tileInfo: InstanceType<typeof ljs.TileInfo>;
+		centerX: number;
+		centerY: number;
+		sizeX: number;
+		sizeY: number;
+	}> = [];
+	let terrainChunksConverted = false;
 
 	// Building tile infos — keyed by building type (e.g. "barracks", "watchtower")
 	// Uses LittleJS TileInfo so buildings render on the WebGL layer (same as units/shapes).
@@ -765,6 +779,16 @@ export async function createTacticalRuntime(
 	// ═══════════════════════════════════════════════════════
 
 	function getMinimapLayout(): { x: number; y: number; width: number; height: number } {
+		// When using external minimap canvas (sidebar HUD), draw at origin of that canvas
+		if (options.minimapCanvas) {
+			return {
+				x: 0,
+				y: 0,
+				width: options.minimapCanvas.width,
+				height: options.minimapCanvas.height,
+			};
+		}
+		// Fallback: draw on overlay canvas at bottom-right
 		const sw = ljs.mainCanvasSize.x;
 		const sh = ljs.mainCanvasSize.y;
 		const minimapWidth = Math.min(200, Math.max(160, Math.round(sw * 0.26)));
@@ -778,6 +802,9 @@ export async function createTacticalRuntime(
 	}
 
 	function screenPointInMinimap(screenX: number, screenY: number): boolean {
+		// With external minimap canvas, clicks on the sidebar minimap are handled
+		// by the DOM event listener on the canvas element, not by checking overlay coords.
+		if (options.minimapCanvas) return false;
 		const m = getMinimapLayout();
 		return (
 			screenX >= m.x && screenX <= m.x + m.width && screenY >= m.y && screenY <= m.y + m.height
@@ -793,6 +820,17 @@ export async function createTacticalRuntime(
 			x: Math.max(0, Math.min(worldSize.width, localX * worldSize.width)),
 			y: Math.max(0, Math.min(worldSize.height, localY * worldSize.height)),
 		};
+	}
+
+	/** Convert a click on the external minimap canvas to world coordinates and recenter. */
+	function handleExternalMinimapClick(canvasX: number, canvasY: number): void {
+		const worldSize = getWorldPixelSize();
+		const w = options.minimapCanvas?.width ?? 200;
+		const h = options.minimapCanvas?.height ?? 200;
+		const worldX = (canvasX / w) * worldSize.width;
+		const worldY = (canvasY / h) * worldSize.height;
+		const tile = pixelToTile(worldX, worldY);
+		ljs.setCameraPos(ljs.vec2(tile.x, tile.y));
 	}
 
 	// ═══════════════════════════════════════════════════════
@@ -887,6 +925,18 @@ export async function createTacticalRuntime(
 				);
 			};
 			img.src = `${tileBase}${relPath}`;
+		}
+
+		// Wire external minimap click handler
+		if (options.minimapCanvas) {
+			options.minimapCanvas.addEventListener("pointerdown", (e: PointerEvent) => {
+				const rect = options.minimapCanvas!.getBoundingClientRect();
+				const scaleX = options.minimapCanvas!.width / rect.width;
+				const scaleY = options.minimapCanvas!.height / rect.height;
+				const canvasX = (e.clientX - rect.left) * scaleX;
+				const canvasY = (e.clientY - rect.top) * scaleY;
+				handleExternalMinimapClick(canvasX, canvasY);
+			});
 		}
 
 		// Initialize audio (real Tone.js engine + SFX bridge + music controller)
@@ -1251,7 +1301,7 @@ export async function createTacticalRuntime(
 			}
 		}
 
-		// Escape — cancel build mode, cancel current mode, or deselect all
+		// Escape — cancel build mode, cancel current mode, deselect, or pause
 		if (ljs.keyWasPressed("Escape")) {
 			if (buildPlacementMode) {
 				buildPlacementMode = false;
@@ -1260,9 +1310,18 @@ export async function createTacticalRuntime(
 				pushAlert("Build cancelled", "info");
 			} else if (inputMode !== "normal") {
 				inputMode = "normal";
-			} else {
+			} else if (getSelectedEntityIds().length > 0) {
 				clearSelectionState();
+			} else {
+				// Nothing to cancel — pause the game
+				options.world.session.phase = "paused";
+				ljs.setPaused(true);
 			}
+		}
+
+		// Unpause when session phase returns to playing (e.g. from PauseOverlay resume)
+		if (ljs.paused && options.world.session.phase === "playing") {
+			ljs.setPaused(false);
 		}
 
 		// Space — center camera on last alert position
@@ -1316,46 +1375,40 @@ export async function createTacticalRuntime(
 	}
 
 	function gameRender(): void {
-		// ── Terrain (pre-rendered tile chunks from tilePainter) ──
-		if (terrainChunks.length > 0) {
-			const ctx = ljs.mainContext;
-			const scale = ljs.cameraScale;
-			const camPos = ljs.cameraPos;
-			const canvasW = ljs.mainCanvas.width;
-			const canvasH = ljs.mainCanvas.height;
-			// LittleJS camera: center of screen = cameraPos in world units
-			// LittleJS worldToScreen: screenX = (wx - cx) * scale + W/2
-			//                         screenY = (wy - cy) * -scale + H/2  (Y-up)
-			// Canvas2D drawImage uses Y-down, so we flip the image vertically.
-			const camPixelX = camPos.x * TILE_SIZE;
-			const camPixelY = camPos.y * TILE_SIZE;
-			const screenScale = scale / TILE_SIZE;
+		// ── Terrain (pre-rendered tile chunks via WebGL) ──
+		// Convert chunk canvases to WebGL textures once, then draw via drawTile
+		// so terrain and entity sprites are on the same WebGL layer.
+		if (terrainChunks.length > 0 && !terrainChunksConverted) {
+			terrainChunksConverted = true;
 			for (const chunk of terrainChunks) {
-				// Chunk is in pixel coords (chunk.x, chunk.y) with Y-down convention.
-				// Apply LittleJS Y-flip: negate Y component.
-				const screenX = (chunk.x - camPixelX) * screenScale + canvasW / 2;
-				const screenYGameTop = -(chunk.y - camPixelY) * screenScale + canvasH / 2;
-				const screenW = chunk.width * screenScale;
-				const screenH = chunk.height * screenScale;
-				// In LittleJS screen space, the chunk spans from
-				// screenYGameTop - screenH (screen top) to screenYGameTop (screen bottom)
-				const screenTop = screenYGameTop - screenH;
-				// Frustum cull
-				if (
-					screenX + screenW < 0 ||
-					screenTop + screenH < 0 ||
-					screenX > canvasW ||
-					screenTop > canvasH
-				)
-					continue;
-				// Draw chunk flipped vertically to match LittleJS Y-up convention
-				ctx.save();
-				ctx.translate(screenX, screenYGameTop);
-				ctx.scale(1, -1);
-				ctx.drawImage(chunk.canvas, 0, 0, screenW, screenH);
-				ctx.restore();
+				// Transfer chunk canvas to OffscreenCanvas for WebGL texture creation
+				// (TextureInfo accepts HTMLImageElement|OffscreenCanvas, not HTMLCanvasElement)
+				const offscreen = new OffscreenCanvas(chunk.canvas.width, chunk.canvas.height);
+				const offCtx = offscreen.getContext("2d");
+				if (offCtx) offCtx.drawImage(chunk.canvas, 0, 0);
+				const texInfo = new ljs.TextureInfo(offscreen);
+				const ti = new ljs.TileInfo(ljs.vec2(0, 0), ljs.vec2(chunk.width, chunk.height), texInfo);
+				terrainChunkGLInfos.push({
+					tileInfo: ti,
+					centerX: (chunk.x + chunk.width / 2) / TILE_SIZE,
+					centerY: (chunk.y + chunk.height / 2) / TILE_SIZE,
+					sizeX: chunk.width / TILE_SIZE,
+					sizeY: chunk.height / TILE_SIZE,
+				});
 			}
-		} else {
+		}
+
+		if (terrainChunkGLInfos.length > 0) {
+			for (const info of terrainChunkGLInfos) {
+				// Draw with negative sizeY to flip vertically (chunk canvas is Y-down,
+				// LittleJS world is Y-up). This makes terrain match entity positions.
+				ljs.drawTile(
+					ljs.vec2(info.centerX, info.centerY),
+					ljs.vec2(info.sizeX, -info.sizeY),
+					info.tileInfo,
+				);
+			}
+		} else if (terrainChunks.length === 0) {
 			// Fallback: flat color terrain while tiles load
 			const terrainGrid = options.world.runtime.terrainGrid;
 			if (terrainGrid) {
@@ -1595,20 +1648,27 @@ export async function createTacticalRuntime(
 					// Determine animation based on entity state
 					const orderQueue = options.world.runtime.orderQueues.get(eid);
 					const currentOrder = orderQueue?.[0]?.type;
-					const isMoving = currentOrder === "move";
-					const animName = isMoving ? "Run" : currentOrder === "attack" ? "Spin" : "Idle";
+					// Detect actual movement: any order with a target the unit is walking to
+					const hasTarget =
+						orderQueue?.[0]?.targetX !== undefined && orderQueue?.[0]?.targetY !== undefined;
+					const distToTarget = hasTarget
+						? Math.abs(orderQueue![0].targetX! - px) + Math.abs(orderQueue![0].targetY! - py)
+						: 0;
+					const isActuallyMoving = hasTarget && distToTarget > TILE_SIZE;
+					const isAttacking = currentOrder === "attack" && distToTarget < TILE_SIZE * 2;
+
+					const animName = isAttacking ? "Spin" : isActuallyMoving ? "Run" : "Idle";
 
 					const tileInfo = getEntityTileInfo(entityType, animName, worldElapsed);
+
 					if (tileInfo) {
 						const drawSize = getEntityDrawSize(entityType);
 						let size = drawSize ? ljs.vec2(drawSize.x, drawSize.y) : ljs.vec2(1.2, 1.2);
 
 						// Flip sprite horizontally when moving left
-						// Check target position vs current position for direction
-						if (isMoving && orderQueue?.[0]) {
+						if (isActuallyMoving && orderQueue?.[0]) {
 							const targetX = orderQueue[0].targetX;
 							if (targetX !== undefined && targetX < px) {
-								// Moving left: flip by making width negative
 								size = ljs.vec2(-Math.abs(size.x), size.y);
 							}
 						}
@@ -1827,10 +1887,18 @@ export async function createTacticalRuntime(
 	}
 
 	function gameRenderPost(): void {
-		// ── CRT-styled Minimap (drawn in screen space via overlayCanvas) ──
-		const ctx = ljs.drawContext;
-		if (!ctx) return;
+		// ── CRT-styled Minimap ──
+		// Renders to external sidebar canvas if available, else falls back to overlay canvas
+		const minimapCtx = options.minimapCanvas
+			? options.minimapCanvas.getContext("2d")
+			: ljs.drawContext;
+		if (!minimapCtx) return;
+		// Clear external minimap canvas each frame
+		if (options.minimapCanvas) {
+			minimapCtx.clearRect(0, 0, options.minimapCanvas.width, options.minimapCanvas.height);
+		}
 
+		const ctx = minimapCtx;
 		const minimap = getMinimapLayout();
 		const worldSize = getWorldPixelSize();
 
@@ -1956,6 +2024,9 @@ export async function createTacticalRuntime(
 		// Rank emblems use Canvas2D path drawing (arc, lineTo, etc.) so they must
 		// render on the overlay canvas (drawContext), NOT mainContext which sits
 		// behind the WebGL layer and would be invisible.
+		// Note: use ljs.drawContext here, NOT `ctx` which may be the external minimap canvas.
+		const emblemCtx = ljs.drawContext;
+		if (!emblemCtx) return;
 		for (const eid of options.world.runtime.alive) {
 			const isBuilding = Flags.isBuilding[eid] === 1;
 			const isResource = Flags.isResource[eid] === 1;
@@ -1978,10 +2049,10 @@ export async function createTacticalRuntime(
 			const tile = pixelToTile(px, py);
 			const screenPos = ljs.worldToScreen(ljs.vec2(tile.x, tile.y));
 			const spriteScreenW = ljs.cameraScale * 0.6;
-			ctx.save();
-			ctx.translate(screenPos.x - spriteScreenW / 2, screenPos.y - spriteScreenW);
-			drawRankEmblem(ctx, entityType, spriteScreenW);
-			ctx.restore();
+			emblemCtx.save();
+			emblemCtx.translate(screenPos.x - spriteScreenW / 2, screenPos.y - spriteScreenW);
+			drawRankEmblem(emblemCtx, entityType, spriteScreenW);
+			emblemCtx.restore();
 		}
 
 		// ── Selection box overlay ──
@@ -1990,11 +2061,11 @@ export async function createTacticalRuntime(
 			const minY = Math.min(selectionBoxScreen.startY, selectionBoxScreen.endY);
 			const boxWidth = Math.abs(selectionBoxScreen.endX - selectionBoxScreen.startX);
 			const boxHeight = Math.abs(selectionBoxScreen.endY - selectionBoxScreen.startY);
-			ctx.fillStyle = "rgba(34, 197, 94, 0.15)";
-			ctx.fillRect(minX, minY, boxWidth, boxHeight);
-			ctx.strokeStyle = "rgba(134, 239, 172, 0.95)";
-			ctx.lineWidth = 1;
-			ctx.strokeRect(minX, minY, boxWidth, boxHeight);
+			emblemCtx.fillStyle = "rgba(34, 197, 94, 0.15)";
+			emblemCtx.fillRect(minX, minY, boxWidth, boxHeight);
+			emblemCtx.strokeStyle = "rgba(134, 239, 172, 0.95)";
+			emblemCtx.lineWidth = 1;
+			emblemCtx.strokeRect(minX, minY, boxWidth, boxHeight);
 		}
 	}
 

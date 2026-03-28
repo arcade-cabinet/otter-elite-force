@@ -1,8 +1,15 @@
-import { createMemo, createSignal, onCleanup, onMount } from "solid-js";
+import { createMemo, createSignal, onCleanup, onMount, Show } from "solid-js";
 import { SkirmishAI } from "@/ai/skirmishAI";
 import { createSkirmishGameAdapter } from "@/ai/skirmishGameAdapter";
 import type { SkirmishSessionConfig } from "@/features/skirmish/types";
+import { AlertBanner } from "@/solid/hud/AlertBanner";
+import { BossHealthBar } from "@/solid/hud/BossHealthBar";
+import { CommandTransmission } from "@/solid/hud/CommandTransmission";
+import { ObjectivesPanel } from "@/solid/hud/ObjectivesPanel";
+import { ResourceBar } from "@/solid/hud/ResourceBar";
 import { TacticalHUD } from "@/solid/hud/TacticalHUD";
+import { TutorialOverlay } from "@/solid/hud/TutorialOverlay";
+import { PauseOverlay } from "@/solid/screens/PauseOverlay";
 import { createGameBridge } from "../bridge/gameBridge";
 import { createSolidBridge } from "../bridge/solidBridge";
 import {
@@ -177,10 +184,16 @@ export function RuntimeHost(props: RuntimeHostProps) {
 
 		void (async () => {
 			try {
+				// Find the minimap canvas from the sidebar (rendered by TacticalHUD)
+				const minimapCanvas = document.querySelector<HTMLCanvasElement>(
+					'[data-testid="minimap-canvas"]',
+				);
+
 				const runtime = await createTacticalRuntime({
 					container,
 					world,
 					bridge,
+					minimapCanvas: minimapCanvas ?? undefined,
 					onTick: () => {
 						// Drain and process UI commands before systems run
 						const commands = bridge.drainCommands();
@@ -299,14 +312,79 @@ export function RuntimeHost(props: RuntimeHostProps) {
 		});
 	});
 
+	// Autosave every 3 minutes during active gameplay
+	onMount(() => {
+		const AUTOSAVE_INTERVAL_MS = 3 * 60 * 1000;
+		const autoSaveInterval = window.setInterval(() => {
+			const world = worldInstance;
+			if (!world || world.session.phase !== "playing") return;
+			solidBridge.emit.saveGame();
+		}, AUTOSAVE_INTERVAL_MS);
+
+		onCleanup(() => {
+			window.clearInterval(autoSaveInterval);
+		});
+	});
+
+	// Pause state: derived from bridge screen signal
+	const isPaused = createMemo(() => solidBridge.accessors.screen() === "paused");
+
+	// Minimal AppState adapter for PauseOverlay (only uses screen/setScreen)
+	const pauseAppAdapter: { screen: () => string; setScreen: (s: string) => void } = {
+		screen: () => (isPaused() ? "paused" : "game"),
+		setScreen: (s: string) => {
+			if (s === "game") solidBridge.emit.resume();
+			else if (s === "main-menu") {
+				solidBridge.emit.resume();
+				props.onPhaseChange?.("defeat");
+			}
+		},
+	};
+
 	return (
-		<div class="relative h-full w-full overflow-hidden bg-jungle-950">
-			<div ref={containerEl} class="absolute inset-0" data-testid="runtime-host-container" />
+		<div class="flex h-full w-full flex-col-reverse overflow-hidden bg-black text-sm text-slate-200 md:flex-row">
+			{/* Sidebar: Bottom on mobile, Left on desktop — matches POC layout */}
 			<TacticalHUD
 				bridge={solidBridge.accessors}
 				emit={solidBridge.emit}
 				missionId={props.missionId}
 			/>
+
+			{/* Main Game Area */}
+			<div class="relative flex-1 cursor-crosshair overflow-hidden bg-black">
+				<div ref={containerEl} class="absolute inset-0" data-testid="runtime-host-container" />
+
+				{/* Top Resource Bar — inside game area, overlays canvas */}
+				<ResourceBar bridge={solidBridge.accessors} />
+
+				{/* Objectives overlay — right side */}
+				<div class="pointer-events-auto absolute right-2 top-14 z-20 hidden w-64 sm:right-4 sm:block sm:w-72">
+					<ObjectivesPanel bridge={solidBridge.accessors} />
+				</div>
+
+				{/* Alert Banner — top-right */}
+				<div class="pointer-events-auto absolute right-2 top-2 z-20 w-72 sm:right-4">
+					<AlertBanner bridge={solidBridge.accessors} emit={solidBridge.emit} />
+				</div>
+
+				{/* Boss Health Bar — top-center */}
+				<BossHealthBar bridge={solidBridge.accessors} />
+
+				{/* Command Transmission — bottom-center overlay */}
+				<div class="pointer-events-auto absolute inset-x-0 bottom-4 z-20 flex justify-center px-4">
+					<CommandTransmission bridge={solidBridge.accessors} />
+				</div>
+
+				{/* Tutorial overlay */}
+				{props.missionId && <TutorialOverlay missionId={props.missionId} />}
+			</div>
+
+			<Show when={isPaused()}>
+				<PauseOverlay
+					app={pauseAppAdapter as unknown as Parameters<typeof PauseOverlay>[0]["app"]}
+					emit={solidBridge.emit}
+				/>
+			</Show>
 		</div>
 	);
 }

@@ -12,8 +12,9 @@
 
 import { type Component, createMemo, For, Show } from "solid-js";
 import type { SolidBridgeAccessors, SolidBridgeEmit } from "@/engine/bridge/solidBridge";
+import { ALL_RESEARCH_ENTITIES } from "@/entities/research";
+import type { ResearchDef } from "@/entities/types";
 import { SimpleTooltip } from "./MilitaryTooltip";
-import { PanelFrame } from "./PanelFrame";
 
 interface ActionDef {
 	id: string;
@@ -160,6 +161,27 @@ function getTrainOptionsForBuilding(primaryLabel: string): TrainOption[] {
 	return [];
 }
 
+/** Check if selected building can research. */
+function isResearchBuilding(primaryLabel: string): boolean {
+	const lower = primaryLabel.toLowerCase();
+	return lower.includes("armory") || lower.includes("research den");
+}
+
+/** Get all available research options with formatted cost strings. */
+function getResearchOptions(): Array<{ def: ResearchDef; costStr: string }> {
+	const options: Array<{ def: ResearchDef; costStr: string }> = [];
+	for (const def of Object.values(ALL_RESEARCH_ENTITIES)) {
+		const parts: string[] = [];
+		if ((def.cost.fish ?? 0) > 0) parts.push(`F${def.cost.fish}`);
+		if ((def.cost.timber ?? 0) > 0) parts.push(`T${def.cost.timber}`);
+		if ((def.cost.salvage ?? 0) > 0) parts.push(`S${def.cost.salvage}`);
+		options.push({ def, costStr: parts.join(" ") || "Free" });
+	}
+	return options;
+}
+
+const RESEARCH_OPTIONS = getResearchOptions();
+
 const ACTION_STYLE =
 	"flex items-center justify-between rounded-none border border-slate-600/70 bg-slate-900/85 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-slate-100 hover:border-green-500/50 hover:bg-slate-800/85 transition-colors";
 
@@ -192,79 +214,114 @@ export const SelectionPanel: Component<{
 		return getTrainOptionsForBuilding(sel.primaryLabel);
 	});
 
+	const showResearch = createMemo(() => {
+		const sel = selection();
+		if (!sel) return false;
+		return selectionType() === "building" && isResearchBuilding(sel.primaryLabel);
+	});
+
 	return (
 		<Show when={selection()}>
 			{(sel) => (
-				<PanelFrame>
-					<div
-						data-testid="selection-panel"
-						class="canvas-grain border border-slate-600/70 bg-slate-950/88 shadow-[0_18px_40px_rgba(0,0,0,0.34)]"
-					>
-						<div class="flex flex-col gap-2 p-3">
-							{/* Header */}
-							<div class="flex items-center justify-between gap-2 border-b border-slate-600/60 pb-2">
-								<span class="font-mono text-xs uppercase tracking-[0.18em] text-slate-100">
-									{sel().primaryLabel}
-								</span>
-								<span class="rounded border border-green-500/25 bg-green-500/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-green-400">
-									{sel().entityIds.length} UNIT{sel().entityIds.length !== 1 ? "S" : ""}
-								</span>
-							</div>
+				<div data-testid="selection-panel" class="flex flex-col gap-1 md:gap-2">
+					{/* Header — matches POC selection info */}
+					<h2 class="text-base font-bold leading-tight text-sky-300 md:text-xl">
+						{sel().primaryLabel}
+					</h2>
+					<div class="text-[10px] uppercase tracking-wider text-slate-400 md:text-xs">
+						{sel().entityIds.length} unit{sel().entityIds.length !== 1 ? "s" : ""} selected
+					</div>
 
-							{/* Action buttons for workers and military */}
-							<Show when={actions().length > 0}>
-								<div class="grid grid-cols-2 gap-2">
-									<For each={actions()}>
-										{(action) => (
-											<SimpleTooltip label={`${action.label} [${action.hotkey}]`} side="top">
+					{/* Action buttons for workers and military */}
+					<Show when={actions().length > 0}>
+						<div class="grid grid-cols-2 gap-2">
+							<For each={actions()}>
+								{(action) => (
+									<SimpleTooltip label={`${action.label} [${action.hotkey}]`} side="top">
+										<button
+											type="button"
+											class={ACTION_STYLE}
+											onClick={() => action.handler(props.emit)}
+										>
+											{action.label}
+											<span class="text-[9px] tracking-[0.2em] text-slate-500">
+												{action.hotkey}
+											</span>
+										</button>
+									</SimpleTooltip>
+								)}
+							</For>
+						</div>
+					</Show>
+
+					{/* Training options for buildings */}
+					<Show when={trainOptions().length > 0}>
+						<div class="border-t border-slate-600/60 pt-2">
+							<span class="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">
+								Train Units
+							</span>
+							<div class="mt-2 grid grid-cols-2 gap-2">
+								<For each={trainOptions()}>
+									{(opt) => {
+										const affordable = () => {
+											// Basic affordability check
+											return props.bridge.resources.fish >= 0;
+										};
+										return (
+											<button
+												type="button"
+												class={affordable() ? ACTION_STYLE : DISABLED_STYLE}
+												disabled={!affordable()}
+												onClick={() => props.emit.queueUnit(opt.unitId)}
+											>
+												{opt.name}
+												<span class="text-[9px] tracking-[0.2em] text-slate-500">T</span>
+											</button>
+										);
+									}}
+								</For>
+							</div>
+						</div>
+					</Show>
+
+					{/* Research options for armory */}
+					<Show when={showResearch()}>
+						<div class="border-t border-slate-600/60 pt-2">
+							<span class="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">
+								Research
+							</span>
+							<div class="mt-2 grid grid-cols-2 gap-2">
+								<For each={RESEARCH_OPTIONS}>
+									{(opt) => {
+										const canAfford = () => {
+											const r = props.bridge.resources;
+											return (
+												r.fish >= (opt.def.cost.fish ?? 0) &&
+												r.timber >= (opt.def.cost.timber ?? 0) &&
+												r.salvage >= (opt.def.cost.salvage ?? 0)
+											);
+										};
+										return (
+											<SimpleTooltip label={opt.def.description} side="top">
 												<button
 													type="button"
-													class={ACTION_STYLE}
-													onClick={() => action.handler(props.emit)}
+													class={canAfford() ? ACTION_STYLE : DISABLED_STYLE}
+													disabled={!canAfford()}
+													onClick={() => props.emit.issueResearch(opt.def.id)}
 												>
-													{action.label}
-													<span class="text-[9px] tracking-[0.2em] text-slate-500">
-														{action.hotkey}
+													<span class="truncate">{opt.def.name}</span>
+													<span class="text-[8px] tracking-[0.1em] text-slate-500">
+														{opt.costStr}
 													</span>
 												</button>
 											</SimpleTooltip>
-										)}
-									</For>
-								</div>
-							</Show>
-
-							{/* Training options for buildings */}
-							<Show when={trainOptions().length > 0}>
-								<div class="border-t border-slate-600/60 pt-2">
-									<span class="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">
-										Train Units
-									</span>
-									<div class="mt-2 grid grid-cols-2 gap-2">
-										<For each={trainOptions()}>
-											{(opt) => {
-												const affordable = () => {
-													// Basic affordability check
-													return props.bridge.resources.fish >= 0;
-												};
-												return (
-													<button
-														type="button"
-														class={affordable() ? ACTION_STYLE : DISABLED_STYLE}
-														disabled={!affordable()}
-														onClick={() => props.emit.queueUnit(opt.unitId)}
-													>
-														{opt.name}
-														<span class="text-[9px] tracking-[0.2em] text-slate-500">T</span>
-													</button>
-												);
-											}}
-										</For>
-									</div>
-								</div>
-							</Show>
+										);
+									}}
+								</For>
+							</div>
 						</div>
-					</div>
-				</PanelFrame>
+					</Show>
+				</div>
 			)}
 		</Show>
 	);
