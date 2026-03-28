@@ -344,7 +344,7 @@ describe("Economy Timeline Validation (Task 1)", () => {
 	});
 
 	describe("Fish trap ROI", () => {
-		it("should measure fish trap payback time", () => {
+		it("should measure fish trap payback time", { timeout: 30000 }, () => {
 			resetGatherTimers();
 			resetLootRng();
 

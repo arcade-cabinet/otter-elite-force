@@ -25,6 +25,7 @@ import {
 	spawnUnit,
 } from "@/engine/world/gameWorld";
 import { createGovernor, type GovernorConfig } from "./governor";
+import { runGovernorPlaytest } from "./runner";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -336,45 +337,21 @@ describe("Governor", () => {
 	it("achieves victory on Mission 1 within 60000 ticks (about 16 minutes)", {
 		timeout: 120000,
 	}, () => {
-		const world = createMission1World();
-		// Give generous resources for the full playthrough
-		world.session.resources.fish = 500;
-		world.session.resources.timber = 300;
-		world.session.resources.salvage = 100;
-		world.runtime.population.max = 20;
-
-		const governor = createGovernor(world, {
-			difficulty: "optimal",
-			missionId: "mission_1",
-		});
-
-		runTicks(world, governor, 60000);
-
-		const report = governor.getReport();
-		const completedObjectives = world.session.objectives.filter(
-			(o) => o.status === "completed",
-		).length;
+		const report = runGovernorPlaytest("mission_1", { difficulty: "optimal" }, 60000);
 
 		console.log("=== FULL PLAYTEST RESULTS ===");
-		console.log(`Phase: ${world.session.phase}`);
-		console.log(`Ticks: ${60000}`);
-		console.log(`Actions: ${report.actionsExecuted}`);
-		console.log(`Actions by type:`, report.actionsPerType);
-		console.log(`Objectives: ${completedObjectives}/${world.session.objectives.length}`);
-		console.log(
-			`Resources: fish=${world.session.resources.fish}, timber=${world.session.resources.timber}, salvage=${world.session.resources.salvage}`,
-		);
-		console.log(`Player units: ${countPlayerUnits(world)}`);
-		console.log(`Player buildings: ${countPlayerBuildings(world)}`);
-		console.log(`Military: ${countPlayerMilitary(world)}`);
+		console.log(`Outcome: ${report.outcome}`);
+		console.log(`Duration: ${report.durationTicks} ticks (${report.durationMinutes} min)`);
+		console.log(`Objectives: ${report.objectivesCompleted}/${report.objectivesTotal}`);
+		console.log(`Units trained: ${report.unitsTrainedCount}`);
+		console.log(`Units lost: ${report.unitsLostCount}`);
+		console.log(`Buildings built: ${report.buildingsBuiltCount}`);
+		console.log(`Enemies killed: ${report.enemiesKilled}`);
+		console.log(`Peak army: ${report.peakArmySize}`);
+		console.log(`Resources gathered:`, report.resourcesGathered);
 		console.log("Timeline:", report.timeline);
 
-		for (const obj of world.session.objectives) {
-			console.log(`  [${obj.status}] ${obj.description}`);
-		}
-
-		// The governor should at minimum have taken actions and kept the game running
-		expect(report.actionsExecuted).toBeGreaterThan(0);
-		expect(world.runtime.alive.size).toBeGreaterThan(0);
+		// The governor must achieve victory
+		expect(report.outcome).toBe("victory");
 	});
 });
