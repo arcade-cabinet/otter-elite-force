@@ -234,13 +234,7 @@ export function runChargeTickSystem(world: GameWorld): ChargeTickResult {
 			const buildingX = Position.x[chainEid];
 			const buildingY = Position.y[chainEid];
 
-			const chain = applyExplosion(
-				world,
-				buildingX,
-				buildingY,
-				CHAIN_EXPLOSION_RADIUS,
-				det.damage,
-			);
+			const chain = applyExplosion(world, buildingX, buildingY, CHAIN_EXPLOSION_RADIUS, det.damage);
 
 			primaryEvent.chainCount += chain.hitCount;
 

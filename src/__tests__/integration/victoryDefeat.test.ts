@@ -6,16 +6,16 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { runMultiBaseSystem } from "@/engine/systems/multiBaseSystem";
+import { calculateMissionScore } from "@/engine/systems/scoringSystem";
 import { Health } from "@/engine/world/components";
 import {
 	createGameWorld,
-	markForRemoval,
 	flushRemovals,
+	markForRemoval,
 	spawnBuilding,
 	spawnUnit,
 } from "@/engine/world/gameWorld";
-import { runMultiBaseSystem } from "@/engine/systems/multiBaseSystem";
-import { calculateMissionScore } from "@/engine/systems/scoringSystem";
 
 function makeWorld() {
 	const world = createGameWorld();

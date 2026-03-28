@@ -3,7 +3,6 @@ import type { TerrainType as PathfindingTerrainType } from "@/ai/terrainTypes";
 import { buildTerrainGridForPathfinding } from "@/canvas/tilePainter";
 import { resolveCategoryId } from "@/engine/content/ids";
 import { TerrainTypeId } from "@/engine/content/terrainTypes";
-import { buildTerrainGrid } from "./missionBootstrap";
 import { getMissionById } from "@/entities/missions";
 import { getBuilding, getHero, getResource, getUnit } from "@/entities/registry";
 import type { MissionDef, Placement } from "@/entities/types";
@@ -17,13 +16,8 @@ import { TerrainType as MapTerrainType } from "@/maps/types";
 import type { DiagnosticSnapshot } from "../diagnostics/types";
 import { createEmptyDiagnosticsSnapshot } from "../diagnostics/types";
 import { createMissionSeedBundle, type SeedBundle } from "../random/seed";
-import { initEncounterEntries, type EncounterEntry } from "../systems/encounterSystemEngine";
-import {
-	Faction,
-	Flags,
-	Position,
-	ResourceNode,
-} from "../world/components";
+import { type EncounterEntry, initEncounterEntries } from "../systems/encounterSystemEngine";
+import { Faction, Flags, Position, ResourceNode } from "../world/components";
 import {
 	type GameWorld,
 	getOrderQueue,
@@ -32,6 +26,7 @@ import {
 	spawnResource as spawnRuntimeResource,
 	spawnUnit as spawnRuntimeUnit,
 } from "../world/gameWorld";
+import { buildTerrainGrid } from "./missionBootstrap";
 
 export interface CampaignRuntimeSession {
 	mode: "campaign";
@@ -392,9 +387,7 @@ export function seedGameWorldFromCampaignSession(
 					scriptId: placement.scriptId,
 				});
 				// Set resource yield — average of min/max
-				const avgYield = Math.round(
-					(resourceDef.yield.min + resourceDef.yield.max) / 2,
-				);
+				const avgYield = Math.round((resourceDef.yield.min + resourceDef.yield.max) / 2);
 				ResourceNode.remaining[eid] = avgYield;
 			}
 		}
@@ -406,11 +399,7 @@ export function seedGameWorldFromCampaignSession(
 	// Count initial player (URA) unit count for population tracking
 	let playerUnitCount = 0;
 	for (const eid of world.runtime.alive) {
-		if (
-			Faction.id[eid] === 1 &&
-			Flags.isBuilding[eid] === 0 &&
-			Flags.isResource[eid] === 0
-		) {
+		if (Faction.id[eid] === 1 && Flags.isBuilding[eid] === 0 && Flags.isResource[eid] === 0) {
 			playerUnitCount++;
 		}
 	}
@@ -542,7 +531,9 @@ function convertSkirmishTerrainToGrid(terrain: MapTerrainType[][]): number[][] {
 }
 
 /** Convert a skirmish map's numeric terrain grid to pathfinding string grid. */
-function convertSkirmishTerrainToPathfinding(terrain: MapTerrainType[][]): PathfindingTerrainType[][] {
+function convertSkirmishTerrainToPathfinding(
+	terrain: MapTerrainType[][],
+): PathfindingTerrainType[][] {
 	return terrain.map((row) => row.map((t) => mapTerrainToPathfinding(t)));
 }
 
@@ -585,7 +576,9 @@ export function seedGameWorldFromSkirmishSession(
 
 	// Initialize AI resource pool
 	const aiRes = { ...session.config.startingResources };
-	(world.runtime as { aiResources?: { fish: number; timber: number; salvage: number } }).aiResources = aiRes;
+	(
+		world.runtime as { aiResources?: { fish: number; timber: number; salvage: number } }
+	).aiResources = aiRes;
 
 	// Set starting population cap for skirmish
 	world.runtime.population.max = 20;

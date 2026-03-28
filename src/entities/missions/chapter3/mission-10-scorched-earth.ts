@@ -250,8 +250,8 @@ export const mission10ScorchedEarth: MissionDef = {
 		},
 	],
 
-	startResources: { fish: 300, timber: 250, salvage: 150 },
-	startPopCap: 20,
+	startResources: { fish: 500, timber: 400, salvage: 250 },
+	startPopCap: 25,
 
 	objectives: {
 		primary: [

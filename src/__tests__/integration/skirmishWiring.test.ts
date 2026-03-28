@@ -11,11 +11,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import {
-	DIFFICULTY_CONFIG,
-	SkirmishAI,
-	type SkirmishDifficulty,
-} from "@/ai/skirmishAI";
+import { DIFFICULTY_CONFIG, SkirmishAI, type SkirmishDifficulty } from "@/ai/skirmishAI";
 import { createSkirmishGameAdapter } from "@/ai/skirmishGameAdapter";
 import { createSeedBundle, type SeedBundle } from "@/engine/random/seed";
 import { computeSkirmishResult } from "@/engine/session/skirmishResult";
@@ -28,7 +24,7 @@ import { Faction, Flags } from "@/engine/world/components";
 import { createGameWorld } from "@/engine/world/gameWorld";
 import type { SkirmishSessionConfig } from "@/features/skirmish/types";
 import { generateSkirmishMap } from "@/maps/skirmishMapGenerator";
-import { TerrainType } from "@/maps/types";
+import type { TerrainType } from "@/maps/types";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -237,7 +233,9 @@ describe("Skirmish Wiring: World generation", () => {
 
 		seedGameWorldFromSkirmishSession(world, session);
 
-		const aiRes = (world.runtime as { aiResources?: { fish: number; timber: number; salvage: number } }).aiResources;
+		const aiRes = (
+			world.runtime as { aiResources?: { fish: number; timber: number; salvage: number } }
+		).aiResources;
 		expect(aiRes).toBeDefined();
 		expect(aiRes?.fish).toBe(300);
 		expect(aiRes?.timber).toBe(200);

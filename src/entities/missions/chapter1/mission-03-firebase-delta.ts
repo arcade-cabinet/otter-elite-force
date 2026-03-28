@@ -288,8 +288,8 @@ export const mission03FirebaseDelta: MissionDef = {
 	],
 
 	// ─── Starting Resources ────────────────────────────────────────────
-	startResources: { fish: 300, timber: 150, salvage: 75 },
-	startPopCap: 20,
+	startResources: { fish: 500, timber: 300, salvage: 150 },
+	startPopCap: 25,
 
 	// ─── Objectives ────────────────────────────────────────────────────
 	objectives: {

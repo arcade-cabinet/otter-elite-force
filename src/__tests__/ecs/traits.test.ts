@@ -16,8 +16,8 @@ import {
 	Flags,
 	Gatherer,
 	Health,
-	Position,
 	PopulationState,
+	Position,
 	ResourceNode,
 	ResourceRef,
 	Selection,
@@ -31,13 +31,13 @@ import {
 } from "@/engine/world/components";
 import {
 	createGameWorld,
+	flushRemovals,
 	isAlive,
 	markForRemoval,
-	flushRemovals,
-	spawnUnit,
 	spawnBuilding,
-	spawnResource,
 	spawnProjectile,
+	spawnResource,
+	spawnUnit,
 } from "@/engine/world/gameWorld";
 
 describe("ECS components (bitECS SoA stores)", () => {
@@ -60,14 +60,24 @@ describe("ECS components (bitECS SoA stores)", () => {
 	describe("Health", () => {
 		it("stores current and max HP", () => {
 			const world = createGameWorld();
-			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", health: { current: 80, max: 100 } });
+			const eid = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				health: { current: 80, max: 100 },
+			});
 			expect(Health.current[eid]).toBe(80);
 			expect(Health.max[eid]).toBe(100);
 		});
 
 		it("current can go below zero (death detection)", () => {
 			const world = createGameWorld();
-			const eid = spawnUnit(world, { x: 0, y: 0, faction: "ura", health: { current: 5, max: 100 } });
+			const eid = spawnUnit(world, {
+				x: 0,
+				y: 0,
+				faction: "ura",
+				health: { current: 5, max: 100 },
+			});
 			Health.current[eid] -= 10;
 			expect(Health.current[eid]).toBe(-5);
 		});

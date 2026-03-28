@@ -10,16 +10,12 @@
  * Uses actual GameWorld + loot system, not mock data.
  */
 
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { createSeedBundle } from "@/engine/random/seed";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
-import {
-	DROP_TABLES,
-	resetLootRng,
-	rollLootFromTable,
-} from "@/engine/systems/lootSystem";
+import { DROP_TABLES, resetLootRng, rollLootFromTable } from "@/engine/systems/lootSystem";
 import { Faction, Flags } from "@/engine/world/components";
-import { createGameWorld, spawnUnit, type GameWorld } from "@/engine/world/gameWorld";
+import { createGameWorld, type GameWorld, spawnUnit } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -160,8 +156,12 @@ describe("Loot Table Validation (Task 3)", () => {
 			const fishDropRate = stats.fishDropCount / stats.totalRolls;
 
 			console.log("\n=== Skink Loot (1000 rolls) ===");
-			console.log(`  Fish drops: ${stats.fishDropCount}/1000 (${(fishDropRate * 100).toFixed(1)}%)`);
-			console.log(`  Total fish: ${stats.totalFish}, avg per kill: ${(stats.totalFish / 1000).toFixed(2)}`);
+			console.log(
+				`  Fish drops: ${stats.fishDropCount}/1000 (${(fishDropRate * 100).toFixed(1)}%)`,
+			);
+			console.log(
+				`  Total fish: ${stats.totalFish}, avg per kill: ${(stats.totalFish / 1000).toFixed(2)}`,
+			);
 			console.log(`  Salvage drops: ${stats.salvageDropCount}/1000`);
 			console.log(`  Total salvage: ${stats.totalSalvage}`);
 
@@ -180,10 +180,16 @@ describe("Loot Table Validation (Task 3)", () => {
 			const salvageDropRate = stats.salvageDropCount / stats.totalRolls;
 
 			console.log("\n=== Gator Loot (1000 rolls) ===");
-			console.log(`  Fish drops: ${stats.fishDropCount}/1000 (${(fishDropRate * 100).toFixed(1)}%)`);
-			console.log(`  Salvage drops: ${stats.salvageDropCount}/1000 (${(salvageDropRate * 100).toFixed(1)}%)`);
+			console.log(
+				`  Fish drops: ${stats.fishDropCount}/1000 (${(fishDropRate * 100).toFixed(1)}%)`,
+			);
+			console.log(
+				`  Salvage drops: ${stats.salvageDropCount}/1000 (${(salvageDropRate * 100).toFixed(1)}%)`,
+			);
 			console.log(`  Total fish: ${stats.totalFish}, avg: ${(stats.totalFish / 1000).toFixed(2)}`);
-			console.log(`  Total salvage: ${stats.totalSalvage}, avg: ${(stats.totalSalvage / 1000).toFixed(2)}`);
+			console.log(
+				`  Total salvage: ${stats.totalSalvage}, avg: ${(stats.totalSalvage / 1000).toFixed(2)}`,
+			);
 
 			// Balance doc: gator drops fish at 40%, salvage at 15%, timber at 10%
 			// Code: gator drops fish at 50% (5-15), salvage at 30% (10-20)
@@ -246,14 +252,7 @@ describe("Loot Table Validation (Task 3)", () => {
 
 	describe("Expected value per kill", () => {
 		it("should calculate EV for each enemy type", () => {
-			const types = [
-				"skink",
-				"gator",
-				"viper",
-				"snapper",
-				"croc_champion",
-				"serpent_king",
-			];
+			const types = ["skink", "gator", "viper", "snapper", "croc_champion", "serpent_king"];
 
 			console.log("\n=== Expected Value Per Kill (500 rolls each) ===");
 			console.log("  Type            | Fish EV | Timber EV | Salvage EV");
@@ -313,13 +312,9 @@ describe("Loot Table Validation (Task 3)", () => {
 
 				console.log(`\n  ${type}:`);
 				for (const docEntry of docEntries) {
-					const codeEntry = codeTable.entries.find(
-						(e) => e.resource === docEntry.item,
-					);
+					const codeEntry = codeTable.entries.find((e) => e.resource === docEntry.item);
 					if (codeEntry) {
-						const probDiff = Math.abs(
-							codeEntry.probability - docEntry.probability,
-						);
+						const probDiff = Math.abs(codeEntry.probability - docEntry.probability);
 						const status = probDiff <= 0.3 ? "OK" : "MISMATCH";
 						console.log(
 							`    ${docEntry.item}: doc=${docEntry.probability} code=${codeEntry.probability} [${status}]`,

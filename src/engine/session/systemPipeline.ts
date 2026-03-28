@@ -13,9 +13,9 @@
  * Each system receives the GameWorld and operates on its ECS data directly.
  */
 
-import { EventBus } from "@/game/EventBus";
 import { runAllSystems } from "@/engine/systems";
 import type { GameWorld } from "@/engine/world/gameWorld";
+import { EventBus } from "@/game/EventBus";
 
 export interface SystemPipeline {
 	/** Execute one tick of all gameplay systems in order. */

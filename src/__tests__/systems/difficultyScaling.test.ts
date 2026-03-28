@@ -5,9 +5,12 @@
  */
 
 import { beforeEach, describe, expect, it } from "vitest";
+import {
+	resetDifficultyScaling,
+	runDifficultyScalingSystem,
+} from "@/engine/systems/difficultyScalingSystem";
 import { Attack, Health, Speed } from "@/engine/world/components";
 import { createGameWorld, spawnUnit } from "@/engine/world/gameWorld";
-import { resetDifficultyScaling, runDifficultyScalingSystem } from "@/engine/systems/difficultyScalingSystem";
 
 function makeWorld() {
 	const world = createGameWorld();

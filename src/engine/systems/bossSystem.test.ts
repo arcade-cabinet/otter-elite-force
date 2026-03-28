@@ -156,12 +156,15 @@ describe("engine/systems/bossSystem", () => {
 			health: { current: 100, max: 100 },
 		});
 
-		world.runtime.bossConfigs.set(boss, makeBossConfig({
-			phases: [],
-			aoeDamage: 20,
-			aoeRadius: 100,
-			aoeCooldown: 8,
-		}));
+		world.runtime.bossConfigs.set(
+			boss,
+			makeBossConfig({
+				phases: [],
+				aoeDamage: 20,
+				aoeRadius: 100,
+				aoeCooldown: 8,
+			}),
+		);
 
 		// Spawn a player unit within AoE radius
 		const playerUnit = spawnUnit(world, {
@@ -192,12 +195,15 @@ describe("engine/systems/bossSystem", () => {
 			health: { current: 100, max: 100 },
 		});
 
-		world.runtime.bossConfigs.set(boss, makeBossConfig({
-			phases: [],
-			aoeDamage: 20,
-			aoeRadius: 100,
-			aoeCooldown: 8,
-		}));
+		world.runtime.bossConfigs.set(
+			boss,
+			makeBossConfig({
+				phases: [],
+				aoeDamage: 20,
+				aoeRadius: 100,
+				aoeCooldown: 8,
+			}),
+		);
 
 		// Spawn a friendly unit within AoE radius
 		const friendly = spawnUnit(world, {
@@ -264,13 +270,16 @@ describe("engine/systems/bossSystem", () => {
 			health: { current: 100, max: 100 },
 		});
 
-		world.runtime.bossConfigs.set(boss, makeBossConfig({
-			phases: [],
-			summonType: "skink",
-			summonCount: 3,
-			summonCooldown: 15,
-			aoeCooldown: 999, // disable AoE for this test
-		}));
+		world.runtime.bossConfigs.set(
+			boss,
+			makeBossConfig({
+				phases: [],
+				summonType: "skink",
+				summonCount: 3,
+				summonCooldown: 15,
+				aoeCooldown: 999, // disable AoE for this test
+			}),
+		);
 
 		const aliveBefore = world.runtime.alive.size;
 		runBossSystem(world);
@@ -294,10 +303,13 @@ describe("engine/systems/bossSystem", () => {
 			health: { current: 100, max: 100 },
 		});
 
-		world.runtime.bossConfigs.set(boss, makeBossConfig({
-			phases: [],
-			aoeCooldown: 999,
-		}));
+		world.runtime.bossConfigs.set(
+			boss,
+			makeBossConfig({
+				phases: [],
+				aoeCooldown: 999,
+			}),
+		);
 
 		const aliveBefore = world.runtime.alive.size;
 		runBossSystem(world);

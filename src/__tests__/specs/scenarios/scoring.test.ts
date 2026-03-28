@@ -5,8 +5,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createGameWorld, spawnUnit, spawnBuilding } from "@/engine/world/gameWorld";
 import { calculateMissionScore, type MissionScore } from "@/engine/systems/scoringSystem";
+import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 
 describe("Mission scoring specifications", () => {
 	describe("Star rating thresholds", () => {

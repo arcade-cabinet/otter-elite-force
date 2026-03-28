@@ -5,8 +5,8 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 import { runMultiBaseSystem } from "@/engine/systems/multiBaseSystem";
+import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 
 function makeWorld() {
 	const world = createGameWorld();

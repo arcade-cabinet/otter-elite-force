@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { Armor, Attack, Flags, Health, Position, TargetRef } from "@/engine/world/components";
 import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 import {
-	DEMOLITION_TRAINING_MULTIPLIER,
-	SAPPER_BUILDING_DAMAGE,
-	SGT_FANG_BUILDING_MULTIPLIER,
 	calculateSiegeDamage,
+	DEMOLITION_TRAINING_MULTIPLIER,
 	runSiegeCombatSystem,
 	runSiegeSystem,
 	runWallBreachSystem,
+	SAPPER_BUILDING_DAMAGE,
+	SGT_FANG_BUILDING_MULTIPLIER,
 } from "./siegeSystem";
 
 describe("engine/systems/siegeSystem", () => {

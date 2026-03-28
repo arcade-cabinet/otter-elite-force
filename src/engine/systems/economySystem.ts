@@ -396,9 +396,7 @@ function processGatherers(world: GameWorld, deltaSec: number): void {
 				// Simple mode: deposit harvestAmount resources directly to session
 				const simpleAmount = Math.min(
 					harvestAmount,
-					ResourceNode.remaining[targetEid] > 0
-						? ResourceNode.remaining[targetEid]
-						: harvestAmount,
+					ResourceNode.remaining[targetEid] > 0 ? ResourceNode.remaining[targetEid] : harvestAmount,
 				);
 				world.session.resources[resourceType] += simpleAmount;
 

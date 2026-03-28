@@ -12,11 +12,10 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { resolveMissionVictory } from "@/app/missionResult";
-import { processCommands } from "@/engine/runtime/commandProcessor";
 import {
 	deserializeGameWorld,
-	serializeGameWorld,
 	type GameWorldSnapshot,
+	serializeGameWorld,
 } from "@/engine/persistence/gameWorldSaveLoad";
 import { SqlitePersistenceStore } from "@/engine/persistence/sqlitePersistenceStore";
 import type {
@@ -25,17 +24,14 @@ import type {
 	UserSettingsRecord,
 } from "@/engine/persistence/types";
 import { createSeedBundle } from "@/engine/random/seed";
+import { processCommands } from "@/engine/runtime/commandProcessor";
 import { bootstrapMission } from "@/engine/session/missionBootstrap";
+import { runAllSystems } from "@/engine/systems";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
 import { createFogGrid, type FogRuntime } from "@/engine/systems/fogSystem";
-import { runAllSystems } from "@/engine/systems";
-import { Position, Health, Faction, Flags } from "@/engine/world/components";
+import { Faction, Flags, Health, Position } from "@/engine/world/components";
 import { createGameWorld, type GameWorld } from "@/engine/world/gameWorld";
-import {
-	closeDatabase,
-	InMemoryDatabase,
-	setDatabase,
-} from "@/persistence/database";
+import { closeDatabase, InMemoryDatabase, setDatabase } from "@/persistence/database";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -409,11 +405,13 @@ describe("Persistence End-to-End", () => {
 		it("throws if methods called without initialization", async () => {
 			await closeDatabase();
 			const uninitStore = new SqlitePersistenceStore();
-			await expect(uninitStore.saveCampaign({
-				currentMissionId: "mission_1",
-				difficulty: "tactical",
-				missions: {},
-			})).rejects.toThrow("not initialized");
+			await expect(
+				uninitStore.saveCampaign({
+					currentMissionId: "mission_1",
+					difficulty: "tactical",
+					missions: {},
+				}),
+			).rejects.toThrow("not initialized");
 		});
 	});
 

@@ -5,15 +5,15 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { runDemolitionSystem } from "@/engine/systems/demolitionSystem";
 import { Health, Position } from "@/engine/world/components";
 import {
 	createGameWorld,
-	isAlive,
 	flushRemovals,
-	spawnUnit,
+	isAlive,
 	spawnBuilding,
+	spawnUnit,
 } from "@/engine/world/gameWorld";
-import { runDemolitionSystem } from "@/engine/systems/demolitionSystem";
 
 function makeWorld() {
 	const world = createGameWorld();

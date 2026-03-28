@@ -206,9 +206,12 @@ export function runBossSystem(world: GameWorld): void {
 				const bossX = Position.x[eid];
 				const bossY = Position.y[eid];
 				const bossFaction = Faction.id[eid];
-				const factionName = bossFaction === FACTION_IDS.ura ? "ura"
-					: bossFaction === FACTION_IDS.scale_guard ? "scale_guard"
-					: "neutral";
+				const factionName =
+					bossFaction === FACTION_IDS.ura
+						? "ura"
+						: bossFaction === FACTION_IDS.scale_guard
+							? "scale_guard"
+							: "neutral";
 
 				for (let i = 0; i < summonCount; i++) {
 					const offsetX = bossX + (Math.random() - 0.5) * 128;

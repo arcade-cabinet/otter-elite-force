@@ -12,20 +12,17 @@
 
 import { describe, expect, it } from "vitest";
 import { FACTION_IDS } from "@/engine/content/ids";
+import { type PlaytestReport, runGovernorPlaytest } from "@/engine/playtester/runner";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
 import { resetLootRng } from "@/engine/systems/lootSystem";
 import { Faction, Flags, Health } from "@/engine/world/components";
-import { runGovernorPlaytest, type PlaytestReport } from "@/engine/playtester/runner";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
 /** Run a mission playtest and return the report. */
-function runMission(
-	missionId: string,
-	maxMinutes: number,
-): PlaytestReport {
+function runMission(missionId: string, maxMinutes: number): PlaytestReport {
 	resetGatherTimers();
 	resetLootRng();
 	const maxTicks = Math.round((maxMinutes * 60 * 1000) / 16.67);
@@ -35,12 +32,8 @@ function runMission(
 function printReport(report: PlaytestReport): void {
 	console.log(`  Mission: ${report.missionId}`);
 	console.log(`  Outcome: ${report.outcome}`);
-	console.log(
-		`  Duration: ${report.durationTicks} ticks (${report.durationMinutes} min)`,
-	);
-	console.log(
-		`  Objectives: ${report.objectivesCompleted}/${report.objectivesTotal}`,
-	);
+	console.log(`  Duration: ${report.durationTicks} ticks (${report.durationMinutes} min)`);
+	console.log(`  Objectives: ${report.objectivesCompleted}/${report.objectivesTotal}`);
 	console.log(`  Peak army: ${report.peakArmySize}`);
 	console.log(`  Units trained: ${report.unitsTrainedCount}`);
 	console.log(`  Units lost: ${report.unitsLostCount}`);
@@ -74,9 +67,7 @@ describe("Mission Pacing Validation (Task 4)", () => {
 
 			// Print timeline summary
 			const keyEvents = report.timeline.filter(
-				(e) =>
-					e.event.includes("place-building") ||
-					e.event.includes("train-unit"),
+				(e) => e.event.includes("place-building") || e.event.includes("train-unit"),
 			);
 			console.log(`  Key events (${keyEvents.length}):`);
 			for (const evt of keyEvents.slice(0, 10)) {
@@ -122,9 +113,7 @@ describe("Mission Pacing Validation (Task 4)", () => {
 
 			// Mission 16 should have the largest army
 			// Starting with 14 combat units + 7 workers
-			console.log(
-				`  Peak army size: ${report.peakArmySize} (expected: 25-35)`,
-			);
+			console.log(`  Peak army size: ${report.peakArmySize} (expected: 25-35)`);
 		});
 	});
 

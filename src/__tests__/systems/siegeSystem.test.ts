@@ -6,18 +6,14 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { Armor, Attack, Flags, Health, TargetRef } from "@/engine/world/components";
 import {
-	createGameWorld,
-	spawnBuilding,
-	spawnUnit,
-} from "@/engine/world/gameWorld";
-import {
-	SAPPER_BUILDING_DAMAGE,
 	calculateSiegeDamage,
 	runSiegeCombatSystem,
 	runSiegeSystem,
+	SAPPER_BUILDING_DAMAGE,
 } from "@/engine/systems/siegeSystem";
+import { Armor, Attack, Flags, Health, TargetRef } from "@/engine/world/components";
+import { createGameWorld, spawnBuilding, spawnUnit } from "@/engine/world/gameWorld";
 
 function makeWorld() {
 	const world = createGameWorld();

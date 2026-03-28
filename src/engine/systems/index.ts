@@ -45,6 +45,7 @@ export {
 	runAbilitySystem,
 } from "./abilitySystem";
 export { resetAIStates, runAiSystem } from "./aiSystem";
+export { runBossSystem } from "./bossSystem";
 export type { TerrainType, TileMap } from "./buildingSystem";
 export {
 	canPlaceBuilding,
@@ -54,7 +55,10 @@ export {
 	runBuildingSystem,
 } from "./buildingSystem";
 export { runCombatSystem } from "./combatSystem";
+export { runConvoySystem } from "./convoySystem";
+export { runDemolitionSystem } from "./demolitionSystem";
 export { runDetectionSystem } from "./detectionSystem";
+export { runDifficultyScalingSystem } from "./difficultyScalingSystem";
 export { resetGatherTimers, runEconomySystem } from "./economySystem";
 export type { EncounterComposition, EncounterEntry } from "./encounterSystemEngine";
 export {
@@ -106,6 +110,9 @@ export {
 	queueResearch,
 	runResearchSystem,
 } from "./researchSystem";
+export { runSiegeSystem } from "./siegeSystem";
+export { runSiphonSystem } from "./siphonSystem";
+export { runStealthSystem } from "./stealthSystem";
 export type { TerritoryRuntime, VillageEntry } from "./territorySystem";
 export {
 	FOG_REVEAL_RADIUS,
@@ -134,13 +141,6 @@ export {
 	veterancyMultiplier,
 	XP_CONFIG,
 } from "./veterancySystem";
-export { runBossSystem } from "./bossSystem";
-export { runConvoySystem } from "./convoySystem";
-export { runDemolitionSystem } from "./demolitionSystem";
-export { runDifficultyScalingSystem } from "./difficultyScalingSystem";
-export { runSiegeSystem } from "./siegeSystem";
-export { runSiphonSystem } from "./siphonSystem";
-export { runStealthSystem } from "./stealthSystem";
 export { runWaterSystem } from "./waterSystem";
 export { runWaveSpawnerSystem } from "./waveSpawnerSystem";
 export { runWeatherSystem } from "./weatherSystem";

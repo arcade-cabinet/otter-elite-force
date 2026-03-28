@@ -6,19 +6,19 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { Faction, Selection } from "@/engine/world/components";
 import {
 	createGameWorld,
+	flushRemovals,
 	getOrderQueue,
 	getProductionQueue,
+	markForRemoval,
+	setFaction,
 	setScriptTag,
 	setSelection,
-	setFaction,
-	spawnUnit,
 	spawnBuilding,
-	markForRemoval,
-	flushRemovals,
+	spawnUnit,
 } from "@/engine/world/gameWorld";
-import { Faction, Selection } from "@/engine/world/components";
 
 describe("ECS entity relations", () => {
 	describe("Order queues", () => {

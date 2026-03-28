@@ -13,8 +13,9 @@
  * All tests are deterministic (fixed seed).
  */
 
-import { describe, expect, it, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { FACTION_IDS } from "@/engine/content/ids";
+import { createGovernor, type GovernorConfig } from "@/engine/playtester/governor";
 import { createSeedBundle } from "@/engine/random/seed";
 import { runAllSystems } from "@/engine/systems";
 import { resetGatherTimers } from "@/engine/systems/economySystem";
@@ -22,13 +23,12 @@ import { resetLootRng } from "@/engine/systems/lootSystem";
 import { Faction, Flags, Gatherer, Position, ResourceNode } from "@/engine/world/components";
 import {
 	createGameWorld,
+	type GameWorld,
 	getOrderQueue,
 	spawnBuilding,
 	spawnResource,
 	spawnUnit,
-	type GameWorld,
 } from "@/engine/world/gameWorld";
-import { createGovernor, type GovernorConfig } from "@/engine/playtester/governor";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -164,8 +164,7 @@ function createMission1EconomySandbox(): {
 describe("Economy Timeline Validation (Task 1)", () => {
 	describe("Resource tracking at time intervals", () => {
 		it("should track resources at 0:00, 0:30, 1:00, 1:30, 2:00, 3:00, 5:00, 8:00", () => {
-			const { world, workerEids, timberNodeEids, fishSpotEids } =
-				createMission1EconomySandbox();
+			const { world, workerEids, timberNodeEids, fishSpotEids } = createMission1EconomySandbox();
 
 			// Assign 3 workers to timber, 1 to fish (simulating optimal opening)
 			// getOrderQueue imported statically at top
@@ -256,8 +255,7 @@ describe("Economy Timeline Validation (Task 1)", () => {
 
 	describe("First building affordability", () => {
 		it("should be able to afford Command Post (200F + 100T) with governor play", () => {
-			const { world, workerEids, timberNodeEids, fishSpotEids } =
-				createMission1EconomySandbox();
+			const { world, workerEids, timberNodeEids, fishSpotEids } = createMission1EconomySandbox();
 
 			// Create a governor to play optimally
 			const governor = createGovernor(world, {
@@ -327,8 +325,7 @@ describe("Economy Timeline Validation (Task 1)", () => {
 				}
 			}
 
-			const mfTime =
-				mudfootAffordableTick >= 0 ? ticksToSeconds(mudfootAffordableTick) : -1;
+			const mfTime = mudfootAffordableTick >= 0 ? ticksToSeconds(mudfootAffordableTick) : -1;
 			console.log(
 				`\n=== First Mudfoot Affordable ===\n  Tick: ${mudfootAffordableTick}, Time: ${mfTime.toFixed(1)}s (${(mfTime / 60).toFixed(1)} min)`,
 			);
@@ -406,9 +403,7 @@ describe("Economy Timeline Validation (Task 1)", () => {
 			const roiSeconds = roiTick >= 0 ? ticksToSeconds(roiTick) : -1;
 			const totalFishGenerated = world.session.resources.fish - startFish;
 
-			console.log(
-				`\n=== Fish Trap ROI ===\n  Fish generated in 10 min: ${totalFishGenerated}`,
-			);
+			console.log(`\n=== Fish Trap ROI ===\n  Fish generated in 10 min: ${totalFishGenerated}`);
 			console.log(
 				`  ROI tick: ${roiTick}, Time: ${roiSeconds.toFixed(1)}s (${(roiSeconds / 60).toFixed(1)} min)`,
 			);

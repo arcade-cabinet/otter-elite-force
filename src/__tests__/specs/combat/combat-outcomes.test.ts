@@ -17,17 +17,66 @@ interface UnitStats {
 }
 
 const UNITS: Record<string, UnitStats> = {
-	river_rat: { hp: 40, armor: 0, speed: 80, attackDamage: 5, attackRange: 32, attackCooldownMs: 1500 },
-	mudfoot: { hp: 80, armor: 2, speed: 64, attackDamage: 12, attackRange: 32, attackCooldownMs: 1200 },
-	shellcracker: { hp: 150, armor: 5, speed: 48, attackDamage: 18, attackRange: 32, attackCooldownMs: 1800 },
-	mortar_otter: { hp: 45, armor: 0, speed: 56, attackDamage: 25, attackRange: 192, attackCooldownMs: 3000 },
+	river_rat: {
+		hp: 40,
+		armor: 0,
+		speed: 80,
+		attackDamage: 5,
+		attackRange: 32,
+		attackCooldownMs: 1500,
+	},
+	mudfoot: {
+		hp: 80,
+		armor: 2,
+		speed: 64,
+		attackDamage: 12,
+		attackRange: 32,
+		attackCooldownMs: 1200,
+	},
+	shellcracker: {
+		hp: 150,
+		armor: 5,
+		speed: 48,
+		attackDamage: 18,
+		attackRange: 32,
+		attackCooldownMs: 1800,
+	},
+	mortar_otter: {
+		hp: 45,
+		armor: 0,
+		speed: 56,
+		attackDamage: 25,
+		attackRange: 192,
+		attackCooldownMs: 3000,
+	},
 	sapper: { hp: 50, armor: 1, speed: 64, attackDamage: 8, attackRange: 32, attackCooldownMs: 1400 },
 	diver: { hp: 50, armor: 0, speed: 72, attackDamage: 10, attackRange: 32, attackCooldownMs: 1300 },
 	gator: { hp: 90, armor: 2, speed: 56, attackDamage: 14, attackRange: 32, attackCooldownMs: 1300 },
 	skink: { hp: 30, armor: 0, speed: 72, attackDamage: 6, attackRange: 32, attackCooldownMs: 1200 },
-	viper: { hp: 50, armor: 0, speed: 48, attackDamage: 16, attackRange: 128, attackCooldownMs: 2000 },
-	croc_champion: { hp: 300, armor: 8, speed: 40, attackDamage: 28, attackRange: 32, attackCooldownMs: 1800 },
-	snapper: { hp: 200, armor: 6, speed: 40, attackDamage: 22, attackRange: 32, attackCooldownMs: 2000 },
+	viper: {
+		hp: 50,
+		armor: 0,
+		speed: 48,
+		attackDamage: 16,
+		attackRange: 128,
+		attackCooldownMs: 2000,
+	},
+	croc_champion: {
+		hp: 300,
+		armor: 8,
+		speed: 40,
+		attackDamage: 28,
+		attackRange: 32,
+		attackCooldownMs: 1800,
+	},
+	snapper: {
+		hp: 200,
+		armor: 6,
+		speed: 40,
+		attackDamage: 22,
+		attackRange: 32,
+		attackCooldownMs: 2000,
+	},
 };
 
 const MINIMUM_DAMAGE = 1;
@@ -64,7 +113,12 @@ function simulate1v1(a: UnitStats, b: UnitStats): "a" | "b" {
 	return hpA > 0 ? "a" : "b";
 }
 
-function simulateNvM(aUnit: UnitStats, aCount: number, bUnit: UnitStats, bCount: number): "a" | "b" {
+function simulateNvM(
+	aUnit: UnitStats,
+	aCount: number,
+	bUnit: UnitStats,
+	bCount: number,
+): "a" | "b" {
 	const aHps = Array(aCount).fill(aUnit.hp) as number[];
 	const bHps = Array(bCount).fill(bUnit.hp) as number[];
 	const dmgAtoB = effectiveDamage(aUnit, bUnit);

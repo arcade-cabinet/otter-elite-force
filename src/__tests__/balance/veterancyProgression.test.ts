@@ -43,8 +43,8 @@ import {
 import {
 	createGameWorld,
 	flushRemovals,
-	spawnUnit,
 	type GameWorld,
+	spawnUnit,
 } from "@/engine/world/gameWorld";
 
 // ---------------------------------------------------------------------------
@@ -354,9 +354,7 @@ describe("Veterancy Progression Validation (Task 5)", () => {
 			console.log("  - Veteran achievable in Mission 1 (5 kills)");
 			console.log("  - Elite achievable in Mission 5+ (15 kills)");
 			console.log("  - Hero achievable in Mission 16 (40 kills)");
-			console.log(
-				"  - In practice, XP is split across units, so individual Hero rank",
-			);
+			console.log("  - In practice, XP is split across units, so individual Hero rank");
 			console.log("    requires focused kills on a single unit across missions.");
 		});
 	});
