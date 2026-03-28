@@ -7,7 +7,7 @@
  * button, and pawprint seal at bottom.
  */
 
-import { type Component, createEffect, createMemo, For, Show } from "solid-js";
+import { type Component, createEffect, createMemo, Show } from "solid-js";
 import { getPortraitCanvas } from "@/canvas/portraitRenderer";
 import { getMissionById } from "@/entities/missions";
 import type { AppState } from "../appState";
@@ -148,35 +148,31 @@ export const BriefingOverlay: Component<{ app: AppState }> = (props) => {
 					<Show when={mission()}>
 						{(m) => (
 							<>
-								<div class="relative mt-4 space-y-3">
-									<For each={m().briefing.lines}>
-										{(line) => (
-											<div class="border-l-2 border-rust-600/30 pl-3">
-												<div class="font-mono text-[9px] uppercase tracking-[0.24em] text-rust-700/60">
-													{line.speaker}
-												</div>
-												<p class="mt-0.5 font-body text-sm leading-relaxed tracking-[0.06em] text-slate-800/90">
-													{line.text}
-												</p>
-											</div>
-										)}
-									</For>
-								</div>
+								{/* Brief context -- first line of dialogue only */}
+								<Show when={m().briefing.lines.length > 0}>
+									<div class="relative mt-4 border-l-2 border-rust-600/30 pl-3">
+										<div class="font-mono text-[9px] uppercase tracking-[0.24em] text-rust-700/60">
+											{m().briefing.lines[0].speaker}
+										</div>
+										<p class="mt-0.5 font-body text-sm leading-relaxed tracking-[0.06em] text-slate-800/90">
+											{m().briefing.lines[0].text}
+										</p>
+									</div>
+								</Show>
+								{/* Primary Objectives */}
 								<div class="relative mt-6">
 									<div class="mb-2 font-mono text-[10px] uppercase tracking-[0.26em] text-rust-700/80">
 										Primary Objectives
 									</div>
 									<ul class="space-y-2">
-										<For each={m().objectives.primary}>
-											{(obj) => (
-												<li class="flex items-start gap-2.5">
-													<ObjectiveBullet />
-													<span class="font-body text-xs uppercase tracking-[0.08em] text-slate-800">
-														{obj.description}
-													</span>
-												</li>
-											)}
-										</For>
+										{m().objectives.primary.map((obj) => (
+											<li class="flex items-start gap-2.5">
+												<ObjectiveBullet />
+												<span class="font-body text-xs uppercase tracking-[0.08em] text-slate-800">
+													{obj.description}
+												</span>
+											</li>
+										))}
 									</ul>
 								</div>
 							</>
