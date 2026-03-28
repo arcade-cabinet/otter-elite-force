@@ -66,9 +66,7 @@ test.describe("Gameplay Verification: Mission 1", () => {
 		await expect(page.getByText("Mission Briefing")).toBeVisible({
 			timeout: 10000,
 		});
-		await expect(
-			page.getByRole("heading", { name: "Beachhead" }),
-		).toBeVisible();
+		await expect(page.getByRole("heading", { name: "Beachhead" })).toBeVisible();
 		await page.screenshot({ path: "/tmp/gameplay-verify-02-briefing.png" });
 
 		// ====================================================================
@@ -78,9 +76,7 @@ test.describe("Gameplay Verification: Mission 1", () => {
 		await page.getByRole("button", { name: /Deploy/i }).click();
 
 		// Wait for game HUD to appear
-		const hudResources = page.locator(
-			"[data-testid='runtime-hud-resources']",
-		);
+		const hudResources = page.locator("[data-testid='runtime-hud-resources']");
 		await expect(hudResources).toBeVisible({ timeout: 15000 });
 		await page.waitForTimeout(2000);
 		await page.screenshot({
@@ -105,12 +101,8 @@ test.describe("Gameplay Verification: Mission 1", () => {
 				const salvageMatch = resourceBar.match(/Salvage\s+(\d+)/i);
 				return {
 					fish: fishMatch ? Number.parseInt(fishMatch[1], 10) : 0,
-					timber: timberMatch
-						? Number.parseInt(timberMatch[1], 10)
-						: 0,
-					salvage: salvageMatch
-						? Number.parseInt(salvageMatch[1], 10)
-						: 0,
+					timber: timberMatch ? Number.parseInt(timberMatch[1], 10) : 0,
+					salvage: salvageMatch ? Number.parseInt(salvageMatch[1], 10) : 0,
 				};
 			} catch {
 				return null;
@@ -128,9 +120,7 @@ test.describe("Gameplay Verification: Mission 1", () => {
 		// ====================================================================
 		console.log("=== TEST 11: Tutorial overlay ===");
 		const tutorialOverlay = page.locator("[data-testid='tutorial-overlay']");
-		const tutorialVisible = await tutorialOverlay
-			.isVisible()
-			.catch(() => false);
+		const tutorialVisible = await tutorialOverlay.isVisible().catch(() => false);
 		if (tutorialVisible) {
 			console.log("PASS: Tutorial overlay appeared");
 			const dismissBtn = tutorialOverlay.locator("button", {
@@ -196,9 +186,7 @@ test.describe("Gameplay Verification: Mission 1", () => {
 						.first()
 						.textContent()
 						.catch(() => "");
-					gameEndPhase = resultText?.includes("COMPLETE")
-						? "victory"
-						: "defeat";
+					gameEndPhase = resultText?.includes("COMPLETE") ? "victory" : "defeat";
 				} else if (hasMenu) {
 					gameEndPhase = "returned-to-menu";
 				} else {
@@ -206,9 +194,7 @@ test.describe("Gameplay Verification: Mission 1", () => {
 				}
 
 				gameEndTime = elapsedSec;
-				issuesFound.push(
-					`Game ended as '${gameEndPhase}' at ~${elapsedSec}s`,
-				);
+				issuesFound.push(`Game ended as '${gameEndPhase}' at ~${elapsedSec}s`);
 				break;
 			}
 
@@ -258,14 +244,10 @@ test.describe("Gameplay Verification: Mission 1", () => {
 				]) {
 					await page.mouse.click(cx + dx, cy + dy);
 					await page.waitForTimeout(300);
-					const selPanel = page.locator(
-						"[data-testid='runtime-hud-selection']",
-					);
+					const selPanel = page.locator("[data-testid='runtime-hud-selection']");
 					const sv = await selPanel.isVisible().catch(() => false);
 					if (sv) {
-						const selText = await selPanel
-							.textContent()
-							.catch(() => "");
+						const selText = await selPanel.textContent().catch(() => "");
 						console.log(`PASS: Selection: "${selText}"`);
 						if (selText?.toUpperCase().includes("RIVER RAT")) {
 							console.log("PASS: Selected RIVER RAT");
@@ -327,14 +309,10 @@ test.describe("Gameplay Verification: Mission 1", () => {
 			// TEST 3: Check objectives
 			// ================================================================
 			if (tick % 3 === 2 && !objectiveCompleted) {
-				const objPanel = page.locator(
-					"[data-testid='runtime-hud-objectives']",
-				);
+				const objPanel = page.locator("[data-testid='runtime-hud-objectives']");
 				const ov = await objPanel.isVisible().catch(() => false);
 				if (ov) {
-					const objText = await objPanel
-						.textContent()
-						.catch(() => "");
+					const objText = await objPanel.textContent().catch(() => "");
 					if (objText?.includes("[x]")) {
 						objectiveCompleted = true;
 						console.log("PASS: Objective completed");
@@ -353,7 +331,9 @@ test.describe("Gameplay Verification: Mission 1", () => {
 		};
 
 		console.log("\n=== RESOURCE ANALYSIS ===");
-		console.log(`Final: Fish=${finalResources.fish}, Timber=${finalResources.timber}, Salvage=${finalResources.salvage}`);
+		console.log(
+			`Final: Fish=${finalResources.fish}, Timber=${finalResources.timber}, Salvage=${finalResources.salvage}`,
+		);
 
 		// Starting: fish:200, timber:50, salvage:75
 		const fishDelta = finalResources.fish - 200;
