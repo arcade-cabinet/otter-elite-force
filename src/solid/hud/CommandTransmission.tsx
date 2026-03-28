@@ -34,7 +34,7 @@ export const CommandTransmission: Component<{
 
 	// Reset line index when dialogue changes
 	createEffect(() => {
-		const _d = dialogue(); // track dependency
+		void dialogue(); // track dependency
 		setLineIndex(0);
 	});
 

@@ -81,7 +81,7 @@ export function createTypewriter(
 
 	// React to text changes: reset and restart
 	createEffect(() => {
-		const _fullText = text(); // track dependency
+		void text(); // track dependency
 		setCharIndex(0);
 		setStarted(startDelay === 0);
 

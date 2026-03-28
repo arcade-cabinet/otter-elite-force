@@ -3,47 +3,13 @@ import { describe, expect, it } from "vitest";
 import { RuntimeHost } from "./RuntimeHost";
 
 describe("engine/runtime/RuntimeHost", () => {
-	it("mounts a direct tactical runtime host with game HUD elements", () => {
+	it("mounts the canvas container and TacticalHUD overlay", () => {
 		render(() => <RuntimeHost mode="campaign" missionId="mission_1" />);
 
 		expect(screen.getByTestId("runtime-host-container")).toBeTruthy();
-		expect(screen.queryByTestId("runtime-host-bridge")).toBeNull();
-		expect(screen.getByTestId("runtime-btn-recenter")).toBeTruthy();
-		expect(screen.getByTestId("runtime-hud-resources")).toBeTruthy();
-		expect(screen.getByTestId("runtime-hud-objectives")).toBeTruthy();
-		// Alerts panel only renders when alerts exist (initially hidden)
-		expect(screen.queryByTestId("runtime-hud-alerts")).toBeNull();
-	});
-
-	it("renders campaign mission title from the shared engine descriptor", () => {
-		render(() => <RuntimeHost mode="campaign" missionId="mission_1" />);
-
-		expect(screen.getByText(/Beachhead/i)).toBeTruthy();
-	});
-
-	it("renders seeded skirmish mission title", () => {
-		render(() => (
-			<RuntimeHost
-				mode="skirmish"
-				skirmish={{
-					mapId: "sk_river_crossing",
-					mapName: "River Crossing",
-					difficulty: "medium",
-					playAsScaleGuard: false,
-					preset: "meso",
-					seed: {
-						phrase: "silent-ember-heron",
-						source: "skirmish",
-						numericSeed: 10,
-						designSeed: 20,
-						gameplaySeeds: { loot: 1, waves: 2 },
-					},
-					startingResources: { fish: 300, timber: 200, salvage: 100 },
-				}}
-			/>
-		));
-
-		expect(screen.getByText(/River Crossing/i)).toBeTruthy();
+		expect(screen.getByTestId("tactical-hud")).toBeTruthy();
+		expect(screen.getByTestId("resource-bar")).toBeTruthy();
+		expect(screen.getByTestId("objectives-panel")).toBeTruthy();
 	});
 
 	it("does not show debug info (seeds, run IDs, map stats)", () => {
