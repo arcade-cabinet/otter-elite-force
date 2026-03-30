@@ -28,7 +28,7 @@
 		"@capacitor-community/sqlite": "^7.0.0",
 		"@capacitor/android": "^8.2.0",
 		"@capacitor/cli": "^8.2.0",
-		"@capacitor/core": "^8.2.0",
+		"@capacitor/core": "^8.3.0",
 		"@capacitor/ios": "^8.2.0",
 		"@fontsource/black-ops-one": "^5.2.8",
 		"@fontsource/share-tech-mono": "^5.2.7",
