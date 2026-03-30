@@ -33,8 +33,8 @@ importers:
         specifier: ^5.2.8
         version: 5.2.8
       '@hugeicons/core-free-icons':
-        specifier: ^4.0.0
-        version: 4.0.0
+        specifier: ^4.1.1
+        version: 4.1.1
       '@tailwindcss/vite':
         specifier: ^4.2.2
         version: 4.2.2(vite@8.0.3(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(tsx@4.21.0))
@@ -463,8 +463,8 @@ packages:
   '@fontsource/special-elite@5.2.8':
     resolution: {integrity: sha512-tJRYZ6dZK3wiGvMS5NMOg6fqctWimNUUrYtLfPGJYqidaFeI2QqFUE0rbn16DjqID0DrnZSHYfqz1jGdctd5ew==}
 
-  '@hugeicons/core-free-icons@4.0.0':
-    resolution: {integrity: sha512-bzfbKumv3ke3ajbe2MyXi9i0I/cdsZ6n/mO9EfIPNSL++pHLqs7nSGRIVUtjF4xrrEyVkfhxssv4Jek8DPA6gA==}
+  '@hugeicons/core-free-icons@4.1.1':
+    resolution: {integrity: sha512-teqIBvPHl90ygIwKyJwTxOH8aNp1X1PjDTcMvLkEwdPxPD+8mssrZ5kXKIAJJFYPsz69a8LYQY0UPid4PAdavg==}
 
   '@inquirer/ansi@1.0.2':
     resolution: {integrity: sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ==}
@@ -991,6 +991,7 @@ packages:
   '@xmldom/xmldom@0.8.11':
     resolution: {integrity: sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==}
     engines: {node: '>=10.0.0'}
+    deprecated: this version has critical issues, please update to the latest version
 
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
@@ -2290,7 +2291,7 @@ snapshots:
 
   '@fontsource/special-elite@5.2.8': {}
 
-  '@hugeicons/core-free-icons@4.0.0': {}
+  '@hugeicons/core-free-icons@4.1.1': {}
 
   '@inquirer/ansi@1.0.2':
     optional: true
